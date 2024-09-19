@@ -5,6 +5,7 @@ import { useBpmnModeler } from './useBpmnModeler';
 import { useBpmnConfigPanelFormContext } from '../contexts/BpmnConfigPanelContext';
 import { useBpmnApiContext } from '../contexts/BpmnApiContext';
 import type { TaskEvent } from '../types/TaskEvent';
+import type { SelectionChangedEvent } from '../types/SelectionChangeEvent';
 import { getBpmnEditorDetailsFromBusinessObject } from '../utils/bpmnObjectBuilders';
 import { useStudioRecommendedNextActionContext } from '@studio/components';
 
@@ -35,8 +36,8 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
-    addAction(bpmnDetails.id);
-    updateBpmnDetailsByTaskEvent(taskEvent);
+    if (bpmnDetails.taskType === 'data' || bpmnDetails.taskType === 'payment')
+      addAction(bpmnDetails.id);
   };
 
   const handleShapeRemove = (taskEvent: TaskEvent): void => {
@@ -45,14 +46,22 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
-    setBpmnDetails(null);
   };
 
-  const updateBpmnDetailsByTaskEvent = useCallback(
-    (taskEvent: TaskEvent) => {
+  const handleSelectionChange = (selectionEvent: SelectionChangedEvent): void => {
+    if (selectionEvent.newSelection.length !== 1) {
+      setBpmnDetails(null);
+      return;
+    }
+    const selectedElement = selectionEvent.newSelection[0];
+    updateBpmnDetails(selectedElement);
+  };
+
+  const updateBpmnDetails = useCallback(
+    (element: any) => {
       const bpmnDetails = {
-        ...getBpmnEditorDetailsFromBusinessObject(taskEvent.element?.businessObject),
-        element: taskEvent.element,
+        ...getBpmnEditorDetailsFromBusinessObject(element?.businessObject),
+        element: element,
       };
       setBpmnDetails(bpmnDetails);
     },
@@ -80,6 +89,9 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
     modelerRef.current.on('shape.remove', (taskEvent: TaskEvent): void => {
       handleShapeRemove(taskEvent);
     });
+    modelerRef.current.on('selection.changed', (selectionEvent: SelectionChangedEvent): void => {
+      handleSelectionChange(selectionEvent);
+    });
   };
 
   useEffect(() => {
@@ -98,12 +110,6 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Missing dependencies are not added to avoid getModeler to be called multiple times
-
-  useEffect(() => {
-    if (!modelerRef.current) return;
-    const eventBus: BpmnModeler = modelerRef.current.get('eventBus');
-    eventBus.on('element.click', updateBpmnDetailsByTaskEvent);
-  }, [modelerRef, updateBpmnDetailsByTaskEvent]);
 
   useEffect(() => {
     // Destroy the modeler instance when the component is unmounted

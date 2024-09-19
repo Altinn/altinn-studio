@@ -10,6 +10,7 @@ import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 import { type BpmnTaskType } from '../../types/BpmnTaskType';
+import { SettingsModal } from '../../components/SettingsModal';
 
 // This line must be there to ensure that the tests do not run in parallell, and
 // that the before all call is being executed before we start the tests
@@ -48,6 +49,7 @@ test('that the user is able to add and delete data model', async ({ page, testAp
   await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
   await processEditorPage.waitForInitialTaskHeaderToBeVisible();
 
+  await processEditorPage.dataModelConfig.clickOnDesignAccordion();
   await processEditorPage.dataModelConfig.waitForDataModelButtonToBeVisibleWithValue('model');
   await processEditorPage.dataModelConfig.clickOnDataModelButton('model');
   await processEditorPage.dataModelConfig.waitForComboboxToBeVisible();
@@ -87,6 +89,38 @@ test('that the user able to open policy editor', async ({ page, testAppName }) =
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
   await processEditorPage.policyConfig.closePolicyEditor();
   await processEditorPage.policyConfig.verifyThatPolicyEditorIsClosed();
+});
+
+test('Opening the settings modal from the header after the user has opened it from the process editor and navigated to another tab', async ({
+  page,
+  testAppName,
+}) => {
+  const processEditorPage = await setupAndVerifyProcessEditorPage(page, testAppName);
+  const bpmnJSQuery = new BpmnJSQuery(page);
+  const settingsModal = new SettingsModal(page, { app: testAppName });
+  const header = new Header(page, { app: testAppName });
+
+  const initialTaskDataElementIdSelector: string = await bpmnJSQuery.getTaskByIdAndType(
+    'Task_1',
+    'g',
+  );
+  await processEditorPage.clickOnTaskInBpmnEditor(initialTaskDataElementIdSelector);
+  await processEditorPage.waitForInitialTaskHeaderToBeVisible();
+
+  await processEditorPage.policyConfig.clickOnPolicyAccordion();
+  await processEditorPage.policyConfig.waitForNavigateToPolicyButtonIsVisible();
+  await processEditorPage.policyConfig.clickOnNavigateToPolicyEditorButton();
+  await processEditorPage.policyConfig.verifyThatPolicyEditorIsOpen();
+
+  await settingsModal.navigateToTab('setup');
+  await settingsModal.verifyThatTabIsVisible('setup');
+  await settingsModal.clickOnCloseSettingsModalButton();
+  await settingsModal.verifyThatSettingsModalIsNotOpen();
+
+  await header.clickOnOpenSettingsModalButton();
+  await settingsModal.verifyThatSettingsModalIsOpen();
+  await settingsModal.clickOnCloseSettingsModalButton();
+  await settingsModal.verifyThatSettingsModalIsNotOpen();
 });
 
 test('that the user can edit the id of a task and add data-types to sign', async ({
@@ -147,7 +181,6 @@ test('That it is possible to create a custom receipt', async ({ page, testAppNam
   await processEditorPage.customReceiptConfig.writeLayoutSetId(newLayoutSetId);
   await processEditorPage.dataModelConfig.clickOnAddDataModelCombobox();
   await processEditorPage.dataModelConfig.chooseOption(newDataModel);
-  await processEditorPage.pressEscapeOnKeyboard();
 
   await processEditorPage.customReceiptConfig.waitForSaveNewCustomReceiptButtonToBeVisible();
   await processEditorPage.customReceiptConfig.clickOnSaveNewCustomReceiptButton();
@@ -182,7 +215,6 @@ const addNewSigningTaskToProcessEditor = async (page: Page): Promise<string> => 
     extraMovingDistanceX,
     extraMovingDistanceY,
   );
-  await processEditorPage.skipRecommendedTask();
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(signingTask);
 
   return signingTask;

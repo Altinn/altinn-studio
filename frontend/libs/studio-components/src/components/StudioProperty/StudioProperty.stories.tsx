@@ -29,7 +29,7 @@ const ComposedPreviewComponent = ({ withoutNegativeMargin, legend, buttons }: Pr
 };
 
 const meta: Meta = {
-  title: 'Studio/StudioProperty',
+  title: 'StudioProperty',
   component: ComposedPreviewComponent,
 };
 export const Preview: PreviewStory = (args): React.ReactElement => (

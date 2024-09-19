@@ -399,7 +399,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 var defaultComponent = new JsonObject
                 {
                     ["id"] = "PaymentComponentId",
-                    ["type"] = TaskType.Payment,
+                    ["type"] = "Payment",
                     ["renderAsSummary"] = true
                 };
                 layoutArray.Add(defaultComponent);

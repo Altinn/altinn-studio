@@ -5,7 +5,7 @@ import { StudioAnimateHeight } from './StudioAnimateHeight';
 type Story = StoryFn<typeof StudioAnimateHeight>;
 
 const meta: Meta = {
-  title: 'Studio/StudioAnimateHeight',
+  title: 'StudioAnimateHeight',
   component: StudioAnimateHeight,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioAnimateHeight {...args} />;

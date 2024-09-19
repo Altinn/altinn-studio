@@ -23,7 +23,6 @@ export const ShareChangesPopover = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
-  const [popoverHidden, setPopoverHidden] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [hasChangesToPush, setHasChangesToPush] = useState(true);
 
@@ -33,7 +32,6 @@ export const ShareChangesPopover = () => {
 
   const fileChanges: RepoContentStatus[] = repoStatus?.contentStatus;
 
-  const handleHidePopover = (hide: boolean) => setPopoverHidden(hide);
   const handleClosePopover = () => setPopoverOpen(false);
 
   const handleOpenPopover = async () => {
@@ -60,42 +58,33 @@ export const ShareChangesPopover = () => {
   };
 
   return (
-    <div>
-      <StudioPageHeaderButton
-        onClick={handleOpenPopover}
-        disabled={!hasPushRights || hasMergeConflict}
-        title={renderCorrectTitle()}
-        icon={<UploadIcon />}
-        color='light'
-        variant='regular'
-        aria-label={t('sync_header.changes_to_share')}
+    <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
+      <StudioPopover.Trigger asChild>
+        <StudioPageHeaderButton
+          onClick={handleOpenPopover}
+          disabled={!hasPushRights || hasMergeConflict}
+          title={renderCorrectTitle()}
+          icon={<UploadIcon />}
+          color='light'
+          variant='regular'
+          aria-label={t('sync_header.changes_to_share')}
+        >
+          {shouldDisplayText && t('sync_header.changes_to_share')}
+          {displayNotification && <Notification />}
+        </StudioPageHeaderButton>
+      </StudioPopover.Trigger>
+      <StudioPopover.Content
+        className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
       >
-        {shouldDisplayText && t('sync_header.changes_to_share')}
-        {displayNotification && <Notification />}
-      </StudioPageHeaderButton>
-      <div className={popoverHidden ? classes.hidePopover : classes.showPopover}>
-        <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-          <StudioPopover.Trigger asChild>
-            <span />
-          </StudioPopover.Trigger>
-          <StudioPopover.Content
-            className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
-          >
-            {isLoading && (
-              <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
-            )}
-            {!isLoading && hasChangesToPush && (
-              <CommitAndPushContent
-                onHidePopover={handleHidePopover}
-                onClosePopover={handleClosePopover}
-                fileChanges={fileChanges}
-              />
-            )}
-            {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
-          </StudioPopover.Content>
-        </StudioPopover>
-      </div>
-    </div>
+        {isLoading && (
+          <SyncLoadingIndicator heading={t('sync_header.controlling_service_status')} />
+        )}
+        {!isLoading && hasChangesToPush && (
+          <CommitAndPushContent onClosePopover={handleClosePopover} fileChanges={fileChanges} />
+        )}
+        {fetchCompleted && <GiteaFetchCompleted heading={t('sync_header.nothing_to_push')} />}
+      </StudioPopover.Content>
+    </StudioPopover>
   );
 };
 

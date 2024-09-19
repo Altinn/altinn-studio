@@ -13,7 +13,7 @@ const ComposedComponent = (args): React.ReactElement => (
 type Story = StoryFn<typeof ComposedComponent>;
 
 const meta: Meta = {
-  title: 'Studio/StudioDropdownMenu',
+  title: 'StudioDropdownMenu',
   component: ComposedComponent,
   argTypes: {
     placement: {

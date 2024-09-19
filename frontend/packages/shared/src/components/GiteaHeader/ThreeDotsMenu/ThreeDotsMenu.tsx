@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
+import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { Link } from '@digdir/designsystemet-react';
@@ -16,11 +16,9 @@ export type ThreeDotsMenuProps = {
 export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
-  const openLocalChangesModal = () => setLocalChangesModalIsOpen(true);
 
   return (
     <StudioPopover>
@@ -72,22 +70,8 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             </StudioButton>
           </li>
           <li>
-            <StudioButton
-              onClick={openLocalChangesModal}
-              size='small'
-              className={classes.menuButton}
-              variant='tertiary'
-            >
-              <MonitorIcon />
-              {t('sync_header.local_changes')}
-            </StudioButton>
+            <LocalChangesModal triggerClassName={classes.menuButton} />
           </li>
-          {localChangesModalIsOpen && (
-            <LocalChangesModal
-              isOpen={localChangesModalIsOpen}
-              onClose={() => setLocalChangesModalIsOpen(false)}
-            />
-          )}
         </ul>
       </StudioPopover.Content>
     </StudioPopover>

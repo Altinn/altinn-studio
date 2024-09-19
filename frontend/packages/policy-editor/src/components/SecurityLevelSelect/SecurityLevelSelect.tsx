@@ -31,7 +31,7 @@ export const SecurityLevelSelect = ({
 
   return (
     <div>
-      <Heading level={2} size='xxsmall' spacing>
+      <Heading level={4} size='xxsmall' spacing>
         {t('policy_editor.security_level_label')}
       </Heading>
       <Paragraph className={classes.paragraph} size='small'>

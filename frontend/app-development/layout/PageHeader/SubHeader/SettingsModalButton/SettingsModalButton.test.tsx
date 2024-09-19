@@ -25,7 +25,7 @@ describe('SettingsModal', () => {
 
     const modalHeading = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
-      level: 1,
+      level: 2,
     });
 
     expect(modalHeading).not.toBeInTheDocument();
@@ -36,7 +36,7 @@ describe('SettingsModal', () => {
 
     const modalHeading = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
-      level: 1,
+      level: 2,
     });
     expect(modalHeading).not.toBeInTheDocument();
 
@@ -45,7 +45,6 @@ describe('SettingsModal', () => {
 
     const modalHeadingAfter = screen.getByRole('heading', {
       name: textMock('settings_modal.heading'),
-      level: 1,
     });
     expect(modalHeadingAfter).toBeInTheDocument();
   });
@@ -57,18 +56,18 @@ describe('SettingsModal', () => {
 
     const modalHeading = screen.getByRole('heading', {
       name: textMock('settings_modal.heading'),
-      level: 1,
+      level: 2,
     });
     expect(modalHeading).toBeInTheDocument();
 
     const closeButton = screen.getByRole('button', {
-      name: textMock('settings_modal.close_button_label'),
+      name: 'close modal', // Todo: Replace with textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
     });
     await user.click(closeButton);
 
     const modalHeadingAfter = screen.queryByRole('heading', {
       name: textMock('settings_modal.heading'),
-      level: 1,
+      level: 2,
     });
     expect(modalHeadingAfter).not.toBeInTheDocument();
   });

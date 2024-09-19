@@ -47,7 +47,7 @@ const defaultBpmnContextProps: BpmnApiContextProps = {
 describe('CustomReceipt', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('calls "mutateLayoutSetId" when the layoutset id is changed', async () => {
+  it('calls "mutateLayoutSetId" when the layoutSet id is changed', async () => {
     const user = userEvent.setup();
     renderCustomReceipt();
 
@@ -70,6 +70,26 @@ describe('CustomReceipt', () => {
       layoutSetIdToUpdate: existingCustomReceiptLayoutSetId,
       newLayoutSetId,
     });
+  });
+
+  it('does not call "mutateLayoutSetId" when the layoutSet id is changed to the original id', async () => {
+    const user = userEvent.setup();
+    renderCustomReceipt();
+
+    const toggleableTextfieldButton = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    });
+
+    await user.click(toggleableTextfieldButton);
+
+    const textfield = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    );
+    await user.clear(textfield);
+    await user.type(textfield, existingCustomReceiptLayoutSetId);
+    await user.tab();
+
+    expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
   });
 
   it('calls "mutateDataTypes" when the data model id is changed', async () => {
@@ -133,7 +153,7 @@ describe('CustomReceipt', () => {
     expect(mockBpmnApiContextValue.mutateLayoutSetId).not.toHaveBeenCalled();
   });
 
-  it('calls "deleteLayoutSet" when clicking delete layoutset', async () => {
+  it('calls "deleteLayoutSet" when clicking delete layoutSet', async () => {
     const user = userEvent.setup();
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     renderCustomReceipt();

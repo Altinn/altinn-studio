@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { createRef } from 'react';
+import type { ByRoleOptions } from '@testing-library/react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { SettingsModalProps } from './SettingsModal';
 import { SettingsModal } from './SettingsModal';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -13,8 +13,10 @@ import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { MemoryRouter } from 'react-router-dom';
 import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
 import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
+import type { SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
 
 jest.mock('app-development/hooks/mutations/useAppConfigMutation');
+
 const updateAppConfigMutation = jest.fn();
 const mockUpdateAppConfigMutation = useAppConfigMutation as jest.MockedFunction<
   typeof useAppConfigMutation
@@ -25,164 +27,63 @@ mockUpdateAppConfigMutation.mockReturnValue({
 
 describe('SettingsModal', () => {
   const user = userEvent.setup();
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  const mockOnClose = jest.fn();
-
-  const defaultProps: SettingsModalProps = {
-    isOpen: true,
-    onClose: mockOnClose,
-  };
+  afterEach(jest.clearAllMocks);
 
   it('closes the modal when the close button is clicked', async () => {
-    renderSettingsModal(defaultProps);
+    await renderSettingsModal();
 
     const closeButton = screen.getByRole('button', {
-      name: textMock('settings_modal.close_button_label'),
+      name: 'close modal', // Todo: Replace 'close modal' with textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
     });
     await user.click(closeButton);
-
-    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('displays left navigation bar when promises resolves', async () => {
+  it('displays left navigation bar when promises resolve', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_about') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_setup') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_policy') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('tab', { name: textMock('settings_modal.left_nav_tab_access_control') }),
-    ).toBeInTheDocument();
+    expect(getAboutTab()).toBeInTheDocument();
+    expect(getSetupTab()).toBeInTheDocument();
+    expect(getPolicyTab()).toBeInTheDocument();
+    expect(getAccessTab()).toBeInTheDocument();
   });
 
-  it('displays the about tab, and not the other tabs, when promises resolves first time', async () => {
+  it('displays the about tab, and not the other tabs, when promises resolve first time', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.policy_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.access_control_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
+    expect(getAboutTab()).toBeInTheDocument();
+    expect(querySetupHeading()).not.toBeInTheDocument();
+    expect(queryPolicyHeading()).not.toBeInTheDocument();
+    expect(queryAccessHeading()).not.toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "policy" when policy tab is clicked', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.policy_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-
-    const policyTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_policy'),
-    });
-    await user.click(policyTab);
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.policy_tab_heading'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
+    expect(queryPolicyHeading()).not.toBeInTheDocument();
+    await user.click(getPolicyTab());
+    expect(getPolicyHeading()).toBeInTheDocument();
+    expect(queryAboutHeading()).not.toBeInTheDocument();
   });
 
   it('changes the tab from "policy" to "about" when about tab is clicked', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-
-    const policyTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_policy'),
-    });
-    await user.click(policyTab);
-
-    const aboutTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_about'),
-    });
-    await user.click(aboutTab);
-
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.policy_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
+    await user.click(getPolicyTab());
+    await user.click(getAboutTab());
+    expect(queryPolicyHeading()).not.toBeInTheDocument();
+    expect(getAboutHeading()).toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "accessControl" when access control tab is clicked', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.access_control_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-
-    const accessControlTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_access_control'),
-    });
-    await user.click(accessControlTab);
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.access_control_tab_heading'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
+    expect(queryAccessHeading()).not.toBeInTheDocument();
+    await user.click(getAccessTab());
+    expect(getAccessHeading()).toBeInTheDocument();
+    expect(queryAboutHeading()).not.toBeInTheDocument();
   });
 
   it('changes the tab from "about" to "setup" when setup control tab is clicked', async () => {
     await resolveAndWaitForSpinnerToDisappear();
-
-    expect(
-      screen.queryByRole('heading', {
-        name: textMock('settings_modal.setup_tab_heading'),
-        level: 2,
-      }),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText(textMock('settings_modal.about_tab_heading'))).toBeInTheDocument();
-
-    const setupTab = screen.getByRole('tab', {
-      name: textMock('settings_modal.left_nav_tab_setup'),
-    });
-    await user.click(setupTab);
-
-    expect(
-      screen.getByRole('heading', {
-        name: textMock('settings_modal.setup_tab_heading'),
-        level: 2,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(textMock('settings_modal.about_tab_heading')),
-    ).not.toBeInTheDocument();
+    expect(querySetupHeading()).not.toBeInTheDocument();
+    await user.click(getSetupTab());
+    expect(getSetupHeading()).toBeInTheDocument();
+    expect(queryAboutHeading()).not.toBeInTheDocument();
   });
 
   /**
@@ -190,28 +91,60 @@ describe('SettingsModal', () => {
    * to be removed from the screen
    */
   const resolveAndWaitForSpinnerToDisappear = async () => {
-    renderSettingsModal(defaultProps);
+    await renderSettingsModal();
 
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('settings_modal.loading_content')),
     );
   };
+
+  const getAboutTab = () => getTab(textMock('settings_modal.left_nav_tab_about'));
+  const getSetupTab = () => getTab(textMock('settings_modal.left_nav_tab_setup'));
+  const getPolicyTab = () => getTab(textMock('settings_modal.left_nav_tab_policy'));
+  const getAccessTab = () => getTab(textMock('settings_modal.left_nav_tab_access_control'));
+  const getTab = (name: string) => screen.getByRole('tab', { name });
+
+  const getAboutHeading = () => getTabHeading(aboutHeading);
+  const getSetupHeading = () => getTabHeading(setupHeading);
+  const getPolicyHeading = () => getTabHeading(policyHeading);
+  const getAccessHeading = () => getTabHeading(accessHeading);
+  const getTabHeading = (name: string) => screen.getByRole('heading', tabPanelHeadingOptions(name));
+
+  const queryAboutHeading = () => queryTabHeading(aboutHeading);
+  const querySetupHeading = () => queryTabHeading(setupHeading);
+  const queryPolicyHeading = () => queryTabHeading(policyHeading);
+  const queryAccessHeading = () => queryTabHeading(accessHeading);
+  const queryTabHeading = (name: string) =>
+    screen.queryByRole('heading', tabPanelHeadingOptions(name));
+
+  const tabPanelHeadingOptions = (name: string): ByRoleOptions => ({
+    name,
+    level: 3,
+  });
+  const aboutHeading = textMock('settings_modal.about_tab_heading');
+  const setupHeading = textMock('settings_modal.setup_tab_heading');
+  const policyHeading = textMock('settings_modal.policy_tab_heading');
+  const accessHeading = textMock('settings_modal.access_control_tab_heading');
 });
 
-const renderSettingsModal = (
-  props: SettingsModalProps,
+const renderSettingsModal = async (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
 ) => {
-  return render(
+  const ref = createRef<SettingsModalHandle>();
+  // eslint-disable-next-line testing-library/render-result-naming-convention
+  const result = render(
     <MemoryRouter>
       <ServicesContextProvider {...queries} client={queryClient}>
         <SettingsModalContextProvider>
           <PreviewContextProvider>
-            <SettingsModal {...props} />
+            <SettingsModal ref={ref} />
           </PreviewContextProvider>
         </SettingsModalContextProvider>
       </ServicesContextProvider>
     </MemoryRouter>,
   );
+  ref.current?.openSettings();
+  await screen.findByRole('dialog');
+  return result;
 };

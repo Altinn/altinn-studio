@@ -1,12 +1,15 @@
 .container {
   display: flex;
   gap: var(--fds-spacing-2);
+  padding: var(--fds-spacing-3);
+  box-sizing: border-box;
 }
 
 .prefixIcon {
   color: var(--fds-semantic-text-neutral-default);
   margin-top: var(--fds-spacing-7);
-  font-size: var(--fds-sizing-6);
+  font-size: var(--fds-sizing-4);
+  align-content: center;
 }
 
 .textfield {

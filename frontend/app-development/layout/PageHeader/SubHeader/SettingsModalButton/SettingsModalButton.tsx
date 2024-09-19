@@ -11,33 +11,22 @@ import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext
 export const SettingsModalButton = (): ReactNode => {
   const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
+  const { settingsRef } = useSettingsModalContext();
 
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-
-  const { settingsModalOpen, setSettingsModalOpen, settingsModalSelectedTab } =
-    useSettingsModalContext();
 
   return (
     <>
       <StudioPageHeaderButton
         color='light'
-        onClick={() => setSettingsModalOpen(true)}
+        onClick={() => settingsRef.current.openSettings()}
         icon={<CogIcon />}
         variant={variant}
         aria-label={t('sync_header.settings')}
       >
         {shouldDisplayText && t('sync_header.settings')}
       </StudioPageHeaderButton>
-      {
-        // Done to prevent API calls to be executed before the modal is open
-        settingsModalOpen && (
-          <SettingsModal
-            isOpen={settingsModalOpen}
-            onClose={() => setSettingsModalOpen(false)}
-            defaultTab={settingsModalSelectedTab}
-          />
-        )
-      }
+      <SettingsModal ref={settingsRef} />
     </>
   );
 };

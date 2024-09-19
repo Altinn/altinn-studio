@@ -11,7 +11,7 @@ type PreviewProps = {
 
 type Story = StoryFn<PreviewProps>;
 const meta: Meta = {
-  title: 'Studio/StudioResizableLayoutContainer',
+  title: 'StudioResizableLayoutContainer',
   component: StudioResizableLayoutContainer,
 };
 

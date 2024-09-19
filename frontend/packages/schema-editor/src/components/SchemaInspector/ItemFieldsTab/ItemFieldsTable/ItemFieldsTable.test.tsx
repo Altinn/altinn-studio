@@ -25,13 +25,13 @@ const rootNode = {
 const selectedItem: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
-  pointer: selectedItemPointer,
+  schemaPointer: selectedItemPointer,
   fieldType: FieldType.Object,
   children: [selectedItemChildPointer],
 };
 const selectedItemChild: FieldNode = {
   ...nodeMockBase,
-  pointer: selectedItemChildPointer,
+  schemaPointer: selectedItemChildPointer,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
   children: [],
@@ -150,6 +150,6 @@ describe('ItemFieldsTable', () => {
 });
 
 const expectedNameInTextField = (pos: number): string => {
-  const pointer = selectedItem.children[pos]; // eslint-disable-line testing-library/no-node-access
-  return extractNameFromPointer(pointer);
+  const schemaPointer = selectedItem.children[pos]; // eslint-disable-line testing-library/no-node-access
+  return extractNameFromPointer(schemaPointer);
 };
