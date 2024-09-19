@@ -1,5 +1,6 @@
 .linkButton {
   border: none;
+  background-color: inherit;
   font-size: inherit;
   font-family: inherit;
   padding: 0;
