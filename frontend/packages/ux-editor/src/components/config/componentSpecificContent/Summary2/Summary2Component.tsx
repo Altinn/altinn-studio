@@ -38,8 +38,14 @@ export const Summary2Component = ({
   });
 
   const handleTypeChange = (e: any) => {
+    const newType = e.target.value;
     const updatedComponent = { ...component };
-    updatedComponent.target = { type: e.target.value };
+
+    updatedComponent.target = { type: newType };
+    // set default value for page
+    if (newType === 'page' && pages.some((page) => page.id === selectedFormLayoutName)) {
+      updatedComponent.target.id = selectedFormLayoutName;
+    }
     handleComponentChange(updatedComponent);
   };
 
