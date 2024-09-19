@@ -69,7 +69,7 @@ export const ExternalImage = ({
           size: 'small',
         }}
         setViewModeByDefault={!!existingImageUrl}
-        setAutoFocus={false}
+        autoFocus={false}
       />
       {!!url && (
         <ExternalImageValidationStatus

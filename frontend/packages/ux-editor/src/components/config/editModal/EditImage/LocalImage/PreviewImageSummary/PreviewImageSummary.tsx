@@ -4,7 +4,7 @@ import { StudioDeleteButton } from '@studio/components';
 import classes from './PreviewImageSummary.module.css';
 import { useTranslation } from 'react-i18next';
 import { DeleteOptionsModal } from './DeleteOptionsModal/DeleteOptionsModal';
-import { PreviewFileInfo } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/PreviewImageSummary/PreviewFileInfo';
+import { PreviewFileInfo } from './PreviewFileInfo';
 
 export interface PreviewImageSummaryProps {
   existingImageUrl: string;

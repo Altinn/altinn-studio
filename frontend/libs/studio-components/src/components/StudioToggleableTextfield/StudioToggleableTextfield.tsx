@@ -12,7 +12,7 @@ export type StudioToggleableTextfieldProps = {
   viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
   onIsViewMode?: (isViewMode: boolean) => void;
   setViewModeByDefault?: boolean;
-  setAutoFocus?: boolean;
+  autoFocus?: boolean;
 };
 
 export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggleableTextfieldProps>(
@@ -23,7 +23,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
       customValidation,
       onIsViewMode,
       setViewModeByDefault = true,
-      setAutoFocus = true,
+      autoFocus = true,
     }: StudioToggleableTextfieldProps,
     ref,
   ) => {
@@ -76,7 +76,7 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
         onBlur={handleBlur}
         onChange={handleOnChange}
         error={inputProps.error || errorMessage}
-        autoFocus={setAutoFocus}
+        autoFocus={autoFocus}
       />
     );
   },

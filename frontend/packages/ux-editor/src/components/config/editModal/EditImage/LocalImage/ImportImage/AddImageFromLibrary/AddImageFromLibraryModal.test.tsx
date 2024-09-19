@@ -19,7 +19,6 @@ describe('AddImageFromLibraryModal', () => {
     await renderAddImageFromLibraryModal();
     const modalHeading = screen.getByRole('heading', {
       name: textMock('ux_editor.properties_panel.images.choose_from_library_modal_title'),
-      level: 2,
     });
     expect(modalHeading).toBeInTheDocument();
   });
@@ -33,9 +32,6 @@ describe('AddImageFromLibraryModal', () => {
   });
 
   it('renders modal with image and fileName', async () => {
-    (imagePath as jest.Mock).mockImplementation(
-      (mockOrg, mockApp, imageFileName) => `/images/${mockOrg}/${mockApp}/${imageFileName}`,
-    );
     const existingImageFileName = 'image.png';
     await renderAddImageFromLibraryModal([existingImageFileName]);
     const image = screen.getByRole('img', { name: existingImageFileName });

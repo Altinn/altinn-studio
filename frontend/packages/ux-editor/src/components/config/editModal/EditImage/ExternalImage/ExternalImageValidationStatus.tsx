@@ -14,18 +14,8 @@ export const ExternalImageValidationStatus = ({
   validationResult,
 }: ExternalImageValidationStatusProps) => {
   const { t } = useTranslation();
-
-  const getValidationMessageBasedOnValidationStatus = (
-    validationResultStatus: ExternalImageUrlValidationResponse,
-  ): string => {
-    if (validationResultStatus === 'Ok') {
-      return '';
-    } else if (validationResultStatus === 'NotValidUrl') {
-      return t('ux_editor.properties_panel.images.invalid_external_url');
-    } else if (validationResultStatus === 'NotAnImage') {
-      return t('ux_editor.properties_panel.images.invalid_external_url_not_an_image');
-    }
-  };
+  const { getValidationMessageBasedOnValidationStatus } =
+    useValidationMessageBasedOnValidationStatus();
 
   const validationMessage = getValidationMessageBasedOnValidationStatus(validationResult);
 
@@ -51,4 +41,23 @@ export const ExternalImageValidationStatus = ({
         </StudioParagraph>
       );
   }
+};
+
+export const useValidationMessageBasedOnValidationStatus = () => {
+  const { t } = useTranslation();
+
+  const getValidationMessageBasedOnValidationStatus = (
+    validationResultStatus: ExternalImageUrlValidationResponse,
+  ): string => {
+    switch (validationResultStatus) {
+      case 'Ok':
+        return '';
+      case 'NotValidUrl':
+        return t('ux_editor.properties_panel.images.invalid_external_url');
+      case 'NotAnImage':
+        return t('ux_editor.properties_panel.images.invalid_external_url_not_an_image');
+    }
+  };
+
+  return { getValidationMessageBasedOnValidationStatus };
 };

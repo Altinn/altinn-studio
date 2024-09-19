@@ -19,14 +19,14 @@
 }
 
 .fileName {
+  --grid-template-columns: 6;
+  --cards-paddings: 6;
+  --number-of-cards: 3;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: calc(
-    (var(--studio-file-changes-modal-width) / 3) - 3 * var(--gap-cards) - 4 * var(--padding-cards)
+    (var(--studio-image-library-modal-width) / var(--number-of-cards)) -
+      var(--grid-template-columns) * var(--gap-cards) - var(--cards-paddings) * var(--padding-cards)
   );
-}
-
-.missingFileDescription {
-  font-style: italic;
 }

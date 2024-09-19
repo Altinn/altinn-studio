@@ -1,4 +1,4 @@
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '../../../../types/FormItem';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { WWWROOT_FILE_PATH } from './constants';
 
@@ -12,7 +12,7 @@ export const updateComponentWithImage = (
       ...component.image,
       src: {
         ...component.image?.src,
-        nb: imageSource, // How to handle different images for different languages?
+        nb: imageSource, // TODO: How to handle different images for different languages? https://github.com/Altinn/altinn-studio/issues/13579
       },
     },
   };

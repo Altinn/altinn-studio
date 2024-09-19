@@ -30,7 +30,7 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
     return onImageChange(filePath);
   }
 
-  const handleUpload = async (formData: FormData, imageFileName: string) => {
+  const handleUpload = (formData: FormData, imageFileName: string) => {
     uploadImage(formData, {
       onSuccess: () => handleSuccess(imageFileName),
     });
@@ -43,9 +43,7 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
 
     if (userConfirmed) {
       formData.append('overrideExisting', 'true');
-      uploadImage(formData, {
-        onSuccess: () => handleSuccess(imageFileName),
-      });
+      handleUpload(formData, imageFileName);
     }
   };
 
@@ -61,7 +59,7 @@ export const ImportImage = ({ onImageChange }: ImportImageProps) => {
         ref={imageUploaderRef}
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
         customFileNameValidation={{
-          validateFileName: (fileName: string) => isFileNameInvalid(fileName, imageFileNames),
+          validateFileName: (fileName: string) => isFileNameValid(fileName, imageFileNames),
           onInvalidFileName: handleOverrideExisingUploadedImage,
         }}
         dataTestId={fileSelectorInputId}
@@ -74,6 +72,6 @@ function makeFilePath(name: string): string {
   return `${WWWROOT_FILE_PATH}${name}`;
 }
 
-const isFileNameInvalid = (fileName: string, invalidFileNames: string[]): boolean => {
+const isFileNameValid = (fileName: string, invalidFileNames: string[]): boolean => {
   return !invalidFileNames.includes(fileName);
 };

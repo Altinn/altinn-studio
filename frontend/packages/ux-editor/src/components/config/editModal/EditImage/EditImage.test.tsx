@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { EditImage } from './EditImage';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+import type { FormItem } from '../../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -54,25 +54,13 @@ describe('EditImage', () => {
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls handleComponentChange when image url is pasted', async () => {
+  it('calls handleComponentChange when image url is typed', async () => {
     const user = userEvent.setup();
     const externalUrl = 'http://external.url';
     renderEditImage();
-    await user.click(
-      screen.getByRole('tab', {
-        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-      }),
-    );
-    const enterUrlField = screen.getByRole('textbox', {
-      name: textMock('ux_editor.properties_panel.images.enter_external_url'),
-    });
-    await user.type(enterUrlField, externalUrl);
-    await waitFor(() => enterUrlField.blur());
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(
-        textMock('ux_editor.properties_panel.images.validating_image_url_pending'),
-      ),
-    );
+    await goToExternalUrlTab(user);
+    await enterUrlInField(user, externalUrl);
+    await waitForUrlToBeValidated();
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.Image],
@@ -98,23 +86,9 @@ describe('EditImage', () => {
         },
       },
     });
-    await user.click(
-      screen.getByRole('tab', {
-        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
-      }),
-    );
-    const existingUrlButton = screen.getByRole('button', {
-      name:
-        textMock('ux_editor.properties_panel.images.enter_external_url') +
-        ' ' +
-        existingExternalUrl,
-    });
-    await user.click(existingUrlButton);
-    const enterUrlField = screen.getByRole('textbox', {
-      name: textMock('ux_editor.properties_panel.images.enter_external_url'),
-    });
-    await user.clear(enterUrlField);
-    await waitFor(() => enterUrlField.blur());
+    await goToExternalUrlTab(user);
+    await clickExistingUrlButton(user, existingExternalUrl);
+    await enterUrlInField(user, undefined);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith({
       ...componentMocks[ComponentType.Image],
@@ -144,10 +118,7 @@ describe('EditImage', () => {
       {},
       queryClient,
     );
-    const deleteImageButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.images.delete_image_reference_title'),
-    });
-    await user.click(deleteImageButton);
+    await clickDeleteImageButton(user);
     const deleteOnlyReferenceButton = screen.getByRole('button', {
       name: textMock(
         'ux_editor.properties_panel.images.delete_image_options_modal_button_only_ref',
@@ -183,10 +154,7 @@ describe('EditImage', () => {
       {},
       queryClient,
     );
-    const deleteImageButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.images.delete_image_reference_title'),
-    });
-    await user.click(deleteImageButton);
+    await clickDeleteImageButton(user);
     const deleteImageAndReferenceButton = screen.getByRole('button', {
       name: textMock(
         'ux_editor.properties_panel.images.delete_image_options_modal_button_ref_and_from_library',
@@ -215,6 +183,44 @@ const getTabs = (): { addImageTab: HTMLElement; pasteUrlTab: HTMLElement } => {
       name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
     }),
   };
+};
+
+const goToExternalUrlTab = async (user) => {
+  await user.click(
+    screen.getByRole('tab', {
+      name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
+    }),
+  );
+};
+
+const clickExistingUrlButton = async (user, existingExternalUrl: string) => {
+  const existingUrlButton = screen.getByRole('button', {
+    name:
+      textMock('ux_editor.properties_panel.images.enter_external_url') + ' ' + existingExternalUrl,
+  });
+  await user.click(existingUrlButton);
+};
+
+const enterUrlInField = async (user, url: string | undefined) => {
+  const enterUrlField = screen.getByRole('textbox', {
+    name: textMock('ux_editor.properties_panel.images.enter_external_url'),
+  });
+  if (url) await user.type(enterUrlField, url);
+  else await user.clear(enterUrlField);
+  await waitFor(() => enterUrlField.blur());
+};
+
+const waitForUrlToBeValidated = async () => {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText(textMock('ux_editor.properties_panel.images.validating_image_url_pending')),
+  );
+};
+
+const clickDeleteImageButton = async (user) => {
+  const deleteImageButton = screen.getByRole('button', {
+    name: textMock('ux_editor.properties_panel.images.delete_image_reference_title'),
+  });
+  await user.click(deleteImageButton);
 };
 
 const renderEditImage = (
