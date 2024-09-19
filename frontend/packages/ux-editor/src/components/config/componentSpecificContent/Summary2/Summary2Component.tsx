@@ -27,11 +27,17 @@ export const Summary2Component = ({
 
   const components = formLayoutsData[selectedFormLayoutName].components;
   const excludedComponents = [ComponentType.Summary2]; // TODO: Add components that should be excluded
-  const filtered = Object.entries(components).filter(([key, value]) => {
-    return !excludedComponents.includes(value.type);
-  });
+  const filtered = Object.entries(components)
+    .filter(([_, value]) => {
+      return !excludedComponents.includes(value.type);
+    })
+    .map(([key, value]) => {
+      return { id: key, description: componentTypeName(value.type) };
+    });
 
-  const pages = Object.entries(formLayoutsData);
+  const pages = Object.entries(formLayoutsData).map(([key, value]) => {
+    return { id: key, description: undefined };
+  });
 
   const handleTypeChange = (e: any) => {
     const updatedComponent = { ...component };
@@ -39,21 +45,17 @@ export const Summary2Component = ({
     handleComponentChange(updatedComponent);
   };
 
-  const handleTargetIdChange = (value: string[]) => {
+  const handleTargetIdChange = (value: string) => {
     const updatedComponent = { ...component };
-    updatedComponent.target.id = value[0];
+    updatedComponent.target.id = value;
     handleComponentChange(updatedComponent);
   };
 
   if (!schema?.properties) return null;
   const targetSchema = schema.properties.target.properties;
   const targetProperties = component.target;
-  const invalidPage = targetProperties.id && !pages.some(([key, _]) => key === targetProperties.id);
-  const invalidComponent =
-    targetProperties.id && !filtered.some(([key, _]) => key === targetProperties.id);
   return (
     <StudioCard>
-      {/** TODO: Add translation **/}
       <StudioCard.Header>{t('ux_editor.component_properties.target')}</StudioCard.Header>
       {/** TODO: Add translation **/}
       <StudioParagraph size='small'>Target of the summary component</StudioParagraph>
@@ -71,50 +73,20 @@ export const Summary2Component = ({
           ))}
         </StudioNativeSelect>
         {targetProperties.type === 'page' && (
-          <StudioCombobox
-            size='small'
-            label='page' // TODO: Add translation
-            value={targetProperties.id ? [targetProperties.id] : []}
+          <Summmary2ComponentTargetId
+            label='page'
+            value={targetProperties.id}
+            options={pages}
             onValueChange={handleTargetIdChange}
-            error={invalidPage}
-            multiple={false}
-          >
-            {pages.map(([pageId, _pageDetails]) => (
-              <StudioCombobox.Option value={pageId} key={pageId}>
-                {pageId}
-              </StudioCombobox.Option>
-            ))}
-            {invalidPage && (
-              <StudioCombobox.Option disabled value={targetProperties.id} key={targetProperties.id}>
-                {targetProperties.id}
-              </StudioCombobox.Option>
-            )}
-          </StudioCombobox>
+          ></Summmary2ComponentTargetId>
         )}
         {targetProperties.type === 'component' && (
-          <StudioCombobox
-            size='small'
-            label='component' // TODO: Add translation
-            value={targetProperties.id ? [targetProperties.id] : []}
+          <Summmary2ComponentTargetId
+            label='component'
+            value={targetProperties.id}
+            options={filtered}
             onValueChange={handleTargetIdChange}
-            error={invalidComponent}
-            multiple={false}
-          >
-            {filtered.map(([componentId, componentDetails]) => (
-              <StudioCombobox.Option
-                value={componentId}
-                key={componentId}
-                description={componentTypeName(componentDetails.type)}
-              >
-                {componentId}
-              </StudioCombobox.Option>
-            ))}
-            {invalidComponent && (
-              <StudioCombobox.Option disabled value={targetProperties.id} key={targetProperties.id}>
-                {targetProperties.id}
-              </StudioCombobox.Option>
-            )}
-          </StudioCombobox>
+          ></Summmary2ComponentTargetId>
         )}
         {targetProperties.type === 'layoutSet' && (
           <StudioTextfield
@@ -126,5 +98,42 @@ export const Summary2Component = ({
         )}
       </StudioCard.Content>
     </StudioCard>
+  );
+};
+
+type Summary2ComponentTargetIdProps = {
+  label: string;
+  value: string;
+  options: { id: string; description: string }[];
+  onValueChange: (value: string) => void;
+};
+
+const Summmary2ComponentTargetId = ({
+  label,
+  value,
+  options,
+  onValueChange,
+}: Summary2ComponentTargetIdProps) => {
+  const invalidOption = Boolean(value) && !options.some((option) => option.id === value);
+  return (
+    <StudioCombobox
+      size='small'
+      label={label}
+      value={value ? [value] : []}
+      onValueChange={(v) => onValueChange(v[0])}
+      error={invalidOption} // TODO: Add error message
+      multiple={false}
+    >
+      {options.map((option) => (
+        <StudioCombobox.Option value={option.id} key={option.id} description={option.description}>
+          {option.id}
+        </StudioCombobox.Option>
+      ))}
+      {value && invalidOption && (
+        <StudioCombobox.Option disabled value={value} key={value}>
+          {value}
+        </StudioCombobox.Option>
+      )}
+    </StudioCombobox>
   );
 };
