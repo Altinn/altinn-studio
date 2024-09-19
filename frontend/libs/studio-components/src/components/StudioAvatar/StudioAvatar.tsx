@@ -1,27 +1,14 @@
-import React, { type ReactElement } from 'react';
+import React, { type HTMLAttributes, type ReactElement } from 'react';
 import classes from './StudioAvatar.module.css';
 import { PersonCircleIcon } from '@studio/icons';
 
-type ImageDetails = {
-  src: string;
-  alt: string;
-  title: string;
-};
-
 export type StudioAvatarProps = {
-  imageDetails?: ImageDetails;
+  avatarElement?: HTMLAttributes<HTMLImageElement>;
 };
 
-export const StudioAvatar = ({ imageDetails }: StudioAvatarProps): ReactElement => {
-  if (!imageDetails) {
+export const StudioAvatar = ({ avatarElement }: StudioAvatarProps): ReactElement => {
+  if (!avatarElement) {
     return <PersonCircleIcon className={classes.avatar} />;
   }
-  return (
-    <img
-      alt={imageDetails.alt}
-      title={imageDetails.title}
-      className={classes.avatar}
-      src={imageDetails.src}
-    />
-  );
+  return <img {...avatarElement} className={classes.avatar} />;
 };

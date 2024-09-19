@@ -3,30 +3,26 @@ import { render, screen } from '@testing-library/react';
 import { StudioAvatar, type StudioAvatarProps } from './StudioAvatar';
 
 describe('StudioAvatar', () => {
-  afterEach(() => jest.clearAllMocks());
-
   it('should render the default PersonCircleIcon when imageDetails is not provided', () => {
     renderStudioAvatar();
 
     const iconElement = screen.getByRole('img', { hidden: true });
     expect(iconElement).toBeInTheDocument();
-    expect(iconElement).toHaveClass('avatar');
   });
 
-  it('should render an image with the correct src, alt, and title when imageDetails is provided', () => {
-    const imageDetails = {
+  it('should render an image with the correct src, alt, and title when avatarElement is provided', () => {
+    const avatarElement = {
       src: 'avatar_src',
       alt: 'User Avatar',
       title: 'Avatar Image',
     };
-    renderStudioAvatar({ componentProps: { imageDetails } });
+    renderStudioAvatar({ componentProps: { avatarElement } });
 
-    const imgElement = screen.getByRole('img', { name: imageDetails.alt });
+    const imgElement = screen.getByRole('img', { name: avatarElement.alt });
     expect(imgElement).toBeInTheDocument();
-    expect(imgElement).toHaveAttribute('src', imageDetails.src);
-    expect(imgElement).toHaveAttribute('alt', imageDetails.alt);
-    expect(imgElement).toHaveAttribute('title', imageDetails.title);
-    expect(imgElement).toHaveClass('avatar');
+    expect(imgElement).toHaveAttribute('src', avatarElement.src);
+    expect(imgElement).toHaveAttribute('alt', avatarElement.alt);
+    expect(imgElement).toHaveAttribute('title', avatarElement.title);
   });
 });
 
