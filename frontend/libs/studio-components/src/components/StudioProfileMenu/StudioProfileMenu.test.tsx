@@ -182,6 +182,42 @@ describe('StudioProfileMenu', () => {
 
     expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
   });
+
+  it('should not close the dropdown when a link item is clicked and openInNewTab is true', async () => {
+    const user = userEvent.setup();
+    renderStudioProfileMenu();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    await user.click(triggerButton);
+
+    const link = screen.getByRole('menuitem', { name: menuItem3 });
+    await user.click(link);
+
+    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+  });
+
+  it('should not truncate triggerButtonText if truncateAt is undefined', () => {
+    const longText = 'This is a very long trigger button text that exceeds 30 characters';
+
+    renderStudioProfileMenu({ triggerButtonText: longText });
+
+    expect(screen.getByText(longText)).toBeInTheDocument();
+    expect(screen.getByText(longText)).toHaveTextContent(longText);
+  });
+
+  it('should not set target or rel attributes if openInNewTab is false', async () => {
+    const user = userEvent.setup();
+
+    renderStudioProfileMenu();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    await user.click(triggerButton);
+
+    const link = screen.getByRole('menuitem', { name: menuItem2 });
+    expect(link).toHaveAttribute('href', menuItem2Link);
+    expect(link).not.toHaveAttribute('target', '_blank');
+    expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
+  });
 });
 
 const renderStudioProfileMenu = (props?: Partial<StudioProfileMenuProps>) => {
