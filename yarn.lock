@@ -6059,7 +6059,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@studio/components@workspace:frontend/libs/studio-components":
+"@studio/components@workspace:^, @studio/components@workspace:frontend/libs/studio-components":
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
@@ -6089,6 +6089,14 @@ __metadata:
     ts-jest: "npm:^29.1.1"
     typescript: "npm:^5.2.2"
     uuid: "npm:10.0.0"
+  languageName: unknown
+  linkType: soft
+
+"@studio/content-library@npm:0.1.0, @studio/content-library@workspace:frontend/libs/studio-content-library":
+  version: 0.0.0-use.local
+  resolution: "@studio/content-library@workspace:frontend/libs/studio-content-library"
+  dependencies:
+    "@studio/components": "workspace:^"
   languageName: unknown
   linkType: soft
 
@@ -8355,6 +8363,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
+    "@studio/content-library": "npm:0.1.0"
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"

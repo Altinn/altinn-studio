@@ -1,4 +1,9 @@
 {
   "name": "@studio/content-library",
-  "packageManager": "yarn@4.4.0"
+  "packageManager": "yarn@4.4.0",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@studio/components": "workspace:^"
+  }
 }
