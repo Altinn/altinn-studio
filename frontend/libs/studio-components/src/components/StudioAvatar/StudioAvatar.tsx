@@ -3,13 +3,18 @@ import classes from './StudioAvatar.module.css';
 import cn from 'classnames';
 import { PersonCircleIcon } from '@studio/icons';
 
-export type StudioAvatarProps = {
-  avatarElement?: ImgHTMLAttributes<HTMLImageElement>;
-};
+export type StudioAvatarProps = ImgHTMLAttributes<HTMLImageElement>;
 
-export const StudioAvatar = ({ avatarElement }: StudioAvatarProps): ReactElement => {
-  if (!avatarElement) {
-    return <PersonCircleIcon className={classes.avatar} />;
-  }
-  return <img {...avatarElement} className={cn(avatarElement.className, classes.avatar)} />;
+export const StudioAvatar = ({
+  src,
+  className: givenClass,
+  ...rest
+}: StudioAvatarProps): ReactElement => {
+  const className = cn(givenClass, classes.avatar);
+
+  return src ? (
+    <img src={src} className={className} {...rest} />
+  ) : (
+    <PersonCircleIcon className={className} />
+  );
 };

@@ -17,7 +17,7 @@ describe('StudioAvatar', () => {
       alt: 'User Avatar',
       title: 'Avatar Image',
     };
-    renderStudioAvatar({ componentProps: { avatarElement } });
+    renderStudioAvatar({ componentProps: { ...avatarElement } });
 
     const imgElement = screen.getByRole('img', { name: avatarElement.alt });
     expect(imgElement).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe('StudioAvatar', () => {
 
   it('Appends given classname to internal classname', () => {
     testRootClassNameAppending((className) =>
-      renderStudioAvatar({ componentProps: { avatarElement: { className } } }),
+      renderStudioAvatar({ componentProps: { className: 'test' } }),
     );
   });
 });
