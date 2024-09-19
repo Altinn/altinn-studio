@@ -95,19 +95,56 @@ describe('ItemFieldsTab', () => {
     expect(await screen.findByText(textAdd)).toBeDefined();
   });
 
-  test('should save the model when user clicks an option from dropdown', async () => {
+  test('Should save the model when user clicks the dropdown menu items', async () => {
     renderItemFieldsTab();
-
-    await user.click(screen.getByText(textAdd));
-    const menuItem2 = screen.getByRole('menuitem', { name: textMock('schema_editor.add_string') });
-    await user.click(menuItem2);
+    const selectMenuItem = async (item: string) => {
+      await user.click(screen.getByText(textAdd));
+      await user.click(screen.getByRole('menuitem', { name: item }));
+    };
+    await selectMenuItem(textMock('schema_editor.add_number'));
     expect(saveDataModel).toHaveBeenCalledTimes(1);
+    await selectMenuItem(textMock('schema_editor.add_string'));
+    expect(saveDataModel).toHaveBeenCalledTimes(2);
+    await selectMenuItem(textMock('schema_editor.add_integer'));
+    expect(saveDataModel).toHaveBeenCalledTimes(3);
+    await selectMenuItem(textMock('schema_editor.add_boolean'));
+    expect(saveDataModel).toHaveBeenCalledTimes(4);
+    await selectMenuItem(textMock('schema_editor.add_object'));
+    expect(saveDataModel).toHaveBeenCalledTimes(5);
   });
 
-  test('Should show dropdown when the "Add field" button is clicked', async () => {
+  test('Should show dropdown menu items when the "Add field" button is clicked', async () => {
+    renderItemFieldsTab();
+    await user.click(screen.getByText(textAdd));
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_number') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_string') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_integer') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_boolean') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_object') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_combination') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_reference') }),
+    ).toBeInTheDocument();
+  });
+
+  test('Should close the dropdown menu when user clicks outside the menu', async () => {
     renderItemFieldsTab();
     await user.click(screen.getByText(textAdd));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.click(document.body);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   test('Model is saved with correct payload when a name is changed', async () => {
@@ -118,14 +155,6 @@ describe('ItemFieldsTab', () => {
       await user.tab();
     }
     expect(saveDataModel).toHaveBeenCalledTimes(numberOfFields);
-  });
-
-  test('Should close the dropdown menu when user clicks outside the menu', async () => {
-    renderItemFieldsTab();
-    await user.click(screen.getByText(textAdd));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    await user.click(document.body);
-    expect(screen.queryByRole('dialog')).toBeFalsy();
   });
 
   test('Model is saved correctly when a field is focused and the Enter key is clicked', async () => {
