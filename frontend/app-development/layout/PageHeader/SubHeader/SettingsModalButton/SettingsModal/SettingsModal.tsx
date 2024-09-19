@@ -18,7 +18,7 @@ import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AboutTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
-import type { SettingsModalHandle } from '../../../types/SettingsModalHandle';
+import { type SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();

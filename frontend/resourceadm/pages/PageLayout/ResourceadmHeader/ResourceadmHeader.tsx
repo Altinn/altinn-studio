@@ -27,7 +27,10 @@ export const ResourceadmHeader = () => {
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={getOrgNameByUsername(selectedContext, selectableOrgs)} />
+        <StudioPageHeader.Left
+          title={getOrgNameByUsername(selectedContext, selectableOrgs)}
+          showTitle
+        />
         <StudioPageHeader.Right>
           <ResourceadmHeaderMenu />
         </StudioPageHeader.Right>
@@ -91,13 +94,9 @@ const ResourceadmHeaderMenu = () => {
       variant='regular'
       profileImage={
         <StudioAvatar
-          imageDetails={
-            user?.avatar_url && {
-              src: user.avatar_url,
-              alt: t('general.profile_icon'),
-              title: t('shared.header_profile_icon_text'),
-            }
-          }
+          src={user?.avatar_url ? user.avatar_url : undefined}
+          alt={t('general.profile_icon')}
+          title={t('shared.header_profile_icon_text')}
         />
       }
       profileMenuItems={[...selectableOrgMenuItems, giteaMenuItem, logOutMenuItem]}
