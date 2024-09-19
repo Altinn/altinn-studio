@@ -15,14 +15,21 @@ describe('formItemConfig', () => {
   ];
   const allAvailableComponents = allAvailableLists.flat();
 
-  /**  Test that all components, except Payment, are available in one of the visible lists */
+  /**  Test that all components, except Payment and Summary2 (since behind featureFlag), are available in one of the visible lists */
   it.each(
-    Object.values(ComponentType).filter((componentType) => componentType !== ComponentType.Payment),
+    Object.values(ComponentType).filter(
+      (componentType) =>
+        componentType !== ComponentType.Payment && componentType !== ComponentType.Summary2,
+    ),
   )('%s is available through one of the visible lists', (componentType) => {
     expect(allAvailableComponents.map(({ name }) => name)).toContain(componentType);
   });
 
   test('that payment component is not available in the visible lists', () => {
     expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
+  });
+
+  test('that Summary2 component is not available in the visible lists', () => {
+    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Summary2);
   });
 });

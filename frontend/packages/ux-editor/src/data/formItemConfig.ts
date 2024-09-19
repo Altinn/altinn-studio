@@ -36,6 +36,7 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -497,8 +498,8 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
   formItemConfigs[ComponentType.Summary],
-  formItemConfigs[ComponentType.Summary2],
-];
+  shouldDisplayFeature('summary2') && formItemConfigs[ComponentType.Summary2],
+].filter(Boolean); // When removing the featureFlag, also remove the filter
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
