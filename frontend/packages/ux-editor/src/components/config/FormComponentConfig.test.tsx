@@ -4,6 +4,7 @@ import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
+import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -148,6 +149,18 @@ describe('FormComponentConfig', () => {
     expect(
       screen.getByText(textMock('ux_editor.component_properties_description.pageBreak')),
     ).toBeInTheDocument();
+  });
+
+  it('should render default boolean values if defined', () => {
+    render({
+      props: {
+        schema: DatepickerSchema,
+      },
+    });
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.timeStamp'),
+    });
+    expect(timeStampSwitch).toBeChecked();
   });
 
   it('should show description from schema for objects if key is not defined', () => {
