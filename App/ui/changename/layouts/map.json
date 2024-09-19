@@ -11,6 +11,17 @@
         "type": "NavigationBar"
       },
       {
+        "id": "map-location",
+        "type": "Input",
+        "hidden": true,
+        "textResourceBindings": {
+          "title": "Eksakt lokasjon"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "MapData.Location"
+        }
+      },
+      {
         "id": "map",
         "type": "Map",
         "textResourceBindings": {
