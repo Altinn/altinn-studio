@@ -7,7 +7,6 @@ import { AttachmentListComponent } from './AttachmentList';
 import { Summary2Component } from './Summary2';
 
 export function ComponentSpecificContent({
-  schema,
   component,
   handleComponentChange,
   layoutName,
@@ -37,11 +36,7 @@ export function ComponentSpecificContent({
 
     case ComponentType.Summary2: {
       return (
-        <Summary2Component
-          schema={schema}
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
+        <Summary2Component component={component} handleComponentChange={handleComponentChange} />
       );
     }
 

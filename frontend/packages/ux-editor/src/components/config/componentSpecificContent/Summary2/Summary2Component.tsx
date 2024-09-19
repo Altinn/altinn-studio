@@ -16,7 +16,6 @@ import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelec
 import { getAllComponents } from '../../../../utils/formLayoutUtils';
 
 export const Summary2Component = ({
-  schema,
   component,
   handleComponentChange,
 }: IGenericEditComponent<ComponentType.Summary2>) => {
@@ -50,9 +49,12 @@ export const Summary2Component = ({
     handleComponentChange(updatedComponent);
   };
 
-  if (!schema?.properties) return null;
   const target = component.target;
-  const targetTypes = schema.properties.target.properties.type.enum;
+  const targetTypes = [
+    { value: 'page', label: t('general.page') },
+    { value: 'component', label: t('general.component') },
+    { value: 'layoutSet', label: t('general.layout_sets') },
+  ];
 
   return (
     <StudioCard>
@@ -67,9 +69,9 @@ export const Summary2Component = ({
           value={target.type}
           onChange={handleTypeChange}
         >
-          {targetTypes.map((typeString: string) => (
-            <option key={typeString} value={typeString}>
-              {typeString}
+          {targetTypes.map((type) => (
+            <option key={type.value} value={type.value}>
+              {type.label}
             </option>
           ))}
         </StudioNativeSelect>

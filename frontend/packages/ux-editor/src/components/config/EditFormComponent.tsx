@@ -53,7 +53,6 @@ export const EditFormComponent = ({
         />
       )}
       <ComponentSpecificContent
-        schema={schema}
         component={component}
         handleComponentChange={handleComponentUpdate}
         layoutName={selectedFormLayoutName}
