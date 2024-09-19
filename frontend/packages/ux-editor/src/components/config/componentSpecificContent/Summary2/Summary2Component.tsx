@@ -13,6 +13,7 @@ import { useAppContext } from '../../../../hooks';
 import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
 import { useTranslation } from 'react-i18next';
 import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelector';
+import { getAllComponents } from '../../../../utils/formLayoutUtils';
 
 export const Summary2Component = ({
   schema,
@@ -25,18 +26,16 @@ export const Summary2Component = ({
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const componentTypeName = useComponentTypeName();
 
-  const components = formLayoutsData[selectedFormLayoutName].components;
   const excludedComponents = [ComponentType.Summary2]; // TODO: Add components that should be excluded
-  const filtered = Object.entries(components)
-    .filter(([_, value]) => {
-      return !excludedComponents.includes(value.type);
-    })
-    .map(([key, value]) => {
-      return { id: key, description: componentTypeName(value.type) };
-    });
+  const components = getAllComponents(
+    formLayoutsData[selectedFormLayoutName],
+    excludedComponents,
+  ).map((e) => {
+    return { id: e.id, description: componentTypeName(e.type) };
+  });
 
-  const pages = Object.entries(formLayoutsData).map(([key, value]) => {
-    return { id: key, description: undefined };
+  const pages = Object.keys(formLayoutsData).map((page) => {
+    return { id: page, description: undefined };
   });
 
   const handleTypeChange = (e: any) => {

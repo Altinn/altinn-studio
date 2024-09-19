@@ -490,3 +490,13 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
  * */
 export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
   flattenObjectValues(layout.order);
+
+export const getAllComponents = (
+  layout: IInternalLayout,
+  excludeTypes: ComponentType[],
+): FormComponent[] => {
+  // TODO: find components inside containers
+  return Object.values(layout.components).filter(
+    (component) => !excludeTypes.includes(component.type),
+  );
+};
