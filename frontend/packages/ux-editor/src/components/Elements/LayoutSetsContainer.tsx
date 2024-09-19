@@ -6,6 +6,7 @@ import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { CreateSubFormWrapper } from './AddSubForm';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
@@ -56,6 +57,7 @@ export function LayoutSetsContainer() {
         })}
       </NativeSelect>
       {shouldDisplayFeature('exportForm') && <ExportForm />}
+      <CreateSubFormWrapper layoutSetNames={layoutSetNames} />
     </div>
   );
 }
