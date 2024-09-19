@@ -27,7 +27,7 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={shouldDisplayText && app} />
+        <StudioPageHeader.Left showTitle={shouldDisplayText} title={app} />
         {!shouldDisplaySmallMenu && (
           <StudioPageHeader.Center>
             {menuItems && (

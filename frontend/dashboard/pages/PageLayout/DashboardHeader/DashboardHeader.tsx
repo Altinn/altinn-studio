@@ -30,7 +30,7 @@ export const DashboardHeader = () => {
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left title={pageHeaderTitle} />
+        <StudioPageHeader.Left title={pageHeaderTitle} showTitle />
         <StudioPageHeader.Right>
           <DashboardHeaderMenu />
         </StudioPageHeader.Right>
@@ -116,7 +116,7 @@ const DashboardHeaderMenu = () => {
       variant='regular'
       profileImage={
         <StudioAvatar
-          imageDetails={
+          avatarElement={
             user?.avatar_url && {
               src: user.avatar_url,
               alt: t('general.profile_icon'),

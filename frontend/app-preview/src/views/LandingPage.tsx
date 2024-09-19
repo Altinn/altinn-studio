@@ -84,7 +84,7 @@ export const LandingPage = () => {
     <>
       <StudioPageHeader variant='preview'>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left title={shouldDisplayText && app} />
+          <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
           <StudioPageHeader.Right>
             <AppUserProfileMenu
               user={user}
