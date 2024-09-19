@@ -1598,7 +1598,6 @@
   "ux_editor.page_menu_edit": "Gi nytt navn",
   "ux_editor.page_menu_up": "Flytt opp",
   "ux_editor.pages_add": "Legg til ny side",
-  "ux_editor.pages_add_pdf_info": "Dersom du legger til en ny dedikert PDF vil Altinn sin standard PDF ikke lenger bli generert og innstillingene dine for å ekskludere sider fra autogenerert PDF vil ikke ha effekt.",
   "ux_editor.pages_error_empty": "Navnet kan ikke være tomt.",
   "ux_editor.pages_error_format": "Navnet må bestå av bokstaver (a-z), tall, eller \"-\", \"_\" og \".\".",
   "ux_editor.pages_error_invalid_format": "Navnet kan ikke inneholde punktum.",
