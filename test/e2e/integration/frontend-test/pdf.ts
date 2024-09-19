@@ -1,4 +1,4 @@
-import { AppFrontend, component } from 'test/e2e/pageobjects/app-frontend';
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 const appFrontend = new AppFrontend();
@@ -17,6 +17,30 @@ describe('PDF', () => {
   });
 
   it('should generate PDF for changename step', () => {
+    cy.interceptLayout(
+      'changename',
+      (component) => {
+        if (component.type === 'Map' && component.id === 'map') {
+          component.layers = [
+            {
+              // Since we are only doing a direct snapshot and not a 'real' percy snapshot we can get away with using a fake intercepted url
+              url: '/map-tile/{z}/{y}/{x}',
+              attribution: '&copy; <a href="about:blank">Team Apps</a>',
+            },
+          ];
+        }
+
+        if (component.type === 'Input' && component.id === 'map-location') {
+          component.hidden = false;
+        }
+      },
+      undefined,
+      {}, // intercept this every time
+    );
+
+    // Add a delay to simulate slow loading map tiles
+    cy.intercept('GET', '/map-tile/**', { delay: 50, fixture: 'map-tile.png' });
+
     cy.goto('changename');
 
     cy.findByRole('textbox', { name: /nytt fornavn/i }).type('Ola');
@@ -72,13 +96,11 @@ describe('PDF', () => {
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
 
-    // Add a delay to simulate slow loading map tiles
-    cy.intercept('GET', 'https://cache.kartverket.no/**/*.png', { fixture: 'map-tile.png', delay: 50 });
-    cy.intercept('GET', 'https://tile.openstreetmap.org/**/*.png', { fixture: 'map-tile.png', delay: 50 });
     cy.get('#choose-extra').findByText('Kart').click();
     cy.gotoNavPage('map');
-    cy.findByTestId(/^map-container/).click();
-    cy.get(component('map')).should('contain.text', 'Valgt lokasjon:');
+    // Set exact location so snapshot is consistent
+    cy.findByRole('textbox', { name: /eksakt lokasjon/i }).type('67.140824,16.101665');
+    cy.waitUntilSaved();
     cy.gotoNavPage('form'); // Go back to form to avoid waiting for map to load while zoom animation is happending
 
     cy.testPdf('changeName 2', () => {

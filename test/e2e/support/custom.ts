@@ -450,8 +450,9 @@ Cypress.Commands.add('moveProcessNext', () => {
   });
 });
 
-Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator) => {
-  cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, times: 1 }, (req) => {
+Cypress.Commands.add('interceptLayout', (taskName, mutator, wholeLayoutMutator, _options) => {
+  const options = _options ?? { times: 1 };
+  cy.intercept({ method: 'GET', url: `**/api/layouts/${taskName}`, ...options }, (req) => {
     req.reply((res) => {
       const set = JSON.parse(res.body);
       if (mutator) {
@@ -528,11 +529,21 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
 
   cy.viewport(width, minHeight);
 
+  // cy.screenshot's blackout property does not ensure that text is monospace which causes unecessary visual changes, so using our own percy css instead
+  cy.readFile('test/percy.css').then((percyCSS) => {
+    cy.document().then((doc) => {
+      const style = doc.createElement('style');
+      style.id = 'percy-css';
+      style.appendChild(doc.createTextNode(percyCSS));
+      doc.head.appendChild(style);
+    });
+  });
+  cy.get('#percy-css').should('exist');
+
   // Take screenshot
   const imageData = { path: '', dataUrl: '' };
   cy.screenshot(snapshotName, {
     overwrite: true,
-    blackout: ['.no-visual-testing'],
     onAfterScreenshot: (_, { path }) => {
       imageData.path = path;
     },

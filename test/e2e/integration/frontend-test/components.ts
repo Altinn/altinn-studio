@@ -739,12 +739,22 @@ describe('UI Components', () => {
   });
 
   it('Map component with simpleBinding', () => {
-    cy.intercept('GET', 'https://cache.kartverket.no/**/*.png', { fixture: 'map-tile.png' });
-    cy.intercept('GET', 'https://tile.openstreetmap.org/**/*.png', { fixture: 'map-tile.png' });
-    cy.interceptLayout('changename', (comp) => {
-      if (comp.id === 'map' && comp.type === 'Map') {
-        delete comp.dataModelBindings.geometries;
-      }
+    cy.fixture('map-tile.png', 'base64').then((data) => {
+      cy.interceptLayout('changename', (component) => {
+        if (component.type === 'Map' && component.id === 'map') {
+          component.layers = [
+            {
+              url: `data:image/png;base64,${data}`,
+              attribution: '&copy; <a href="about:blank">Team Apps</a>',
+            },
+          ];
+          delete component.dataModelBindings.geometries;
+        }
+
+        if (component.type === 'Input' && component.id === 'map-location') {
+          component.hidden = false;
+        }
+      });
     });
 
     cy.gotoHiddenPage('map');
@@ -768,20 +778,34 @@ describe('UI Components', () => {
       .findByText(/59(\.\d{1,6})?, 10(\.\d{1,6})?/)
       .should('be.visible');
 
+    // Set exact location so snapshot is consistent
+    cy.findByRole('textbox', { name: /eksakt lokasjon/i }).clear();
+    cy.findByRole('textbox', { name: /eksakt lokasjon/i }).type('59.930803,10.801246');
+    cy.waitUntilSaved();
+
     // Force the map component to remount to skip the zoom animation
     cy.gotoNavPage('form');
     cy.gotoNavPage('map');
+
+    // Make sure tiles are not faded before taking the snapshot
+    cy.get('.leaflet-layer img').each((layer) => cy.wrap(layer).should('have.css', 'opacity', '1'));
 
     cy.snapshot('components:map-simpleBinding');
   });
 
   it('Map component with geometries should center the map around the geometries', () => {
-    cy.intercept('GET', 'https://cache.kartverket.no/**/*.png', { fixture: 'map-tile.png' });
-    cy.intercept('GET', 'https://tile.openstreetmap.org/**/*.png', { fixture: 'map-tile.png' });
-    cy.interceptLayout('changename', (comp) => {
-      if (comp.id === 'map' && comp.type === 'Map') {
-        delete comp.dataModelBindings.simpleBinding;
-      }
+    cy.fixture('map-tile.png', 'base64').then((data) => {
+      cy.interceptLayout('changename', (component) => {
+        if (component.type === 'Map' && component.id === 'map') {
+          component.layers = [
+            {
+              url: `data:image/png;base64,${data}`,
+              attribution: '&copy; <a href="about:blank">Team Apps</a>',
+            },
+          ];
+          delete component.dataModelBindings.simpleBinding;
+        }
+      });
     });
 
     cy.gotoHiddenPage('map');
