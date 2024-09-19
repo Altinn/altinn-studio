@@ -1,9 +1,9 @@
-import React, { type HTMLAttributes, type ReactElement } from 'react';
+import React, { type ImgHTMLAttributes, type ReactElement } from 'react';
 import classes from './StudioAvatar.module.css';
 import { PersonCircleIcon } from '@studio/icons';
 
 export type StudioAvatarProps = {
-  avatarElement?: HTMLAttributes<HTMLImageElement>;
+  avatarElement?: ImgHTMLAttributes<HTMLImageElement>;
 };
 
 export const StudioAvatar = ({ avatarElement }: StudioAvatarProps): ReactElement => {
