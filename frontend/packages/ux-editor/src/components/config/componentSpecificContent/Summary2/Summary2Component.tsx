@@ -14,11 +14,11 @@ import { useAppContext } from '../../../../hooks';
 import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
 import { useTranslation } from 'react-i18next';
 
-export function Summary2Component({
+export const Summary2Component = ({
   schema,
   component,
   handleComponentChange,
-}: IGenericEditComponent<ComponentType.Summary2>) {
+}: IGenericEditComponent<ComponentType.Summary2>) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
@@ -48,6 +48,9 @@ export function Summary2Component({
   if (!schema?.properties) return null;
   const targetSchema = schema.properties.target.properties;
   const targetProperties = component.target;
+  const invalidPage = targetProperties.id && !pages.some(([key, _]) => key === targetProperties.id);
+  const invalidComponent =
+    targetProperties.id && !filtered.some(([key, _]) => key === targetProperties.id);
   return (
     <StudioCard>
       {/** TODO: Add translation **/}
@@ -73,6 +76,7 @@ export function Summary2Component({
             label='page' // TODO: Add translation
             value={targetProperties.id ? [targetProperties.id] : []}
             onValueChange={handleTargetIdChange}
+            error={invalidPage}
             multiple={false}
           >
             {pages.map(([pageId, _pageDetails]) => (
@@ -80,6 +84,11 @@ export function Summary2Component({
                 {pageId}
               </StudioCombobox.Option>
             ))}
+            {invalidPage && (
+              <StudioCombobox.Option disabled value={targetProperties.id} key={targetProperties.id}>
+                {targetProperties.id}
+              </StudioCombobox.Option>
+            )}
           </StudioCombobox>
         )}
         {targetProperties.type === 'component' && (
@@ -88,6 +97,7 @@ export function Summary2Component({
             label='component' // TODO: Add translation
             value={targetProperties.id ? [targetProperties.id] : []}
             onValueChange={handleTargetIdChange}
+            error={invalidComponent}
             multiple={false}
           >
             {filtered.map(([componentId, componentDetails]) => (
@@ -99,6 +109,11 @@ export function Summary2Component({
                 {componentId}
               </StudioCombobox.Option>
             ))}
+            {invalidComponent && (
+              <StudioCombobox.Option disabled value={targetProperties.id} key={targetProperties.id}>
+                {targetProperties.id}
+              </StudioCombobox.Option>
+            )}
           </StudioCombobox>
         )}
         {targetProperties.type === 'layoutSet' && (
@@ -112,4 +127,4 @@ export function Summary2Component({
       </StudioCard.Content>
     </StudioCard>
   );
-}
+};
