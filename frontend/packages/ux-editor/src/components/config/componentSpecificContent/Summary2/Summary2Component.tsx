@@ -3,6 +3,7 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
   StudioCard,
+  StudioHeading,
   StudioNativeSelect,
   StudioParagraph,
   StudioTextfield,
@@ -72,7 +73,9 @@ export const Summary2Component = ({
 
   return (
     <StudioCard>
-      <StudioCard.Header>{t('ux_editor.component_properties.target')}</StudioCard.Header>
+      <StudioCard.Header>
+        <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
+      </StudioCard.Header>
       <StudioParagraph size='small'>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
