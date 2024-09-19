@@ -31,15 +31,18 @@ export const Summary2Component = ({
     ComponentType.NavigationBar,
   ]; // TODO: Add more components that should be excluded
 
-  const components = Object.values(formLayoutsData).flatMap((layout) => {
-    return getAllLayoutComponents(layout, excludedComponents).map((e) => {
-      return { id: e.id, description: componentTypeName(e.type) };
-    });
-  });
+  const components = Object.values(formLayoutsData).flatMap((layout) =>
+    getAllLayoutComponents(layout, excludedComponents),
+  );
+  const componentOptions = components.map((e) => ({
+    id: e.id,
+    description: componentTypeName(e.type),
+  }));
 
-  const pages = Object.keys(formLayoutsData).map((page) => {
-    return { id: page, description: undefined };
-  });
+  const pageOptions = Object.keys(formLayoutsData).map((page) => ({
+    id: page,
+    description: undefined,
+  }));
 
   const handleTypeChange = (e: any) => {
     const newType = e.target.value;
@@ -47,7 +50,7 @@ export const Summary2Component = ({
 
     updatedComponent.target = { type: newType };
     // set default value for page
-    if (newType === 'page' && pages.some((page) => page.id === selectedFormLayoutName)) {
+    if (newType === 'page' && pageOptions.some((page) => page.id === selectedFormLayoutName)) {
       updatedComponent.target.id = selectedFormLayoutName;
     }
     handleComponentChange(updatedComponent);
@@ -90,7 +93,7 @@ export const Summary2Component = ({
           <Summmary2ComponentTargetSelector
             label={t('general.page')}
             value={target.id}
-            options={pages}
+            options={pageOptions}
             onValueChange={handleTargetIdChange}
           ></Summmary2ComponentTargetSelector>
         )}
@@ -98,7 +101,7 @@ export const Summary2Component = ({
           <Summmary2ComponentTargetSelector
             label={t('general.component')}
             value={target.id}
-            options={components}
+            options={componentOptions}
             onValueChange={handleTargetIdChange}
           ></Summmary2ComponentTargetSelector>
         )}
@@ -114,10 +117,3 @@ export const Summary2Component = ({
     </StudioCard>
   );
 };
-
-/**
- * Added translation keys
- * ux_editor.component_properties.target_description
- * ux_editor.component_properties.target_type
- * ux_editor.component_properties.target_invalid
- */
