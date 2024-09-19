@@ -12,12 +12,14 @@ import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQue
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../hooks';
 import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
+import { useTranslation } from 'react-i18next';
 
 export function Summary2Component({
   schema,
   component,
   handleComponentChange,
 }: IGenericEditComponent<ComponentType.Summary2>) {
+  const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
@@ -51,7 +53,7 @@ export function Summary2Component({
   return (
     <StudioCard>
       {/** TODO: Add translation **/}
-      <StudioCard.Header>Target</StudioCard.Header>
+      <StudioCard.Header>{t('ux_editor.component_properties.target')}</StudioCard.Header>
       {/** TODO: Add translation **/}
       <StudioParagraph>Target of the summary component</StudioParagraph>
       <StudioCard.Content>
