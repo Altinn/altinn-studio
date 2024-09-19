@@ -26,6 +26,10 @@ describe('Summary2ComponentTargetSelector', () => {
   it('should render', async () => {
     render();
 
+    expect(
+      screen.getByRole('heading', { name: textMock('ux_editor.component_properties.target') }),
+    ).toBeInTheDocument();
+
     expect(targetTypeSelect()).toBeInTheDocument();
 
     expect(componentTargetSelect()).toBeInTheDocument();
@@ -129,7 +133,6 @@ const defaultProps = {
   component: componentMocks[ComponentType.Summary2],
   handleComponentChange: jest.fn(),
 };
-
 const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
