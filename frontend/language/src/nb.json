@@ -1116,7 +1116,6 @@
   "ux_editor.component_properties.currency": "Valuta",
   "ux_editor.component_properties.current_task": "Kun gjeldende oppgave",
   "ux_editor.component_properties.dataListId": "Id på dataliste",
-  "ux_editor.component_properties.dataModelBindings": "Datamodellknytninger",
   "ux_editor.component_properties.dataTypeIds": "Liste med ID på datatyper som skal vises",
   "ux_editor.component_properties.dateSent": "Dato eksemplaret ble sendt inn",
   "ux_editor.component_properties.defaultTab": "Standardfane",
