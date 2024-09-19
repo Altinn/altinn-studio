@@ -13,7 +13,7 @@ import { useAppContext } from '../../../../hooks';
 import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
 import { useTranslation } from 'react-i18next';
 import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelector';
-import { getAllComponents } from '../../../../utils/formLayoutUtils';
+import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
 
 export const Summary2Component = ({
   component,
@@ -25,12 +25,16 @@ export const Summary2Component = ({
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const componentTypeName = useComponentTypeName();
 
-  const excludedComponents = [ComponentType.Summary2]; // TODO: Add components that should be excluded
-  const components = getAllComponents(
-    formLayoutsData[selectedFormLayoutName],
-    excludedComponents,
-  ).map((e) => {
-    return { id: e.id, description: componentTypeName(e.type) };
+  const excludedComponents = [
+    ComponentType.Summary2,
+    ComponentType.NavigationButtons,
+    ComponentType.NavigationBar,
+  ]; // TODO: Add more components that should be excluded
+
+  const components = Object.values(formLayoutsData).flatMap((layout) => {
+    return getAllLayoutComponents(layout, excludedComponents).map((e) => {
+      return { id: e.id, description: componentTypeName(e.type) };
+    });
   });
 
   const pages = Object.keys(formLayoutsData).map((page) => {
@@ -51,6 +55,7 @@ export const Summary2Component = ({
 
   const handleTargetIdChange = (value: string) => {
     const updatedComponent = { ...component };
+
     updatedComponent.target.id = value;
     handleComponentChange(updatedComponent);
   };
