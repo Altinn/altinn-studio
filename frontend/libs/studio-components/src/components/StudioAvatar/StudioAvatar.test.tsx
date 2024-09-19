@@ -26,9 +26,15 @@ describe('StudioAvatar', () => {
     expect(imgElement).toHaveAttribute('title', avatarElement.title);
   });
 
-  it('Appends given classname to internal classname', () => {
+  it('Appends given classname to internal classname when no image is given', () => {
     testRootClassNameAppending((className) =>
-      renderStudioAvatar({ componentProps: { className: 'test' } }),
+      renderStudioAvatar({ componentProps: { className } }),
+    );
+  });
+
+  it('Appends given classname to internal classname when an image is given', () => {
+    testRootClassNameAppending((className) =>
+      renderStudioAvatar({ componentProps: { className, src: 'test.png', alt: 'Test' } }),
     );
   });
 });
