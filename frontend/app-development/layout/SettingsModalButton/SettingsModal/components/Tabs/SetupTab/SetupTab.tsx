@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import { ErrorMessage } from '@digdir/designsystemet-react';
@@ -9,6 +8,7 @@ import { TabHeader } from '../../TabHeader';
 import { SetupTabContent } from './SetupTabContent';
 import { TabContent } from '../../TabContent';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export const SetupTab = (): ReactNode => {
   const { t } = useTranslation();

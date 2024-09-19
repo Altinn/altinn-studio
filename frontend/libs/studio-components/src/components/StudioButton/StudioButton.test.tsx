@@ -1,9 +1,12 @@
-import type { RefObject } from 'react';
-import React, { createRef } from 'react';
+import type { ForwardedRef } from 'react';
+import React from 'react';
 import type { StudioButtonProps } from './StudioButton';
 import { StudioButton } from './StudioButton';
 import { render, screen } from '@testing-library/react';
 import type { IconPlacement } from '../../types/IconPlacement';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 // Mocks:
 jest.mock('./StudioButton.module.css', () => ({
@@ -16,7 +19,7 @@ describe('StudioButton', () => {
   it('Renders a button with the given content', () => {
     const children = 'Button content';
     renderButton({ children });
-    expect(screen.getByRole('button', { name: children })).toBeInTheDocument();
+    expect(getButtonByName(children)).toBeInTheDocument();
   });
 
   it.each(iconPlacementCases)(
@@ -36,22 +39,21 @@ describe('StudioButton', () => {
       const iconTestId = 'icon';
       const icon = <span data-testid={iconTestId} />;
       renderButton({ icon, iconPlacement, children });
-      expect(screen.getByRole('button', { name: children })).toBeInTheDocument();
+      expect(getButtonByName(children)).toBeInTheDocument();
       expect(screen.getByTestId('icon')).toBeInTheDocument();
     },
   );
 
-  it('Appends given classname to internal classname', () => {
-    const className = 'test-class';
-    const { container } = renderButton({ className });
-    expect(container.firstChild).toHaveClass(className); // eslint-disable-line testing-library/no-node-access
-    expect(container.firstChild).toHaveClass('studioButton'); // eslint-disable-line testing-library/no-node-access
+  it('Appends custom attributes to the button element', () => {
+    testCustomAttributes(renderButton, getButton);
   });
 
-  it('Forwards the ref object to the button element if given', () => {
-    const ref = createRef<HTMLButtonElement>();
-    renderButton({ children: 'Test' }, ref);
-    expect(ref.current).toBe(screen.getByRole('button'));
+  it('Appends given classname to internal classname', () => {
+    testRootClassNameAppending((className) => renderButton({ className }));
+  });
+
+  it('Forwards the ref to the button element if given', () => {
+    testRefForwarding<HTMLButtonElement>((ref) => renderButton({}, ref), getButton);
   });
 
   it('Supports render asChild', () => {
@@ -65,5 +67,9 @@ describe('StudioButton', () => {
   });
 });
 
-const renderButton = (props: StudioButtonProps, ref?: RefObject<HTMLButtonElement>) =>
+const renderButton = (props: StudioButtonProps, ref?: ForwardedRef<HTMLButtonElement>) =>
   render(<StudioButton {...props} ref={ref} />);
+
+const getButton = (): HTMLButtonElement => screen.getByRole('button') as HTMLButtonElement;
+const getButtonByName = (name: string): HTMLButtonElement =>
+  screen.getByRole('button', { name }) as HTMLButtonElement;

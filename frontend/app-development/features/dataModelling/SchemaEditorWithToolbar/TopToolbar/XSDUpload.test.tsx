@@ -5,10 +5,11 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { fileSelectorInputId } from '@studio/testing/testids';
+import { app, fileSelectorInputId, org } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../../test/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 const user = userEvent.setup();
 
@@ -98,6 +99,42 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(textMock(`api_errors.${errorCode}`));
+  });
+
+  it('does not allow uploading with duplicate datatypes', async () => {
+    const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'hello' }],
+    });
+    renderXsdUpload({
+      queryClient: queryClient,
+    });
+
+    await clickUploadButton();
+
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('schema_editor.error_data_type_name_exists'),
+    );
+  });
+
+  it('does not allow uploading with invalid name', async () => {
+    const file = new File(['$-_123'], '$-_123.xsd', { type: 'text/xml' });
+    renderXsdUpload();
+
+    await clickUploadButton();
+
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('app_data_modelling.upload_xsd_invalid_error'),
+    );
   });
 
   it('shows a custom generic error message', async () => {
