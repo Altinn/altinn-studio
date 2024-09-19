@@ -5,6 +5,7 @@ import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { AddPropertiesMenu } from '@altinn/schema-editor/components/AddPropertiesMenu';
 import { useTranslation } from 'react-i18next';
+import classes from './AddPropertyMenu.module.css';
 
 interface AddPropertyMenuProps {
   schemaPointer: string;
@@ -25,6 +26,7 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
 
   return (
     <AddPropertiesMenu
+      className={classes.addPropertyMenu}
       onItemClick={addPropertyAndClose}
       ancherButtonProps={{
         children: '',

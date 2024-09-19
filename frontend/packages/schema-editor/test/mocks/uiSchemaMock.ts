@@ -125,6 +125,24 @@ export const stringDefinitionNodeMock: FieldNode = {
   fieldType: FieldType.String,
 };
 
+export const booleanDefinitionNodeMock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: stringDefinitionNodePointer,
+  fieldType: FieldType.Boolean,
+};
+
+export const integerDefinitionNodeMock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: stringDefinitionNodePointer,
+  fieldType: FieldType.Integer,
+};
+
+export const numberDefinitionNodeMock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: stringDefinitionNodePointer,
+  fieldType: FieldType.Number,
+};
+
 export const nodeWithSameNameAsObjectChildMock: FieldNode = {
   ...nodeMockBase,
   schemaPointer: nodeWithSameNameAsObjectChildPointer,
@@ -145,4 +163,7 @@ export const uiSchemaNodesMock: UiSchemaNodes = [
   childOfDefinitionNodeMock,
   stringDefinitionNodeMock,
   nodeWithSameNameAsObjectChildMock,
+  booleanDefinitionNodeMock,
+  integerDefinitionNodeMock,
+  numberDefinitionNodeMock,
 ];

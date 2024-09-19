@@ -2,26 +2,16 @@ import type { ReactNode, KeyboardEvent, ChangeEventHandler } from 'react';
 import React, { useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import {
-  deleteNode,
-  isField,
-  setRequired,
-  setPropertyName,
-  type UiSchemaNode,
-  ObjectKind,
-} from '@altinn/schema-model';
+import { deleteNode, setRequired, setPropertyName, type UiSchemaNode } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
-
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
-import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { useKindNames } from '../../hooks/useKindNames';
-import { ItemFieldType } from './ItemFieldType ';
+import { ItemFieldType } from './ItemFieldType/ItemFieldType';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
@@ -42,7 +32,6 @@ export const ItemFieldsTableRow = ({
   const { schemaModel, setSelectedUniquePointer, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
-  const typeOptions = useTypeOptions();
   const fullPath = fieldNode.schemaPointer;
 
   const handleChangeNodeName = (newNodeName: string) => {
@@ -53,13 +42,6 @@ export const ItemFieldsTableRow = ({
       }),
     );
   };
-
-  const typeLabel =
-    isField(fieldNode) && typeOptions.find(({ value }) => value === fieldNode.fieldType)?.label;
-
-  const kindNames = useKindNames();
-  const notReferenceKind = fieldNode.objectKind !== ObjectKind.Reference;
-  const kindLabel = notReferenceKind && kindNames[fieldNode.objectKind];
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
@@ -93,7 +75,7 @@ export const ItemFieldsTableRow = ({
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        <ItemFieldType fieldNode={fieldNode} typeLabel={typeLabel} kindLabel={kindLabel} />
+        <ItemFieldType fieldNode={fieldNode} />
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>
