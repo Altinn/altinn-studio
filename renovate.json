@@ -20,6 +20,11 @@
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
-  "ignoreDeps": ["Moq", "Altinn.App.Core"],
+  "ignoreDeps": [
+    "Moq",
+    "Altinn.App.Core",
+    "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.Common"
+  ],
   "schedule": ["before 07:00 on Monday"]
 }
