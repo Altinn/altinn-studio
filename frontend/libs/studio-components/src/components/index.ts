@@ -1,4 +1,5 @@
 export * from './StudioAnimateHeight';
+export * from './StudioAvatar';
 export * from './StudioBlobDownloader';
 export * from './StudioBooleanToggleGroup';
 export * from './StudioButton';

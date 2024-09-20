@@ -20,7 +20,7 @@ import {
   type StudioProfileMenuItem,
   useMediaQuery,
 } from '@studio/components';
-import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
+import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -86,7 +86,7 @@ export const LandingPage = () => {
         <StudioPageHeader.Main>
           <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
           <StudioPageHeader.Right>
-            <AppUserProfileMenu
+            <UserProfileMenu
               user={user}
               repository={repository}
               color='light'
