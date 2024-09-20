@@ -24,7 +24,7 @@ import {
   moveArrayItem,
   replaceItemsByValue,
 } from 'app-shared/utils/arrayUtils';
-import { ROOT_POINTER } from './constants';
+import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from './constants';
 import type { ReferenceNode } from '../types/ReferenceNode';
 import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { replaceStart } from 'app-shared/utils/stringUtils';
@@ -109,15 +109,15 @@ export class SchemaModel {
   }
 
   private removeUniquePointerPrefix(uniquePointer: string): string {
-    return uniquePointer.replace('uniquePointer-', '');
+    return uniquePointer.replace(UNIQUE_POINTER_PREFIX, '');
   }
 
   public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
-      return `uniquePointer-${schemaPointer}`;
+      return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
 
     const parentPointer = this.removeUniquePointerPrefix(uniqueParentPointer);
-    return `uniquePointer-${parentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
+    return `${UNIQUE_POINTER_PREFIX}${parentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
   }
 
   public hasNode(schemaPointer: string): boolean {

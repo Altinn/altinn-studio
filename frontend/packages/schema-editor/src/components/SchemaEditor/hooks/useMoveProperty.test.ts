@@ -7,6 +7,7 @@ import {
   ROOT_POINTER,
   SchemaModel,
   validateTestUiSchema,
+  UNIQUE_POINTER_PREFIX,
 } from '@altinn/schema-model';
 import {
   combinationNodeMock,
@@ -156,12 +157,11 @@ describe('useMoveProperty', () => {
 
   it('Updates the selected unique node pointer if moving a node that is selected into an object', () => {
     const setSelectedUniquePointerMock = jest.fn();
-    const uniquePointerPrefix = 'uniquePointer';
     const { move, save } = setup({
-      selectedUniquePointer: `${uniquePointerPrefix}-${fieldNode1Mock.schemaPointer}`,
+      selectedUniquePointer: `${UNIQUE_POINTER_PREFIX}-${fieldNode1Mock.schemaPointer}`,
       setSelectedUniquePointer: setSelectedUniquePointerMock,
     });
-    const pointerOfNodeToMove = `${uniquePointerPrefix}-${fieldNode1Mock.schemaPointer}`;
+    const pointerOfNodeToMove = `${UNIQUE_POINTER_PREFIX}-${fieldNode1Mock.schemaPointer}`;
     const index = rootNodeMock.children.length;
     const target: ItemPosition = { parentId: ROOT_POINTER, index };
     move(pointerOfNodeToMove, target);
@@ -170,19 +170,18 @@ describe('useMoveProperty', () => {
     const rootChildren = savedModel.getRootChildren();
     const addedRootChild = rootChildren[index];
     expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(
-      `${uniquePointerPrefix}-${addedRootChild.schemaPointer}`,
+      `${UNIQUE_POINTER_PREFIX}-${addedRootChild.schemaPointer}`,
     );
   });
 
   it('Updates the selected unique node pointer if moving a node that is selected into a combination node', () => {
     const setSelectedUniquePointerMock = jest.fn();
-    const uniquePointerPrefix = 'uniquePointer';
     const { move } = setup({
       selectedUniquePointer: toggableNodeMock.schemaPointer,
       setSelectedUniquePointer: setSelectedUniquePointerMock,
     });
     const pointerOfNodeToMove = toggableNodeMock.schemaPointer;
-    const pointerOfNewParent = `${uniquePointerPrefix}-${combinationNodeMock.schemaPointer}`;
+    const pointerOfNewParent = `${UNIQUE_POINTER_PREFIX}-${combinationNodeMock.schemaPointer}`;
     const indexInNewParent = 0;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
     move(pointerOfNodeToMove, target);
