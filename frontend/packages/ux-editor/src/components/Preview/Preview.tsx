@@ -3,7 +3,7 @@ import classes from './Preview.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
-import { useAppContext, useSelectedTaskId } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
@@ -12,6 +12,7 @@ import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export type PreviewProps = {
   collapsed: boolean;

@@ -8,12 +8,6 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-// Should this import be like this?
-import {
-  useSelectedFormLayoutName,
-  useSelectedFormLayoutSetName,
-  useSelectedTaskId,
-} from '@altinn/ux-editor/hooks';
 import {
   StudioPageHeader,
   StudioPageSpinner,
@@ -25,6 +19,9 @@ import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
