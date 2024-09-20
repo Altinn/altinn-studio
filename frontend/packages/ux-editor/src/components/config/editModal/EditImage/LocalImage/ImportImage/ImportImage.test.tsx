@@ -23,7 +23,7 @@ describe('ImportImage', () => {
     expect(onImageChangeMock).toHaveBeenCalledWith(`wwwroot/${imageFileName}`);
   });
 
-  it('should show overrideExistingConfirmDialogue if trying to upload an image that exists', async () => {
+  it('should show confirm dialog if trying to upload an image that exists', async () => {
     window.confirm = jest.fn();
     const user = userEvent.setup();
     const imageFileName = 'image.png';

@@ -14,10 +14,8 @@ export const ExternalImageValidationStatus = ({
   validationResult,
 }: ExternalImageValidationStatusProps) => {
   const { t } = useTranslation();
-  const { getValidationMessageBasedOnValidationStatus } =
-    useValidationMessageBasedOnValidationStatus();
 
-  const validationMessage = getValidationMessageBasedOnValidationStatus(validationResult);
+  const validationMessage = useValidationMessageBasedOnValidationStatus(validationResult);
 
   switch (validationStatus) {
     case 'pending':
@@ -43,7 +41,9 @@ export const ExternalImageValidationStatus = ({
   }
 };
 
-export const useValidationMessageBasedOnValidationStatus = (validationResultStatus: ExternalImageUrlValidationResponse): string => {
+export const useValidationMessageBasedOnValidationStatus = (
+  validationResultStatus: ExternalImageUrlValidationResponse,
+): string => {
   const { t } = useTranslation();
 
   switch (validationResultStatus) {
