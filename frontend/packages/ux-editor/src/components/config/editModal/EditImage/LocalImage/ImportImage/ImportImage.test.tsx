@@ -54,7 +54,6 @@ describe('ImportImage', () => {
 
     expect(addImageMock).toHaveBeenCalledTimes(1);
     const formDataCalls = addImageMock.mock.calls;
-    console.log('formDataCalls: ', formDataCalls);
     expect(formDataCalls[0][2].get('file')).toEqual(formDataOverrideExistingMock.get('image'));
     expect(formDataCalls[0][2].get('overrideExisting')).toEqual(
       formDataOverrideExistingMock.get('overrideExisting'),
