@@ -441,6 +441,12 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/summaryComponent',
     icon: FileTextIcon,
   },
+  [ComponentType.Summary2]: {
+    name: ComponentType.Summary2,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    icon: FileTextIcon,
+  },
   [ComponentType.TextArea]: {
     name: ComponentType.TextArea,
     itemType: LayoutItemType.Component,
@@ -494,7 +500,8 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
   formItemConfigs[ComponentType.Summary],
-];
+  shouldDisplayFeature('summary2') && formItemConfigs[ComponentType.Summary2],
+].filter(Boolean); // When removing the featureFlag, also remove the filter
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
