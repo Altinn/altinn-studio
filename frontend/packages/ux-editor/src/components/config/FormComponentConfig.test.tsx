@@ -9,6 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import userEvent from '@testing-library/user-event';
 
 const somePropertyName = 'somePropertyName';
 const customTextMockToHandleUndefined = (
@@ -161,6 +162,24 @@ describe('FormComponentConfig', () => {
       name: textMock('ux_editor.component_properties.timeStamp'),
     });
     expect(timeStampSwitch).toBeChecked();
+  });
+
+  it('should call updateComponent with false value when checking a default true property switch', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: DatepickerSchema,
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.timeStamp'),
+    });
+    await user.click(timeStampSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ timeStamp: false }),
+    );
   });
 
   it('should show description from schema for objects if key is not defined', () => {

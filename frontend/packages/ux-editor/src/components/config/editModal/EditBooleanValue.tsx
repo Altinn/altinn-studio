@@ -22,7 +22,6 @@ export const EditBooleanValue = ({
   const componentPropertyLabel = useComponentPropertyLabel();
 
   const handleChange = () => {
-    debugger;
     handleComponentChange({
       ...component,
       [propertyKey]: getNewBooleanValue(),
@@ -33,9 +32,8 @@ export const EditBooleanValue = ({
     return Array.isArray(value);
   };
 
-  const getNewBooleanValue = () => {
-    return component[propertyKey] === undefined ? !defaultValue : !component[propertyKey];
-  };
+  const getNewBooleanValue = () =>
+    component[propertyKey] === undefined ? !defaultValue : !component[propertyKey];
 
   return (
     <FormField
