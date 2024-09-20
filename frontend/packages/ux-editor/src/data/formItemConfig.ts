@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   CheckboxIcon,
   ChevronDownDoubleIcon,
+  ClipboardIcon,
   ElementIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
@@ -36,6 +37,7 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -423,6 +425,13 @@ export const formItemConfigs: FormItemConfigs = {
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
+  [ComponentType.SubForm]: {
+    name: ComponentType.SubForm,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/subForm',
+    icon: ClipboardIcon,
+  },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
     itemType: LayoutItemType.Component,
@@ -459,7 +468,8 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-];
+  shouldDisplayFeature('subForm') && formItemConfigs[ComponentType.SubForm],
+].filter(Boolean); // When removing the featureFlag, also remove the filter
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Input],

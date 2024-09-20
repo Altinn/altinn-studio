@@ -22,6 +22,7 @@ export * from './StudioModal';
 export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';
 export * from './StudioPageError';
+export * from './StudioPageHeader';
 export * from './StudioPageSpinner';
 export * from './StudioParagraph';
 export * from './StudioPopover';
