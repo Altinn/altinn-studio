@@ -4012,10 +4012,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@studio/components@workspace:frontend/libs/studio-components"
   dependencies:
+    "@chromatic-com/storybook": "npm:2.0.2"
     "@storybook/addon-essentials": "npm:8.3.0"
     "@storybook/addon-interactions": "npm:8.3.0"
     "@storybook/addon-links": "npm:8.3.0"
-    "@chromatic-com/storybook": "npm:2.0.2"
     "@storybook/addon-webpack5-compiler-swc": "npm:1.0.5"
     "@storybook/blocks": "npm:8.3.0"
     "@storybook/react": "npm:8.3.0"

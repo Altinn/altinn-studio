@@ -17,11 +17,11 @@
     "react-dom": "^18.2.0",
     "uuid": "10.0.0"
   },
-  "devDependencies": {   
+  "devDependencies": {
+    "@chromatic-com/storybook": "2.0.2",
     "@storybook/addon-essentials": "8.3.0",
     "@storybook/addon-interactions": "8.3.0",
     "@storybook/addon-links": "8.3.0",
-    "@chromatic-com/storybook": "2.0.2",
     "@storybook/addon-webpack5-compiler-swc": "1.0.5",
     "@storybook/blocks": "8.3.0",
     "@storybook/react": "8.3.0",
