@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioFileUploader } from './StudioFileUploader';
-import { Alert } from '@digdir/designsystemet-react';
+import { StudioFileUploadWrapper } from './StudioFileUploaderWrapper';
 
-type Story = StoryFn<typeof StudioFileUploader>;
+type Story = StoryFn<typeof StudioFileUploadWrapper>;
 
 const meta: Meta = {
   title: 'StudioFileUploader',
-  component: StudioFileUploader,
+  component: StudioFileUploadWrapper,
   argTypes: {
     size: {
       control: 'select',
@@ -24,51 +23,32 @@ const meta: Meta = {
       control: 'text',
       type: 'string',
     },
+    validateFileName: {
+      control: 'boolean',
+      description:
+        'Set to `true` to simulate that the file name is valid. Set to `false` to simulate that file name is invalid.',
+    },
     onInvalidFileName: {
       control: 'boolean',
       description:
-        'Set to `true` to simulate that the file name validation would be handled outside of the component',
+        'Set to `true` to simulate that an invalid file name is handled. Set to `false` to simulate no file name validation handling.',
     },
-    fileNameRegEx: {
-      control: 'select',
-      description:
-        'The first example regExp allows all strings. The second example regExp does only allow digits and punctuations.',
-      options: ['^.*$', '^[0-9!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~]+$'],
+    onUploadFile: {
+      table: { disable: true },
     },
   },
 };
 
 export const Preview: Story = (args): React.ReactElement => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [showError, setShowError] = useState<boolean>(false);
-
-  const regEx = args.fileNameRegEx ? new RegExp(args.fileNameRegEx) : undefined;
-
-  const handleInvalidFileName = () => {
-    args.onInvalidFileName && setShowError(true);
-  };
-  return (
-    <>
-      <StudioFileUploader
-        {...args}
-        onInvalidFileName={handleInvalidFileName}
-        fileNameRegEx={regEx}
-        ref={fileInputRef}
-      />
-      {showError && (
-        <Alert size='small' severity='danger'>
-          {'File name regEx validation message that was handled outside of the component'}
-        </Alert>
-      )}
-    </>
-  );
+  return <StudioFileUploadWrapper {...args} />;
 };
 
 Preview.args = {
   uploaderButtonText: 'Last opp fil',
   variant: 'tertiary',
   onUploadFile: () => {},
-  onInvalidFileName: false as unknown as any,
+  validateFileName: false,
+  onInvalidFileName: true,
   disabled: false,
 };
 export default meta;

@@ -103,14 +103,57 @@ describe('StudioFileUploader', () => {
     expect(onUploadFileMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should validate file as valid if fileRegEx is not provided, but onInvalidFileName is', async () => {
+  it('should validate file as valid if customFileNameValidation is not defined', async () => {
+    const user = userEvent.setup();
+    const onUploadFileMock = jest.fn();
+    render(
+      <StudioFileUploader
+        onUploadFile={onUploadFileMock}
+        dataTestId={dataTestId}
+        ref={fileInputRef}
+      />,
+    );
+    const fileInput = screen.getByTestId(dataTestId);
+    const file = new File(['test'], 'fileNameMock', { type: 'image/png' });
+    await user.upload(fileInput, file);
+
+    expect(onUploadFileMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onInvalidFileName and not upload callback when validateFileName returns false', async () => {
     const user = userEvent.setup();
     const onUploadFileMock = jest.fn();
     const onInvalidFileNameMock = jest.fn();
     render(
       <StudioFileUploader
         onUploadFile={onUploadFileMock}
-        onInvalidFileName={onInvalidFileNameMock}
+        customFileNameValidation={{
+          validateFileName: jest.fn().mockReturnValue(false),
+          onInvalidFileName: onInvalidFileNameMock,
+        }}
+        dataTestId={dataTestId}
+        ref={fileInputRef}
+      />,
+    );
+    const fileInput = screen.getByTestId(dataTestId);
+    const file = new File(['test'], 'fileNameMock', { type: 'image/png' });
+    await user.upload(fileInput, file);
+
+    expect(onUploadFileMock).not.toHaveBeenCalled();
+    expect(onInvalidFileNameMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not call onInvalidFileName and upload callback when validateFileName returns true', async () => {
+    const user = userEvent.setup();
+    const onUploadFileMock = jest.fn();
+    const onInvalidFileNameMock = jest.fn();
+    render(
+      <StudioFileUploader
+        onUploadFile={onUploadFileMock}
+        customFileNameValidation={{
+          validateFileName: jest.fn().mockReturnValue(true),
+          onInvalidFileName: onInvalidFileNameMock,
+        }}
         dataTestId={dataTestId}
         ref={fileInputRef}
       />,
@@ -121,48 +164,5 @@ describe('StudioFileUploader', () => {
 
     expect(onUploadFileMock).toHaveBeenCalledTimes(1);
     expect(onInvalidFileNameMock).not.toHaveBeenCalled();
-  });
-
-  it('should validate file as valid if onInvalidFileName is not provided, but fileRegEx is', async () => {
-    const user = userEvent.setup();
-    const onUploadFileMock = jest.fn();
-    const fileNameRegEx: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
-    const fileNameNotMatchingRegEx = 'æøå';
-    render(
-      <StudioFileUploader
-        onUploadFile={onUploadFileMock}
-        fileNameRegEx={fileNameRegEx}
-        dataTestId={dataTestId}
-        ref={fileInputRef}
-      />,
-    );
-    const fileInput = screen.getByTestId(dataTestId);
-    const file = new File(['test'], fileNameNotMatchingRegEx, { type: 'image/png' });
-    await user.upload(fileInput, file);
-
-    expect(onUploadFileMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call onInvalidFileName and not upload callback when uploaded file name does not match regEx', async () => {
-    const user = userEvent.setup();
-    const onUploadFileMock = jest.fn();
-    const onInvalidFileNameMock = jest.fn();
-    const fileNameRegEx: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
-    const fileNameNotMatchingRegEx = 'æøå';
-    render(
-      <StudioFileUploader
-        onUploadFile={onUploadFileMock}
-        fileNameRegEx={fileNameRegEx}
-        onInvalidFileName={onInvalidFileNameMock}
-        dataTestId={dataTestId}
-        ref={fileInputRef}
-      />,
-    );
-    const fileInput = screen.getByTestId(dataTestId);
-    const file = new File(['test'], fileNameNotMatchingRegEx, { type: 'image/png' });
-    await user.upload(fileInput, file);
-
-    expect(onUploadFileMock).not.toHaveBeenCalled();
-    expect(onInvalidFileNameMock).toHaveBeenCalledTimes(1);
   });
 });

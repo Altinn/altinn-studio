@@ -7,7 +7,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { toast } from 'react-toastify';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useAppVersionQuery } from 'app-shared/hooks/queries';
+import { useAppMetadataQuery, useAppVersionQuery } from 'app-shared/hooks/queries';
 import { useUpdateLayoutSetIdMutation } from '../../hooks/mutations/useUpdateLayoutSetIdMutation';
 import { useAddLayoutSetMutation } from '../../hooks/mutations/useAddLayoutSetMutation';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
@@ -19,7 +19,7 @@ import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 import { useAddDataTypeToAppMetadata } from '../../hooks/mutations/useAddDataTypeToAppMetadata';
 import { useDeleteDataTypeFromAppMetadata } from '../../hooks/mutations/useDeleteDataTypeFromAppMetadata';
 import { useSettingsModalContext } from '../../contexts/SettingsModalContext';
-import { useAppMetadataQuery, useAppPolicyQuery } from '../../hooks/queries';
+import { useAppPolicyQuery } from '../../hooks/queries';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
 import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
