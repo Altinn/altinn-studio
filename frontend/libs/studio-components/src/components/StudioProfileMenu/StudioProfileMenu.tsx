@@ -46,7 +46,9 @@ export const StudioProfileMenu = ({
 
   const truncatedText =
     triggerButtonText && truncateAt
-      ? `${triggerButtonText.slice(0, truncateAt)}...`
+      ? triggerButtonText.length < truncateAt
+        ? triggerButtonText
+        : `${triggerButtonText.slice(0, truncateAt)}...`
       : triggerButtonText;
 
   const handleToggleMenu = () => {
