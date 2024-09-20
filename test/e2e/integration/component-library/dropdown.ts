@@ -7,7 +7,7 @@ describe('Dropdown component', () => {
     const testText = 'Moped';
 
     cy.startAppInstance(appFrontend.apps.componentLibrary, { authenticationLevel: '2' });
-    cy.gotoNavPage('DropdownPage');
+    cy.gotoNavPage('Dropdown');
     cy.get('#form-content-DropdownPage-RadioButtons').click();
     cy.get('div[role="listbox"]').contains('span', testText).click();
     cy.get('[data-testid="summary-single-value-component"]')

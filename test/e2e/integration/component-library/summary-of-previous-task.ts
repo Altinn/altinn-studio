@@ -1,6 +1,9 @@
-import { fillInAddressAndVerify } from 'test/e2e/integration/component-library/address';
-import { uploadFileAndVerify, uploadFileWithTagAndVerify } from 'test/e2e/integration/component-library/fileupload';
-import { fillInInputAndVerify } from 'test/e2e/integration/component-library/input';
+import { fillInAddressAndVerify } from 'test/e2e/integration/component-library/utils/fillAddressAndVerify';
+import { fillInInputAndVerify } from 'test/e2e/integration/component-library/utils/inputAndVerify';
+import {
+  uploadFileAndVerify,
+  uploadFileWithTagAndVerify,
+} from 'test/e2e/integration/component-library/utils/uploadFileAndVerify';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
@@ -23,7 +26,7 @@ describe('Render summary of previous task', () => {
     uploadFileAndVerify(fileName);
     uploadFileWithTagAndVerify(fileName, fileType);
 
-    cy.get('#navigation-menu').find('button').contains('15. Oppsummering 2.0').click();
+    cy.get('#navigation-menu').find('button').contains('16. Oppsummering 2.0').click();
 
     cy.contains('button', 'Send inn').click();
 
