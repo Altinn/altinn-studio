@@ -57,7 +57,7 @@ export function LayoutSetsContainer() {
         })}
       </NativeSelect>
       {shouldDisplayFeature('exportForm') && <ExportForm />}
-      <CreateSubFormWrapper layoutSetNames={layoutSetNames} />
+      <CreateSubFormWrapper layoutSets={layoutSetsQuery?.data} />
     </div>
   );
 }
