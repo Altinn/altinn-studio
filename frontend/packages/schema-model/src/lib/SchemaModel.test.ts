@@ -114,24 +114,24 @@ describe('SchemaModel', () => {
 
   describe('getNodeByUniquePointer', () => {
     it('Returns the node when unique pointer is the root', () => {
-      const uniqueRootPointer = `${UNIQUE_POINTER_PREFIX}-${rootNodeMock.schemaPointer}`;
+      const uniqueRootPointer = `${UNIQUE_POINTER_PREFIX}${rootNodeMock.schemaPointer}`;
       expect(schemaModel.getNodeByUniquePointer(uniqueRootPointer)).toEqual(rootNodeMock);
     });
 
     it('Returns the node when unique pointer is a property node', () => {
-      const uniqueParentPointer = `${UNIQUE_POINTER_PREFIX}-${parentNodeMock.schemaPointer}`;
+      const uniqueParentPointer = `${UNIQUE_POINTER_PREFIX}${parentNodeMock.schemaPointer}`;
       expect(schemaModel.getNodeByUniquePointer(uniqueParentPointer)).toEqual(parentNodeMock);
-      const uniqueDefPointer = `${UNIQUE_POINTER_PREFIX}-${defNodeMock.schemaPointer}`;
+      const uniqueDefPointer = `${UNIQUE_POINTER_PREFIX}${defNodeMock.schemaPointer}`;
       expect(schemaModel.getNodeByUniquePointer(uniqueDefPointer)).toEqual(defNodeMock);
-      const uniqueAllOfPointer = `${UNIQUE_POINTER_PREFIX}-${allOfNodeMock.schemaPointer}`;
+      const uniqueAllOfPointer = `${UNIQUE_POINTER_PREFIX}${allOfNodeMock.schemaPointer}`;
       expect(schemaModel.getNodeByUniquePointer(uniqueAllOfPointer)).toEqual(allOfNodeMock);
-      const uniqueStringPointer = `${UNIQUE_POINTER_PREFIX}-${stringNodeMock.schemaPointer}`;
+      const uniqueStringPointer = `${UNIQUE_POINTER_PREFIX}${stringNodeMock.schemaPointer}`;
       expect(schemaModel.getNodeByUniquePointer(uniqueStringPointer)).toEqual(stringNodeMock);
     });
 
     it('Returns the node reflecting the path to a given unique pointer in a reference', () => {
-      const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}/properties/referenceToParent/properties/child`;
-      const uniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
+      const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
+      const uniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
 
       expect(schemaModel.getNodeByUniquePointer(uniqueChildPointer)).toEqual(
         defNodeWithChildrenChildMock,
@@ -143,8 +143,8 @@ describe('SchemaModel', () => {
   });
 
   describe('getSchemaPointerByUniquePointer', () => {
-    const uniqueGrandChildPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
-    const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}/properties/referenceToParent/properties/child`;
+    const uniqueGrandChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
+    const uniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
 
     it('Returns the schema pointer for a given unique pointer', () => {
       expect(schemaModel.getSchemaPointerByUniquePointer(uniqueChildPointer)).toEqual(
@@ -158,14 +158,14 @@ describe('SchemaModel', () => {
 
   describe('getUniquePointer', () => {
     it('Returns the unique pointer when called on the root node', () => {
-      const expectedUniqueRootPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}`;
+      const expectedUniqueRootPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}`;
       expect(schemaModel.getUniquePointer(rootNodeMock.schemaPointer)).toEqual(
         expectedUniqueRootPointer,
       );
     });
 
     it('Returns the unique pointer when called on a property node', () => {
-      const expectedUniquePointer = `${UNIQUE_POINTER_PREFIX}-${referenceToObjectNodeMock.schemaPointer}`;
+      const expectedUniquePointer = `${UNIQUE_POINTER_PREFIX}${referenceToObjectNodeMock.schemaPointer}`;
 
       expect(schemaModel.getUniquePointer(referenceToObjectNodeMock.schemaPointer)).toEqual(
         expectedUniquePointer,
@@ -173,8 +173,8 @@ describe('SchemaModel', () => {
     });
 
     it('Returns a unique pointer reflecting the path to a given node in a reference', () => {
-      const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}/properties/referenceToParent/properties/child`;
-      const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}-${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
+      const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
+      const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
 
       expect(
         schemaModel.getUniquePointer(
