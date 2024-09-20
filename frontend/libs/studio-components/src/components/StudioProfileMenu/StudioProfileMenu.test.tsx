@@ -152,7 +152,17 @@ describe('StudioProfileMenu', () => {
 
     const truncatedText = `${longText.slice(0, truncateAt)}...`;
     expect(screen.getByText(truncatedText)).toBeInTheDocument();
-    expect(screen.getByText(truncatedText)).toHaveTextContent(truncatedText);
+  });
+
+  it('should not truncate triggerButtonText if the text is smaller than truncateAt', () => {
+    const shortText = 'Short text';
+    const truncateAt: number = 30;
+
+    renderStudioProfileMenu({ triggerButtonText: shortText, truncateAt });
+
+    const truncatedText = `${shortText.slice(0, truncateAt)}...`;
+    expect(screen.queryByText(truncatedText)).not.toBeInTheDocument();
+    expect(screen.getByText(shortText)).toBeInTheDocument();
   });
 
   it('should toggle the dropdown menu open and close when the trigger button is clicked multiple times', async () => {
