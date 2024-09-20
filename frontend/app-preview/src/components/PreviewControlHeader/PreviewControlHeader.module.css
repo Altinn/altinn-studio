@@ -1,27 +1,8 @@
-.elements svg {
-  color: #fff;
-}
-
-.properties {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.subHeader {
-  color: white;
-  border-bottom: 1px solid gray;
-  background-color: #0c6536;
-  display: flex;
-  align-items: center;
-  height: var(--subtoolbar-height);
-  margin-top: 80px;
-}
-
-.leftSubHeaderComponents {
+.wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-top: var(--fds-spacing-4);
 }
 
 .viewSizeButtons {
@@ -35,15 +16,12 @@
   --component-toggle_button-color-text-active: black;
   --component-toggle_button-color-text-inactive: white;
 }
-
 .layoutSetSelector input {
   color: white;
 }
-
 .layoutSetSelector {
   width: 200px;
 }
-
 .layoutSetSelector > * {
   color: white;
   --arrow-color: white;
@@ -52,7 +30,6 @@
   --component-input-color-background-default: #3e845e;
   --component-input-color-border-default: none;
 }
-
 .rightSubHeaderButtons {
   flex-direction: row;
   text-align: right;
@@ -62,13 +39,11 @@
   justify-content: flex-end;
   flex: 3;
 }
-
 /* Overriding this style because it is hardcoded in the design system */
 .viewSizeButtons button[aria-pressed='false']:hover {
   background-color: #dbf5d5 !important;
   color: black !important;
 }
-
 .backToEditorBtn {
   width: fit-content;
   color: black;

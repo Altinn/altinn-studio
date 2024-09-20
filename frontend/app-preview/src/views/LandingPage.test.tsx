@@ -1,46 +1,93 @@
 import React from 'react';
-import { screen, queryByAttribute, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { userEvent } from '@testing-library/user-event';
+import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
+import { renderWithProviders } from 'app-development/test/mocks';
+import { app, org } from '@studio/testing/testids';
+import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { userMock } from 'app-development/test/userMock';
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useParams: () => ({
+    org,
+    app,
+  }),
+}));
+
+const mockGetItem = jest.fn();
+
+Object.defineProperty(window, 'localStorage', {
+  value: {
+    getItem: (...args: string[]) => mockGetItem(...args),
+  },
+});
 
 describe('LandingPage', () => {
-  it('should render an iframe', () => {
-    const { container } = renderWithProviders(<LandingPage variant={'preview'} />);
+  afterEach(() => jest.clearAllMocks());
 
-    const getById = queryByAttribute.bind(null, 'id');
+  it('should display a spinner initially when loading user', () => {
+    renderLandingPage();
 
-    const iframe = getById(container, 'app-frontend-react-iframe');
-    expect(iframe).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('preview.loading_page'))).toBeInTheDocument();
   });
 
-  // Fix this test when mock data is fixed, due to issue: #11692
-  it.skip('should render the information alert with preview being limited', () => {
-    renderWithProviders(<LandingPage variant={'preview'} />);
+  it('should render the app title if on a large screen', async () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    renderLandingPage();
 
-    const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
-    expect(previewLimitationsAlert).toBeInTheDocument();
+    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+
+    expect(screen.getByText('testApp')).toBeInTheDocument();
   });
 
-  it('should render a popover with options for remembering closing-choice in session or not when clicking cross-button in alert', async () => {
-    renderWithProviders(<LandingPage variant={'preview'} />);
+  it('should not render the app title if on a small screen', async () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderLandingPage();
 
+    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+
+    expect(screen.queryByText('testApp')).not.toBeInTheDocument();
+  });
+
+  it('should display the user profile menu', async () => {
     const user = userEvent.setup();
 
-    const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
-    const alert = within(previewLimitationsAlert);
-    const hidePreviewLimitationsAlertButton = alert.getByRole('button');
-    await user.click(hidePreviewLimitationsAlertButton);
-    const hidePreviewLimitationsPopover = screen.getByText(textMock('session.reminder'));
-    expect(hidePreviewLimitationsPopover).toBeInTheDocument();
-    const hidePreviewLimitationsTemporaryButton = screen.getByRole('button', {
-      name: textMock('session.do_show_again'),
+    (useMediaQuery as jest.Mock).mockReturnValue(false);
+    renderLandingPage({
+      getUser: jest.fn().mockImplementation(() => Promise.resolve(userMock)),
     });
-    const hidePreviewLimitationsForSessionButton = screen.getByRole('button', {
-      name: textMock('session.dont_show_again'),
-    });
-    expect(hidePreviewLimitationsTemporaryButton).toBeInTheDocument();
-    expect(hidePreviewLimitationsForSessionButton).toBeInTheDocument();
+
+    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+
+    await user.click(
+      screen.getByRole('button', {
+        name: textMock('shared.header_user_for_org', { user: userMock.full_name, org: '' }),
+      }),
+    );
+
+    expect(
+      screen.getByRole('menuitem', { name: textMock('shared.header_logout') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),
+    ).toBeInTheDocument();
+  });
+
+  it('should display the iframe with the correct src', async () => {
+    renderLandingPage();
+
+    await waitForElementToBeRemoved(screen.queryByTitle(textMock('preview.loading_page')));
+
+    const iframe = screen.getByTitle(textMock('preview.title'));
+    expect(iframe).toHaveAttribute('src', `/app-specific-preview/${org}/${app}?`);
   });
 });
+
+const renderLandingPage = async (queries: Partial<ServicesContextProps> = {}) => {
+  return renderWithProviders(queries)(<LandingPage />);
+};

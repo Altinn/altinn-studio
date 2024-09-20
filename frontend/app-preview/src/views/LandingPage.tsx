@@ -2,34 +2,40 @@ import React from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
-import { AltinnHeader } from 'app-shared/components/altinnHeader';
-import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
-import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
+// Should this import be like this?
 import {
   useSelectedFormLayoutName,
   useSelectedFormLayoutSetName,
   useSelectedTaskId,
 } from '@altinn/ux-editor/hooks';
-
-export interface LandingPageProps {
-  variant?: AltinnHeaderVariant;
-}
+import {
+  StudioPageHeader,
+  StudioPageSpinner,
+  type StudioProfileMenuItem,
+  useMediaQuery,
+} from '@studio/components';
+import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
+import { PreviewControlHeader } from '../components/PreviewControlHeader';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
-export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
+export const LandingPage = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
-  const { data: user } = useUserQuery();
+  const { data: user, isPending: isPendingUser } = useUserQuery();
+  const { mutate: logout } = useLogoutMutation();
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
@@ -47,6 +53,17 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     window.location.reload();
   };
 
+  const docsMenuItem: StudioProfileMenuItem = {
+    action: { type: 'link', href: altinnDocsUrl('') },
+    itemName: t('sync_header.documentation'),
+    hasDivider: true,
+  };
+  const logOutMenuItem: StudioProfileMenuItem = {
+    action: { type: 'button', onClick: logout },
+    itemName: t('shared.header_logout'),
+  };
+  const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
+
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
       const frame = document.getElementById('app-frontend-react-iframe');
@@ -60,29 +77,35 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     });
   }
 
+  if (isPendingUser) return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
+
+  // TODO - WHY NOT CORRECT FONT FAMILY
   return (
     <>
-      <div className={classes.header}>
-        <AltinnHeader
-          heading={t('preview.title')}
-          showSubMenu={true}
-          org={org}
-          app={app}
-          user={user}
-          repository={repository}
-          buttonActions={appPreviewButtonActions(org, app, instanceId)}
-          variant={variant}
-          subMenuContent={
-            <AppPreviewSubMenu
-              setViewSize={setPreviewViewSize}
-              viewSize={previewViewSize}
-              selectedLayoutSet={selectedFormLayoutSetName}
-              handleChangeLayoutSet={handleChangeLayoutSet}
+      <StudioPageHeader variant='preview'>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
+          <StudioPageHeader.Right>
+            <AppUserProfileMenu
+              user={user}
+              repository={repository}
+              color='light'
+              variant='preview'
+              profileMenuItems={profileMenuItems}
             />
-          }
-        />
-      </div>
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        <StudioPageHeader.Sub>
+          <AppPreviewSubMenu />
+        </StudioPageHeader.Sub>
+      </StudioPageHeader>
       <div className={classes.previewArea}>
+        <PreviewControlHeader
+          setViewSize={setPreviewViewSize}
+          viewSize={previewViewSize}
+          selectedLayoutSet={selectedFormLayoutSetName}
+          handleChangeLayoutSet={handleChangeLayoutSet}
+        />
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>
           <iframe
