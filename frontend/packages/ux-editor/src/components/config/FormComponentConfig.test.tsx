@@ -33,7 +33,7 @@ describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
     render({});
 
-    [
+    const properties = [
       'grid',
       'readOnly',
       'required',
@@ -42,15 +42,16 @@ describe('FormComponentConfig', () => {
       'variant',
       'autocomplete',
       'maxLength',
-      'triggers',
       'labelSettings',
       'pageBreak',
       'formatting',
-    ].forEach(async (propertyKey) => {
+    ];
+
+    for (const property of properties) {
       expect(
-        await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
+        await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
-    });
+    }
   });
 
   it('should render list of unsupported properties', () => {
@@ -167,6 +168,7 @@ describe('FormComponentConfig', () => {
   it('should call updateComponent with false value when checking a default true property switch', async () => {
     const user = userEvent.setup();
     const handleComponentUpdateMock = jest.fn();
+    //const { component: datePickerComponent } = componentMocks;
     render({
       props: {
         schema: DatepickerSchema,

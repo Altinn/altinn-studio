@@ -32,8 +32,7 @@ export const EditBooleanValue = ({
     return Array.isArray(value);
   };
 
-  const getNewBooleanValue = () =>
-    component[propertyKey] === undefined ? !defaultValue : !component[propertyKey];
+  const getNewBooleanValue = () => !(component[propertyKey] ?? defaultValue);
 
   return (
     <FormField
