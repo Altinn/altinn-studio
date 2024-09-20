@@ -43,21 +43,15 @@ export const ExternalImageValidationStatus = ({
   }
 };
 
-export const useValidationMessageBasedOnValidationStatus = () => {
+export const useValidationMessageBasedOnValidationStatus = (validationResultStatus: ExternalImageUrlValidationResponse): string => {
   const { t } = useTranslation();
 
-  const getValidationMessageBasedOnValidationStatus = (
-    validationResultStatus: ExternalImageUrlValidationResponse,
-  ): string => {
-    switch (validationResultStatus) {
-      case 'Ok':
-        return '';
-      case 'NotValidUrl':
-        return t('ux_editor.properties_panel.images.invalid_external_url');
-      case 'NotAnImage':
-        return t('ux_editor.properties_panel.images.invalid_external_url_not_an_image');
-    }
-  };
-
-  return { getValidationMessageBasedOnValidationStatus };
+  switch (validationResultStatus) {
+    case 'Ok':
+      return '';
+    case 'NotValidUrl':
+      return t('ux_editor.properties_panel.images.invalid_external_url');
+    case 'NotAnImage':
+      return t('ux_editor.properties_panel.images.invalid_external_url_not_an_image');
+  }
 };
