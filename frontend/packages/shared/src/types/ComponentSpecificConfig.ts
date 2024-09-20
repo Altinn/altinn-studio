@@ -368,6 +368,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       hideBottomBorder?: boolean;
     };
   };
+  [ComponentType.Summary2]: {};
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
