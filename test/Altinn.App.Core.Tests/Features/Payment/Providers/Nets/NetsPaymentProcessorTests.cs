@@ -27,6 +27,10 @@ public class NetsPaymentProcessorTests
                 SecretApiKey = "secret",
                 BaseUrl = "baseUrl",
                 TermsUrl = "termsUrl",
+                PaymentMethodsConfiguration =
+                [
+                    new NetsPaymentSettings.PaymentMethodConfigurationItem { Name = "Card", Enabled = true }
+                ]
             }
         );
         _generalSettings = Microsoft.Extensions.Options.Options.Create(new GeneralSettings());
@@ -46,8 +50,10 @@ public class NetsPaymentProcessorTests
             Receiver = new PaymentReceiver()
         };
 
+        NetsCreatePayment? capturedNetsCreatePayment = null;
         _netsClientMock
             .Setup(x => x.CreatePayment(It.IsAny<NetsCreatePayment>()))
+            .Callback<NetsCreatePayment>(payment => capturedNetsCreatePayment = payment)
             .ReturnsAsync(
                 new HttpApiResult<NetsCreatePaymentSuccess>
                 {
@@ -63,9 +69,14 @@ public class NetsPaymentProcessorTests
         PaymentDetails result = await _processor.StartPayment(instance, orderDetails, LanguageConst.Nb);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal("12345", result.PaymentId);
-        Assert.Equal("https://payment-url.com?language=nb-NO", result.RedirectUrl);
+        result.Should().NotBeNull();
+        result.PaymentId.Should().Be("12345");
+        result.RedirectUrl.Should().Be("https://payment-url.com?language=nb-NO");
+
+        capturedNetsCreatePayment.Should().NotBeNull();
+        capturedNetsCreatePayment
+            ?.PaymentMethodsConfiguration.Should()
+            .BeEquivalentTo(_settings.Value.PaymentMethodsConfiguration);
     }
 
     [Fact]
@@ -231,7 +242,7 @@ public class NetsPaymentProcessorTests
         );
 
         // Assert
-        Assert.Equal(PaymentStatus.Paid, result);
+        result.Should().Be(PaymentStatus.Paid);
         paymentDetails.RedirectUrl.Should().Contain("language=nb-NO");
     }
 
