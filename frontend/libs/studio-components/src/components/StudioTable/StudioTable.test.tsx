@@ -17,7 +17,7 @@ const bodyContents = [
 describe('StudioTable', () => {
   it('Renders a table', () => {
     renderTable();
-    getTable();
+    expect(getTable()).toBeInTheDocument();
   });
 
   it('Forwards the ref', () => {
@@ -34,16 +34,16 @@ describe('StudioTable', () => {
 
   it('Renders the given column headers', () => {
     renderTable();
-    getColumnHeader(headContents[0]);
-    getColumnHeader(headContents[1]);
+    expect(screen.getByRole('columnheader', { name: headContents[0] })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: headContents[1] })).toBeInTheDocument();
   });
 
   it('Renders cells with the given content', () => {
     renderTable();
-    getCell(bodyContents[0][0]);
-    getCell(bodyContents[0][1]);
-    getCell(bodyContents[1][0]);
-    getCell(bodyContents[1][1]);
+    expect(screen.getByRole('cell', { name: bodyContents[0][0] })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: bodyContents[0][1] })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: bodyContents[1][0] })).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: bodyContents[1][1] })).toBeInTheDocument();
   });
 });
 
@@ -72,12 +72,4 @@ function renderTable(props: StudioTableProps = {}, ref?: ForwardedRef<HTMLTableE
 
 function getTable(): HTMLTableElement {
   return screen.getByRole('table');
-}
-
-function getColumnHeader(name: string): HTMLTableCellElement {
-  return screen.getByRole('columnheader', { name });
-}
-
-function getCell(name: string): HTMLTableCellElement {
-  return screen.getByRole('cell', { name });
 }
