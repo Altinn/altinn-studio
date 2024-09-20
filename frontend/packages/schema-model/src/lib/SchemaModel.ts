@@ -26,7 +26,7 @@ import {
 } from 'app-shared/utils/arrayUtils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from './constants';
 import type { ReferenceNode } from '../types/ReferenceNode';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { ObjectUtils, ArrayUtils, StringUtils } from '@studio/pure-functions';
 import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
   createDefinitionPointer,
@@ -109,7 +109,7 @@ export class SchemaModel {
   }
 
   private removeUniquePointerPrefix(uniquePointer: string): string {
-    return uniquePointer.replace(UNIQUE_POINTER_PREFIX, '');
+    return StringUtils.removeStart(uniquePointer, UNIQUE_POINTER_PREFIX);
   }
 
   public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
