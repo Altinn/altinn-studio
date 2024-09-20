@@ -10,7 +10,8 @@ export type SupportedFeatureFlags =
   | 'resourceMigration'
   | 'multipleDataModelsPerTask'
   | 'exportForm'
-  | 'subForm';
+  | 'subForm'
+  | 'summary2';
 
 /*
  * Please add all the features that you want to be toggle on by default here.
