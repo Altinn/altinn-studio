@@ -36,6 +36,7 @@ import PaymentSchema from './schemas/json/component/Payment.schema.v1.json';
 import PrintButtonSchema from './schemas/json/component/PrintButton.schema.v1.json';
 import RadioButtonsSchema from './schemas/json/component/RadioButtons.schema.v1.json';
 import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
+import SubFormSchema from './schemas/json/component/Subform.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -80,6 +81,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.PrintButton]: PrintButtonSchema,
   [ComponentType.RadioButtons]: RadioButtonsSchema,
   [ComponentType.RepeatingGroup]: RepeatingGroupSchema,
+  [ComponentType.SubForm]: SubFormSchema,
   [ComponentType.Summary]: SummarySchema,
   [ComponentType.TextArea]: TextAreaSchema,
 };
