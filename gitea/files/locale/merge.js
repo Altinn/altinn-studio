@@ -9,9 +9,12 @@ if (!baseFile || !customFile || !mergedFile) {
 }
 
 /**
- * The ini package does not support having the same name for both a section
- * and a key (e.g., filter, error, etc). To prevent conflicts, this function appends "Section"
- * to the names of all section headers in the .ini file content.
+ * The ini package does not support :
+ * - having the same name for both a key and a section (e.g., filter, error, etc)
+ * - having a dot in the section name (e.g., [git.filemode])
+ *
+ * To prevent these issues, this function appends '-section' to the names of all sections
+ * and replace all dots with hyphens.
  */
 const updateSectionNames = (content) =>
   content
@@ -19,7 +22,7 @@ const updateSectionNames = (content) =>
     .map((line) => {
       const trimmedLine = line.trim();
       if (trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
-        return `[${trimmedLine.slice(1, -1)}Section]`;
+        return `[${trimmedLine.slice(1, -1).replace('.', '-')}-section]`;
       }
       return line;
     })
@@ -37,7 +40,7 @@ const merge = (baseContent, customContent) => {
       const trimmedLine = line.trim();
 
       if (trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
-        currentSection = trimmedLine.slice(1, -1) + 'Section';
+        currentSection = trimmedLine.slice(1, -1).replace('.', '-') + '-section';
       }
 
       const keyValueMatch = trimmedLine.match(/([^=]+)=(.*)/);
