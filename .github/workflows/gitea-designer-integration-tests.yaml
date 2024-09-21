@@ -34,4 +34,4 @@ jobs:
            dotnet build backend/Designer.sln -v m
       - name: Test gitea tests
         run: |
-           dotnet test backend/Designer.sln --filter [Category("GiteaIntegrationTest")] | [Category("DbIntegrationTest")] -v m
+           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m
