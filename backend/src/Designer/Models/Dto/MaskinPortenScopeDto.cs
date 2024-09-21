@@ -1,7 +1,7 @@
 namespace Altinn.Studio.Designer.Models.Dto;
 
-public record MaskinPortenScopeResponse
+public record MaskinPortenScopeDto
 {
-    public string Name { get; set; }
+    public string Scope { get; set; }
     public string Description { get; set; }
 }
