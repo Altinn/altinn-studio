@@ -12,8 +12,9 @@ public class DesignerdbContext : DbContext
     }
 
     public virtual DbSet<Deployment> Deployments { get; set; }
-
     public virtual DbSet<Release> Releases { get; set; }
+    public virtual DbSet<AppScopesDbObject> AppScopes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseSerialColumns();
@@ -22,6 +23,4 @@ public class DesignerdbContext : DbContext
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());
         base.OnModelCreating(modelBuilder);
     }
-
-
 }
