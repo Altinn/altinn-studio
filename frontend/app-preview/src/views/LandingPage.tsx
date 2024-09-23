@@ -8,23 +8,20 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-// Should this import be like this?
-import {
-  useSelectedFormLayoutName,
-  useSelectedFormLayoutSetName,
-  useSelectedTaskId,
-} from '@altinn/ux-editor/hooks';
 import {
   StudioPageHeader,
   StudioPageSpinner,
   type StudioProfileMenuItem,
   useMediaQuery,
 } from '@studio/components';
-import { AppUserProfileMenu } from 'app-shared/components/AppUserProfileMenu';
+import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
@@ -79,14 +76,13 @@ export const LandingPage = () => {
 
   if (isPendingUser) return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
-  // TODO - WHY NOT CORRECT FONT FAMILY
   return (
     <>
       <StudioPageHeader variant='preview'>
         <StudioPageHeader.Main>
           <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
           <StudioPageHeader.Right>
-            <AppUserProfileMenu
+            <UserProfileMenu
               user={user}
               repository={repository}
               color='light'
