@@ -9,7 +9,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, user as userMock } from 'app-shared/mocks/mocks';
 import { useParams } from 'react-router-dom';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 
 const orgMock: Organization = {

@@ -12,7 +12,7 @@ import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { type NewAppForm } from '../../types/NewAppForm';
 import { DASHBOARD_ROOT_ROUTE } from 'app-shared/constants';
 import { useSelectedContext } from '../../hooks/useSelectedContext';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 
 const initialFormError: NewAppForm = {
   org: '',

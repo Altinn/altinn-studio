@@ -1,4 +1,4 @@
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import type { Organization } from 'app-shared/types/Organization';
 
 export const userHasAccessToSelectedContext = ({
@@ -17,4 +17,14 @@ export const userHasAccessToSelectedContext = ({
   }
 
   return Boolean(orgs.find((org) => org.username === selectedContext));
+};
+
+export const getOrgNameByUsername = (username: string, orgs: Organization[]) => {
+  const org = orgs?.find((o) => o.username === username);
+  return org?.full_name || org?.username;
+};
+
+export const getOrgUsernameByUsername = (username: string, orgs: Organization[]) => {
+  const org = orgs?.find((o) => o.username === username);
+  return org?.username;
 };
