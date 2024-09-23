@@ -356,6 +356,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
   };
+  [ComponentType.SubForm]: FormComponentProps;
   [ComponentType.Summary]: SummarizableComponentProps & {
     componentRef: string;
     largeGroup?: boolean;
@@ -367,6 +368,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       hideBottomBorder?: boolean;
     };
   };
+  [ComponentType.Summary2]: {};
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
