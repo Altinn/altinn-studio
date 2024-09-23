@@ -29,7 +29,7 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
         })}
         onClick={handleClick}
         data-testid={typeItemId(uiSchemaNode.schemaPointer)}
-        title={selected && t('schema_editor.reference_type_in_use_title')}
+        title={selected ? t('schema_editor.reference_type_in_use_title') : undefined}
       >
         <div>
           <FileJsonIcon className={classes.typeIcon} />
