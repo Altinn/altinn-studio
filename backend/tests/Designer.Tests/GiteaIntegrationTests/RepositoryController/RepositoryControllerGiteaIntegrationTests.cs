@@ -194,11 +194,11 @@ namespace Designer.Tests.GiteaIntegrationTests.RepositoryController
 
             // Create a file in gitea
             using var createFileContent = new StringContent(GenerateCommitJsonPayload("I am a new file created in gitea", "test commit"), Encoding.UTF8, MediaTypeNames.Application.Json);
-            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/test2.txt", createFileContent);
+            using HttpResponseMessage createFileResponse = await GiteaFixture.GiteaClient.Value.PostAsync($"repos/{org}/{targetRepo}/contents/fileAlreadyInRepository.txt", createFileContent);
             createFileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
             // Add a file to local repo and try to push with designer
-            await File.WriteAllTextAsync($"{CreatedFolderPath}/test2.txt", "I am a new file from studio.");
+            await File.WriteAllTextAsync($"{CreatedFolderPath}/fileAlreadyInRepository.txt", "I am a new file from studio.");
             using var commitAndPushContent = new StringContent(GetCommitInfoJson("test commit", org, targetRepo), Encoding.UTF8, MediaTypeNames.Application.Json);
             using HttpResponseMessage commitAndPushResponse = await HttpClient.PostAsync($"designer/api/repos/repo/{org}/{targetRepo}/commit-and-push", commitAndPushContent);
             commitAndPushResponse.StatusCode.Should().Be(HttpStatusCode.Conflict);
