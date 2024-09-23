@@ -366,7 +366,7 @@ describe('AboutResourcePage', () => {
       <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
         <AboutResourcePage
           {...defaultProps}
-          resourceData={{ ...mockResource2, limitedByRRR: true }}
+          resourceData={{ ...mockResource2, accessListMode: 'Enabled' }}
         />
       </ServicesContextProvider>,
     );
