@@ -3,9 +3,11 @@ import type { JSX } from 'react';
 
 import { PaymentDef } from 'src/layout/Payment/config.def.generated';
 import { PaymentComponent } from 'src/layout/Payment/PaymentComponent';
+import { PaymentSummary } from 'src/layout/Payment/PaymentSummary';
 import { SummaryPaymentComponent } from 'src/layout/Payment/SummaryPaymentComponent';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Payment extends PaymentDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Payment'>>(
@@ -16,6 +18,10 @@ export class Payment extends PaymentDef {
 
   renderSummary(props: SummaryRendererProps<'Payment'>): React.JSX.Element | null {
     return <SummaryPaymentComponent {...props} />;
+  }
+
+  renderSummary2(props: Summary2Props<'Payment'>): React.JSX.Element | null {
+    return <PaymentSummary componentNode={props.target} />;
   }
 
   renderSummaryBoilerplate(): boolean {
