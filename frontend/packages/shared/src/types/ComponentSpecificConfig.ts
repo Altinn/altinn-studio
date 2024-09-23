@@ -104,7 +104,7 @@ type SummarizableComponentProps = {
   renderAsSummary?: BooleanExpression;
 };
 
-type SummaryTargetType = 'page' | 'layoutSet' | 'component';
+export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
@@ -358,6 +358,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
   };
+  [ComponentType.SubForm]: FormComponentProps;
   [ComponentType.Summary]: SummarizableComponentProps & {
     componentRef: string;
     largeGroup?: boolean;
@@ -377,7 +378,6 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
     showPageInAccordion?: boolean;
     hideEmptyFields?: boolean;
-    // overrides: SummaryOverride[];
   };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &

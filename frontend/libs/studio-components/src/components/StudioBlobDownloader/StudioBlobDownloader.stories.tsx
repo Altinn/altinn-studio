@@ -5,7 +5,7 @@ import { StudioBlobDownloader } from './StudioBlobDownloader';
 type Story = StoryFn<typeof StudioBlobDownloader>;
 
 const meta: Meta = {
-  title: 'Studio/StudioBlobDownloader',
+  title: 'Components/StudioBlobDownloader',
   component: StudioBlobDownloader,
 };
 export default meta;

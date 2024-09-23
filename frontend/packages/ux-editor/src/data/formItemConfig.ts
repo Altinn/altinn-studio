@@ -7,6 +7,7 @@ import {
   CalendarIcon,
   CheckboxIcon,
   ChevronDownDoubleIcon,
+  ClipboardIcon,
   ElementIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
@@ -164,7 +165,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: false,
+      timeStamp: true,
     },
     propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
@@ -424,6 +425,13 @@ export const formItemConfigs: FormItemConfigs = {
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
+  [ComponentType.SubForm]: {
+    name: ComponentType.SubForm,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/subForm',
+    icon: ClipboardIcon,
+  },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
     itemType: LayoutItemType.Component,
@@ -473,7 +481,8 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-];
+  shouldDisplayFeature('subForm') && formItemConfigs[ComponentType.SubForm],
+].filter(Boolean); // When removing the featureFlag, also remove the filter
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Input],

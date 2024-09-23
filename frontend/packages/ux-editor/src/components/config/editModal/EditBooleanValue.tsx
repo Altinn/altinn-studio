@@ -8,6 +8,7 @@ import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLa
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
   helpText?: string;
+  defaultValue?: boolean;
 }
 
 export const EditBooleanValue = ({
@@ -15,6 +16,7 @@ export const EditBooleanValue = ({
   handleComponentChange,
   propertyKey,
   helpText,
+  defaultValue,
 }: EditBooleanValueProps) => {
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
@@ -22,7 +24,7 @@ export const EditBooleanValue = ({
   const handleChange = () => {
     handleComponentChange({
       ...component,
-      [propertyKey]: !component[propertyKey],
+      [propertyKey]: getNewBooleanValue(),
     });
   };
 
@@ -30,10 +32,12 @@ export const EditBooleanValue = ({
     return Array.isArray(value);
   };
 
+  const getNewBooleanValue = () => !(component[propertyKey] ?? defaultValue);
+
   return (
     <FormField
       id={component.id}
-      value={component[propertyKey] || false}
+      value={component[propertyKey]}
       onChange={handleChange}
       propertyPath={component.propertyPath}
       componentType={component.type}
@@ -46,7 +50,7 @@ export const EditBooleanValue = ({
         return (
           <Switch
             {...fieldProps}
-            checked={fieldProps.value}
+            checked={fieldProps.value ?? defaultValue}
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             size='small'
             id={`${propertyKey}-checkbox-${component.id}`}
