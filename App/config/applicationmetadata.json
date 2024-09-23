@@ -4,9 +4,6 @@
   "title": {
     "nb": "Underskjema Test"
   },
-  "onEntry": {
-    "show": "select-instance"
-  },
   "dataTypes": [
     {
       "id": "ref-data-as-pdf",
