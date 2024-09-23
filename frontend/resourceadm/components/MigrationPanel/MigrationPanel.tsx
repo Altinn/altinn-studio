@@ -36,7 +36,7 @@ export const MigrationPanel = ({
     useMigrateDelegationsMutation(org, env.id);
 
   const { data: numberOfA2Delegations, isFetching: isLoadingDelegationCount } =
-    useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id, false);
+    useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id);
 
   const isErrorForbidden = (error: Error) => {
     return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
@@ -78,9 +78,7 @@ export const MigrationPanel = ({
             onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
             value={isMigrateCheckboxChecked ? ['checked'] : []}
           >
-            <Checkbox value='checked'>
-              Jeg er heeeelt sikker på at jeg vil migrere tjenesten
-            </Checkbox>
+            <Checkbox value='checked'>{t('resourceadm.migration_confirm_migration')}</Checkbox>
           </Checkbox.Group>
         </Modal.Content>
         <Modal.Footer>
@@ -114,7 +112,7 @@ export const MigrationPanel = ({
             </Alert>
           )}
           {isPublishedInEnv && numberOfA2Delegations?.numberOfDelegations === 0 && (
-            <Alert severity='success' size='sm'>
+            <Alert severity='info' size='sm'>
               {t('resourceadm.migration_not_needed')}
             </Alert>
           )}

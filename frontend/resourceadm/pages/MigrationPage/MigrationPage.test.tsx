@@ -10,7 +10,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const defaultProps: MigrationPageProps = {
-  navigateToPageWithError: jest.fn(),
   id: 'migration_page',
   serviceCode: '1',
   serviceEdition: '2',
@@ -19,18 +18,6 @@ const defaultProps: MigrationPageProps = {
 describe('MigrationPage', () => {
   it('Should show status alerts for migration ready status', async () => {
     renderMigrationPage({
-      getValidatePolicy: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          status: 200,
-          errors: {},
-        }),
-      ),
-      getValidateResource: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          status: 200,
-          errors: {},
-        }),
-      ),
       getResourcePublishStatus: jest.fn().mockImplementation(() =>
         Promise.resolve({
           policyVersion: null,
@@ -65,45 +52,11 @@ describe('MigrationPage', () => {
       ),
     });
 
-    await screen.findByText(textMock('resourceadm.migration_ready_for_migration'));
-    await screen.findByText(textMock('resourceadm.migration_access_rules_ready_for_migration'));
-    await screen.findByText(textMock('resourceadm.migration_publish_warning'));
-  });
-
-  it('Should show error message for resource data and policy data when resource is not ready to be migrated', async () => {
-    renderMigrationPage({
-      getValidatePolicy: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          status: 404,
-          errors: {},
-        }),
-      ),
-      getValidateResource: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          status: 400,
-          errors: {},
-        }),
-      ),
-    });
-
-    await screen.findByText(textMock('resourceadm.migration_step_about_resource_errors'));
-    await screen.findByText(textMock('resourceadm.migration_no_access_rules'));
+    await screen.findAllByText(textMock('resourceadm.migration_not_published'));
   });
 
   it('Should show migrate delegations button when environment is selected', async () => {
     renderMigrationPage({
-      getValidatePolicy: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          status: 200,
-          errors: {},
-        }),
-      ),
-      getValidateResource: jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          status: 200,
-          errors: {},
-        }),
-      ),
       getResourcePublishStatus: jest.fn().mockImplementation(() =>
         Promise.resolve({
           policyVersion: null,

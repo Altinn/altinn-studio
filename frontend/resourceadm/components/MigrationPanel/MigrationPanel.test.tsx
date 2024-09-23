@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
@@ -19,7 +19,6 @@ const defaultProps: MigrationPanelProps = {
     label: 'resourceadm.deploy_test_env',
     envType: 'test',
   },
-  isMigrationReady: true,
   isPublishedInEnv: true,
 };
 
@@ -36,79 +35,19 @@ describe('MigrationPanel', () => {
 
   it('should show warning if resource is not published in environment', () => {
     renderMigrationPanel({ ...defaultProps, isPublishedInEnv: false });
-    expect(screen.getByText(textMock('resourceadm.migration_not_published_warning')));
+    expect(screen.getByText(textMock('resourceadm.migration_not_published')));
   });
 
-  it('should show error when user gets number of delegations if user has no permission to migrate', async () => {
-    const user = userEvent.setup();
+  it('should show message if service has 0 delegations in Altinn 2', async () => {
     renderMigrationPanel(
       {},
       {
         getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
-          return Promise.reject({ response: { status: ServerCodes.Forbidden } });
+          return Promise.resolve({ numberOfDelegations: 0 });
         }),
       },
     );
-
-    const getNumberOfDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations'),
-    });
-    await user.click(getNumberOfDelegationsButton);
-
-    expect(screen.getByText(textMock('resourceadm.migration_no_migration_access')));
-  });
-
-  it('should show error when get number of delegations fails', async () => {
-    const user = userEvent.setup();
-    renderMigrationPanel(
-      {},
-      {
-        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
-          return Promise.reject({});
-        }),
-      },
-    );
-
-    const getNumberOfDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations'),
-    });
-    await user.click(getNumberOfDelegationsButton);
-
-    expect(screen.getByText(textMock('resourceadm.migration_get_number_of_delegations_failed')));
-  });
-
-  it('Should refetch number of delegations when get delegations button is clicked', async () => {
-    const numberOfDelegationsFirstFetch = 200;
-    const numberOfDelegationsSecondFetch = 300;
-    const user = userEvent.setup();
-    renderMigrationPanel(
-      {},
-      {
-        getAltinn2DelegationsCount: jest
-          .fn()
-          .mockImplementationOnce(() =>
-            Promise.resolve({
-              numberOfDelegations: numberOfDelegationsFirstFetch,
-              numberOfRelations: 500,
-            }),
-          )
-          .mockImplementationOnce(() =>
-            Promise.resolve({
-              numberOfDelegations: numberOfDelegationsSecondFetch,
-              numberOfRelations: 500,
-            }),
-          ),
-      },
-    );
-
-    const getDelegationsButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_get_number_of_delegations'),
-    });
-    await user.click(getDelegationsButton);
-    expect(screen.getByText(numberOfDelegationsFirstFetch)).toBeInTheDocument();
-
-    await user.click(getDelegationsButton);
-    expect(screen.getByText(numberOfDelegationsSecondFetch)).toBeInTheDocument();
+    await waitFor(() => screen.findByText(textMock('resourceadm.migration_not_needed')));
   });
 
   it('should show error when user starts migrate delegations if user has no permission to migrate', async () => {
@@ -122,11 +61,21 @@ describe('MigrationPanel', () => {
       },
     );
     const migrationButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_migrate_delegations', {
+      name: textMock('resourceadm.migration_migrate_environment', {
         env: textMock(defaultProps.env.label),
       }),
     });
     await user.click(migrationButton);
+
+    const confirmMigrationCheckbox = screen.getByLabelText(
+      textMock('resourceadm.migration_confirm_migration'),
+    );
+    await user.click(confirmMigrationCheckbox);
+
+    const startMigrationButton = screen.getByText(
+      textMock('resourceadm.migration_disable_service_confirm'),
+    );
+    await user.click(startMigrationButton);
 
     expect(screen.getByText(textMock('resourceadm.migration_no_migration_access')));
   });
@@ -142,11 +91,21 @@ describe('MigrationPanel', () => {
       },
     );
     const migrationButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_migrate_delegations', {
+      name: textMock('resourceadm.migration_migrate_environment', {
         env: textMock(defaultProps.env.label),
       }),
     });
     await user.click(migrationButton);
+
+    const confirmMigrationCheckbox = screen.getByLabelText(
+      textMock('resourceadm.migration_confirm_migration'),
+    );
+    await user.click(confirmMigrationCheckbox);
+
+    const startMigrationButton = screen.getByText(
+      textMock('resourceadm.migration_disable_service_confirm'),
+    );
+    await user.click(startMigrationButton);
 
     expect(screen.getByText(textMock('resourceadm.migration_post_migration_failed')));
   });
@@ -155,18 +114,22 @@ describe('MigrationPanel', () => {
     const user = userEvent.setup();
     renderMigrationPanel();
 
-    const dateField = screen.getByLabelText(textMock('resourceadm.migration_migration_date'));
-    await user.type(dateField, new Date().toISOString().split('T')[0]);
-
-    const timeField = screen.getByLabelText(textMock('resourceadm.migration_migration_time'));
-    await user.type(timeField, '12.00');
-
     const migrationButton = screen.getByRole('button', {
-      name: textMock('resourceadm.migration_migrate_delegations', {
+      name: textMock('resourceadm.migration_migrate_environment', {
         env: textMock(defaultProps.env.label),
       }),
     });
     await user.click(migrationButton);
+
+    const confirmMigrationCheckbox = screen.getByLabelText(
+      textMock('resourceadm.migration_confirm_migration'),
+    );
+    await user.click(confirmMigrationCheckbox);
+
+    const startMigrationButton = screen.getByText(
+      textMock('resourceadm.migration_disable_service_confirm'),
+    );
+    await user.click(startMigrationButton);
 
     expect(
       screen.getByText(

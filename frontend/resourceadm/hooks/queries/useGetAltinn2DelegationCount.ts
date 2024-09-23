@@ -9,13 +9,12 @@ export const useGetAltinn2DelegationsCount = (
   serviceCode: string,
   serviceEdition: string,
   env: string,
-  isDisabled?: boolean,
 ): UseQueryResult<DelegationCountOverview> => {
   const { getAltinn2DelegationsCount } = useServicesContext();
   return useQuery<DelegationCountOverview>({
     queryKey: [QueryKey.Altinn2DelegationCount, org, serviceCode, serviceEdition, env],
     queryFn: () => getAltinn2DelegationsCount(org, serviceCode, serviceEdition, env),
-    enabled: !isDisabled && !!org && !!serviceCode && !!serviceEdition && !!env,
+    enabled: !!org && !!serviceCode && !!serviceEdition && !!env,
     meta: {
       hideDefaultError: true,
     },
