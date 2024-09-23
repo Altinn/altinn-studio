@@ -24,9 +24,9 @@ export const ItemFieldsTable = ({ readonly, selectedItem }: ItemFieldsTableProps
   const addProperty = useAddProperty();
 
   const dispatchAddProperty = () =>
-    addProperty(ObjectKind.Field, FieldType.String, selectedItem.pointer);
+    addProperty(ObjectKind.Field, FieldType.String, selectedItem.schemaPointer);
 
-  const fieldNodes = schemaModel.getChildNodes(selectedItem.pointer);
+  const fieldNodes = schemaModel.getChildNodes(selectedItem.schemaPointer);
 
   const displayTableRows = fieldNodes.map((fieldNode, i) => (
     <ItemFieldsTableRow

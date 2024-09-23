@@ -1,10 +1,11 @@
-import type { RefObject } from 'react';
-import React, { createRef } from 'react';
+import type { ForwardedRef } from 'react';
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioDeleteButton } from './StudioDeleteButton';
 import type { StudioDeleteButtonProps } from './StudioDeleteButton';
 import userEvent from '@testing-library/user-event';
 import { StudioButton } from '../StudioButton';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioDeleteButton', () => {
   afterEach(jest.clearAllMocks);
@@ -55,9 +56,7 @@ describe('StudioDeleteButton', () => {
   });
 
   it('Forwards the ref object to the button element if given', () => {
-    const ref = createRef<HTMLButtonElement>();
-    renderDeleteButton({}, ref);
-    expect(ref.current).toBe(getDeleteButton());
+    testRefForwarding<HTMLButtonElement>((ref) => renderDeleteButton({}, ref), getDeleteButton);
   });
 
   it('Supports polymorphism', () => {
@@ -70,7 +69,8 @@ describe('StudioDeleteButton', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  const getDeleteButton = () => screen.getByRole('button', { name: buttonLabel });
+  const getDeleteButton = (): HTMLButtonElement =>
+    screen.getByRole('button', { name: buttonLabel });
 });
 
 const confirmMessage = 'Er du sikker på at du vil slette dette?';
@@ -83,5 +83,5 @@ const defaultProps: StudioDeleteButtonProps = {
 };
 const renderDeleteButton = (
   props: Partial<StudioDeleteButtonProps> = {},
-  ref?: RefObject<HTMLButtonElement>,
+  ref?: ForwardedRef<HTMLButtonElement>,
 ) => render(<StudioDeleteButton {...defaultProps} {...props} ref={ref} />);

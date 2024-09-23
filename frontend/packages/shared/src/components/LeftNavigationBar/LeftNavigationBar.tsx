@@ -16,28 +16,6 @@ export type LeftNavigationBarProps = {
   selectedTab: string;
 };
 
-/**
- * @component
- *    Displays a navigation bar component to the left of the parent component.
- *
- * @example
- *    <LeftNavigationBar
- *        tabs={listOfTabsOfTypeLeftNavigationTab}
- *        upperTab='backButton'
- *        backLink='./someUrl'
- *        backLinkText={t('resourceadm.left_nav_bar_back')}
- *        selectedTab={selectedTab}
- *    />
- *
- * @property {LeftNavigationBar[]}[tabs] - List of navigation tabs
- * @property {'backButton' | undefined}[upperTab] - The upper tab
- * @property {string}[backLink] - Href for the back link
- * @property {string}[backLinkText] - The text on the back link
- * @property {string}[className] - Additional classnames
- * @property {string}[selectedTab] - The currently selected tab
- *
- * @returns {ReactNode} - The rendered component
- */
 export const LeftNavigationBar = ({
   tabs,
   upperTab = undefined,

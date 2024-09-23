@@ -78,9 +78,27 @@
     },
     "renderAsSummary": {
       "title": "Render as summary",
-      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
+    },
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "labelSettings": {
+      "title": "ILabelSettings",
+      "type": "object",
+      "properties": {
+        "optionalIndicator": {
+          "title": "Optional indicator",
+          "description": "Show optional indicator on label",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     },
     "type": { "const": "List" },
     "textResourceBindings": {

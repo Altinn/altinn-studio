@@ -1,6 +1,5 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { useAppMetadataQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useAppContext } from '../../../../hooks/useAppContext';
@@ -14,6 +13,7 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import type { AvailableAttachementLists, InternalDataTypesFormat } from './types';
 import { convertInternalToExternalFormat } from './convertFunctions/convertToExternalFormat';
 import { convertExternalToInternalFormat } from './convertFunctions/convertToInternalFormat';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export const AttachmentListComponent = ({
   component,

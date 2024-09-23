@@ -9,6 +9,9 @@ import type { FormItem } from '../../../../types/FormItem';
 import { useLayoutSchemaQuery } from '../../../../hooks/queries/useLayoutSchemaQuery';
 import { useFormLayouts } from '../../../../hooks';
 import { findLayoutsContainingDuplicateComponents } from '../../../../utils/formLayoutUtils';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface EditComponentIdRowProps {
   handleComponentUpdate: (component: FormItem) => void;
@@ -25,6 +28,8 @@ export const EditComponentIdRow = ({
   const [{ data: layoutSchema }, , { data: expressionSchema }, { data: numberFormatSchema }] =
     useLayoutSchemaQuery();
 
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const [isViewMode, setIsViewMode] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
@@ -42,12 +47,28 @@ export const EditComponentIdRow = ({
     }
   };
 
+  const dataTypeWithNameExists = (id: string) => {
+    if (
+      component.type === ComponentType.FileUpload ||
+      component.type === ComponentType.FileUploadWithTag
+    ) {
+      return appMetadata.dataTypes?.find(
+        (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
+      );
+    }
+  };
+
   const validateId = (value: string) => {
     if (value?.length === 0) {
       return t('validation_errors.required');
     }
-    if (value !== component.id && idExists(value, formLayouts)) {
-      return t('ux_editor.modal_properties_component_id_not_unique_error');
+    if (value.toLowerCase() !== component.id.toLowerCase()) {
+      if (idExists(value, formLayouts)) {
+        return t('ux_editor.modal_properties_component_id_not_unique_error');
+      }
+      if (dataTypeWithNameExists(value)) {
+        return t('ux_editor.error_component_id_exists_as_data_type');
+      }
     }
     return '';
   };
@@ -70,11 +91,8 @@ export const EditComponentIdRow = ({
         propertyPath='definitions/component/properties/id'
         key={component.id}
         viewProps={{
-          children: (
-            <span className={classes.ellipsis} title={component.id}>
-              <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />
-            </span>
-          ),
+          children: <Trans i18nKey={'ux_editor.id_identifier'} values={{ item: component.id }} />,
+          title: component.id,
           variant: 'tertiary',
           fullWidth: true,
         }}
@@ -85,7 +103,6 @@ export const EditComponentIdRow = ({
           label: t('ux_editor.modal_properties_component_change_id'),
           size: 'small',
           error: errorMessage,
-          className: classes.idInput,
         }}
         customValidation={(value) => {
           return validateId(value);
@@ -94,7 +111,9 @@ export const EditComponentIdRow = ({
       />
       {!isViewMode && (
         <div className={classes.alert}>
-          <Alert>{t('ux_editor.modal_properties_component_change_id_information')}</Alert>
+          <Alert size='small'>
+            {t('ux_editor.modal_properties_component_change_id_information')}
+          </Alert>
         </div>
       )}
     </div>

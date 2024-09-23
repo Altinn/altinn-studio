@@ -48,17 +48,6 @@
       "additionalProperties": false
     },
     "type": { "const": "CustomButton" },
-    "textResourceBindings": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "title": "Title",
-          "description": "The title/text on the button",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        }
-      },
-      "additionalProperties": false
-    },
     "actions": {
       "type": "array",
       "items": {
@@ -74,6 +63,17 @@
       "description": "The style/color scheme of the button.",
       "enum": ["primary", "secondary"],
       "type": "string"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "The title/text on the button",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "required": ["id", "type", "actions", "buttonStyle"],
