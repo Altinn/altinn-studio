@@ -1,26 +1,29 @@
 import { type UseMutateFunction, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type {
-  LayoutSetConfig,
-  LayoutSets,
-  BpmnTaskType,
-} from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import type {
   AddLayoutSetResponse,
   LayoutSetsResponse,
 } from 'app-shared/types/api/AddLayoutSetResponse';
+import type {
+  LayoutSetConfigPayload,
+  LayoutSetPayload,
+} from 'app-shared/types/api/LayoutSetPayload';
 
 export type AddLayoutSetMutationPayload = {
   layoutSetIdToUpdate: string;
-  taskType?: BpmnTaskType;
-  layoutSetConfig: LayoutSetConfig;
-};
+} & LayoutSetPayload;
+
 export type AddLayoutSetMutation = UseMutateFunction<
-  AddLayoutSetResponse,
+  {
+    layoutSets: AddLayoutSetResponse;
+    layoutSetConfig: LayoutSetConfigPayload;
+  },
   Error,
-  AddLayoutSetMutationPayload
+  AddLayoutSetMutationPayload,
+  unknown
 >;
 
 const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => {

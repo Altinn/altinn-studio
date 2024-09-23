@@ -45,7 +45,7 @@ import type { ApplicationAttachmentMetadata } from 'app-shared/types/Application
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
-import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
