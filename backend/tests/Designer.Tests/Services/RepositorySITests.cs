@@ -330,8 +330,9 @@ namespace Designer.Tests.Services
 
             ISchemaModelService schemaModelService = new Mock<ISchemaModelService>().Object;
             AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelService);
+            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory);
 
-            TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
+            TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 
             ResourceRegistryService resourceRegistryService = new();
 

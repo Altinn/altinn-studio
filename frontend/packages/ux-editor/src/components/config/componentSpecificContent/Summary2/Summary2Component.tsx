@@ -10,11 +10,12 @@ import {
 } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../../../hooks';
-import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
+import { useAppContext, useComponentTypeName } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelector';
 import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
+import type { SummaryTargetType } from 'app-shared/types/ComponentSpecificConfig';
+import type { FormComponent } from '../../../../types/FormComponent';
 
 export const Summary2Component = ({
   component,
@@ -30,14 +31,17 @@ export const Summary2Component = ({
     ComponentType.Summary2,
     ComponentType.NavigationButtons,
     ComponentType.NavigationBar,
-  ]; // TODO: Add more components that should be excluded
+  ];
+  // TODO: This list of components to exclude when listing targets
+  // is not complete. Add more components that should be excluded
+  // as part of https://github.com/Altinn/altinn-studio/issues/13528
 
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout, excludedComponents),
   );
-  const componentOptions = components.map((e) => ({
-    id: e.id,
-    description: componentTypeName(e.type),
+  const componentOptions = components.map((formComponent: FormComponent) => ({
+    id: formComponent.id,
+    description: componentTypeName(formComponent.type),
   }));
 
   const pageOptions = Object.keys(formLayoutsData).map((page) => ({
@@ -45,8 +49,8 @@ export const Summary2Component = ({
     description: undefined,
   }));
 
-  const handleTypeChange = (e: any) => {
-    const newType = e.target.value;
+  const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newType = event.target.value as SummaryTargetType;
     const updatedComponent = { ...component };
 
     updatedComponent.target = { type: newType };
@@ -76,7 +80,7 @@ export const Summary2Component = ({
       <StudioCard.Header>
         <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
       </StudioCard.Header>
-      <StudioParagraph size='small'>
+      <StudioParagraph size='sm'>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
       <StudioCard.Content>
@@ -98,7 +102,7 @@ export const Summary2Component = ({
             value={target.id}
             options={pageOptions}
             onValueChange={handleTargetIdChange}
-          ></Summmary2ComponentTargetSelector>
+          />
         )}
         {target.type === 'component' && (
           <Summmary2ComponentTargetSelector
@@ -106,11 +110,11 @@ export const Summary2Component = ({
             value={target.id}
             options={componentOptions}
             onValueChange={handleTargetIdChange}
-          ></Summmary2ComponentTargetSelector>
+          />
         )}
         {target.type === 'layoutSet' && (
           <StudioTextfield
-            size='small'
+            size='sm'
             label={t('general.layout_set')}
             value={selectedFormLayoutSetName}
             disabled={true}
