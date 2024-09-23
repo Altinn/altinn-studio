@@ -94,14 +94,16 @@ public class PreviewService : IPreviewService
             List<string> tasks = [];
             if (layoutSets?.Sets is { Count: > 0 })
             {
-                foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks[0])))
+                foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks?[0])))
                 {
-                    if (layoutSet.Tasks[0] == Constants.General.CustomReceiptId)
-                    {
+                    if (layoutSet.Tasks?[0] == Constants.General.CustomReceiptId)
+                    { 
                         continue;
                     }
-
-                    tasks.Add(layoutSet.Tasks[0]);
+                    if(layoutSet.Tasks != null)
+                    {
+                        tasks.Add(layoutSet.Tasks[0]);
+                    }
                 }
             }
             return tasks;
@@ -121,7 +123,7 @@ public class PreviewService : IPreviewService
         if (!string.IsNullOrEmpty(layoutSetName))
         {
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-            task = layoutSets?.Sets?.Find(element => element.Id == layoutSetName).Tasks[0];
+            task = layoutSets?.Sets?.Find(element => element.Id == layoutSetName).Tasks?[0];
         }
         return task;
     }

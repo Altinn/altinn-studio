@@ -1029,7 +1029,7 @@ namespace Altinn.Studio.Designer.Controllers
             LayoutSets layoutSetsWithMockedDataTypesIfMissing = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
             layoutSetsWithMockedDataTypesIfMissing.Sets.ForEach(set =>
             {
-                if (set.Tasks[0] == Constants.General.CustomReceiptId)
+                if (set.Tasks?[0] == Constants.General.CustomReceiptId)
                 {
                     return;
                 }
@@ -1043,7 +1043,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {
                             ClassRef = $"Altinn.App.Models.model.{set.DataType}"
                         },
-                        TaskId = set.Tasks[0]
+                        TaskId = set.Tasks?[0]
                     });
                 }
             });

@@ -26,7 +26,10 @@ public class LayoutSetConfig
     [CanBeNull] public string DataType { get; set; }
 
     [JsonPropertyName("tasks")]
-    public List<string> Tasks { get; set; }
+    [CanBeNull] public List<string> Tasks { get; set; }
+
+    [JsonPropertyName("type")]
+    [CanBeNull] public string Type { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?> UnknownProperties { get; set; }
