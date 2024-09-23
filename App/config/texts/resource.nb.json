@@ -15,11 +15,11 @@
     },
     {
       "id": "Side1.Paragraph-kuSAR3.title",
-      "value": "Sub-form komponenten finner du nederst på denne siden, under et par felter med personalia."
+      "value": "Subform komponentene finner du nederst på denne siden, under et par felter med personalia."
     },
     {
       "id": "Side1.Header-wtBlvU.title",
-      "value": "Fancy app med sub-form komponent"
+      "value": "En enkel app med subform komponenter"
     },
     {
       "id": "moped-header.title",
@@ -60,6 +60,14 @@
     {
       "id": "subform-moped.merke",
       "value": "Merke"
+    },
+    {
+      "id": "subform-moped.extra-info",
+      "value": "Ekstra info"
+    },
+    {
+      "id": "subform-moped.extra-info.value.default",
+      "value": "🥺"
     },
     {
       "id": "attachments.title",
@@ -110,7 +118,7 @@
       "value": "Forfatter"
     },
     {
-      "id": "bok-serie.value.default",
+      "id": "subform-bok.serie.value.default",
       "value": "[ingen serie]"
     }
   ]

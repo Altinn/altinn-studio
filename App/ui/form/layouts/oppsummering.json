@@ -4,6 +4,30 @@
     "hidden": false,
     "layout": [
       {
+        "id": "summary1b",
+        "type": "Summary2",
+        "target": {
+          "id": "Input-Name",
+          "type": "component"
+        }
+      },
+      {
+        "id": "summary2b",
+        "type": "Summary2",
+        "target": {
+          "id": "Input-Age",
+          "type": "component"
+        }
+      },
+      {
+        "id": "summary3b",
+        "type": "Summary2",
+        "target": {
+          "id": "attachments",
+          "type": "component"
+        }
+      },
+      {
         "id": "summary4b",
         "type": "Summary2",
         "target": {
@@ -45,7 +69,7 @@
         "actions": [
           {
             "type": "ClientAction",
-            "id": "previousPage",
+            "id": "previousPage"
           }
         ],
         "buttonStyle": "secondary",

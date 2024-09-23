@@ -4,19 +4,6 @@
     "hidden": false,
     "layout": [
       {
-        "id": "moped-detaljer",
-        "type": "Group",
-        "textResourceBindings": {
-          "title": "Mopeddetaljer"
-        },
-        "children": [
-          "summary-bok-a",
-          "summary-bok-b",
-          "summary-bok-c",
-          "summary-bok-d"
-        ]
-      },
-      {
         "id": "summary-bok-a",
         "type": "Summary",
         "componentRef": "bok-tittel"

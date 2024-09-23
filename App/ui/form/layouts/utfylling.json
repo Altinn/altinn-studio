@@ -95,10 +95,10 @@
             }
           },
           {
-            "headerContent": "Ekstra info",
+            "headerContent": "subform-moped.extra-info",
             "cellContent": {
               "query": "EkstraInfoData",
-              "default": "🥺"
+              "default": "subform-moped.extra-info.value.default"
             }
           }
         ]
@@ -124,7 +124,7 @@
             "headerContent": "subform-bok.serie",
             "cellContent": {
               "query": "Serie",
-              "default": "bok-serie.value.default"
+              "default": "subform-bok.serie.value.default"
             }
           },
           {
