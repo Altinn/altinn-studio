@@ -31,7 +31,7 @@ export const CreateSubFormWrapper = ({ layoutSets }: CreateSubFormWrapperProps) 
       layoutSetIdToUpdate: newSubFormName,
       layoutSetConfig: {
         id: newSubFormName,
-        type: 'subForm',
+        type: 'subform',
       },
     });
   };
