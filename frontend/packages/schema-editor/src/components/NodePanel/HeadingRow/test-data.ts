@@ -30,7 +30,7 @@ const rootNodeMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
-  pointer: ROOT_POINTER,
+  schemaPointer: ROOT_POINTER,
   children: [
     objectDefinitionPointer,
     stringDefinitionPointer,
@@ -57,7 +57,7 @@ const objectDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
-  pointer: objectDefinitionPointer,
+  schemaPointer: objectDefinitionPointer,
   children: [],
 };
 
@@ -65,76 +65,76 @@ const stringDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.String,
-  pointer: stringDefinitionPointer,
+  schemaPointer: stringDefinitionPointer,
 };
 
 const integerDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Integer,
-  pointer: integerDefinitionPointer,
+  schemaPointer: integerDefinitionPointer,
 };
 
 const numberDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Number,
-  pointer: numberDefinitionPointer,
+  schemaPointer: numberDefinitionPointer,
 };
 
 const booleanDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Boolean,
-  pointer: booleanDefinitionPointer,
+  schemaPointer: booleanDefinitionPointer,
 };
 
 const combinationDefinitionMock: CombinationNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Combination,
   combinationType: CombinationKind.AnyOf,
-  pointer: combinationDefinitionPointer,
+  schemaPointer: combinationDefinitionPointer,
 };
 
 const objectRefMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: objectRefPointer,
+  schemaPointer: objectRefPointer,
   reference: objectDefinitionPointer,
 };
 
 const stringRefMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: stringRefPointer,
+  schemaPointer: stringRefPointer,
   reference: stringDefinitionPointer,
 };
 
 const integerRefMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: integerRefPointer,
+  schemaPointer: integerRefPointer,
   reference: integerDefinitionPointer,
 };
 
 const numberRefMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: numberRefPointer,
+  schemaPointer: numberRefPointer,
   reference: numberDefinitionPointer,
 };
 
 const booleanRefMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: booleanRefPointer,
+  schemaPointer: booleanRefPointer,
   reference: booleanDefinitionPointer,
 };
 
 const combinationRefMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: combinationRefPointer,
+  schemaPointer: combinationRefPointer,
   reference: combinationDefinitionPointer,
 };
 
@@ -142,42 +142,42 @@ const unusedObjectDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
-  pointer: unusedObjectDefinitionPointer,
+  schemaPointer: unusedObjectDefinitionPointer,
 };
 
 const unusedStringDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.String,
-  pointer: unusedStringDefinitionPointer,
+  schemaPointer: unusedStringDefinitionPointer,
 };
 
 const unusedIntegerDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Integer,
-  pointer: unusedIntegerDefinitionPointer,
+  schemaPointer: unusedIntegerDefinitionPointer,
 };
 
 const unusedNumberDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Number,
-  pointer: unusedNumberDefinitionPointer,
+  schemaPointer: unusedNumberDefinitionPointer,
 };
 
 const unusedBooleanDefinitionMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Boolean,
-  pointer: unusedBooleanDefinitionPointer,
+  schemaPointer: unusedBooleanDefinitionPointer,
 };
 
 const unusedCombinationDefinitionMock: CombinationNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Combination,
   combinationType: CombinationKind.AnyOf,
-  pointer: unusedCombinationDefinitionPointer,
+  schemaPointer: unusedCombinationDefinitionPointer,
 };
 
 export const schemaNodesMock: UiSchemaNodes = [

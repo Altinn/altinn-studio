@@ -1,7 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { StudioModal } from '@studio/components';
-import { Heading } from '@digdir/designsystemet-react';
-import classes from './MakeCopyModal.module.css';
+import { useForwardedRef } from '@studio/hooks';
 import { useTranslation } from 'react-i18next';
 import { useCopyAppMutation } from 'dashboard/hooks/mutations/useCopyAppMutation';
 import type { AxiosError } from 'axios';
@@ -13,7 +12,7 @@ import { type NewAppForm } from '../../types/NewAppForm';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export type MakeCopyModalProps = {
-  open: boolean;
+  open?: boolean;
   onClose: () => void;
   serviceFullName: string;
 };
@@ -21,6 +20,7 @@ export type MakeCopyModalProps = {
 export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
   ({ open, onClose, serviceFullName }, ref) => {
     const { data: user } = useUserQuery();
+    const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
     const { data: organizations } = useOrganizationsQuery();
     const {
@@ -68,34 +68,32 @@ export const MakeCopyModal = forwardRef<HTMLDialogElement, MakeCopyModalProps>(
       );
     };
 
+    const closeDialog = () => {
+      dialogRef.current?.close();
+      onClose();
+    };
+
     return (
-      <StudioModal
-        ref={ref}
-        isOpen={open}
-        onClose={onClose}
-        title={
-          <Heading level={2} size='small' className={classes.modalHeading}>
-            {t('dashboard.copy_application')}
-          </Heading>
-        }
-        closeButtonLabel={t('dashboard.copy_modal_close_button_label')}
+      <StudioModal.Dialog
+        closeButtonTitle={t('dashboard.copy_modal_close_button_label')}
+        heading={t('dashboard.copy_application')}
+        open={open}
+        ref={dialogRef}
       >
-        <div className={classes.modalContent}>
-          <NewApplicationForm
-            onSubmit={createClonedRepo}
-            user={user}
-            organizations={organizations}
-            isLoading={isCopyAppPending || isCopyAppSuccess}
-            submitButtonText={t('dashboard.make_copy')}
-            formError={formError}
-            setFormError={setFormError}
-            actionableElement={{
-              type: 'button',
-              onClick: onClose,
-            }}
-          />
-        </div>
-      </StudioModal>
+        <NewApplicationForm
+          onSubmit={createClonedRepo}
+          user={user}
+          organizations={organizations}
+          isLoading={isCopyAppPending || isCopyAppSuccess}
+          submitButtonText={t('dashboard.make_copy')}
+          formError={formError}
+          setFormError={setFormError}
+          actionableElement={{
+            type: 'button',
+            onClick: closeDialog,
+          }}
+        />
+      </StudioModal.Dialog>
     );
   },
 );

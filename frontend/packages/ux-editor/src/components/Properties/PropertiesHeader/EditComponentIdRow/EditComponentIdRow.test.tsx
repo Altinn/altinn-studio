@@ -107,4 +107,35 @@ describe('EditComponentIdRow', () => {
       screen.getByText(textMock('ux_editor.modal_properties_component_id_not_unique_error')),
     ).toBeInTheDocument();
   });
+
+  it('should show error message when id of an attachment component type has duplicate id', async () => {
+    const user = userEvent.setup();
+    queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'newTestId' }],
+    });
+    await studioRender({
+      component: {
+        type: ComponentType.FileUpload,
+        id: '',
+        itemType: 'COMPONENT',
+        description: 'test',
+        displayMode: 'test',
+        hasCustomFileEndings: false,
+        maxFileSizeInMB: 100,
+        maxNumberOfAttachments: 2,
+        minNumberOfAttachments: 1,
+      },
+    });
+    const testIdButton = screen.getByRole('button', { name: textMock('ux_editor.id_identifier') });
+    await user.click(testIdButton);
+    const textField = screen.getByRole('textbox', {
+      name: textMock('ux_editor.modal_properties_component_change_id'),
+    });
+    await user.clear(textField);
+    await user.type(textField, 'newTestId');
+    await user.click(document.body);
+    expect(
+      screen.getByText(textMock('ux_editor.error_component_id_exists_as_data_type')),
+    ).toBeInTheDocument();
+  });
 });

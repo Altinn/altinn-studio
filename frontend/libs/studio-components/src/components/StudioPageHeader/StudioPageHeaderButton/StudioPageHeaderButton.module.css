@@ -1,0 +1,40 @@
+.button {
+  --studio-button-regular-dark: #393b51;
+  --studio-button-regular-medium: #3e4f62;
+  --studio-button-regular-light: #657281;
+
+  --studio-button-preview-dark: #0c6536;
+  --studio-button-preview-medium: #118849;
+  --studio-button-preview-light: #67b38a;
+
+  color: var(--fds-semantic-background-default);
+}
+
+.regularDark {
+  background-color: var(--studio-button-regular-dark);
+}
+.regularDark:hover {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.regularLight {
+  background-color: var(--studio-button-regular-medium);
+}
+
+.regularLight:hover {
+  background-color: var(--studio-button-regular-light);
+}
+
+.previewDark {
+  background-color: var(--studio-button-preview-dark);
+}
+.previewDark:hover {
+  background-color: var(--studio-button-preview-medium);
+}
+
+.previewLight {
+  background-color: var(--studio-button-preview-medium);
+}
+.previewLight:hover {
+  background-color: var(--studio-button-preview-light);
+}

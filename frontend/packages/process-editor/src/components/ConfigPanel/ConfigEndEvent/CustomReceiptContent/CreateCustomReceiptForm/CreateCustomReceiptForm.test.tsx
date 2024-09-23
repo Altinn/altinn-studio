@@ -3,7 +3,7 @@ import {
   CreateCustomReceiptForm,
   type CreateCustomReceiptFormProps,
 } from './CreateCustomReceiptForm';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -50,30 +50,26 @@ describe('CreateCustomReceiptForm', () => {
 
     const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.click(optionElement);
-    await user.keyboard('{Escape}');
 
-    const createButton = screen.getByRole('button', {
+    const createButton = await screen.findByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(createButton);
 
-    await waitFor(() => expect(mockAddLayoutSet).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(mockAddLayoutSet).toHaveBeenCalledWith(
-        {
-          layoutSetConfig: {
-            id: newId,
-            dataType: mockAllDataModelIds[0],
-            tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-          },
-          layoutSetIdToUpdate: newId,
+    expect(mockAddLayoutSet).toHaveBeenCalledTimes(1);
+    expect(mockAddLayoutSet).toHaveBeenCalledWith(
+      {
+        layoutSetConfig: {
+          id: newId,
+          dataType: mockAllDataModelIds[0],
+          tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
         },
-        {
-          onSuccess: expect.any(Function),
-        },
-      ),
+        layoutSetIdToUpdate: newId,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
     );
-
     expect(mockOnCloseForm).toHaveBeenCalled();
   });
 
@@ -88,9 +84,8 @@ describe('CreateCustomReceiptForm', () => {
 
     const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.click(optionElement);
-    await user.keyboard('{Escape}');
 
-    const createButton = screen.getByRole('button', {
+    const createButton = await screen.findByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(createButton);
@@ -121,9 +116,8 @@ describe('CreateCustomReceiptForm', () => {
 
     const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.click(optionElement);
-    await user.keyboard('{Escape}');
 
-    const createButton = screen.getByRole('button', {
+    const createButton = await screen.findByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(createButton);

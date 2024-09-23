@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import React, { useState } from 'react';
+import React from 'react';
 import classes from './LocalChanges.module.css';
 import { useTranslation } from 'react-i18next';
 import { Paragraph } from '@digdir/designsystemet-react';
@@ -9,11 +9,18 @@ import { DeleteModal } from '../DeleteModal';
 import { repoDownloadPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
-export const LocalChanges = (): ReactNode => {
+export type LocalChangesProps = {
+  onDelete: () => void;
+};
+
+export const LocalChanges = ({ onDelete }: LocalChangesProps): ReactNode => {
   const { t } = useTranslation();
   const { app, org } = useStudioEnvironmentParams();
+  const deleteDialogRef = React.useRef<HTMLDialogElement>(null);
 
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const openDeleteDialog = () => {
+    deleteDialogRef.current?.showModal();
+  };
 
   return (
     <div className={classes.contentWrapper}>
@@ -21,14 +28,14 @@ export const LocalChanges = (): ReactNode => {
       <LocalChangesActionButton
         label={t('local_changes.modal_download_your_files_label')}
         description={t('local_changes.modal_download_your_files_description')}
-        icon={<DownloadIcon className={classes.downloadIcon} />}
+        icon={<DownloadIcon />}
         text={t('local_changes.modal_download_only_changed_button')}
         action={{ type: 'link', href: repoDownloadPath(org, app) }}
       />
       <LocalChangesActionButton
         label={t('local_changes.modal_download_all_files_label')}
         description={t('local_changes_modal.download_all_files_description')}
-        icon={<DownloadIcon className={classes.downloadIcon} />}
+        icon={<DownloadIcon />}
         text={t('local_changes_modal.download_all_button')}
         action={{ type: 'link', href: repoDownloadPath(org, app, true) }}
       />
@@ -38,14 +45,9 @@ export const LocalChanges = (): ReactNode => {
         color='danger'
         icon={<TrashIcon />}
         text={t('local_changes.modal_delete_button')}
-        action={{ type: 'button', onClick: () => setDeleteModalOpen(true) }}
+        action={{ type: 'button', onClick: openDeleteDialog }}
       />
-      <DeleteModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        app={app}
-        org={org}
-      />
+      <DeleteModal app={app} org={org} onDelete={onDelete} ref={deleteDialogRef} />
     </div>
   );
 };

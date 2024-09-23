@@ -1,9 +1,19 @@
-import type { RefObject } from 'react';
-import React, { createRef } from 'react';
+import type { ForwardedRef } from 'react';
+import React from 'react';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen, within } from '@testing-library/react';
 import type { StudioBooleanToggleGroupProps } from './StudioBooleanToggleGroup';
 import { StudioBooleanToggleGroup } from './StudioBooleanToggleGroup';
 import userEvent from '@testing-library/user-event';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
+
+// Test data:
+const trueLabel = 'True';
+const falseLabel = 'False';
+const defaultProps: StudioBooleanToggleGroupProps = {
+  trueLabel,
+  falseLabel,
+};
 
 describe('StudioBooleanToggleGroup', () => {
   it('Renders a toggle group with toggles with the given labels', () => {
@@ -75,23 +85,16 @@ describe('StudioBooleanToggleGroup', () => {
   });
 
   it('Forwards the ref object to the toggle group element if given', () => {
-    const ref = createRef<HTMLDivElement>();
-    const { container } = renderBooleanToggle({}, ref);
-    expect(ref.current).toBe(container.firstChild); // eslint-disable-line testing-library/no-node-access
+    testRefForwarding<HTMLDivElement>((ref) => renderBooleanToggle({}, ref));
   });
 
   const getTrueToggle = () => screen.getByRole('radio', { name: trueLabel });
   const getFalseToggle = () => screen.getByRole('radio', { name: falseLabel });
 });
 
-const trueLabel = 'True';
-const falseLabel = 'False';
-const defaultProps: StudioBooleanToggleGroupProps = {
-  trueLabel,
-  falseLabel,
-};
-
-const renderBooleanToggle = (
+function renderBooleanToggle(
   props: Partial<StudioBooleanToggleGroupProps> = {},
-  ref?: RefObject<HTMLDivElement>,
-) => render(<StudioBooleanToggleGroup {...defaultProps} {...props} ref={ref} />);
+  ref?: ForwardedRef<HTMLDivElement>,
+): RenderResult {
+  return render(<StudioBooleanToggleGroup {...defaultProps} {...props} ref={ref} />);
+}
