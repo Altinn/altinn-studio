@@ -16,12 +16,15 @@
   --component-toggle_button-color-text-active: black;
   --component-toggle_button-color-text-inactive: white;
 }
+
 .layoutSetSelector input {
   color: white;
 }
+
 .layoutSetSelector {
   width: 200px;
 }
+
 .layoutSetSelector > * {
   color: white;
   --arrow-color: white;
@@ -30,6 +33,7 @@
   --component-input-color-background-default: #3e845e;
   --component-input-color-border-default: none;
 }
+
 .rightSubHeaderButtons {
   flex-direction: row;
   text-align: right;
@@ -39,11 +43,13 @@
   justify-content: flex-end;
   flex: 3;
 }
+
 /* Overriding this style because it is hardcoded in the design system */
 .viewSizeButtons button[aria-pressed='false']:hover {
   background-color: #dbf5d5 !important;
   color: black !important;
 }
+
 .backToEditorBtn {
   width: fit-content;
   color: black;
