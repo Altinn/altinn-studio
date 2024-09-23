@@ -10,8 +10,7 @@ import {
 } from '@studio/components';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppContext } from '../../../../hooks';
-import { useComponentTypeName } from '@altinn/ux-editor/hooks/useComponentTypeName';
+import { useAppContext, useComponentTypeName } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelector';
 import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
