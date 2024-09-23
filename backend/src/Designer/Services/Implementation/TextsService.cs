@@ -365,7 +365,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}");
                 }
             }
-            return updatedFiles;
+            return updatedFiles.Count > 0 ? ["App/ui/layouts"] : [];
         }
 
         private static bool UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
