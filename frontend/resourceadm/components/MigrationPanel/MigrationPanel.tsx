@@ -73,12 +73,15 @@ export const MigrationPanel = ({
         <Modal.Header>{t('resourceadm.migration_disable_service_modal_header')}</Modal.Header>
         <Modal.Content>
           <Alert severity='warning'>{t('resourceadm.migration_disable_service_modal_body')}</Alert>
-          <Checkbox
-            value={isMigrateCheckboxChecked ? '1' : ''}
+          <Checkbox.Group
+            legend=''
             onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
+            value={isMigrateCheckboxChecked ? ['checked'] : []}
           >
-            Jeg er heeeelt sikker på at jeg vil migrere tjenesten
-          </Checkbox>
+            <Checkbox value='checked'>
+              Jeg er heeeelt sikker på at jeg vil migrere tjenesten
+            </Checkbox>
+          </Checkbox.Group>
         </Modal.Content>
         <Modal.Footer>
           <StudioButton
