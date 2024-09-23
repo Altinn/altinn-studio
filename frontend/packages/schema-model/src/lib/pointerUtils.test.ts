@@ -23,17 +23,17 @@ describe('pointerUtils', () => {
   describe('createPropertyPointer', () => {
     it('Creates a valid property pointer when the parent is a combination', () => {
       const result = createPropertyPointer(allOfNodeMock, 'hello');
-      expect(result).toBe(allOfNodeMock.pointer + '/allOf/hello');
+      expect(result).toBe(allOfNodeMock.schemaPointer + '/allOf/hello');
     });
 
     it('Creates a valid property pointer when the parent is an object field', () => {
       const result = createPropertyPointer(simpleParentNodeMock, 'hello');
-      expect(result).toBe(simpleParentNodeMock.pointer + '/properties/hello');
+      expect(result).toBe(simpleParentNodeMock.schemaPointer + '/properties/hello');
     });
 
     it('Creates a valid property pointer when the parent is an array field', () => {
       const result = createPropertyPointer(simpleArrayMock, 'hello');
-      expect(result).toBe(simpleArrayMock.pointer + '/items/properties/hello');
+      expect(result).toBe(simpleArrayMock.schemaPointer + '/items/properties/hello');
     });
 
     it('Throws an error when the parent is a reference', () => {

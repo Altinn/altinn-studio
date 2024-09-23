@@ -110,7 +110,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all JSON schema datamodels within repository.
+        /// Method that returns all JSON schema data models within repository.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
@@ -118,7 +118,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [Route("all-json")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetDatamodels(string org, string repository)
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetDataModels(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
@@ -136,7 +136,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [Route("all-xsd")]
-        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDataModels(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
@@ -149,7 +149,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Upload an XSD.
         /// </summary>
         /// <remarks>
-        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema,
+        /// This operation will use the new data modelling library to convert the XSD into a JSON schema,
         /// metadata model and C# class.
         /// </remarks>
         /// <param name="org">The short name of the application owner.</param>
