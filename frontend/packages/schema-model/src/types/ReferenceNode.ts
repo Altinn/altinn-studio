@@ -3,7 +3,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export type ReferenceNode = {
   objectKind: ObjectKind.Reference;
-  pointer: string;
+  schemaPointer: string;
   reference?: string;
   custom: KeyValuePairs;
   description?: string;

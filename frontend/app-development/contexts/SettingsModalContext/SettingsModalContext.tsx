@@ -1,11 +1,9 @@
-import type { SettingsModalTab } from '../../types/SettingsModalTab';
-import React, { createContext, useContext, useState } from 'react';
+import type { MutableRefObject } from 'react';
+import React, { createContext, useContext, useRef } from 'react';
+import type { SettingsModalHandle } from '../../types/SettingsModalHandle';
 
 export type SettingsModalContextProps = {
-  settingsModalOpen: boolean;
-  setSettingsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  settingsModalSelectedTab?: SettingsModalTab;
-  setSettingsModalSelectedTab: React.Dispatch<React.SetStateAction<SettingsModalTab>>;
+  settingsRef: MutableRefObject<SettingsModalHandle>;
 };
 
 export const SettingsModalContext = createContext<Partial<SettingsModalContextProps>>(undefined);
@@ -17,19 +15,10 @@ export type SettingsModalContextProviderProps = {
 export const SettingsModalContextProvider = ({
   children,
 }: Partial<SettingsModalContextProviderProps>) => {
-  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [settingsModalSelectedTab, setSettingsModalSelectedTab] =
-    useState<SettingsModalTab>('about');
+  const settingsRef = useRef<SettingsModalHandle>(null);
 
   return (
-    <SettingsModalContext.Provider
-      value={{
-        settingsModalOpen,
-        setSettingsModalOpen,
-        settingsModalSelectedTab,
-        setSettingsModalSelectedTab,
-      }}
-    >
+    <SettingsModalContext.Provider value={{ settingsRef }}>
       {children}
     </SettingsModalContext.Provider>
   );
