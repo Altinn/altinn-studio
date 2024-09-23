@@ -15,6 +15,20 @@ export class FormLayoutSettings {
     return this.layoutSettings;
   }
 
+  public getLayoutsOrder(): string[] {
+    return this.layoutSettings.pages.order;
+  }
+
+  public isLayoutInOrder(layoutName: string): boolean {
+    return this.layoutSettings.pages.order.includes(layoutName);
+  }
+
+  public deleteLayoutFromOrder(layoutName: string): FormLayoutSettings {
+    const indexOfLayout = this.layoutSettings.pages.order.indexOf(layoutName);
+    this.layoutSettings.pages.order.splice(indexOfLayout, 1);
+    return this;
+  }
+
   public setPdfLayoutName(layoutName: string): FormLayoutSettings {
     this.layoutSettings.pages.pdfLayoutName = layoutName;
     return this;

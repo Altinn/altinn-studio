@@ -14,6 +14,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 const selectedLayoutSet = layoutSet1NameMock;
+const handleModalActionMock = jest.fn();
 
 describe('ConvertChoicesModal', () => {
   afterEach(() => jest.clearAllMocks());
@@ -46,16 +47,42 @@ describe('ConvertChoicesModal', () => {
       {},
       { saveFormLayoutSettings: mutateLayoutSettingsMock, deleteFormLayout: deleteLayoutMock },
     );
-    const convertExistingPdfToFormLayout = screen.getByRole('button', {
+    const deleteExistingPdf = screen.getByRole('button', {
       name: textMock('ux_editor.page_config_pdf_delete_existing_pdf'),
     });
-    await user.click(convertExistingPdfToFormLayout);
+    await user.click(deleteExistingPdf);
     expect(mutateLayoutSettingsMock).toHaveBeenCalledTimes(2); // Once from pdfConfig and another from deleteLayout
     expect(mutateLayoutSettingsMock).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
       pages: { order: [], pdfLayoutName: layout1NameMock },
     });
     expect(deleteLayoutMock).toHaveBeenCalledTimes(1);
     expect(deleteLayoutMock).toHaveBeenCalledWith(org, app, pdfLayoutNameMock, selectedLayoutSet);
+  });
+
+  it('calls handleModalAction when converting existing pdf', async () => {
+    const user = userEvent.setup();
+    const pdfLayoutNameMock = 'pdfLayoutNameMock';
+    await renderConvertChoicesModal({
+      pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock },
+    });
+    const convertExistingPdfToFormLayout = screen.getByRole('button', {
+      name: textMock('ux_editor.page_config_pdf_convert_existing_pdf'),
+    });
+    await user.click(convertExistingPdfToFormLayout);
+    expect(handleModalActionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls handleModalAction when deleting existing pdf', async () => {
+    const user = userEvent.setup();
+    const pdfLayoutNameMock = 'pdfLayoutNameMock';
+    await renderConvertChoicesModal({
+      pages: { order: [layout1NameMock], pdfLayoutName: pdfLayoutNameMock },
+    });
+    const deleteExistingPdf = screen.getByRole('button', {
+      name: textMock('ux_editor.page_config_pdf_delete_existing_pdf'),
+    });
+    await user.click(deleteExistingPdf);
+    expect(handleModalActionMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -70,7 +97,7 @@ const renderConvertChoicesModal = async (
     ...formLayoutSettingsMock,
     ...layoutSettings,
   });
-  renderWithProviders(<ConvertChoicesModal ref={ref} />, {
+  renderWithProviders(<ConvertChoicesModal handleModalAction={handleModalActionMock} ref={ref} />, {
     queries,
     queryClient,
     appContextProps,

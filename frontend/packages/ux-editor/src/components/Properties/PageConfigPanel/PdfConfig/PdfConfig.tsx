@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { FileIcon } from '@studio/icons';
@@ -10,6 +10,7 @@ export const PdfConfig = () => {
   const { t } = useTranslation();
   const { isCurrentPagePdf, getPdfLayoutName, convertCurrentPageToPdf, convertExistingPdfToPage } =
     usePdf();
+  const [isPdfUpdated, setIsPdfUpdated] = useState(false);
   const savableLayoutSettings = useSavableFormLayoutSettings();
   const convertChoicesDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -27,9 +28,14 @@ export const PdfConfig = () => {
     savableLayoutSettings.save();
   };
 
+  const handleModalAction = () => {
+    // Trigger re-render after modal action
+    setIsPdfUpdated(!isPdfUpdated);
+  };
+
   return (
-    <>
-      <ConvertChoicesModal ref={convertChoicesDialogRef} />
+    <div>
+      <ConvertChoicesModal handleModalAction={handleModalAction} ref={convertChoicesDialogRef} />
       {isCurrentPagePdf() ? (
         <StudioProperty.Button
           onClick={handleConvertExistingPdfToFormLayout}
@@ -45,6 +51,6 @@ export const PdfConfig = () => {
           icon={<FileIcon />}
         />
       )}
-    </>
+    </div>
   );
 };
