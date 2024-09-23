@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Validation;
 
 namespace Altinn.App.Core.Internal.Patch;
@@ -15,5 +16,20 @@ public class DataPatchResult
     /// <summary>
     /// The current data model after the patch operation.
     /// </summary>
-    public required Dictionary<Guid, object> NewDataModels { get; init; }
+    public required List<DataElementChange> ChangedDataElements { get; init; }
+
+    /// <summary>
+    /// Get updated data elements that have app logic in a dictionary with the data element id as key.
+    /// </summary>
+    public Dictionary<Guid, object> GetUpdatedData()
+    {
+        return ChangedDataElements
+            .Where(d => d.HasAppLogic)
+            .ToDictionary(
+                d => Guid.Parse(d.DataElement.Id),
+                d =>
+                    d.CurrentValue
+                    ?? throw new InvalidOperationException("Data element has app logic but no current value")
+            );
+    }
 }

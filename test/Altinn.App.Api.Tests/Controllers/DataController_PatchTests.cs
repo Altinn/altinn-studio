@@ -310,7 +310,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var validationResponse = await client.GetAsync($"/{Org}/{App}/instances/{_instanceId}/validate");
         validationResponse.Should().HaveStatusCode(HttpStatusCode.OK);
         var validationResponseString = await validationResponse.Content.ReadAsStringAsync();
-        var validationResponseObject = JsonSerializer.Deserialize<List<ValidationIssue>>(
+        var validationResponseObject = JsonSerializer.Deserialize<List<ValidationIssueWithSource>>(
             validationResponseString,
             JsonSerializerOptions
         )!;

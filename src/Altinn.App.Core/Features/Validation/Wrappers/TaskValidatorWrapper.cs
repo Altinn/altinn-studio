@@ -24,6 +24,12 @@ internal class TaskValidatorWrapper : IValidator
     /// <inheritdoc />
     public string ValidationSource => _taskValidator.ValidationSource;
 
+    /// <summary>
+    /// The old <see cref="ITaskValidator"/> interface does not support incremental validation.
+    /// so the issues will only show up when process/next fails
+    /// </summary>
+    public bool NoIncrementalValidation => true;
+
     /// <inheritdoc />
     public Task<List<ValidationIssue>> Validate(
         Instance instance,
@@ -38,12 +44,13 @@ internal class TaskValidatorWrapper : IValidator
     /// <inheritdoc />
     public Task<bool> HasRelevantChanges(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        List<DataElementChange> changes,
-        IInstanceDataAccessor instanceDataAccessor
+        List<DataElementChange> changes
     )
     {
-        // TaskValidator did not previously implement incremental validation, so we always return false
-        return Task.FromResult(false);
+        throw new NotImplementedException(
+            "TaskValidatorWrapper should not be used for incremental validation, because it sets NoIncrementalValidation to true"
+        );
     }
 }

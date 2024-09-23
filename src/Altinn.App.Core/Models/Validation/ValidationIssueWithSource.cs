@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Altinn.App.Core.Features;
 
 namespace Altinn.App.Core.Models.Validation;
 
@@ -10,7 +11,7 @@ public class ValidationIssueWithSource
     /// <summary>
     /// Converter function to create a <see cref="ValidationIssueWithSource"/> from a <see cref="ValidationIssue"/> and adding a source.
     /// </summary>
-    public static ValidationIssueWithSource FromIssue(ValidationIssue issue, string source)
+    public static ValidationIssueWithSource FromIssue(ValidationIssue issue, string source, bool noIncrementalUpdates)
     {
         return new ValidationIssueWithSource
         {
@@ -20,6 +21,7 @@ public class ValidationIssueWithSource
             Code = issue.Code,
             Description = issue.Description,
             Source = source,
+            NoIncrementalUpdates = noIncrementalUpdates,
             CustomTextKey = issue.CustomTextKey,
             CustomTextParams = issue.CustomTextParams,
         };
@@ -72,8 +74,16 @@ public class ValidationIssueWithSource
     public required string Source { get; set; }
 
     /// <summary>
+    /// Weather the issue is from a validator that correctly implements <see cref="IValidator.HasRelevantChanges"/>.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonPropertyName("NoIncrementalUpdates")]
+    public bool NoIncrementalUpdates { get; set; }
+
+    /// <summary>
     /// The custom text key to use for the localized text in the frontend.
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("customTextKey")]
     public string? CustomTextKey { get; set; }
 
@@ -85,6 +95,7 @@ public class ValidationIssueWithSource
     /// The localized text for the key might be "Date must be between {0} and {1}"
     /// and the param will provide the dynamical range of allowable dates (eg teh reporting period)
     /// </example>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("customTextParams")]
     public List<string>? CustomTextParams { get; set; }
 }

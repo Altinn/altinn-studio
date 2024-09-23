@@ -4810,6 +4810,13 @@
             }
           },
           {
+            "name": "onlyIncrementalValidators",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "language",
             "in": "query",
             "schema": {
@@ -7034,6 +7041,9 @@
           "source": {
             "type": "string",
             "nullable": true
+          },
+          "NoIncrementalUpdates": {
+            "type": "boolean"
           },
           "customTextKey": {
             "type": "string",

@@ -222,6 +222,8 @@ public class ActionsController : ControllerBase
             changes.Add(
                 new DataElementChange
                 {
+                    HasAppLogic = true,
+                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElement,
                     PreviousValue = previousData,
                     CurrentValue = newModel,

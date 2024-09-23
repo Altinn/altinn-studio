@@ -37,7 +37,8 @@
       DataElementId: DataElementId_0,
       Code: TestCode,
       Description: Test error,
-      Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default
+      Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default,
+      NoIncrementalUpdates: false
     }
   ]
 }

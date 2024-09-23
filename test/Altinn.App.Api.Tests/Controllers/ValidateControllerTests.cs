@@ -139,7 +139,8 @@ public class ValidateControllerTests
                 Description = "dummy",
                 Field = "dummy",
                 Severity = ValidationIssueSeverity.Fixed,
-                Source = "dummy"
+                Source = "dummy",
+                NoIncrementalUpdates = true
             }
         };
 
@@ -148,7 +149,9 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         _validationMock
-            .Setup(v => v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null))
+            .Setup(v =>
+                v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null)
+            )
             .ReturnsAsync(validationResult);
 
         // Act
@@ -186,7 +189,9 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         _validationMock
-            .Setup(v => v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null))
+            .Setup(v =>
+                v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null)
+            )
             .Throws(exception);
 
         // Act
@@ -224,7 +229,9 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         _validationMock
-            .Setup(v => v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null))
+            .Setup(v =>
+                v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null)
+            )
             .Throws(exception);
 
         // Act

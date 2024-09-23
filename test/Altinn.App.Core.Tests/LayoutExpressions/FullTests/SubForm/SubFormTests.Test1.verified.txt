@@ -5,7 +5,8 @@
     Field: Address,
     Code: The field Address must be a string or array type with a minimum length of '44'.,
     Description: The field Address must be a string or array type with a minimum length of '44'.,
-    Source: DataAnnotations
+    Source: DataAnnotations,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -13,7 +14,8 @@
     Field: Address,
     Code: required,
     Description: Address is required in component with id subFormLayout.SubPage.Address for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -21,7 +23,8 @@
     Field: Name,
     Code: required,
     Description: Name is required in component with id subFormLayout.SubPage.Name for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -29,7 +32,8 @@
     Field: Name,
     Code: The Name field is required.,
     Description: The Name field is required.,
-    Source: DataAnnotations
+    Source: DataAnnotations,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -37,7 +41,8 @@
     Field: Phone,
     Code: required,
     Description: Phone is required in component with id subFormLayout.SubPage.Phone for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -45,7 +50,8 @@
     Field: Email,
     Code: required,
     Description: Email is required in component with id subFormLayout.SubPage.Email for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -53,7 +59,8 @@
     Field: Phone,
     Code: The field Phone must match the regular expression '^\+47\d+'.,
     Description: The field Phone must match the regular expression '^\+47\d+'.,
-    Source: DataAnnotations
+    Source: DataAnnotations,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -61,7 +68,8 @@
     Field: Address,
     Code: required,
     Description: Address is required in component with id subFormLayout.SubPage.Address for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -69,7 +77,8 @@
     Field: Name,
     Code: required,
     Description: Name is required in component with id subFormLayout.SubPage.Name for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -77,7 +86,8 @@
     Field: Name,
     Code: The Name field is required.,
     Description: The Name field is required.,
-    Source: DataAnnotations
+    Source: DataAnnotations,
+    NoIncrementalUpdates: false
   },
   {
     Severity: Error,
@@ -85,6 +95,7 @@
     Field: Phone,
     Code: required,
     Description: Phone is required in component with id subFormLayout.SubPage.Phone for binding simpleBinding,
-    Source: Required
+    Source: Required,
+    NoIncrementalUpdates: false
   }
 ]

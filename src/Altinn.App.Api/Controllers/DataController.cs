@@ -577,20 +577,23 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
-                foreach (var dataGuid in dataPatchRequest.Patches.Keys)
+                foreach (var change in res.Ok.ChangedDataElements)
                 {
-                    await UpdateDataValuesOnInstance(instance, dataGuid.ToString(), res.Ok.NewDataModels[dataGuid]);
-                    await UpdatePresentationTextsOnInstance(
-                        instance,
-                        dataGuid.ToString(),
-                        res.Ok.NewDataModels[dataGuid]
-                    );
+                    if (change.HasAppLogic)
+                    {
+                        await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentValue);
+                        await UpdatePresentationTextsOnInstance(
+                            instance,
+                            change.DataElement.DataType,
+                            change.CurrentValue
+                        );
+                    }
                 }
 
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
-                        NewDataModels = res.Ok.NewDataModels,
+                        NewDataModels = res.Ok.GetUpdatedData(),
                         ValidationIssues = res.Ok.ValidationIssues
                     }
                 );

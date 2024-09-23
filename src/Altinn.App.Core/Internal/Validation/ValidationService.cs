@@ -34,6 +34,7 @@ public class ValidationService : IValidationService
         IInstanceDataAccessor dataAccessor,
         string taskId,
         List<string>? ignoredValidators,
+        bool? onlyIncrementalValidators,
         string? language
     )
     {
@@ -42,9 +43,17 @@ public class ValidationService : IValidationService
 
         using var activity = _telemetry?.StartValidateInstanceAtTaskActivity(taskId);
 
-        var validators = _validatorFactory
-            .GetValidators(taskId)
-            .Where(v => !(ignoredValidators?.Contains(v.ValidationSource, StringComparer.InvariantCulture)) ?? true);
+        var validators = _validatorFactory.GetValidators(taskId);
+        // Filter out validators that should be ignored or not run incrementally
+        if (onlyIncrementalValidators == true)
+            validators = validators.Where(v => !v.NoIncrementalValidation);
+        else if (onlyIncrementalValidators == false)
+            validators = validators.Where(v => v.NoIncrementalValidation);
+        if (ignoredValidators is not null)
+            validators = validators.Where(v =>
+                !ignoredValidators.Contains(v.ValidationSource, StringComparer.InvariantCulture)
+            );
+
         // Start the validation tasks (but don't await yet, so that they can run in parallel)
         var validationTasks = validators.Select(async v =>
         {
@@ -55,7 +64,9 @@ public class ValidationService : IValidationService
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
                 return KeyValuePair.Create(
                     v.ValidationSource,
-                    issues.Select(issue => ValidationIssueWithSource.FromIssue(issue, v.ValidationSource))
+                    issues.Select(issue =>
+                        ValidationIssueWithSource.FromIssue(issue, v.ValidationSource, v.NoIncrementalValidation)
+                    )
                 );
             }
             catch (Exception e)
@@ -99,7 +110,7 @@ public class ValidationService : IValidationService
 
         var validators = _validatorFactory
             .GetValidators(taskId)
-            .Where(v => !(ignoredValidators?.Contains(v.ValidationSource) ?? false))
+            .Where(v => !v.NoIncrementalValidation && !(ignoredValidators?.Contains(v.ValidationSource) ?? false))
             .ToArray();
 
         ThrowIfDuplicateValidators(validators, taskId);
@@ -110,14 +121,20 @@ public class ValidationService : IValidationService
             using var validatorActivity = _telemetry?.StartRunValidatorActivity(validator);
             try
             {
-                var hasRelevantChanges = await validator.HasRelevantChanges(instance, taskId, changes, dataAccessor);
+                var hasRelevantChanges = await validator.HasRelevantChanges(instance, dataAccessor, taskId, changes);
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorHasRelevantChanges, hasRelevantChanges);
                 if (hasRelevantChanges)
                 {
                     var issues = await validator.Validate(instance, dataAccessor, taskId, language);
                     validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
                     var issuesWithSource = issues
-                        .Select(i => ValidationIssueWithSource.FromIssue(i, validator.ValidationSource))
+                        .Select(i =>
+                            ValidationIssueWithSource.FromIssue(
+                                i,
+                                validator.ValidationSource,
+                                validator.NoIncrementalValidation
+                            )
+                        )
                         .ToList();
                     return new KeyValuePair<string, List<ValidationIssueWithSource>?>(
                         validator.ValidationSource,

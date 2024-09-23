@@ -98,7 +98,8 @@ public class TestScenariosData : IEnumerable<object[]>
                         null,
                         LanguageConst.Nb
                     ),
-                    Source = "source"
+                    Source = "source",
+                    NoIncrementalUpdates = true
                 },
             },
             ExpectedResult = typeof(OkObjectResult)
@@ -140,7 +141,8 @@ public class TestScenariosData : IEnumerable<object[]>
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Description = "dummy",
                     Severity = ValidationIssueSeverity.Fixed,
-                    Source = "source"
+                    Source = "source",
+                    NoIncrementalUpdates = true
                 },
             },
             ExpectedValidationIssues = new List<ValidationIssueWithSource>
@@ -150,7 +152,8 @@ public class TestScenariosData : IEnumerable<object[]>
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Description = "dummy",
                     Severity = ValidationIssueSeverity.Fixed,
-                    Source = "source"
+                    Source = "source",
+                    NoIncrementalUpdates = true
                 }
             },
             ExpectedResult = typeof(OkObjectResult)
@@ -254,6 +257,7 @@ public class ValidationControllerValidateDataTests
                         It.IsAny<IInstanceDataAccessor>(),
                         "Task_1",
                         null,
+                        It.IsAny<bool?>(),
                         null
                     )
                 )

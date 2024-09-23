@@ -16,6 +16,7 @@ public interface IValidationService
     /// <param name="dataAccessor">Accessor for instance data to be validated</param>
     /// <param name="taskId">The task to run validations for (overriding instance.Process?.CurrentTask?.ElementId)</param>
     /// <param name="ignoredValidators">List of <see cref="IValidator.ValidationSource"/> to ignore</param>
+    /// <param name="onlyIncrementalValidators"></param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>List of validation issues for this data element</returns>
     Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
@@ -23,6 +24,7 @@ public interface IValidationService
         IInstanceDataAccessor dataAccessor,
         string taskId,
         List<string>? ignoredValidators,
+        bool? onlyIncrementalValidators,
         string? language
     );
 

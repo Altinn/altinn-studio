@@ -130,6 +130,8 @@ internal class PatchService : IPatchService
             changes.Add(
                 new DataElementChange
                 {
+                    HasAppLogic = true,
+                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElement,
                     PreviousValue = oldModel,
                     CurrentValue = newModel,
@@ -160,11 +162,7 @@ internal class PatchService : IPatchService
             language
         );
 
-        return new DataPatchResult
-        {
-            NewDataModels = changes.ToDictionary(c => Guid.Parse(c.DataElement.Id), c => c.CurrentValue),
-            ValidationIssues = validationIssues
-        };
+        return new DataPatchResult { ChangedDataElements = changes, ValidationIssues = validationIssues };
     }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)

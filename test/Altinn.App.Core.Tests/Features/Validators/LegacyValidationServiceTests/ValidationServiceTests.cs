@@ -274,6 +274,7 @@ public sealed class ValidationServiceTests : IDisposable
             _dataAccessor,
             DefaultTaskId,
             null,
+            null,
             DefaultLanguage
         );
         resultTask.Should().BeEmpty();
@@ -320,6 +321,8 @@ public sealed class ValidationServiceTests : IDisposable
             {
                 new()
                 {
+                    HasAppLogic = true,
+                    ChangeType = DataElementChangeType.Update,
                     DataElement = _defaultDataElement,
                     PreviousValue = previousData,
                     CurrentValue = data
@@ -373,6 +376,8 @@ public sealed class ValidationServiceTests : IDisposable
             [
                 new DataElementChange()
                 {
+                    HasAppLogic = true,
+                    ChangeType = DataElementChangeType.Update,
                     DataElement = _defaultDataElement,
                     CurrentValue = data,
                     PreviousValue = data,
@@ -457,6 +462,7 @@ public sealed class ValidationServiceTests : IDisposable
             dataAccessor,
             DefaultTaskId,
             null,
+            null,
             DefaultLanguage
         );
 
@@ -519,6 +525,7 @@ public sealed class ValidationServiceTests : IDisposable
             _defaultInstance,
             _dataAccessor,
             DefaultTaskId,
+            null,
             null,
             DefaultLanguage
         );

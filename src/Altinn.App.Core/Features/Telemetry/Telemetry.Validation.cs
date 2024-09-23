@@ -27,7 +27,6 @@ partial class Telemetry
         var activity = ActivitySource.StartActivity($"{Prefix}.ValidateIncremental");
         activity?.SetTaskId(taskId);
         // Log the IDs of the elements that have changed together with their data type
-        // default:123-678-8900-54,group:123-678-8900-55
         var changesPrefix = "ChangedDataElements";
         var now = DateTimeOffset.UtcNow;
 

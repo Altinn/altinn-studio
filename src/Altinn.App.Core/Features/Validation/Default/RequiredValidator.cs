@@ -52,8 +52,8 @@ public class RequiredLayoutValidator : IValidator
     /// </summary>
     public Task<bool> HasRelevantChanges(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        List<DataElementChange> changes,
-        IInstanceDataAccessor instanceDataAccessor
+        List<DataElementChange> changes
     ) => Task.FromResult(true);
 }

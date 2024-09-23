@@ -79,6 +79,7 @@ public class ValidationServiceOldTests
             dataAccessor.Object,
             "Task_1",
             null,
+            null,
             null
         );
 
@@ -107,6 +108,7 @@ public class ValidationServiceOldTests
             instance,
             dataAccessorMock.Object,
             "Task_1",
+            null,
             null,
             null
         );
@@ -137,6 +139,7 @@ public class ValidationServiceOldTests
             dataAccessorMock.Object,
             "Task_1",
             null,
+            null,
             null
         );
 
@@ -164,6 +167,7 @@ public class ValidationServiceOldTests
             instance,
             dataAccessorMock.Object,
             "Task_1",
+            null,
             null,
             null
         );
@@ -210,6 +214,7 @@ public class ValidationServiceOldTests
             instance,
             dataAccessorMock.Object,
             taskId,
+            null,
             null,
             null
         );
@@ -268,6 +273,7 @@ public class ValidationServiceOldTests
             instance,
             dataAccessorMock.Object,
             taskId,
+            null,
             null,
             null
         );

@@ -59,14 +59,15 @@ public class ValidationServiceTests : IAsyncLifetime
         bool? hasRelevantChanges = null,
         List<DataElementChange>? expectedChanges = null,
         List<ValidationIssue>? issues = null,
-        string? expectedLanguage = null
+        string? expectedLanguage = null,
+        bool noIncrementalValidation = false
     )
     {
         var mock = new Mock<IValidator>(MockBehavior.Strict);
         mock.Setup(v => v.ValidationSource).Returns(source);
         if (hasRelevantChanges.HasValue && expectedChanges is not null)
         {
-            mock.Setup(v => v.HasRelevantChanges(_instance, "Task_1", expectedChanges, _instanceDataAccessor))
+            mock.Setup(v => v.HasRelevantChanges(_instance, _instanceDataAccessor, "Task_1", expectedChanges))
                 .ReturnsAsync(hasRelevantChanges.Value);
         }
 
@@ -75,6 +76,8 @@ public class ValidationServiceTests : IAsyncLifetime
             mock.Setup(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", expectedLanguage))
                 .ReturnsAsync(issues);
         }
+
+        mock.SetupGet(v => v.NoIncrementalValidation).Returns(noIncrementalValidation);
 
         _services.AddSingleton(mock.Object);
         return mock;
@@ -91,6 +94,7 @@ public class ValidationServiceTests : IAsyncLifetime
             _instance,
             _instanceDataAccessor,
             "Task_1",
+            null,
             null,
             null
         );
@@ -167,6 +171,7 @@ public class ValidationServiceTests : IAsyncLifetime
             _instanceDataAccessor,
             "Task_1",
             new List<string> { "IgnoredValidator" },
+            null,
             language
         );
         var issueWithSource = result.Should().ContainSingle().Which;
@@ -175,6 +180,64 @@ public class ValidationServiceTests : IAsyncLifetime
         issueWithSource.Description.Should().Be(issue.Description);
         issueWithSource.Severity.Should().Be(issue.Severity);
         issueWithSource.DataElementId.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ValidateInstanceAtTask_WithDifferentValidators_ShouldIgnoreNonIncrementalValidatorsWhenSpecified(
+        bool? onlyIncrementalValidators
+    )
+    {
+        var incrementalMock = RegistrerValidatorMock(
+            source: "Validator",
+            hasRelevantChanges: null,
+            issues: [],
+            noIncrementalValidation: false
+        );
+        var nonIncrementalMock = RegistrerValidatorMock(
+            source: "NonIncrementalValidator",
+            hasRelevantChanges: null,
+            issues: [],
+            noIncrementalValidation: true
+        );
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var issues = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            null,
+            onlyIncrementalValidators,
+            null
+        );
+
+        issues.Should().BeEmpty();
+
+        switch (onlyIncrementalValidators)
+        {
+            case true:
+                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Once);
+                nonIncrementalMock.Verify(
+                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
+                    Times.Never
+                );
+                break;
+            case false:
+                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Never);
+                nonIncrementalMock.Verify(
+                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
+                    Times.Once
+                );
+                break;
+            case null:
+                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Once);
+                nonIncrementalMock.Verify(
+                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
+                    Times.Once
+                );
+                break;
+        }
     }
 
     private class GenericValidatorFake : GenericFormDataValidator<string>
@@ -243,6 +306,7 @@ public class ValidationServiceTests : IAsyncLifetime
             _instanceDataAccessor,
             taskId,
             null,
+            null,
             null
         );
         var issue = issues.Should().ContainSingle().Which;
@@ -295,12 +359,16 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 new DataElementChange()
                 {
+                    HasAppLogic = true,
+                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElement,
                     CurrentValue = "currentValue",
                     PreviousValue = "previousValue"
                 },
                 new DataElementChange()
                 {
+                    HasAppLogic = true,
+                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElementNoValidation,
                     CurrentValue = "currentValue",
                     PreviousValue = "previousValue"

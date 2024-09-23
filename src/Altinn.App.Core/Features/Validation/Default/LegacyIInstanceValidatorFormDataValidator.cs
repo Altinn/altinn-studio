@@ -84,9 +84,9 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
     /// </summary>
     public Task<bool> HasRelevantChanges(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        List<DataElementChange> changes,
-        IInstanceDataAccessor instanceDataAccessor
+        List<DataElementChange> changes
     )
     {
         return Task.FromResult(true);

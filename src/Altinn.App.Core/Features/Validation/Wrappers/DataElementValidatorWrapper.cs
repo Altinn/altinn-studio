@@ -30,6 +30,12 @@ internal class DataElementValidatorWrapper : IValidator
     public string ValidationSource => _dataElementValidator.ValidationSource;
 
     /// <summary>
+    /// The old <see cref="IDataElementValidator"/> interface does not support incremental validation.
+    /// so the issues will only show up when process/next fails
+    /// </summary>
+    public bool NoIncrementalValidation => true;
+
+    /// <summary>
     /// Run all legacy <see cref="IDataElementValidator"/> instances for the given <see cref="DataType"/>.
     /// </summary>
     public async Task<List<ValidationIssue>> Validate(
@@ -71,12 +77,14 @@ internal class DataElementValidatorWrapper : IValidator
     /// <inheritdoc />
     public Task<bool> HasRelevantChanges(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        List<DataElementChange> changes,
-        IInstanceDataAccessor instanceDataAccessor
+        List<DataElementChange> changes
     )
     {
         // DataElementValidator did not previously implement incremental validation, so we always return false
-        return Task.FromResult(false);
+        throw new NotImplementedException(
+            "DataElementValidatorWrapper should not be used for incremental validation, because it sets NoIncrementalValidation to true"
+        );
     }
 }

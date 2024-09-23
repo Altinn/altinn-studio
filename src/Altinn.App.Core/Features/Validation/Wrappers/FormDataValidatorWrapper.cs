@@ -60,9 +60,9 @@ internal class FormDataValidatorWrapper : IValidator
     /// <inheritdoc />
     public Task<bool> HasRelevantChanges(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        List<DataElementChange> changes,
-        IInstanceDataAccessor instanceDataAccessor
+        List<DataElementChange> changes
     )
     {
         try
@@ -70,7 +70,10 @@ internal class FormDataValidatorWrapper : IValidator
             foreach (var change in changes)
             {
                 if (
-                    (_formDataValidator.DataType == "*" || _formDataValidator.DataType == change.DataElement.DataType)
+                    change.HasAppLogic
+                    && (
+                        _formDataValidator.DataType == "*" || _formDataValidator.DataType == change.DataElement.DataType
+                    )
                     && _formDataValidator.HasRelevantChanges(change.CurrentValue, change.PreviousValue)
                 )
                 {

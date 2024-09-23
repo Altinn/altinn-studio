@@ -2928,6 +2928,10 @@ paths:
           in: query
           schema:
             type: string
+        - name: onlyIncrementalValidators
+          in: query
+          schema:
+            type: boolean
         - name: language
           in: query
           schema:
@@ -4529,6 +4533,8 @@ components:
         source:
           type: string
           nullable: true
+        NoIncrementalUpdates:
+          type: boolean
         customTextKey:
           type: string
           nullable: true

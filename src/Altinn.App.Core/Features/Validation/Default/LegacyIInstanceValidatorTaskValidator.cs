@@ -46,6 +46,9 @@ public class LegacyIInstanceValidatorTaskValidator : IValidator
     }
 
     /// <inheritdoc />
+    public bool NoIncrementalValidation => true;
+
+    /// <inheritdoc />
     public async Task<List<ValidationIssue>> Validate(
         Instance instance,
         IInstanceDataAccessor instanceDataAccessor,
@@ -63,11 +66,13 @@ public class LegacyIInstanceValidatorTaskValidator : IValidator
     /// </summary>
     public Task<bool> HasRelevantChanges(
         Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
         string taskId,
-        List<DataElementChange> changes,
-        IInstanceDataAccessor instanceDataAccessor
+        List<DataElementChange> changes
     )
     {
-        return Task.FromResult(false);
+        throw new NotImplementedException(
+            "Validators with NoIncrementalValidation should not be used for incremental validation"
+        );
     }
 }

@@ -51,6 +51,7 @@ public class ValidateController : ControllerBase
     /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
     /// <param name="instanceGuid">Unique id to identify the instance</param>
     /// <param name="ignoredValidators">Comma separated list of validators to ignore</param>
+    /// <param name="onlyIncrementalValidators">Ignore validators that don't run on PATCH requests</param>
     /// <param name="language">The currently used language by the user (or null if not available)</param>
     [HttpGet]
     [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/validate")]
@@ -61,6 +62,7 @@ public class ValidateController : ControllerBase
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid,
         [FromQuery] string? ignoredValidators = null,
+        [FromQuery] bool? onlyIncrementalValidators = null,
         [FromQuery] string? language = null
     )
     {
@@ -85,6 +87,7 @@ public class ValidateController : ControllerBase
                 dataAccessor,
                 taskId,
                 ignoredSources,
+                onlyIncrementalValidators,
                 language
             );
             return Ok(messages);
@@ -160,6 +163,7 @@ public class ValidateController : ControllerBase
             dataAccessor,
             dataType.TaskId,
             ignoredValidators: null,
+            onlyIncrementalValidators: true,
             language: language
         );
         messages.AddRange(issues.Where(i => i.DataElementId == element.Id));
@@ -178,7 +182,8 @@ public class ValidateController : ControllerBase
                     Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
                     CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
                     CustomTextParams = new List<string>() { dataType.TaskId, taskId },
-                    Source = GetType().FullName ?? String.Empty
+                    Source = GetType().FullName ?? String.Empty,
+                    NoIncrementalUpdates = true
                 };
             messages.Add(message);
         }
