@@ -25,8 +25,8 @@ export const useResourcePolicyQuery = (
     queryFn: () => getPolicy(org, repo, id),
     select: (data) => ({
       rules: data.rules ?? [],
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
+      requiredAuthenticationLevelEndUser: data.requiredAuthenticationLevelEndUser ?? '3',
+      requiredAuthenticationLevelOrg: data.requiredAuthenticationLevelOrg ?? '3',
     }),
   });
 };

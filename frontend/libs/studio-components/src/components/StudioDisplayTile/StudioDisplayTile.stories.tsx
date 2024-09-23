@@ -6,7 +6,7 @@ import { PencilIcon } from '@studio/icons';
 type Story = StoryFn<typeof StudioDisplayTile>;
 
 const meta: Meta = {
-  title: 'StudioDisplayTile',
+  title: 'Components/StudioDisplayTile',
   component: StudioDisplayTile,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioDisplayTile {...args} />;
