@@ -8,9 +8,9 @@ const path = require('path');
 const writeEnvFile = require('./utils/write-env-file.js');
 const waitForHealthy = require('./utils/wait-for-healthy.js');
 
-const startingDockerCompose = () => runCommand('docker compose up -d --remove-orphans --build');
+const startingDockerCompose = () => runCommand('docker-compose up -d --remove-orphans --build');
 const buildAndStartComposeService = (service) =>
-  runCommand(`docker compose up -d ${service} --build`);
+  runCommand(`docker-compose up -d ${service} --build`);
 
 const createUser = (username, password, admin) =>
   runCommand(
