@@ -76,7 +76,6 @@ export const LandingPage = () => {
 
   if (isPendingUser) return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
-  // TODO - WHY NOT CORRECT FONT FAMILY
   return (
     <>
       <StudioPageHeader variant='preview'>
