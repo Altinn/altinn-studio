@@ -319,7 +319,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
             string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
-            
+
             // set service expired
             string setServiceEditionExpiredUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={delegationRequest.ServiceCode}&externalServiceEditionCode={delegationRequest.ServiceEditionCode}";
 
@@ -328,7 +328,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             using HttpResponseMessage setServiceEditionExpiredResponse = await _httpClient.SendAsync(setServiceEditionExpiredRequest);
             setServiceEditionExpiredResponse.EnsureSuccessStatusCode();
-            
+
             // set batch start time
             string migrateDelegationsUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
             delegationRequest.DateTimeForExport = DateTimeOffset.UtcNow.AddMinutes(10); // set batch start time 10 minutes from now
