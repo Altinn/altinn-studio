@@ -6,6 +6,7 @@ import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import { typeItemId } from '@studio/testing/testids';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { useTranslation } from 'react-i18next';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
@@ -18,15 +19,17 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
     setSelectedTypePointer(uiSchemaNode.schemaPointer);
   };
   const name = extractNameFromPointer(uiSchemaNode.schemaPointer);
+  const { t } = useTranslation();
 
   return (
-    <DragAndDropTree.NewItem payload={name}>
+    <DragAndDropTree.NewItem payload={name} notDraggable={selected}>
       <div
         className={classNames(classes.item, {
           [classes.itemSelected]: selected,
         })}
         onClick={handleClick}
         data-testid={typeItemId(uiSchemaNode.schemaPointer)}
+        title={selected && t('schema_editor.reference_type_in_use_title')}
       >
         <div>
           <FileJsonIcon className={classes.typeIcon} />

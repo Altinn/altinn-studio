@@ -910,6 +910,7 @@
   "schema_editor.promote": "Konverter til type",
   "schema_editor.properties": "Egenskaper",
   "schema_editor.reference_to": "Refererer til",
+  "schema_editor.reference_type_in_use_title": "Du kan ikke dra samme type som er allerede brukt i referense.",
   "schema_editor.regex": "Regex",
   "schema_editor.required": "Påkrevd",
   "schema_editor.string": "Tekst",
