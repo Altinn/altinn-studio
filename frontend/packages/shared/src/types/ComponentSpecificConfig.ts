@@ -104,7 +104,7 @@ type SummarizableComponentProps = {
   renderAsSummary?: BooleanExpression;
 };
 
-type SummaryTargetType = 'page' | 'layoutSet' | 'component';
+export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
