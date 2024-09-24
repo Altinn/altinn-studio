@@ -3,10 +3,6 @@ solution/platform:
 - changed-files:
   - any-glob-to-any-file: 'src/Altinn.Platform/**/*'
 
-solution/app-backend:
-- changed-files:
-  - any-glob-to-any-file: 'src/studio/AppTemplates/**/*'
-
 solution/studio/designer:
 - changed-files:
   - any-glob-to-any-file: ['backend/**/*', 'frontend/**/*']
@@ -18,43 +14,55 @@ solution/studio/repos:
 # Labels for areas
 area/app-deploy:
 - changed-files:
-  - any-glob-to-any-file: ['frontend/app-development/features/appPublish/**/*', 'frontend/app-development/sharedResources/appDeployment/**/*', 'backend/src/Designer/Controllers/DeploymentsController.cs', 'src/studio/AppTemplates/AspNet/deployment/**/*']
+  - any-glob-to-any-file: ['frontend/app-development/features/appPublish/**/*', 'frontend/app-development/sharedResources/appDeployment/**/*', 'backend/src/Designer/**/*Deployment*.cs', 'backend/src/Designer/**/*Release*.cs']
+
+area/app-preview:
+- changed-files:
+  - any-glob-to-any-file: ['frontend/app-preview/**/*', 'backend/src/Designer/Controllers/PreviewController.cs']
+
+area/authorization:
+- changed-files:
+  - any-glob-to-any-file: ['frontend/packages/policy-editor/**/*']
 
 area/dashboard:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/dashboard/**/*'
+  - any-glob-to-any-file: ['frontend/dashboard/**/*']
 
 area/data-modeling:
 - changed-files:
   - any-glob-to-any-file: ['frontend/packages/schema-editor/**/*', 'frontend/packages/schema-model/**/*', 'frontend/app-development/features/dataModelling/**/*', 'backend/src/DataModeling/**/*']
 
-area/pdf:
+area/overview:
 - changed-files:
-  - any-glob-to-any-file: 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
-
-area/resource-registry:
-- changed-files:
-  - any-glob-to-any-file: 'frontend/resourceAdm/**/*'
-
-area/test:
-- changed-files:
-  - any-glob-to-any-file: 'src/test/**/*'
-
-area/text-editor:
-- changed-files:
-  - any-glob-to-any-file: ['frontend/packages/text-editor/**', 'frontend/app-development/features/textEditor/**/*']
+  - any-glob-to-any-file: ['frontend/app-development/features/overview/**/*']
 
 area/process:
 - changed-files:
   - any-glob-to-any-file: ['frontend/app-development/features/processEditor/**/*', 'frontend/packages/process-editor/**/*', 'backend/src/Designer/**/*ProcessesModeling*.cs']
 
-area/ui-editor:
+area/resource-registry:
 - changed-files:
-  - any-glob-to-any-file: 'frontend/packages/ux-editor/**/*'
+  - any-glob-to-any-file: 'frontend/resourceAdm/**/*'
+
+area/settings:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/app-development/layout/SettingsModalButton/**/*'
 
 area/studio-root:
 - changed-files:
   - any-glob-to-any-file: 'frontend/studio-root/**/*'
+
+area/text-editor:
+- changed-files:
+  - any-glob-to-any-file: ['frontend/packages/text-editor/**', 'frontend/app-development/features/textEditor/**/*', 'backend/src/Designer/**/*Text*.cs',]
+
+area/ui-editor:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/packages/ux-editor/**/*'
+
+area/version-control:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/packages/shared/src/components/GiteaHeader/**/*'
 
 ## Other labels
 kind/dependencies:
