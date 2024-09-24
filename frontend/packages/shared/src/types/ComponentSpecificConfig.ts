@@ -378,7 +378,6 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
     showPageInAccordion?: boolean;
     hideEmptyFields?: boolean;
-    // overrides: SummaryOverride[];
   };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
