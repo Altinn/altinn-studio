@@ -2,17 +2,16 @@ import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { Heading, Tag } from '@digdir/designsystemet-react';
-
-import { getFilteredTopBarMenu } from 'app-development/layout/AppBar/appBarConfig';
+import { getFilteredTopBarMenu } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
-import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
+import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { RepositoryType } from 'app-shared/types/global';
 
 export const Navigation = () => {
   const { t } = useTranslation();
 
   const menuItems = getFilteredTopBarMenu(RepositoryType.App).filter(
-    (item) => item.key !== TopBarMenu.About,
+    (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
   );
 
   return (
