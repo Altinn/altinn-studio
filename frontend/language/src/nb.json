@@ -1357,6 +1357,8 @@
   "ux_editor.create.sub_form": "Nytt underskjema",
   "ux_editor.create.sub_form.confirm_button": "Opprett underskjema",
   "ux_editor.create.sub_form.label": "Navn på underskjema",
+  "ux_editor.delete.sub_form": "Slett underskjema",
+  "ux_editor.delete.sub_form.confirm": "Er du sikker på at du vil slette dette underskjemaet?",
   "ux_editor.edit_component.loading_schema": "Laster inn skjema",
   "ux_editor.edit_component.show_beta_func": "Vis ny konfigurasjon (BETA)",
   "ux_editor.edit_component.show_beta_func_help_text": "Vi jobber med å få på plass støtte for å redigere alle innstillinger. Ved å huke av her kan du ta i bruk den nye konfigurasjonsvisningen, som støtter flere innstillinger. Merk at denne visningen fortsatt er under utvikling, og vil kunne oppleves som noe ustabil.",
