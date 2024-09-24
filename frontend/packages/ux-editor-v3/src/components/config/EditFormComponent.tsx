@@ -20,7 +20,6 @@ import {
   removeFeatureFlagFromLocalStorage,
   shouldDisplayFeature,
 } from 'app-shared/utils/featureToggleUtils';
-import { FormField } from 'app-shared/components/FormField';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
 
@@ -79,19 +78,9 @@ export const EditFormComponent = ({
 
   return (
     <Fieldset className={classes.root} legend=''>
-      <FormField
-        id={component.id}
-        value={showComponentConfigBeta || false}
-        onChange={toggleShowBetaFunc}
-        propertyPath={component.propertyPath}
-        componentType={component.type}
-        helpText={t('ux_editor.edit_component.show_beta_func_help_text')}
-        renderField={({ fieldProps }) => (
-          <Switch {...fieldProps} checked={fieldProps.value} size='small'>
-            {t('ux_editor.edit_component.show_beta_func')}
-          </Switch>
-        )}
-      />
+      <Switch onChange={toggleShowBetaFunc} checked={showComponentConfigBeta} size='small'>
+        {t('ux_editor.edit_component.show_beta_func')}
+      </Switch>
       <Heading level={2} size='xsmall'>
         {getComponentTitleByComponentType(component.type, t)} ({component.type})
       </Heading>
