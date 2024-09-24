@@ -97,7 +97,7 @@ export const Summary2Component = ({
             value={target.id}
             options={pageOptions}
             onValueChange={handleTargetIdChange}
-          ></Summmary2ComponentTargetSelector>
+          />
         )}
         {target.type === 'component' && (
           <Summmary2ComponentTargetSelector
