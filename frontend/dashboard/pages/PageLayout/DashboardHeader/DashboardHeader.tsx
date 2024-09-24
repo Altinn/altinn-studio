@@ -21,11 +21,12 @@ const TRUNCATE_APP_USERNAME = 30;
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();
   const { selectableOrgs } = useContext(HeaderContext);
+  const { t } = useTranslation();
 
   const pageHeaderTitle: string =
-    selectedContext !== SelectedContextType.All &&
-    selectedContext !== SelectedContextType.Self &&
-    getOrgNameByUsername(selectedContext, selectableOrgs);
+    selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self
+      ? getOrgNameByUsername(selectedContext, selectableOrgs)
+      : t('general.back_to_dashboard');
 
   return (
     <StudioPageHeader>
