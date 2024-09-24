@@ -7,7 +7,7 @@ import type { PaginationTexts } from '../StudioTableRemotePagination';
 type Story = StoryFn<typeof StudioTableLocalPagination>;
 
 const meta: Meta = {
-  title: 'StudioTableLocalPagination',
+  title: 'Components/StudioTableLocalPagination',
   component: StudioTableLocalPagination,
   argTypes: {
     columns: {

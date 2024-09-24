@@ -5,7 +5,7 @@ import { StudioBooleanToggleGroup } from './StudioBooleanToggleGroup';
 type Story = StoryFn<typeof StudioBooleanToggleGroup>;
 
 const meta: Meta = {
-  title: 'StudioBooleanToggleGroup',
+  title: 'Components/StudioBooleanToggleGroup',
   component: StudioBooleanToggleGroup,
 };
 
