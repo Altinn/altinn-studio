@@ -1,7 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Paragraph, Modal } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
@@ -9,7 +9,7 @@ import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {
@@ -86,9 +86,27 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     };
 
     return (
-      <Modal ref={ref} onClose={handleClose}>
-        <Modal.Header>{t('resourceadm.dashboard_create_modal_title')}</Modal.Header>
-        <Modal.Content>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={ref}
+          onClose={handleClose}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          heading={t('resourceadm.dashboard_create_modal_title')}
+          footer={
+            <>
+              <StudioButton
+                onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
+                color='first'
+                aria-disabled={!hasValidValues}
+              >
+                {t('resourceadm.dashboard_create_modal_create_button')}
+              </StudioButton>
+              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
           <Paragraph size='small'>
             {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
           </Paragraph>
@@ -104,20 +122,8 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
             onTitleChange={(newTitle: string) => setTitle(newTitle)}
             conflictErrorMessage={idErrorMessage ? t(idErrorMessage) : ''}
           />
-        </Modal.Content>
-        <Modal.Footer>
-          <StudioButton
-            onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
-            color='first'
-            aria-disabled={!hasValidValues}
-          >
-            {t('resourceadm.dashboard_create_modal_create_button')}
-          </StudioButton>
-          <StudioButton onClick={handleClose} color='first' variant='tertiary'>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
     );
   },
 );

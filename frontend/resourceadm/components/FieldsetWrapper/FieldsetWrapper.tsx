@@ -1,8 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '@digdir/designsystemet-react';
 import classes from './FieldsetWrapper.module.css';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { TrashIcon, PlusIcon } from '@studio/icons';
 
 const DELETE_ID_NOT_SET = -1;
@@ -135,18 +134,26 @@ export const FieldsetWrapper = <T,>({
 
   return (
     <div>
-      <Modal ref={deleteModalRef} onClose={onCloseDeleteModal}>
-        <Modal.Header>{t(translations.deleteHeader)}</Modal.Header>
-        <Modal.Content>{t(translations.deleteConfirmation)}</Modal.Content>
-        <Modal.Footer>
-          <StudioButton color='danger' onClick={handleClickRemoveButton}>
-            {t(translations.deleteConfirmationButton)}
-          </StudioButton>
-          <StudioButton variant='tertiary' onClick={onCloseDeleteModal}>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={deleteModalRef}
+          onClose={onCloseDeleteModal}
+          heading={t(translations.deleteHeader)}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          footer={
+            <>
+              <StudioButton color='danger' onClick={handleClickRemoveButton}>
+                {t(translations.deleteConfirmationButton)}
+              </StudioButton>
+              <StudioButton variant='tertiary' onClick={onCloseDeleteModal}>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
+          {t(translations.deleteConfirmation)}
+        </StudioModal.Dialog>
+      </StudioModal.Root>
       {displayFields}
       <StudioButton
         variant='secondary'

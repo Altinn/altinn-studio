@@ -1,12 +1,9 @@
-import React from 'react';
-import classes from './NavigationModal.module.css';
+import React, { forwardRef } from 'react';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { Modal } from '../Modal';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 
 export type NavigationModalProps = {
-  isOpen: boolean;
   onClose: () => void;
   onNavigate: () => void;
   title: string;
@@ -23,27 +20,34 @@ export type NavigationModalProps = {
  *
  * @returns {React.JSX.Element} - The rendered component
  */
-export const NavigationModal = ({
-  isOpen,
-  onClose,
-  onNavigate,
-  title,
-}: NavigationModalProps): React.JSX.Element => {
-  const { t } = useTranslation();
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
-      <Paragraph size='small' className={classes.text}>
-        {t('resourceadm.resource_navigation_modal_text')}
-      </Paragraph>
-      <div className={classes.buttonWrapper}>
-        <StudioButton onClick={onClose} color='first' variant='tertiary'>
-          {t('resourceadm.resource_navigation_modal_button_stay')}
-        </StudioButton>
-        <StudioButton onClick={onNavigate} color='first'>
-          {t('resourceadm.resource_navigation_modal_button_move_on')}
-        </StudioButton>
-      </div>
-    </Modal>
-  );
-};
+export const NavigationModal = forwardRef<HTMLDialogElement, NavigationModalProps>(
+  ({ onClose, onNavigate, title }, ref): React.JSX.Element => {
+    const { t } = useTranslation();
+
+    return (
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={ref}
+          onClose={onClose}
+          heading={title}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          footer={
+            <>
+              <StudioButton onClick={onNavigate} color='first'>
+                {t('resourceadm.resource_navigation_modal_button_move_on')}
+              </StudioButton>
+              <StudioButton onClick={onClose} color='first' variant='tertiary'>
+                {t('resourceadm.resource_navigation_modal_button_stay')}
+              </StudioButton>
+            </>
+          }
+        >
+          <Paragraph size='small'>{t('resourceadm.resource_navigation_modal_text')}</Paragraph>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
+    );
+  },
+);
+
+NavigationModal.displayName = 'NavigationModal';

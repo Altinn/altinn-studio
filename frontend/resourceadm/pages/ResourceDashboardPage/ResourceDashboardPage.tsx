@@ -30,6 +30,7 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
  */
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
+  const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
@@ -46,8 +47,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     resourceId: string;
     availableEnvs: EnvId[];
   } | null>(null);
-
-  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // Get metadata with queries
   const { data: repoStatus } = useRepoStatusQuery(org, app);
@@ -143,7 +142,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <StudioButton
             variant='tertiary'
             color='second'
-            onClick={() => setImportModalOpen(true)}
+            onClick={() => importAltinn2ServiceModalRef.current.showModal()}
             size='medium'
             icon={<MigrationIcon />}
             iconPlacement='right'
@@ -172,7 +171,10 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
         ref={createResourceModalRef}
         onClose={() => createResourceModalRef.current?.close()}
       />
-      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
+      <ImportResourceModal
+        ref={importAltinn2ServiceModalRef}
+        onClose={() => importAltinn2ServiceModalRef.current.close()}
+      />
       <ImportAltinn3ResourceModal
         ref={importAltinn3ResourceModalRef}
         availableEnvs={importData?.availableEnvs ?? []}

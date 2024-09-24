@@ -1,7 +1,7 @@
 import React, { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Radio } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { Radio } from '@digdir/designsystemet-react';
+import { StudioButton, StudioModal } from '@studio/components';
 import { getEnvLabel } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 
@@ -30,9 +30,23 @@ export const ImportAltinn3ResourceModal = forwardRef<
   };
 
   return (
-    <Modal ref={ref} onClose={onCloseModal}>
-      <Modal.Header>{t('resourceadm.dashboard_import_environment_header')}</Modal.Header>
-      <Modal.Content>
+    <StudioModal.Root>
+      <StudioModal.Dialog
+        ref={ref}
+        heading={t('resourceadm.dashboard_import_environment_header')}
+        closeButtonTitle={t('resourceadm.close_modal')}
+        onClose={onCloseModal}
+        footer={
+          <>
+            <StudioButton variant='primary' disabled={!selectedEnv} onClick={onImportResource}>
+              {t('resourceadm.dashboard_import_environment_confirm')}
+            </StudioButton>
+            <StudioButton variant='tertiary' onClick={onCloseModal}>
+              {t('general.cancel')}
+            </StudioButton>
+          </>
+        }
+      >
         <Radio.Group
           legend={t('resourceadm.dashboard_import_environment_radio_header')}
           value={selectedEnv ?? '-'} // bug: default value of radio cannot be null or undefined; that will cause the component to be uncontrolled until a value is set
@@ -44,21 +58,8 @@ export const ImportAltinn3ResourceModal = forwardRef<
             </Radio>
           ))}
         </Radio.Group>
-      </Modal.Content>
-      <Modal.Footer>
-        <StudioButton
-          variant='primary'
-          disabled={!selectedEnv}
-          onClick={onImportResource}
-          size='medium'
-        >
-          {t('resourceadm.dashboard_import_environment_confirm')}
-        </StudioButton>
-        <StudioButton variant='tertiary' onClick={onCloseModal} size='medium'>
-          {t('general.cancel')}
-        </StudioButton>
-      </Modal.Footer>
-    </Modal>
+      </StudioModal.Dialog>
+    </StudioModal.Root>
   );
 });
 

@@ -46,6 +46,8 @@ export const ResourcePage = (): React.JSX.Element => {
 
   const navigate = useNavigate();
   const autoSaveTimeoutRef = useRef(undefined);
+  const policyErrorModalRef = useRef<HTMLDialogElement>(null);
+  const resourceErrorModalRef = useRef<HTMLDialogElement>(null);
 
   const { pageType, resourceId, org, app, env, accessListId } = useUrlParams();
   const currentPage = pageType as NavigationBarPage;
@@ -59,8 +61,6 @@ export const ResourcePage = (): React.JSX.Element => {
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
   const [showPolicyErrors, setShowPolicyErrors] = useState(false);
-  const [resourceErrorModalOpen, setResourceErrorModalOpen] = useState(false);
-  const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
 
   // Get the metadata for Gitea
   const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
@@ -116,7 +116,7 @@ export const ResourcePage = (): React.JSX.Element => {
           window.scrollTo(0, 0);
           setShowResourceErrors(true);
           setNextPage(page);
-          setResourceErrorModalOpen(true);
+          resourceErrorModalRef.current.showModal();
         }
       }
       // Validate Ppolicy and display errors + modal
@@ -130,7 +130,7 @@ export const ResourcePage = (): React.JSX.Element => {
         } else {
           setShowPolicyErrors(true);
           setNextPage(page);
-          setPolicyErrorModalOpen(true);
+          policyErrorModalRef.current.showModal();
         }
       }
       // Else navigate
@@ -144,8 +144,8 @@ export const ResourcePage = (): React.JSX.Element => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
-    setPolicyErrorModalOpen(false);
-    setResourceErrorModalOpen(false);
+    policyErrorModalRef.current.close();
+    resourceErrorModalRef.current.close();
     refetchRepoStatus();
     navigate(getResourcePageURL(org, app, resourceId, newPage));
   };
@@ -306,26 +306,18 @@ export const ResourcePage = (): React.JSX.Element => {
       {repoStatus?.hasMergeConflict && (
         <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
       )}
-      {policyErrorModalOpen && (
-        <NavigationModal
-          isOpen={policyErrorModalOpen}
-          onClose={() => {
-            setPolicyErrorModalOpen(false);
-          }}
-          onNavigate={() => handleNavigation(nextPage)}
-          title={t('resourceadm.resource_navigation_modal_title_policy')}
-        />
-      )}
-      {resourceErrorModalOpen && (
-        <NavigationModal
-          isOpen={resourceErrorModalOpen}
-          onClose={() => {
-            setResourceErrorModalOpen(false);
-          }}
-          onNavigate={() => handleNavigation(nextPage)}
-          title={t('resourceadm.resource_navigation_modal_title_resource')}
-        />
-      )}
+      <NavigationModal
+        ref={policyErrorModalRef}
+        onClose={() => policyErrorModalRef.current.close()}
+        onNavigate={() => handleNavigation(nextPage)}
+        title={t('resourceadm.resource_navigation_modal_title_policy')}
+      />
+      <NavigationModal
+        ref={resourceErrorModalRef}
+        onClose={() => resourceErrorModalRef.current.close()}
+        onNavigate={() => handleNavigation(nextPage)}
+        title={t('resourceadm.resource_navigation_modal_title_resource')}
+      />
     </div>
   );
 };

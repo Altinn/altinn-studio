@@ -89,6 +89,7 @@ export const ServiceContent = ({
       }
       return (
         <Combobox
+          portal={false}
           value={
             selectedService
               ? [mapAltinn2LinkServiceToSelectOption(selectedService).value]

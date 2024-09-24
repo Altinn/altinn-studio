@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
+import { Textfield, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -10,7 +10,7 @@ import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessLi
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
@@ -83,18 +83,26 @@ export const AccessListDetail = ({
 
   return (
     <div className={classes.accessListDetailWrapper}>
-      <Modal ref={deleteWarningModalRef} onClose={closeModal}>
-        <Modal.Header>{t('resourceadm.listadmin_delete_list_header')}</Modal.Header>
-        <Modal.Content>{t('resourceadm.listadmin_delete_list_description')}</Modal.Content>
-        <Modal.Footer>
-          <StudioButton color='danger' onClick={() => handleDelete()} size='medium'>
-            {t('resourceadm.listadmin_delete_list')}
-          </StudioButton>
-          <StudioButton variant='tertiary' onClick={closeModal} size='medium'>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={deleteWarningModalRef}
+          onClose={closeModal}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          heading={t('resourceadm.listadmin_delete_list_header')}
+          footer={
+            <>
+              <StudioButton color='danger' onClick={() => handleDelete()}>
+                {t('resourceadm.listadmin_delete_list')}
+              </StudioButton>
+              <StudioButton variant='tertiary' onClick={closeModal}>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
+          {t('resourceadm.listadmin_delete_list_description')}
+        </StudioModal.Dialog>
+      </StudioModal.Root>
       <div>
         <DigdirLink asChild>
           <Link to={backUrl}>{t('general.back')}</Link>

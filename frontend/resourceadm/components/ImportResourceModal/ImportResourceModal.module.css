@@ -1,27 +1,12 @@
-.text {
-  font-size: 1rem;
-  font-weight: 400;
+.importModal {
+  overflow: visible;
 }
 
-.dropdownWraper {
-  margin-top: var(--fds-spacing-5);
-  width: 80%;
-}
-
-.buttonWrapper {
+.importModalContent {
   display: flex;
-  gap: var(--fds-spacing-2);
-  margin-top: var(--fds-spacing-10);
-}
-
-.contentWidth {
-  max-width: 37.5rem;
-}
-
-.serviceContentWrapper {
-  margin-top: var(--fds-spacing-5);
-  max-width: 30rem;
-  width: 100%;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  width: 80%;
 }
 
 .contentDivider {
