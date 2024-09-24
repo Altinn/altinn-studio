@@ -61,7 +61,7 @@ describe('useUploadDataModelMutation', () => {
 
     await renderHook({ queryClient, modelPath: mockModelPath });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(5);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.JsonSchema, org, app, mockModelPath],
     });
