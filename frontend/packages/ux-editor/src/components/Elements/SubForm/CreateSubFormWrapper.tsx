@@ -38,8 +38,7 @@ export const CreateSubFormWrapper = ({
     onSubFormCreated(newSubFormName);
   };
 
-  const onNameChange = (e: any) => {
-    const subFormName = e.target.value || '';
+  const onNameChange = (subFormName: string) => {
     const subFormNameValidation = validateLayoutSetName(subFormName, layoutSets);
     setNameError(subFormNameValidation);
     setNewSubFormName(subFormName);
@@ -61,7 +60,7 @@ export const CreateSubFormWrapper = ({
           label={t('ux_editor.create.sub_form.label')}
           size='small'
           value={newSubFormName}
-          onChange={onNameChange}
+          onChange={(e) => onNameChange(e.target.value)}
           error={nameError}
         />
         <StudioButton
