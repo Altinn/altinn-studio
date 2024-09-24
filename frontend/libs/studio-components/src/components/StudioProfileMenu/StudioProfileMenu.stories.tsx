@@ -6,7 +6,7 @@ import { StudioAvatar } from '../StudioAvatar';
 type Story = StoryFn<typeof StudioProfileMenu>;
 
 const meta: Meta = {
-  title: 'StudioProfileMenu',
+  title: 'Components/StudioProfileMenu',
   component: StudioProfileMenu,
   argTypes: {
     triggerButtonText: {
