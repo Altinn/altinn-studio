@@ -116,6 +116,7 @@ describe('ItemFieldsTab', () => {
   test('Should show dropdown menu items when the "Add field" button is clicked', async () => {
     renderItemFieldsTab();
     await user.click(screen.getByText(textAdd));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: textMock('schema_editor.add_number') }),
     ).toBeInTheDocument();
