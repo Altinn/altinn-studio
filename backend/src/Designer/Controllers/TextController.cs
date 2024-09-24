@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +31,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
         private readonly ITextsService _textsService;
+        private readonly IMediator _mediator;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextController"/> class.
@@ -38,13 +41,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
         /// <param name="textsService">The texts service</param>
-        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService)
+        /// <param name="mediator">the mediator.</param>
+        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger, ITextsService textsService, IMediator mediator)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _textsService = textsService;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -194,8 +199,11 @@ namespace Altinn.Studio.Designer.Controllers
                         mutationHasOccured = true;
                     }
 
-                    await _textsService.UpdateRelatedFiles(org, app, developer, mutations);
-
+                    await _mediator.Publish(new LanguageTextsKeyChangedEvent
+                    {
+                        idMutations = mutations,
+                        EditingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)
+                    });
                     await _textsService.SaveTextV1(org, app, developer, textResourceObject, languageCode);
                 }
             }

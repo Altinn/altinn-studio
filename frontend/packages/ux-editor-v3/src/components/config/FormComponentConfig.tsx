@@ -135,6 +135,7 @@ export const FormComponentConfig = ({
             propertyKey='hasCustomFileEndings'
             helpText={hasCustomFileEndings.description}
             component={component}
+            defaultValue={hasCustomFileEndings.default}
             handleComponentChange={(updatedComponent: FormComponent) => {
               if (!updatedComponent.hasCustomFileEndings) {
                 handleComponentUpdate({
@@ -163,6 +164,7 @@ export const FormComponentConfig = ({
           helpText={readOnly.description}
           component={component}
           handleComponentChange={handleComponentUpdate}
+          defaultValue={readOnly.default}
         />
       )}
       {required && (
@@ -171,6 +173,7 @@ export const FormComponentConfig = ({
           helpText={required.description}
           component={component}
           handleComponentChange={handleComponentUpdate}
+          defaultValue={required.default}
         />
       )}
 
@@ -187,6 +190,7 @@ export const FormComponentConfig = ({
               propertyKey={propertyKey}
               key={propertyKey}
               helpText={rest[propertyKey]?.description}
+              defaultValue={rest[propertyKey]?.default}
             />
           );
         }
