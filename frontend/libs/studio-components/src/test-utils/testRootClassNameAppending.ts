@@ -21,6 +21,15 @@ function getRootClasses(container: RenderResult['container']): string[] {
   return classListFromClassName(className);
 }
 
-function classListFromClassName(className: string): string[] {
+function classListFromClassName(className: string | SVGAnimatedString): string[] {
+  const stringClassName = classNameToString(className);
+  return classListFromString(stringClassName);
+}
+
+function classNameToString(className: string | SVGAnimatedString): string {
+  return typeof className === 'string' ? className : className.baseVal;
+}
+
+function classListFromString(className: string): string[] {
   return className.trim().split(/\s+/);
 }
