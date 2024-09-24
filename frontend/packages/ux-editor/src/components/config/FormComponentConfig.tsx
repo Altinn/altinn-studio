@@ -15,8 +15,7 @@ import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { EditLayoutSetForSubForm } from './editModal/EditLayoutSetForSubFrom';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -37,10 +36,8 @@ export const FormComponentConfig = ({
   hideUnsupported,
 }: FormComponentConfigProps) => {
   const t = useText();
-  const { org, app } = useStudioEnvironmentParams();
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   if (!schema?.properties) return null;
 
@@ -99,17 +96,18 @@ export const FormComponentConfig = ({
   return (
     <>
       {layoutSet && (
-        <EditStringValue
-          component={component}
-          handleComponentChange={handleComponentUpdate}
-          propertyKey='layoutSet'
-          key={layoutSet}
-          helpText={properties['layoutSet']?.description}
-          enumValues={layoutSets.sets.filter((set) => set.type === 'subform')?.map((set) => set.id)}
-        />
+        <>
+          <Heading level={3} size='xxsmall'>
+            {t('ux_editor.component_properties.subform')}
+          </Heading>
+          <EditLayoutSetForSubForm
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+          />
+        </>
       )}
       {grid && (
-        <div>
+        <>
           <Heading level={3} size='xxsmall'>
             {t('ux_editor.component_properties.grid')}
           </Heading>
@@ -118,7 +116,7 @@ export const FormComponentConfig = ({
             component={component}
             handleComponentChange={handleComponentUpdate}
           />
-        </div>
+        </>
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
