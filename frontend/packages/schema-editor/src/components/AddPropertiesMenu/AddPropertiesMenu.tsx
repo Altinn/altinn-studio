@@ -14,8 +14,7 @@ import { type StudioButtonProps, StudioDropdownMenu } from '@studio/components';
 
 export interface AddPropertiesMenuProps {
   onItemClick?: (kind: ObjectKind, fieldType?: FieldType) => void;
-  ancherButtonProps?: StudioButtonProps;
-  className?: string;
+  anchorButtonProps?: StudioButtonProps;
 }
 
 const propertyItems = [
@@ -28,11 +27,7 @@ const propertyItems = [
   { kind: ObjectKind.Reference, icon: ReferenceIcon },
 ];
 
-export const AddPropertiesMenu = ({
-  onItemClick,
-  ancherButtonProps,
-  className,
-}: AddPropertiesMenuProps) => {
+export const AddPropertiesMenu = ({ onItemClick, anchorButtonProps }: AddPropertiesMenuProps) => {
   const { t } = useTranslation();
 
   return (
@@ -42,8 +37,7 @@ export const AddPropertiesMenu = ({
         color: 'second',
         icon: <PlusIcon />,
         variant: 'secondary',
-        ...ancherButtonProps,
-        className,
+        ...anchorButtonProps,
       }}
       size='small'
       placement='bottom-start'

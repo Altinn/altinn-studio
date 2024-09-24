@@ -1,13 +1,10 @@
 import { FieldType } from '@altinn/schema-model/types';
 import { useTranslation } from 'react-i18next';
 
-type TypeNames = {
-  [type in FieldType]: string;
-};
-
-export function useTypeNames(): TypeNames {
+export function useTypeName(fieldType: FieldType): string {
   const { t } = useTranslation();
-  return {
+
+  const typeNames = {
     [FieldType.Boolean]: t('schema_editor.boolean'),
     [FieldType.Integer]: t('schema_editor.integer'),
     [FieldType.Number]: t('schema_editor.number'),
@@ -15,4 +12,6 @@ export function useTypeNames(): TypeNames {
     [FieldType.String]: t('schema_editor.string'),
     [FieldType.Null]: t('schema_editor.null'),
   };
+
+  return typeNames[fieldType];
 }
