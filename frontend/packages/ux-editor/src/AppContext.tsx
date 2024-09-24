@@ -1,9 +1,10 @@
 import type { MutableRefObject } from 'react';
 import React, { useMemo, useRef, createContext, useCallback } from 'react';
 import type { QueryClient, QueryKey as TanStackQueryKey } from '@tanstack/react-query';
-import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
