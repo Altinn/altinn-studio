@@ -119,6 +119,42 @@ describe('DashboardHeader', () => {
     expect(mockNavigate).toHaveBeenCalledWith(`/${mockOrg1.username}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
+
+  it('should navigate to the "All" context when the "All" menu item is clicked', async () => {
+    const user = userEvent.setup();
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: SelectedContextType.Self,
+    });
+
+    renderDashboardHeader();
+
+    const avatarButton = screen.getByRole('button', { name: userMock.full_name });
+    await user.click(avatarButton);
+
+    const allItem = screen.getByRole('menuitem', { name: textMock('shared.header_all') });
+    await user.click(allItem);
+
+    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.All}`);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should navigate to the "Self" context when the "Self" menu item is clicked', async () => {
+    const user = userEvent.setup();
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: SelectedContextType.All,
+    });
+
+    renderDashboardHeader();
+
+    const avatarButton = screen.getByRole('button', { name: userMock.full_name });
+    await user.click(avatarButton);
+
+    const selfItem = screen.getByRole('menuitem', { name: userMock.full_name });
+    await user.click(selfItem);
+
+    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.Self}`);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
 });
 
 const headerContextValue: HeaderContextType = {
