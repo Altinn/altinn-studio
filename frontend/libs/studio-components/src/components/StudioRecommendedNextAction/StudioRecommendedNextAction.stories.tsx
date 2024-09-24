@@ -19,7 +19,7 @@ const ComposedPreviewComponent = (props: PreviewProps) => {
 };
 
 const meta: Meta<typeof StudioRecommendedNextAction> = {
-  title: 'StudioRecommendedNextAction',
+  title: 'Components/StudioRecommendedNextAction',
   component: StudioRecommendedNextAction,
   args: {
     onSave: fn(),
