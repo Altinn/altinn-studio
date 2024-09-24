@@ -17,13 +17,19 @@ export const Summmary2ComponentTargetSelector = ({
 }: Summary2ComponentTargetIdProps) => {
   const invalidOption = Boolean(value) && !options.some((option) => option.id === value);
   const { t } = useTranslation();
+
+  const errorMessage = invalidOption
+    ? t('ux_editor.component_properties.target_invalid')
+    : false || !value
+      ? t('ux_editor.component_properties.enum_Required')
+      : false;
   return (
     <StudioCombobox
       size='small'
       label={label}
       value={value ? [value] : []}
       onValueChange={(v) => onValueChange(v[0])}
-      error={invalidOption ? t('ux_editor.component_properties.target_invalid') : false}
+      error={errorMessage}
       multiple={false}
     >
       {options.map((option) => (

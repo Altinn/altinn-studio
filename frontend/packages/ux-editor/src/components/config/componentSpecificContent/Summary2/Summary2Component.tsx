@@ -2,6 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import {
+  StudioButton,
   StudioCard,
   StudioHeading,
   StudioNativeSelect,
@@ -14,8 +15,13 @@ import { useAppContext, useComponentTypeName } from '../../../../hooks';
 import { useTranslation } from 'react-i18next';
 import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelector';
 import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
-import type { SummaryTargetType } from 'app-shared/types/ComponentSpecificConfig';
+import type {
+  SummaryTargetType,
+  Summary2OverrideConfig,
+} from 'app-shared/types/ComponentSpecificConfig';
 import type { FormComponent } from '../../../../types/FormComponent';
+import { Summary2Override } from './Override/Summary2Override';
+import { Divider } from '@digdir/designsystemet-react';
 
 export const Summary2Component = ({
   component,
@@ -75,52 +81,104 @@ export const Summary2Component = ({
     { value: 'layoutSet', label: t('general.layout_set') },
   ];
 
+  const overrides: Summary2OverrideConfig[] = component.overrides;
+
+  const addOverride = (): void => {
+    const updatedComponent = { ...component };
+    updatedComponent.overrides = updatedComponent.overrides || [];
+    updatedComponent.overrides.push({ componentId: '' });
+    handleComponentChange(updatedComponent);
+  };
+
+  const onChangeOverride =
+    (index: number): ((override: any) => void) =>
+    (override: any) => {
+      const updatedComponent = { ...component };
+      updatedComponent.overrides[index] = override;
+      handleComponentChange(updatedComponent);
+    };
+
+  const onDeleteOverride =
+    (index: number): (() => void) =>
+    () => {
+      const updatedComponent = { ...component };
+      updatedComponent.overrides.splice(index, 1);
+      handleComponentChange(updatedComponent);
+    };
+
   return (
-    <StudioCard>
-      <StudioCard.Header>
-        <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
-      </StudioCard.Header>
-      <StudioParagraph size='sm'>
-        {t('ux_editor.component_properties.target_description')}
-      </StudioParagraph>
-      <StudioCard.Content>
-        <StudioNativeSelect
-          size='sm'
-          label={t('ux_editor.component_properties.target_type')}
-          value={target.type}
-          onChange={handleTypeChange}
-        >
-          {targetTypes.map((type) => (
-            <option key={type.value} value={type.value}>
-              {type.label}
-            </option>
-          ))}
-        </StudioNativeSelect>
-        {target.type === 'page' && (
-          <Summmary2ComponentTargetSelector
-            label={t('general.page')}
-            value={target.id}
-            options={pageOptions}
-            onValueChange={handleTargetIdChange}
-          />
-        )}
-        {target.type === 'component' && (
-          <Summmary2ComponentTargetSelector
-            label={t('general.component')}
-            value={target.id}
-            options={componentOptions}
-            onValueChange={handleTargetIdChange}
-          />
-        )}
-        {target.type === 'layoutSet' && (
-          <StudioTextfield
+    <>
+      <StudioCard>
+        <StudioCard.Header>
+          <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
+        </StudioCard.Header>
+        <StudioParagraph size='sm'>
+          {t('ux_editor.component_properties.target_description')}
+        </StudioParagraph>
+        <StudioCard.Content>
+          <StudioNativeSelect
             size='sm'
-            label={t('general.layout_set')}
-            value={selectedFormLayoutSetName}
-            disabled={true}
-          />
-        )}
-      </StudioCard.Content>
-    </StudioCard>
+            label={t('ux_editor.component_properties.target_type')}
+            value={target.type}
+            onChange={handleTypeChange}
+          >
+            {targetTypes.map((type) => (
+              <option key={type.value} value={type.value}>
+                {type.label}
+              </option>
+            ))}
+          </StudioNativeSelect>
+          {target.type === 'page' && (
+            <Summmary2ComponentTargetSelector
+              label={t('general.page')}
+              value={target.id}
+              options={pageOptions}
+              onValueChange={handleTargetIdChange}
+            />
+          )}
+          {target.type === 'component' && (
+            <Summmary2ComponentTargetSelector
+              label={t('general.component')}
+              value={target.id}
+              options={componentOptions}
+              onValueChange={handleTargetIdChange}
+            ></Summmary2ComponentTargetSelector>
+          )}
+          {target.type === 'layoutSet' && (
+            <StudioTextfield
+              size='sm'
+              label={t('general.layout_set')}
+              value={selectedFormLayoutSetName}
+              disabled={true}
+            />
+          )}
+        </StudioCard.Content>
+      </StudioCard>
+      <StudioCard>
+        <StudioCard.Header>
+          <StudioHeading size='2xs'>{t('ux_editor.component_properties.overrides')}</StudioHeading>
+        </StudioCard.Header>
+        <StudioParagraph size='sm'>
+          {t('ux_editor.component_properties.overrides_description')}
+        </StudioParagraph>
+        <StudioCard.Content>
+          {overrides &&
+            overrides.map((override, index) => (
+              <>
+                <Divider></Divider>
+                <Summary2Override
+                  override={override}
+                  key={index}
+                  onChange={onChangeOverride(index)}
+                  onDelete={onDeleteOverride(index)}
+                ></Summary2Override>
+              </>
+            ))}
+          <StudioButton size='sm' variant='primary' onClick={addOverride}>
+            {t('ux_editor.component_properties.summary.add_override')}
+          </StudioButton>
+        </StudioCard.Content>
+      </StudioCard>
+    </>
   );
 };

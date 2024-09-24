@@ -133,6 +133,14 @@ type PageValidation = {
   show: AllowedValidationMasks;
 };
 
+export type Summary2OverrideConfig = {
+  componentId: string;
+  hidden?: boolean;
+  forceShow?: boolean;
+  emptyFieldText?: string;
+  hideEmptyFields?: boolean;
+};
+
 export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Alert]: { severity: 'success' | 'info' | 'warning' | 'danger' };
   [ComponentType.Accordion]: { headingLevel?: HeadingLevel };
