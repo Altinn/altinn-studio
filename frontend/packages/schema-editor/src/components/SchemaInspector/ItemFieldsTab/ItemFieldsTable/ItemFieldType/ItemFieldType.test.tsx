@@ -14,6 +14,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
 const defaultNode: UiSchemaNode = combinationNodeMock;
+const setSelectedTypePointer = jest.fn();
 
 const stringTypeLabel = textMock('schema_editor.string');
 const objectTypeLabel = textMock('schema_editor.object');
@@ -42,12 +43,15 @@ describe('ItemFieldType', () => {
     const user = userEvent.setup();
     renderItemFieldType({ fieldNode: referenceNodeMock });
     const linkButton = screen.getByRole('button');
-    expect(linkButton).toBeInTheDocument();
-    user.click(linkButton);
-    expect(screen.getByText('referredNode')).toBeInTheDocument();
+    await user.click(linkButton);
+    expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
   });
 });
 
 const renderItemFieldType = (props: ItemFieldTypeProps = { fieldNode: defaultNode }) => {
-  renderWithProviders()(<ItemFieldType {...props} />);
+  renderWithProviders({
+    appContextProps: {
+      setSelectedTypePointer,
+    },
+  })(<ItemFieldType {...props} />);
 };
