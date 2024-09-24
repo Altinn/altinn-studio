@@ -301,7 +301,7 @@ export const AboutResourcePage = ({
           id='accessListMode'
           label={t('resourceadm.about_resource_limited_by_rrr_label')}
           description={t('resourceadm.about_resource_limited_by_rrr_description')}
-          value={resourceData.accessListMode === 'Enabled' ?? false}
+          value={resourceData.accessListMode === 'Enabled'}
           onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) =>
             handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
