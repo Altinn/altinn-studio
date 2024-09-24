@@ -1,17 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
-import classes from './PageLayout.module.css';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import AppHeader, {
-  HeaderContext,
-  SelectedContextType,
-} from 'app-shared/navigation/main-header/Header';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-
 import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useUrlParams } from '../../hooks/useUrlParams';
+import { SelectedContextType } from 'resourceadm/context/HeaderContext';
+import { HeaderContext, type HeaderContextType } from 'resourceadm/context/HeaderContext';
+import { ResourceadmHeader } from './ResourceadmHeader';
 
 /**
  * @component
@@ -38,7 +33,7 @@ export const PageLayout = (): React.JSX.Element => {
     }
   }, [organizations, org, user.login, navigate]);
 
-  const headerContextValue: IHeaderContext = useMemo(
+  const headerContextValue: HeaderContextType = useMemo(
     () => ({
       selectableOrgs: organizations,
       user,
@@ -49,9 +44,7 @@ export const PageLayout = (): React.JSX.Element => {
   return (
     <>
       <HeaderContext.Provider value={headerContextValue}>
-        {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
-        <AppHeader />
-        <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
+        <ResourceadmHeader />
       </HeaderContext.Provider>
       <Outlet />
     </>

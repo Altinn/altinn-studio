@@ -7,6 +7,7 @@ import { HeaderMenu } from './HeaderMenu';
 import classes from './Header.module.css';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 
+// TODO - Delete this ones dashboard merged
 export enum SelectedContextType {
   All = 'all',
   Self = 'self',
