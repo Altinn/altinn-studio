@@ -9,7 +9,7 @@
     "eslint": "8.57.0",
     "eslint-plugin-import": "2.30.0",
     "glob": "11.0.0",
-    "husky": "9.1.5",
+    "husky": "9.1.6",
     "jsonpointer": "5.0.1",
     "lint-staged": "15.2.10",
     "prettier": "^3.0.3",
@@ -17,7 +17,7 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "5.6.2"
   },
-  "packageManager": "yarn@4.4.1",
+  "packageManager": "yarn@4.5.0",
   "private": true,
   "scripts": {
     "generate-config-coverage-stats": "node -r ts-node/register/transpile-only -r tsconfig-paths/register configurationStats/run.ts",

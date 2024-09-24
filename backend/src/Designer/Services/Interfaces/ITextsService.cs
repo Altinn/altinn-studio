@@ -128,6 +128,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="keyMutations">A list of the keys that are updated</param>
         /// <returns></returns>
-        public Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations);
+        public Task<List<string>> UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations);
     }
 }
