@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Summmary2ComponentTargetSelector } from './Summary2ComponentTargetSelector';
 import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
 import type { SummaryTargetType } from 'app-shared/types/ComponentSpecificConfig';
+import type { FormComponent } from '../../../../types/FormComponent';
 
 export const Summary2Component = ({
   component,
@@ -35,9 +36,9 @@ export const Summary2Component = ({
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout, excludedComponents),
   );
-  const componentOptions = components.map((e) => ({
-    id: e.id,
-    description: componentTypeName(e.type),
+  const componentOptions = components.map((formComponent: FormComponent) => ({
+    id: formComponent.id,
+    description: componentTypeName(formComponent.type),
   }));
 
   const pageOptions = Object.keys(formLayoutsData).map((page) => ({
