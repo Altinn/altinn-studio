@@ -13,8 +13,7 @@ import { useSavableFormLayoutSettings } from '@altinn/ux-editor/hooks/useSavable
 export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName: string) => {
   const { deleteFormLayout, saveFormLayout } = useServicesContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, layoutSetName);
-  const savableLayoutSettings = useSavableFormLayoutSettings();
-  const layoutSettings = savableLayoutSettings.getFormLayoutSettings();
+  const layoutSettings = useSavableFormLayoutSettings();
   const { selectedFormLayoutName, setSelectedFormLayoutName } = useAppContext();
 
   const queryClient = useQueryClient();
@@ -35,19 +34,9 @@ export const useDeleteLayoutMutation = (org: string, app: string, layoutSetName:
       return { layoutName, layouts };
     },
     onSuccess: ({ layoutName, layouts }) => {
-      if (layoutSettings.isLayoutInOrder(layoutName)) {
-        layoutSettings.deleteLayoutFromOrder(layoutName);
-      }
+      layoutSettings.deleteLayoutByName(layoutName);
+      layoutSettings.save();
 
-      if (layoutSettings.getPdfLayoutName() === layoutName) {
-        layoutSettings.deletePdfLayoutName();
-      }
-
-      savableLayoutSettings.save();
-
-      queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, layoutSetName], () =>
-        layoutSettings.getLayoutSettings(),
-      );
       queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], () => layouts);
 
       if (selectedFormLayoutName === layoutName) {

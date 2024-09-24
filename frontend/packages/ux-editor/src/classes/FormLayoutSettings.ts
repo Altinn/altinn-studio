@@ -51,4 +51,15 @@ export class FormLayoutSettings {
     const indexOfPage = this.layoutSettings.pages.order.indexOf(layoutName);
     this.layoutSettings.pages.order.splice(indexOfPage, 1);
   }
+
+  public deleteLayoutByName(layoutName: string): FormLayoutSettings {
+    if (this.isLayoutInOrder(layoutName)) {
+      this.deleteLayoutFromOrder(layoutName);
+    }
+
+    if (this.getPdfLayoutName() === layoutName) {
+      this.deletePdfLayoutName();
+    }
+    return this;
+  }
 }
