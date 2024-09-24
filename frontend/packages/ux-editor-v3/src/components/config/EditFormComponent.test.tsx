@@ -11,8 +11,7 @@ import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-
-const user = userEvent.setup();
+import { removeFeatureFlagFromLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 const srcValueLabel = 'Source';
@@ -69,10 +68,12 @@ const getDataModelMetadata = () =>
 
 describe('EditFormComponent', () => {
   beforeEach(() => {
+    removeFeatureFlagFromLocalStorage('componentConfigBeta');
     jest.clearAllMocks();
   });
 
-  test('should return input specific content when type input', async () => {
+  it('should return input specific content when type input', async () => {
+    const user = userEvent.setup();
     await render({
       componentProps: {
         type: ComponentTypeV3.Input,
@@ -95,7 +96,7 @@ describe('EditFormComponent', () => {
     expect(screen.getByLabelText('Autocomplete (WCAG)'));
   });
 
-  test('should return header specific content when type header', async () => {
+  it('should return header specific content when type header', async () => {
     await render({
       componentProps: {
         type: ComponentTypeV3.Header,
@@ -110,7 +111,7 @@ describe('EditFormComponent', () => {
     );
   });
 
-  test('should return file uploader specific content when type file uploader', async () => {
+  it('should return file uploader specific content when type file uploader', async () => {
     await render({
       componentProps: {
         type: ComponentTypeV3.FileUpload,
@@ -131,7 +132,7 @@ describe('EditFormComponent', () => {
     labels.map((label) => expect(screen.getByLabelText(label)));
   });
 
-  test('should return button specific content when type button', async () => {
+  it('should return button specific content when type button', async () => {
     await render({
       componentProps: {
         type: ComponentTypeV3.Button,
@@ -140,7 +141,7 @@ describe('EditFormComponent', () => {
     expect(await screen.findByTestId(buttonSpecificContentId)).toBeInTheDocument();
   });
 
-  test('should render Image component when component type is Image', async () => {
+  it('should render Image component when component type is Image', async () => {
     await render({
       componentProps: {
         type: ComponentTypeV3.Image,
@@ -173,7 +174,42 @@ describe('EditFormComponent', () => {
       ),
     );
   });
+
+  it('should change to beta view when clicking on beta config switch', async () => {
+    const user = userEvent.setup();
+    await render({
+      componentProps: {
+        type: ComponentTypeV3.Button,
+      },
+    });
+    await switchToBeta(user);
+    const gridHeadingComponentInBetaConfig = screen.getByRole('heading', {
+      name: textMock('ux_editor.component_properties.grid'),
+    });
+    expect(gridHeadingComponentInBetaConfig).toBeInTheDocument();
+  });
+
+  it('sets switch to default value in component from schema if defined', async () => {
+    const user = userEvent.setup();
+    await render({
+      componentProps: {
+        type: ComponentTypeV3.Datepicker,
+      },
+    });
+    await switchToBeta(user);
+    const datePickerTimeStampProp = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.timeStamp'),
+    });
+    expect(datePickerTimeStampProp).toBeChecked();
+  });
 });
+
+const switchToBeta = async (user) => {
+  const betaConfigSwitch = screen.getByRole('checkbox', {
+    name: textMock('ux_editor.edit_component.show_beta_func'),
+  });
+  await user.click(betaConfigSwitch);
+};
 
 const waitForData = async () => {
   const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
@@ -185,19 +221,16 @@ const waitForData = async () => {
   )(() => useDataModelMetadataQuery(org, app, layoutSet1NameMock, dataModelNameMock))
     .renderHookResult.result;
   await waitFor(() => expect(dataModelMetadataResult.current.isSuccess).toBe(true));
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
 const render = async ({
   componentProps = {},
   handleComponentUpdate = jest.fn(),
-  isProd = true,
 }: {
   componentProps?: Partial<FormComponent>;
   handleComponentUpdate?: (component: FormComponent) => {
     allComponentProps: FormComponent;
   };
-  isProd?: boolean;
 }) => {
   const allComponentProps: FormComponent = {
     dataModelBindings: {},
