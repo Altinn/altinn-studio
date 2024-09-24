@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Alert, Modal, Checkbox, Heading } from '@digdir/designsystemet-react';
+import { Alert, Checkbox, Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import classes from './MigrationPanel.module.css';
 import type { Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';
@@ -69,31 +69,34 @@ export const MigrationPanel = ({
 
   return (
     <>
-      <Modal ref={setServiceExpiredWarningModalRef} onClose={closeSetServiceExpiredModal}>
-        <Modal.Header>{t('resourceadm.migration_disable_service_modal_header')}</Modal.Header>
-        <Modal.Content>
-          <Alert severity='warning'>{t('resourceadm.migration_disable_service_modal_body')}</Alert>
-          <Checkbox.Group
-            legend=''
-            onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
-            value={isMigrateCheckboxChecked ? ['checked'] : []}
-          >
-            <Checkbox value='checked'>{t('resourceadm.migration_confirm_migration')}</Checkbox>
-          </Checkbox.Group>
-        </Modal.Content>
-        <Modal.Footer>
-          <StudioButton
-            disabled={!isMigrateCheckboxChecked}
-            onClick={() => postMigrateDelegations()}
-            size='medium'
-          >
-            {t('resourceadm.migration_disable_service_confirm')}
-          </StudioButton>
-          <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='medium'>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+      <StudioModal.Dialog
+        heading={t('resourceadm.migration_disable_service_modal_header')}
+        closeButtonTitle={t('resourceadm.close_modal')}
+        ref={setServiceExpiredWarningModalRef}
+        footer={
+          <>
+            <StudioButton
+              disabled={!isMigrateCheckboxChecked}
+              onClick={() => postMigrateDelegations()}
+              size='medium'
+            >
+              {t('resourceadm.migration_disable_service_confirm')}
+            </StudioButton>
+            <StudioButton variant='tertiary' onClick={closeSetServiceExpiredModal} size='medium'>
+              {t('general.cancel')}
+            </StudioButton>
+          </>
+        }
+      >
+        <Alert severity='warning'>{t('resourceadm.migration_disable_service_modal_body')}</Alert>
+        <Checkbox.Group
+          legend=''
+          onChange={() => setIsMigrateCheckboxChecked((old) => !old)}
+          value={isMigrateCheckboxChecked ? ['checked'] : []}
+        >
+          <Checkbox value='checked'>{t('resourceadm.migration_confirm_migration')}</Checkbox>
+        </Checkbox.Group>
+      </StudioModal.Dialog>
       <div className={classes.migrationPanel}>
         <div className={classes.migrationPanelInner}>
           <Heading size='sm'>{t(env.label)}</Heading>
