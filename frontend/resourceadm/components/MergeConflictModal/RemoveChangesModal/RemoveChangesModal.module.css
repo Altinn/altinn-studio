@@ -1,6 +1,0 @@
-.buttonWrapper {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  margin-top: var(--fds-spacing-5);
-}

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
@@ -32,6 +32,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
+  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
@@ -55,6 +56,12 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     isPending: resourceListPending,
     isRefetching: refetchingList,
   } = useGetResourceListQuery(org);
+
+  useEffect(() => {
+    if (repoStatus?.hasMergeConflict) {
+      mergeConflictModalRef.current.showModal();
+    }
+  }, [repoStatus?.hasMergeConflict]);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
@@ -164,9 +171,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
-      )}
+      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       <NewResourceModal
         ref={createResourceModalRef}
         onClose={() => createResourceModalRef.current?.close()}

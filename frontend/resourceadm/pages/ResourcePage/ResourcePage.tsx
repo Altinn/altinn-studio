@@ -48,6 +48,7 @@ export const ResourcePage = (): React.JSX.Element => {
   const autoSaveTimeoutRef = useRef(undefined);
   const policyErrorModalRef = useRef<HTMLDialogElement>(null);
   const resourceErrorModalRef = useRef<HTMLDialogElement>(null);
+  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
 
   const { pageType, resourceId, org, app, env, accessListId } = useUrlParams();
   const currentPage = pageType as NavigationBarPage;
@@ -95,6 +96,12 @@ export const ResourcePage = (): React.JSX.Element => {
       editResource(resource);
     }, 400);
   };
+
+  useEffect(() => {
+    if (repoStatus?.hasMergeConflict) {
+      mergeConflictModalRef.current.showModal();
+    }
+  }, [repoStatus?.hasMergeConflict]);
 
   /**
    * Navigates to the selected page
@@ -303,9 +310,7 @@ export const ResourcePage = (): React.JSX.Element => {
           )}
         </div>
       )}
-      {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
-      )}
+      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       <NavigationModal
         ref={policyErrorModalRef}
         onClose={() => policyErrorModalRef.current.close()}
