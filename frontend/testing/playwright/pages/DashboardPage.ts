@@ -48,7 +48,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnHeaderAvatar(): Promise<void> {
-    await this.page.getByAltText(this.textMock('shared.header_button_alt')).click();
+    await this.page.getByAltText(this.textMock('general.profile_icon')).click();
   }
 
   public async clickOnAllApplications(): Promise<void> {
