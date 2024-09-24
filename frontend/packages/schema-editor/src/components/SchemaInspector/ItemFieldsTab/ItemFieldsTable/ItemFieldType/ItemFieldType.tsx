@@ -9,8 +9,8 @@ import {
 } from '@altinn/schema-model/index';
 import { useSavableSchemaModel } from '../../../../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '../../../../../hooks/useSchemaEditorAppContext';
-import { useTypeName } from '../../../hooks/useTypeName';
-import { useKindName } from '../../../hooks/useKindName';
+import { useTypeName } from './hooks/useTypeName';
+import { useKindName } from './hooks/useKindName';
 import { ObjectKind } from '@altinn/schema-model';
 import { Link } from '@digdir/designsystemet-react';
 import classes from './ItemFieldType.module.css';
