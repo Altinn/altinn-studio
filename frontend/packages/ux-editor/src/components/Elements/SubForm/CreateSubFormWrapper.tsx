@@ -6,23 +6,24 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import classes from './CreateSubFormWrapper.module.css';
 
 type CreateSubFormWrapperProps = {
-  layoutSets: LayoutSets | undefined;
+  layoutSets: LayoutSets;
+  onSubFormCreated: (subFormName: string) => void;
 };
 
-export const CreateSubFormWrapper = ({ layoutSets }: CreateSubFormWrapperProps) => {
+export const CreateSubFormWrapper = ({
+  layoutSets,
+  onSubFormCreated,
+}: CreateSubFormWrapperProps) => {
   const [createNewOpen, setCreateNewOpen] = useState(false);
   const [newSubFormName, setNewSubFormName] = useState('');
   const [nameError, setNameError] = useState('');
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate: addLayoutSet, isPending: addLayoutSetPending } = useAddLayoutSetMutation(
-    org,
-    app,
-  );
+  const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
 
   const onCreateConfirmClick = () => {
     setCreateNewOpen(false);
@@ -34,6 +35,7 @@ export const CreateSubFormWrapper = ({ layoutSets }: CreateSubFormWrapperProps) 
         type: 'subform',
       },
     });
+    onSubFormCreated(newSubFormName);
   };
 
   const onNameChange = (e: any) => {
@@ -63,6 +65,7 @@ export const CreateSubFormWrapper = ({ layoutSets }: CreateSubFormWrapperProps) 
           error={nameError}
         />
         <StudioButton
+          className={classes.confirmCreateButton}
           variant='secondary'
           onClick={onCreateConfirmClick}
           disabled={!newSubFormName || !!nameError}

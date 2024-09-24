@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { NativeSelect } from '@digdir/designsystemet-react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { CreateSubFormWrapper } from './AddSubForm';
+import { SubFormWrapper } from './SubForm/SubFormWrapper';
+import { StudioCombobox } from '@studio/components';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const layoutSetNames = layoutSetsQuery.data?.sets?.map((set) => set.id);
+  const layoutSets = layoutSetsQuery.data?.sets;
   const t = useText();
   const {
     selectedFormLayoutSetName,
@@ -37,27 +37,34 @@ export function LayoutSetsContainer() {
     }
   };
 
-  if (!layoutSetNames) return null;
+  if (!layoutSets) return null;
 
   return (
     <div className={classes.root}>
-      <NativeSelect
-        aria-label={t('left_menu.layout_dropdown_menu_label')}
-        onChange={(event) => onLayoutSetClick(event.target.value)}
-        value={selectedFormLayoutSetName}
-        className={classes.layoutSetsDropDown}
-        size='small'
+      <StudioCombobox
+        label={t('left_menu.layout_dropdown_menu_label')}
+        hideLabel
+        value={[selectedFormLayoutSetName]}
+        onValueChange={(value) => onLayoutSetClick(value[0])}
       >
-        {layoutSetNames.map((set: string) => {
-          return (
-            <option key={set} value={set}>
-              {set}
-            </option>
-          );
-        })}
-      </NativeSelect>
+        {layoutSets.map((layoutSet) => (
+          <StudioCombobox.Option
+            value={layoutSet.id}
+            key={layoutSet.id}
+            description={layoutSet?.type && 'Underskjema'}
+          >
+            {layoutSet.id}
+          </StudioCombobox.Option>
+        ))}
+      </StudioCombobox>
       {shouldDisplayFeature('exportForm') && <ExportForm />}
-      <CreateSubFormWrapper layoutSets={layoutSetsQuery?.data} />
+      {shouldDisplayFeature('subForm') && (
+        <SubFormWrapper
+          layoutSets={layoutSetsQuery.data}
+          onSubFormCreated={onLayoutSetClick}
+          selectedLayoutSet={selectedFormLayoutSetName}
+        />
+      )}
     </div>
   );
 }
