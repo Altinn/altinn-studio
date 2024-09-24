@@ -15,6 +15,7 @@ export const useUploadDataModelMutation = (modelPath?: string, meta?: MutationMe
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] }),
         modelPath &&
           queryClient.invalidateQueries({ queryKey: [QueryKey.JsonSchema, org, app, modelPath] }),
       ]);
