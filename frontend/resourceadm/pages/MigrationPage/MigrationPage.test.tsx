@@ -91,7 +91,7 @@ describe('MigrationPage', () => {
       ),
     });
 
-    // wait for accordions to be shown
+    // wait for cards to be shown
     await waitFor(() => {
       expect(screen.getByText(textMock('resourceadm.deploy_test_env'))).toBeInTheDocument();
     });
