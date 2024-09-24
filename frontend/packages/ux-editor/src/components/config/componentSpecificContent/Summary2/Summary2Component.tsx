@@ -76,7 +76,7 @@ export const Summary2Component = ({
       <StudioCard.Header>
         <StudioHeading size='2xs'>{t('ux_editor.component_properties.target')}</StudioHeading>
       </StudioCard.Header>
-      <StudioParagraph size='small'>
+      <StudioParagraph size='sm'>
         {t('ux_editor.component_properties.target_description')}
       </StudioParagraph>
       <StudioCard.Content>
@@ -110,7 +110,7 @@ export const Summary2Component = ({
         )}
         {target.type === 'layoutSet' && (
           <StudioTextfield
-            size='small'
+            size='sm'
             label={t('general.layout_set')}
             value={selectedFormLayoutSetName}
             disabled={true}
