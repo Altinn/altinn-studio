@@ -186,9 +186,7 @@ describe('StudioProfileMenu', () => {
     await user.click(triggerButton);
 
     expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
-
-    const handleCloseButton = screen.getByRole('button', { name: mockTriggerButtonText });
-    await user.click(handleCloseButton);
+    await user.click(triggerButton);
 
     expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
   });
