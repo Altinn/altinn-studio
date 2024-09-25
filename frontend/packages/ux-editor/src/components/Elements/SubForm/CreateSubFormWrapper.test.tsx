@@ -64,7 +64,7 @@ describe('CreateSubFormWrapper', () => {
   it('should add subform when name is valid', async () => {
     const onSubFormCreatedMock = jest.fn();
     const user = userEvent.setup();
-    const addLayoutSet = jest.fn().mockImplementation();
+    const addLayoutSet = jest.fn();
 
     renderCreateSubFormWrapper(onSubFormCreatedMock, { addLayoutSet });
 
