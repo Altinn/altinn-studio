@@ -20,9 +20,7 @@ const pageConfigPanelTestId = 'pageConfigPanel';
 const textTestId = 'text';
 const DataModelBindingsTestId = 'dataModelBindings';
 const editFormComponentTestId = 'content';
-const conditionalRenderingTestId = 'conditionalRendering';
 const expressionsTestId = 'expressions';
-const calculationsTestId = 'calculations';
 
 const layoutSetName = layoutSet1NameMock;
 const layouts: IFormLayouts = {
@@ -48,14 +46,8 @@ jest.mock('./Text', () => ({
 jest.mock('./DataModelBindings', () => ({
   DataModelBindings: () => <div data-testid={DataModelBindingsTestId} />,
 }));
-jest.mock('./ConditionalRendering', () => ({
-  ConditionalRendering: () => <div data-testid={conditionalRenderingTestId} />,
-}));
 jest.mock('../config/Expressions', () => ({
   Expressions: () => <div data-testid={expressionsTestId} />,
-}));
-jest.mock('./Calculations', () => ({
-  Calculations: () => <div data-testid={calculationsTestId} />,
 }));
 
 describe('Properties', () => {

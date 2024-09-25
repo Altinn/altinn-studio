@@ -47,32 +47,7 @@
       },
       "additionalProperties": false
     },
-    "renderAsSummary": {
-      "title": "Render as summary",
-      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
-      "default": false,
-      "$ref": "expression.schema.v1.json#/definitions/boolean"
-    },
     "type": { "const": "Summary" },
-    "textResourceBindings": {
-      "properties": {
-        "summaryTitle": {
-          "title": "Summary title",
-          "description": "Title used in the summary view (overrides the default title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "summaryAccessibleTitle": {
-          "title": "Accessible summary title",
-          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        },
-        "returnToSummaryButtonTitle": {
-          "title": "ReturnToSummaryButtonTitle",
-          "description": "Used to specify the text on the NavigationButtons component that should be used after clicking \"Change\" on the summary component",
-          "$ref": "expression.schema.v1.json#/definitions/string"
-        }
-      }
-    },
     "componentRef": {
       "title": "Component reference",
       "description": "String value indicating which layout component (by ID) the summary is for.",
@@ -89,6 +64,17 @@
       "description": "Array of component IDs that should not be shown in a repeating group's summary",
       "type": "array",
       "items": { "type": "string" }
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "returnToSummaryButtonTitle": {
+          "title": "ReturnToSummaryButtonTitle",
+          "description": "Used to specify the text on the NavigationButtons component that should be used after clicking \"Change\" on the summary component",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
     },
     "display": {
       "title": "Display properties",

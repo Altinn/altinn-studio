@@ -1,9 +1,11 @@
-import type { RefObject } from 'react';
+import type { ForwardedRef } from 'react';
 import React from 'react';
 import type { StudioPropertyButtonProps } from './StudioPropertyButton';
 import { StudioPropertyButton } from './StudioPropertyButton';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
+import { testRefForwarding } from '../../../test-utils/testRefForwarding';
 
 // Test data:
 const property = 'Test property';
@@ -37,15 +39,11 @@ describe('StudioPropertyButton', () => {
   });
 
   it('Appends the given class name', () => {
-    const className = 'test-class';
-    renderButton({ className });
-    expect(screen.getByRole('button', { name: property })).toHaveClass(className);
+    testRootClassNameAppending((className) => renderButton({ className }));
   });
 
   it('Forwards a ref to the button', () => {
-    const ref = React.createRef<HTMLButtonElement>();
-    renderButton({}, ref);
-    expect(ref.current).toBe(screen.getByRole('button'));
+    testRefForwarding<HTMLButtonElement>((ref) => renderButton({}, ref), getButton);
   });
 
   it('Calls the onClick function when the button is clicked', async () => {
@@ -58,11 +56,13 @@ describe('StudioPropertyButton', () => {
 
   it('Renders a compact button when the compact prop is true', () => {
     renderButton({ compact: true });
-    expect(screen.getByRole('button')).toHaveClass('compact');
+    expect(getButton()).toHaveClass('compact');
   });
 });
 
 const renderButton = (
   props: Partial<StudioPropertyButtonProps> = {},
-  ref?: RefObject<HTMLButtonElement>,
+  ref?: ForwardedRef<HTMLButtonElement>,
 ) => render(<StudioPropertyButton {...defaultProps} {...props} ref={ref} />);
+
+const getButton = (): HTMLButtonElement => screen.getByRole('button');

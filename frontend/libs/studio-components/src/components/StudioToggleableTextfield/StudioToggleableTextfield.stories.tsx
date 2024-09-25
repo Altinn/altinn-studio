@@ -6,7 +6,7 @@ import { KeyVerticalIcon } from '@studio/icons';
 type Story = StoryFn<typeof StudioToggleableTextfield>;
 
 const meta: Meta = {
-  title: 'Forms/StudioToggleableTextfield',
+  title: 'Components/StudioToggleableTextfield',
   component: StudioToggleableTextfield,
 };
 
@@ -15,9 +15,11 @@ export const Preview: Story = (args) => (
 );
 
 Preview.args = {
+  onIsViewMode: () => {},
   viewProps: {
     variant: 'tertiary',
     size: 'small',
+    label: 'My awesome label',
     children: 'My awesome value',
   },
   inputProps: {

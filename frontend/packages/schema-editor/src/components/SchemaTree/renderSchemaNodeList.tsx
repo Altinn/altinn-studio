@@ -2,14 +2,22 @@ import React from 'react';
 import { SchemaNode } from './SchemaNode';
 import type { SavableSchemaModel } from '../../classes/SavableSchemaModel';
 
-export const renderSchemaNodeList = (schema: SavableSchemaModel, parentPointer?: string) => {
-  const properties = parentPointer
-    ? schema.getChildNodes(parentPointer)
+export const renderSchemaNodeList = (
+  schema: SavableSchemaModel,
+  schemaParentPointer?: string,
+  uniqueParentPointer?: string,
+) => {
+  const properties = schemaParentPointer
+    ? schema.getChildNodes(schemaParentPointer)
     : schema.getRootProperties();
   return properties.length ? (
     <>
-      {properties.map(({ pointer }) => (
-        <SchemaNode key={pointer} pointer={pointer} />
+      {properties.map(({ schemaPointer }) => (
+        <SchemaNode
+          key={schemaPointer}
+          schemaPointer={schemaPointer}
+          uniqueParentPointer={uniqueParentPointer}
+        />
       ))}
     </>
   ) : null;

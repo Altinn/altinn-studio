@@ -12,7 +12,6 @@ import type {
   FormCheckboxesComponent,
   FormRadioButtonsComponent,
 } from '../../../types/FormComponent';
-
 import { FormField } from '../../FormField';
 import { StudioButton } from '@studio/components';
 

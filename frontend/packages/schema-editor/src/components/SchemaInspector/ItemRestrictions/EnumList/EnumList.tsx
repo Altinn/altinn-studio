@@ -45,7 +45,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
 
     if (duplicates === null) {
       const newNode = { ...schemaNode, enum: removeEmptyStrings(newEnumList) };
-      save(schemaModel.updateNode(newNode.pointer, newNode));
+      save(schemaModel.updateNode(newNode.schemaPointer, newNode));
     }
 
     setEnumList(newEnumList);

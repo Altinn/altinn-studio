@@ -6,8 +6,14 @@ import { PolicyResourceFields } from './PolicyResourceFields';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PolicyEditorContext } from '../../../../../../contexts/PolicyEditorContext';
 import { PolicyRuleContext } from '../../../../../../contexts/PolicyRuleContext';
-import { mockPolicyEditorContextValue } from '../../../../../../../test/mocks/policyEditorContextMock';
-import { mockPolicyRuleContextValue } from '../../../../../../../test/mocks/policyRuleContextMock';
+import {
+  mockPolicyEditorContextValue,
+  mockPolicyEditorContextValueWithSingleNarrowingPolicy,
+} from '../../../../../../../test/mocks/policyEditorContextMock';
+import {
+  mockPolicyRuleContextValue,
+  mockPolicyRuleContextValueWithSingleNarrowingPolicy,
+} from '../../../../../../../test/mocks/policyRuleContextMock';
 import { mockResource11 } from '../../../../../../../test/mocks/policySubResourceMocks';
 
 const mockValudNewText = '45';
@@ -23,7 +29,7 @@ describe('PolicyResourceFields', () => {
   afterEach(jest.clearAllMocks);
 
   it('sets text fields to readonly when "canEditTypeAndId" is false', () => {
-    renderPolicyResourceFields({ canEditTypeAndId: false });
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies({ canEditTypeAndId: false });
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
     expect(idInput).toHaveAttribute('readonly');
@@ -33,7 +39,7 @@ describe('PolicyResourceFields', () => {
   });
 
   it('sets text fields to not be readonly when "canEditTypeAndId" is true', () => {
-    renderPolicyResourceFields();
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies();
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
     expect(idInput).not.toHaveAttribute('readonly');
@@ -44,7 +50,7 @@ describe('PolicyResourceFields', () => {
 
   it('calls "setPolicyRules" when id input values change', async () => {
     const user = userEvent.setup();
-    renderPolicyResourceFields();
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies();
 
     const idInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_id'));
 
@@ -57,7 +63,7 @@ describe('PolicyResourceFields', () => {
 
   it('calls "setPolicyRules" when type input values change', async () => {
     const user = userEvent.setup();
-    renderPolicyResourceFields();
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies();
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
@@ -70,7 +76,7 @@ describe('PolicyResourceFields', () => {
 
   it('calls "savePolicy" when input fields lose focus', async () => {
     const user = userEvent.setup();
-    renderPolicyResourceFields();
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies();
 
     const typeInput = screen.getByLabelText(textMock('policy_editor.narrowing_list_field_type'));
 
@@ -79,8 +85,18 @@ describe('PolicyResourceFields', () => {
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the delete button when "canEditTypeAndId" is false', () => {
-    renderPolicyResourceFields({ canEditTypeAndId: false });
+  it('renders the delete button when there are multiple narrowing policies', () => {
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies();
+
+    const deleteButton = screen.queryByRole('button', {
+      name: textMock('policy_editor.narrowing_list_field_delete'),
+    });
+
+    expect(deleteButton).toBeInTheDocument();
+  });
+
+  it('hides the delete button when there is only a single narrowing policy', () => {
+    renderPolicyResourceFieldsWithSingleNarrowingPolicy();
 
     const deleteButton = screen.queryByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -91,7 +107,7 @@ describe('PolicyResourceFields', () => {
 
   it('calls "setPolicyRules" and "savePolicy" when delete button is clicked', async () => {
     const user = userEvent.setup();
-    renderPolicyResourceFields();
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies();
 
     const deleteButton = screen.getByRole('button', {
       name: textMock('policy_editor.narrowing_list_field_delete'),
@@ -104,14 +120,36 @@ describe('PolicyResourceFields', () => {
     expect(mockPolicyEditorContextValue.setPolicyRules).toHaveBeenCalledTimes(1);
     expect(mockPolicyEditorContextValue.savePolicy).toHaveBeenCalledTimes(1);
   });
+
+  it('hides the delete button when there are multiple narrowing policies and "canEditTypeAndId" is false', () => {
+    renderPolicyResourceFieldsWithMultipleNarrowingPolicies({ canEditTypeAndId: false });
+
+    const deleteButton = screen.queryByRole('button', {
+      name: textMock('policy_editor.narrowing_list_field_delete'),
+    });
+
+    expect(deleteButton).not.toBeInTheDocument();
+  });
 });
 
-const renderPolicyResourceFields = (
+const renderPolicyResourceFieldsWithMultipleNarrowingPolicies = (
   policyResourceFieldsProps: Partial<PolicyResourceFieldsProps> = {},
 ) => {
   return render(
     <PolicyEditorContext.Provider value={mockPolicyEditorContextValue}>
       <PolicyRuleContext.Provider value={mockPolicyRuleContextValue}>
+        <PolicyResourceFields {...defaultProps} {...policyResourceFieldsProps} />
+      </PolicyRuleContext.Provider>
+    </PolicyEditorContext.Provider>,
+  );
+};
+
+const renderPolicyResourceFieldsWithSingleNarrowingPolicy = (
+  policyResourceFieldsProps: Partial<PolicyResourceFieldsProps> = {},
+) => {
+  return render(
+    <PolicyEditorContext.Provider value={mockPolicyEditorContextValueWithSingleNarrowingPolicy}>
+      <PolicyRuleContext.Provider value={mockPolicyRuleContextValueWithSingleNarrowingPolicy}>
         <PolicyResourceFields {...defaultProps} {...policyResourceFieldsProps} />
       </PolicyRuleContext.Provider>
     </PolicyEditorContext.Provider>,

@@ -5,6 +5,8 @@ import { PlusIcon } from '@studio/icons';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { StudioButton, StudioPopover } from '@studio/components';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -26,37 +28,43 @@ export function CreateNewWrapper({
   const { t } = useTranslation();
   const [newModelName, setNewModelName] = useState('');
   const [nameError, setNameError] = useState('');
-  const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
 
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const modelNames = extractModelNamesFromMetadataList(dataModels);
 
   const relativePath = createPathOption ? '' : undefined;
 
-  const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
-  const validateName = () => setNameError(!nameIsValid() ? 'Invalid name' : '');
-
-  const onInputBlur = () => {
-    if (confirmedWithReturn) {
-      setConfirmedWithReturn(false);
-      return;
-    }
-    validateName();
-  };
   const onNameChange = (e: any) => {
     const name = e.target.value || '';
-    if (nameError) {
-      setNameError('');
-    }
     setNewModelName(name);
+    validateName(name);
   };
+
+  const dataTypeWithNameExists = (id: string) => {
+    return appMetadata?.dataTypes?.find(
+      (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
+    );
+  };
+
+  const nameValidationRegex = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
+  const validateName = (name: string) => {
+    if (!name || !name.match(nameValidationRegex)) {
+      setNameError(t('schema_editor.invalid_datamodel_name'));
+      return;
+    }
+    if (modelNames.includes(name)) {
+      setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
+      return;
+    }
+    if (dataTypeWithNameExists(name)) {
+      setNameError(t('schema_editor.error_data_type_name_exists'));
+      return;
+    }
+    setNameError('');
+  };
+
   const onCreateConfirmClick = () => {
-    if (nameError || !newModelName || !nameIsValid()) {
-      return;
-    }
-    if (modelNames.includes(newModelName)) {
-      setNameError(t('schema_editor.error_model_name_exists', { newModelName }));
-      return;
-    }
     handleCreateSchema({
       name: newModelName,
       relativePath,
@@ -64,14 +72,10 @@ export function CreateNewWrapper({
     setNewModelName('');
     setNameError('');
   };
-  const handleReturnButtonConfirm = () => {
-    validateName();
-    onCreateConfirmClick();
-    setConfirmedWithReturn(true);
-  };
+
   const onKeyUp = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleReturnButtonConfirm();
+      onCreateConfirmClick();
     }
   };
 
@@ -92,13 +96,13 @@ export function CreateNewWrapper({
           id='newModelInput'
           label={t('schema_editor.create_model_description')}
           onChange={onNameChange}
-          onBlur={onInputBlur}
           onKeyUp={onKeyUp}
           error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
         />
         <StudioButton
           color='second'
           onClick={onCreateConfirmClick}
+          disabled={!newModelName || !!nameError}
           style={{ marginTop: 22 }}
           variant='secondary'
           size='small'

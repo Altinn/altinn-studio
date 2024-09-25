@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioCenter } from './StudioCenter';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 
 // Mocks:
 jest.mock('./SchemaEditor.module.css', () => ({
@@ -19,9 +20,6 @@ describe('StudioCenter', () => {
   });
 
   it('Appends given classname to internal classname', () => {
-    const className = 'test-class';
-    const { container } = render(<StudioCenter className={className} />);
-    expect(container.firstChild).toHaveClass(className); // eslint-disable-line testing-library/no-node-access
-    expect(container.firstChild).toHaveClass('root'); // eslint-disable-line testing-library/no-node-access
+    testRootClassNameAppending((className) => render(<StudioCenter className={className} />));
   });
 });

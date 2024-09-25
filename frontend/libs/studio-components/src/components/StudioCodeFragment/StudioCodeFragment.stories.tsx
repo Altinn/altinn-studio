@@ -5,7 +5,7 @@ import { StudioCodeFragment } from './StudioCodeFragment';
 type Story = StoryFn<typeof StudioCodeFragment>;
 
 const meta: Meta = {
-  title: 'Studio/StudioCodeFragment',
+  title: 'Components/StudioCodeFragment',
   component: StudioCodeFragment,
 };
 

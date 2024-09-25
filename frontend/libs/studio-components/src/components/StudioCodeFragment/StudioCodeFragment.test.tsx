@@ -1,6 +1,10 @@
-import React, { createRef } from 'react';
+import type { ForwardedRef } from 'react';
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioCodeFragment } from './StudioCodeFragment';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 jest.mock('./StudioCodeFragment.module.css', () => ({
   code: 'code',
@@ -15,21 +19,17 @@ describe('StudioCodeFragment', () => {
   });
 
   it('Appends given classname to internal classname', () => {
-    const className = 'test-class';
-    const { container } = render(<StudioCodeFragment className={className} />);
-    expect(container.firstChild).toHaveClass(className);
-    expect(container.firstChild).toHaveClass('code');
+    testRootClassNameAppending((className) => render(<StudioCodeFragment className={className} />));
   });
 
   it('Adds any additonal props to the element', () => {
-    const dataTestId = 'test';
-    render(<StudioCodeFragment data-testid={dataTestId} />);
-    expect(screen.getByTestId(dataTestId)).toBeInTheDocument();
+    const renderComponent = (attributes) => render(<StudioCodeFragment {...attributes} />);
+    testCustomAttributes(renderComponent);
   });
 
   it('Forwards the ref object to the code element if given', () => {
-    const ref = createRef<HTMLElement>();
-    const { container } = render(<StudioCodeFragment ref={ref} />);
-    expect(ref.current).toBe(container.firstChild);
+    const renderComponent = (ref: ForwardedRef<HTMLElement>) =>
+      render(<StudioCodeFragment ref={ref} />);
+    testRefForwarding(renderComponent);
   });
 });

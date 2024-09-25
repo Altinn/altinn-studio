@@ -1,6 +1,5 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { Typography } from '@mui/material';
 import { RuleComponent } from '../config/RuleComponent';
 import RuleButton from './RuleButton';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +10,7 @@ import { useRuleConfigMutation } from '../../hooks/mutations/useRuleConfigMutati
 import { addRuleConnection, deleteRuleConnection } from '../../utils/ruleConfigUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../hooks/useAppContext';
+import { StudioParagraph } from '@studio/components';
 
 export interface IRuleModalProps {
   modalOpen: boolean;
@@ -53,7 +53,7 @@ export function RuleModal(props: IRuleModalProps) {
 
   function renderRuleConnections(): JSX.Element {
     if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
-      return <Typography variant='caption'>{t('right_menu.rules_empty')}</Typography>;
+      return <StudioParagraph size='sm'>{t('right_menu.rules_empty')}</StudioParagraph>;
     }
     return (
       <>

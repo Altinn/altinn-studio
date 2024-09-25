@@ -6,12 +6,12 @@ import { DefaultToolbar } from './DefaultToolbar';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioError, StudioSpinner } from '@studio/components';
 import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
-import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -48,14 +48,14 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     return (
       <div>
         <div className={classes.errorMessage}>
-          <Alert severity='danger'>
+          <StudioError>
             <Heading level={3} size='xsmall' spacing>
               {t('schema_editor.error_could_not_detect_taskType', {
                 layout: selectedFormLayoutSetName,
               })}
             </Heading>
             <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
-          </Alert>
+          </StudioError>
         </div>
       </div>
     );
@@ -72,6 +72,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         className={classes.openElementsButton}
         onClick={onCollapseToggle}
         title={t('left_menu.open_components')}
+        fullWidth
       >
         {t('left_menu.open_components')}
       </StudioButton>

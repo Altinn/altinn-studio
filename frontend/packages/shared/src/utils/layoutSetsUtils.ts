@@ -8,9 +8,9 @@ export const getLayoutSetNameForCustomReceipt = (layoutSets: LayoutSets): string
 };
 
 export const getLayoutSetIdValidationErrorKey = (
-  layoutSets: LayoutSets,
-  oldLayoutSetId: string,
   newLayoutSetId: string,
+  layoutSets: LayoutSets,
+  oldLayoutSetId?: string,
 ): string => {
   if (oldLayoutSetId === newLayoutSetId) return null;
   if (!newLayoutSetId || newLayoutSetId.trim() === '') return 'validation_errors.required';

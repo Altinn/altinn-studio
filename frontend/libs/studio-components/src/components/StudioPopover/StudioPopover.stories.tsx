@@ -22,7 +22,7 @@ const studioPopoverSizeOptions: string[] = ['small', 'medium', 'large'];
 type Story = StoryFn<typeof StudioPopover>;
 
 const meta: Meta = {
-  title: 'Studio/StudioPopover',
+  title: 'Components/StudioPopover',
   component: StudioPopover,
   argTypes: {
     placement: {

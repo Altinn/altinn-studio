@@ -24,6 +24,14 @@ git clone https://github.com/Altinn/altinn-studio
 cd altinn-studio
 ```
 
+#### Running the application using Podman
+
+The PDF component can be run locally using podman. To build and run the application use the command.
+
+```cmd
+podman compose up -d --build
+```
+
 #### Running the application with Maven
 
 The PDF components can be run locally when developing/debugging.

@@ -5,7 +5,7 @@ import { StudioCenter } from './StudioCenter';
 type Story = StoryFn<typeof StudioCenter>;
 
 const meta: Meta = {
-  title: 'Studio/StudioCenter',
+  title: 'Components/StudioCenter',
   component: StudioCenter,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioCenter {...args} />;

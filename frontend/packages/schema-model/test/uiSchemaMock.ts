@@ -48,7 +48,7 @@ const combinationNodeChild3Pointer = '#/properties/combinationNodeWithMultipleCh
 export const nodeMockBase: UiSchemaNode = {
   objectKind: ObjectKind.Field,
   fieldType: FieldType.String,
-  pointer: '#',
+  schemaPointer: '#',
   isRequired: false,
   isNillable: false,
   isArray: false,
@@ -61,7 +61,7 @@ export const nodeMockBase: UiSchemaNode = {
 
 export const rootNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: rootNodePointer,
+  schemaPointer: rootNodePointer,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
   children: [
@@ -84,7 +84,7 @@ export const parentNodeMock: FieldNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
-  pointer: parentNodePointer,
+  schemaPointer: parentNodePointer,
   children: [
     stringNodePointer,
     numberNodePointer,
@@ -99,69 +99,69 @@ export const parentNodeMock: FieldNode = {
 
 export const stringNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: stringNodePointer,
+  schemaPointer: stringNodePointer,
   fieldType: FieldType.String,
 };
 
 export const numberNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: numberNodePointer,
+  schemaPointer: numberNodePointer,
   fieldType: FieldType.Number,
 };
 
 export const enumNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: enumNodePointer,
+  schemaPointer: enumNodePointer,
   fieldType: FieldType.String,
   enum: ['val1', 'val2', 'val3'],
 };
 
 export const arrayNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: arrayNodePointer,
+  schemaPointer: arrayNodePointer,
   isArray: true,
 };
 
 export const defNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: defNodePointer,
+  schemaPointer: defNodePointer,
 };
 
 export const optionalNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: optionalNodePointer,
+  schemaPointer: optionalNodePointer,
   isRequired: false,
 };
 
 export const requiredNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: requiredNodePointer,
+  schemaPointer: requiredNodePointer,
   isRequired: true,
 };
 
 export const referenceNodeMock: ReferenceNode = {
   ...nodeMockBase,
-  pointer: referenceNodePointer,
+  schemaPointer: referenceNodePointer,
   objectKind: ObjectKind.Reference,
   reference: defNodePointer,
 };
 
 export const subParentNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: subParentNodePointer,
+  schemaPointer: subParentNodePointer,
   fieldType: FieldType.Object,
   children: [subSubNodePointer],
 };
 
 export const subSubNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: subSubNodePointer,
+  schemaPointer: subSubNodePointer,
   fieldType: FieldType.String,
 };
 
 export const allOfNodeMock: CombinationNode = {
   ...nodeMockBase,
-  pointer: allOfNodePointer,
+  schemaPointer: allOfNodePointer,
   objectKind: ObjectKind.Combination,
   combinationType: CombinationKind.AllOf,
   children: [allOfNodeChildPointer],
@@ -169,24 +169,24 @@ export const allOfNodeMock: CombinationNode = {
 
 export const allOfNodeChildMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: allOfNodeChildPointer,
+  schemaPointer: allOfNodeChildPointer,
 };
 
 export const simpleParentNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: simpleParentNodePointer,
+  schemaPointer: simpleParentNodePointer,
   fieldType: FieldType.Object,
   children: [simpleChildNodePointer],
 };
 
 export const simpleChildNodeMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: simpleChildNodePointer,
+  schemaPointer: simpleChildNodePointer,
 };
 
 export const simpleArrayMock: FieldNode = {
   ...nodeMockBase,
-  pointer: simpleArrayPointer,
+  schemaPointer: simpleArrayPointer,
   fieldType: FieldType.Object,
   isArray: true,
   children: [simpleArrayItemsPointer],
@@ -194,59 +194,59 @@ export const simpleArrayMock: FieldNode = {
 
 export const simpleArrayItemsMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: simpleArrayItemsPointer,
+  schemaPointer: simpleArrayItemsPointer,
 };
 
 export const defNodeWithChildrenMock: FieldNode = {
   ...nodeMockBase,
-  pointer: defNodeWithChildrenPointer,
+  schemaPointer: defNodeWithChildrenPointer,
   fieldType: FieldType.Object,
   children: [defNodeWithChildrenChildPointer],
 };
 
 export const defNodeWithChildrenChildMock: FieldNode = {
   ...nodeMockBase,
-  pointer: defNodeWithChildrenChildPointer,
+  schemaPointer: defNodeWithChildrenChildPointer,
   fieldType: FieldType.Object,
   children: [defNodeWithChildrenGrandchildPointer],
 };
 
 export const defNodeWithChildrenGrandchildMock: FieldNode = {
   ...nodeMockBase,
-  pointer: defNodeWithChildrenGrandchildPointer,
+  schemaPointer: defNodeWithChildrenGrandchildPointer,
 };
 
 export const referenceToObjectNodeMock: ReferenceNode = {
   ...defaultReferenceNode,
-  pointer: referenceToObjectNodePointer,
+  schemaPointer: referenceToObjectNodePointer,
   reference: defNodeWithChildrenPointer,
 };
 
 export const unusedDefinitionMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: unusedDefinitionPointer,
+  schemaPointer: unusedDefinitionPointer,
 };
 
 export const unusedDefinitionWithSameNameAsExistingObjectMock: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: unusedDefinitionWithSameNameAsExistingObjectPointer,
+  schemaPointer: unusedDefinitionWithSameNameAsExistingObjectPointer,
 };
 
 export const referenceDefinitionMock: ReferenceNode = {
   ...defaultReferenceNode,
-  pointer: referenceDefinitionPointer,
+  schemaPointer: referenceDefinitionPointer,
   reference: defNodePointer,
 };
 
 export const nodeWithSameNameAsStringNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: nodeWithSameNameAsStringNodePointer,
+  schemaPointer: nodeWithSameNameAsStringNodePointer,
   fieldType: FieldType.String,
 };
 
 export const combinationNodeWithMultipleChildrenMock: CombinationNode = {
   ...nodeMockBase,
-  pointer: combinationNodeWithMultipleChildrenPointer,
+  schemaPointer: combinationNodeWithMultipleChildrenPointer,
   objectKind: ObjectKind.Combination,
   combinationType: CombinationKind.AnyOf,
   children: [
@@ -258,19 +258,19 @@ export const combinationNodeWithMultipleChildrenMock: CombinationNode = {
 
 export const combinationNodeChild1Mock: FieldNode = {
   ...nodeMockBase,
-  pointer: combinationNodeChild1Pointer,
+  schemaPointer: combinationNodeChild1Pointer,
   title: 'Child 1',
 };
 
 export const combinationNodeChild2Mock: FieldNode = {
   ...nodeMockBase,
-  pointer: combinationNodeChild2Pointer,
+  schemaPointer: combinationNodeChild2Pointer,
   title: 'Child 2',
 };
 
 export const combinationNodeChild3Mock: FieldNode = {
   ...nodeMockBase,
-  pointer: combinationNodeChild3Pointer,
+  schemaPointer: combinationNodeChild3Pointer,
   title: 'Child 3',
 };
 
