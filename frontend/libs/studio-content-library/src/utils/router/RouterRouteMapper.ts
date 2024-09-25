@@ -5,7 +5,7 @@ import type { PageConfig } from '../../types/PagesProps';
 
 type PageProps = ComponentProps<typeof Root | typeof CodeList>;
 
-type PageComponent<P = PageProps> = (props: P) => React.JSX.Element;
+type PageComponent<P = PageProps> = (props: P) => ReactElement;
 
 type PageMap = Map<string, PageComponent>;
 
