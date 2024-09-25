@@ -7,10 +7,11 @@ import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import classes from './CreateSubFormWrapper.module.css';
+import type { HandleLayoutSetChangeProps } from '../LayoutSetsContainer';
 
 type CreateSubFormWrapperProps = {
   layoutSets: LayoutSets;
-  onSubFormCreated: (subFormName: string) => void;
+  onSubFormCreated: ({ layoutSet, isNewLayoutSet }: HandleLayoutSetChangeProps) => void;
 };
 
 export const CreateSubFormWrapper = ({
@@ -35,7 +36,7 @@ export const CreateSubFormWrapper = ({
         type: 'subform',
       },
     });
-    onSubFormCreated(newSubFormName);
+    onSubFormCreated({ layoutSet: newSubFormName, isNewLayoutSet: true });
   };
 
   const onNameChange = (subFormName: string) => {

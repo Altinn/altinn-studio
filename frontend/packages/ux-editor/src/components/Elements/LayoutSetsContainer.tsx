@@ -8,6 +8,11 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubFormWrapper } from './SubForm/SubFormWrapper';
 import { StudioCombobox } from '@studio/components';
 
+export type HandleLayoutSetChangeProps = {
+  layoutSet: string;
+  isNewLayoutSet?: boolean;
+};
+
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
@@ -26,20 +31,25 @@ export function LayoutSetsContainer() {
     onLayoutSetNameChange(selectedFormLayoutSetName);
   }, [onLayoutSetNameChange, selectedFormLayoutSetName]);
 
-  const handleLayoutSetChange = async (set: string) => {
-    const existingLayoutSet = layoutSets.find((layoutSet) => layoutSet.id === set);
+  if (!layoutSets) return null;
 
-    if (selectedFormLayoutSetName !== set && existingLayoutSet) {
-      await refetchLayouts(set);
-      await refetchLayoutSettings(set);
+  const handleLayoutSetChange = async ({
+    layoutSet,
+    isNewLayoutSet = false,
+  }: HandleLayoutSetChangeProps) => {
+    if (selectedFormLayoutSetName === layoutSet) return;
 
-      setSelectedFormLayoutSetName(set);
+    const existingLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
+
+    if (existingLayoutSet || isNewLayoutSet) {
+      await refetchLayouts(layoutSet);
+      await refetchLayoutSettings(layoutSet);
+
+      setSelectedFormLayoutSetName(layoutSet);
       setSelectedFormLayoutName(undefined);
-      onLayoutSetNameChange(set);
+      onLayoutSetNameChange(layoutSet);
     }
   };
-
-  if (!layoutSets) return null;
 
   return (
     <div className={classes.root}>
@@ -47,7 +57,7 @@ export function LayoutSetsContainer() {
         label={t('left_menu.layout_dropdown_menu_label')}
         hideLabel
         value={[selectedFormLayoutSetName]}
-        onValueChange={(value) => handleLayoutSetChange(value[0])}
+        onValueChange={(value) => handleLayoutSetChange({ layoutSet: value[0] })}
       >
         {layoutSets.map((layoutSet) => (
           <StudioCombobox.Option
