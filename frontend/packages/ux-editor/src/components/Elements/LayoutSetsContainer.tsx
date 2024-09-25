@@ -26,8 +26,10 @@ export function LayoutSetsContainer() {
     onLayoutSetNameChange(selectedFormLayoutSetName);
   }, [onLayoutSetNameChange, selectedFormLayoutSetName]);
 
-  const onLayoutSetClick = async (set: string) => {
-    if (selectedFormLayoutSetName !== set) {
+  const handleLayoutSetChange = async (set: string) => {
+    const existingLayoutSet = layoutSets.find((layoutSet) => layoutSet.id === set);
+
+    if (selectedFormLayoutSetName !== set && existingLayoutSet) {
       await refetchLayouts(set);
       await refetchLayoutSettings(set);
 
@@ -45,7 +47,7 @@ export function LayoutSetsContainer() {
         label={t('left_menu.layout_dropdown_menu_label')}
         hideLabel
         value={[selectedFormLayoutSetName]}
-        onValueChange={(value) => onLayoutSetClick(value[0])}
+        onValueChange={(value) => handleLayoutSetChange(value[0])}
       >
         {layoutSets.map((layoutSet) => (
           <StudioCombobox.Option
@@ -61,7 +63,7 @@ export function LayoutSetsContainer() {
       {shouldDisplayFeature('subForm') && (
         <SubFormWrapper
           layoutSets={layoutSetsQuery.data}
-          onSubFormCreated={onLayoutSetClick}
+          onSubFormCreated={handleLayoutSetChange}
           selectedLayoutSet={selectedFormLayoutSetName}
         />
       )}
