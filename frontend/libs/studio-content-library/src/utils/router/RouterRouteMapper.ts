@@ -1,4 +1,4 @@
-import React, { type ComponentProps } from 'react';
+import { type ComponentProps, type ReactElement } from 'react';
 import { Root } from '../../pages/Root';
 import { CodeList } from '../../pages/CodeList';
 import type { PageConfig } from '../../types/PagesProps';
@@ -25,7 +25,7 @@ export class RouterRouteMapperImpl implements RouterRouteMapper {
   }
 
   private getConfiguredRoutes(pages: Partial<PageConfig>): PageMap {
-    const pageMap = new Map<string, (props: PageProps) => React.JSX.Element>();
+    const pageMap = new Map<string, (props: PageProps) => ReactElement>();
 
     Object.keys(pages).forEach((page) => {
       if (page === 'root') {
