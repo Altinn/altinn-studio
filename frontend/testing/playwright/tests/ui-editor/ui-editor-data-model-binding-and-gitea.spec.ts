@@ -130,7 +130,7 @@ test('That is possible to select a different data model binding, and that the fi
 
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
 
-  const newDataModel = 'testDataModel';
+  const newDataModel = 'testDataModel2';
   await dataModelPage.clickOnCreateNewDataModelButton();
   await dataModelPage.typeDataModelName(newDataModel);
   await dataModelPage.clickOnCreateModelButton();
