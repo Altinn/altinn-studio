@@ -1,4 +1,4 @@
-import { Page } from '../types';
+import { Page } from '../../types';
 
 interface QueryParamsRouter {
   getCurrentRoute: () => string;
@@ -20,7 +20,7 @@ export class QueryParamsRouterImpl implements QueryParamsRouter {
 
   public getCurrentRoute(): Page {
     const searchParams = new URLSearchParams(window.location.search);
-    return (searchParams.get('currentLibraryRoute') || 'codeList') satisfies Page;
+    return searchParams.get('currentLibraryRoute') as string as Page;
   }
 
   public navigate(queryParam: string) {

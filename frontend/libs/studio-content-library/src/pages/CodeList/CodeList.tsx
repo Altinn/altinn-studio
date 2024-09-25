@@ -2,7 +2,7 @@ import React from 'react';
 import { useRouterContext } from '../../contexts/RouterContext';
 
 export type CodeListProps = {
-  title: 'Kodelister';
+  title: string;
 };
 export const CodeList = ({ title }: CodeListProps) => {
   const { navigate } = useRouterContext();
@@ -13,7 +13,7 @@ export const CodeList = ({ title }: CodeListProps) => {
 
   return (
     <>
-      <h1>Hello fra: {title} </h1>
+      <h1>{title} </h1>
       <button onClick={handleNavigation}>Lenke</button>
     </>
   );

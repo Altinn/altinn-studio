@@ -1,1 +1,1 @@
-export { Root } from './Root';
+export { Root, type RootPageProps } from './Root';

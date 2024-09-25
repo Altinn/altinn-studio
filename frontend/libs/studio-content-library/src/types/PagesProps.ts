@@ -1,5 +1,5 @@
-import { RootPageProps } from '../../Root/types';
-import { CodeListProps } from '../../CodeList';
+import { RootPageProps } from '../pages/Root';
+import { CodeListProps } from '../pages/CodeList';
 
 type PagePropsMap = {
   root: RootPageProps;

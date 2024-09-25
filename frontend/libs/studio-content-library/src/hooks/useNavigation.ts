@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { QueryParamsRouterImpl } from '../utils/QueryParamsRouter';
+import { QueryParamsRouterImpl } from '../utils/router/QueryParamsRouter';
 import { Page } from '../types';
 
 type UseNavigationResult = {

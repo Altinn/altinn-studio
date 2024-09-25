@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { PageConfig } from '../pages/config/types';
+import { PageConfig } from '../types/PagesProps';
 import { RouterPage } from '../pages/RouterPage';
 import { RouterContextProvider } from '../contexts/RouterContext';
 
