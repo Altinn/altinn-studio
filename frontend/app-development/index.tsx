@@ -10,6 +10,7 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
+import { PageRoutes } from './router/PageRoutes';
 
 const loggerConfig: LoggerConfig = {
   connectionString: altinnStudioEnvironment.aiConnectionString,
@@ -34,7 +35,6 @@ root.render(
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <PreviewConnectionContextProvider>
         <AppDevelopmentContextProvider>
-          <div>{getContentResourceLibrary()}</div>
           <PageRoutes />
         </AppDevelopmentContextProvider>
       </PreviewConnectionContextProvider>
