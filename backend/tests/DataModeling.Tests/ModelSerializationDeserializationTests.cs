@@ -36,7 +36,7 @@ namespace DataModeling.Tests
         [Fact]
         public void XmlModel_SeresBasic_ShouldDeserializeAndValidate()
         {
-            _TestData.Model.CSharp.melding melding = DeserializeFromXmlResource(SERESBASIC_XML_RESOURCE);
+            _TestData.Model.CSharp.Melding melding = DeserializeFromXmlResource(SERESBASIC_XML_RESOURCE);
 
             melding.E1.Should().Be("Yo");
         }
@@ -44,7 +44,7 @@ namespace DataModeling.Tests
         [Fact]
         public void CSharpModel_SeresBasic_ShouldSerializeToValidXml()
         {
-            var melding = new _TestData.Model.CSharp.melding() { E1 = "Yo" };
+            var melding = new _TestData.Model.CSharp.Melding() { E1 = "Yo" };
 
             var xml = SerializeToXml(melding);
 
@@ -70,7 +70,7 @@ namespace DataModeling.Tests
         public void JsonModel_SeresBasic_ShouldDeserializeAndValidate()
         {
             var json = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_JSON_RESOURCE);
-            _TestData.Model.CSharp.melding melding = JsonSerializer.Deserialize<_TestData.Model.CSharp.melding>(json);
+            _TestData.Model.CSharp.Melding melding = JsonSerializer.Deserialize<_TestData.Model.CSharp.Melding>(json);
 
             melding.E1.Should().Be("Yo");
         }
@@ -79,7 +79,7 @@ namespace DataModeling.Tests
         public void CSharpModel_SeresBasic_ShouldSerializeToValidJson()
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
-            var melding = new _TestData.Model.CSharp.melding() { E1 = "Yo" };
+            var melding = new _TestData.Model.CSharp.Melding() { E1 = "Yo" };
 
             var json = JsonSerializer.Serialize(melding);
             var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
@@ -90,11 +90,11 @@ namespace DataModeling.Tests
             validationResults.IsValid.Should().BeTrue();
         }
 
-        private static _TestData.Model.CSharp.melding DeserializeFromXmlResource(string xmlResource)
+        private static _TestData.Model.CSharp.Melding DeserializeFromXmlResource(string xmlResource)
         {
             var xmlStream = SharedResourcesHelper.LoadTestData(xmlResource);
 
-            return (_TestData.Model.CSharp.melding)new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding)).Deserialize(xmlStream);
+            return (_TestData.Model.CSharp.Melding)new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.Melding)).Deserialize(xmlStream);
         }
 
         private bool ValidateXml(string xml)
@@ -111,9 +111,9 @@ namespace DataModeling.Tests
             return validXml;
         }
 
-        private static string SerializeToXml(_TestData.Model.CSharp.melding melding)
+        private static string SerializeToXml(_TestData.Model.CSharp.Melding melding)
         {
-            var xmlSerializer = new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding));
+            var xmlSerializer = new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.Melding));
             var xmlWriter = new Utf8StringWriter();
             xmlSerializer.Serialize(xmlWriter, melding);
 

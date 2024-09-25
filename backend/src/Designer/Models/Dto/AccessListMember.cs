@@ -6,7 +6,7 @@ namespace Altinn.Studio.Designer.Models.Dto
     public class AccessListMembersDto
     {
         public IList<AccessListMemberDataDto> Data { get; set; }
-        public AccessListPaging? Links { get; set; }
+        public AccessListPaging Links { get; set; }
     }
 
     public class AccessListMemberDataDto

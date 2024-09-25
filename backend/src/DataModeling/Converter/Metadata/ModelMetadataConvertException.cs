@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Altinn.Studio.DataModeling.Converter.Metadata
 {
@@ -16,16 +15,6 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
         /// <inheritdoc/>
         public MetamodelConvertException(string message) : base(message)
-        {
-        }
-
-        /// <inheritdoc/>
-        public MetamodelConvertException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        /// <inheritdoc/>
-        protected MetamodelConvertException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }

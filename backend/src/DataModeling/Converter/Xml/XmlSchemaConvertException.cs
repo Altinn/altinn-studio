@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace Altinn.Studio.DataModeling.Converter.Xml
 {
@@ -20,20 +19,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <inheritdoc/>
         /// </summary>
         public XmlSchemaConvertException(string message) : base(message)
-        {
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public XmlSchemaConvertException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        protected XmlSchemaConvertException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
         }
     }
