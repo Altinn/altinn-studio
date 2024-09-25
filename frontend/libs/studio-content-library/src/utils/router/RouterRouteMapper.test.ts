@@ -1,4 +1,4 @@
-import { RouterRouteMapperImpl } from './RouterRouteMapper'; // Adjust the import path as necessary
+import { RouterRouteMapperImpl } from './RouterRouteMapper';
 import { Root } from '../../pages/Root';
 import { CodeList } from '../../pages/CodeList';
 import type { PageConfig } from '../../types/PagesProps';
