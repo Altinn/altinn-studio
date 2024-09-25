@@ -55,7 +55,7 @@ const mockResource2: Resource = {
 };
 const mockResourceType: ResourceTypeOption = textMock(
   'resourceadm.about_resource_resource_type_system_resource',
-);
+) as ResourceTypeOption;
 const mockStatus: ResourceStatusOption = 'Deprecated';
 
 const mockNewTitleInput: string = '23';

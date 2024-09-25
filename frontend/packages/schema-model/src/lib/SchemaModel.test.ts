@@ -3,6 +3,8 @@ import {
   allOfNodeChildMock,
   allOfNodeMock,
   arrayNodeMock,
+  combinationDefNodeChild1Mock,
+  combinationDefNodeMock,
   combinationNodeWithMultipleChildrenMock,
   defNodeMock,
   defNodeWithChildrenChildMock,
@@ -16,6 +18,7 @@ import {
   parentNodeMock,
   referenceDefinitionMock,
   referenceNodeMock,
+  referenceToCombinationDefNodeMock,
   referenceToObjectNodeMock,
   requiredNodeMock,
   rootNodeMock,
@@ -154,6 +157,13 @@ describe('SchemaModel', () => {
         defNodeWithChildrenGrandchildMock.schemaPointer,
       );
     });
+
+    it('Returns the schema pointer for a given unique pointer to a combination', () => {
+      const uniquePointer = '#/properties/referenceToCombinationDef/oneOf/0';
+      const expectedResult = combinationDefNodeChild1Mock.schemaPointer;
+      const result = schemaModel.getSchemaPointerByUniquePointer(uniquePointer);
+      expect(result).toEqual(expectedResult);
+    });
   });
 
   describe('getUniquePointer', () => {
@@ -172,7 +182,7 @@ describe('SchemaModel', () => {
       );
     });
 
-    it('Returns a unique pointer reflecting the path to a given node in a reference', () => {
+    it('Returns a unique pointer reflecting the path to a given node in a reference to an object', () => {
       const expectedUniqueChildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child`;
       const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
 
@@ -188,6 +198,14 @@ describe('SchemaModel', () => {
           expectedUniqueChildPointer,
         ),
       ).toEqual(expectedUniqueGrandchildPointer);
+    });
+
+    it('Returns a pointer reflecting the path to a given node in a reference to a combination', () => {
+      const { schemaPointer } = combinationDefNodeChild1Mock;
+      const uniquePointerOfParent = referenceToCombinationDefNodeMock.schemaPointer;
+      const result = schemaModel.getUniquePointer(schemaPointer, uniquePointerOfParent);
+      const expectedResult = '#/properties/referenceToCombinationDef/oneOf/0';
+      expect(result).toEqual(expectedResult);
     });
   });
 
@@ -228,6 +246,7 @@ describe('SchemaModel', () => {
         unusedDefinitionMock,
         unusedDefinitionWithSameNameAsExistingObjectMock,
         referenceDefinitionMock,
+        combinationDefNodeMock,
       ]);
     });
   });
@@ -243,6 +262,7 @@ describe('SchemaModel', () => {
         referenceToObjectNodeMock,
         nodeWithSameNameAsStringNodeMock,
         combinationNodeWithMultipleChildrenMock,
+        referenceToCombinationDefNodeMock,
       ]);
     });
   });
@@ -263,6 +283,8 @@ describe('SchemaModel', () => {
         referenceDefinitionMock,
         nodeWithSameNameAsStringNodeMock,
         combinationNodeWithMultipleChildrenMock,
+        referenceToCombinationDefNodeMock,
+        combinationDefNodeMock,
       ]);
     });
   });
