@@ -1,6 +1,5 @@
 import React from 'react';
-import { StudioButton } from '@studio/components';
-import { TrashIcon } from '@studio/icons';
+import { StudioDeleteButton } from '@studio/components';
 import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useDeleteLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -29,14 +28,13 @@ export const DeleteSubFormWrapper = ({
     layoutSets?.sets.find((set) => set.id === selectedLayoutSet)?.type === 'subform';
 
   return (
-    <StudioButton
-      icon={<TrashIcon />}
-      variant='tertiary'
-      color='danger'
-      onClick={onDeleteSubForm}
+    <StudioDeleteButton
+      onDelete={onDeleteSubForm}
       disabled={!isSubForm}
+      variant='tertiary'
+      confirmMessage={t('ux_editor.delete.sub_form.confirm')}
     >
       {t('ux_editor.delete.sub_form')}
-    </StudioButton>
+    </StudioDeleteButton>
   );
 };
