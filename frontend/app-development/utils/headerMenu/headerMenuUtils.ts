@@ -126,3 +126,9 @@ export const mapHeaderMenuGroupToNavigationMenu = (
     isBeta: menuItem.isBeta,
   })),
 });
+
+export const getFilteredMenuListForOverviewPage = (): HeaderMenuItem[] => {
+  return getFilteredTopBarMenu(RepositoryType.App).filter(
+    (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
+  );
+};

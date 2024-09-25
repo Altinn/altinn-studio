@@ -2,17 +2,13 @@ import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
 import { Heading, Tag } from '@digdir/designsystemet-react';
-import { getFilteredTopBarMenu } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
-import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
-import { RepositoryType } from 'app-shared/types/global';
 
 export const Navigation = () => {
   const { t } = useTranslation();
 
-  const menuItems = getFilteredTopBarMenu(RepositoryType.App).filter(
-    (item) => item.key !== HeaderMenuItemKey.About && item.key !== HeaderMenuItemKey.Deploy,
-  );
+  const menuItems = getFilteredMenuListForOverviewPage();
 
   return (
     <div className={classes.navigation}>

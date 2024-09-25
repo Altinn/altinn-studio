@@ -21,14 +21,13 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
   const { app } = useStudioEnvironmentParams();
   const { menuItems } = usePageHeaderContext();
 
-  const shouldDisplaySmallMenu = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
-  const shouldDisplayText = !shouldDisplaySmallMenu;
+  const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
   return (
     <StudioPageHeader>
       <StudioPageHeader.Main>
-        <StudioPageHeader.Left showTitle={shouldDisplayText} title={app} />
-        {!shouldDisplaySmallMenu && (
+        <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
+        {shouldDisplayDesktopMenu && (
           <StudioPageHeader.Center>
             {menuItems && (
               <LargeNavigationMenu

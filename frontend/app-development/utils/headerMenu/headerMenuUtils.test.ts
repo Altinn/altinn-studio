@@ -1,6 +1,7 @@
 import { RepositoryType } from 'app-shared/types/global';
 import {
   filterRoutesByFeatureFlag,
+  getFilteredMenuListForOverviewPage,
   getFilteredTopBarMenu,
   getTopBarMenuItems,
   groupMenuItemsByGroup,
@@ -134,6 +135,29 @@ describe('headerMenuUtils', () => {
       };
 
       expect(filterRoutesByFeatureFlag(menuItem)).toBe(false);
+    });
+  });
+
+  describe('getFilteredMenuListForOverviewPage', () => {
+    it('should filter out menu items with keys "About" and "Deploy"', () => {
+      const filteredMenu = getFilteredMenuListForOverviewPage();
+
+      // Ensure no item with key 'About' is present
+      expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.About)).toBe(false);
+
+      // Ensure no item with key 'Deploy' is present
+      expect(filteredMenu.some((item) => item.key === HeaderMenuItemKey.Deploy)).toBe(false);
+
+      // Ensure other items are still present
+      const remainingKeys = filteredMenu.map((item) => item.key);
+      expect(remainingKeys).toEqual(
+        expect.arrayContaining([
+          HeaderMenuItemKey.Create,
+          HeaderMenuItemKey.DataModel,
+          HeaderMenuItemKey.Text,
+          HeaderMenuItemKey.ProcessEditor,
+        ]),
+      );
     });
   });
 });
