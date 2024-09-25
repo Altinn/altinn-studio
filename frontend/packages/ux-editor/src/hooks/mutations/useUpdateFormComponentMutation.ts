@@ -7,12 +7,13 @@ import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachment
 import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
 import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
 import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { useFormLayout, useSelectedTaskId } from '../';
+import { useFormLayout } from '../';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
