@@ -865,20 +865,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             List<string> allFilePaths = new List<string>();
 
-            // Check if the directory exists
             if (!DirectoryExistsByRelativePath(ImagesFolderName))
             {
                 return allFilePaths;
             }
 
-            // Define allowed extensions
-            string[] allowedExtensions = { ".png", ".jpg", ".jpeg", ".svg" };
+            string[] allowedExtensions = { ".png", ".jpg", ".jpeg", ".svg", ".gif", ".bmp", ".webp", ".tiff" };
 
-            // Get all files in the directory and subdirectories that match the allowed extensions
             IEnumerable<string> files = GetFilesByRelativeDirectory(ImagesFolderName, "*.*", true)
                 .Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLower())).Select(file => Path.GetRelativePath(GetAbsoluteFileOrDirectoryPathSanitized(ImagesFolderName), file));
 
-            // Add the file paths to the list
             allFilePaths.AddRange(files);
 
             return allFilePaths;

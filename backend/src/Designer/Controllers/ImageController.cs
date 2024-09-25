@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Enums;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -49,7 +48,7 @@ public class ImageController : ControllerBase
     /// <returns>Image</returns>
     [HttpGet("{encodedImagePath}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public Stream GetImageByName(string org, string app, [FromRoute] string encodedImagePath)
+    public FileStreamResult GetImageByName(string org, string app, [FromRoute] string encodedImagePath)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string decodedImagePath = HttpUtility.UrlDecode(encodedImagePath);
@@ -106,7 +105,7 @@ public class ImageController : ControllerBase
         }
         if (!IsValidImageContentType(image.ContentType))
         {
-            return BadRequest("The uploaded file is not a valid image.");
+            throw new InvalidExtensionImageUploadException("The uploaded file is not a valid image.");
         }
 
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -148,13 +147,9 @@ public class ImageController : ControllerBase
         return ContentDispositionHeaderValue.Parse(new StringSegment(image.ContentDisposition)).FileName.ToString();
     }
 
-    // TODO: Implement a more secure way to check that the content is actually an image since the content-type header can be manipulated
     private bool IsValidImageContentType(string contentType)
     {
-        // Common image MIME types
-        string[] validImageTypes = { "image/jpeg", "image/png", "image/jpg", "image/svg+xml" };
-
-        return validImageTypes.Contains(contentType.ToLower());
+        return contentType.ToLower().StartsWith("image/");
     }
 
 }

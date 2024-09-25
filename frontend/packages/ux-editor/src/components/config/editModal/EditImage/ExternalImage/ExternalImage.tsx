@@ -38,6 +38,7 @@ export const ExternalImage = ({
   }, [validationResult, validationStatus, onUrlChange, url, existingImageUrl]);
 
   const handleBlur = async (newUrl: string) => {
+    if (isBLurInitialWithEmptyInput(url, newUrl)) return;
     if (newUrl === '') {
       onUrlDelete();
       setUrl(undefined);
@@ -86,3 +87,6 @@ export const ExternalImage = ({
     </>
   );
 };
+
+const isBLurInitialWithEmptyInput = (existingUrl: string, newUrl: string) =>
+  newUrl === '' && existingUrl === undefined;

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
+using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -21,10 +23,11 @@ public class ImagesService : IImagesService
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     }
 
-    public Stream GetImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
+    public FileStreamResult GetImage(AltinnRepoEditingContext altinnRepoEditingContext, string imageFilePath)
     {
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-        return altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
+        Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
+        return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
     }
 
     public List<string> GetAllImageFileNames(AltinnRepoEditingContext altinnRepoEditingContext)

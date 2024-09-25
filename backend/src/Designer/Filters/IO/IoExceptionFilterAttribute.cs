@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net;
+using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -27,6 +28,10 @@ public class IoExceptionFilterAttribute : ExceptionFilterAttribute
         {
             // TODO: Implement custom IO exceptions Error Codes
             context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, IoErrorCodes.ResourceNotFound, HttpStatusCode.NotFound)) { StatusCode = (int)HttpStatusCode.NotFound };
+        }
+        if (context.Exception is InvalidExtensionImageUploadException)
+        {
+            context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, IoErrorCodes.UploadedImageNotValid, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
         }
     }
 }
