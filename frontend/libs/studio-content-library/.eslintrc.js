@@ -17,11 +17,5 @@ module.exports = {
         ],
       },
     },
-    {
-      files: ['*.test.tsx'],
-      rules: {
-        '@typescript-eslint/naming-convention': 'off',
-      },
-    },
   ],
 };
