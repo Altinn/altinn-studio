@@ -9,7 +9,6 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@studio/content-library": "0.1.0",
     "@studio/hooks": "workspace:^",
     "@studio/icons": "workspace:^",
     "@studio/pure-functions": "workspace:^",
