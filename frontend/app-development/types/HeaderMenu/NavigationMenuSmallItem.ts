@@ -1,5 +1,3 @@
-// TODO Split to files
-
 type NavigationMenuItemButton = {
   type: 'button';
   onClick: () => void;
