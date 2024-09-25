@@ -13,6 +13,7 @@
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
   width: 100%;
+  gap: var(--fds-spacing-1);
 }
 
 .textContainer,
