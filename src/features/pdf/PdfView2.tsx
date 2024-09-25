@@ -181,7 +181,7 @@ function PdfForNode({ node }: { node: LayoutNode }) {
   }
 
   const betaEnabled = getFeature('betaPDFenabled');
-  if (betaEnabled.value && node.def.renderSummary2) {
+  if (betaEnabled.value) {
     return <ComponentSummary componentNode={node} />;
   }
 
