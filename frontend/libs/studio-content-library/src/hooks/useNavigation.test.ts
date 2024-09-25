@@ -1,5 +1,5 @@
 import { useNavigation } from './useNavigation';
-import { Page } from '../types';
+import type { Page } from '../types';
 import { act, renderHook } from '@testing-library/react';
 
 const mockRouterInstance = {

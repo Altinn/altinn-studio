@@ -1,7 +1,7 @@
 import { RouterRouteMapperImpl } from './RouterRouteMapper'; // Adjust the import path as necessary
 import { Root } from '../../pages/Root';
 import { CodeList } from '../../pages/CodeList';
-import { PageConfig } from '../../types/PagesProps';
+import type { PageConfig } from '../../types/PagesProps';
 
 const mockPageConfig: PageConfig = {
   root: {

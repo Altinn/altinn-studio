@@ -1,7 +1,7 @@
-import React from 'react';
+import type React from 'react';
 import { Root } from '../../pages/Root';
 import { CodeList } from '../../pages/CodeList';
-import { PageConfig } from '../../types/PagesProps';
+import type { PageConfig } from '../../types/PagesProps';
 
 type PageComponent<P = {}> = (props: P) => React.JSX.Element;
 

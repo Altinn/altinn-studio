@@ -1,1 +1,1 @@
-export { Page } from './pages';
+export type { Page } from './pages';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { QueryParamsRouterImpl } from '../utils/router/QueryParamsRouter';
-import { Page } from '../types';
+import type { Page } from '../types';
 
 type UseNavigationResult = {
   navigate: (page: Page) => void;

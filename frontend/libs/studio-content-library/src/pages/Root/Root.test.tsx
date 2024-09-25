@@ -22,14 +22,22 @@ describe('Root Component', () => {
   });
 
   it('renders the title and children', () => {
-    render(<Root title='Welcome' children={<div>Child Component</div>} />);
+    render(
+      <Root title='Welcome'>
+        <div>Child Component</div>
+      </Root>,
+    );
     expect(screen.getByRole('heading', { name: 'Welcome', level: 1 })).toBeInTheDocument();
     expect(screen.getByText('Child Component')).toBeInTheDocument();
   });
 
   it('navigates to codeList when button is clicked', async () => {
     const user = userEvent.setup();
-    render(<Root title='Welcome' children={<div>Child Component</div>} />);
+    render(
+      <Root title='Welcome'>
+        <div>Child Component</div>
+      </Root>,
+    );
 
     const button = screen.getByRole('button', { name: /to codelist/i });
     await user.click(button);

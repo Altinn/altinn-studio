@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouterContext } from '../contexts/RouterContext';
 import { RouterRouteMapperImpl } from '../utils/router/RouterRouteMapper';
-import { PageConfig } from '../types/PagesProps';
+import type { PageConfig } from '../types/PagesProps';
 
 type RouterPageProps = {
   pages: PageConfig;
