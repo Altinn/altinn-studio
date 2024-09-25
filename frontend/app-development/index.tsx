@@ -10,7 +10,6 @@ import { LoggerContextProvider } from 'app-shared/contexts/LoggerContext';
 import { altinnStudioEnvironment } from 'app-shared/utils/altinnStudioEnv';
 import type { QueryClientConfig } from '@tanstack/react-query';
 import { AppDevelopmentContextProvider } from './contexts/AppDevelopmentContext';
-import { ResourceContentLibraryImpl } from '@studio/content-library';
 
 const loggerConfig: LoggerConfig = {
   connectionString: altinnStudioEnvironment.aiConnectionString,
@@ -30,29 +29,13 @@ const queryClientConfig: QueryClientConfig = {
   },
 };
 
-const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
-  pages: {
-    root: {
-      props: {
-        title: 'hello',
-        children: <div>hello fra oss</div>,
-      },
-    },
-    codeList: {
-      props: {
-        title: 'Kodelister funker',
-      },
-    },
-  },
-});
-
 root.render(
   <LoggerContextProvider config={loggerConfig}>
     <ServicesContextProvider clientConfig={queryClientConfig} {...queries} {...mutations}>
       <PreviewConnectionContextProvider>
         <AppDevelopmentContextProvider>
           <div>{getContentResourceLibrary()}</div>
-          {/*<PageRoutes />*/}
+          <PageRoutes />
         </AppDevelopmentContextProvider>
       </PreviewConnectionContextProvider>
     </ServicesContextProvider>
