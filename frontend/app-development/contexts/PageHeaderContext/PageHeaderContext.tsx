@@ -12,7 +12,7 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 export type PageHeaderContextProps = {
   user: User;
   menuItems: HeaderMenuItem[];
-  profileMenuItems: StudioProfileMenuItem[]; // TODO - a better way for this type?
+  profileMenuItems: StudioProfileMenuItem[];
   repoOwnerIsOrg: boolean;
   variant: StudioPageHeaderProps['variant'];
 };
