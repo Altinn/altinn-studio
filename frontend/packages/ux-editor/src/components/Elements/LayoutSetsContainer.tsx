@@ -8,11 +8,6 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { SubFormWrapper } from './SubForm/SubFormWrapper';
 import { StudioCombobox } from '@studio/components';
 
-export type HandleLayoutSetChangeProps = {
-  layoutSet: string;
-  isNewLayoutSet?: boolean;
-};
-
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
@@ -33,21 +28,14 @@ export function LayoutSetsContainer() {
 
   if (!layoutSets) return null;
 
-  const handleLayoutSetChange = async ({
-    layoutSet,
-    isNewLayoutSet = false,
-  }: HandleLayoutSetChangeProps) => {
-    if (selectedFormLayoutSetName === layoutSet) return;
+  const handleLayoutSetChange = async (layoutSetName: string) => {
+    if (selectedFormLayoutSetName !== layoutSetName && layoutSetName) {
+      await refetchLayouts(layoutSetName);
+      await refetchLayoutSettings(layoutSetName);
 
-    const existingLayoutSet = layoutSets?.find((set) => set.id === layoutSet);
-
-    if (existingLayoutSet || isNewLayoutSet) {
-      await refetchLayouts(layoutSet);
-      await refetchLayoutSettings(layoutSet);
-
-      setSelectedFormLayoutSetName(layoutSet);
+      setSelectedFormLayoutSetName(layoutSetName);
       setSelectedFormLayoutName(undefined);
-      onLayoutSetNameChange(layoutSet);
+      onLayoutSetNameChange(layoutSetName);
     }
   };
 
@@ -57,7 +45,7 @@ export function LayoutSetsContainer() {
         label={t('left_menu.layout_dropdown_menu_label')}
         hideLabel
         value={[selectedFormLayoutSetName]}
-        onValueChange={(value) => handleLayoutSetChange({ layoutSet: value[0] })}
+        onValueChange={(value) => handleLayoutSetChange(value[0])}
       >
         {layoutSets.map((layoutSet) => (
           <StudioCombobox.Option
