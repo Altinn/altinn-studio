@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { CodeList } from './CodeList'; // Adjust the import path as necessary
+import { CodeList } from './CodeList';
 import { useRouterContext } from '../../contexts/RouterContext';
 import userEvent from '@testing-library/user-event';
 
