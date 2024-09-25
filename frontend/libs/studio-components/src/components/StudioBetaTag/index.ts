@@ -1,0 +1,1 @@
+export { StudioBetaTag } from './StudioBetaTag';
