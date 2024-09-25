@@ -5,10 +5,12 @@ import type { PropsFromGenericComponent } from '..';
 
 import { LikertDef } from 'src/layout/Likert/config.def.generated';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
-import { LikertSummary } from 'src/layout/Likert/Summary/LikertSummary';
+import { LikertSummaryComponent } from 'src/layout/Likert/Summary/LikertSummaryComponent';
+import { LikertSummary } from 'src/layout/Likert/Summary2/LikertSummary';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { ComponentValidation } from 'src/features/validation';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 
 export class Likert extends LikertDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Likert'>>(
@@ -17,16 +19,26 @@ export class Likert extends LikertDef {
     },
   );
 
-  renderSummary(props: SummaryRendererProps<'Likert'>): JSX.Element | null {
-    return <LikertSummary {...props} />;
+  getDisplayData(): string {
+    return '';
   }
 
   renderSummaryBoilerplate(): boolean {
     return false;
   }
 
-  getDisplayData(): string {
-    return '';
+  renderSummary(props: SummaryRendererProps<'Likert'>): JSX.Element | null {
+    return <LikertSummaryComponent {...props} />;
+  }
+
+  renderSummary2(props: Summary2Props<'Likert'>): JSX.Element | null {
+    return (
+      <LikertSummary
+        componentNode={props.target}
+        isCompact={props.isCompact}
+        emptyFieldText={props.override?.emptyFieldText}
+      />
+    );
   }
 
   // This component does not have empty field validation, so has to override its inherited method

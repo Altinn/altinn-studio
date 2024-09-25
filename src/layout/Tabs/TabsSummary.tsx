@@ -39,13 +39,13 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
             className={classes.tabWrapper}
           >
             <Heading
-              size='sm'
+              size='xs'
               level={4}
             >
-              {<Lang id={tab.title} />}
+              <Lang id={tab.title} />
             </Heading>
             <Grid
-              container={true}
+              container
               spacing={6}
               alignItems='flex-start'
             >

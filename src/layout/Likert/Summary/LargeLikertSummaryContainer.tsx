@@ -5,7 +5,7 @@ import { Heading } from '@digdir/designsystemet-react';
 
 import { Fieldset } from 'src/components/form/Fieldset';
 import { Lang } from 'src/features/language/Lang';
-import classes from 'src/layout/Likert/Summary/LikertSummary.module.css';
+import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { Hidden } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';

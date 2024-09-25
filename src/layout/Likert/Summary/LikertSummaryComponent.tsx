@@ -7,7 +7,7 @@ import { useDeepValidationsForNode } from 'src/features/validation/selectors/dee
 import { hasValidationErrors } from 'src/features/validation/utils';
 import { CompCategory } from 'src/layout/common';
 import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLikertSummaryContainer';
-import classes from 'src/layout/Likert/Summary/LikertSummary.module.css';
+import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { Hidden } from 'src/utils/layout/NodesContext';
@@ -17,7 +17,7 @@ import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export function LikertSummary({
+export function LikertSummaryComponent({
   onChangeClick,
   changeText,
   summaryNode,

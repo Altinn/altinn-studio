@@ -1,11 +1,10 @@
 import React from 'react';
 
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Label } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { validationsOfSeverity } from 'src/features/validation/utils';
@@ -50,11 +49,12 @@ export const RepeatingGroupSummary = ({
       className={cn(classes.summaryWrapper, { [classes.nestedSummaryWrapper]: isNested })}
       data-testid={'summary-repeating-group-component'}
     >
-      <Label
-        node={componentNode}
-        renderLabelAs='span'
-        textResourceBindings={{ title }}
-      />
+      <Heading
+        size='xs'
+        level={4}
+      >
+        <Lang id={title} />
+      </Heading>
       <div className={cn(classes.contentWrapper, { [classes.nestedContentWrapper]: isNested })}>
         {rows.map((row, index) => (
           <>

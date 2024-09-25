@@ -1,7 +1,7 @@
 import React from 'react';
 import type { JSX, PropsWithChildren } from 'react';
 
-import { ErrorMessage, Paragraph, Table } from '@digdir/designsystemet-react';
+import { ErrorMessage, Heading, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { LabelContent } from 'src/components/label/LabelContent';
@@ -109,15 +109,12 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
     >
       {title && (
         <caption className={classes.tableCaption}>
-          <Paragraph
-            className={classes.gridSummaryTitle}
-            size='large'
-            asChild
+          <Heading
+            size='xs'
+            level={4}
           >
-            <span>
-              <Lang id={title} />
-            </span>
-          </Paragraph>
+            <Lang id={title} />
+          </Heading>
         </caption>
       )}
       {tableSections}

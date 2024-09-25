@@ -5,6 +5,7 @@ import { DATEPICKER_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Datepicker/config'
 import { DROPDOWN_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Dropdown/config';
 import { GROUP_SUMMARY_PROPS } from 'src/layout/Group/config';
 import { INPUT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Input/config';
+import { LIKERT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Likert/config';
 import { LIST_SUMMARY_OVERRIDE_PROPS } from 'src/layout/List/config';
 import { MAP_SUMMARY_OVERRIDE_PROPS } from 'src/layout/Map/config';
 import { MULTIPLE_SELECT_SUMMARY_OVERRIDE_PROPS } from 'src/layout/MultipleSelect/config';
@@ -77,6 +78,7 @@ export const Config = new CG.component({
           LIST_SUMMARY_OVERRIDE_PROPS,
           TABS_SUMMARY_PROPS,
           MAP_SUMMARY_OVERRIDE_PROPS,
+          LIKERT_SUMMARY_OVERRIDE_PROPS,
           PAYMENT_SUMMARY_OVERRIDE_PROPS,
         ).exportAs('AnySummaryOverrideProps'),
       ).optional(),
