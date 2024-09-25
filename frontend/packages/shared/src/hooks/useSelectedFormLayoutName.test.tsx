@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { useSelectedTaskId } from './';
-import { layout1NameMock } from '../testing/layoutMock';
-import { layoutSet1NameMock } from '../testing/layoutSetsMock';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -11,11 +8,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
+import { useSelectedFormLayoutName } from './useSelectedFormLayoutName';
 
 // Test data:
-const selectedLayoutSet = layoutSet1NameMock;
+const selectedLayoutSet: string = 'selectedLayoutSet';
+const layout1NameMock: string = 'Side1';
 
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: layout1NameMock };
@@ -52,33 +50,28 @@ const wrapper = ({
   );
 };
 
-describe('useSelectedTaskId', () => {
+describe('useSelectedFormLayoutName', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should return the default task id when it does not exist', async () => {
-    const { result } = renderHook(() => useSelectedTaskId(selectedLayoutSet), { wrapper });
-    expect(result.current).toEqual(TASKID_FOR_STATELESS_APPS);
+  it('should return undefined when the select layout is invalid', async () => {
+    const { result } = renderHook(() => useSelectedFormLayoutName(selectedLayoutSet), { wrapper });
+    expect(result.current.selectedFormLayoutName).toEqual(undefined);
   });
 
-  it('should return the selected task when it exists', async () => {
-    const taskTest = 'Task_Test';
-
+  it('should return selected layout when the selected layout is valid', async () => {
     const client = createQueryClientMock();
-    client.setQueryData([QueryKey.LayoutSets, org, app], {
-      sets: [
-        {
-          id: selectedLayoutSet,
-          tasks: [taskTest],
-        },
-      ],
+    client.setQueryData([QueryKey.FormLayoutSettings, org, app, selectedLayoutSet], {
+      pages: {
+        order: [layout1NameMock],
+      },
     });
 
-    const { result } = renderHook(() => useSelectedTaskId(selectedLayoutSet), {
+    const { result } = renderHook(() => useSelectedFormLayoutName(selectedLayoutSet), {
       wrapper: ({ children }) => {
         return wrapper({ children, client });
       },
     });
 
-    expect(result.current).toEqual(taskTest);
+    expect(result.current.selectedFormLayoutName).toEqual(layout1NameMock);
   });
 });
