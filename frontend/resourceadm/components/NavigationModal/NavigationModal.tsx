@@ -13,7 +13,6 @@ export type NavigationModalProps = {
  * @component
  *    Displays the modal telling the user that there is a merge conflict
  *
- * @property {boolean}[isOpen] - Boolean for if the modal is open
  * @property {function}[onClose] - Function to handle close
  * @property {function}[onNavigate] - Function to be executed when navigating
  * @property {string}[title] - The title in the modal

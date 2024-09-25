@@ -157,7 +157,7 @@ describe('ResourcePage', () => {
     );
     renderResourcePage({ getRepoStatus });
 
-    await screen.findByText(textMock('merge_conflict.headline'));
+    await screen.findByText(textMock('resourceadm.merge_conflict_header'));
   });
 
   it('should navigate to policy page from modal when resource has errors', async () => {
@@ -173,10 +173,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 1,
-      }),
+      screen.queryByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
     ).not.toBeInTheDocument();
 
     const policyButton = screen.getByRole('tab', {
@@ -185,10 +182,7 @@ describe('ResourcePage', () => {
     await user.click(policyButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
     ).toBeInTheDocument();
 
     const navigateButton = screen.getByRole('button', {
@@ -252,10 +246,7 @@ describe('ResourcePage', () => {
     await user.click(aboutButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_policy'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_policy')),
     ).toBeInTheDocument();
   });
 

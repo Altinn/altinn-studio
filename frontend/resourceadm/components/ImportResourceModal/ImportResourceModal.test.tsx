@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ImportResourceModalProps } from './ImportResourceModal';
 import { ImportResourceModal } from './ImportResourceModal';
@@ -12,6 +13,7 @@ import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { mapAltinn2LinkServiceToSelectOption } from 'resourceadm/utils/mapperUtils';
 
+const mockButtonText: string = 'Mock Button';
 const mockAltinn2LinkService: Altinn2LinkService = {
   serviceOwnerCode: 'ttd',
   externalServiceCode: 'code1',
@@ -27,7 +29,6 @@ const getAltinn2LinkServices = jest
   .mockImplementation(() => Promise.resolve(mockAltinn2LinkServices));
 
 const defaultProps: ImportResourceModalProps = {
-  isOpen: true,
   onClose: mockOnClose,
 };
 
@@ -43,7 +44,7 @@ describe('ImportResourceModal', () => {
 
   it('selects environment and service, then checks if import button is enabled', async () => {
     const user = userEvent.setup();
-    renderImportResourceModal();
+    await renderAndOpenModal(user);
 
     const importButtonText = textMock('resourceadm.dashboard_import_modal_import_button');
     const importButton = screen.queryByRole('button', { name: importButtonText });
@@ -84,7 +85,7 @@ describe('ImportResourceModal', () => {
   it('should not import resource if some information is missing', async () => {
     const user = userEvent.setup();
     const importResourceFromAltinn2 = jest.fn();
-    renderImportResourceModal({ importResourceFromAltinn2 });
+    await renderAndOpenModal(user, { importResourceFromAltinn2 });
 
     const importButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_import_modal_import_button'),
@@ -96,7 +97,7 @@ describe('ImportResourceModal', () => {
 
   it('should clear service field when environment is changed', async () => {
     const user = userEvent.setup();
-    renderImportResourceModal();
+    await renderAndOpenModal(user);
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -130,7 +131,7 @@ describe('ImportResourceModal', () => {
 
   it('should clear id field when service is changed', async () => {
     const user = userEvent.setup();
-    renderImportResourceModal();
+    await renderAndOpenModal(user);
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -165,7 +166,7 @@ describe('ImportResourceModal', () => {
 
   it('calls onClose function when close button is clicked', async () => {
     const user = userEvent.setup();
-    renderImportResourceModal();
+    await renderAndOpenModal(user);
 
     const closeButton = screen.getByRole('button', { name: textMock('general.cancel') });
     await user.click(closeButton);
@@ -176,7 +177,7 @@ describe('ImportResourceModal', () => {
   it('calls import resource from Altinn 2 when import is clicked', async () => {
     const user = userEvent.setup();
     const importResourceFromAltinn2 = jest.fn();
-    renderImportResourceModal({ importResourceFromAltinn2 });
+    await renderAndOpenModal(user, { importResourceFromAltinn2 });
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -208,7 +209,7 @@ describe('ImportResourceModal', () => {
 
   it('formats id when id field is changed', async () => {
     const user = userEvent.setup();
-    renderImportResourceModal();
+    await renderAndOpenModal(user);
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -240,7 +241,7 @@ describe('ImportResourceModal', () => {
 
   it('displays error message when resource identifier starts with _app', async () => {
     const user = userEvent.setup();
-    renderImportResourceModal();
+    await renderAndOpenModal(user);
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -278,7 +279,8 @@ describe('ImportResourceModal', () => {
     const importResourceFromAltinn2 = jest
       .fn()
       .mockImplementation(() => Promise.reject({ response: { status: ServerCodes.Conflict } }));
-    renderImportResourceModal({ importResourceFromAltinn2 });
+
+    await renderAndOpenModal(user, { importResourceFromAltinn2 });
 
     const environmentSelect = screen.getByLabelText(
       textMock('resourceadm.dashboard_import_modal_select_env'),
@@ -319,8 +321,29 @@ const renderImportResourceModal = (queries: Partial<ServicesContextProps> = {}) 
   return render(
     <MemoryRouter>
       <ServicesContextProvider {...allQueries} {...queries} client={createQueryClientMock()}>
-        <ImportResourceModal {...defaultProps} />
+        <TestComponentWithButton />
       </ServicesContextProvider>
     </MemoryRouter>,
+  );
+};
+
+const renderAndOpenModal = async (
+  user: UserEvent,
+  queryMocks: Partial<ServicesContextProps> = {},
+) => {
+  renderImportResourceModal(queryMocks);
+
+  const openModalButton = screen.getByRole('button', { name: mockButtonText });
+  await user.click(openModalButton);
+};
+
+const TestComponentWithButton = () => {
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  return (
+    <>
+      <button onClick={() => modalRef.current?.showModal()}>{mockButtonText}</button>
+      <ImportResourceModal ref={modalRef} {...defaultProps} />
+    </>
   );
 };

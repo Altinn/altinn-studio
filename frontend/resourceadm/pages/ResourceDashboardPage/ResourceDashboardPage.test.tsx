@@ -137,10 +137,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const modalTitle = screen.queryByRole('heading', {
-      name: textMock('resourceadm.dashboard_import_modal_title'),
-      level: 1,
-    });
+    const modalTitle = screen.queryByText(textMock('resourceadm.dashboard_import_modal_title'));
     expect(modalTitle).not.toBeInTheDocument();
 
     const importButton = screen.getByRole('button', {
@@ -149,10 +146,7 @@ describe('ResourceDashBoardPage', () => {
     await user.click(importButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.dashboard_import_modal_title'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.dashboard_import_modal_title')),
     ).toBeInTheDocument();
   });
 
@@ -255,7 +249,7 @@ describe('ResourceDashBoardPage', () => {
     );
     renderResourceDashboardPage({ getRepoStatus });
 
-    await screen.findByText(textMock('merge_conflict.headline'));
+    await screen.findByText(textMock('resourceadm.merge_conflict_header'));
   });
 
   it('should close select test environment modal when clicking cancel button', async () => {
