@@ -97,10 +97,10 @@ public class PreviewService : IPreviewService
                 foreach (LayoutSetConfig layoutSet in layoutSets.Sets.Where(ls => !tasks.Contains(ls.Tasks?[0])))
                 {
                     if (layoutSet.Tasks?[0] == Constants.General.CustomReceiptId)
-                    { 
+                    {
                         continue;
                     }
-                    if(layoutSet.Tasks != null)
+                    if (layoutSet.Tasks != null)
                     {
                         tasks.Add(layoutSet.Tasks[0]);
                     }
