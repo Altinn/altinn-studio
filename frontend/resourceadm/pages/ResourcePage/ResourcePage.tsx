@@ -151,10 +151,14 @@ export const ResourcePage = (): React.JSX.Element => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
-    policyErrorModalRef.current.close();
-    resourceErrorModalRef.current.close();
+    closeNavigationModals();
     refetchRepoStatus();
     navigate(getResourcePageURL(org, app, resourceId, newPage));
+  };
+
+  const closeNavigationModals = (): void => {
+    policyErrorModalRef.current.close();
+    resourceErrorModalRef.current.close();
   };
 
   /**
@@ -313,13 +317,13 @@ export const ResourcePage = (): React.JSX.Element => {
       <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       <NavigationModal
         ref={policyErrorModalRef}
-        onClose={() => policyErrorModalRef.current.close()}
+        onClose={closeNavigationModals}
         onNavigate={() => handleNavigation(nextPage)}
         title={t('resourceadm.resource_navigation_modal_title_policy')}
       />
       <NavigationModal
         ref={resourceErrorModalRef}
-        onClose={() => resourceErrorModalRef.current.close()}
+        onClose={closeNavigationModals}
         onNavigate={() => handleNavigation(nextPage)}
         title={t('resourceadm.resource_navigation_modal_title_resource')}
       />
