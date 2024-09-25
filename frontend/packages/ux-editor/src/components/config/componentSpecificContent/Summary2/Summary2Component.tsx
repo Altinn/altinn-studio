@@ -107,7 +107,7 @@ export const Summary2Component = ({
             value={target.id}
             options={componentOptions}
             onValueChange={handleTargetIdChange}
-          ></Summmary2ComponentTargetSelector>
+          />
         )}
         {target.type === 'layoutSet' && (
           <StudioTextfield
