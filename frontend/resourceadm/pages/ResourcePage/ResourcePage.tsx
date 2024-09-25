@@ -179,6 +179,10 @@ export const ResourcePage = (): React.JSX.Element => {
     handleNavigation(page);
   };
 
+  const navigateFromWarningModal = (): void => {
+    handleNavigation(nextPage);
+  };
+
   const altinn2References = getAltinn2Reference(resourceData);
   /**
    * Decide if the migration page should be accessible or not
@@ -318,13 +322,13 @@ export const ResourcePage = (): React.JSX.Element => {
       <NavigationModal
         ref={policyErrorModalRef}
         onClose={closeNavigationModals}
-        onNavigate={() => handleNavigation(nextPage)}
+        onNavigate={navigateFromWarningModal}
         title={t('resourceadm.resource_navigation_modal_title_policy')}
       />
       <NavigationModal
         ref={resourceErrorModalRef}
         onClose={closeNavigationModals}
-        onNavigate={() => handleNavigation(nextPage)}
+        onNavigate={navigateFromWarningModal}
         title={t('resourceadm.resource_navigation_modal_title_resource')}
       />
     </div>
