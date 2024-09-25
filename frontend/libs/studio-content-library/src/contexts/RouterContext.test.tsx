@@ -59,7 +59,7 @@ describe('RouterContext', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useRouterContext();
-      return <div data-testid='context'>Test</div>;
+      return <div>Test</div>;
     };
 
     expect(() => render(<TestComponent />)).toThrow(
