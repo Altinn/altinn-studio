@@ -62,6 +62,25 @@ describe('useDeleteDataModelMutation', () => {
       client.getQueryData([QueryKey.JsonSchema, org, app, modelMetadataXsd.repositoryRelativeUrl]),
     ).toBeUndefined();
   });
+
+  it('Invalidates the appMetadataModelIds and appMetadata from the cache', async () => {
+    const client = createQueryClientMock();
+    const invalidateQueriesSpy = jest.spyOn(client, 'invalidateQueries');
+    client.setQueryData([QueryKey.DataModelsJson, org, app], [modelMetadataJson]);
+    client.setQueryData([QueryKey.DataModelsXsd, org, app], [modelMetadataXsd]);
+    const {
+      renderHookResult: { result },
+    } = render({}, client);
+    result.current.mutate(modelPath);
+    await waitFor(() => result.current.isSuccess);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppMetadataModelIds, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppMetadata, org, app],
+    });
+  });
 });
 
 const render = (

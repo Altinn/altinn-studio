@@ -165,7 +165,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: false,
+      timeStamp: true,
     },
     propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
@@ -444,7 +444,14 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Summary2]: {
     name: ComponentType.Summary2,
     itemType: LayoutItemType.Component,
-    defaultProperties: {},
+    defaultProperties: {
+      target: {
+        type: 'component',
+        id: '',
+        taskId: '',
+      },
+    },
+    propertyPath: 'definitions/summary2Component',
     icon: FileTextIcon,
   },
   [ComponentType.TextArea]: {

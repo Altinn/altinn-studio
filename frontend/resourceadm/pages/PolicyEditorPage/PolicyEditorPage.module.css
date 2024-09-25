@@ -1,5 +1,5 @@
 .policyEditorWrapper {
-  width: 90%;
+  max-width: 40rem;
   margin: 0;
   padding: var(--fds-spacing-10);
 }
