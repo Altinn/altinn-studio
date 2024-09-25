@@ -31,7 +31,10 @@ export const Summary2Component = ({
     ComponentType.Summary2,
     ComponentType.NavigationButtons,
     ComponentType.NavigationBar,
-  ]; // TODO: Add more components that should be excluded
+  ];
+  // TODO: This list of components to exclude when listing targets
+  // is not complete. Add more components that should be excluded
+  // as part of https://github.com/Altinn/altinn-studio/issues/13528
 
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout, excludedComponents),
