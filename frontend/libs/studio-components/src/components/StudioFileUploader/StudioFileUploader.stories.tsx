@@ -5,7 +5,7 @@ import { StudioFileUploadWrapper } from './StudioFileUploaderWrapper';
 type Story = StoryFn<typeof StudioFileUploadWrapper>;
 
 const meta: Meta = {
-  title: 'StudioFileUploader',
+  title: 'Components/StudioFileUploader',
   component: StudioFileUploadWrapper,
   argTypes: {
     size: {

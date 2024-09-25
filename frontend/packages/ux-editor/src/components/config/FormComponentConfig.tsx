@@ -118,6 +118,7 @@ export const FormComponentConfig = ({
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
+            defaultValue={properties[propertyKey].default}
             key={propertyKey}
             helpText={properties[propertyKey]?.description}
           />
@@ -131,6 +132,7 @@ export const FormComponentConfig = ({
             propertyKey='hasCustomFileEndings'
             helpText={hasCustomFileEndings.description}
             component={component}
+            defaultValue={hasCustomFileEndings.default}
             handleComponentChange={(updatedComponent: FormComponent) => {
               if (!updatedComponent.hasCustomFileEndings) {
                 handleComponentUpdate({
