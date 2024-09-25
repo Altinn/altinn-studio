@@ -117,7 +117,7 @@ export class SchemaModel {
       return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
     const category = extractCategoryFromPointer(schemaPointer);
     const parentPointer = this.removeUniquePointerPrefix(uniqueParentPointer);
-    return `${UNIQUE_POINTER_PREFIX}${parentPointer}${category}/${extractNameFromPointer(schemaPointer)}`;
+    return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 
   public hasNode(schemaPointer: string): boolean {

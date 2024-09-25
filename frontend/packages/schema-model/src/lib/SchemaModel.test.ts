@@ -204,7 +204,7 @@ describe('SchemaModel', () => {
       const { schemaPointer } = combinationDefNodeChild1Mock;
       const uniquePointerOfParent = referenceToCombinationDefNodeMock.schemaPointer;
       const result = schemaModel.getUniquePointer(schemaPointer, uniquePointerOfParent);
-      const expectedResult = '#/properties/referenceToCombinationDef/oneOf/0';
+      const expectedResult = `${UNIQUE_POINTER_PREFIX}#/properties/referenceToCombinationDef/oneOf/0`;
       expect(result).toEqual(expectedResult);
     });
   });
