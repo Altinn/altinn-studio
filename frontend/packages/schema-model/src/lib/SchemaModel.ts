@@ -1,7 +1,6 @@
 import {
   CombinationKind,
   FieldType,
-  Keyword,
   type NodePosition,
   type UiSchemaNode,
   type UiSchemaNodes,
@@ -31,6 +30,7 @@ import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
   createDefinitionPointer,
   createPropertyPointer,
+  extractCategoryFromPointer,
   extractNameFromPointer,
   makePointerFromArray,
 } from './pointerUtils';
@@ -90,7 +90,7 @@ export class SchemaModel {
     const parentNodePointer = this.getParentSchemaPointerByUniquePointer(uniquePointer);
     return makePointerFromArray([
       parentNodePointer,
-      Keyword.Properties,
+      extractCategoryFromPointer(uniquePointer),
       extractNameFromPointer(uniquePointer),
     ]);
   }
@@ -109,8 +109,8 @@ export class SchemaModel {
 
   public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer)) return schemaPointer;
-
-    return `${uniqueParentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
+    const category = extractCategoryFromPointer(schemaPointer);
+    return `${uniqueParentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 
   public hasNode(schemaPointer: string): boolean {
