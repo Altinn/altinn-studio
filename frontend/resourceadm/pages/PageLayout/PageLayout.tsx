@@ -39,7 +39,7 @@ export const PageLayout = (): React.JSX.Element => {
     if (organizations && !userHasAccessToOrganization({ org, orgs: organizations })) {
       navigate('/');
     }
-  }, [organizations, org, user.login, navigate]);
+  }, [organizations, org, navigate]);
 
   useEffect(() => {
     if (repoStatus?.hasMergeConflict) {
@@ -53,9 +53,7 @@ export const PageLayout = (): React.JSX.Element => {
         event.origin === window.location.origin &&
         event.data === postMessages.forceRepoStatusCheck
       ) {
-        if (event.data === postMessages.forceRepoStatusCheck) {
-          mergeConflictModalRef.current.showModal();
-        }
+        mergeConflictModalRef.current.showModal();
       }
     };
 
