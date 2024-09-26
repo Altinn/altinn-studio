@@ -7,11 +7,8 @@ export const useDeleteImageMutation = (org: string, app: string) => {
   const { deleteImage } = useServicesContext();
   return useMutation({
     mutationFn: (imageName: string) => deleteImage(org, app, imageName).then(() => imageName),
-    onSuccess: async (imageName: string) => {
-      queryClient.setQueryData(
-        [QueryKey.ImageFileNames, org, app],
-        (oldImages: string[]): string[] => oldImages.splice(oldImages.indexOf(imageName), 1),
-      );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ImageFileNames, org, app] });
     },
   });
 };
