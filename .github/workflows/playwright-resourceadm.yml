@@ -51,7 +51,7 @@ jobs:
       - name: Resourceadm Playwright run
         working-directory: frontend/resourceadm/testing/playwright
         env:
-          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+          PLAYWRIGHT_TEST_BASE_URL: 'https://staging.altinn.studio'
           PLAYWRIGHT_RESOURCES_ORGANIZATION: ttd
           PLAYWRIGHT_RESOURCES_REPO_NAME: ttd-resources
           PLAYWRIGHT_USER: 'AutoTest'
