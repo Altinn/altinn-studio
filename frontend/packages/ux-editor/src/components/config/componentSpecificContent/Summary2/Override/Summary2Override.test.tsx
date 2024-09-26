@@ -99,6 +99,25 @@ describe('Summary2Override', () => {
       ),
     );
   });
+
+  it('should be able to change override emptyFieldText', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: '1' }],
+    });
+    const emptyFieldText = 'asdf;ljr%';
+    await user.type(
+      screen.getByLabelText(
+        textMock('ux_editor.component_properties.summary.override.empty_field_text'),
+      ),
+      emptyFieldText,
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: '1', emptyFieldText }]),
+      ),
+    );
+  });
 });
 
 const addNewOverrideButton = () =>
