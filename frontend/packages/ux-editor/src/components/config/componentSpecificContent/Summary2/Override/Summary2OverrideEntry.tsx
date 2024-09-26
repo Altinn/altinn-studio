@@ -43,7 +43,7 @@ export const Summary2OverrideEntry = ({
     <>
       <Summmary2ComponentReferenceSelector
         label={t('ux_editor.component_properties.summary.override.component_id')}
-        value={override.componentId ?? ''}
+        value={override.componentId}
         options={componentOptions}
         onValueChange={(value) => onChangeOverride('componentId', value)}
       ></Summmary2ComponentReferenceSelector>
