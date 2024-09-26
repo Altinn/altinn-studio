@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React from 'react';
 import { StudioCombobox } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
@@ -17,7 +17,6 @@ export const Summmary2ComponentReferenceSelector = ({
 }: Summary2ComponentTargetIdProps) => {
   const invalidOption = Boolean(value) && !options.some((option) => option.id === value);
   const { t } = useTranslation();
-  const id = useId();
 
   const errorMessage = invalidOption
     ? t('ux_editor.component_properties.target_invalid')
@@ -34,16 +33,12 @@ export const Summmary2ComponentReferenceSelector = ({
       multiple={false}
     >
       {options.map((option) => (
-        <StudioCombobox.Option
-          value={option.id}
-          key={id + option.id}
-          description={option.description}
-        >
+        <StudioCombobox.Option value={option.id} key={option.id} description={option.description}>
           {option.id}
         </StudioCombobox.Option>
       ))}
       {value && invalidOption && (
-        <StudioCombobox.Option disabled value={value} key={id + value}>
+        <StudioCombobox.Option disabled value={value} key={value}>
           {value}
         </StudioCombobox.Option>
       )}
