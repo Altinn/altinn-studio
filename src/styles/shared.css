@@ -23,3 +23,9 @@ input.form-control:focus:not(.a-hasButton) {
   outline: 2px solid #0062ba;
   outline-offset: 0px;
 }
+
+@media print {
+  html {
+    font-size: 10px !important;
+  }
+}
