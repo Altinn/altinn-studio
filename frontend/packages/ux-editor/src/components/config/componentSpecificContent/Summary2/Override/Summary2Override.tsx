@@ -1,11 +1,10 @@
-import { Divider } from '@digdir/designsystemet-react';
 import { StudioButton, StudioCard, StudioHeading, StudioParagraph } from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Summary2OverrideEntry } from './Summary2OverrideEntry';
 
-type Summary2OverrideProps = {
+export type Summary2OverrideProps = {
   overrides: Summary2OverrideConfig[];
   onChange: (overrides: Summary2OverrideConfig[]) => void;
 };
@@ -46,16 +45,12 @@ export const Summary2Override = ({ overrides, onChange }: Summary2OverrideProps)
       <StudioCard.Content>
         {overrides &&
           overrides.map((override, index) => (
-            <StudioCard key={index}>
-              <StudioCard.Content>
-                <Divider></Divider>
-                <Summary2OverrideEntry
-                  override={override}
-                  onChange={onChangeOverride(index)}
-                  onDelete={onDeleteOverride(index)}
-                ></Summary2OverrideEntry>
-              </StudioCard.Content>
-            </StudioCard>
+            <Summary2OverrideEntry
+              key={`${index}${override.componentId}`}
+              override={override}
+              onChange={onChangeOverride(index)}
+              onDelete={onDeleteOverride(index)}
+            ></Summary2OverrideEntry>
           ))}
         <StudioButton size='sm' variant='primary' onClick={addOverride}>
           {t('ux_editor.component_properties.summary.add_override')}

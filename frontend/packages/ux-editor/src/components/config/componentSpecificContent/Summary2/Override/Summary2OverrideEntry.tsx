@@ -48,6 +48,7 @@ export const Summary2OverrideEntry = ({
         onValueChange={(value) => onChangeOverride('componentId', value)}
       ></Summmary2ComponentReferenceSelector>
       <Checkbox
+        size='sm'
         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
           onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
         }
@@ -57,6 +58,7 @@ export const Summary2OverrideEntry = ({
         {t('ux_editor.component_properties.summary.override.hidden')}
       </Checkbox>
       <Checkbox
+        size='sm'
         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
           onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
         }
@@ -66,6 +68,7 @@ export const Summary2OverrideEntry = ({
         {t('ux_editor.component_properties.summary.override.force_show')}
       </Checkbox>
       <Checkbox
+        size='sm'
         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
           onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
         }
