@@ -141,6 +141,12 @@ export type Summary2OverrideConfig = {
   hideEmptyFields?: boolean;
 };
 
+export type Summary2TargetConfig = {
+  type?: SummaryTargetType;
+  id?: string;
+  taskId?: string;
+};
+
 export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
   [ComponentType.Alert]: { severity: 'success' | 'info' | 'warning' | 'danger' };
   [ComponentType.Accordion]: { headingLevel?: HeadingLevel };
@@ -379,13 +385,10 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
   };
   [ComponentType.Summary2]: {
-    target: {
-      type?: SummaryTargetType;
-      id?: string;
-      taskId?: string;
-    };
+    target: Summary2TargetConfig;
     showPageInAccordion?: boolean;
     hideEmptyFields?: boolean;
+    overrides?: Summary2OverrideConfig[];
   };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
