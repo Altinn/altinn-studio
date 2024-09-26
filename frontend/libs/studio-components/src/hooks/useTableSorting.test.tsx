@@ -1,5 +1,5 @@
 import { useTableSorting } from './useTableSorting';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import type { Rows } from '../components';
 
 describe('useTableSorting', () => {
@@ -28,7 +28,7 @@ describe('useTableSorting', () => {
 
   it('should sort rows in ascending order when a column is clicked', async () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
-    await waitFor(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting('creator'));
 
     const creatorsAscending: string[] = [];
     result.current.sortedRows.forEach((row) => {
@@ -42,8 +42,8 @@ describe('useTableSorting', () => {
 
   it('should sort rows in descending order when the same column is clicked again', async () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
-    await waitFor(() => result.current.handleSorting('creator'));
-    await waitFor(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting('creator'));
 
     const creatorsDescending: string[] = [];
     result.current.sortedRows.forEach((row) => {
@@ -57,8 +57,8 @@ describe('useTableSorting', () => {
 
   it('should reset the sort direction to ascending when a different column is clicked', async () => {
     const { result } = renderHook(() => useTableSorting(rows, { enable: true }));
-    await waitFor(() => result.current.handleSorting('creator'));
-    await waitFor(() => result.current.handleSorting('id'));
+    act(() => result.current.handleSorting('creator'));
+    act(() => result.current.handleSorting('id'));
     expect(result.current.sortedRows).toEqual(rows);
   });
 
