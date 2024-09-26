@@ -161,6 +161,14 @@ export type NodeValidation<Validation extends AnyValidation<any> = AnyValidation
 };
 
 /**
+ * The same as NodeValidation, but with a nodeId instead of a node.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type NodeRefValidation<Validation extends AnyValidation<any> = AnyValidation<any>> = Validation & {
+  nodeId: string;
+};
+
+/**
  * Contains all the necessary elements from the store to run frontend validations.
  */
 export type ValidationDataSources = {

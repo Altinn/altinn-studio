@@ -20,18 +20,16 @@ import {
   useQueryKey,
   useQueryKeysAsStringAsRef,
 } from 'src/features/routing/AppRoutingContext';
-import { FrontendValidationSource } from 'src/features/validation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { SearchParams, useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
-import { useGetPage, useNode } from 'src/utils/layout/NodesContext';
+import { NodesInternal, useGetPage, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { NodeData } from 'src/utils/layout/types';
 
 interface FormState {
   hasRequired: boolean;
-  requiredFieldsMissing: boolean;
   mainIds: string[] | undefined;
   errorReportIds: string[];
 }
@@ -41,11 +39,11 @@ export function Form() {
   const { isValidPageId, navigateToPage } = useNavigatePage();
   const [formState, setFormState] = useState<FormState>({
     hasRequired: false,
-    requiredFieldsMissing: false,
     mainIds: undefined,
     errorReportIds: [],
   });
-  const { hasRequired, requiredFieldsMissing, mainIds, errorReportIds } = formState;
+  const { hasRequired, mainIds, errorReportIds } = formState;
+  const requiredFieldsMissing = NodesInternal.usePageHasVisibleRequiredValidations(currentPageId);
 
   useRedirectToStoredPage();
   useSetExpandedWidth();
@@ -213,15 +211,11 @@ function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
     }
     return extractBottomButtons(traverser.with(page).children());
   });
-  const requiredFieldsMissing = formErrors.some(
-    (error) => error.source === FrontendValidationSource.EmptyField && error.node.pageKey === currentPageId,
-  );
 
   useEffect(() => {
     setFormState((prevState) => {
       if (
         prevState.hasRequired === hasRequired &&
-        prevState.requiredFieldsMissing === requiredFieldsMissing &&
         deepEqual(mainIds, prevState.mainIds) &&
         deepEqual(errorReportIds, prevState.errorReportIds)
       ) {
@@ -230,12 +224,11 @@ function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
 
       return {
         hasRequired,
-        requiredFieldsMissing,
         mainIds,
         errorReportIds,
       };
     });
-  }, [setFormState, hasRequired, requiredFieldsMissing, mainIds, errorReportIds]);
+  }, [setFormState, hasRequired, mainIds, errorReportIds]);
 
   return null;
 }

@@ -442,6 +442,7 @@ export class ComponentConfig {
       stateFactory(props: ${StateFactoryProps}<'${this.type}'>) {
         const baseState: ${BaseNodeData}<'${this.type}'> = {
           type: 'node',
+          pageKey: props.pageKey,
           item: undefined,
           layout: props.item,
           hidden: undefined,

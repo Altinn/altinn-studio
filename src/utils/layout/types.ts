@@ -17,6 +17,7 @@ export interface BaseRow {
 
 export interface StateFactoryProps<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
+  pageKey: string;
   parent: LayoutNode | LayoutPage;
   rowIndex: number | undefined;
 }
@@ -28,6 +29,7 @@ export interface GeneratorErrors {
 
 export interface BaseNodeData<T extends CompTypes> {
   type: 'node';
+  pageKey: string;
   layout: CompIntermediate<T>;
   item: CompInternal<T> | undefined;
   hidden: HiddenState | undefined;

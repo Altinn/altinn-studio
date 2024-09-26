@@ -9,7 +9,7 @@ import { Validation } from 'src/features/validation/validationContext';
 import { getKeyWithoutIndex } from 'src/utils/databindings';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
-import { useNodeTraversalSilent } from 'src/utils/layout/useNodeTraversal';
+import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { Expression } from 'src/features/expressions/types';
 import type { IDataModelReference, ILayoutSet } from 'src/layout/common.generated';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -34,7 +34,7 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
   const formData = FD.useDebounced(dataType);
   const expressionValidationConfig = DataModels.useExpressionValidationConfig(dataType);
   const dataSources = useExpressionDataSources();
-  const allNodes = useNodeTraversalSilent((t) => t.allNodes());
+  const allNodes = useNodeTraversal((t) => t.allNodes());
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
 
   useEffect(() => {

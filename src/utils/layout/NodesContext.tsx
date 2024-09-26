@@ -713,7 +713,7 @@ function isHiddenPage(state: NodesContext, page: LayoutPage | string | undefined
   return isHiddenHere(hiddenState, options);
 }
 
-function isHidden(
+export function isHidden(
   state: NodesContext,
   node: LayoutNode | LayoutPage | undefined,
   options?: IsHiddenOptions,
