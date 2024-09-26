@@ -51,7 +51,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTypeSelect(), 'layoutSet');
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'layoutSet' } }),
+      expect.objectContaining({ target: { type: 'layoutSet', id: '' } }),
     );
   });
 
