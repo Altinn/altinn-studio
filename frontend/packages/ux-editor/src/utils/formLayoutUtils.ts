@@ -490,3 +490,18 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
  * */
 export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
   flattenObjectValues(layout.order);
+
+/**
+ * Get all components in the given layout
+ * @param layout The layout
+ * @param excludeTypes Optional array to exclude certain component types
+ * @returns An array of all components in the layout, excluding the types in the excludeTypes array
+ * */
+export const getAllLayoutComponents = (
+  layout: IInternalLayout,
+  excludeTypes?: ComponentType[],
+): FormComponent[] => {
+  return Object.values(layout.components).filter(
+    (component) => !excludeTypes || !excludeTypes.includes(component.type),
+  );
+};
