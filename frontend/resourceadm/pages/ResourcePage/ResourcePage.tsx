@@ -10,13 +10,11 @@ import {
   useValidatePolicyQuery,
   useValidateResourceQuery,
 } from '../../hooks/queries';
-import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
 import { Spinner } from '@digdir/designsystemet-react';
 import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
@@ -48,7 +46,6 @@ export const ResourcePage = (): React.JSX.Element => {
   const autoSaveTimeoutRef = useRef(undefined);
   const policyErrorModalRef = useRef<HTMLDialogElement>(null);
   const resourceErrorModalRef = useRef<HTMLDialogElement>(null);
-  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
 
   const { pageType, resourceId, org, app, env, accessListId } = useUrlParams();
   const currentPage = pageType as NavigationBarPage;
@@ -62,9 +59,6 @@ export const ResourcePage = (): React.JSX.Element => {
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
   const [showPolicyErrors, setShowPolicyErrors] = useState(false);
-
-  // Get the metadata for Gitea
-  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(org, app, resourceId);
@@ -96,12 +90,6 @@ export const ResourcePage = (): React.JSX.Element => {
       editResource(resource);
     }, 400);
   };
-
-  useEffect(() => {
-    if (repoStatus?.hasMergeConflict) {
-      mergeConflictModalRef.current.showModal();
-    }
-  }, [repoStatus?.hasMergeConflict]);
 
   /**
    * Navigates to the selected page
@@ -152,7 +140,6 @@ export const ResourcePage = (): React.JSX.Element => {
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
     closeNavigationModals();
-    refetchRepoStatus();
     navigate(getResourcePageURL(org, app, resourceId, newPage));
   };
 
@@ -318,7 +305,6 @@ export const ResourcePage = (): React.JSX.Element => {
           )}
         </div>
       )}
-      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       <NavigationModal
         ref={policyErrorModalRef}
         onClose={closeNavigationModals}

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
@@ -7,10 +7,8 @@ import { Spinner, Heading } from '@digdir/designsystemet-react';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSeachBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
-import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { NewResourceModal } from '../../components/NewResourceModal';
 import { ImportResourceModal } from '../../components/ImportResourceModal';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
@@ -32,7 +30,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
-  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
 
@@ -49,19 +46,11 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     availableEnvs: EnvId[];
   } | null>(null);
 
-  // Get metadata with queries
-  const { data: repoStatus } = useRepoStatusQuery(org, app);
   const {
     data: resourceListData,
     isPending: resourceListPending,
     isRefetching: refetchingList,
   } = useGetResourceListQuery(org);
-
-  useEffect(() => {
-    if (repoStatus?.hasMergeConflict) {
-      mergeConflictModalRef.current.showModal();
-    }
-  }, [repoStatus?.hasMergeConflict]);
 
   const filteredResourceList = filterTableData(searchValue, resourceListData ?? []);
 
@@ -171,7 +160,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       <NewResourceModal
         ref={createResourceModalRef}
         onClose={() => createResourceModalRef.current?.close()}
