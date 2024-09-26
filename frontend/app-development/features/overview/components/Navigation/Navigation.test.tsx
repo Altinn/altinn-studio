@@ -62,9 +62,7 @@ describe('Navigation', () => {
     });
 
     betaItems.forEach((link) => {
-      expect(
-        screen.getByRole('link', { name: `${textMock(link.key)} ${textMock('general.beta')}` }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: `${textMock(link.key)} Beta` })).toBeInTheDocument();
     });
   });
 });
@@ -72,7 +70,7 @@ describe('Navigation', () => {
 const getLinkName = (linkItem: HeaderMenuItem): string => {
   let name = textMock(linkItem.key);
   if (linkItem.isBeta) {
-    name = `${name} ${textMock('general.beta')}`;
+    name = `${name} Beta`;
   }
   return name;
 };
