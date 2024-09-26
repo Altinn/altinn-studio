@@ -869,6 +869,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 return allFilePaths;
             }
 
+            // Make sure to sync this list of fileExtensions in frontend if changed until the below issue is done:
+            // ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
             string[] allowedExtensions =
             {
                 ".png", ".jpg", ".jpeg", ".svg", ".gif",

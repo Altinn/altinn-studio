@@ -9,6 +9,8 @@ import { MAX_FILE_SIZE_MB, WWWROOT_FILE_PATH } from '../../../../EditImage/const
 import classes from './UploadImage.module.css';
 import { toast } from 'react-toastify';
 
+// This list should be fetched from backend to ensure we use equal validation
+// ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
 const LIST_OF_ACCEPTABLE_EXTENSIONS_IN_BACKEND =
   '.png, .jpg, .jpeg, .svg, .gif, .bmp, .webp, .tiff, .ico, .heif, .heic';
 
