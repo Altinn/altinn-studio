@@ -4,6 +4,8 @@ import { Button } from '@digdir/designsystemet-react';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { PDFGeneratorPreview } from 'src/features/devtools/components/PDFPreviewButton/PDFGeneratorPreview';
+import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { ButtonLoader } from 'src/layout/Button/ButtonLoader';
@@ -25,12 +27,21 @@ export function ActionButtonComponent({ node }: IActionButton) {
   const { busyWithId, busy, next } = useProcessNavigation() || {};
   const { isAuthorized } = useActionAuthorization();
 
+  const { setPdfPreview, pdfPreview } = useDevToolsStore((state) => ({
+    setPdfPreview: state.actions.setPdfPreview,
+    pdfPreview: state.pdfPreview,
+  }));
+
   const { action, buttonStyle, id, textResourceBindings } = useNodeItem(node);
   const disabled = !isAuthorized(action);
   const isLoadingHere = busyWithId === id;
 
   function handleClick() {
-    if (!disabled && !busy) {
+    if (action === 'printPreview') {
+      setPdfPreview(!pdfPreview);
+    }
+
+    if (!disabled && !busy && action !== 'printPreview') {
       next && next({ action, nodeId: id });
     }
   }
@@ -40,6 +51,9 @@ export function ActionButtonComponent({ node }: IActionButton) {
   // FIXME: app crashes hard if buttonStyle is configured incorrectly
   const { color, variant } = buttonStyles[buttonStyle];
 
+  if (action === 'printPreview') {
+    return <PDFGeneratorPreview buttonTitle={textResourceBindings?.title} />;
+  }
   return (
     <ComponentStructureWrapper node={node}>
       <ButtonLoader
