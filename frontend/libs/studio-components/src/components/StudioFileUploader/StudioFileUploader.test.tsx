@@ -193,4 +193,30 @@ describe('StudioFileUploader', () => {
     expect(onUploadFileMock).not.toHaveBeenCalled();
     expect(onInvalidFileSizeMock).toHaveBeenCalledTimes(1);
   });
+
+  it('should not call onInvalidFileSize and upload callback when fileSize is smaller than fileSizeLimit', async () => {
+    const user = userEvent.setup();
+    const onUploadFileMock = jest.fn();
+    const onInvalidFileSizeMock = jest.fn();
+    const fileSizeLimitMb = 1;
+    render(
+      <StudioFileUploader
+        onUploadFile={onUploadFileMock}
+        customFileValidation={{
+          onInvalidFileSize: onInvalidFileSizeMock,
+          fileSizeLimitMb,
+        }}
+        dataTestId={dataTestId}
+        ref={fileInputRef}
+      />,
+    );
+    const fileInput = screen.getByTestId(dataTestId);
+    const file = new File([new Uint8Array(fileSizeLimitMb * BITS_IN_A_MEGA_BYTE)], 'fileNameMock', {
+      type: 'image/png',
+    });
+    await user.upload(fileInput, file);
+
+    expect(onUploadFileMock).toHaveBeenCalledTimes(1);
+    expect(onInvalidFileSizeMock).not.toHaveBeenCalled();
+  });
 });
