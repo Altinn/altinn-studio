@@ -1,5 +1,6 @@
 import React, { type ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
+import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
 import { StudioBetaTag, StudioPageHeaderButton } from '@studio/components';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
@@ -24,11 +25,9 @@ export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): Re
             <StudioPageHeaderButton asChild color='dark' variant={variant}>
               <NavLink to={menuItem.link}>
                 <span
-                  className={
-                    getRouterRouteByPathname(menuItem.link) === currentRoutePath
-                      ? classes.active
-                      : undefined
-                  }
+                  className={cn({
+                    [classes.active]: getRouterRouteByPathname(menuItem.link) === currentRoutePath,
+                  })}
                 >
                   {menuItem.name}
                 </span>
