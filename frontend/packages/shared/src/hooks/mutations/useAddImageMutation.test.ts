@@ -7,6 +7,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 describe('useAddImageMutation', () => {
+  afterEach(jest.clearAllMocks);
+
   it('Calls addImage with correct arguments and payload', async () => {
     const result = renderHookWithProviders()(() => useAddImageMutation(org, app)).renderHookResult
       .result;
