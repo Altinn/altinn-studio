@@ -219,4 +219,20 @@ describe('StudioFileUploader', () => {
     expect(onUploadFileMock).toHaveBeenCalledTimes(1);
     expect(onInvalidFileSizeMock).not.toHaveBeenCalled();
   });
+
+  it('should not call upload callback when no file is uploaded', async () => {
+    const user = userEvent.setup();
+    const onUploadFileMock = jest.fn();
+    render(
+      <StudioFileUploader
+        onUploadFile={onUploadFileMock}
+        dataTestId={dataTestId}
+        ref={fileInputRef}
+      />,
+    );
+    const fileInput = screen.getByTestId(dataTestId);
+    await user.upload(fileInput, undefined);
+
+    expect(onUploadFileMock).not.toHaveBeenCalled();
+  });
 });

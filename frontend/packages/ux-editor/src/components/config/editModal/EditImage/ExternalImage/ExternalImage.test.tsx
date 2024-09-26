@@ -194,6 +194,19 @@ describe('ExternalImage', () => {
     );
     expect(emptyUrlPlaceholder).toBeInTheDocument();
   });
+
+  it('should show error if validation failed', async () => {
+    const user = userEvent.setup();
+    const someUrl = 'someUrl';
+    const validateImageFromExternalUrlMock = jest.fn().mockImplementation(() => Promise.reject());
+    renderExternalImage({}, { validateImageFromExternalUrl: validateImageFromExternalUrlMock });
+    await inputUrlInField(user, someUrl);
+    await waitForElementToBeRemoved(() => getValidationSpinner());
+    const errorMessage = screen.getByText(
+      textMock('ux_editor.properties_panel.images.validating_image_url_error'),
+    );
+    expect(errorMessage).toBeInTheDocument();
+  });
 });
 
 const getValidationSpinner = () =>
