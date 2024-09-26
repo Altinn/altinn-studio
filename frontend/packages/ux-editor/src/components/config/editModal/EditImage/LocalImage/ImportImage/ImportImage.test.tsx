@@ -15,6 +15,8 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 const onImageChangeMock = jest.fn();
 
 describe('ImportImage', () => {
+  afterEach(jest.clearAllMocks);
+
   it('should handle successful image upload', async () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
@@ -23,6 +25,20 @@ describe('ImportImage', () => {
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     expect(onImageChangeMock).toHaveBeenCalledWith(`wwwroot/${imageFileName}`);
+  });
+
+  it('should show spinner when image is being uploaded', async () => {
+    const user = userEvent.setup();
+    const imageFileName = 'image.png';
+    const addImageMock = jest
+      .fn()
+      .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 1000)));
+    renderImportImage({ addImage: addImageMock });
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const file = new File(['test'], imageFileName, { type: 'image/png' });
+    await user.upload(fileInput, file);
+    const spinnerText = screen.getByText(textMock('general.loading'));
+    expect(spinnerText).toBeInTheDocument();
   });
 
   it('should show toast error if uploading an image that is larger than MAX_FILE_SIZE_MB', async () => {
