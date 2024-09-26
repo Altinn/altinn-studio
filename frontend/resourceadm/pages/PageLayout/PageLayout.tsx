@@ -49,8 +49,13 @@ export const PageLayout = (): React.JSX.Element => {
 
   useEffect(() => {
     const windowEventReceived = async (event: any) => {
-      if (event.data === postMessages.forceRepoStatusCheck) {
-        mergeConflictModalRef.current.showModal();
+      if (
+        event.origin === window.location.origin &&
+        event.data === postMessages.forceRepoStatusCheck
+      ) {
+        if (event.data === postMessages.forceRepoStatusCheck) {
+          mergeConflictModalRef.current.showModal();
+        }
       }
     };
 
