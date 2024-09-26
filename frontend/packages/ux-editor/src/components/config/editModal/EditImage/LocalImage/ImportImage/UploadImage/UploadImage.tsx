@@ -5,8 +5,9 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
 import { useTranslation } from 'react-i18next';
-import { WWWROOT_FILE_PATH } from '../../../../EditImage/constants';
+import { MAX_FILE_SIZE_MB, WWWROOT_FILE_PATH } from '../../../../EditImage/constants';
 import classes from './UploadImage.module.css';
+import { toast } from 'react-toastify';
 
 type UploadImageProps = {
   onImageChange: (filePath: string) => void;
@@ -40,6 +41,13 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
     }
   };
 
+  const handleInvalidFileSize = () =>
+    toast.error(
+      t('ux_editor.properties_panel.images.file_size_exceeds_limit', {
+        maxSize: MAX_FILE_SIZE_MB,
+      }),
+    );
+
   return pendingUpload ? (
     <StudioSpinner spinnerTitle={t('general.loading')} />
   ) : (
@@ -49,14 +57,18 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
         accept='image/*'
         ref={imageUploaderRef}
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
-        customFileNameValidation={{
+        customFileValidation={{
           validateFileName: (fileName: string) => isFileNameValid(fileName, imageFileNames),
           onInvalidFileName: handleOverrideExisingUploadedImage,
+          fileSizeLimitMb: MAX_FILE_SIZE_MB,
+          onInvalidFileSize: handleInvalidFileSize,
         }}
         dataTestId={fileSelectorInputId}
       />
       <StudioParagraph spacing size='xsmall' className={classes.fileSizeLimit}>
-        {t('ux_editor.properties_panel.images.upload_image_file_size_limit')}
+        {t('ux_editor.properties_panel.images.upload_image_file_size_limit', {
+          maxSize: MAX_FILE_SIZE_MB,
+        })}
       </StudioParagraph>
     </div>
   );

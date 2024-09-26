@@ -33,6 +33,15 @@ const meta: Meta = {
       description:
         'Set to `true` to simulate that an invalid file name is handled. Set to `false` to simulate no file name validation handling.',
     },
+    fileSizeLimitMb: {
+      control: 'number',
+      description: 'Set to a number of MB that is the maximum allowed to upoload.',
+    },
+    onInvalidFileSize: {
+      control: 'boolean',
+      description:
+        'Set to `true` to simulate that an invalid file size is handled. Set to `false` to simulate no file size validation handling.',
+    },
     onUploadFile: {
       table: { disable: true },
     },
@@ -47,8 +56,10 @@ Preview.args = {
   uploaderButtonText: 'Last opp fil',
   variant: 'tertiary',
   onUploadFile: () => {},
-  validateFileName: false,
-  onInvalidFileName: true,
+  validateFileName: true,
+  onInvalidFileName: false,
+  fileSizeLimitMb: 1,
+  onInvalidFileSize: false,
   disabled: false,
 };
 export default meta;

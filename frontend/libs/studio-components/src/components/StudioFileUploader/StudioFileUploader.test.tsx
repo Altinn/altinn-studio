@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioFileUploader } from './StudioFileUploader';
+import { BITS_IN_A_MEGA_BYTE, StudioFileUploader } from './StudioFileUploader';
 import userEvent from '@testing-library/user-event';
 
 const dataTestId = 'fileInputElement';
@@ -127,7 +127,7 @@ describe('StudioFileUploader', () => {
     render(
       <StudioFileUploader
         onUploadFile={onUploadFileMock}
-        customFileNameValidation={{
+        customFileValidation={{
           validateFileName: jest.fn().mockReturnValue(false),
           onInvalidFileName: onInvalidFileNameMock,
         }}
@@ -150,7 +150,7 @@ describe('StudioFileUploader', () => {
     render(
       <StudioFileUploader
         onUploadFile={onUploadFileMock}
-        customFileNameValidation={{
+        customFileValidation={{
           validateFileName: jest.fn().mockReturnValue(true),
           onInvalidFileName: onInvalidFileNameMock,
         }}
@@ -164,5 +164,33 @@ describe('StudioFileUploader', () => {
 
     expect(onUploadFileMock).toHaveBeenCalledTimes(1);
     expect(onInvalidFileNameMock).not.toHaveBeenCalled();
+  });
+
+  it('should call onInvalidFileSize and not upload callback when fileSize is larger than fileSizeLimit', async () => {
+    const user = userEvent.setup();
+    const onUploadFileMock = jest.fn();
+    const onInvalidFileSizeMock = jest.fn();
+    const fileSizeLimitMb = 1;
+    render(
+      <StudioFileUploader
+        onUploadFile={onUploadFileMock}
+        customFileValidation={{
+          onInvalidFileSize: onInvalidFileSizeMock,
+          fileSizeLimitMb,
+        }}
+        dataTestId={dataTestId}
+        ref={fileInputRef}
+      />,
+    );
+    const fileInput = screen.getByTestId(dataTestId);
+    const file = new File(
+      [new Blob([new Uint8Array(fileSizeLimitMb * BITS_IN_A_MEGA_BYTE + 1)])],
+      'fileNameMock',
+      { type: 'image/png' },
+    );
+    await user.upload(fileInput, file);
+
+    expect(onUploadFileMock).not.toHaveBeenCalled();
+    expect(onInvalidFileSizeMock).toHaveBeenCalledTimes(1);
   });
 });

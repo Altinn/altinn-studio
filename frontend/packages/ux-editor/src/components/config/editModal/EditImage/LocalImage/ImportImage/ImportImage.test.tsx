@@ -9,6 +9,8 @@ import type { QueryClient } from '@tanstack/react-query';
 import { app, fileSelectorInputId, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { MAX_FILE_SIZE_MB } from '@altinn/ux-editor/components/config/editModal/EditImage/constants';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onImageChangeMock = jest.fn();
 
@@ -21,6 +23,25 @@ describe('ImportImage', () => {
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     expect(onImageChangeMock).toHaveBeenCalledWith(`wwwroot/${imageFileName}`);
+  });
+
+  it('should show toast error if uploading an image that is larger than MAX_FILE_SIZE_MB', async () => {
+    const user = userEvent.setup();
+    const imageFileName = 'image.png';
+    renderImportImage();
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const file = new File(
+      [new Blob([new Uint8Array(MAX_FILE_SIZE_MB * 1024 * 1024 + 1)])],
+      imageFileName,
+      { type: 'image/png' },
+    );
+    await user.upload(fileInput, file);
+    const toastError = screen.getByText(
+      textMock('ux_editor.properties_panel.images.file_size_exceeds_limit', {
+        maxSize: MAX_FILE_SIZE_MB,
+      }),
+    );
+    expect(toastError).toBeInTheDocument();
   });
 
   it('should show confirm dialog if trying to upload an image that exists', async () => {
