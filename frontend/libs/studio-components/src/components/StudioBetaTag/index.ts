@@ -1,1 +1,1 @@
-export { StudioBetaTag } from './StudioBetaTag';
+export { StudioBetaTag, type StudioBetaTagProps } from './StudioBetaTag';

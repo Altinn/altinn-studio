@@ -9,7 +9,7 @@ describe('StudioBetaTag', () => {
     expect(screen.getByText('Beta')).toBeInTheDocument();
   });
 
-  it('Appends given classname to internal classname when no image is given', () => {
+  it('Appends given classname to the component', () => {
     testRootClassNameAppending((className) => renderStudioBetaTag({ className }));
   });
 });

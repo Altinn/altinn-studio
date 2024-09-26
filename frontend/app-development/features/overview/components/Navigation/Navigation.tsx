@@ -1,9 +1,10 @@
 import React from 'react';
 import classes from './Navigation.module.css';
 import { useTranslation } from 'react-i18next';
-import { Heading, Tag } from '@digdir/designsystemet-react';
+import { Heading } from '@digdir/designsystemet-react';
 import { getFilteredMenuListForOverviewPage } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { Link } from 'react-router-dom';
+import { StudioBetaTag } from '@studio/components';
 
 export const Navigation = () => {
   const { t } = useTranslation();
@@ -21,11 +22,7 @@ export const Navigation = () => {
             <Link key={menuItem.key} to={`../${menuItem.link}`} className={classes.link}>
               <menuItem.icon className={classes.icon} />
               <span>{t(menuItem.key)}</span>
-              {menuItem.isBeta && (
-                <Tag color='info' size='small'>
-                  {t('general.beta')}
-                </Tag>
-              )}
+              {menuItem.isBeta && <StudioBetaTag />}
             </Link>
           );
         })}

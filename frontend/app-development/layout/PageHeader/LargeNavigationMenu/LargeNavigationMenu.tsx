@@ -1,9 +1,7 @@
 import React, { type ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { StudioPageHeaderButton } from '@studio/components';
-import { Tag } from '@digdir/designsystemet-react';
+import { StudioBetaTag, StudioPageHeaderButton } from '@studio/components';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
@@ -13,7 +11,6 @@ export type LargeNavigationMenuProps = {
 };
 
 export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElement => {
-  const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
 
   const location = useLocation();
@@ -35,11 +32,7 @@ export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): Re
                 >
                   {menuItem.name}
                 </span>
-                {menuItem.isBeta && (
-                  <Tag color='info' size='small' className={classes.betaTag}>
-                    {t('general.beta')}
-                  </Tag>
-                )}
+                {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
               </NavLink>
             </StudioPageHeaderButton>
           </li>
