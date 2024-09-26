@@ -307,9 +307,11 @@ describe('ImportResourceModal', () => {
     });
     await user.click(importButton);
 
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+      ).toBeInTheDocument();
+    });
   });
 });
 
