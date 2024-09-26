@@ -30,7 +30,11 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const displayNotification: boolean = (repoStatus?.behindBy > 0 ?? false) && !hasMergeConflict;
+  const displayNotification: boolean =
+    repoStatus?.behindBy !== undefined &&
+    repoStatus?.behindBy !== null &&
+    repoStatus.behindBy > 0 &&
+    !hasMergeConflict;
 
   const handleClosePopover = () => setPopoverOpen(false);
 

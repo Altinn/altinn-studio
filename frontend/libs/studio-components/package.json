@@ -19,14 +19,14 @@
   },
   "devDependencies": {
     "@chromatic-com/storybook": "2.0.2",
-    "@storybook/addon-essentials": "8.2.9",
-    "@storybook/addon-interactions": "8.2.9",
-    "@storybook/addon-links": "8.2.9",
+    "@storybook/addon-essentials": "8.3.0",
+    "@storybook/addon-interactions": "8.3.0",
+    "@storybook/addon-links": "8.3.0",
     "@storybook/addon-webpack5-compiler-swc": "1.0.5",
-    "@storybook/blocks": "8.2.9",
-    "@storybook/react": "8.2.9",
-    "@storybook/react-webpack5": "8.2.9",
-    "@storybook/test": "8.2.9",
+    "@storybook/blocks": "8.3.0",
+    "@storybook/react": "8.3.0",
+    "@storybook/react-webpack5": "8.3.0",
+    "@storybook/test": "8.3.0",
     "@testing-library/jest-dom": "6.5.0",
     "@testing-library/react": "16.0.1",
     "@types/jest": "^29.5.5",
@@ -36,6 +36,6 @@
     "jest-environment-jsdom": "^29.7.0",
     "storybook": "^8.0.4",
     "ts-jest": "^29.1.1",
-    "typescript": "^5.2.2"
+    "typescript": "5.6.2"
   }
 }

@@ -7,7 +7,7 @@ export const PageLayout = () => {
     <>
       <StudioPageHeader>
         <StudioPageHeader.Main>
-          <StudioPageHeader.Left title='' showTitle={false} />
+          <StudioPageHeader.Left title='Tilbake' showTitle={false} />
         </StudioPageHeader.Main>
       </StudioPageHeader>
       <Outlet />
