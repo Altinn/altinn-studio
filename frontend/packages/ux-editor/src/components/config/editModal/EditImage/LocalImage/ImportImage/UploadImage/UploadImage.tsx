@@ -9,6 +9,9 @@ import { MAX_FILE_SIZE_MB, WWWROOT_FILE_PATH } from '../../../../EditImage/const
 import classes from './UploadImage.module.css';
 import { toast } from 'react-toastify';
 
+const LIST_OF_ACCEPTABLE_EXTENSIONS_IN_BACKEND =
+  '.png, .jpg, .jpeg, .svg, .gif, .bmp, .webp, .tiff, .ico, .heif, .heic';
+
 type UploadImageProps = {
   onImageChange: (filePath: string) => void;
 };
@@ -54,7 +57,7 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
     <div>
       <StudioFileUploader
         onUploadFile={handleUpload}
-        accept='image/*'
+        accept={LIST_OF_ACCEPTABLE_EXTENSIONS_IN_BACKEND}
         ref={imageUploaderRef}
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
         customFileValidation={{
