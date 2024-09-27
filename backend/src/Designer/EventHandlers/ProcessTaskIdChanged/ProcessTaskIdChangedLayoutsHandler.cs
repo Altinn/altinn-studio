@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -44,7 +45,7 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
             {
                 layoutNames = repository.GetLayoutNames(layoutSetName);
             }
-            catch
+            catch (FileNotFoundException)
             {
                 continue;
             }
