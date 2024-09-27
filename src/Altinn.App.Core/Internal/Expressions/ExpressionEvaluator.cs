@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Altinn.App.Core.Models.Expressions;
 using Altinn.App.Core.Models.Layout.Components;
@@ -473,7 +474,7 @@ public static class ExpressionEvaluator
         return a >= b; // Actual implementation
     }
 
-    private static string? ToStringForEquals(object? value) =>
+    internal static string? ToStringForEquals(object? value) =>
         value switch
         {
             null => null,
@@ -485,13 +486,27 @@ public static class ExpressionEvaluator
             string sValue => sValue,
             decimal decValue => decValue.ToString(CultureInfo.InvariantCulture),
             double doubleValue => doubleValue.ToString(CultureInfo.InvariantCulture),
-            int intValue => intValue.ToString(CultureInfo.InvariantCulture),
-            long longValue => longValue.ToString(CultureInfo.InvariantCulture),
             float floatValue => floatValue.ToString(CultureInfo.InvariantCulture),
-            _ => throw new NotImplementedException($"ToStringForEquals not implemented for type {value.GetType().Name}")
+            int intValue => intValue.ToString(CultureInfo.InvariantCulture),
+            uint uintValue => uintValue.ToString(CultureInfo.InvariantCulture),
+            short shortValue => shortValue.ToString(CultureInfo.InvariantCulture),
+            ushort ushortValue => ushortValue.ToString(CultureInfo.InvariantCulture),
+            long longValue => longValue.ToString(CultureInfo.InvariantCulture),
+            ulong ulongValue => ulongValue.ToString(CultureInfo.InvariantCulture),
+            byte byteValue => byteValue.ToString(CultureInfo.InvariantCulture),
+            sbyte sbyteValue => sbyteValue.ToString(CultureInfo.InvariantCulture),
+            // BigInteger bigIntValue => bigIntValue.ToString(CultureInfo.InvariantCulture), // Big integer not supported in json
+            DateTime dtValue => JsonSerializer.Serialize(dtValue),
+            DateOnly dateValue => JsonSerializer.Serialize(dateValue),
+            TimeOnly timeValue => JsonSerializer.Serialize(timeValue),
+            //TODO: Consider having JsonSerializer as a fallback for everything (including arrays and objects)
+            _
+                => throw new NotImplementedException(
+                    $"ToStringForEquals not implemented for type {value.GetType().Name}"
+                )
         };
 
-    private static bool? EqualsImplementation(object?[] args)
+    internal static bool? EqualsImplementation(object?[] args)
     {
         if (args.Length != 2)
         {
