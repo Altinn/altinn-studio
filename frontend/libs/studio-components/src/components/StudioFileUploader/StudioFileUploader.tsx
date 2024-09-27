@@ -5,9 +5,14 @@ import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
 
-export type FileNameValidation = {
-  validateFileName: (fileName: string) => boolean;
-  onInvalidFileName: (file?: FormData, fileName?: string) => void;
+const NUMBER_BITS_IN_A_BYTE = 1024;
+export const BITS_IN_A_MEGA_BYTE = NUMBER_BITS_IN_A_BYTE * NUMBER_BITS_IN_A_BYTE;
+
+export type FileValidation = {
+  validateFileName?: (fileName: string) => boolean;
+  fileSizeLimitMb?: number;
+  onInvalidFileName?: (file?: FormData, fileName?: string) => void;
+  onInvalidFileSize?: () => void;
 };
 
 export type StudioFileUploaderProps = {
@@ -17,7 +22,7 @@ export type StudioFileUploaderProps = {
   variant?: StudioButtonProps['variant'];
   disabled?: boolean;
   uploaderButtonText?: string;
-  customFileNameValidation?: FileNameValidation;
+  customFileValidation?: FileValidation;
   dataTestId?: string;
 };
 
@@ -34,7 +39,7 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
       variant = 'tertiary',
       disabled,
       uploaderButtonText,
-      customFileNameValidation,
+      customFileValidation,
       dataTestId,
     },
     ref: RefObject<HTMLInputElement>,
@@ -47,7 +52,7 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
     const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
       const file = getFile(ref);
-      if (isFileNameValid(file, ref, customFileNameValidation)) {
+      if (isFileValid(file, ref, customFileValidation)) {
         const formData = new FormData();
         formData.append('file', file);
         onUploadFile(formData, file.name);
@@ -83,17 +88,25 @@ StudioFileUploader.displayName = 'StudioFileUploader';
 
 const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current?.files?.item(0);
 
-const isFileNameValid = (
+const isFileValid = (
   file: File,
   fileRef: RefObject<HTMLInputElement>,
-  customFileNameValidation: FileNameValidation,
+  customFileValidation: FileValidation,
 ): boolean => {
   if (!file) return false;
-  if (!customFileNameValidation) return true;
-  if (!customFileNameValidation.validateFileName(file.name)) {
+  if (!customFileValidation) return true;
+  if (customFileValidation.validateFileName && !customFileValidation.validateFileName(file.name)) {
     const formData = new FormData();
     formData.append('file', file);
-    customFileNameValidation.onInvalidFileName(formData, file.name);
+    customFileValidation.onInvalidFileName(formData, file.name);
+    fileRef.current.value = '';
+    return false;
+  }
+  if (
+    customFileValidation.fileSizeLimitMb &&
+    file.size > customFileValidation.fileSizeLimitMb * BITS_IN_A_MEGA_BYTE
+  ) {
+    customFileValidation.onInvalidFileSize();
     fileRef.current.value = '';
     return false;
   }
