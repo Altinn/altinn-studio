@@ -24,7 +24,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
   const { id, readOnly, textResourceBindings, alertOnChange } = item;
   const { langAsString, lang } = useLanguage(node);
 
-  const { options, isFetching, selectedValues, setData, key } = useGetOptions(node, 'single');
+  const { options, isFetching, selectedValues, setData } = useGetOptions(node, 'single');
   const debounce = FD.useDebounceImmediately();
 
   const changeMessageGenerator = useCallback(
@@ -74,7 +74,6 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
           id={id}
           size='sm'
           hideLabel={true}
-          key={key} // Workaround for clearing text input
           value={selectedValues}
           readOnly={readOnly}
           onValueChange={handleChange}

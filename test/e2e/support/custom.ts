@@ -61,8 +61,8 @@ Cypress.Commands.add('dsReady', (selector) => {
   cy.waitUntilNodesReady();
 });
 
-Cypress.Commands.add('dsSelect', (selector, value) => {
-  cy.log(`Selecting ${value} in ${selector}`);
+Cypress.Commands.add('dsSelect', (selector, value, debounce = true) => {
+  cy.log(`Selecting ${value} in ${selector}, with debounce: ${debounce}`);
   cy.dsReady(selector);
   cy.get(selector).click();
 
@@ -71,7 +71,9 @@ Cypress.Commands.add('dsSelect', (selector, value) => {
   // https://github.com/testing-library/cypress-testing-library/issues/205#issuecomment-974688283
   cy.get('[class*="fds-combobox__option"]').findByText(value).click();
 
-  cy.get('body').click();
+  if (debounce) {
+    cy.get('body').click();
+  }
 });
 
 Cypress.Commands.add('clickAndGone', { prevSubject: true }, (subject: JQueryWithSelector | undefined) => {

@@ -61,10 +61,6 @@ export interface SetOptionsResult {
   rawData: string;
 
   setData: (values: string[]) => void;
-
-  // Workaround for dropdown (Combobox single) not clearing text input when value changes
-  // Can be used in the key-prop, will change every time the value changes
-  key: number;
 }
 
 interface EffectProps {
@@ -107,7 +103,6 @@ function useSetOptions(props: SetOptionsProps, alwaysOptions: IOptionInternal[])
     [alwaysOptions, currentValues],
   );
 
-  const [key, setKey] = useState(0);
   const setData = useCallback(
     (values: string[]) => {
       if (valueType === 'single') {
@@ -115,13 +110,11 @@ function useSetOptions(props: SetOptionsProps, alwaysOptions: IOptionInternal[])
       } else if (valueType === 'multi') {
         setValue('simpleBinding', values.join(','));
       }
-      setKey((k) => k + 1); // Workaround for Combobox
     },
     [setValue, valueType],
   );
 
   return {
-    key,
     rawData: value,
     selectedValues,
     unsafeSelectedValues: currentValues,
