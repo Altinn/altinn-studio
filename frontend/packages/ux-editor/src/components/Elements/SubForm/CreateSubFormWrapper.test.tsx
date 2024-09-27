@@ -16,7 +16,7 @@ describe('CreateSubFormWrapper', () => {
     renderCreateSubFormWrapper();
 
     const createSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form'),
+      name: textMock('ux_editor.create.subform'),
     });
     await user.click(createSubFormButton);
 
@@ -29,7 +29,7 @@ describe('CreateSubFormWrapper', () => {
     renderCreateSubFormWrapper(onSubFormCreated);
 
     const createSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form'),
+      name: textMock('ux_editor.create.subform'),
     });
     await user.click(createSubFormButton);
 
@@ -37,7 +37,7 @@ describe('CreateSubFormWrapper', () => {
     await user.type(input, subFormName);
 
     const confirmButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form.confirm_button'),
+      name: textMock('ux_editor.create.subform.confirm_button'),
     });
     await user.click(confirmButton);
     expect(onSubFormCreated).toHaveBeenCalledWith(subFormName);
@@ -48,7 +48,7 @@ describe('CreateSubFormWrapper', () => {
     renderCreateSubFormWrapper();
 
     const createSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form'),
+      name: textMock('ux_editor.create.subform'),
     });
     await user.click(createSubFormButton);
 
@@ -56,7 +56,7 @@ describe('CreateSubFormWrapper', () => {
     await user.type(input, layoutSet1NameMock);
 
     const confirmButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form.confirm_button'),
+      name: textMock('ux_editor.create.subform.confirm_button'),
     });
     expect(confirmButton).toBeDisabled();
   });
@@ -69,7 +69,7 @@ describe('CreateSubFormWrapper', () => {
     renderCreateSubFormWrapper(onSubFormCreatedMock, { addLayoutSet });
 
     const createSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form'),
+      name: textMock('ux_editor.create.subform'),
     });
     await user.click(createSubFormButton);
 
@@ -77,7 +77,7 @@ describe('CreateSubFormWrapper', () => {
     await user.type(input, subFormName);
 
     const confirmButton = screen.getByRole('button', {
-      name: textMock('ux_editor.create.sub_form.confirm_button'),
+      name: textMock('ux_editor.create.subform.confirm_button'),
     });
     await user.click(confirmButton);
     expect(addLayoutSet).toHaveBeenCalledWith(org, app, subFormName, {

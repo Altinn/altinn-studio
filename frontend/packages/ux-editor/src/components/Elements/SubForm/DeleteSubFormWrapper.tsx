@@ -33,9 +33,9 @@ export const DeleteSubFormWrapper = ({
       // Delete is only supported for sub-forms, not regular layout-sets
       disabled={isRegularLayoutSet}
       variant='tertiary'
-      confirmMessage={t('ux_editor.delete.sub_form.confirm')}
+      confirmMessage={t('ux_editor.delete.subform.confirm')}
     >
-      {t('ux_editor.delete.sub_form')}
+      {t('ux_editor.delete.subform')}
     </StudioDeleteButton>
   );
 };

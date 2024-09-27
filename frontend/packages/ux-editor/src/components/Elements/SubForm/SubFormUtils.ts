@@ -1,6 +1,6 @@
 import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 
-const SUB_FORM_IDENTIFIER = 'subform';
+const SUBFORM_IDENTIFIER = 'subform';
 
 export class SubFormUtils {
   public static findSubFormById(
@@ -15,6 +15,6 @@ export class SubFormUtils {
   }
 
   private static isLayoutSetSubForm(layoutSet: LayoutSet): boolean {
-    return layoutSet.type === SUB_FORM_IDENTIFIER;
+    return layoutSet.type === SUBFORM_IDENTIFIER;
   }
 }

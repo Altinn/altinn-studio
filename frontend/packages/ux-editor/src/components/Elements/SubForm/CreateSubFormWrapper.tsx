@@ -52,12 +52,12 @@ export const CreateSubFormWrapper = ({
           variant='tertiary'
           onClick={() => setCreateNewOpen(!createNewOpen)}
         >
-          {t('ux_editor.create.sub_form')}
+          {t('ux_editor.create.subform')}
         </StudioButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content>
         <StudioTextfield
-          label={t('ux_editor.create.sub_form.label')}
+          label={t('ux_editor.create.subform.label')}
           size='small'
           value={newSubFormName}
           onChange={(e) => onNameChange(e.target.value)}
@@ -69,7 +69,7 @@ export const CreateSubFormWrapper = ({
           onClick={onCreateConfirmClick}
           disabled={!newSubFormName || !!nameError}
         >
-          {t('ux_editor.create.sub_form.confirm_button')}
+          {t('ux_editor.create.subform.confirm_button')}
         </StudioButton>
       </StudioPopover.Content>
     </StudioPopover>

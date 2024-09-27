@@ -17,7 +17,7 @@ describe('DeleteSubFormWrapper', () => {
     renderDeleteSubFormWrapper(layoutSet1NameMock);
 
     const deleteSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.delete.sub_form'),
+      name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubFormButton).toBeDisabled();
   });
@@ -26,7 +26,7 @@ describe('DeleteSubFormWrapper', () => {
     renderDeleteSubFormWrapper(layoutSet3SubFormNameMock);
 
     const deleteSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.delete.sub_form'),
+      name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubFormButton).toBeEnabled();
   });
@@ -38,7 +38,7 @@ describe('DeleteSubFormWrapper', () => {
     renderDeleteSubFormWrapper(layoutSet3SubFormNameMock, { deleteLayoutSet });
 
     const deleteSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.delete.sub_form'),
+      name: textMock('ux_editor.delete.subform'),
     });
     await user.click(deleteSubFormButton);
 
@@ -52,7 +52,7 @@ describe('DeleteSubFormWrapper', () => {
     renderDeleteSubFormWrapper(layoutSet3SubFormNameMock, { deleteLayoutSet });
 
     const deleteSubFormButton = screen.getByRole('button', {
-      name: textMock('ux_editor.delete.sub_form'),
+      name: textMock('ux_editor.delete.subform'),
     });
     await user.click(deleteSubFormButton);
 
