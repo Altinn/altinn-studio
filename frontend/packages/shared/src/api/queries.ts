@@ -70,14 +70,13 @@ import type { RuleConfig } from 'app-shared/types/RuleConfig';
 
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
-import { newsListUrl, orgListUrl } from '../cdn-paths';
+import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import type { NewsList } from 'app-shared/types/api/NewsList';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { Policy } from 'app-shared/types/Policy';
@@ -103,7 +102,6 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getNewsList = (language: 'nb' | 'en') => get<NewsList>(newsListUrl(language));
 export const getOptionLists = (owner: string, app: string) => get<string[]>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
