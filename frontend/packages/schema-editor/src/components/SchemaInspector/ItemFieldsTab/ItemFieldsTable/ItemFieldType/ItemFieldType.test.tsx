@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { ItemFieldType } from './ItemFieldType';
 import type { ItemFieldTypeProps } from './ItemFieldType';
-import { type UiSchemaNode } from '@altinn/schema-model';
+import { extractNameFromPointer, type UiSchemaNode } from '@altinn/schema-model';
 import {
   combinationNodeMock,
   referenceNodeMock,
@@ -39,12 +39,18 @@ describe('ItemFieldType', () => {
     expect(screen.getByText(combinationKindLabel)).toBeInTheDocument();
   });
 
-  it('Should render reference link when fieldNode is a reference', async () => {
+  it('Should render reference link when fieldNode is a reference', () => {
+    renderItemFieldType({ fieldNode: referenceNodeMock });
+    const referenceName = extractNameFromPointer(referenceNodeMock.reference);
+    expect(screen.getByRole('button')).toHaveAccessibleName(referenceName);
+  });
+
+  it('Calls setSelectedTypePointer with correct reference when the reference button is clicked', async () => {
     const user = userEvent.setup();
     renderItemFieldType({ fieldNode: referenceNodeMock });
-    const linkButton = screen.getByRole('button');
-    await user.click(linkButton);
+    await user.click(screen.getByRole('button'));
     expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
+    expect(setSelectedTypePointer).toHaveBeenCalledWith(referenceNodeMock.reference);
   });
 });
 

@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { ItemFieldType } from './ItemFieldType/ItemFieldType';
+import { ItemFieldType } from './ItemFieldType';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
