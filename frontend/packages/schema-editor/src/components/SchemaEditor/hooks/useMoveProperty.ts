@@ -38,7 +38,10 @@ export const useMoveProperty = (): HandleMove => {
       } else {
         const movedNode = savableModel.moveNode(schemaPointer, target);
         if (selectedUniquePointer === uniquePointer) {
-          const movedUniquePointer = savableModel.getUniquePointer(movedNode.schemaPointer);
+          const movedUniquePointer = savableModel.getUniquePointer(
+            movedNode.schemaPointer,
+            position.parentId,
+          );
           setSelectedUniquePointer(movedUniquePointer);
         }
       }
