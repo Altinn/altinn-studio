@@ -1611,6 +1611,7 @@
   "ux_editor.search_text_resources_label": "Velg eksisterende tekst basert på ID",
   "ux_editor.search_text_resources_none": "Ingen",
   "ux_editor.show_icon": "Skal ikonet vises?",
+  "ux_editor.sub_form": "Underskjema",
   "ux_editor.subdomains_label": "Subdomener (kommaseparert)",
   "ux_editor.subdomains_placeholder": "domene1, domene2, domene3",
   "ux_editor.success": "Vellykket",

@@ -2,18 +2,18 @@ import type { BpmnTaskType } from '../BpmnTaskType';
 
 export interface LayoutSetPayload {
   taskType?: BpmnTaskType;
-  layoutSetConfig: LayoutSetConfigPayload;
+  layoutSetConfig: LayoutSetConfig;
 }
 
 type SubFormConfig = {
-  type: string;
+  type: 'subform';
 };
 
 type RegularLayoutSetConfig = {
   tasks: string[];
 };
 
-export type LayoutSetConfigPayload = {
+export type LayoutSetConfig = {
   id: string;
   dataType?: string;
 } & (SubFormConfig | RegularLayoutSetConfig);

@@ -7,10 +7,7 @@ import type {
   AddLayoutSetResponse,
   LayoutSetsResponse,
 } from 'app-shared/types/api/AddLayoutSetResponse';
-import type {
-  LayoutSetConfigPayload,
-  LayoutSetPayload,
-} from 'app-shared/types/api/LayoutSetPayload';
+import type { LayoutSetConfig, LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 
 export type AddLayoutSetMutationPayload = {
   layoutSetIdToUpdate: string;
@@ -19,7 +16,7 @@ export type AddLayoutSetMutationPayload = {
 export type AddLayoutSetMutation = UseMutateFunction<
   {
     layoutSets: AddLayoutSetResponse;
-    layoutSetConfig: LayoutSetConfigPayload;
+    layoutSetConfig: LayoutSetConfig;
   },
   Error,
   AddLayoutSetMutationPayload,

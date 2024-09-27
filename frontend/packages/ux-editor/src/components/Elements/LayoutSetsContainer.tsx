@@ -10,8 +10,8 @@ import { StudioCombobox } from '@studio/components';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
-  const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const layoutSets = layoutSetsQuery.data?.sets;
+  const { data: layoutSetsResponse } = useLayoutSetsQuery(org, app);
+  const layoutSets = layoutSetsResponse?.sets;
   const t = useText();
   const {
     selectedFormLayoutSetName,
@@ -45,13 +45,13 @@ export function LayoutSetsContainer() {
         label={t('left_menu.layout_dropdown_menu_label')}
         hideLabel
         value={[selectedFormLayoutSetName]}
-        onValueChange={(value) => handleLayoutSetChange(value[0])}
+        onValueChange={([value]) => handleLayoutSetChange(value)}
       >
         {layoutSets.map((layoutSet) => (
           <StudioCombobox.Option
             value={layoutSet.id}
             key={layoutSet.id}
-            description={layoutSet?.type && 'Underskjema'}
+            description={layoutSet?.type === 'subform' && t('ux_editor.sub_form')}
           >
             {layoutSet.id}
           </StudioCombobox.Option>
@@ -60,7 +60,7 @@ export function LayoutSetsContainer() {
       {shouldDisplayFeature('exportForm') && <ExportForm />}
       {shouldDisplayFeature('subForm') && (
         <SubFormWrapper
-          layoutSets={layoutSetsQuery.data}
+          layoutSets={layoutSetsResponse}
           onSubFormCreated={handleLayoutSetChange}
           selectedLayoutSet={selectedFormLayoutSetName}
         />
