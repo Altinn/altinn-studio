@@ -17,9 +17,9 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ProcessModelingController.FileSync.TaskIdChangeTests;
 
-public class LayoutFilesSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFilesSyncTaskIdTests>, IClassFixture<WebApplicationFactory<Program>>
+public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSyncTaskIdTests>, IClassFixture<WebApplicationFactory<Program>>
 {
-    public LayoutFilesSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
+    public LayoutFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
 
@@ -121,16 +121,16 @@ public class LayoutFilesSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFiles
         layoutAfterUpdate.Should().Be(layoutBeforeUpdate);
     }
 
-    // "Task_1" is targeted by Summary2 component in "app-with-layoutsets"
     public static IEnumerable<object[]> GetReferencedTaskIdTestData()
     {
+        // "Task_1" is targeted by Summary2 component in "app-with-layoutsets"
         yield return new object[] { "ttd", "app-with-layoutsets", "testUser", "App/config/process/process.bpmn",
             new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" } } };
     }
 
-    // "Task_2" is not targeted by Summary2 component in "app-with-layoutsets"
     public static IEnumerable<object[]> GetUnreferencedTaskIdTestData()
     {
+        // "Task_2" is not targeted by Summary2 component in "app-with-layoutsets"
         yield return new object[] { "ttd", "app-with-layoutsets", "testUser", "App/config/process/process.bpmn",
             new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_2", NewId = "SomeNewId" } } };
     }
