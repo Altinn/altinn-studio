@@ -1,0 +1,7 @@
+.editLayoutSet {
+  padding: var(--fds-spacing-5) 0;
+  box-sizing: border-box;
+  position: relative;
+  right: var(--fds-spacing-5);
+  width: calc(100% + 2 * var(--fds-spacing-5));
+}

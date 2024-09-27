@@ -61,7 +61,7 @@ export const Properties = () => {
               <Accordion.Header onHeaderClick={() => toggleOpen('content')}>
                 {t('right_menu.content')}
               </Accordion.Header>
-              <Accordion.Content>
+              <Accordion.Content className={classes.subForm}>
                 <EditFormComponent
                   editFormId={formItemId}
                   component={formItem}

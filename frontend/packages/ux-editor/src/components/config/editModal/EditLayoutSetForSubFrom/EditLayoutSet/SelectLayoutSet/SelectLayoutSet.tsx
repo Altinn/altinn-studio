@@ -1,6 +1,7 @@
 import React from 'react';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import classes from './SelectLayoutSet.module.css';
 
 type SelectLayoutSetProps = {
   layoutSetsActingAsSubForm: string[];
@@ -16,26 +17,31 @@ export const SelectLayoutSet = ({
   onSetLayoutSetSelectVisible,
 }: SelectLayoutSetProps) => {
   const { t } = useTranslation();
+  const emptyOptionText = t('ux_editor.component_properties.subform.choose_layout_set');
 
   const handleSelectChange = (layoutSetId: string) => {
-    onUpdateLayoutSet(layoutSetId);
+    if (layoutSetId === emptyOptionText) {
+      onUpdateLayoutSet(undefined);
+    } else onUpdateLayoutSet(layoutSetId);
     onSetLayoutSetSelectVisible(false);
   };
 
   return (
-    <StudioNativeSelect
-      size='small'
-      onChange={({ target }) => handleSelectChange(target.value)}
-      label={'set layout set'}
-      defaultValue={existingLayoutSetForSubForm}
-      onBlur={() => onSetLayoutSetSelectVisible(false)}
-    >
-      <option>{'Velg en sidegruppe...'}</option>
-      {layoutSetsActingAsSubForm.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </StudioNativeSelect>
+    <div className={classes.selectLayoutSet}>
+      <StudioNativeSelect
+        size='small'
+        onChange={({ target }) => handleSelectChange(target.value)}
+        label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
+        defaultValue={existingLayoutSetForSubForm}
+        onBlur={() => onSetLayoutSetSelectVisible(false)}
+      >
+        <option>{emptyOptionText}</option>
+        {layoutSetsActingAsSubForm.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </StudioNativeSelect>
+    </div>
   );
 };

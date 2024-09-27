@@ -22,10 +22,10 @@ export const DefinedLayoutSet = ({
 
   return (
     <StudioProperty.Button
-      aria-label={'title'}
+      aria-label={t('ux_editor.component_properties.subform.selected_layout_set')}
       onClick={onClick}
-      property={t('some label')}
-      title={t('some title')}
+      property={t('ux_editor.component_properties.subform.selected_layout_set')}
+      title={t('ux_editor.component_properties.subform.selected_layout_set')}
       value={value}
     />
   );

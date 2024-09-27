@@ -7,7 +7,7 @@ import { StudioButton } from '@studio/components';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { RedirectBox } from '../../../../RedirectBox';
+import { RedirectBox } from 'app-shared/components/RedirectBox';
 import { Link } from '@digdir/designsystemet-react';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
