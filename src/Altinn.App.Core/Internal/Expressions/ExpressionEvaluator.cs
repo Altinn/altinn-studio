@@ -485,39 +485,19 @@ public static class ExpressionEvaluator
             return bvalue ? "true" : "false";
         }
 
-        if (value is string svalue)
+        return value switch
         {
             // Special case for "TruE" to be equal to true
-            if ("true".Equals(svalue, StringComparison.OrdinalIgnoreCase))
-            {
-                return "true";
-            }
-            else if ("false".Equals(svalue, StringComparison.OrdinalIgnoreCase))
-            {
-                return "false";
-            }
-            else if ("null".Equals(svalue, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            return svalue;
-        }
-        else if (value is decimal decvalue)
-        {
-            return decvalue.ToString(CultureInfo.InvariantCulture);
-        }
-        else if (value is double doubvalue)
-        {
-            return doubvalue.ToString(CultureInfo.InvariantCulture);
-        }
-        else if (value is int intvalue)
-        {
-            return intvalue.ToString(CultureInfo.InvariantCulture);
-        }
-
-        //TODO: consider accepting more types that might be used in model (eg Datetime)
-        throw new NotImplementedException();
+            string sValue when "true".Equals(sValue, StringComparison.OrdinalIgnoreCase) => "true",
+            string sValue when "false".Equals(sValue, StringComparison.OrdinalIgnoreCase) => "false",
+            string sValue when "null".Equals(sValue, StringComparison.OrdinalIgnoreCase) => null,
+            decimal decValue => decValue.ToString(CultureInfo.InvariantCulture),
+            double doubleValue => doubleValue.ToString(CultureInfo.InvariantCulture),
+            int intValue => intValue.ToString(CultureInfo.InvariantCulture),
+            long longValue => longValue.ToString(CultureInfo.InvariantCulture),
+            float floatValue => floatValue.ToString(CultureInfo.InvariantCulture),
+            _ => throw new NotImplementedException($"ToStringForEquals not implemented for type {value.GetType().Name}")
+        };
     }
 
     private static bool? EqualsImplementation(object?[] args)
