@@ -4,6 +4,7 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { MapComponent } from './Map';
 import { AttachmentListComponent } from './AttachmentList';
+import { Summary2Component } from './Summary2';
 
 export function ComponentSpecificContent({
   component,
@@ -30,6 +31,12 @@ export function ComponentSpecificContent({
           component={component}
           handleComponentChange={handleComponentChange}
         />
+      );
+    }
+
+    case ComponentType.Summary2: {
+      return (
+        <Summary2Component component={component} handleComponentChange={handleComponentChange} />
       );
     }
 

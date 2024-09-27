@@ -1,5 +1,5 @@
 import { useSearchParamsState } from 'app-shared/hooks/useSearchParamsState';
-import { useFormLayoutSettingsQuery } from './queries/useFormLayoutSettingsQuery';
+import { useFormLayoutSettingsQuery } from '../../../ux-editor/src/hooks/queries/useFormLayoutSettingsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type UseSelectedFormLayoutNameResult = {

@@ -142,6 +142,12 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   itemType: 'CONTAINER',
   dataModelBindings: { group: '' },
 };
+const summary2Component: FormComponent<ComponentType.Summary2> = {
+  ...commonProps(ComponentType.Summary2),
+  target: {
+    type: 'component',
+  },
+};
 
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
@@ -167,4 +173,5 @@ export const componentMocks = {
   [ComponentType.RepeatingGroup]: repeatingGroupContainer,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
+  [ComponentType.Summary2]: summary2Component,
 };

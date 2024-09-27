@@ -1,5 +1,8 @@
 import { type PolicyRuleContextProps } from '../../src/contexts/PolicyRuleContext';
-import { mockPolicyRuleCard1 } from './policyRuleMocks';
+import {
+  mockPolicyRuleCard1,
+  mockPolicyRuleCardWithSingleNarrowingPolicy,
+} from './policyRuleMocks';
 import { type PolicyError } from '../../src/types';
 
 const policyError: PolicyError = {
@@ -10,6 +13,14 @@ const policyError: PolicyError = {
 
 export const mockPolicyRuleContextValue: PolicyRuleContextProps = {
   policyRule: mockPolicyRuleCard1,
+  showAllErrors: false,
+  uniqueId: 'id',
+  policyError,
+  setPolicyError: jest.fn(),
+};
+
+export const mockPolicyRuleContextValueWithSingleNarrowingPolicy: PolicyRuleContextProps = {
+  policyRule: mockPolicyRuleCardWithSingleNarrowingPolicy,
   showAllErrors: false,
   uniqueId: 'id',
   policyError,

@@ -11,11 +11,9 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import {
-  useSelectedFormLayoutName,
-  useSelectedFormLayoutSetName,
-  useSelectedTaskId,
-} from '@altinn/ux-editor/hooks';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export interface LandingPageProps {
   variant?: AltinnHeaderVariant;

@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { useSelectedFormLayoutSetName } from './';
-import { layoutSet1NameMock, layoutSetsMock } from '../testing/layoutSetsMock';
 import { renderHook } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
@@ -12,9 +10,26 @@ import type { QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { useSelectedFormLayoutSetName } from './useSelectedFormLayoutSetName';
+import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 // Test data:
-const selectedLayoutSet = layoutSet1NameMock;
+export const layoutSet1NameMock = 'test-layout-set';
+export const layoutSet2NameMock = 'test-layout-set-2';
+export const layoutSetsMock: LayoutSets = {
+  sets: [
+    {
+      id: layoutSet1NameMock,
+      dataType: 'data-model',
+      tasks: ['Task_1'],
+    },
+    {
+      id: layoutSet2NameMock,
+      dataType: 'data-model-2',
+      tasks: ['Task_2'],
+    },
+  ],
+};
 
 const wrapper = ({
   children,
@@ -70,6 +85,6 @@ describe('useSelectedFormLayoutSetName', () => {
       },
     });
 
-    expect(result.current.selectedFormLayoutSetName).toEqual(selectedLayoutSet);
+    expect(result.current.selectedFormLayoutSetName).toEqual(layoutSet1NameMock);
   });
 });

@@ -1,4 +1,5 @@
 export * from './StudioAnimateHeight';
+export * from './StudioBetaTag';
 export * from './StudioBlobDownloader';
 export * from './StudioBooleanToggleGroup';
 export * from './StudioButton';
@@ -35,6 +36,7 @@ export * from './StudioCombobox';
 export * from './StudioTableLocalPagination';
 export * from './StudioTableRemotePagination';
 export * from './StudioTabs';
+export * from './StudioTag';
 export * from './StudioTextarea';
 export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';
