@@ -13,7 +13,6 @@ export const useAddImageMutation = (org: string, app: string) => {
   return useMutation({
     mutationFn: (form: FormData) => addImage(org, app, form),
     onError: (error: AxiosError) => {
-      debugger;
       if (isFileTooLarge(error)) toast.error(t('ux_editor.upload_file_error_too_large'));
     },
     meta: {
