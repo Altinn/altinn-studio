@@ -1,5 +1,5 @@
 import { stringify as s } from 'qs';
-import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
+import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
 
 // Base path
 const basePath = '/designer/api';
@@ -54,6 +54,13 @@ export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
 export const userLogoutAfterPath = () => `/Home/Logout`;
+
+// Images
+export const allImagesPath = (org, app) => `${basePath}/${org}/${app}/images/all`; // Get
+export const addImagePath = (org, app) => `${basePath}/${org}/${app}/images`; // Post
+export const imagePath = (org, app, imageFilePath) => `${basePath}/${org}/${app}/images/${encodeURIComponent(imageFilePath)}`; // Get, Delete
+export const validateImageFromExternalUrlPath = (org, app, url) => `${basePath}/${org}/${app}/images/validate?${s({ url })}`; // Get
+export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
 
 // Languages - new text-format
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
