@@ -8,9 +8,11 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { PageLayout } from './PageLayout';
 
+const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: jest.fn(),
+  useNavigate: () => mockedNavigate,
 }));
 
 describe('PageLayout', () => {
@@ -49,6 +51,16 @@ describe('PageLayout', () => {
 
     await waitFor(() => {
       expect(screen.getByText(textMock('resourceadm.merge_conflict_header'))).toBeInTheDocument();
+    });
+  });
+
+  it('should navigate to / if user does not have access to org', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      org: 'ikke-ttd',
+    });
+    renderComponent();
+    await waitFor(() => {
+      expect(mockedNavigate).toHaveBeenCalledWith('/');
     });
   });
 });
