@@ -7,32 +7,34 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.ExpressionEvaluatorTests;
 
 public class EqualTests(ITestOutputHelper outputHelper)
 {
-    public static IEnumerable<object[]> GetNumericTestData(double value) =>
-        [
-            [value],
-            [(byte)value],
-            [(sbyte)value],
-            [(short)value],
-            [(ushort)value],
-            [(int)value],
-            [(uint)value],
-            [(long)value],
-            [(ulong)value],
-            [(float)value],
-            [(decimal)value],
-            // [(BigInteger)value] // Not supported by JsonSerializer
-        ];
+    public static TheoryData<object> GetNumericTestData(double value) =>
+        new()
+        {
+            value,
+            (byte)value,
+            (sbyte)value,
+            (short)value,
+            (ushort)value,
+            (int)value,
+            (uint)value,
+            (long)value,
+            (ulong)value,
+            (float)value,
+            (decimal)value,
+            // (BigInteger)value, // Not supported by JsonSerializer
+        };
 
-    public static IEnumerable<object[]> GetExoticTypes =>
-        [
-            ["123"],
-            [true],
-            [false],
-            [""],
-            [DateTime.Now],
-            [DateOnly.FromDateTime(DateTime.Now)],
-            [TimeOnly.FromDateTime(DateTime.Now)],
-        ];
+    public static TheoryData<object> GetExoticTypes =>
+        new()
+        {
+            "123",
+            true,
+            false,
+            "",
+            DateTime.Now,
+            DateOnly.FromDateTime(DateTime.Now),
+            TimeOnly.FromDateTime(DateTime.Now),
+        };
 
     [Theory]
     [MemberData(nameof(GetNumericTestData), 123.0)]
@@ -50,21 +52,20 @@ public class EqualTests(ITestOutputHelper outputHelper)
         Assert.Equal(json, toStringForEquals);
     }
 
-    public static IEnumerable<object[]> GetNonsenseValues =>
-        [
-            [new BigInteger(123)], // Not supported by JsonSerializer, but might make sense to support
-            [new object[] { 1, 2, 3 }],
-            [new object()],
-            [
-                new
-                {
-                    A = 1,
-                    B = 2,
-                    C = 3
-                }
-            ],
-            [new byte[] { 0x01, 0x02, 0x03 }],
-        ];
+    public static TheoryData<object> GetNonsenseValues =>
+        new()
+        {
+            new BigInteger(123), // Not supported by JsonSerializer, but might make sense to support
+            new object[] { 1, 2, 3 },
+            new object(),
+            new
+            {
+                A = 1,
+                B = 2,
+                C = 3
+            },
+            new byte[] { 0x01, 0x02, 0x03 },
+        };
 
     [Theory]
     [MemberData(nameof(GetNonsenseValues))]
