@@ -12,8 +12,3 @@
   background-color: var(--fds-semantic-surface-neutral-default);
   padding: var(--fds-spacing-5) 0;
 }
-
-.subForm .editLayoutSet {
-  padding: var(--fds-spacing-5) 0;
-  box-sizing: border-box;
-}
