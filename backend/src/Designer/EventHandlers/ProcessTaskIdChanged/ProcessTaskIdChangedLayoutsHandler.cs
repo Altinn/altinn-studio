@@ -38,7 +38,17 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
         foreach (var layoutSet in layoutSetsFile.Sets)
         {
             string layoutSetName = layoutSet.Id;
-            string[] layoutNames = repository.GetLayoutNames(layoutSetName);
+            string[] layoutNames;
+
+            try
+            {
+                layoutNames = repository.GetLayoutNames(layoutSetName);
+            }
+            catch
+            {
+                continue;
+            }
+
             foreach (string layoutName in layoutNames)
             {
                 string layoutPath = $"App/ui/{layoutSetName}/{layoutName}.json";
@@ -81,6 +91,7 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
                 {
                     jsonObject["taskId"] = newId;
                 }
+
                 UpdateTaskIds(property.Value, oldId, newId);
             }
         }
