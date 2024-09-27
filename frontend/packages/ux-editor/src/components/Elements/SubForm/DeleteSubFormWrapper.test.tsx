@@ -7,7 +7,7 @@ import {
   layoutSetsMock,
   layoutSet1NameMock,
   layoutSet3SubFormNameMock,
-} from '@altinn/ux-editor/testing/layoutSetsMock';
+} from '../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';

@@ -51,7 +51,7 @@ describe('LayoutSetsContainer', () => {
     expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 
-  it('should render add and delete subform buttons when feature is enabled', async () => {
+  it('should render add and delete subform buttons when feature is enabled', () => {
     addFeatureFlagToLocalStorage('subForm');
 
     render();
@@ -67,7 +67,7 @@ describe('LayoutSetsContainer', () => {
     removeFeatureFlagFromLocalStorage('subForm');
   });
 
-  it('should not render add and delete subform buttons when feature is disabled', async () => {
+  it('should not render add and delete subform buttons when feature is disabled', () => {
     render();
     const createSubFormButton = screen.queryByRole('button', {
       name: textMock('ux_editor.create.sub_form'),

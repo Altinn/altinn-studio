@@ -51,7 +51,7 @@ export function LayoutSetsContainer() {
           <StudioCombobox.Option
             value={layoutSet.id}
             key={layoutSet.id}
-            description={layoutSet?.type === 'subform' && t('ux_editor.sub_form')}
+            description={layoutSet.type === 'subform' && t('ux_editor.sub_form')}
           >
             {layoutSet.id}
           </StudioCombobox.Option>

@@ -19,8 +19,7 @@ export type AddLayoutSetMutation = UseMutateFunction<
     layoutSetConfig: LayoutSetConfig;
   },
   Error,
-  AddLayoutSetMutationPayload,
-  unknown
+  AddLayoutSetMutationPayload
 >;
 
 const isLayoutSets = (obj: LayoutSetsResponse): obj is LayoutSets => {

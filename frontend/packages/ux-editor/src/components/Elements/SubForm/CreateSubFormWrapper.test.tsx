@@ -11,7 +11,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 const subFormName = 'underskjema';
 
 describe('CreateSubFormWrapper', () => {
-  it('renders component', async () => {
+  it('should open dialog when clicking "create subform" button', async () => {
     const user = userEvent.setup();
     renderCreateSubFormWrapper();
 
