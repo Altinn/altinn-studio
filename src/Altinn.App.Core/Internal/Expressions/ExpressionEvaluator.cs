@@ -473,24 +473,16 @@ public static class ExpressionEvaluator
         return a >= b; // Actual implementation
     }
 
-    private static string? ToStringForEquals(object? value)
-    {
-        if (value is null)
+    private static string? ToStringForEquals(object? value) =>
+        value switch
         {
-            return null;
-        }
-
-        if (value is bool bvalue)
-        {
-            return bvalue ? "true" : "false";
-        }
-
-        return value switch
-        {
+            null => null,
+            bool bValue => bValue ? "true" : "false",
             // Special case for "TruE" to be equal to true
             string sValue when "true".Equals(sValue, StringComparison.OrdinalIgnoreCase) => "true",
             string sValue when "false".Equals(sValue, StringComparison.OrdinalIgnoreCase) => "false",
             string sValue when "null".Equals(sValue, StringComparison.OrdinalIgnoreCase) => null,
+            string sValue => sValue,
             decimal decValue => decValue.ToString(CultureInfo.InvariantCulture),
             double doubleValue => doubleValue.ToString(CultureInfo.InvariantCulture),
             int intValue => intValue.ToString(CultureInfo.InvariantCulture),
@@ -498,7 +490,6 @@ public static class ExpressionEvaluator
             float floatValue => floatValue.ToString(CultureInfo.InvariantCulture),
             _ => throw new NotImplementedException($"ToStringForEquals not implemented for type {value.GetType().Name}")
         };
-    }
 
     private static bool? EqualsImplementation(object?[] args)
     {
