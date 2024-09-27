@@ -4,11 +4,11 @@ import { generateTextResourceId } from '../../utils/generateId';
 import { TextResourceEditor } from './TextResourceEditor';
 import { StudioButton, StudioDeleteButton, StudioProperty, usePrevious } from '@studio/components';
 import { XMarkIcon } from '@studio/icons';
-import { TextResourceValue } from './TextResourceValue';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useAppContext } from '../../hooks';
+import { useGetTextResourceValue } from './hooks/useGetTextResourceValue';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
@@ -46,7 +46,7 @@ export const TextResource = ({
   const prevFormItemId = usePrevious(formItemId);
   const prevFormLayoutName = usePrevious(formLayoutName);
 
-  const [currentValue, setCurrentValue] = useState<string>('');
+  const [currentValue, setCurrentValue] = useState<string>(useGetTextResourceValue(textResourceId));
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
@@ -159,7 +159,7 @@ const TextResourceButton = ({
   onOpen,
   textResourceId,
 }: TextResourceButtonProps) => {
-  const value = textResourceId ? <TextResourceValue id={textResourceId} /> : null;
+  const value = useGetTextResourceValue(textResourceId);
   return (
     <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
   );
