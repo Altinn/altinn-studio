@@ -20,7 +20,9 @@ export const SchemaEditorWithToolbar = ({
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
 
-  const modelPath = selectedOption?.value.repositoryRelativeUrl;
+  const modelPath = dataModels.find(
+    (item) => item.repositoryRelativeUrl === selectedOption?.value.repositoryRelativeUrl,
+  )?.repositoryRelativeUrl;
 
   return (
     <div className={classes.root}>
