@@ -18,15 +18,29 @@ These are some of the required steps, tips, and tricks when it comes to running 
 
 ### Prerequisites
 
-1. Newest [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
+1. .NET SDK matching your service (the latest App Template uses [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0), older versions may also require [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0))
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also
       install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (
       f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
-4. [Podman Desktop](https://podman-desktop.io)/[Podman](https://podman.io) (Linux users can also use native Docker) or [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license.
-On mac with apple silicone (M1, M2, M3):
-5. [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation)
+4. Tooling to run containers:  
+    - [Podman](https://podman.io)* (optionally with [Podman Desktop](https://podman-desktop.io))
+    - [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows and Mac) This might require you to purchase a license. 
+    - Linux/WSL users can also use native Docker.
+  
+ > [!NOTE] 
+ > On Mac with Apple silicone (M-series CPU), [vfkit](https://github.com/crc-org/vfkit?tab=readme-ov-file#installation) might be needed - consult the install guide/requirements for your container toolkit
+
+
+> [!WARNING]
+> *Podman on Windows/WSL2 can be tricky. If faced with the same issue as described in https://github.com/Altinn/app-localtest/issues/84, please apply the following (tested on Podman 4.9.2 and 5.1.1):
+> * Install the Podman Machine with "user-mode networking" enabled (the setting for root/rootless seems not to have an impact)
+> * Apply local updates to `podman-compose.yml` and `src\appsettings.Podman.json` replacing `host.docker.internal` with `<your-hostname>.local` (obtained by running `hostname` in the windows host commandline).  
+>   e.g. in `src\appsettings.Podman.json` the config `"LocalAppUrl": "http://host.docker.internal:5005",` becomes `"LocalAppUrl": "http://AAD-123456789.local:5005",` if your hostname is `AAD-123456789`
+> 
+> If you have special networking needs (VPN), additional settings might be needed in WSL2/Podman. Please consult their respective doc/forums. https://learn.microsoft.com/en-us/windows/wsl/wsl-config#wslconfig and https://github.com/containers/podman/blob/main/docs/tutorials/basic_networking.md are good starting-ponts.
+
 ### Setup
 
 #### Clone the repository
