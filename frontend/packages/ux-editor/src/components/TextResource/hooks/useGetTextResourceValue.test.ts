@@ -25,7 +25,7 @@ const renderuseGetTextResourceValue = (props = {}) => {
 
   return renderHook(() => useGetTextResourceValue(allProps.id), {
     wrapper: ({ children }) =>
-      typeof ServicesContextProvider
+      ServicesContextProvider
         ? ServicesContextProvider({ children } as unknown as ServicesContextProps)
         : (children as ReactNode),
   });
