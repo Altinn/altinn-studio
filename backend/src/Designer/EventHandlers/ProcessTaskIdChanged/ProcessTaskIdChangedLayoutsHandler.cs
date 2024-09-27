@@ -34,13 +34,9 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
         }
 
         var layoutSetsFile = await repository.GetLayoutSetsFile(cancellationToken);
-
-        bool hasChanges = false;
-        foreach (var layoutSet in layoutSetsFile.Sets)
+        foreach (string layoutSetName in layoutSetsFile.Sets.Select(layoutSet => layoutSet.Id))
         {
-            string layoutSetName = layoutSet.Id;
             string[] layoutNames;
-
             try
             {
                 layoutNames = repository.GetLayoutNames(layoutSetName);
@@ -59,6 +55,7 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
                     layoutPath,
                     async () =>
                     {
+                        bool hasChanges = false;
                         var layout = await repository.GetLayout(layoutSetName, layoutName, cancellationToken);
 
                         if (TryChangeTaskIds(layout, notification.OldId, notification.NewId))
