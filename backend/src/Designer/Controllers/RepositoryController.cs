@@ -9,12 +9,14 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -22,30 +24,24 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// This is the API controller for functionality related to repositories.
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="RepositoryController"/> class.
+    /// </remarks>
+    /// <param name="giteaWrapper">the gitea wrapper</param>
+    /// <param name="sourceControl">the source control</param>
+    /// <param name="repository">the repository control</param>
+    /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
+    /// <param name="syncHub">websocket syncHub</param>
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/repos")]
-    public class RepositoryController : ControllerBase
+    public class RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IUserRequestsSynchronizationService userRequestsSynchronizationService, IHubContext<SyncHub, ISyncClient> syncHub) : ControllerBase
     {
-        private readonly IGitea _giteaApi;
-        private readonly ISourceControl _sourceControl;
-        private readonly IRepository _repository;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RepositoryController"/> class.
-        /// </summary>
-        /// <param name="giteaWrapper">the gitea wrapper</param>
-        /// <param name="sourceControl">the source control</param>
-        /// <param name="repository">the repository control</param>
-        /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
-        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IUserRequestsSynchronizationService userRequestsSynchronizationService)
-        {
-            _giteaApi = giteaWrapper;
-            _sourceControl = sourceControl;
-            _repository = repository;
-            _userRequestsSynchronizationService = userRequestsSynchronizationService;
-        }
+        private readonly IGitea _giteaApi = giteaWrapper;
+        private readonly ISourceControl _sourceControl = sourceControl;
+        private readonly IRepository _repository = repository;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService = userRequestsSynchronizationService;
+        private readonly IHubContext<SyncHub, ISyncClient> _syncHub = syncHub;
 
         /// <summary>
         /// Returns a list over repositories
@@ -322,6 +318,17 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 await _sourceControl.PushChangesForRepository(commitInfo);
+            }
+            catch (LibGit2Sharp.NonFastForwardException)
+            {
+                RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository);
+                await _sourceControl.Push(commitInfo.Org, commitInfo.Repository);
+                foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
+                {
+                    Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+                    SyncSuccess syncSuccess = new(source);
+                    await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
+                }
             }
             finally
             {
