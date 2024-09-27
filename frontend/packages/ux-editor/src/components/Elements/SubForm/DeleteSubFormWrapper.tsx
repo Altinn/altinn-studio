@@ -20,9 +20,7 @@ export const DeleteSubFormWrapper = ({
   const { t } = useTranslation();
 
   const onDeleteSubForm = () => {
-    if (confirm(t('ux_editor.delete.sub_form.confirm'))) {
-      deleteLayoutSet({ layoutSetIdToUpdate: selectedLayoutSet });
-    }
+    deleteLayoutSet({ layoutSetIdToUpdate: selectedLayoutSet });
   };
 
   const isRegularLayoutSet = !Boolean(
