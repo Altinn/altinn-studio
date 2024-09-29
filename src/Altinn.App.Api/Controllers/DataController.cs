@@ -577,23 +577,21 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
+                // TODO: handle added and deleted data elements
                 foreach (var change in res.Ok.ChangedDataElements)
                 {
-                    if (change.HasAppLogic)
-                    {
-                        await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentValue);
-                        await UpdatePresentationTextsOnInstance(
-                            instance,
-                            change.DataElement.DataType,
-                            change.CurrentValue
-                        );
-                    }
+                    await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentFormData);
+                    await UpdatePresentationTextsOnInstance(
+                        instance,
+                        change.DataElement.DataType,
+                        change.CurrentFormData
+                    );
                 }
 
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
-                        NewDataModels = res.Ok.GetUpdatedData(),
+                        NewDataModels = res.Ok.UpdatedData,
                         ValidationIssues = res.Ok.ValidationIssues
                     }
                 );

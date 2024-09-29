@@ -52,7 +52,7 @@ public class DataModel
     {
         if (key.DataType == null)
         {
-            return (defaultDataElementId, await _dataAccessor.GetData(defaultDataElementId));
+            return (defaultDataElementId, await _dataAccessor.GetFormData(defaultDataElementId));
         }
 
         if (_dataIdsByType.TryGetValue(key.DataType, out var dataElementId))
@@ -63,7 +63,7 @@ public class DataModel
                     $"{key.DataType} has maxCount different from 1 in applicationmetadata.json or don't have a classRef in appLogic"
                 );
             }
-            return (dataElementId.Value, await _dataAccessor.GetData(dataElementId.Value));
+            return (dataElementId.Value, await _dataAccessor.GetFormData(dataElementId.Value));
         }
 
         throw new InvalidOperationException(
@@ -109,7 +109,7 @@ public class DataModel
     /// </example>
     public async Task<DataReference[]> GetResolvedKeys(DataReference reference)
     {
-        var model = await _dataAccessor.GetData(reference.DataElementId);
+        var model = await _dataAccessor.GetFormData(reference.DataElementId);
         var modelWrapper = new DataModelWrapper(model);
         return modelWrapper
             .GetResolvedKeys(reference.Field)
@@ -156,7 +156,7 @@ public class DataModel
     /// </summary>
     public async Task RemoveField(DataReference reference, RowRemovalOption rowRemovalOption)
     {
-        var serviceModel = await _dataAccessor.GetData(reference.DataElementId);
+        var serviceModel = await _dataAccessor.GetFormData(reference.DataElementId);
         if (serviceModel is null)
         {
             throw new DataModelException(

@@ -73,10 +73,13 @@ public static class ObjectUtils
     /// <summary>
     /// Xml serialization-deserialization does not preserve all properties, and we sometimes need
     /// to know how it looks when it comes back from storage.
+    /// </summary>
+    /// <remarks>
     /// * Recursively initialize all <see cref="List{T}"/> properties on the object that are currently null
     /// * Ensure that all string properties with `[XmlTextAttribute]` that are empty or whitespace are set to null
     /// * If a class has `[XmlTextAttribute]` and no value, set the parent property to null (if the other properties has [BindNever] attribute)
-    /// </summary>
+    /// * If a property has a `ShouldSerialize{PropertyName}` method that returns false, set the property to default value
+    /// </remarks>
     /// <param name="model">The object to mutate</param>
     /// <param name="depth">Remaining recursion depth. To prevent infinite recursion we stop prepeation after this depth. (default matches json serialization)</param>
     public static void PrepareModelForXmlStorage(object model, int depth = 64)

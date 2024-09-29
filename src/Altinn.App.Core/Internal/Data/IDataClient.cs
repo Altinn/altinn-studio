@@ -28,30 +28,33 @@ public interface IDataClient
         string app,
         int instanceOwnerPartyId,
         string dataType
-    );
+    )
+        where T : notnull;
 
     /// <summary>
     /// Stores the form
     /// </summary>
     /// <typeparam name="T">The model type</typeparam>
     /// <param name="instance">The instance that the data element belongs to</param>
-    /// <param name="dataType">The data type with requirements</param>
+    /// <param name="dataTypeString">The data type with requirements</param>
     /// <param name="dataToSerialize">The data element instance</param>
     /// <param name="type">The class type describing the data</param>
     /// <returns>The data element metadata</returns>
-    Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type);
+    Task<DataElement> InsertFormData<T>(Instance instance, string dataTypeString, T dataToSerialize, Type type)
+        where T : notnull;
 
     /// <summary>
     /// updates the form data
     /// </summary>
     /// <typeparam name="T">The type</typeparam>
     /// <param name="dataToSerialize">The form data to serialize</param>
-    /// <param name="instanceGuid">The instanceid</param>
+    /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
     /// <param name="dataId">the data id</param>
+    //TODO: [Obsolete in v9 in favour of a version that gets the dataType so we can support json and xml]
     Task<DataElement> UpdateData<T>(
         T dataToSerialize,
         Guid instanceGuid,
@@ -60,12 +63,13 @@ public interface IDataClient
         string app,
         int instanceOwnerPartyId,
         Guid dataId
-    );
+    )
+        where T : notnull;
 
     /// <summary>
     /// Gets the form data
     /// </summary>
-    /// <param name="instanceGuid">The instanceid</param>
+    /// <param name="instanceGuid">The instance id</param>
     /// <param name="type">The type for serialization</param>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -86,9 +90,20 @@ public interface IDataClient
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
     /// <param name="app">Application identifier which is unique within an organisation.</param>
     /// <param name="instanceOwnerPartyId">The instance owner id</param>
-    /// <param name="instanceGuid">The instanceid</param>
+    /// <param name="instanceGuid">The instance id</param>
     /// <param name="dataId">the data id</param>
     Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);
+
+    /// <summary>
+    /// Similar to GetBinaryData, but returns a HttpResponseMessage instead of a cached stream
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="app">Application identifier which is unique within an organisation.</param>
+    /// <param name="instanceOwnerPartyId">The instance owner id</param>
+    /// <param name="instanceGuid">The instance id</param>
+    /// <param name="dataId">the data id</param>
+    /// <returns>The raw HttpResponseMessage from the call to platform</returns>
+    Task<byte[]> GetDataBytes(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId);
 
     /// <summary>
     /// Method that gets metadata on form attachments ordered by attachmentType
@@ -180,7 +195,7 @@ public interface IDataClient
     Task<DataElement> UpdateBinaryData(
         InstanceIdentifier instanceIdentifier,
         string? contentType,
-        string filename,
+        string? filename,
         Guid dataGuid,
         Stream stream
     );

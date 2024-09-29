@@ -359,19 +359,15 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 new DataElementChange()
                 {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElement,
-                    CurrentValue = "currentValue",
-                    PreviousValue = "previousValue"
+                    CurrentFormData = "currentValue",
+                    PreviousFormData = "previousValue"
                 },
                 new DataElementChange()
                 {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElementNoValidation,
-                    CurrentValue = "currentValue",
-                    PreviousValue = "previousValue"
+                    CurrentFormData = "currentValue",
+                    PreviousFormData = "previousValue"
                 }
             };
 

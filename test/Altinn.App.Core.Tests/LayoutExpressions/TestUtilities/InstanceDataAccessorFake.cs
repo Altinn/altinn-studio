@@ -78,14 +78,19 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public Instance Instance { get; }
 
-    public Task<object> GetData(DataElementId dataElementId)
+    public Task<object> GetFormData(DataElementId dataElementId)
     {
         return Task.FromResult(_dataById[dataElementId]);
     }
 
-    public Task<object?> GetSingleDataByType(string dataType)
+    public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementId dataElementId)
     {
-        return Task.FromResult(_dataByType.GetValueOrDefault(dataType));
+        throw new NotImplementedException();
+    }
+
+    public DataElement GetDataElement(DataElementId dataElementId)
+    {
+        throw new NotImplementedException();
     }
 
     public IEnumerator<KeyValuePair<DataElement?, object>> GetEnumerator()

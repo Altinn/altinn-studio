@@ -2,6 +2,7 @@ using System.Net;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -45,13 +46,7 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(null!));
 
         // Act
-        var validateController = new ValidateController(
-            _instanceMock.Object,
-            _validationMock.Object,
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _appModelMock.Object
-        );
+        var validateController = GetValidateController();
         var result = await validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId);
 
         // Assert
@@ -71,13 +66,7 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         // Act
-        var validateController = new ValidateController(
-            _instanceMock.Object,
-            _validationMock.Object,
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _appModelMock.Object
-        );
+        var validateController = GetValidateController();
 
         // Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
@@ -101,13 +90,7 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         // Act
-        var validateController = new ValidateController(
-            _instanceMock.Object,
-            _validationMock.Object,
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _appModelMock.Object
-        );
+        var validateController = GetValidateController();
 
         // Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(
@@ -155,13 +138,7 @@ public class ValidateControllerTests
             .ReturnsAsync(validationResult);
 
         // Act
-        var validateController = new ValidateController(
-            _instanceMock.Object,
-            _validationMock.Object,
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _appModelMock.Object
-        );
+        var validateController = GetValidateController();
         var result = await validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId);
 
         // Assert
@@ -195,13 +172,7 @@ public class ValidateControllerTests
             .Throws(exception);
 
         // Act
-        var validateController = new ValidateController(
-            _instanceMock.Object,
-            _validationMock.Object,
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _appModelMock.Object
-        );
+        var validateController = GetValidateController();
         var result = await validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId);
 
         // Assert
@@ -235,18 +206,23 @@ public class ValidateControllerTests
             .Throws(exception);
 
         // Act
-        var validateController = new ValidateController(
-            _instanceMock.Object,
-            _validationMock.Object,
-            _appMetadataMock.Object,
-            _dataClientMock.Object,
-            _appModelMock.Object
-        );
+        var validateController = GetValidateController();
 
         // Assert
         var thrownException = await Assert.ThrowsAsync<PlatformHttpException>(
             () => validateController.ValidateInstance(Org, App, InstanceOwnerPartyId, _instanceId)
         );
         Assert.Equal(exception, thrownException);
+    }
+
+    private ValidateController GetValidateController()
+    {
+        return new ValidateController(
+            _instanceMock.Object,
+            _validationMock.Object,
+            _appMetadataMock.Object,
+            _dataClientMock.Object,
+            new ModelSerializationService(_appModelMock.Object)
+        );
     }
 }

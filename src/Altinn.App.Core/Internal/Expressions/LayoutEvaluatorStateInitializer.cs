@@ -52,7 +52,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 
         public Instance Instance { get; }
 
-        public Task<object> GetData(DataElementId dataElementId)
+        public Task<object> GetFormData(DataElementId dataElementId)
         {
             if (dataElementId != _dataElement)
             {
@@ -65,15 +65,20 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             return Task.FromResult(_data);
         }
 
-        public Task<object?> GetSingleDataByType(string dataType)
+        public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementId dataElementId)
         {
-            if (_dataElement.DataType != dataType)
+            return Task.FromException<ReadOnlyMemory<byte>>(new NotImplementedException());
+        }
+
+        public DataElement GetDataElement(DataElementId dataElementId)
+        {
+            if (dataElementId != _dataElement)
             {
-                return Task.FromException<object?>(
-                    new InvalidOperationException("Data type does not match the data element")
+                throw new InvalidOperationException(
+                    "Use the new ILayoutEvaluatorStateInitializer interface to support multiple data models and subforms"
                 );
             }
-            return Task.FromResult<object?>(_data);
+            return _dataElement;
         }
     }
 

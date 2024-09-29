@@ -979,16 +979,20 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>()))
             .Returns(true);
 
-        var patch = new JsonPatch(
-            PatchOperation.Replace(JsonPointer.Create("melding", "name"), JsonNode.Parse("\"Ola Olsen\""))
-        );
+        var path = JsonPointer.Create("melding", "name");
+        var patch = new JsonPatch(PatchOperation.Replace(path, JsonNode.Parse("\"Ola Olsen\"")));
 
         var (_, _, parsedResponse1) = await CallPatchApi<DataPatchResponse>(patch, ["ignored"], HttpStatusCode.OK);
 
         // Verify that no issues from the ignored validator are present
         parsedResponse1.ValidationIssues.Should().NotContainKey("ignored");
 
-        var (_, _, parsedResponse2) = await CallPatchApi<DataPatchResponse>(patch, null, HttpStatusCode.OK);
+        var patch2 = new JsonPatch(
+            PatchOperation.Test(path, JsonNode.Parse("\"Ola Olsen\"")),
+            PatchOperation.Replace(path, JsonNode.Parse("\"Ola Nielsen\""))
+        );
+
+        var (_, _, parsedResponse2) = await CallPatchApi<DataPatchResponse>(patch2, null, HttpStatusCode.OK);
 
         // Verify that issues from the ignored validator are present
         parsedResponse2

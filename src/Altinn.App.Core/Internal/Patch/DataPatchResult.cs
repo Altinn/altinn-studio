@@ -21,15 +21,5 @@ public class DataPatchResult
     /// <summary>
     /// Get updated data elements that have app logic in a dictionary with the data element id as key.
     /// </summary>
-    public Dictionary<Guid, object> GetUpdatedData()
-    {
-        return ChangedDataElements
-            .Where(d => d.HasAppLogic)
-            .ToDictionary(
-                d => Guid.Parse(d.DataElement.Id),
-                d =>
-                    d.CurrentValue
-                    ?? throw new InvalidOperationException("Data element has app logic but no current value")
-            );
-    }
+    public required Dictionary<Guid, object> UpdatedData { get; init; }
 }

@@ -1,4 +1,5 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -26,7 +27,7 @@ public class ProcessTaskFinalizerTests
         _processTaskFinalizer = new ProcessTaskFinalizer(
             _appMetadataMock.Object,
             _dataClientMock.Object,
-            _appModelMock.Object,
+            new ModelSerializationService(_appModelMock.Object),
             _layoutEvaluatorStateInitializerMock.Object,
             _appSettings
         );

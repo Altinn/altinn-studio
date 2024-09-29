@@ -4533,7 +4533,7 @@ components:
         source:
           type: string
           nullable: true
-        NoIncrementalUpdates:
+        noIncrementalUpdates:
           type: boolean
         customTextKey:
           type: string

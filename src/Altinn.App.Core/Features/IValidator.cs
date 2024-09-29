@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -68,49 +68,17 @@ public interface IValidator
 public class DataElementChange
 {
     /// <summary>
-    /// If the data element has app logic you can expect <see cref="CurrentValue"/> and <see cref="PreviousValue"/> to be available
-    /// </summary>
-    [MemberNotNullWhen(true, nameof(CurrentValue), nameof(PreviousValue))]
-    public required bool HasAppLogic { get; init; }
-
-    /// <summary>
     /// The data element the change is related to
     /// </summary>
-    public required DataElement DataElement { get; init; }
-
-    /// <summary>
-    /// The type of change that has occurred
-    /// </summary>
-    public required DataElementChangeType ChangeType { get; init; }
+    public required DataElementId DataElement { get; init; }
 
     /// <summary>
     /// The state of the data element before the change
     /// </summary>
-    public required object? PreviousValue { get; init; }
+    public required object PreviousFormData { get; init; }
 
     /// <summary>
     /// The state of the data element after the change
     /// </summary>
-    public required object? CurrentValue { get; init; }
-}
-
-/// <summary>
-/// Enum specifying the type of changes that can occur to a data element
-/// </summary>
-public enum DataElementChangeType
-{
-    /// <summary>
-    /// The data element has appLogic and was updated
-    /// </summary>
-    Update,
-
-    /// <summary>
-    /// The data element was added
-    /// </summary>
-    Add,
-
-    /// <summary>
-    /// The data element was removed
-    /// </summary>
-    Delete,
+    public required object CurrentFormData { get; init; }
 }

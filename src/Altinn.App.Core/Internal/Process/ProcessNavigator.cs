@@ -1,6 +1,6 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
@@ -20,7 +20,7 @@ public class ProcessNavigator : IProcessNavigator
     private readonly ILogger<ProcessNavigator> _logger;
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
-    private readonly IAppModel _appModel;
+    private readonly ModelSerializationService _modelSerialization;
 
     /// <summary>
     /// Initialize a new instance of <see cref="ProcessNavigator"/>
@@ -31,7 +31,7 @@ public class ProcessNavigator : IProcessNavigator
         ILogger<ProcessNavigator> logger,
         IDataClient dataClient,
         IAppMetadata appMetadata,
-        IAppModel appModel
+        ModelSerializationService modelSerialization
     )
     {
         _processReader = processReader;
@@ -39,7 +39,7 @@ public class ProcessNavigator : IProcessNavigator
         _logger = logger;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
-        _appModel = appModel;
+        _modelSerialization = modelSerialization;
     }
 
     /// <inheritdoc/>
@@ -114,7 +114,7 @@ public class ProcessNavigator : IProcessNavigator
                     instance,
                     _dataClient,
                     _appMetadata,
-                    _appModel
+                    _modelSerialization
                 );
                 filteredList = await gatewayFilter.FilterAsync(
                     outgoingFlows,

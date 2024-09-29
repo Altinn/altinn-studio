@@ -16,6 +16,7 @@ using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Features.Validation.Default;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Authentication;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
@@ -179,6 +180,7 @@ public static class ServiceCollectionExtensions
         services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
+        services.AddSingleton<ModelSerializationService>();
 
         AddAppOptions(services);
         AddExternalApis(services);

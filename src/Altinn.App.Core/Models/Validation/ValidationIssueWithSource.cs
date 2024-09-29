@@ -77,7 +77,7 @@ public class ValidationIssueWithSource
     /// Weather the issue is from a validator that correctly implements <see cref="IValidator.HasRelevantChanges"/>.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [JsonPropertyName("NoIncrementalUpdates")]
+    [JsonPropertyName("noIncrementalUpdates")]
     public bool NoIncrementalUpdates { get; set; }
 
     /// <summary>

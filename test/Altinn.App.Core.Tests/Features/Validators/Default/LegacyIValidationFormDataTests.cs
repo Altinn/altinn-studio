@@ -26,7 +26,12 @@ public class LegacyIValidationFormDataTests
         Title = new LanguageString() { { "nb", "test" } },
         DataTypes = new List<DataType>()
         {
-            new DataType() { Id = "test", TaskId = "Task_1" },
+            new DataType()
+            {
+                Id = "test",
+                TaskId = "Task_1",
+                AppLogic = new() { ClassRef = typeof(TestModel).FullName }
+            },
         },
     };
 
@@ -58,12 +63,12 @@ public class LegacyIValidationFormDataTests
     public async Task ValidateFormData_WithErrors()
     {
         // Arrange
-        var data = new object();
+        var data = new TestModel();
 
         _instanceValidator
-            .Setup(iv => iv.ValidateData(It.IsAny<object>(), It.IsAny<ModelStateDictionary>()))
+            .Setup(iv => iv.ValidateData(It.IsAny<TestModel>(), It.IsAny<ModelStateDictionary>()))
             .Returns(
-                (object _, ModelStateDictionary modelState) =>
+                (TestModel _, ModelStateDictionary modelState) =>
                 {
                     modelState.AddModelError("test", "test");
                     modelState.AddModelError("ddd", "*FIXED*test");
@@ -72,7 +77,7 @@ public class LegacyIValidationFormDataTests
             )
             .Verifiable(Times.Once);
 
-        _instanceDataAccessor.Setup(ida => ida.GetData(_dataElement)).ReturnsAsync(data);
+        _instanceDataAccessor.Setup(ida => ida.GetFormData(_dataElement)).ReturnsAsync(data);
 
         // Act
         var result = await _validator.Validate(_instance, _instanceDataAccessor.Object, "Task_1", null);
@@ -151,7 +156,7 @@ public class LegacyIValidationFormDataTests
                 }
             )
             .Verifiable(Times.Once);
-        _instanceDataAccessor.Setup(ida => ida.GetData(_dataElement)).ReturnsAsync(data).Verifiable(Times.Once);
+        _instanceDataAccessor.Setup(ida => ida.GetFormData(_dataElement)).ReturnsAsync(data).Verifiable(Times.Once);
 
         // Act
         var result = await _validator.Validate(_instance, _instanceDataAccessor.Object, "Task_1", null);

@@ -1,11 +1,12 @@
 using System.Globalization;
+using System.Reflection;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models;
@@ -19,9 +20,9 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
-    private readonly IAppModel _appModel;
     private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IOptions<AppSettings> _appSettings;
+    private readonly ModelSerializationService _modelSerializer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessTaskFinalizer"/> class.
@@ -29,16 +30,16 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     public ProcessTaskFinalizer(
         IAppMetadata appMetadata,
         IDataClient dataClient,
-        IAppModel appModel,
+        ModelSerializationService modelSerializer,
         ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IOptions<AppSettings> appSettings
     )
     {
         _appMetadata = appMetadata;
         _dataClient = dataClient;
-        _appModel = appModel;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appSettings = appSettings;
+        _modelSerializer = modelSerializer;
     }
 
     /// <inheritdoc/>
@@ -47,7 +48,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
         List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerializer);
         var changedDataElements = await RunRemoveFieldsInModelOnTaskComplete(
             instance,
             dataAccessor,
@@ -60,7 +61,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         await Task.WhenAll(
             changedDataElements.Select(async dataElement =>
             {
-                var data = await dataAccessor.GetData(dataElement);
+                var data = await dataAccessor.GetFormData(dataElement);
                 return _dataClient.UpdateData(
                     data,
                     Guid.Parse(instance.Id.Split('/')[1]),
@@ -128,7 +129,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     )
     {
         bool isModified = false;
-        var data = await dataAccessor.GetData(dataElement);
+        var data = await dataAccessor.GetFormData(dataElement);
 
         // remove AltinnRowIds
         isModified |= ObjectUtils.RemoveAltinnRowId(data);
@@ -151,8 +152,10 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         }
 
         // Remove shadow fields
+        // TODO: Use reflection or code generation instead of JsonSerializer
         if (dataType.AppLogic?.ShadowFields?.Prefix != null)
         {
+            Type saveToModelType = data.GetType();
             string serializedData = JsonSerializerIgnorePrefix.Serialize(data, dataType.AppLogic.ShadowFields.Prefix);
             if (dataType.AppLogic.ShadowFields.SaveToDataType != null)
             {
@@ -167,8 +170,11 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                     );
                 }
 
-                Type saveToModelType = _appModel.GetModelType(saveToDataType.AppLogic.ClassRef);
-                object? updatedData = JsonSerializer.Deserialize(serializedData, saveToModelType);
+                object updatedData =
+                    JsonSerializer.Deserialize(serializedData, saveToModelType)
+                    ?? throw new JsonException(
+                        "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
+                    );
                 // Save a new data element with the cleaned data without shadow fields.
                 Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
                 string app = instance.AppId.Split("/")[1];
@@ -186,14 +192,23 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
             }
             else
             {
-                // Remove the shadow fields from the data
-
-                data =
-                    JsonSerializer.Deserialize(serializedData, data.GetType())
+                // Remove the shadow fields from the data using JsonSerializer
+                var newData =
+                    JsonSerializer.Deserialize(serializedData, saveToModelType)
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
-                (dataAccessor as CachedInstanceDataAccessor)?.Set(dataElement, data);
+                // Copy all properties with a public setter from newData to data
+                foreach (
+                    var propertyInfo in saveToModelType
+                        .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                        .Where(p => p.CanWrite)
+                )
+                {
+                    object? value = propertyInfo.GetValue(newData);
+                    propertyInfo.SetValue(data, value);
+                }
+
                 isModified = true; // TODO: Detect if modifications were made
             }
         }

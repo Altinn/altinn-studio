@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -18,7 +19,7 @@ namespace Altinn.App.Core.Tests.Features.Validators.LegacyValidationServiceTests
 
 public sealed class ValidationServiceTests : IDisposable
 {
-    private class MyModel
+    public class MyModel
     {
         [JsonPropertyName("name")]
         public string? Name { get; set; }
@@ -103,16 +104,18 @@ public sealed class ValidationServiceTests : IDisposable
         new(MockBehavior.Strict) { Name = "alwaysDataElementValidator" };
     private readonly Mock<IFormDataValidator> _formDataValidatorAlwaysMock =
         new(MockBehavior.Strict) { Name = "alwaysFormDataValidator" };
+    private readonly ModelSerializationService _modelSerialization;
 
     private readonly ServiceCollection _serviceCollection = new();
 
     public ValidationServiceTests()
     {
+        _modelSerialization = new ModelSerializationService(_appModelMock.Object);
         _dataAccessor = new CachedInstanceDataAccessor(
             _defaultInstance,
             _dataClientMock.Object,
             _appMetadataMock.Object,
-            _appModelMock.Object
+            _modelSerialization
         );
         _serviceCollection.AddSingleton(_loggerMock.Object);
         _serviceCollection.AddSingleton(_dataClientMock.Object);
@@ -244,16 +247,9 @@ public sealed class ValidationServiceTests : IDisposable
     {
         _dataClientMock
             .Setup(d =>
-                d.GetFormData(
-                    _defaultInstanceId,
-                    data.GetType(),
-                    DefaultOrg,
-                    DefaultApp,
-                    DefaultPartyId,
-                    _defaultDataElementId
-                )
+                d.GetDataBytes(DefaultOrg, DefaultApp, DefaultPartyId, _defaultInstanceId, _defaultDataElementId)
             )
-            .ReturnsAsync(data)
+            .ReturnsAsync(_modelSerialization.SerializeToXml(data).ToArray())
             .Verifiable(Times.AtLeastOnce);
     }
 
@@ -321,11 +317,9 @@ public sealed class ValidationServiceTests : IDisposable
             {
                 new()
                 {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
                     DataElement = _defaultDataElement,
-                    PreviousValue = previousData,
-                    CurrentValue = data
+                    PreviousFormData = previousData,
+                    CurrentFormData = data
                 }
             },
             null,
@@ -361,28 +355,28 @@ public sealed class ValidationServiceTests : IDisposable
         await using var serviceProvider = _serviceCollection.BuildServiceProvider();
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
+        var data = new MyModel { Name = "Kari" };
+        List<DataElementChange> dataElementChanges =
+        [
+            new DataElementChange()
+            {
+                DataElement = _defaultDataElement,
+                CurrentFormData = data,
+                PreviousFormData = data,
+            }
+        ];
+        SetupDataClient(data);
         var dataAccessor = new CachedInstanceDataAccessor(
             _defaultInstance,
             _dataClientMock.Object,
             _appMetadataMock.Object,
-            _appModelMock.Object
+            _modelSerialization
         );
-        var data = new MyModel { Name = "Kari" };
-        dataAccessor.Set(_defaultDataElement, data);
         var resultData = await validatorService.ValidateIncrementalFormData(
             _defaultInstance,
             dataAccessor,
             "Task_1",
-            [
-                new DataElementChange()
-                {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
-                    DataElement = _defaultDataElement,
-                    CurrentValue = data,
-                    PreviousValue = data,
-                }
-            ],
+            dataElementChanges,
             null,
             DefaultLanguage
         );
@@ -454,7 +448,7 @@ public sealed class ValidationServiceTests : IDisposable
             _defaultInstance,
             _dataClientMock.Object,
             _appMetadataMock.Object,
-            _appModelMock.Object
+            _modelSerialization
         );
 
         var taskResult = await validationService.ValidateInstanceAtTask(

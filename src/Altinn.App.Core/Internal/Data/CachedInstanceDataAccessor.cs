@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
 using System.Globalization;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -21,14 +21,15 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     private readonly int _instanceOwnerPartyId;
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
-    private readonly IAppModel _appModel;
-    private readonly LazyCache<DataElementId, object> _cache = new();
+    private readonly ModelSerializationService _modelSerializationService;
+    private readonly LazyCache<object> _formDataCache = new();
+    private readonly LazyCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
     public CachedInstanceDataAccessor(
         Instance instance,
         IDataClient dataClient,
         IAppMetadata appMetadata,
-        IAppModel appModel
+        ModelSerializationService modelSerializationService
     )
     {
         var splitApp = instance.AppId.Split("/");
@@ -40,120 +41,200 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         Instance = instance;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
-        _appModel = appModel;
+        _modelSerializationService = modelSerializationService;
     }
 
     public Instance Instance { get; }
 
-    public async Task<object?> GetSingleDataByType(string dataType)
-    {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var dataTypeObj = appMetadata.DataTypes.Find(d => d.Id == dataType);
-        if (dataTypeObj == null)
-        {
-            throw new InvalidOperationException($"Data type {dataType} not found in app metadata");
-        }
-        if (dataTypeObj.MaxCount != 1)
-        {
-            throw new InvalidOperationException($"Data type {dataType} is not a single data type");
-        }
-        var dataElement = Instance.Data.Find(d => d.DataType == dataType);
-        if (dataElement == null)
-        {
-            return null;
-        }
-
-        return await GetData(dataElement);
-    }
-
     /// <inheritdoc />
-    public async Task<object> GetData(DataElementId dataElementId)
+    public async Task<object> GetFormData(DataElementId dataElementId)
     {
-        return await _cache.GetOrCreate(
+        return await _formDataCache.GetOrCreate(
             dataElementId,
-            async _ =>
+            async () =>
             {
-                var appMetadata = await _appMetadata.GetApplicationMetadata();
-                var dataElementIdString = dataElementId.Id.ToString();
-                var dataElementType = Instance.Data.Find(d => d.Id == dataElementIdString)?.DataType;
-                var dataType = appMetadata.DataTypes.Find(d => d.Id == dataElementType);
-                if (dataType == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Data type {dataElementType ?? "unknown"} for data element id {dataElementId} not found in app metadata"
-                    );
-                }
+                var binaryData = await GetBinaryData(dataElementId);
 
-                if (dataType.AppLogic?.ClassRef != null)
-                {
-                    return await GetFormData(dataElementId, dataType);
-                }
-
-                return await GetBinaryData(dataElementId);
+                return _modelSerializationService.DeserializeFromStorage(binaryData.Span, GetDataType(dataElementId));
             }
         );
     }
 
-    /// <summary>
-    /// Add data to the cache, so that it won't be fetched again
-    /// </summary>
-    public void Set(DataElementId dataElementId, object data)
+    public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementId dataElementId) =>
+        await _binaryCache.GetOrCreate(
+            dataElementId,
+            async () =>
+                await _dataClient.GetDataBytes(_org, _app, _instanceOwnerPartyId, _instanceGuid, dataElementId.Guid)
+        );
+
+    /// <inheritdoc />
+    public DataElement GetDataElement(DataElementId dataElementId)
     {
-        _cache.Set(dataElementId, data);
+        return Instance.Data.Find(d => d.Id == dataElementId.Id)
+            ?? throw new InvalidOperationException($"Data element with id {dataElementId.Id} not found in instance");
     }
 
-    /// <summary>
-    /// Simple wrapper around a ConcurrentDictionary using Lazy to ensure that the valueFactory is only called once
-    /// </summary>
-    /// <typeparam name="TKey">The type of the key in the cache</typeparam>
-    /// <typeparam name="TValue">The type of the object to cache</typeparam>
-    private sealed class LazyCache<TKey, TValue>
-        where TKey : notnull
-        where TValue : notnull
+    public DataType GetDataType(DataElementId dataElementId)
     {
-        private readonly ConcurrentDictionary<TKey, Lazy<Task<TValue>>> _cache = new();
-
-        public async Task<TValue> GetOrCreate(TKey key, Func<TKey, Task<TValue>> valueFactory)
+        var dataElement = GetDataElement(dataElementId);
+        var appMetadata = _appMetadata.GetApplicationMetadata().Result;
+        var dataType = appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+        if (dataType is null)
         {
-            Task<TValue> task;
-            lock (_cache)
-            {
-                task = _cache.GetOrAdd(key, innerKey => new Lazy<Task<TValue>>(() => valueFactory(innerKey))).Value;
-            }
-            return await task;
+            throw new InvalidOperationException($"Data type {dataElement.DataType} not found in instance");
         }
 
-        public void Set(TKey key, TValue data)
+        return dataType;
+    }
+
+    public List<DataElementChange> GetDataElementChanges()
+    {
+        var changes = new List<DataElementChange>();
+        foreach (var dataElement in Instance.Data)
         {
-            lock (_cache)
+            DataElementId dataElementId = dataElement;
+            object? data = _formDataCache.GetCachedValueOrDefault(dataElementId);
+            // Skip data elements that have not been fetched
+            if (data is null)
+                continue;
+            var dataType = GetDataType(dataElementId);
+            var previousBinary = _binaryCache.GetCachedValueOrDefault(dataElementId);
+
+            ObjectUtils.InitializeAltinnRowId(data);
+            ObjectUtils.PrepareModelForXmlStorage(data);
+
+            var (currentBinary, _) = _modelSerializationService.SerializeToStorage(data, dataType);
+
+            if (!currentBinary.Span.SequenceEqual(previousBinary.Span))
             {
-                _cache.AddOrUpdate(
-                    key,
-                    _ => new Lazy<Task<TValue>>(Task.FromResult(data)),
-                    (_, _) => new Lazy<Task<TValue>>(Task.FromResult(data))
+                changes.Add(
+                    new DataElementChange()
+                    {
+                        DataElement = dataElement,
+                        CurrentFormData = data,
+                        PreviousFormData = _modelSerializationService.DeserializeFromStorage(
+                            previousBinary.Span,
+                            dataType
+                        )
+                    }
                 );
             }
         }
+
+        return changes;
     }
 
-    private async Task<Stream> GetBinaryData(DataElementId dataElementId)
+    internal Task UpdateInstanceData()
     {
-        var data = await _dataClient.GetBinaryData(_org, _app, _instanceOwnerPartyId, _instanceGuid, dataElementId.Id);
-        return data;
+        return Task.CompletedTask;
     }
 
-    private async Task<object> GetFormData(DataElementId dataElementId, DataType dataType)
+    internal async Task SaveChanges(List<DataElementChange> changes, bool initializeRowId)
     {
-        var modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
+        var tasks = new List<Task>();
 
-        var data = await _dataClient.GetFormData(
-            _instanceGuid,
-            modelType,
-            _org,
-            _app,
-            _instanceOwnerPartyId,
-            dataElementId.Id
-        );
-        return data;
+        foreach (var change in changes)
+        {
+            var dataType = GetDataType(change.DataElement);
+            if (initializeRowId)
+            {
+                ObjectUtils.InitializeAltinnRowId(change.CurrentFormData);
+            }
+
+            var (binaryData, contentType) = _modelSerializationService.SerializeToStorage(
+                change.CurrentFormData,
+                dataType
+            );
+            // Update cache so that we can compare with the saved data to ensure no changes after save
+            _binaryCache.Set(change.DataElement, binaryData);
+            tasks.Add(
+                _dataClient.UpdateBinaryData(
+                    new InstanceIdentifier(Instance),
+                    contentType,
+                    null,
+                    change.DataElement.Guid,
+                    new MemoryAsStream(binaryData)
+                )
+            );
+        }
+
+        await Task.WhenAll(tasks);
+    }
+
+    /// <summary>
+    /// Add or replace existing data element data in the cache
+    /// </summary>
+    internal void SetFormData(DataElementId dataElementId, object data)
+    {
+        _formDataCache.Set(dataElementId, data);
+    }
+
+    /// <summary>
+    /// Simple wrapper around a Dictionary using Lazy to ensure that the valueFactory is only called once
+    /// </summary>
+    private sealed class LazyCache<T>
+    {
+        private readonly Dictionary<Guid, Lazy<Task<T>>> _cache = new();
+
+        public async Task<T> GetOrCreate(DataElementId key, Func<Task<T>> valueFactory)
+        {
+            Lazy<Task<T>>? lazyTask;
+            lock (_cache)
+            {
+                if (!_cache.TryGetValue(key.Guid, out lazyTask))
+                {
+                    lazyTask = new Lazy<Task<T>>(valueFactory);
+                    _cache.Add(key.Guid, lazyTask);
+                }
+            }
+            return await lazyTask.Value;
+        }
+
+        public void Set(DataElementId key, T data)
+        {
+            lock (_cache)
+            {
+                _cache[key.Guid] = new Lazy<Task<T>>(Task.FromResult(data));
+            }
+        }
+
+        public T? GetCachedValueOrDefault(DataElementId id)
+        {
+            lock (_cache)
+            {
+                if (
+                    _cache.TryGetValue(id.Guid, out var lazyTask)
+                    && lazyTask.IsValueCreated
+                    && lazyTask.Value.IsCompletedSuccessfully
+                )
+                {
+                    return lazyTask.Value.Result;
+                }
+            }
+            return default;
+        }
+    }
+
+    private async Task<DataType> GetDataTypeByString(string dataTypeString)
+    {
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var dataType = appMetadata.DataTypes.Find(d => d.Id == dataTypeString);
+        if (dataType is null)
+        {
+            throw new InvalidOperationException($"Data type {dataTypeString} not found in app metadata");
+        }
+
+        return dataType;
+    }
+
+    internal void VerifyDataElementsUnchanged()
+    {
+        var changes = GetDataElementChanges();
+        if (changes.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Data elements of type {string.Join(", ", changes.Select(c => c.DataElement.DataType).Distinct())} have been changed by validators"
+            );
+        }
     }
 }

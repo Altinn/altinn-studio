@@ -4,6 +4,7 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -35,6 +36,7 @@ public class ActionsController : ControllerBase
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
+    private readonly ModelSerializationService _modelSerialization;
 
     /// <summary>
     /// Create new instance of the <see cref="ActionsController"/> class
@@ -46,7 +48,8 @@ public class ActionsController : ControllerBase
         IValidationService validationService,
         IDataClient dataClient,
         IAppMetadata appMetadata,
-        IAppModel appModel
+        IAppModel appModel,
+        ModelSerializationService modelSerialization
     )
     {
         _authorization = authorization;
@@ -56,6 +59,7 @@ public class ActionsController : ControllerBase
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _appModel = appModel;
+        _modelSerialization = modelSerialization;
     }
 
     /// <summary>
@@ -160,7 +164,7 @@ public class ActionsController : ControllerBase
             );
         }
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
         Dictionary<string, Dictionary<string, List<ValidationIssueWithSource>>>? validationIssues = null;
 
         if (result.UpdatedDataModels is { Count: > 0 })
@@ -202,7 +206,7 @@ public class ActionsController : ControllerBase
                 continue;
             }
             var dataElement = instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase));
-            var previousData = await dataAccessor.GetData(dataElement);
+            var previousData = await dataAccessor.GetFormData(dataElement);
 
             ObjectUtils.InitializeAltinnRowId(newModel);
             ObjectUtils.PrepareModelForXmlStorage(newModel);
@@ -217,16 +221,14 @@ public class ActionsController : ControllerBase
                 Guid.Parse(dataElement.Id)
             );
             // update dataAccessor to use the changed data
-            dataAccessor.Set(dataElement, newModel);
+            dataAccessor.SetFormData(dataElement, newModel);
             // add change to list
             changes.Add(
                 new DataElementChange
                 {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
                     DataElement = dataElement,
-                    PreviousValue = previousData,
-                    CurrentValue = newModel,
+                    PreviousFormData = previousData,
+                    CurrentFormData = newModel,
                 }
             );
         }
