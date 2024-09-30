@@ -10,13 +10,11 @@ import {
   useValidatePolicyQuery,
   useValidateResourceQuery,
 } from '../../hooks/queries';
-import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
 import { Spinner } from '@digdir/designsystemet-react';
 import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
@@ -46,6 +44,8 @@ export const ResourcePage = (): React.JSX.Element => {
 
   const navigate = useNavigate();
   const autoSaveTimeoutRef = useRef(undefined);
+  const policyErrorModalRef = useRef<HTMLDialogElement>(null);
+  const resourceErrorModalRef = useRef<HTMLDialogElement>(null);
 
   const { pageType, resourceId, org, app, env, accessListId } = useUrlParams();
   const currentPage = pageType as NavigationBarPage;
@@ -59,11 +59,6 @@ export const ResourcePage = (): React.JSX.Element => {
   // Handle the state of resource and policy errors
   const [showResourceErrors, setShowResourceErrors] = useState(false);
   const [showPolicyErrors, setShowPolicyErrors] = useState(false);
-  const [resourceErrorModalOpen, setResourceErrorModalOpen] = useState(false);
-  const [policyErrorModalOpen, setPolicyErrorModalOpen] = useState(false);
-
-  // Get the metadata for Gitea
-  const { data: repoStatus, refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(org, app, resourceId);
@@ -116,7 +111,7 @@ export const ResourcePage = (): React.JSX.Element => {
           window.scrollTo(0, 0);
           setShowResourceErrors(true);
           setNextPage(page);
-          setResourceErrorModalOpen(true);
+          resourceErrorModalRef.current.showModal();
         }
       }
       // Validate Ppolicy and display errors + modal
@@ -130,7 +125,7 @@ export const ResourcePage = (): React.JSX.Element => {
         } else {
           setShowPolicyErrors(true);
           setNextPage(page);
-          setPolicyErrorModalOpen(true);
+          policyErrorModalRef.current.showModal();
         }
       }
       // Else navigate
@@ -144,10 +139,13 @@ export const ResourcePage = (): React.JSX.Element => {
    * @param newPage the page to navigate to
    */
   const handleNavigation = (newPage: NavigationBarPage) => {
-    setPolicyErrorModalOpen(false);
-    setResourceErrorModalOpen(false);
-    refetchRepoStatus();
+    closeNavigationModals();
     navigate(getResourcePageURL(org, app, resourceId, newPage));
+  };
+
+  const closeNavigationModals = (): void => {
+    policyErrorModalRef.current.close();
+    resourceErrorModalRef.current.close();
   };
 
   /**
@@ -166,6 +164,10 @@ export const ResourcePage = (): React.JSX.Element => {
       setShowPolicyErrors(true);
     }
     handleNavigation(page);
+  };
+
+  const navigateFromWarningModal = (): void => {
+    handleNavigation(nextPage);
   };
 
   const altinn2References = getAltinn2Reference(resourceData);
@@ -303,29 +305,18 @@ export const ResourcePage = (): React.JSX.Element => {
           )}
         </div>
       )}
-      {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
-      )}
-      {policyErrorModalOpen && (
-        <NavigationModal
-          isOpen={policyErrorModalOpen}
-          onClose={() => {
-            setPolicyErrorModalOpen(false);
-          }}
-          onNavigate={() => handleNavigation(nextPage)}
-          title={t('resourceadm.resource_navigation_modal_title_policy')}
-        />
-      )}
-      {resourceErrorModalOpen && (
-        <NavigationModal
-          isOpen={resourceErrorModalOpen}
-          onClose={() => {
-            setResourceErrorModalOpen(false);
-          }}
-          onNavigate={() => handleNavigation(nextPage)}
-          title={t('resourceadm.resource_navigation_modal_title_resource')}
-        />
-      )}
+      <NavigationModal
+        ref={policyErrorModalRef}
+        onClose={closeNavigationModals}
+        onNavigate={navigateFromWarningModal}
+        title={t('resourceadm.resource_navigation_modal_title_policy')}
+      />
+      <NavigationModal
+        ref={resourceErrorModalRef}
+        onClose={closeNavigationModals}
+        onNavigate={navigateFromWarningModal}
+        title={t('resourceadm.resource_navigation_modal_title_resource')}
+      />
     </div>
   );
 };
