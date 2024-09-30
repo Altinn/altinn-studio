@@ -1,5 +1,5 @@
 import { getSelectedItem } from './getSelectedItem';
-import { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,

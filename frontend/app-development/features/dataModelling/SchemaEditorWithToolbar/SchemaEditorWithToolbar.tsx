@@ -32,7 +32,7 @@ export const SchemaEditorWithToolbar = ({
         addXsdFromRepo(model.repositoryRelativeUrl);
       }
     });
-  }, [dataModels]);
+  }, [dataModels, addXsdFromRepo]);
 
   return (
     <div className={classes.root}>
