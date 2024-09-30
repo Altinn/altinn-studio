@@ -16,11 +16,13 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from '@digdir/designsystemet-react';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export function ReleaseContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
+  const packagesRouter = new PackagesRouter({ app, org });
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
@@ -158,7 +160,11 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_title')}
-          <a href={`/editor/${org}/${app}/latest-commit`} target='_blank' rel='noopener noreferrer'>
+          <a
+            href={packagesRouter.getPackageNavigationUrl('latestCommit')}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
             {t('app_release.release_title_link')}
           </a>
         </>
@@ -168,7 +174,11 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_built_on_version', { version: latestRelease.tagName })}
-          <a href={`/editor/${org}/${app}/latest-commit`} target='_blank' rel='noopener noreferrer'>
+          <a
+            href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
             {t('app_release.release_built_on_version_link')}
           </a>
         </>

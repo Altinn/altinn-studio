@@ -25,7 +25,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />} errorElement={<AppRouteErrorBoundary />}>
       <Route path={BASE_PATH} errorElement={<RouteErrorBoundary />}>
-        <Route element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+        <Route element={<PageLayout />}>
           {/* Redirects from /:org/:app to child route /overview */}
           <Route
             path={RoutePaths.Root}
@@ -40,17 +40,13 @@ const router = createBrowserRouter(
               errorElement={<RouteErrorBoundary />}
             />
           ))}
-          <Route
-            path='*'
-            element={<NotFoundPage />}
-            errorElement={<NotFoundRouteErrorBoundary />}
-          />
         </Route>
         <Route
           path='latest-commit'
           element={<LatestCommit />}
           errorElement={<NotFoundRouteErrorBoundary />}
         />
+        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
       <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,

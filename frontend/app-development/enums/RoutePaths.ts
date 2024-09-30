@@ -4,7 +4,6 @@ export enum RoutePaths {
   UIEditor = 'ui-editor',
   DataModel = 'data-model',
   Deploy = 'deploy',
-  LatestCommit = 'latest-commit',
   Text = 'text-editor',
   ProcessEditor = 'process-editor',
 }
