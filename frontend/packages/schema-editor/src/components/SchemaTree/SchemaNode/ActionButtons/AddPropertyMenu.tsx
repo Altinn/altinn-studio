@@ -21,7 +21,10 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, schemaPointer);
-    setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
+    if (childPointer) {
+      const uniqueChildPointer = savableModel.getUniquePointer(childPointer, uniquePointer);
+      setSelectedUniquePointer(uniqueChildPointer);
+    }
   };
 
   return (

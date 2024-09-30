@@ -11,9 +11,6 @@ export const useMoveProperty = (): HandleMove => {
   const savableModel = useSavableSchemaModel();
   const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const selectedSchemaPointer = selectedUniquePointer
-    ? savableModel.getSchemaPointerByUniquePointer(selectedUniquePointer)
-    : null;
   const areThereCollidingNames = useCallback(
     (schemaPointer: string, schemaParentPointer: string): boolean => {
       const currentParent = savableModel.getParentNode(schemaPointer);
@@ -40,11 +37,15 @@ export const useMoveProperty = (): HandleMove => {
         alert(t('schema_editor.move_node_same_name_error', { name, parent }));
       } else {
         const movedNode = savableModel.moveNode(schemaPointer, target);
-        if (selectedSchemaPointer === schemaPointer) {
-          setSelectedUniquePointer(movedNode.schemaPointer);
+        if (selectedUniquePointer === uniquePointer) {
+          const movedUniquePointer = savableModel.getUniquePointer(
+            movedNode.schemaPointer,
+            position.parentId,
+          );
+          setSelectedUniquePointer(movedUniquePointer);
         }
       }
     },
-    [savableModel, t, areThereCollidingNames, selectedSchemaPointer, setSelectedUniquePointer],
+    [savableModel, t, areThereCollidingNames, selectedUniquePointer, setSelectedUniquePointer],
   );
 };

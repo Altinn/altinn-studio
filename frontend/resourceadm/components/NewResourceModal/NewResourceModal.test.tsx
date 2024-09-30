@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { NewResourceModalProps } from './NewResourceModal';
 import { NewResourceModal } from './NewResourceModal';
@@ -155,9 +155,11 @@ describe('NewResourceModal', () => {
     });
     await user.click(createButton);
 
-    expect(
-      screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText(textMock('resourceadm.dashboard_resource_name_and_id_error')),
+      ).toBeInTheDocument();
+    });
   });
 });
 
