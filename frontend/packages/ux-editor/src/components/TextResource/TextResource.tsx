@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useAppContext } from '../../hooks';
-import { useGetTextResourceValue } from './hooks/useGetTextResourceValue';
+import { useTextResourceValue } from './hooks/useTextResourceValue';
 
 export interface TextResourceProps {
   handleIdChange: (id: string) => void;
@@ -46,7 +46,7 @@ export const TextResource = ({
   const prevFormItemId = usePrevious(formItemId);
   const prevFormLayoutName = usePrevious(formLayoutName);
 
-  const [currentValue, setCurrentValue] = useState<string>(useGetTextResourceValue(textResourceId));
+  const [currentValue, setCurrentValue] = useState<string>(useTextResourceValue(textResourceId));
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
@@ -159,7 +159,7 @@ const TextResourceButton = ({
   onOpen,
   textResourceId,
 }: TextResourceButtonProps) => {
-  const value = useGetTextResourceValue(textResourceId);
+  const value = useTextResourceValue(textResourceId);
   return (
     <StudioProperty.Button compact={compact} onClick={onOpen} property={label} value={value} />
   );

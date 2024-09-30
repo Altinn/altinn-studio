@@ -1,4 +1,4 @@
-import { useGetTextResourceValue } from './useGetTextResourceValue';
+import { useTextResourceValue } from './useTextResourceValue';
 import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { renderHook } from '@testing-library/react';
@@ -23,7 +23,7 @@ const renderuseGetTextResourceValue = (props = {}) => {
     ...props,
   };
 
-  return renderHook(() => useGetTextResourceValue(allProps.id), {
+  return renderHook(() => useTextResourceValue(allProps.id), {
     wrapper: ({ children }) =>
       ServicesContextProvider
         ? ServicesContextProvider({ children } as unknown as ServicesContextProps)
@@ -31,7 +31,7 @@ const renderuseGetTextResourceValue = (props = {}) => {
   });
 };
 
-describe('useGetTextResourceValue', () => {
+describe('useTextResourceValue', () => {
   it('should return the text resource value', () => {
     const { result } = renderuseGetTextResourceValue();
     expect(result.current).toEqual(value);
