@@ -17,28 +17,40 @@ import {
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
 } from './PageRouterErrorBoundry';
+import { LatestCommit } from 'app-development/features/latestCommit';
 
 const BASE_PATH = '/:org/:app';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />} errorElement={<AppRouteErrorBoundary />}>
-      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
-        {/* Redirects from /:org/:app to child route /overview */}
-        <Route
-          path={RoutePaths.Root}
-          element={<Navigate to={RoutePaths.Overview} />}
-          errorElement={<RouteErrorBoundary />}
-        />
-        {routerRoutes.map((route) => (
+      <Route path={BASE_PATH} errorElement={<RouteErrorBoundary />}>
+        <Route element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+          {/* Redirects from /:org/:app to child route /overview */}
           <Route
-            key={route.path}
-            path={route.path}
-            element={<route.subapp {...route.props} />}
+            path={RoutePaths.Root}
+            element={<Navigate to={RoutePaths.Overview} />}
             errorElement={<RouteErrorBoundary />}
           />
-        ))}
-        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
+          {routerRoutes.map((route) => (
+            <Route
+              key={route.path}
+              path={route.path}
+              element={<route.subapp {...route.props} />}
+              errorElement={<RouteErrorBoundary />}
+            />
+          ))}
+          <Route
+            path='*'
+            element={<NotFoundPage />}
+            errorElement={<NotFoundRouteErrorBoundary />}
+          />
+        </Route>
+        <Route
+          path='latest-commit'
+          element={<LatestCommit />}
+          errorElement={<NotFoundRouteErrorBoundary />}
+        />
       </Route>
       <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,

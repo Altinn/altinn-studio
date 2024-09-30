@@ -24,11 +24,11 @@ export function ReleaseContainer() {
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
-  const {
-    data: masterBranchStatus,
-    isPending: masterBranchStatusIsPending,
-    refetch: getMasterBranchStatus,
-  } = useBranchStatusQuery(org, app, 'master');
+  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
+    org,
+    app,
+    'master',
+  );
 
   const latestRelease: AppReleaseType = releases && releases[0] ? releases[0] : null;
 
@@ -146,17 +146,6 @@ export function ReleaseContainer() {
   }
 
   function renderCreateReleaseTitle() {
-    const handleLinkClick = async (event) => {
-      event.preventDefault(); // Prevent default link behavior
-      const url = await getLatestCommitOnMaster();
-      window.open(url, '#', 'noopener,noreferrer');
-    };
-
-    const getLatestCommitOnMaster = async () => {
-      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
-      return gitCommitPath(org, app, newMasterBranchStatus.commit.id);
-    };
-
     if (!masterBranchStatus || !repoStatus?.contentStatus) {
       return null;
     }
@@ -169,7 +158,7 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_title')}
-          <a href='#' onClick={handleLinkClick}>
+          <a href={`/editor/${org}/${app}/latest-commit`} target='_blank' rel='noopener noreferrer'>
             {t('app_release.release_title_link')}
           </a>
         </>
@@ -179,11 +168,7 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_built_on_version', { version: latestRelease.tagName })}
-          <a
-            href={gitCommitPath(org, app, masterBranchStatus.commit.id)}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
+          <a href={`/editor/${org}/${app}/latest-commit`} target='_blank' rel='noopener noreferrer'>
             {t('app_release.release_built_on_version_link')}
           </a>
         </>
