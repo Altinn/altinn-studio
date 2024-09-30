@@ -3,7 +3,7 @@ import classes from './AppPreviewSubMenu.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
+import { StudioPageHeaderButton, typedLocalStorage, useMediaQuery } from '@studio/components';
 import { ArrowLeftIcon } from '@studio/icons';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -15,7 +15,7 @@ export const AppPreviewSubMenu = () => {
   const { data: instanceId } = useInstanceIdQuery(org, app);
 
   const packagesRouter = new PackagesRouter({ org, app });
-  const queryParams: string = `?layout=${window.localStorage.getItem(instanceId)}`;
+  const queryParams: string = `?layout=${typedLocalStorage.getItem(instanceId)}`;
   const backToEditLink: string = `${packagesRouter.getPackageNavigationUrl('editorUiEditor')}${queryParams}`;
 
   return (

@@ -39,7 +39,7 @@ export const UserProfileMenu = ({
       ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
-          src={user?.avatar_url ? user.avatar_url : undefined}
+          src={user?.avatar_url}
           alt={t('general.profile_icon')}
           title={t('shared.header_profile_icon_text')}
         />

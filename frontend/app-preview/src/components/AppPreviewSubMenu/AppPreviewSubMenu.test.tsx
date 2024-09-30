@@ -4,8 +4,7 @@ import { AppPreviewSubMenu } from './AppPreviewSubMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
-import { renderWithProviders } from 'app-preview/test/mocks';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+import { mockLayoutId, renderWithProviders } from 'app-preview/test/mocks';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 const mockGetItem = jest.fn();
@@ -25,9 +24,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('@studio/components/src/hooks/useMediaQuery');
-jest.mock('app-shared/hooks/queries');
 
-const mockLayoutId: string = 'layout1';
 const uiEditorPath: string = `/editor/${org}/${app}/${RoutePaths.UIEditor}?layout=${mockLayoutId}`;
 
 describe('AppPreviewSubMenu', () => {
@@ -35,7 +32,6 @@ describe('AppPreviewSubMenu', () => {
 
   it('should render the back-to-editing link with text on large screens', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
-    (useInstanceIdQuery as jest.Mock).mockReturnValue(mockLayoutId);
     (mockGetItem as jest.Mock).mockReturnValue(mockLayoutId);
 
     renderAppPreviewSubMenu();
@@ -46,7 +42,6 @@ describe('AppPreviewSubMenu', () => {
 
   it('should render the back-to-editing link without text on small screens', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
-    (useInstanceIdQuery as jest.Mock).mockReturnValue(mockLayoutId);
     (mockGetItem as jest.Mock).mockReturnValue(mockLayoutId);
 
     renderAppPreviewSubMenu();
