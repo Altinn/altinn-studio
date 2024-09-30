@@ -12,6 +12,7 @@ import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from '@studio/components';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
+import { getSelectedItem } from '../utils/getSelectedItem';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
@@ -32,9 +33,7 @@ export function TopToolbar({
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
-  const modelPath = dataModels.find(
-    (item) => item.repositoryRelativeUrl === selectedOption?.value.repositoryRelativeUrl,
-  )?.repositoryRelativeUrl;
+  const modelPath = getSelectedItem(dataModels, selectedOption);
   const { t } = useTranslation();
   const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
