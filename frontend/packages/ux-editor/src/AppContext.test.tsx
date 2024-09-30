@@ -22,7 +22,7 @@ const TestComponent = ({
   children,
 }: {
   queryClient: QueryClient;
-  children: (appContext: AppContextProps) => React.ReactNode;
+  children: (appContext: Partial<AppContextProps>) => React.ReactNode;
 }) => {
   const appContext = useAppContext();
   useEffect(() => {

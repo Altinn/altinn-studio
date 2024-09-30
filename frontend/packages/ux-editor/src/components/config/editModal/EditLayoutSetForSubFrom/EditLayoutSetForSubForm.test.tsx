@@ -4,7 +4,7 @@ import { EditLayoutSetForSubForm } from '@altinn/ux-editor/components/config/edi
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen, waitFor, within } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -12,7 +12,6 @@ import { layoutSets } from 'app-shared/mocks/mocks';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { AppContext } from '@altinn/ux-editor/AppContext';
 import { appContextMock } from '@altinn/ux-editor/testing/appContextMock';
 
