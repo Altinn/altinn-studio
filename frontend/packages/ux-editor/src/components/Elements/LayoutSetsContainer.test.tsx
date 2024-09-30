@@ -23,7 +23,7 @@ const layoutSetName1 = layoutSet1NameMock;
 const layoutSetName2 = layoutSet2NameMock;
 
 describe('LayoutSetsContainer', () => {
-  it('renders component', async () => {
+  it('should render the layout-sets as options within a combobox', async () => {
     const user = userEvent.setup();
     render();
 
