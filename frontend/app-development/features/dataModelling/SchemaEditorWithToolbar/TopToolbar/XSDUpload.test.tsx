@@ -133,7 +133,7 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      textMock('app_data_modelling.upload_xsd_invalid_error'),
+      textMock('schema_editor.invalid_datamodel_upload_filename'),
     );
   });
 

@@ -49,7 +49,7 @@ export const XSDUpload = ({
   const validateFileName = (fileName: string): boolean => {
     const nameFollowsRegexRules = Boolean(fileName.match(fileNameRegEx));
     if (!nameFollowsRegexRules) {
-      toast.error(t('app_data_modelling.upload_xsd_invalid_error'));
+      toast.error(t('schema_editor.invalid_datamodel_upload_filename'));
       return false;
     }
 
