@@ -18,11 +18,9 @@ export const Summmary2ComponentReferenceSelector = ({
   const invalidOption = Boolean(value) && !options.some((option) => option.id === value);
   const { t } = useTranslation();
 
-  const errorMessage = invalidOption
-    ? t('ux_editor.component_properties.target_invalid')
-    : false || !value
-      ? t('ux_editor.component_properties.enum_Required')
-      : false;
+const invalidMessage = invalidOption && t('ux_editor.component_properties.target_invalid');
+  const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
+  const errorMessage = invalidMessage || requiredMessage || false;
   return (
     <StudioCombobox
       size='small'
