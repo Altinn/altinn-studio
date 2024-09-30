@@ -16,7 +16,7 @@ import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderCont
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { getOrgNameByUsername, getOrgUsernameByUsername } from 'dashboard/utils/userUtils';
 
-const TRUNCATE_APP_USERNAME = 30;
+const MAX_LENGTH_APP_USERNAME_BEFORE_TRUNCATE = 30;
 
 export const DashboardHeader = () => {
   const selectedContext = useSelectedContext();
@@ -129,7 +129,7 @@ const DashboardHeaderMenu = () => {
         giteaMenuItem,
         logOutMenuItem,
       ]}
-      truncateAt={TRUNCATE_APP_USERNAME}
+      truncateAt={MAX_LENGTH_APP_USERNAME_BEFORE_TRUNCATE}
     />
   );
 };
