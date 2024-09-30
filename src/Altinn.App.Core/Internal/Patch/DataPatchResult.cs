@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Patch;
 
@@ -8,6 +9,11 @@ namespace Altinn.App.Core.Internal.Patch;
 /// </summary>
 public class DataPatchResult
 {
+    /// <summary>
+    /// The updated instance after the patch and dataProcessing operations.
+    /// </summary>
+    public required Instance Instance { get; set; }
+
     /// <summary>
     /// The validation issues that were found during the patch operation.
     /// </summary>

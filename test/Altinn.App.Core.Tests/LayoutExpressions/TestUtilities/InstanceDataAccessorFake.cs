@@ -93,6 +93,26 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         throw new NotImplementedException();
     }
 
+    public void AddFormDataElement(string dataType, object data)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddAttachmentDataElement(
+        string dataType,
+        string contentType,
+        string? filename,
+        ReadOnlyMemory<byte> data
+    )
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RemoveDataElement(DataElementId dataElementId)
+    {
+        throw new NotImplementedException();
+    }
+
     public IEnumerator<KeyValuePair<DataElement?, object>> GetEnumerator()
     {
         // We implement IEnumerable so that we can use the collection initializer syntax, but we also store the elements for debugger visualization

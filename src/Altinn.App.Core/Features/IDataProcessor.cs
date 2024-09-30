@@ -25,4 +25,11 @@ public interface IDataProcessor
     /// <param name="previousData">The previous data model (for running comparisons)</param>
     /// <param name="language">The currently selected language of the user (if available)</param>
     public Task ProcessDataWrite(Instance instance, Guid? dataId, object data, object? previousData, string? language);
+
+    public Task ProcessDataWrite(
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
+        List<DataElementChange> changes,
+        string? language
+    ) => Task.CompletedTask;
 }

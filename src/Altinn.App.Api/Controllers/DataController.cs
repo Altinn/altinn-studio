@@ -591,6 +591,7 @@ public class DataController : ControllerBase
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
+                        Instance = res.Ok.Instance,
                         NewDataModels = res.Ok.UpdatedData,
                         ValidationIssues = res.Ok.ValidationIssues
                     }

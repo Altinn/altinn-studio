@@ -152,6 +152,14 @@ internal class PatchService : IPatchService
                     throw;
                 }
             }
+
+            // TODO: add new method to IDataProcessor that takes multiple models at the same time
+            await dataProcessor.ProcessDataWrite(
+                dataAccessor,
+                instance.Process.CurrentTask.ElementId,
+                changesAfterPatch,
+                language
+            );
         }
 
         // Get all changes to data elements by comparing the serialized values
@@ -197,6 +205,7 @@ internal class PatchService : IPatchService
 
         return new DataPatchResult
         {
+            Instance = instance,
             ChangedDataElements = changes,
             UpdatedData = updatedData,
             ValidationIssues = validationIssues,

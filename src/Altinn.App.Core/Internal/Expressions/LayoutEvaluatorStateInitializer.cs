@@ -80,6 +80,34 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             }
             return _dataElement;
         }
+
+        // Not implemented
+        public void AddFormDataElement(string dataType, object data)
+        {
+            throw new NotImplementedException(
+                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"
+            );
+        }
+
+        public void AddAttachmentDataElement(
+            string dataType,
+            string contentType,
+            string? filename,
+            ReadOnlyMemory<byte> data
+        )
+        {
+            throw new NotImplementedException(
+                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"
+            );
+        }
+
+        // Not implemented
+        public void RemoveDataElement(DataElementId dataElementId)
+        {
+            throw new NotImplementedException(
+                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support removing data elements"
+            );
+        }
     }
 
     /// <summary>

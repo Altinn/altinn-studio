@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
@@ -24,6 +25,13 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     private readonly ModelSerializationService _modelSerializationService;
     private readonly LazyCache<object> _formDataCache = new();
     private readonly LazyCache<ReadOnlyMemory<byte>> _binaryCache = new();
+    private readonly ConcurrentBag<DataElementId> _dataElementsToDelete = new();
+    private readonly ConcurrentBag<(
+        DataType dataType,
+        string contentType,
+        string? filename,
+        ReadOnlyMemory<byte> bytes
+    )> _dataElementsToAdd = new();
 
     public CachedInstanceDataAccessor(
         Instance instance,
@@ -87,6 +95,73 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         return dataType;
     }
 
+    /// <inheritdoc />
+    public void AddFormDataElement(string dataTypeString, object data)
+    {
+        var dataType = GetDataTypeByString(dataTypeString).Result;
+        if (dataType.AppLogic?.ClassRef is not { } classRef)
+        {
+            throw new InvalidOperationException(
+                $"Data type {dataTypeString} does not have a class reference in app metadata"
+            );
+        }
+
+        var modelType = data.GetType();
+        if (modelType.FullName != classRef)
+        {
+            throw new InvalidOperationException(
+                $"Data object registered for {dataTypeString} is not of type {classRef} as specified in application metadata"
+            );
+        }
+
+        var (bytes, contentType) = _modelSerializationService.SerializeToStorage(data, dataType);
+
+        _dataElementsToAdd.Add((dataType, contentType, null, bytes));
+        // var dataElement = await _dataClient.InsertBinaryData(
+        //     Instance.Id,
+        //     dataTypeString,
+        //     contentType,
+        //     null,
+        //     new MemoryAsStream(binaryData)
+        // );
+        // Instance.Data.Add(dataElement);
+        //
+        // return dataElement;
+    }
+
+    /// <inheritdoc />
+    public void AddAttachmentDataElement(
+        string dataTypeString,
+        string contentType,
+        string? filename,
+        ReadOnlyMemory<byte> bytes
+    )
+    {
+        var dataType = GetDataTypeByString(dataTypeString).Result;
+        if (dataType.AppLogic?.ClassRef is not null)
+        {
+            throw new InvalidOperationException(
+                $"Data type {dataTypeString} has a AppLogic.ClassRef in app metadata, and is not a binary data element"
+            );
+        }
+        _dataElementsToAdd.Add((dataType, contentType, filename, bytes));
+    }
+
+    /// <inheritdoc />
+    public void RemoveDataElement(DataElementId dataElementId)
+    {
+        var idAsString = dataElementId.ToString();
+        var dataElement = Instance.Data.Find(d => d.Id == idAsString);
+        if (dataElement is null)
+        {
+            throw new InvalidOperationException($"Data element with id {idAsString} not found in instance");
+        }
+        //TODO: Add to list of data elements to delete
+        // await _dataClient.DeleteData(_org, _app, _instanceOwnerPartyId, _instanceGuid, dataElementId.Guid, true);
+
+        Instance.Data.Remove(dataElement);
+    }
+
     public List<DataElementChange> GetDataElementChanges()
     {
         var changes = new List<DataElementChange>();
@@ -124,9 +199,56 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         return changes;
     }
 
-    internal Task UpdateInstanceData()
+    internal async Task UpdateInstanceData()
     {
-        return Task.CompletedTask;
+        var tasks = new List<Task>();
+        ConcurrentBag<DataElement> createdDataElements = new();
+        // We need to create data elements here, so that we can set them correctly on the instance
+        // Updating and deleting is done in SaveChanges and happen in parallel with validation.
+
+        // Upload added data elements
+        foreach (var (dataType, contentType, filename, bytes) in _dataElementsToAdd)
+        {
+            async Task InsertBinaryData()
+            {
+                var dataElement = await _dataClient.InsertBinaryData(
+                    Instance.Id,
+                    dataType.Id,
+                    contentType,
+                    filename,
+                    new MemoryAsStream(bytes)
+                );
+                createdDataElements.Add(dataElement);
+            }
+
+            tasks.Add(InsertBinaryData());
+        }
+
+        // Delete data elements
+        foreach (var dataElementId in _dataElementsToDelete)
+        {
+            async Task DeleteData()
+            {
+                await _dataClient.DeleteData(
+                    _org,
+                    _app,
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    dataElementId.Guid,
+                    true
+                );
+            }
+
+            tasks.Add(DeleteData());
+        }
+
+        await Task.WhenAll(tasks);
+
+        // Remove deleted data elements from instance.Data
+        Instance.Data.RemoveAll(dataElement => _dataElementsToDelete.Any(d => d.Id == dataElement.Id));
+
+        // Add Created data elements to instance
+        Instance.Data.AddRange(createdDataElements);
     }
 
     internal async Task SaveChanges(List<DataElementChange> changes, bool initializeRowId)

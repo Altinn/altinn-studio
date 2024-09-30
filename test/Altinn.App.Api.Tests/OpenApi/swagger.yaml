@@ -3580,6 +3580,7 @@ components:
       additionalProperties: false
     DataPatchResponseMultiple:
       required:
+        - instance
         - newDataModels
         - validationIssues
       type: object
@@ -3595,6 +3596,8 @@ components:
           type: object
           additionalProperties: { }
           nullable: true
+        instance:
+          $ref: '#/components/schemas/Instance'
       additionalProperties: false
     DataType:
       type: object
