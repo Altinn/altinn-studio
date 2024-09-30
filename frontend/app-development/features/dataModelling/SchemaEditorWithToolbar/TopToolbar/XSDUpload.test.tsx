@@ -159,6 +159,7 @@ describe('XSDUpload', () => {
   });
 
   it('does not allow uploading with invalid name', async () => {
+    window.alert = jest.fn();
     const file = new File(['$-_123'], '$-_123.xsd', { type: 'text/xml' });
     renderXsdUpload();
 
@@ -168,9 +169,10 @@ describe('XSDUpload', () => {
 
     await user.upload(fileInput, file);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      textMock('app_data_modelling.upload_xsd_invalid_error'),
+    expect(window.alert).toHaveBeenCalledWith(
+      textMock('app_data_modelling.upload_xsd_invalid_name_error'),
     );
+    expect(window.alert).toHaveBeenCalledTimes(1);
   });
 
   it('shows a custom generic error message', async () => {
