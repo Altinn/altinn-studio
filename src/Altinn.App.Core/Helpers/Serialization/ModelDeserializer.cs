@@ -10,7 +10,7 @@ namespace Altinn.App.Core.Helpers.Serialization;
 /// Represents logic to deserialize a stream of data to an instance of the given type
 /// </summary>
 // [Obsolete(
-//     "This class is deprecated and will be removed in a v9. Use Altinn.App.PlatformServices.Helpers.Serialization.ModelSerializationSerivce from dependency injection instead."
+//     "This class is deprecated and will be removed in a v9. Use Altinn.App.Core.Helpers.Serialization.ModelSerializationSerivce from dependency injection instead."
 // )]
 public class ModelDeserializer
 {

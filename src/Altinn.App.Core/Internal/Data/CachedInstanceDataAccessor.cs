@@ -98,7 +98,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     /// <inheritdoc />
     public void AddFormDataElement(string dataTypeString, object data)
     {
-        var dataType = GetDataTypeByString(dataTypeString).Result;
+        var dataType = GetDataTypeByString(dataTypeString);
         if (dataType.AppLogic?.ClassRef is not { } classRef)
         {
             throw new InvalidOperationException(
@@ -117,16 +117,6 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         var (bytes, contentType) = _modelSerializationService.SerializeToStorage(data, dataType);
 
         _dataElementsToAdd.Add((dataType, contentType, null, bytes));
-        // var dataElement = await _dataClient.InsertBinaryData(
-        //     Instance.Id,
-        //     dataTypeString,
-        //     contentType,
-        //     null,
-        //     new MemoryAsStream(binaryData)
-        // );
-        // Instance.Data.Add(dataElement);
-        //
-        // return dataElement;
     }
 
     /// <inheritdoc />
@@ -137,7 +127,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         ReadOnlyMemory<byte> bytes
     )
     {
-        var dataType = GetDataTypeByString(dataTypeString).Result;
+        var dataType = GetDataTypeByString(dataTypeString);
         if (dataType.AppLogic?.ClassRef is not null)
         {
             throw new InvalidOperationException(
@@ -156,10 +146,8 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         {
             throw new InvalidOperationException($"Data element with id {idAsString} not found in instance");
         }
-        //TODO: Add to list of data elements to delete
-        // await _dataClient.DeleteData(_org, _app, _instanceOwnerPartyId, _instanceGuid, dataElementId.Guid, true);
 
-        Instance.Data.Remove(dataElement);
+        _dataElementsToDelete.Add(dataElementId);
     }
 
     public List<DataElementChange> GetDataElementChanges()
@@ -337,9 +325,9 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         }
     }
 
-    private async Task<DataType> GetDataTypeByString(string dataTypeString)
+    private DataType GetDataTypeByString(string dataTypeString)
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var appMetadata = _appMetadata.GetApplicationMetadata().Result;
         var dataType = appMetadata.DataTypes.Find(d => d.Id == dataTypeString);
         if (dataType is null)
         {
