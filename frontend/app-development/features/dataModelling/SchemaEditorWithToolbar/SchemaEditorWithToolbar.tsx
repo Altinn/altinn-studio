@@ -25,11 +25,14 @@ export const SchemaEditorWithToolbar = ({
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
 
   const modelPath = getSelectedItem(dataModels, selectedOption);
+
   useEffect(() => {
-    if (modelPath && isXsdFile(modelPath)) {
-      addXsdFromRepo(modelPath);
-    }
-  }, [modelPath]);
+    dataModels.forEach((model) => {
+      if (model.repositoryRelativeUrl && isXsdFile(model.repositoryRelativeUrl)) {
+        addXsdFromRepo(model.repositoryRelativeUrl);
+      }
+    });
+  }, [dataModels]);
 
   return (
     <div className={classes.root}>
