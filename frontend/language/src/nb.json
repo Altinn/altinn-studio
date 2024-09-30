@@ -842,6 +842,7 @@
   "schema_editor.error_could_not_detect_taskType_description": "Dette gjør at vi ikke kan vise riktig liste over tilgjengelige komponenter. Velg en annen sidegruppe eller prøv å last siden på nytt.",
   "schema_editor.error_data_type_name_exists": "Modellen kan ikke ha samme navn som datatyper i løsningen.",
   "schema_editor.error_model_name_exists": "Modellnavnet {{newModelName}} er allerede i bruk.",
+  "schema_editor.error_upload_data_model_id_exists_override_option": "Det eksisterer allerede en modell med dette navnet. Ønsker du å overskrive den?",
   "schema_editor.field": "Objekt",
   "schema_editor.field_name": "Navn på felt",
   "schema_editor.fields": "Felter",
