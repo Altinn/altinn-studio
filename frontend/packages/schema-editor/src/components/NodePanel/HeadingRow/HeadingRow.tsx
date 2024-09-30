@@ -89,12 +89,15 @@ const AddNodeMenu = ({ schemaPointer }: AddNodeMenuProps) => {
 };
 
 const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
-  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniquePointer, schemaModel } = useSchemaEditorAppContext();
   const addNode = useAddProperty();
 
   const addAndSelectNode = (...params: Parameters<typeof addNode>) => {
     const newPointer = addNode(...params);
-    if (newPointer) setSelectedUniquePointer(newPointer);
+    if (newPointer) {
+      const newUniquePointer = schemaModel.getUniquePointer(newPointer);
+      setSelectedUniquePointer(newUniquePointer);
+    }
   };
 
   return [
