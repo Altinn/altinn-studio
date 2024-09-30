@@ -18,6 +18,7 @@ import type { FormComponent } from '../../../../../types/FormComponent';
 import { useAppContext, useComponentTypeName } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
+import { useTargetTypes } from './useTargetTypes';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
@@ -29,6 +30,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const targetTypes = useTargetTypes();
   const componentTypeName = useComponentTypeName();
 
   const excludedComponents = [
@@ -65,11 +67,6 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
     onChange(updatedTarget);
   };
 
-  const targetTypes = [
-    { value: 'page', label: t('general.page') },
-    { value: 'component', label: t('general.component') },
-    { value: 'layoutSet', label: t('general.layout_set') },
-  ];
   return (
     <StudioCard>
       <StudioCard.Header>
