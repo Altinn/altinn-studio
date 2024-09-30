@@ -1,0 +1,15 @@
+.migrationPanel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--fds-spacing-4);
+  border: solid 1px var(--fds-semantic-border-divider-default);
+  border-radius: var(--fds-border_radius-xlarge);
+  gap: var(--fds-spacing-2);
+}
+
+.migrationPanelInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
