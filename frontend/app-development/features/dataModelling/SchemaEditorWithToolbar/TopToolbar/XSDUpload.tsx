@@ -77,7 +77,7 @@ export const XSDUpload = ({
           variant={uploaderButtonVariant}
           ref={fileInputRef}
           uploaderButtonText={uploadButtonText}
-          customFileNameValidation={{
+          customFileValidation={{
             validateFileName,
             onInvalidFileName: () => {},
           }}
