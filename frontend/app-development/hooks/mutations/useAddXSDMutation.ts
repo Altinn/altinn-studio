@@ -5,9 +5,9 @@ import { StringUtils } from '@studio/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const useAddXsdMutation = () => {
+  const { addXsdFromRepo } = useServicesContext();
   const queryClient = useQueryClient();
   const { org, app } = useStudioEnvironmentParams();
-  const { addXsdFromRepo } = useServicesContext();
 
   return useMutation({
     mutationFn: (modelPath: string) =>

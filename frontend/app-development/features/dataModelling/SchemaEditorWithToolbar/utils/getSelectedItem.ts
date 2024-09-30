@@ -11,7 +11,7 @@ import type { MetadataOption } from '../../../../types/MetadataOption';
 export function getSelectedItem(
   dataModels: DataModelMetadata[],
   selectedOption: MetadataOption,
-): string | null {
+): string | undefined {
   return dataModels.find(
     (item) => item.repositoryRelativeUrl === selectedOption?.value.repositoryRelativeUrl,
   )?.repositoryRelativeUrl;
