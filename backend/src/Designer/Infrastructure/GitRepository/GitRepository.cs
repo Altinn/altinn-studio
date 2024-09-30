@@ -69,12 +69,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="relativeDirectory">Relative path to a directory within the repository.</param>
         /// <param name="patternMatch">An optional pattern that the retrieved files must match</param>
-        protected string[] GetFilesByRelativeDirectory(string relativeDirectory, string patternMatch = null)
+        /// <param name="searchInSubdirectories">An optional parameter to also get files in sub directories</param>
+        protected string[] GetFilesByRelativeDirectory(string relativeDirectory, string patternMatch = null, bool searchInSubdirectories = false)
         {
             string absoluteDirectory = GetAbsoluteFileOrDirectoryPathSanitized(relativeDirectory);
 
             Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, absoluteDirectory);
-            return patternMatch != null ? Directory.GetFiles(absoluteDirectory, patternMatch) : Directory.GetFiles(absoluteDirectory);
+
+            SearchOption searchOption = searchInSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+
+            string searchPatternMatch = patternMatch ?? "*.*";
+
+            return Directory.GetFiles(absoluteDirectory, searchPatternMatch, searchOption);
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 import type { UiSchemaNode } from '../types';
-import { Keyword, ObjectKind } from '../types';
+import { CombinationKind, Keyword, ObjectKind } from '../types';
+
 import { ROOT_POINTER } from './constants';
 import type { FieldNode } from '../types/FieldNode';
 import type { CombinationNode } from '../types/CombinationNode';
@@ -43,6 +44,23 @@ export const makePointerFromArray = (array: string[]): string => {
 export const extractNameFromPointer = (pointer: string): string => {
   const parts = pointer.split('/');
   return parts.pop();
+};
+
+export const extractCategoryFromPointer = (
+  pointer: string,
+): Keyword.Properties | Keyword.Definitions | CombinationKind | undefined => {
+  const parts = pointer.split('/');
+  const category = parts[parts.length - 2];
+  switch (category) {
+    case Keyword.Properties:
+    case Keyword.Definitions:
+    case CombinationKind.AllOf:
+    case CombinationKind.AnyOf:
+    case CombinationKind.OneOf:
+      return category;
+    default:
+      return undefined;
+  }
 };
 
 export const changeNameInPointer = (pointer: string, newName: string): string => {

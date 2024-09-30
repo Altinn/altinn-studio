@@ -1,7 +1,6 @@
 import {
   CombinationKind,
   FieldType,
-  Keyword,
   type NodePosition,
   type UiSchemaNode,
   type UiSchemaNodes,
@@ -24,13 +23,14 @@ import {
   moveArrayItem,
   replaceItemsByValue,
 } from 'app-shared/utils/arrayUtils';
-import { ROOT_POINTER } from './constants';
+import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from './constants';
 import type { ReferenceNode } from '../types/ReferenceNode';
-import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
+import { ObjectUtils, ArrayUtils, StringUtils } from '@studio/pure-functions';
 import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
   createDefinitionPointer,
   createPropertyPointer,
+  extractCategoryFromPointer,
   extractNameFromPointer,
   makePointerFromArray,
 } from './pointerUtils';
@@ -85,12 +85,13 @@ export class SchemaModel {
   }
 
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
-    if (this.hasNode(uniquePointer)) return uniquePointer;
+    const pointer = this.removeUniquePointerPrefix(uniquePointer);
+    if (this.hasNode(pointer)) return pointer;
 
-    const parentNodePointer = this.getParentSchemaPointerByUniquePointer(uniquePointer);
+    const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
     return makePointerFromArray([
-      parentNodePointer,
-      Keyword.Properties,
+      parentSchemaPointer,
+      extractCategoryFromPointer(uniquePointer),
       extractNameFromPointer(uniquePointer),
     ]);
   }
@@ -107,10 +108,16 @@ export class SchemaModel {
     return this.getNodeByUniquePointer(parentUniquePointer);
   }
 
-  public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
-    if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer)) return schemaPointer;
+  private removeUniquePointerPrefix(uniquePointer: string): string {
+    return StringUtils.removeStart(uniquePointer, UNIQUE_POINTER_PREFIX);
+  }
 
-    return `${uniqueParentPointer}/properties/${extractNameFromPointer(schemaPointer)}`;
+  public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
+    if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
+      return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
+    const category = extractCategoryFromPointer(schemaPointer);
+    const parentPointer = this.removeUniquePointerPrefix(uniqueParentPointer);
+    return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 
   public hasNode(schemaPointer: string): boolean {
