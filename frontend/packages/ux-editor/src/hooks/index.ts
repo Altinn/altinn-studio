@@ -10,6 +10,3 @@ export type { ComponentValidationResult, ErrorCode } from './useValidateComponen
 export { useValidateComponent } from './useValidateComponent';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
 export { useAppContext } from './useAppContext';
-export { useSelectedFormLayoutSetName } from './useSelectedFormLayoutSetName';
-export { useSelectedFormLayoutName } from './useSelectedFormLayoutName';
-export { useSelectedTaskId } from './useSelectedTaskId';

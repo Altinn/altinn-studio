@@ -9,10 +9,11 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import type { User } from 'app-shared/types/Repository';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { RepositoryType } from 'app-shared/types/global';
-import { useSelectedFormLayoutSetName, useSelectedFormLayoutName } from '@altinn/ux-editor/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 
 type SubMenuContentProps = {
   hasRepoError?: boolean;

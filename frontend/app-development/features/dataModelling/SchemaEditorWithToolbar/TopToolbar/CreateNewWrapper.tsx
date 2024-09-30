@@ -42,7 +42,7 @@ export function CreateNewWrapper({
   };
 
   const dataTypeWithNameExists = (id: string) => {
-    return appMetadata.dataTypes?.find(
+    return appMetadata?.dataTypes?.find(
       (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
     );
   };

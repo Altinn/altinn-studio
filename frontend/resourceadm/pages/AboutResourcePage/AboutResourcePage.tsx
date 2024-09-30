@@ -298,17 +298,17 @@ export const AboutResourcePage = ({
           toggleTextTranslationKey='resourceadm.about_resource_visible_show_text'
         />
         <ResourceSwitchInput
-          id='limitedByRRR'
+          id='accessListMode'
           label={t('resourceadm.about_resource_limited_by_rrr_label')}
           description={t('resourceadm.about_resource_limited_by_rrr_description')}
-          value={resourceData.limitedByRRR ?? false}
+          value={resourceData.accessListMode === 'Enabled' ?? false}
           onFocus={() => setTranslationType('none')}
           onChange={(isChecked: boolean) =>
-            handleSave({ ...resourceData, limitedByRRR: isChecked })
+            handleSave({ ...resourceData, accessListMode: isChecked ? 'Enabled' : 'Disabled' })
           }
           toggleTextTranslationKey='resourceadm.about_resource_use_rrr_show_text'
         />
-        {resourceData.limitedByRRR && (
+        {resourceData.accessListMode === 'Enabled' && (
           <div data-testid='rrr-buttons'>
             <AccessListEnvLinks />
           </div>

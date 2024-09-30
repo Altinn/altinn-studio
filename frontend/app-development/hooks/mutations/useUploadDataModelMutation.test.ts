@@ -39,7 +39,7 @@ describe('useUploadDataModelMutation', () => {
 
     await renderHook({ queryClient });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(3);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.DataModelsJson, org, app],
     });
@@ -48,6 +48,9 @@ describe('useUploadDataModelMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppMetadataModelIds, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppMetadata, org, app],
     });
   });
 
@@ -58,7 +61,7 @@ describe('useUploadDataModelMutation', () => {
 
     await renderHook({ queryClient, modelPath: mockModelPath });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(5);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.JsonSchema, org, app, mockModelPath],
     });

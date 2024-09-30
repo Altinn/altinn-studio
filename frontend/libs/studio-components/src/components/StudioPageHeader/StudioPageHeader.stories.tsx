@@ -39,7 +39,7 @@ const PreviewComponent = (args): React.ReactElement => (
 type Story = StoryFn<typeof StudioPageHeader>;
 
 const meta: Meta = {
-  title: 'StudioPageHeader',
+  title: 'Components/StudioPageHeader',
   component: PreviewComponent,
   argTypes: {
     variant: {

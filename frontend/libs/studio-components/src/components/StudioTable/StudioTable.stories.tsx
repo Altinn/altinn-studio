@@ -38,7 +38,7 @@ function TablePreview(props: StudioTableProps): ReactElement {
 type Story = StoryObj<typeof TablePreview>;
 
 const meta: Meta<typeof TablePreview> = {
-  title: 'StudioTable',
+  title: 'Components/StudioTable',
   component: TablePreview,
   argTypes: {
     size: {

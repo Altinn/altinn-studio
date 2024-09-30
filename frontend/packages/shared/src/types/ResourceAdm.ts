@@ -23,8 +23,10 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
-  limitedByRRR?: boolean;
+  accessListMode?: ResourceAccessListMode;
 }
+
+export type ResourceAccessListMode = 'Disabled' | 'Enabled';
 
 export interface ResourceContactPoint {
   category: string;

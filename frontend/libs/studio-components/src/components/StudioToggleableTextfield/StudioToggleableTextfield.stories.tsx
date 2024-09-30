@@ -6,7 +6,7 @@ import { KeyVerticalIcon } from '@studio/icons';
 type Story = StoryFn<typeof StudioToggleableTextfield>;
 
 const meta: Meta = {
-  title: 'StudioToggleableTextfield',
+  title: 'Components/StudioToggleableTextfield',
   component: StudioToggleableTextfield,
 };
 
