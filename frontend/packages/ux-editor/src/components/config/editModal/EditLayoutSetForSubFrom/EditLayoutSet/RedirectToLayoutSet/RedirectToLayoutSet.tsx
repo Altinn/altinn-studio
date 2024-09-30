@@ -4,18 +4,19 @@ import { RedirectBox } from 'app-shared/components/RedirectBox';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import classes from './RedirectToLayoutSet.module.css';
-import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { useAppContext } from '@altinn/ux-editor/hooks';
 
 type RedirectToLayoutSetProps = {
   selectedSubForm: string;
 };
 
 export const RedirectToLayoutSet = ({ selectedSubForm }: RedirectToLayoutSetProps) => {
-  const { setSelectedFormLayoutSetName } = useSelectedFormLayoutSetName();
+  const { setSelectedFormLayoutName, setSelectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation();
 
   const handleClickRedirect = () => {
     setSelectedFormLayoutSetName(selectedSubForm);
+    setSelectedFormLayoutName(undefined);
   };
 
   return (

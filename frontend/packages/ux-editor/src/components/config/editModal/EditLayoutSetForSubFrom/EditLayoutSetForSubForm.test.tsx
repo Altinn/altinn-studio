@@ -4,7 +4,7 @@ import { EditLayoutSetForSubForm } from '@altinn/ux-editor/components/config/edi
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -12,8 +12,12 @@ import { layoutSets } from 'app-shared/mocks/mocks';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
+import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { AppContext } from '@altinn/ux-editor/AppContext';
+import { appContextMock } from '@altinn/ux-editor/testing/appContextMock';
 
 const handleComponentChangeMock = jest.fn();
+const setSelectedFormLayoutSetMock = jest.fn();
 
 describe('EditLayoutSetForSubForm', () => {
   afterEach(jest.clearAllMocks);
@@ -127,6 +131,21 @@ describe('EditLayoutSetForSubForm', () => {
     );
     expect(redirectBoxTitle).toBeInTheDocument();
   });
+
+  it('calls setSelectedFormLayoutSet when clicking the redirect button', async () => {
+    const user = userEvent.setup();
+    const subFormLayoutSetId = 'subFormLayoutSetId';
+    renderEditLayoutSetForSubForm(
+      { sets: [{ id: subFormLayoutSetId, type: 'subform' }] },
+      { layoutSet: subFormLayoutSetId },
+    );
+    const redirectButton = screen.queryByRole('button', {
+      name: textMock('top_menu.create'),
+    });
+    await user.click(redirectButton);
+    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledWith(subFormLayoutSetId);
+  });
 });
 
 const renderEditLayoutSetForSubForm = (
@@ -136,10 +155,14 @@ const renderEditLayoutSetForSubForm = (
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
-    <EditLayoutSetForSubForm
-      component={{ ...componentMocks[ComponentType.SubForm], ...componentProps }}
-      handleComponentChange={handleComponentChangeMock}
-    />,
+    <AppContext.Provider
+      value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
+    >
+      <EditLayoutSetForSubForm
+        component={{ ...componentMocks[ComponentType.SubForm], ...componentProps }}
+        handleComponentChange={handleComponentChangeMock}
+      />
+    </AppContext.Provider>,
     { queryClient },
   );
 };

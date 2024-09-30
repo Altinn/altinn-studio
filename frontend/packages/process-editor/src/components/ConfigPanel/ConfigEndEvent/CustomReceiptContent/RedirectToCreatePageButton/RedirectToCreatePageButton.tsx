@@ -16,7 +16,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
   const packagesRouter = new PackagesRouter({ org, app });
   const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
 
-  const [, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
+  const [, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app);
 
   const handleClick = () => {
     setSelectedLayoutSet(existingCustomReceiptLayoutSetId);
