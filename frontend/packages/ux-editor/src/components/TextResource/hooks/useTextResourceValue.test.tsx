@@ -2,9 +2,10 @@ import { useTextResourceValue } from './useTextResourceValue';
 import { textResourceByLanguageAndIdSelector } from '@altinn/ux-editor/selectors/textResourceSelectors';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { renderHook } from '@testing-library/react';
-import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { type ReactNode } from 'react';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import React from 'react';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 // Test data
 const id = 'testId';
@@ -17,23 +18,20 @@ jest.mock('@altinn/ux-editor/hooks', () => ({
   })),
 }));
 
-const renderuseGetTextResourceValue = (props = {}) => {
-  const allProps = {
-    id,
-    ...props,
-  };
-
-  return renderHook(() => useTextResourceValue(allProps.id), {
-    wrapper: ({ children }) =>
-      ServicesContextProvider
-        ? ServicesContextProvider({ children } as unknown as ServicesContextProps)
-        : (children as ReactNode),
+const renderUseTextResourceValue = () => {
+  const client = createQueryClientMock();
+  return renderHook(() => useTextResourceValue(id), {
+    wrapper: ({ children }) => (
+      <ServicesContextProvider {...queriesMock} client={client}>
+        {children}
+      </ServicesContextProvider>
+    ),
   });
 };
 
 describe('useTextResourceValue', () => {
   it('should return the text resource value', () => {
-    const { result } = renderuseGetTextResourceValue();
+    const { result } = renderUseTextResourceValue();
     expect(result.current).toEqual(value);
   });
 });
