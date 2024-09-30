@@ -4,4 +4,5 @@ export enum ServerCodes {
   Conflict = 409,
   NotFound = 404,
   PreconditionFailed = 412,
+  TooLargeContent = 413,
 }

@@ -179,7 +179,7 @@ export const formItemConfigs: FormItemConfigs = {
       type: ComponentTypeV3.Datepicker,
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: false,
+      timeStamp: true,
       required: true,
       propertyPath: 'definitions/datepickerComponent',
     },

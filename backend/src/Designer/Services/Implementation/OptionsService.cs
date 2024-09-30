@@ -48,7 +48,6 @@ public class OptionsService : IOptionsService
 
         string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
         var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
-
         return optionsList;
     }
 
@@ -58,9 +57,7 @@ public class OptionsService : IOptionsService
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
-        string payloadString = JsonSerializer.Serialize(payload, jsonOptions);
-
+        string payloadString = JsonSerializer.Serialize(payload, new JsonSerializerOptions() { WriteIndented = true });
         string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payloadString, cancellationToken);
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
