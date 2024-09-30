@@ -6,14 +6,7 @@ import { app, org } from '@studio/testing/testids';
 import { useMediaQuery } from '@studio/components/src/hooks/useMediaQuery';
 import { mockLayoutId, renderWithProviders } from 'app-preview/test/mocks';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-
-const mockGetItem = jest.fn();
-
-Object.defineProperty(window, 'localStorage', {
-  value: {
-    getItem: (...args: string[]) => mockGetItem(...args),
-  },
-});
+import { typedLocalStorage } from '@studio/components';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -32,7 +25,7 @@ describe('AppPreviewSubMenu', () => {
 
   it('should render the back-to-editing link with text on large screens', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(false);
-    (mockGetItem as jest.Mock).mockReturnValue(mockLayoutId);
+    jest.spyOn(typedLocalStorage, 'getItem').mockReturnValue(mockLayoutId);
 
     renderAppPreviewSubMenu();
 
@@ -42,7 +35,7 @@ describe('AppPreviewSubMenu', () => {
 
   it('should render the back-to-editing link without text on small screens', () => {
     (useMediaQuery as jest.Mock).mockReturnValue(true);
-    (mockGetItem as jest.Mock).mockReturnValue(mockLayoutId);
+    jest.spyOn(typedLocalStorage, 'getItem').mockReturnValue(mockLayoutId);
 
     renderAppPreviewSubMenu();
 

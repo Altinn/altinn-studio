@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-preview/test/mocks';
@@ -52,8 +52,17 @@ describe('PreviewControlHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('should render the toggle buttons with the correct initial state', () => {
+  it('should render the spinner initially loading the component', () => {
     renderPreviewControlHeader();
+    expect(screen.getByTitle(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
+  });
+
+  it('should render the toggle buttons with the correct initial state', async () => {
+    renderPreviewControlHeader();
+
+    await waitForElementToBeRemoved(
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     expect(
       screen.getByRole('radio', { name: textMock('preview.view_size_desktop') }),
@@ -66,6 +75,10 @@ describe('PreviewControlHeader', () => {
   it('should call setViewSize with "mobile" when the mobile button is clicked', async () => {
     const user = userEvent.setup();
     renderPreviewControlHeader();
+
+    await waitForElementToBeRemoved(
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
     await user.click(mobileButton);
