@@ -36,14 +36,26 @@ Preview.args = {
   color: 'dark',
   variant: 'regular',
   profileImage: <StudioAvatar />,
-  profileMenuItems: [
+  profileMenuGroups: [
     {
-      action: { type: 'button', onClick: () => {} },
-      itemName: 'Item 1',
+      items: [
+        {
+          action: { type: 'button', onClick: () => {} },
+          itemName: 'Item 1',
+        },
+        {
+          action: { type: 'link', href: '' },
+          itemName: 'Item 2',
+        },
+      ],
     },
     {
-      action: { type: 'link', href: '' },
-      itemName: 'Item 2',
+      items: [
+        {
+          action: { type: 'button', onClick: () => {} },
+          itemName: 'Item 3',
+        },
+      ],
     },
   ],
   truncateAt: 30,

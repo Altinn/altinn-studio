@@ -4,29 +4,16 @@ import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
 import { type StudioPageHeaderVariant } from '../StudioPageHeader/types/StudioPageHeaderVariant';
-
-type StudioProfileMenuItemButton = {
-  type: 'button';
-  onClick: () => void;
-};
-
-type StudioProfileMenuItemLink = {
-  type: 'link';
-  href: string;
-  openInNewTab?: boolean;
-};
-
-export type StudioProfileMenuItem = {
-  action: StudioProfileMenuItemButton | StudioProfileMenuItemLink;
-  itemName: string;
-  isActive?: boolean;
-  hasDivider?: boolean;
-};
+import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
+import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
+import { StudioProfileMenuButton } from './components/StudioProfileMenuButton';
+import { StudioProfileMenuLink } from './components/StudioProfileMenuLink';
+import { getTruncatedText } from './utils/StudioProfileMenuUtils';
 
 export type StudioProfileMenuProps = {
   triggerButtonText?: string;
   profileImage: ReactNode;
-  profileMenuItems: StudioProfileMenuItem[];
+  profileMenuGroups: StudioProfileMenuGroup[];
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
   ariaLabelTriggerButton: string;
@@ -36,7 +23,7 @@ export type StudioProfileMenuProps = {
 export const StudioProfileMenu = ({
   triggerButtonText,
   profileImage,
-  profileMenuItems,
+  profileMenuGroups,
   color,
   variant,
   ariaLabelTriggerButton,
@@ -44,12 +31,7 @@ export const StudioProfileMenu = ({
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
 
-  const truncatedText =
-    triggerButtonText && truncateAt
-      ? triggerButtonText.length < truncateAt
-        ? triggerButtonText
-        : `${triggerButtonText.slice(0, truncateAt)}...`
-      : triggerButtonText;
+  const truncatedText = getTruncatedText(triggerButtonText, truncateAt);
 
   const handleToggleMenu = () => {
     setOpen((isOpen) => !isOpen);
@@ -79,36 +61,31 @@ export const StudioProfileMenu = ({
         </StudioPageHeaderButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        {profileMenuItems.map((item: StudioProfileMenuItem) => {
-          if (item.action.type === 'button') {
-            return (
-              <React.Fragment key={item.itemName}>
-                <DropdownMenu.Item
+        {profileMenuGroups.map((group: StudioProfileMenuGroup, index: number) => (
+          <React.Fragment key={index}>
+            {group.items.map((item: StudioProfileMenuItem) => {
+              if (item.action.type === 'button') {
+                return (
+                  <StudioProfileMenuButton
+                    key={item.itemName}
+                    itemName={item.itemName}
+                    isActive={item.isActive}
+                    onClick={() => handleClickMenuItemButton(item)}
+                  />
+                );
+              }
+              return (
+                <StudioProfileMenuLink
                   key={item.itemName}
-                  onClick={() => handleClickMenuItemButton(item)}
-                  className={item.isActive ? classes.selected : undefined}
-                >
-                  {item.itemName}
-                </DropdownMenu.Item>
-                {item.hasDivider && <Divider />}
-              </React.Fragment>
-            );
-          }
-          return (
-            <React.Fragment key={item.itemName}>
-              <DropdownMenu.Item key={item.itemName} asChild>
-                <a
+                  itemName={item.itemName}
                   href={item.action.href}
-                  target={item.action.openInNewTab && '_blank'}
-                  rel={item.action.openInNewTab && 'noopener noreferrer'}
-                >
-                  {item.itemName}
-                </a>
-              </DropdownMenu.Item>
-              {item.hasDivider && <Divider />}
-            </React.Fragment>
-          );
-        })}
+                  openInNewTab={item.action.openInNewTab}
+                />
+              );
+            })}
+            {index !== profileMenuGroups.length - 1 && <Divider />}
+          </React.Fragment>
+        ))}
       </DropdownMenu.Content>
     </DropdownMenu>
   );
