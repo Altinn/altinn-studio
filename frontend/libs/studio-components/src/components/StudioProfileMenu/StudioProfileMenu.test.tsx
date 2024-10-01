@@ -1,11 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import {
-  StudioProfileMenu,
-  type StudioProfileMenuItem,
-  type StudioProfileMenuProps,
-} from './StudioProfileMenu';
+import { StudioProfileMenu, type StudioProfileMenuProps } from './StudioProfileMenu';
 import userEvent from '@testing-library/user-event';
+import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
+import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
 
 const mockImageAlt: string = 'Alt';
 const defaultProfileImage = <img src='profile.jpg' alt={mockImageAlt} />;
@@ -18,7 +16,8 @@ const menuItem2Link: string = '/a';
 const menuItem3Link: string = '/b';
 
 const mockOnClick = jest.fn();
-const defaultProfileMenuItems: StudioProfileMenuItem[] = [
+
+const mockProfileMenuItems1: StudioProfileMenuItem[] = [
   {
     action: { type: 'button', onClick: mockOnClick },
     itemName: menuItem1,
@@ -27,12 +26,18 @@ const defaultProfileMenuItems: StudioProfileMenuItem[] = [
   {
     action: { type: 'link', href: menuItem2Link },
     itemName: menuItem2,
-    hasDivider: true,
   },
+];
+const mockProfileMenuItems2: StudioProfileMenuItem[] = [
   {
     action: { type: 'link', href: menuItem3Link, openInNewTab: true },
     itemName: menuItem3,
   },
+];
+
+const mockProfileMenuGroups: StudioProfileMenuGroup[] = [
+  { items: mockProfileMenuItems1 },
+  { items: mockProfileMenuItems2 },
 ];
 
 const mockTriggerButtonText: string = 'Trigger';
@@ -41,7 +46,7 @@ const mockAriaLabel: string = 'Trigger';
 const defaultProps: StudioProfileMenuProps = {
   triggerButtonText: mockTriggerButtonText,
   profileImage: defaultProfileImage,
-  profileMenuItems: defaultProfileMenuItems,
+  profileMenuGroups: mockProfileMenuGroups,
   color: 'dark',
   variant: 'regular',
   ariaLabelTriggerButton: mockAriaLabel,
