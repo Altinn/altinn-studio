@@ -48,17 +48,12 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
 
         string url = GetVersionPrefix(org, targetRepository);
 
-        using var form = new MultipartFormDataContent
-        {
-            { new StreamContent(processStream), "content", "process.bpmn" },
-            {
-                new StringContent(
-                    JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
-                    Encoding.UTF8,
-                    MediaTypeNames.Application.Json),
-                "metadata"
-            }
-        };
+        using var form = new MultipartFormDataContent();
+        form.Add(new StreamContent(processStream), "content", "process.bpmn");
+        form.Add(new StringContent(
+            JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json), "metadata");
 
         // Act
         using var response = await HttpClient.PutAsync(url, form);
@@ -70,7 +65,7 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
         string layoutContent = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, layoutFilePath);
 
         JsonNode layout = JsonSerializer.Deserialize<JsonNode>(layoutContent);
-        string newTaskId = layout["data"]["layout"][0]["target"]["taskId"]?.ToString();
+        string newTaskId = layout["data"]?["layout"]?[0]?["target"]?["taskId"]?.ToString();
 
         newTaskId.Should().Be(metadata.TaskIdChange.NewId);
         newTaskId.Should().NotBe(metadata.TaskIdChange.OldId);
@@ -99,17 +94,12 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
 
         string url = GetVersionPrefix(org, targetRepository);
 
-        using var form = new MultipartFormDataContent
-        {
-            { new StreamContent(processStream), "content", "process.bpmn" },
-            {
-                new StringContent(
-                    JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
-                    Encoding.UTF8,
-                    MediaTypeNames.Application.Json),
-                "metadata"
-            }
-        };
+        using var form = new MultipartFormDataContent();
+        form.Add(new StreamContent(processStream), "content", "process.bpmn");
+        form.Add(new StringContent(
+            JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }),
+            Encoding.UTF8,
+            MediaTypeNames.Application.Json), "metadata");
 
         // Act
         using var response = await HttpClient.PutAsync(url, form);
@@ -124,14 +114,22 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
     public static IEnumerable<object[]> GetReferencedTaskIdTestData()
     {
         // "Task_1" is targeted by Summary2 component in "app-with-layoutsets"
-        yield return new object[] { "ttd", "app-with-layoutsets", "testUser", "App/config/process/process.bpmn",
-            new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" } } };
+        yield return new object[]
+        {
+            "ttd",
+            "app-with-layoutsets",
+            "testUser", "App/config/process/process.bpmn",
+            new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_1", NewId = "SomeNewId" } }
+        };
     }
 
     public static IEnumerable<object[]> GetUnreferencedTaskIdTestData()
     {
         // "Task_2" is not targeted by Summary2 component in "app-with-layoutsets"
-        yield return new object[] { "ttd", "app-with-layoutsets", "testUser", "App/config/process/process.bpmn",
+        yield return new object[] { "ttd",
+            "app-with-layoutsets",
+            "testUser",
+            "App/config/process/process.bpmn",
             new ProcessDefinitionMetadata { TaskIdChange = new TaskIdChange { OldId = "Task_2", NewId = "SomeNewId" } } };
     }
 }
