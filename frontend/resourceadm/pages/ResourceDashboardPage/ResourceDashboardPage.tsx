@@ -7,10 +7,8 @@ import { Spinner, Heading } from '@digdir/designsystemet-react';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSeachBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
-import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { NewResourceModal } from '../../components/NewResourceModal';
 import { ImportResourceModal } from '../../components/ImportResourceModal';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
@@ -30,6 +28,7 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
  */
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
+  const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
@@ -47,10 +46,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     availableEnvs: EnvId[];
   } | null>(null);
 
-  const [importModalOpen, setImportModalOpen] = useState(false);
-
-  // Get metadata with queries
-  const { data: repoStatus } = useRepoStatusQuery(org, app);
   const {
     data: resourceListData,
     isPending: resourceListPending,
@@ -143,7 +138,7 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           <StudioButton
             variant='tertiary'
             color='second'
-            onClick={() => setImportModalOpen(true)}
+            onClick={() => importAltinn2ServiceModalRef.current.showModal()}
             size='medium'
             icon={<MigrationIcon />}
             iconPlacement='right'
@@ -165,14 +160,14 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
-      )}
       <NewResourceModal
         ref={createResourceModalRef}
         onClose={() => createResourceModalRef.current?.close()}
       />
-      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
+      <ImportResourceModal
+        ref={importAltinn2ServiceModalRef}
+        onClose={() => importAltinn2ServiceModalRef.current.close()}
+      />
       <ImportAltinn3ResourceModal
         ref={importAltinn3ResourceModalRef}
         availableEnvs={importData?.availableEnvs ?? []}
