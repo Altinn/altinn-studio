@@ -9,7 +9,7 @@ type Summary2ComponentTargetIdProps = {
   onValueChange: (value: string) => void;
 };
 
-export const Summmary2ComponentTargetSelector = ({
+export const Summmary2ComponentReferenceSelector = ({
   label,
   value,
   options,
@@ -17,13 +17,17 @@ export const Summmary2ComponentTargetSelector = ({
 }: Summary2ComponentTargetIdProps) => {
   const invalidOption = Boolean(value) && !options.some((option) => option.id === value);
   const { t } = useTranslation();
+
+  const invalidMessage = invalidOption && t('ux_editor.component_properties.target_invalid');
+  const requiredMessage = !value && t('ux_editor.component_properties.enum_Required');
+  const errorMessage = invalidMessage || requiredMessage || false;
   return (
     <StudioCombobox
       size='small'
       label={label}
       value={value ? [value] : []}
       onValueChange={(v) => onValueChange(v[0])}
-      error={invalidOption ? t('ux_editor.component_properties.target_invalid') : false}
+      error={errorMessage}
       multiple={false}
     >
       {options.map((option) => (
