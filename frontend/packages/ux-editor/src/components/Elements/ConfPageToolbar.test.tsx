@@ -35,7 +35,7 @@ describe('ConfPageToolbar', () => {
     });
   });
 
-  it('should render receipt component list when confPageType is receipt', () => {
+  it('should render subform component list when confPageType is subform', () => {
     renderConfPageToolbar('subform');
     confOnScreenComponents.forEach((component) => {
       const componentTitle = `ux_editor.component_title.${component.name}`;
