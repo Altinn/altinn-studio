@@ -52,9 +52,7 @@ export const StudioProfileMenu = ({
           aria-label={ariaLabelTriggerButton}
           title={triggerButtonText ? triggerButtonText : undefined}
         >
-          <span className={classes.triggerButtonText}>
-            {'William Thorenfeldt for Etveldiglangtorgnavnsomerlangt'}
-          </span>
+          <span className={classes.triggerButtonText}>{triggerButtonText}</span>
           {profileImage}
         </StudioPageHeaderButton>
       </DropdownMenu.Trigger>
