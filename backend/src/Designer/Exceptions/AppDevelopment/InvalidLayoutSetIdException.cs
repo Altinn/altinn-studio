@@ -3,7 +3,7 @@ using System;
 namespace Altinn.Studio.Designer.Exceptions.AppDevelopment
 {
     /// <summary>
-    /// Indicates that an error occurred during C# code generation.
+    /// Indicates that a layout set id is invalid
     /// </summary>
     [Serializable]
     public class InvalidLayoutSetIdException : Exception
