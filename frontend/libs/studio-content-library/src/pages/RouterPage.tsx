@@ -4,7 +4,7 @@ import { RouterRouteMapperImpl } from '../utils/router/RouterRouteMapper';
 import type { PageConfig } from '../types/PagesProps';
 
 type RouterPageProps = {
-  pages: PageConfig;
+  pages: Partial<PageConfig>;
 };
 
 export const RouterPage = ({ pages }: RouterPageProps): React.ReactElement => {
