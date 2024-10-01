@@ -136,6 +136,11 @@ namespace Altinn.App.Models
         [JsonProperty("ConflictingOptions")]
         [JsonPropertyName("ConflictingOptions")]
         public ConflictingOptions? ConflictingOptions { get; set; }
+
+        [XmlElement("ShiftingOptions")]
+        [JsonProperty("ShiftingOptions")]
+        [JsonPropertyName("ShiftingOptions")]
+        public ShiftingOptions? ShiftingOptions { get; set; }
     }
 
     public class Numeric
@@ -2394,5 +2399,41 @@ namespace Altinn.App.Models
         [JsonProperty("Text")]
         [JsonPropertyName("Text")]
         public string? Text { get; set; }
+    }
+
+    public class ShiftingOptions
+    {
+        [XmlElement("GlobalCounter", Order = 1)]
+        [JsonProperty("GlobalCounter")]
+        [JsonPropertyName("GlobalCounter")]
+        [Required]
+        public decimal GlobalCounter { get; set; } = 0;
+
+        [XmlElement("Balloons", Order = 2)]
+        [JsonProperty("Balloons")]
+        [JsonPropertyName("Balloons")]
+        public List<Balloon>? Balloons { get; set; }
+    }
+
+    public class Balloon
+    {
+        [XmlAttribute("altinnRowId")]
+        [JsonPropertyName("altinnRowId")]
+        [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Newtonsoft.Json.JsonIgnore]
+        public Guid AltinnRowId { get; set; }
+
+        public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+        [XmlElement("Num", Order = 1)]
+        [JsonProperty("Num")]
+        [JsonPropertyName("Num")]
+        [Required]
+        public decimal? Num { get; set; }
+
+        [XmlElement("Color", Order = 2)]
+        [JsonProperty("Color")]
+        [JsonPropertyName("Color")]
+        public string? Color { get; set; }
     }
 }

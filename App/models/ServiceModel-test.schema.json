@@ -540,7 +540,8 @@
             "Selected": { "type": "string" }
           }
         },
-        "ConflictingOptions": { "$ref": "#/definitions/ConflictingOptions" }
+        "ConflictingOptions": { "$ref": "#/definitions/ConflictingOptions" },
+        "ShiftingOptions": { "$ref": "#/definitions/ShiftingOptions" }
       },
       "required": ["skjemanummer", "spesifikasjonsnummer"],
       "@xsdAnyAttribute": true
@@ -2748,6 +2749,28 @@
               }
             },
             "required": ["Name"]
+          }
+        }
+      }
+    },
+    "ShiftingOptions": {
+      "type": "object",
+      "properties": {
+        "GlobalCounter": {
+          "type": "number"
+        },
+        "Balloons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "Num": {
+                "type": "number"
+              },
+              "Color": {
+                "type": "string"
+              }
+            }
           }
         }
       }

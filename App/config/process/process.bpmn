@@ -37,6 +37,8 @@
           <altinn:actions>
             <altinn:action type="serverAction">fill</altinn:action>
             <altinn:action type="serverAction">conflictingOptionsReset</altinn:action>
+            <altinn:action type="serverAction">shiftingOptionsAdd</altinn:action>
+            <altinn:action type="serverAction">shiftingOptionsRemoveAll</altinn:action>
           </altinn:actions>
         </altinn:taskExtension>
       </bpmn:extensionElements>
