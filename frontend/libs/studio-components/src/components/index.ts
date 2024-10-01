@@ -1,4 +1,5 @@
 export * from './StudioAnimateHeight';
+export * from './StudioAvatar';
 export * from './StudioBetaTag';
 export * from './StudioBlobDownloader';
 export * from './StudioBooleanToggleGroup';
@@ -29,6 +30,7 @@ export * from './StudioPageHeader';
 export * from './StudioPageSpinner';
 export * from './StudioParagraph';
 export * from './StudioPopover';
+export * from './StudioProfileMenu';
 export * from './StudioProperty';
 export * from './StudioRecommendedNextAction';
 export * from './StudioResizableLayout';
