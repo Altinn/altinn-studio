@@ -1,5 +1,5 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs, FormItemConfigs } from './formItemConfig';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { formItemConfigs, type FormItemConfigs } from './formItemConfig';
 
 export class FilterUtils {
   public static filterOutDisabledFeatureItems(
