@@ -21,7 +21,7 @@ describe('useUpsertTextResourceMutation', () => {
     expect(queriesMock.upsertTextResources).toHaveBeenCalledWith(org, app, language, {
       [textId]: translation,
     });
-    expect(appContextMock.refetchAppTexts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchAppTexts).toHaveBeenCalledWith(language);
+    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(language);
   });
 });

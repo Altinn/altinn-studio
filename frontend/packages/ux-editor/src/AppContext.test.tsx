@@ -131,8 +131,8 @@ describe('AppContext', () => {
 
   it('invalidates layouts query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ refetchAppLayouts, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchAppLayouts(selectedFormLayoutSetName)} />
+      ({ updateLayoutsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutsForPreview(selectedFormLayoutSetName)} />
       ),
     );
 
@@ -148,8 +148,8 @@ describe('AppContext', () => {
 
   it('resets layouts query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ refetchAppLayouts, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchAppLayouts(selectedFormLayoutSetName, true)} />
+      ({ updateLayoutsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutsForPreview(selectedFormLayoutSetName, true)} />
       ),
     );
 
@@ -165,8 +165,8 @@ describe('AppContext', () => {
 
   it('invalidates layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ refetchAppLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchAppLayoutSettings(selectedFormLayoutSetName)} />
+      ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutSettingsForPreview(selectedFormLayoutSetName)} />
       ),
     );
 
@@ -182,8 +182,8 @@ describe('AppContext', () => {
 
   it('reset layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ refetchAppLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchAppLayoutSettings(selectedFormLayoutSetName, true)} />
+      ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutSettingsForPreview(selectedFormLayoutSetName, true)} />
       ),
     );
 
@@ -192,7 +192,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: [AppsQueryKey.AppLayoutSettings, org, app, mockSelectedFormLayoutSetName],
+        queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
       }),
     );
   });
@@ -200,8 +200,8 @@ describe('AppContext', () => {
   it('invalidates text query for Apps in preview', async () => {
     const mockLanguage = 'nb';
 
-    const { queryClient } = renderAppContext(({ refetchAppTexts }: AppContextProps) => (
-      <Button onClick={() => refetchAppTexts(mockLanguage)} />
+    const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateTextsForPreview(mockLanguage)} />
     ));
 
     await clickButton();
@@ -217,8 +217,8 @@ describe('AppContext', () => {
   it('resets text query for Apps in preview', async () => {
     const mockLanguage = 'nb';
 
-    const { queryClient } = renderAppContext(({ refetchAppTexts }: AppContextProps) => (
-      <Button onClick={() => refetchAppTexts(mockLanguage, true)} />
+    const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateTextsForPreview(mockLanguage, true)} />
     ));
 
     await clickButton();

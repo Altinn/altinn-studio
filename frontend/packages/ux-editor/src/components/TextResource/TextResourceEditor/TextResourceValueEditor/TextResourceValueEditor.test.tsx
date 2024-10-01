@@ -60,8 +60,8 @@ describe('TextResourceValueEditor', () => {
       [textResourceId]: textResources[0].value + 'a',
     });
 
-    expect(appContextMock.refetchAppTexts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchAppTexts).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
+    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
   });
 });
 

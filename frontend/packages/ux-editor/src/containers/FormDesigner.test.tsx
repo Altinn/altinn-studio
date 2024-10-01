@@ -109,8 +109,8 @@ describe('FormDesigner', () => {
       'test-layout-set',
       expect.any(Object),
     );
-    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith('test-layout-set');
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set');
   });
 
   it('should move a component', async () => {
@@ -129,8 +129,8 @@ describe('FormDesigner', () => {
       'test-layout-set',
       expect.any(Object),
     );
-    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith('test-layout-set');
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set');
   });
 
   it('should be able to collapse and uncollapse components', async () => {

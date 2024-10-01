@@ -70,7 +70,8 @@ export const FormItemContextProvider = ({
   children,
 }: FormItemContextProviderProps): React.JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchAppLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
+    useAppContext();
   const prevSelectedFormLayoutSetNameRef = useRef(selectedFormLayoutSetName);
   const prevSelectedFormLayoutNameRef = useRef(selectedFormLayoutName);
 
@@ -111,7 +112,7 @@ export const FormItemContextProvider = ({
 
         const mutationOptions = {
           onSuccess: async () => {
-            await refetchAppLayouts(selectedFormLayoutSetName, hasNewId);
+            await updateLayoutsForPreview(selectedFormLayoutSetName, hasNewId);
           },
           ...mutateOptions,
         };
@@ -127,7 +128,7 @@ export const FormItemContextProvider = ({
         }
       }
     },
-    [refetchAppLayouts, selectedFormLayoutSetName, updateFormComponent, updateFormContainer],
+    [updateLayoutsForPreview, selectedFormLayoutSetName, updateFormComponent, updateFormContainer],
   );
 
   const handleEdit = useCallback((updatedForm: FormContainer | FormComponent): void => {

@@ -6,7 +6,7 @@ import type { IInternalLayout } from '../../../../types/global';
 
 export const useDeleteUnknownComponentReference = () => {
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, refetchAppLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
   const { layoutName } = useSelectedFormLayoutWithName();
   const { mutateAsync: updateFormLayoutMutation } = useFormLayoutMutation(
     org,
@@ -21,7 +21,7 @@ export const useDeleteUnknownComponentReference = () => {
       { internalLayout: updatedLayout },
       {
         onSuccess: async () => {
-          await refetchAppLayouts(selectedFormLayoutSetName);
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
         },
       },
     );
