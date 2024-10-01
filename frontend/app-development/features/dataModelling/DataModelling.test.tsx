@@ -184,10 +184,6 @@ describe('DataModelling', () => {
     render({}, queryClient);
     await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('data_modelling.loading')));
 
-    expect(
-      screen.getByRole('button', {
-        name: textMock('general.create_new'),
-      }),
-    ).toBeInTheDocument();
+    expect(queriesMock.addXsdFromRepo).toHaveBeenCalledTimes(1);
   });
 });
