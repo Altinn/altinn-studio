@@ -7,10 +7,15 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppContextProps } from '../../AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
-import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryClient } from '@tanstack/react-query';
 
 jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
+jest.mock('../../hooks/useGetLayoutSetByName', () => ({
+  useGetLayoutSetByName: () => ({
+    id: 'test',
+  }),
+}));
 const mockUseCustomReceiptLayoutSetName = jest.mocked(useCustomReceiptLayoutSetName);
 
 describe('Elements', () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppContext } from '../../hooks';
+import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 
@@ -12,6 +12,8 @@ import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceipt
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { ElementsUtils } from './ElementsUtils';
+import { ConfPageType } from './types/ConfigPageType';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -22,6 +24,11 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const selectedLayoutSet = useGetLayoutSetByName({
+    name: selectedFormLayoutSetName,
+    org,
+    app,
+  });
 
   const {
     data: processTaskType,
@@ -62,8 +69,24 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   }
 
   const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
-  const shouldShowConfPageToolbar = selectedLayoutIsCustomReceipt || processTaskType === 'payment';
-  const confPageToolbarMode = selectedLayoutIsCustomReceipt ? 'receipt' : 'payment';
+
+  console.log({
+    selectedLayoutIsCustomReceipt,
+    processTaskType: processTaskType,
+    selectedLayoutSetType: selectedLayoutSet?.type,
+  });
+
+  const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
+    selectedLayoutIsCustomReceipt,
+    processTaskType: processTaskType,
+    selectedLayoutSetType: selectedLayoutSet?.type,
+  });
+
+  console.log({
+    result: Boolean(configToolbarMode),
+  });
+
+  const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 
   if (collapsed) {
     return (
@@ -95,7 +118,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
           {t('left_menu.no_components_selected')}
         </Paragraph>
       ) : shouldShowConfPageToolbar ? (
-        <ConfPageToolbar confPageType={confPageToolbarMode} />
+        <ConfPageToolbar confPageType={configToolbarMode} />
       ) : (
         <DefaultToolbar />
       )}
