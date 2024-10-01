@@ -13,12 +13,12 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ProcessTaskIdChanged;
 
-public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTaskIdChangedEvent>
+public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<ProcessTaskIdChangedEvent>
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
 
-    public ProcessTaskIdChangedLayoutsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+    public ProcessTaskIdChangedLayoutSetsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor)
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
@@ -37,36 +37,36 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
             return;
         }
 
+        await ProcessLayoutSets(notification, repository, cancellationToken);
+    }
+
+    private async Task ProcessLayoutSets(ProcessTaskIdChangedEvent notification,
+        AltinnAppGitRepository repository, CancellationToken cancellationToken)
+    {
         var layoutSetsFile = await repository.GetLayoutSetsFile(cancellationToken);
 
         foreach (string layoutSetName in layoutSetsFile.Sets.Select(layoutSet => layoutSet.Id))
         {
-            await ProcessLayoutSet(layoutSetName, notification, repository, cancellationToken);
-        }
-    }
-
-    private async Task ProcessLayoutSet(string layoutSetName, ProcessTaskIdChangedEvent notification,
-        AltinnAppGitRepository repository, CancellationToken cancellationToken)
-    {
-        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
-            notification.EditingContext,
-            SyncErrorCodes.LayoutSetsTaskIdSyncError,
-            "App/ui/layout-sets.json",
-            async () =>
-            {
-                bool hasChanges = false;
-
-                var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-                if (TryChangeLayoutSetTaskIds(layoutSets, notification.OldId, notification.NewId))
+            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
+                notification.EditingContext,
+                SyncErrorCodes.LayoutSetsTaskIdSyncError,
+                "App/ui/layout-sets.json",
+                async () =>
                 {
-                    await repository.SaveLayoutSets(layoutSets);
-                    hasChanges = true;
-                }
+                    bool hasChanged = false;
 
-                return hasChanges;
-            });
+                    var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
+                    if (TryChangeLayoutSetTaskIds(layoutSets, notification.OldId, notification.NewId))
+                    {
+                        await repository.SaveLayoutSets(layoutSets);
+                        hasChanged = true;
+                    }
 
-        await ProcessLayouts(layoutSetName, notification, repository, cancellationToken);
+                    return hasChanged;
+                });
+
+            await ProcessLayouts(layoutSetName, notification, repository, cancellationToken);
+        }
     }
 
     private async Task ProcessLayouts(string layoutSetName, ProcessTaskIdChangedEvent notification,
