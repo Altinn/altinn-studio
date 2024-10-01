@@ -5,3 +5,12 @@
   margin-right: var(--fds-spacing-2);
   color: inherit;
 }
+
+.dropDownMenuGroup:not(:last-child) {
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  padding-bottom: var(--fds-spacing-2);
+}
+
+.dropDownMenuGroup:not(:first-child) {
+  padding-top: var(--fds-spacing-2);
+}

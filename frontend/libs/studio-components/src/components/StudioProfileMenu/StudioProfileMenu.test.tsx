@@ -83,10 +83,10 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    await user.click(screen.getByRole('menuitem', { name: menuItem1 }));
+    await user.click(screen.getByRole('menuitemradio', { name: menuItem1 }));
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should have correct attributes for link item without "openInNewTab" value', async () => {
@@ -115,31 +115,20 @@ describe('StudioProfileMenu', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
-  it('should render a divider when hasDivider is true', async () => {
-    const user = userEvent.setup();
-    renderStudioProfileMenu();
-
-    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
-    await user.click(triggerButton);
-
-    const dividers = screen.getAllByRole('separator');
-    expect(dividers.length).toBe(1);
-  });
-
   it('should close the menu when clicking a menuitem', async () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
 
-    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
 
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
-    await user.click(screen.getByRole('menuitem', { name: menuItem1 }));
+    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
+    await user.click(screen.getByRole('menuitemradio', { name: menuItem1 }));
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should render aria-label on trigger button', () => {
@@ -177,10 +166,10 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
 
     await user.click(triggerButton);
-    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
 
     await user.click(triggerButton);
-    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should close the dropdown menu when handleClose is called', async () => {
@@ -190,10 +179,10 @@ describe('StudioProfileMenu', () => {
     const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
     await user.click(triggerButton);
 
-    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
     await user.click(triggerButton);
 
-    expect(screen.queryByRole('menuitem', { name: menuItem1 })).not.toBeInTheDocument();
+    expect(screen.queryByRole('menuitemradio', { name: menuItem1 })).not.toBeInTheDocument();
   });
 
   it('should not close the dropdown when a link item is clicked and openInNewTab is true', async () => {
@@ -206,7 +195,7 @@ describe('StudioProfileMenu', () => {
     const link = screen.getByRole('menuitem', { name: menuItem3 });
     await user.click(link);
 
-    expect(screen.getByRole('menuitem', { name: menuItem1 })).toBeInTheDocument();
+    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
   });
 
   it('should not truncate triggerButtonText if truncateAt is undefined', () => {

@@ -1,6 +1,6 @@
 import React, { type ReactNode, type ReactElement, useState } from 'react';
 import classes from './StudioProfileMenu.module.css';
-import { Divider, DropdownMenu } from '@digdir/designsystemet-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { StudioPageHeaderButton } from '../StudioPageHeader';
 import { type StudioPageHeaderColor } from '../StudioPageHeader/types/StudioPageHeaderColor';
 import { type StudioPageHeaderVariant } from '../StudioPageHeader/types/StudioPageHeaderVariant';
@@ -62,7 +62,7 @@ export const StudioProfileMenu = ({
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         {profileMenuGroups.map((group: StudioProfileMenuGroup, index: number) => (
-          <React.Fragment key={index}>
+          <DropdownMenu.Group key={index} className={classes.dropDownMenuGroup}>
             {group.items.map((item: StudioProfileMenuItem) => {
               if (item.action.type === 'button') {
                 return (
@@ -71,6 +71,7 @@ export const StudioProfileMenu = ({
                     itemName={item.itemName}
                     isActive={item.isActive}
                     onClick={() => handleClickMenuItemButton(item)}
+                    role='menuitemradio'
                   />
                 );
               }
@@ -83,8 +84,7 @@ export const StudioProfileMenu = ({
                 />
               );
             })}
-            {index !== profileMenuGroups.length - 1 && <Divider />}
-          </React.Fragment>
+          </DropdownMenu.Group>
         ))}
       </DropdownMenu.Content>
     </DropdownMenu>
