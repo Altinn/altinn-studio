@@ -1,7 +1,24 @@
-.userOrgNames {
-  text-align: right;
-  white-space: pre-line;
+.triggerButton {
+  display: flex;
+}
+
+.triggerButtonText {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  flex: 1;
+  overflow: hidden;
+  word-break: break-all;
   line-height: var(--fds-spacing-6);
   margin-right: var(--fds-spacing-2);
-  color: inherit;
+  text-align: right;
+}
+
+.dropDownMenuGroup:not(:last-child) {
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  padding-bottom: var(--fds-spacing-2);
+}
+
+.dropDownMenuGroup:not(:first-child) {
+  padding-top: var(--fds-spacing-2);
 }
