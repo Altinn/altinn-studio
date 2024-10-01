@@ -70,12 +70,6 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
 
   const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
 
-  console.log({
-    selectedLayoutIsCustomReceipt,
-    processTaskType: processTaskType,
-    selectedLayoutSetType: selectedLayoutSet?.type,
-  });
-
   const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
     selectedLayoutIsCustomReceipt,
     processTaskType: processTaskType,

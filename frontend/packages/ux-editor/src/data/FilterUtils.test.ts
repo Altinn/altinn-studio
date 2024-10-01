@@ -18,10 +18,19 @@ describe('FilterUtils', () => {
   describe('filterUnsupportedSubformComponents', () => {
     it.each([
       {
+        component: formItemConfigs[ComponentType.Button],
+      },
+      {
         component: formItemConfigs[ComponentType.FileUpload],
       },
       {
         component: formItemConfigs[ComponentType.FileUploadWithTag],
+      },
+      {
+        component: formItemConfigs[ComponentType.InstantiationButton],
+      },
+      {
+        component: formItemConfigs[ComponentType.Payment],
       },
       {
         component: formItemConfigs[ComponentType.SubForm],
@@ -34,7 +43,7 @@ describe('FilterUtils', () => {
     );
 
     it('should return true for supported components', () => {
-      const supportedComponent = formItemConfigs[ComponentType.Button];
+      const supportedComponent = formItemConfigs[ComponentType.Alert];
       expect(FilterUtils.filterUnsupportedSubformComponents(supportedComponent)).toBe(true);
     });
   });

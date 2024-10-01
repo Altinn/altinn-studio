@@ -34,6 +34,14 @@ describe('ConfPageToolbar', () => {
       expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
     });
   });
+
+  it('should render receipt component list when confPageType is receipt', () => {
+    renderConfPageToolbar('subform');
+    confOnScreenComponents.forEach((component) => {
+      const componentTitle = `ux_editor.component_title.${component.name}`;
+      expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
+    });
+  });
 });
 
 const renderConfPageToolbar = (confPageType: 'receipt' | 'payment') => {

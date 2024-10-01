@@ -12,8 +12,11 @@ export class FilterUtils {
     component: FormItemConfigs[ComponentType],
   ): boolean => {
     const unsupportedSubformComponents: Array<FormItemConfigs[ComponentType]> = [
+      formItemConfigs[ComponentType.Button],
       formItemConfigs[ComponentType.FileUpload],
       formItemConfigs[ComponentType.FileUploadWithTag],
+      formItemConfigs[ComponentType.InstantiationButton],
+      formItemConfigs[ComponentType.Payment],
       formItemConfigs[ComponentType.SubForm],
     ];
     return !unsupportedSubformComponents.includes(component);
