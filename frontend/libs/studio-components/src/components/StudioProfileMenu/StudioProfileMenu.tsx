@@ -54,7 +54,7 @@ export const StudioProfileMenu = ({
           color={color}
           variant={variant}
           aria-label={ariaLabelTriggerButton}
-          title={triggerButtonText}
+          title={triggerButtonText ? triggerButtonText : undefined}
         >
           {truncatedText && <span className={classes.userOrgNames}>{truncatedText}</span>}
           {profileImage}
