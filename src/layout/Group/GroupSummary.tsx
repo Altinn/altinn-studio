@@ -49,17 +49,17 @@ const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverride }: Gro
           />
         </Grid>
       );
-    } else {
-      const isCompact = summaryOverride?.isCompact;
-
-      return (
-        <ComponentSummary
-          key={child?.id}
-          componentNode={child}
-          isCompact={isCompact}
-        />
-      );
     }
+
+    const isCompact = summaryOverride?.isCompact;
+
+    return (
+      <ComponentSummary
+        key={child?.id}
+        componentNode={child}
+        isCompact={isCompact}
+      />
+    );
   });
 };
 
@@ -68,10 +68,13 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
   const summaryTitle = useNodeItem(componentNode, (i) => i.textResourceBindings?.summaryTitle);
   const headingLevel = getHeadingLevel(hierarchyLevel);
   const isNestedGroup = hierarchyLevel > 0;
+
+  const dataTestId = hierarchyLevel > 0 ? `summary-group-component-${hierarchyLevel}` : 'summary-group-component';
+
   return (
     <section
       className={cn(classes.groupContainer, { [classes.nested]: isNestedGroup })}
-      data-testid={`summary-group-component${hierarchyLevel > 0 ? `-${hierarchyLevel}` : ''}`}
+      data-testid={dataTestId}
     >
       <Heading
         size={isNestedGroup ? 'xsmall' : 'small'}
