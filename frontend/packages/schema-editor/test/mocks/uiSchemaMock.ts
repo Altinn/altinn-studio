@@ -19,6 +19,7 @@ const stringDefinitionNodePointer = '#/$defs/def2';
 const nodeWithSameNameAsObjectChildPointer = '#/properties/someNode';
 const referenceNodePointer = '#/properties/referenceNode';
 const referredNodePointer = '#/$defs/referredNode';
+const childOfReferredNodePointer = '#/$defs/referredNode/properties/childOfReferredNode';
 
 export const nodeMockBase: FieldNode = {
   objectKind: ObjectKind.Field,
@@ -43,7 +44,14 @@ export const referenceNodeMock: ReferenceNode = {
 
 export const referredNodeMock: FieldNode = {
   ...nodeMockBase,
+  fieldType: FieldType.Object,
   schemaPointer: referredNodePointer,
+  children: [childOfReferredNodePointer],
+};
+
+export const childOfReferredNodeMock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: childOfReferredNodePointer,
 };
 
 export const rootNodeMock: FieldNode = {
@@ -137,6 +145,7 @@ export const uiSchemaNodesMock: UiSchemaNodes = [
   fieldNode2Mock,
   referenceNodeMock,
   referredNodeMock,
+  childOfReferredNodeMock,
   nodeWithCustomPropsMock,
   toggableNodeMock,
   objectNodeMock,

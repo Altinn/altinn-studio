@@ -20,5 +20,3 @@ export const layoutSettingsSchemaUrlV3 = () =>
 
 // General Paths
 export const orgListUrl = () => 'https://altinncdn.no/orgs/altinn-orgs.json';
-export const newsListUrl = (langage = 'nb') =>
-  `https://altinncdn.no/studio/designer/news/news.${langage}.json`;
