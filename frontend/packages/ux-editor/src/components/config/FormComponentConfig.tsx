@@ -15,7 +15,7 @@ import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
-import { EditLayoutSetForSubForm } from './editModal/EditLayoutSetForSubFrom';
+import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -95,16 +95,8 @@ export const FormComponentConfig = ({
 
   return (
     <>
-      {layoutSet && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('ux_editor.component_properties.subform')}
-          </Heading>
-          <EditLayoutSetForSubForm
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-          />
-        </>
+      {layoutSet && component['layoutSet'] && (
+        <RedirectToLayoutSet selectedSubForm={component['layoutSet']} />
       )}
       {grid && (
         <>

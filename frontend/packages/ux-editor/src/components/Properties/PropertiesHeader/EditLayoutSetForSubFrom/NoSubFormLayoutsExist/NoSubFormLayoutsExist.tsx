@@ -6,7 +6,7 @@ export const NoSubFormLayoutsExist = () => {
   const { t } = useTranslation();
 
   return (
-    <Alert size='small' title={'NoSubFormLayoutsExistAlert'}>
+    <Alert size='small'>
       {t('ux_editor.component_properties.subform.no_layout_sets_acting_as_subform')}
     </Alert>
   );

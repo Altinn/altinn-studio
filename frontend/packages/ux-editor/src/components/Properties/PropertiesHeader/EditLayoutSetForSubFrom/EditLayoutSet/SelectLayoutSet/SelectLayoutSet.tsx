@@ -2,6 +2,7 @@ import React from 'react';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectLayoutSet.module.css';
+import { EditLayoutSetButtons } from '@altinn/ux-editor/components/Properties/PropertiesHeader/EditLayoutSetForSubFrom/EditLayoutSet/SelectLayoutSet/EditLayoutSetButtons/EditLayoutSetButtons';
 
 type SelectLayoutSetProps = {
   layoutSetsActingAsSubForm: string[];
@@ -21,9 +22,13 @@ export const SelectLayoutSet = ({
 
   const handleSelectChange = (layoutSetId: string) => {
     if (layoutSetId === emptyOptionText) {
-      onUpdateLayoutSet(undefined);
+      handleDeleteConnection();
     } else onUpdateLayoutSet(layoutSetId);
     onSetLayoutSetSelectVisible(false);
+  };
+
+  const handleDeleteConnection = () => {
+    onUpdateLayoutSet(undefined);
   };
 
   return (
@@ -42,6 +47,10 @@ export const SelectLayoutSet = ({
           </option>
         ))}
       </StudioNativeSelect>
+      <EditLayoutSetButtons
+        onClose={() => onSetLayoutSetSelectVisible(false)}
+        onDelete={handleDeleteConnection}
+      />
     </div>
   );
 };

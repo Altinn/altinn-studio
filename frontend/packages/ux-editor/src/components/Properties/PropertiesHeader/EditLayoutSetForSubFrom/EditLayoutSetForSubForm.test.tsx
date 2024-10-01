@@ -1,8 +1,8 @@
 import React from 'react';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { EditLayoutSetForSubForm } from '@altinn/ux-editor/components/config/editModal/EditLayoutSetForSubFrom/EditLayoutSetForSubForm';
+import { renderWithProviders } from '../../../../testing/mocks';
+import { EditLayoutSetForSubForm } from './EditLayoutSetForSubForm';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen, within } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -11,9 +11,9 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { layoutSets } from 'app-shared/mocks/mocks';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import userEvent from '@testing-library/user-event';
-import type { FormComponent } from '@altinn/ux-editor/types/FormComponent';
-import { AppContext } from '@altinn/ux-editor/AppContext';
-import { appContextMock } from '@altinn/ux-editor/testing/appContextMock';
+import type { FormComponent } from '../../../../types/FormComponent';
+import { AppContext } from '../../../../AppContext';
+import { appContextMock } from '../../../../testing/appContextMock';
 
 const handleComponentChangeMock = jest.fn();
 const setSelectedFormLayoutSetMock = jest.fn();
@@ -32,29 +32,20 @@ describe('EditLayoutSetForSubForm', () => {
   it('displays a button to set subform if subform layout sets exists', () => {
     const subFormLayoutSetId = 'subFormLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subFormLayoutSetId, type: 'subform' }] });
-    const existingLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set'),
+    const setLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
     });
-    expect(existingLayoutSetButton).toBeInTheDocument();
-  });
-
-  it('does not display redirect button to design layout set for the subform if layout set is not set', () => {
-    const subFormLayoutSetId = 'subFormLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subFormLayoutSetId, type: 'subform' }] });
-    const redirectBoxHeading = screen.queryByRole('heading', {
-      name: textMock('ux_editor.component_properties.subform.go_to_layout_set'),
-    });
-    expect(redirectBoxHeading).not.toBeInTheDocument();
+    expect(setLayoutSetButton).toBeInTheDocument();
   });
 
   it('displays a select to choose a layout set for the subform when clicking button to set', async () => {
     const user = userEvent.setup();
     const subFormLayoutSetId = 'subFormLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subFormLayoutSetId, type: 'subform' }] });
-    const existingLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set'),
+    const setLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
     });
-    await user.click(existingLayoutSetButton);
+    await user.click(setLayoutSetButton);
     const selectLayoutSet = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
     });
@@ -70,10 +61,10 @@ describe('EditLayoutSetForSubForm', () => {
     const user = userEvent.setup();
     const subFormLayoutSetId = 'subFormLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subFormLayoutSetId, type: 'subform' }] });
-    const existingLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set'),
+    const setLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
     });
-    await user.click(existingLayoutSetButton);
+    await user.click(setLayoutSetButton);
     const selectLayoutSet = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
     });
@@ -90,10 +81,10 @@ describe('EditLayoutSetForSubForm', () => {
     const user = userEvent.setup();
     const subFormLayoutSetId = 'subFormLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subFormLayoutSetId, type: 'subform' }] });
-    const existingLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set'),
+    const setLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
     });
-    await user.click(existingLayoutSetButton);
+    await user.click(setLayoutSetButton);
     const selectLayoutSet = screen.getByRole('combobox', {
       name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
     });
@@ -114,36 +105,11 @@ describe('EditLayoutSetForSubForm', () => {
       { layoutSet: subFormLayoutSetId },
     );
     const existingLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set'),
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_title', {
+        subform: subFormLayoutSetId,
+      }),
     });
     expect(existingLayoutSetButton).toBeInTheDocument();
-  });
-
-  it('displays a redirect button to design layout set for the subform if set', () => {
-    const subFormLayoutSetId = 'subFormLayoutSetId';
-    renderEditLayoutSetForSubForm(
-      { sets: [{ id: subFormLayoutSetId, type: 'subform' }] },
-      { layoutSet: subFormLayoutSetId },
-    );
-    const redirectBoxTitle = screen.queryByText(
-      textMock('ux_editor.component_properties.subform.go_to_layout_set'),
-    );
-    expect(redirectBoxTitle).toBeInTheDocument();
-  });
-
-  it('calls setSelectedFormLayoutSet when clicking the redirect button', async () => {
-    const user = userEvent.setup();
-    const subFormLayoutSetId = 'subFormLayoutSetId';
-    renderEditLayoutSetForSubForm(
-      { sets: [{ id: subFormLayoutSetId, type: 'subform' }] },
-      { layoutSet: subFormLayoutSetId },
-    );
-    const redirectButton = screen.queryByRole('button', {
-      name: textMock('top_menu.create'),
-    });
-    await user.click(redirectButton);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledWith(subFormLayoutSetId);
   });
 });
 
