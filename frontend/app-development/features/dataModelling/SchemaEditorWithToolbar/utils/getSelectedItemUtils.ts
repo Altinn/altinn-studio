@@ -8,7 +8,7 @@ import type { MetadataOption } from '../../../../types/MetadataOption';
  * @param selectedOption The target item (the one which the dragged item is being dropped on)
  * @returns repositoryRelativeUrl | null
  */
-export function getSelectedItem(
+export function getSelectedItemUtils(
   dataModels: DataModelMetadata[],
   selectedOption: MetadataOption,
 ): string | undefined {

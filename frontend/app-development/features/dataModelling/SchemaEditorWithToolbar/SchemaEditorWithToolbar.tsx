@@ -6,7 +6,7 @@ import type { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
-import { getSelectedItem } from './utils/getSelectedItem';
+import { getSelectedItemUtils } from './utils/getSelectedItemUtils';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
 
@@ -24,7 +24,7 @@ export const SchemaEditorWithToolbar = ({
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
 
-  const modelPath = getSelectedItem(dataModels, selectedOption);
+  const modelPath = getSelectedItemUtils(dataModels, selectedOption);
 
   useEffect(() => {
     dataModels.forEach((model) => {
