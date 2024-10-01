@@ -1,4 +1,4 @@
-import { ConfPageType } from './types/ConfigPageType';
+import type { ConfPageType } from './types/ConfigPageType';
 
 type GetConfigurationModeArgs = {
   selectedLayoutIsCustomReceipt: boolean;
