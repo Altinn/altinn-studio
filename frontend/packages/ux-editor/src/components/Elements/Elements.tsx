@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
 import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { ElementsUtils } from './ElementsUtils';
-import { ConfPageType } from './types/ConfigPageType';
+import type { ConfPageType } from './types/ConfigPageType';
 
 export interface ElementsProps {
   collapsed: boolean;

@@ -1,5 +1,5 @@
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 
 type UseGetLayoutSetByName = {
   name: string;

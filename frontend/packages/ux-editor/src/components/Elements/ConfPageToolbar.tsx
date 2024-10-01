@@ -10,7 +10,7 @@ import {
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
 import { useTranslation } from 'react-i18next';
-import { ConfPageType } from './types/ConfigPageType';
+import type { ConfPageType } from './types/ConfigPageType';
 
 const getAvailableComponentList = (confPageType: ConfPageType) => {
   switch (confPageType) {
