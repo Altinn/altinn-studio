@@ -5,14 +5,14 @@ import { UndefinedLayoutSet } from './UndefinedLayoutSet/UndefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
 
 type EditLayoutSetProps = {
-  layoutSetsActingAsSubForm: string[];
-  existingLayoutSetForSubForm: string;
+  layoutSetsActingAsSubform: string[];
+  existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
 };
 
 export const EditLayoutSet = ({
-  layoutSetsActingAsSubForm,
-  existingLayoutSetForSubForm,
+  layoutSetsActingAsSubform,
+  existingLayoutSetForSubform,
   onUpdateLayoutSet,
 }: EditLayoutSetProps) => {
   const [layoutSetSelectVisible, setLayoutSetSelectVisible] = useState<boolean>(false);
@@ -20,21 +20,21 @@ export const EditLayoutSet = ({
 
   return (
     <>
-      {!existingLayoutSetForSubForm && !layoutSetSelectVisible ? (
+      {!existingLayoutSetForSubform && !layoutSetSelectVisible ? (
         <UndefinedLayoutSet
           label={t('ux_editor.component_properties.subform.selected_layout_set_label')}
           onClick={() => setLayoutSetSelectVisible(true)}
         />
       ) : layoutSetSelectVisible ? (
         <SelectLayoutSet
-          layoutSetsActingAsSubForm={layoutSetsActingAsSubForm}
-          existingLayoutSetForSubForm={existingLayoutSetForSubForm}
+          layoutSetsActingAsSubForm={layoutSetsActingAsSubform}
+          existingLayoutSetForSubForm={existingLayoutSetForSubform}
           onUpdateLayoutSet={onUpdateLayoutSet}
           onSetLayoutSetSelectVisible={setLayoutSetSelectVisible}
         />
       ) : (
         <DefinedLayoutSet
-          existingLayoutSetForSubForm={existingLayoutSetForSubForm}
+          existingLayoutSetForSubForm={existingLayoutSetForSubform}
           onClick={() => setLayoutSetSelectVisible(true)}
         />
       )}

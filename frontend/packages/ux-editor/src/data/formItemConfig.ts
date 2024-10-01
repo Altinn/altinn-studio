@@ -481,7 +481,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature('subForm') && formItemConfigs[ComponentType.SubForm],
+  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.SubForm],
 ].filter(Boolean); // When removing the featureFlag, also remove the filter
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [

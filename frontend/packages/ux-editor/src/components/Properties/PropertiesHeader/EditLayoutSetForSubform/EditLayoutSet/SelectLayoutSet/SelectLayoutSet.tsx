@@ -2,7 +2,7 @@ import React from 'react';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectLayoutSet.module.css';
-import { EditLayoutSetButtons } from '@altinn/ux-editor/components/Properties/PropertiesHeader/EditLayoutSetForSubFrom/EditLayoutSet/SelectLayoutSet/EditLayoutSetButtons/EditLayoutSetButtons';
+import { EditLayoutSetButtons } from './EditLayoutSetButtons/EditLayoutSetButtons';
 
 type SelectLayoutSetProps = {
   layoutSetsActingAsSubForm: string[];

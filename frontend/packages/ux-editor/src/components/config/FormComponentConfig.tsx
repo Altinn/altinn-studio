@@ -96,7 +96,7 @@ export const FormComponentConfig = ({
   return (
     <>
       {layoutSet && component['layoutSet'] && (
-        <RedirectToLayoutSet selectedSubForm={component['layoutSet']} />
+        <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
       {grid && (
         <>

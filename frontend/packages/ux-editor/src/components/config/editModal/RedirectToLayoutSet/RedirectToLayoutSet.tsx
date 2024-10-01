@@ -7,15 +7,15 @@ import classes from './RedirectToLayoutSet.module.css';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 
 type RedirectToLayoutSetProps = {
-  selectedSubForm: string;
+  selectedSubform: string;
 };
 
-export const RedirectToLayoutSet = ({ selectedSubForm }: RedirectToLayoutSetProps) => {
+export const RedirectToLayoutSet = ({ selectedSubform }: RedirectToLayoutSetProps) => {
   const { setSelectedFormLayoutName, setSelectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation();
 
   const handleClickRedirect = () => {
-    setSelectedFormLayoutSetName(selectedSubForm);
+    setSelectedFormLayoutSetName(selectedSubform);
     setSelectedFormLayoutName(undefined);
   };
 

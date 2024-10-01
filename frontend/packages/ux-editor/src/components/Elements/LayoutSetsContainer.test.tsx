@@ -52,32 +52,32 @@ describe('LayoutSetsContainer', () => {
   });
 
   it('should render add and delete subform buttons when feature is enabled', () => {
-    addFeatureFlagToLocalStorage('subForm');
+    addFeatureFlagToLocalStorage('subform');
 
     render();
-    const createSubFormButton = screen.getByRole('button', {
+    const createSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    expect(createSubFormButton).toBeInTheDocument();
+    expect(createSubformButton).toBeInTheDocument();
 
-    const deleteSubFormButton = screen.getByRole('button', {
+    const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    expect(deleteSubFormButton).toBeInTheDocument();
-    removeFeatureFlagFromLocalStorage('subForm');
+    expect(deleteSubformButton).toBeInTheDocument();
+    removeFeatureFlagFromLocalStorage('subform');
   });
 
   it('should not render add and delete subform buttons when feature is disabled', () => {
     render();
-    const createSubFormButton = screen.queryByRole('button', {
+    const createSubformButton = screen.queryByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    expect(createSubFormButton).not.toBeInTheDocument();
+    expect(createSubformButton).not.toBeInTheDocument();
 
-    const deleteSubFormButton = screen.queryByRole('button', {
+    const deleteSubformButton = screen.queryByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    expect(deleteSubFormButton).not.toBeInTheDocument();
+    expect(deleteSubformButton).not.toBeInTheDocument();
   });
 });
 

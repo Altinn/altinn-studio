@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 import { AppContext } from '../../../../AppContext';
 import { appContextMock } from '../../../../testing/appContextMock';
 
-const subFormLayoutSetIdMock = 'subFormLayoutSetId';
+const subformLayoutSetIdMock = 'subformLayoutSetId';
 const setSelectedFormLayoutSetMock = jest.fn();
 
 describe('RedirectToLayoutSet', () => {
@@ -21,23 +21,23 @@ describe('RedirectToLayoutSet', () => {
 
   it('calls setSelectedFormLayoutSet when clicking the redirect button', async () => {
     const user = userEvent.setup();
-    const subFormLayoutSetId = 'subFormLayoutSetId';
+    const subformLayoutSetId = 'subformLayoutSetId';
     renderRedirectToLayoutSet();
     const redirectButton = screen.queryByRole('button', {
       name: textMock('top_menu.create'),
     });
     await user.click(redirectButton);
     expect(setSelectedFormLayoutSetMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledWith(subFormLayoutSetId);
+    expect(setSelectedFormLayoutSetMock).toHaveBeenCalledWith(subformLayoutSetId);
   });
 });
 
-const renderRedirectToLayoutSet = (selectedSubForm: string = subFormLayoutSetIdMock) => {
+const renderRedirectToLayoutSet = (selectedSubform: string = subformLayoutSetIdMock) => {
   return renderWithProviders(
     <AppContext.Provider
       value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
     >
-      <RedirectToLayoutSet selectedSubForm={selectedSubForm} />
+      <RedirectToLayoutSet selectedSubform={selectedSubform} />
     </AppContext.Provider>,
   );
 };
