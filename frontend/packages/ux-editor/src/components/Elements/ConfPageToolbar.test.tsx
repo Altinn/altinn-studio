@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ConfPageToolbar } from './ConfPageToolbar';
-import { confOnScreenComponents, paymentLayoutComponents } from '../../data/formItemConfig';
+import {
+  confOnScreenComponents,
+  paymentLayoutComponents,
+  subformLayoutComponents,
+} from '../../data/formItemConfig';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ConfPageType } from './types/ConfigPageType';
@@ -38,7 +42,7 @@ describe('ConfPageToolbar', () => {
 
   it('should render subform component list when confPageType is subform', () => {
     renderConfPageToolbar('subform');
-    confOnScreenComponents.forEach((component) => {
+    subformLayoutComponents.forEach((component) => {
       const componentTitle = `ux_editor.component_title.${component.name}`;
       expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
     });
