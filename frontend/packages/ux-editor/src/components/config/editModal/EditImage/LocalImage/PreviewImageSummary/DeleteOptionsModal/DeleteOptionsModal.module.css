@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--fds-spacing-2);
+}
