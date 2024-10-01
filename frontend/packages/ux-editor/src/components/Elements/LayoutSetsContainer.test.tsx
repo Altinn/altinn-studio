@@ -44,10 +44,10 @@ describe('LayoutSetsContainer', () => {
     await waitFor(() =>
       expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set-2');
-    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.refetchAppLayoutSettings).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayoutSettings).toHaveBeenCalledWith('test-layout-set-2');
     expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 

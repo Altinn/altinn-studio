@@ -148,8 +148,8 @@ describe('FormItemContext', () => {
       layoutSetName,
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName, false);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith(layoutSetName, false);
   });
 
   it('should save the container and its new id when calling handleSave', async () => {
@@ -186,8 +186,8 @@ describe('FormItemContext', () => {
       layoutSetName,
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName, true);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith(layoutSetName, true);
   });
 
   it('should save the container when calling debounceSave', async () => {
@@ -212,8 +212,8 @@ describe('FormItemContext', () => {
       layoutSetName,
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName, false);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith(layoutSetName, false);
   });
 
   it('should save the component when calling handleSave', async () => {
@@ -232,8 +232,8 @@ describe('FormItemContext', () => {
       layoutSetName,
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName, false);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith(layoutSetName, false);
   });
 
   it('should save the component and its new id when calling handleSave', async () => {
@@ -270,8 +270,8 @@ describe('FormItemContext', () => {
       layoutSetName,
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName, true);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith(layoutSetName, true);
   });
 
   it('should save the component when calling debounceSave', async () => {
@@ -292,7 +292,7 @@ describe('FormItemContext', () => {
       layoutSetName,
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName, false);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledTimes(1);
+    expect(appContextMock.refetchAppLayouts).toHaveBeenCalledWith(layoutSetName, false);
   });
 });

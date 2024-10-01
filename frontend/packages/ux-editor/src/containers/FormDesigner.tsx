@@ -37,7 +37,7 @@ export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: user } = useUserQuery();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchAppLayouts } = useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -126,7 +126,7 @@ export const FormDesigner = (): JSX.Element => {
         { componentType: type, newId, parentId, index },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await refetchAppLayouts(selectedFormLayoutSetName);
           },
         },
       );
@@ -147,7 +147,7 @@ export const FormDesigner = (): JSX.Element => {
         { internalLayout: updatedLayout },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await refetchAppLayouts(selectedFormLayoutSetName);
           },
         },
       );

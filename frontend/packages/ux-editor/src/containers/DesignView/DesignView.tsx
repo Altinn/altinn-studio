@@ -40,7 +40,7 @@ export const DesignView = (): ReactNode => {
     selectedFormLayoutSetName,
     selectedFormLayoutName,
     setSelectedFormLayoutName,
-    refetchLayouts,
+    refetchAppLayouts,
   } = useAppContext();
   const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
@@ -84,7 +84,7 @@ export const DesignView = (): ReactNode => {
       { layoutName: newLayoutName },
       {
         onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName);
+          await refetchAppLayouts(selectedFormLayoutSetName);
         },
       },
     );

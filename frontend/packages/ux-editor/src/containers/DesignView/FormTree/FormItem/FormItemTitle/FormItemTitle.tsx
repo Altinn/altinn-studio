@@ -21,7 +21,7 @@ export interface FormItemTitleProps {
 export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormItemTitleProps) => {
   const { t } = useTranslation();
   const deleteItem = useDeleteItem(formItem);
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, refetchAppLayouts } = useAppContext();
   const { handleDiscard } = useFormItemContext();
 
   const handleDelete = useCallback(() => {
@@ -32,12 +32,12 @@ export const FormItemTitle = ({ children, formItem, duplicateComponents }: FormI
     if (confirm(confirmMessage)) {
       deleteItem(formItem.id, {
         onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName, true);
+          await refetchAppLayouts(selectedFormLayoutSetName, true);
           handleDiscard();
         },
       });
     }
-  }, [formItem, t, deleteItem, refetchLayouts, selectedFormLayoutSetName, handleDiscard]);
+  }, [formItem, t, deleteItem, refetchAppLayouts, selectedFormLayoutSetName, handleDiscard]);
 
   return (
     <div

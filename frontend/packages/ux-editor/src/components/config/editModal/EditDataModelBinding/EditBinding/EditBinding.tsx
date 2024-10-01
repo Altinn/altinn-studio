@@ -38,7 +38,7 @@ export const EditBinding = ({
   internalBindingFormat,
 }: EditBindingProps) => {
   const { t } = useTranslation();
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, refetchAppLayouts } = useAppContext();
   const { dataModelMetadata, isLoadingDataModels } = useValidDataModels(
     internalBindingFormat.dataType,
   );
@@ -68,7 +68,7 @@ export const EditBinding = ({
       } as FormItem,
       {
         onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName, true);
+          await refetchAppLayouts(selectedFormLayoutSetName, true);
         },
       },
     );

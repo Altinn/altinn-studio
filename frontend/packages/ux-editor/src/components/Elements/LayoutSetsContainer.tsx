@@ -17,8 +17,8 @@ export function LayoutSetsContainer() {
     selectedFormLayoutSetName,
     setSelectedFormLayoutSetName,
     setSelectedFormLayoutName,
-    refetchLayouts,
-    refetchLayoutSettings,
+    refetchAppLayouts,
+    refetchAppLayoutSettings,
     onLayoutSetNameChange,
   } = useAppContext();
 
@@ -30,8 +30,8 @@ export function LayoutSetsContainer() {
 
   const handleLayoutSetChange = async (layoutSetName: string) => {
     if (selectedFormLayoutSetName !== layoutSetName && layoutSetName) {
-      await refetchLayouts(layoutSetName);
-      await refetchLayoutSettings(layoutSetName);
+      await refetchAppLayouts(layoutSetName);
+      await refetchAppLayoutSettings(layoutSetName);
 
       setSelectedFormLayoutSetName(layoutSetName);
       setSelectedFormLayoutName(undefined);
