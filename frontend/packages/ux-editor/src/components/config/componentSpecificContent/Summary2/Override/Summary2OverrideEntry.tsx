@@ -2,7 +2,7 @@ import React from 'react';
 import { StudioDeleteButton, StudioTextfield } from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useTranslation } from 'react-i18next';
-import { Checkbox } from '@digdir/designsystemet-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { useAppContext, useComponentTypeName } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
@@ -47,7 +47,7 @@ export const Summary2OverrideEntry = ({
         options={componentOptions}
         onValueChange={(value) => onChangeOverride('componentId', value)}
       ></Summmary2ComponentReferenceSelector>
-      <Checkbox
+      <Switch
         size='sm'
         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
           onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
@@ -56,8 +56,8 @@ export const Summary2OverrideEntry = ({
         value={'hidden'}
       >
         {t('ux_editor.component_properties.summary.override.hidden')}
-      </Checkbox>
-      <Checkbox
+      </Switch>
+      <Switch
         size='sm'
         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
           onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
@@ -66,8 +66,8 @@ export const Summary2OverrideEntry = ({
         value={'forceShow'}
       >
         {t('ux_editor.component_properties.summary.override.force_show')}
-      </Checkbox>
-      <Checkbox
+      </Switch>
+      <Switch
         size='sm'
         onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
           onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
@@ -76,7 +76,7 @@ export const Summary2OverrideEntry = ({
         value={'hideEmptyFields'}
       >
         {t('ux_editor.component_properties.summary.override.hide_empty_fields')}
-      </Checkbox>
+      </Switch>
       <StudioTextfield
         label={t('ux_editor.component_properties.summary.override.empty_field_text')}
         size='sm'
