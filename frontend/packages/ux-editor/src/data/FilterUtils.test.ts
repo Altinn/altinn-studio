@@ -1,5 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
+import { formItemConfigs } from './formItemConfig';
 import { FilterUtils } from './FilterUtils';
 
 describe('FilterUtils', () => {

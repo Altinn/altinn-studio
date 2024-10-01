@@ -1,5 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { formItemConfigs, FormItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
+import { formItemConfigs, FormItemConfigs } from './formItemConfig';
 
 export class FilterUtils {
   public static filterOutDisabledFeatureItems(
