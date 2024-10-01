@@ -7,7 +7,10 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { jsonMetadata1Mock } from '../../../packages/schema-editor/test/mocks/metadataMocks';
+import {
+  jsonMetadata1Mock,
+  xsdMetadata1Mock,
+} from '../../../packages/schema-editor/test/mocks/metadataMocks';
 import type { QueryClient } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
@@ -174,4 +177,17 @@ describe('DataModelling', () => {
       expect(screen.getByTitle(textMock('data_modelling.loading'))).toBeInTheDocument();
     },
   );
+
+  it('Should call useAddXsdMutation when Xsd is loaded', async () => {
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadata1Mock]);
+    render({}, queryClient);
+    await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('data_modelling.loading')));
+
+    expect(
+      screen.getByRole('button', {
+        name: textMock('general.create_new'),
+      }),
+    ).toBeInTheDocument();
+  });
 });
