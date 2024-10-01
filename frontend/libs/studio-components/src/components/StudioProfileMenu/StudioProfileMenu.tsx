@@ -8,7 +8,6 @@ import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
 import { StudioProfileMenuButton } from './components/StudioProfileMenuButton';
 import { StudioProfileMenuLink } from './components/StudioProfileMenuLink';
-import { getTruncatedText } from './utils/StudioProfileMenuUtils';
 
 export type StudioProfileMenuProps = {
   triggerButtonText?: string;
@@ -17,7 +16,6 @@ export type StudioProfileMenuProps = {
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
   ariaLabelTriggerButton: string;
-  truncateAt?: number;
 };
 
 export const StudioProfileMenu = ({
@@ -27,11 +25,8 @@ export const StudioProfileMenu = ({
   color,
   variant,
   ariaLabelTriggerButton,
-  truncateAt,
 }: StudioProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
-
-  const truncatedText = getTruncatedText(triggerButtonText, truncateAt);
 
   const handleToggleMenu = () => {
     setOpen((isOpen) => !isOpen);
@@ -50,13 +45,16 @@ export const StudioProfileMenu = ({
     <DropdownMenu onClose={handleClose} open={open}>
       <DropdownMenu.Trigger asChild size='sm'>
         <StudioPageHeaderButton
+          className={classes.triggerButton}
           onClick={handleToggleMenu}
           color={color}
           variant={variant}
           aria-label={ariaLabelTriggerButton}
           title={triggerButtonText}
         >
-          {truncatedText && <span className={classes.userOrgNames}>{truncatedText}</span>}
+          <span className={classes.triggerButtonText}>
+            {'William Thorenfeldt for Etveldiglangtorgnavnsomerlangt'}
+          </span>
           {profileImage}
         </StudioPageHeaderButton>
       </DropdownMenu.Trigger>

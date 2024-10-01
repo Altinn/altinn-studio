@@ -23,9 +23,6 @@ const meta: Meta = {
       control: 'radio',
       options: ['regular', 'preview'],
     },
-    truncateAt: {
-      control: 'number',
-    },
   },
 };
 export const Preview: Story = (args): React.ReactElement => <StudioProfileMenu {...args} />;
@@ -58,7 +55,6 @@ Preview.args = {
       ],
     },
   ],
-  truncateAt: 30,
 };
 
 export default meta;

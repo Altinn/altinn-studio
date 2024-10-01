@@ -138,27 +138,6 @@ describe('StudioProfileMenu', () => {
     expect(triggerButton).toHaveAttribute('aria-label', mockAriaLabel);
   });
 
-  it('should truncate triggerButtonText if it exceeds "truncateAt" characters', () => {
-    const longText = 'This is a very long trigger button text that exceeds 30 characters';
-    const truncateAt: number = 30;
-
-    renderStudioProfileMenu({ triggerButtonText: longText, truncateAt });
-
-    const truncatedText = `${longText.slice(0, truncateAt)}...`;
-    expect(screen.getByText(truncatedText)).toBeInTheDocument();
-  });
-
-  it('should not truncate triggerButtonText if the text is smaller than truncateAt', () => {
-    const shortText = 'Short text';
-    const truncateAt: number = 30;
-
-    renderStudioProfileMenu({ triggerButtonText: shortText, truncateAt });
-
-    const truncatedText = `${shortText.slice(0, truncateAt)}...`;
-    expect(screen.queryByText(truncatedText)).not.toBeInTheDocument();
-    expect(screen.getByText(shortText)).toBeInTheDocument();
-  });
-
   it('should toggle the dropdown menu open and close when the trigger button is clicked multiple times', async () => {
     const user = userEvent.setup();
     renderStudioProfileMenu();
@@ -196,15 +175,6 @@ describe('StudioProfileMenu', () => {
     await user.click(link);
 
     expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeInTheDocument();
-  });
-
-  it('should not truncate triggerButtonText if truncateAt is undefined', () => {
-    const longText = 'This is a very long trigger button text that exceeds 30 characters';
-
-    renderStudioProfileMenu({ triggerButtonText: longText });
-
-    expect(screen.getByText(longText)).toBeInTheDocument();
-    expect(screen.getByText(longText)).toHaveTextContent(longText);
   });
 
   it('should not set target or rel attributes if openInNewTab is false', async () => {
