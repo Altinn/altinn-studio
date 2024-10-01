@@ -82,10 +82,6 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     selectedLayoutSetType: selectedLayoutSet?.type,
   });
 
-  console.log({
-    result: Boolean(configToolbarMode),
-  });
-
   const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 
   if (collapsed) {
