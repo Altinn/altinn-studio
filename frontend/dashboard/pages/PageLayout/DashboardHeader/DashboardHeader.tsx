@@ -18,8 +18,6 @@ import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuT
 import { useRepoPath } from 'dashboard/hooks/useRepoPath';
 import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
 
-const MAX_LENGTH_APP_USERNAME_BEFORE_TRUNCATE = 30;
-
 export const DashboardHeader = () => {
   const pageHeaderTitle: string = usePageHeaderTitle();
 
@@ -98,7 +96,6 @@ const DashboardHeaderMenu = () => {
         />
       }
       profileMenuGroups={profileMenuGroups}
-      truncateAt={MAX_LENGTH_APP_USERNAME_BEFORE_TRUNCATE}
     />
   );
 };
