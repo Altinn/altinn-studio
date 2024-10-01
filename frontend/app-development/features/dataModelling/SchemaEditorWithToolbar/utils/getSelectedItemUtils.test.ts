@@ -1,4 +1,4 @@
-import { getSelectedItem } from './getSelectedItem';
+import { getSelectedItemUtils } from './getSelectedItemUtils';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import {
   jsonMetadata1Mock,
@@ -17,12 +17,12 @@ describe('getSelectedItem', () => {
       xsdMetadata2Mock,
     ];
     const item = convertMetadataToOption(jsonMetadata1Mock);
-    expect(getSelectedItem(items, item)).toEqual(item.value.repositoryRelativeUrl);
+    expect(getSelectedItemUtils(items, item)).toEqual(item.value.repositoryRelativeUrl);
   });
 
   it('Should search got selected item and return undefined', () => {
     const items: DataModelMetadata[] = [jsonMetadata2Mock, xsdMetadata1Mock, xsdMetadata2Mock];
     const item = convertMetadataToOption(jsonMetadata1Mock);
-    expect(getSelectedItem(items, item)).toEqual(undefined);
+    expect(getSelectedItemUtils(items, item)).toEqual(undefined);
   });
 });
