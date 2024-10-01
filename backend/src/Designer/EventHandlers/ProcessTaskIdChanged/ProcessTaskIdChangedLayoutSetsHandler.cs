@@ -129,7 +129,6 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
         }
     }
 
-    // Only applies to the Summary2 component at this time
     private static void UpdateLayoutTaskIds(JsonNode node, string oldId, string newId)
     {
         if (node is JsonObject jsonObject)
