@@ -4,7 +4,7 @@ import classes from './PageAccordion.module.css';
 import { Accordion } from '@digdir/designsystemet-react';
 import { NavigationMenu } from './NavigationMenu';
 import { pageAccordionContentId } from '@studio/testing/testids';
-import { TrashIcon } from '@studio/icons';
+import { FilePdfIcon, TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../hooks';
@@ -16,8 +16,10 @@ export type PageAccordionProps = {
   children: ReactNode;
   isOpen: boolean;
   onClick: () => void;
-  isValid?: boolean;
-  hasUniqueIds?: boolean;
+  isInvalid?: boolean;
+  hasDuplicatedIds?: boolean;
+  pageIsPdf?: boolean;
+  showNavigationMenu?: boolean;
 };
 
 /**
@@ -29,6 +31,7 @@ export type PageAccordionProps = {
  * @property {ReactNode}[children] - The children of the component
  * @property {boolean}[isOpen] - If the accordion is open or not
  * @property {function}[onClick] - Function to execute when the accordion is clicked
+ * @property {boolean}[pageIsPdf] - If the page is pdf or not
  *
  * @returns {ReactNode} - The rendered component
  */
@@ -37,8 +40,10 @@ export const PageAccordion = ({
   children,
   isOpen,
   onClick,
-  isValid,
-  hasUniqueIds,
+  isInvalid,
+  hasDuplicatedIds,
+  pageIsPdf,
+  showNavigationMenu = true,
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -61,11 +66,11 @@ export const PageAccordion = ({
   };
 
   return (
-    <Accordion.Item className={classes.accordionItem} open={isOpen}>
+    <Accordion.Item open={isOpen}>
       <div className={classes.accordionHeaderRow}>
         <Accordion.Header
           className={
-            isValid && hasUniqueIds ? classes.accordionHeader : classes.accordionHeaderWarning
+            isInvalid || hasDuplicatedIds ? classes.accordionHeaderWarning : classes.accordionHeader
           }
           level={3}
           onHeaderClick={onClick}
@@ -73,7 +78,8 @@ export const PageAccordion = ({
           {pageName}
         </Accordion.Header>
         <div className={classes.navigationMenu}>
-          <NavigationMenu pageName={pageName} />
+          {pageIsPdf && <FilePdfIcon className={classes.pdfIcon} />}
+          {showNavigationMenu && <NavigationMenu pageName={pageName} />}
           <StudioButton
             color='danger'
             icon={<TrashIcon aria-hidden />}
