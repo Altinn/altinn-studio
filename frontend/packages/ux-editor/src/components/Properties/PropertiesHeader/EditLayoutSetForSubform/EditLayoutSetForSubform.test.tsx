@@ -10,6 +10,7 @@ import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { layoutSets } from 'app-shared/mocks/mocks';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { FormComponent } from '../../../../types/FormComponent';
 import { AppContext } from '../../../../AppContext';
@@ -42,13 +43,8 @@ describe('EditLayoutSetForSubForm', () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
-    const setLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
-    });
-    await user.click(setLayoutSetButton);
-    const selectLayoutSet = screen.getByRole('combobox', {
-      name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
-    });
+    await openEditMode(user);
+    const selectLayoutSet = getSelectForLayoutSet();
     const options = within(selectLayoutSet).getAllByRole('option');
     expect(options).toHaveLength(2);
     expect(options[0]).toHaveTextContent(
@@ -61,13 +57,8 @@ describe('EditLayoutSetForSubForm', () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
-    const setLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
-    });
-    await user.click(setLayoutSetButton);
-    const selectLayoutSet = screen.getByRole('combobox', {
-      name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
-    });
+    await openEditMode(user);
+    const selectLayoutSet = getSelectForLayoutSet();
     await user.selectOptions(selectLayoutSet, subformLayoutSetId);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith(
@@ -81,15 +72,42 @@ describe('EditLayoutSetForSubForm', () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
-    const setLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
-    });
-    await user.click(setLayoutSetButton);
-    const selectLayoutSet = screen.getByRole('combobox', {
-      name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
-    });
+    await openEditMode(user);
+    const selectLayoutSet = getSelectForLayoutSet();
     const emptyOptionText = textMock('ux_editor.component_properties.subform.choose_layout_set');
     await user.selectOptions(selectLayoutSet, emptyOptionText);
+    expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+    expect(handleComponentChangeMock).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        layoutSet: expect.anything(),
+      }),
+    );
+  });
+
+  it('closes the view mode when clicking close button after selecting a layout set', async () => {
+    const user = userEvent.setup();
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    await openEditMode(user);
+    const closeSetLayoutSetButton = screen.getByRole('button', {
+      name: textMock('general.close'),
+    });
+    await user.click(closeSetLayoutSetButton);
+    const setLayoutSetButtonAfterClose = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
+    });
+    expect(setLayoutSetButtonAfterClose).toBeInTheDocument();
+  });
+
+  it('calls handleComponentChange with no layout set for component when clicking delete button', async () => {
+    const user = userEvent.setup();
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    await openEditMode(user);
+    const deleteLayoutSetConnectionButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteLayoutSetConnectionButton);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith(
       expect.not.objectContaining({
@@ -111,7 +129,36 @@ describe('EditLayoutSetForSubForm', () => {
     });
     expect(existingLayoutSetButton).toBeInTheDocument();
   });
+
+  it('opens view mode when clicking the button when a layout set for the subform if set', async () => {
+    const user = userEvent.setup();
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubForm(
+      { sets: [{ id: subformLayoutSetId, type: 'subform' }] },
+      { layoutSet: subformLayoutSetId },
+    );
+    const existingLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_title', {
+        subform: subformLayoutSetId,
+      }),
+    });
+    await user.click(existingLayoutSetButton);
+    const selectLayoutSet = getSelectForLayoutSet();
+    expect(selectLayoutSet).toBeInTheDocument();
+  });
 });
+
+const openEditMode = async (user: UserEvent) => {
+  const setLayoutSetButton = screen.getByRole('button', {
+    name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
+  });
+  await user.click(setLayoutSetButton);
+};
+
+const getSelectForLayoutSet = () =>
+  screen.getByRole('combobox', {
+    name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
+  });
 
 const renderEditLayoutSetForSubForm = (
   layoutSetsMock: LayoutSets = layoutSets,
