@@ -35,8 +35,8 @@ export const StudioPageHeaderProfileMenu = ({
   };
 
   return (
-    <DropdownMenu onClose={close} open={open}>
-      <DropdownMenu.Trigger asChild size='sm'>
+    <DropdownMenu onClose={close} open={open} size='sm'>
+      <DropdownMenu.Trigger asChild>
         <StudioPageHeaderButton
           className={classes.triggerButton}
           onClick={handleToggleMenu}
