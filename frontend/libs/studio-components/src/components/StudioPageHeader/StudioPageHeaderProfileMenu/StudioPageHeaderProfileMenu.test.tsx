@@ -14,6 +14,7 @@ const defaultProfileImage = <img src='profile.jpg' alt={mockImageAlt} />;
 const menuItem1: string = 'Item1';
 const menuItem2: string = 'Item2';
 const menuItem3: string = 'Item3';
+const menuItem4: string = 'Item4';
 
 const menuItem2Link: string = '/a';
 const menuItem3Link: string = '/b';
@@ -35,6 +36,10 @@ const mockProfileMenuItems2: StudioProfileMenuItem[] = [
   {
     action: { type: 'link', href: menuItem3Link, openInNewTab: true },
     itemName: menuItem3,
+  },
+  {
+    action: { type: 'button', onClick: mockOnClick },
+    itemName: menuItem4,
   },
 ];
 
@@ -192,6 +197,17 @@ describe('StudioProfileMenu', () => {
     expect(link).toHaveAttribute('href', menuItem2Link);
     expect(link).not.toHaveAttribute('target', '_blank');
     expect(link).not.toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('should set the aria-checked attribute correctly', async () => {
+    const user = userEvent.setup();
+    renderStudioProfileMenu();
+
+    const triggerButton = screen.getByRole('button', { name: mockTriggerButtonText });
+    await user.click(triggerButton);
+
+    expect(screen.getByRole('menuitemradio', { name: menuItem1 })).toBeChecked();
+    expect(screen.getByRole('menuitemradio', { name: menuItem4 })).not.toBeChecked();
   });
 });
 

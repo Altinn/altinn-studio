@@ -26,7 +26,7 @@ export const StudioPageHeaderProfileMenu = ({
 }: StudioPageHeaderProfileMenuProps): ReactElement => {
   const [open, setOpen] = useState(false);
 
-  const handleToggleMenu = () => {
+  const toggleMenu = () => {
     setOpen((isOpen) => !isOpen);
   };
 
@@ -39,7 +39,7 @@ export const StudioPageHeaderProfileMenu = ({
       <DropdownMenu.Trigger asChild>
         <StudioPageHeaderButton
           className={classes.triggerButton}
-          onClick={handleToggleMenu}
+          onClick={toggleMenu}
           color={color}
           variant={variant}
           aria-label={ariaLabelTriggerButton}
