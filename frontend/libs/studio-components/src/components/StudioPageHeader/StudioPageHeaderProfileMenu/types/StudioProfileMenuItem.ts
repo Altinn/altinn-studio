@@ -1,16 +1,23 @@
-type StudioProfileMenuItemButton = {
+export type StudioProfileMenuItem<T extends StudioProfileMenuItemType = StudioProfileMenuItemType> =
+  {
+    action: StudioProfileMenuItemAction<T>;
+    itemName: string;
+    isActive?: boolean;
+  };
+
+type StudioProfileMenuItemType = 'button' | 'link';
+type StudioProfileMenuItemAction<T extends StudioProfileMenuItemType> = {
+  button: StudioProfileMenuItemButtonAction;
+  link: StudioProfileMenuItemLinkAction;
+}[T];
+
+type StudioProfileMenuItemButtonAction = {
   type: 'button';
   onClick: () => void;
 };
 
-type StudioProfileMenuItemLink = {
+type StudioProfileMenuItemLinkAction = {
   type: 'link';
   href: string;
   openInNewTab?: boolean;
-};
-
-export type StudioProfileMenuItem = {
-  action: StudioProfileMenuItemButton | StudioProfileMenuItemLink;
-  itemName: string;
-  isActive?: boolean;
 };
