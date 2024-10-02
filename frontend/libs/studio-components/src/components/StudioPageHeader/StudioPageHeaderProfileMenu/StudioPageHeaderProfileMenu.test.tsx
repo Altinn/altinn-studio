@@ -48,11 +48,6 @@ const mockProfileMenuGroups: StudioProfileMenuGroup[] = [
   { items: mockProfileMenuItems2 },
 ];
 
-const mockProfileMenuGroups: StudioProfileMenuGroup[] = [
-  { items: mockProfileMenuItems1 },
-  { items: mockProfileMenuItems2 },
-];
-
 const mockTriggerButtonText: string = 'Trigger';
 const mockAriaLabel: string = 'Trigger';
 
