@@ -170,11 +170,7 @@ function InternalRow({ header, readOnly, children }: InternalRowProps) {
     );
   }
 
-  return (
-    <Table.Body>
-      <Table.Row className={className}>{children}</Table.Row>
-    </Table.Body>
-  );
+  return <Table.Row className={className}>{children}</Table.Row>;
 }
 
 interface CellProps {
