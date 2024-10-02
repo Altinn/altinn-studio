@@ -10,6 +10,8 @@ import type { MetadataOption } from '../../../../types/MetadataOption';
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import { useValidateFileName } from './useValidateFileName';
+import { removeExtension } from 'app-shared/utils/filenameUtils';
 
 export interface XSDUploadProps {
   selectedOption?: MetadataOption;
@@ -31,6 +33,11 @@ export const XSDUpload = ({
       hideDefaultError: (error: AxiosError<ApiError>) => !error.response?.data?.errorCode,
     },
   );
+  const {
+    validateFileName,
+    getDuplicatedDataTypeIdNotBeingDataModelInAppMetadata,
+    getDuplicatedDataModelIdsInAppMetadata,
+  } = useValidateFileName(appMetadata);
 
   const uploadButton = React.useRef(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -44,26 +51,22 @@ export const XSDUpload = ({
     });
   };
 
-  const fileNameRegEx: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
-
-  const validateFileName = (fileName: string): boolean => {
-    const nameFollowsRegexRules = Boolean(fileName.match(fileNameRegEx));
-    if (!nameFollowsRegexRules) {
-      toast.error(t('app_data_modelling.upload_xsd_invalid_error'));
-      return false;
+  const handleInvalidFileName = (file?: FormData, fileName?: string) => {
+    const fileNameWithoutExtension = removeExtension(fileName);
+    if (getDuplicatedDataModelIdsInAppMetadata(appMetadata, fileNameWithoutExtension)) {
+      const userConfirmed = window.confirm(
+        t('schema_editor.error_upload_data_model_id_exists_override_option'),
+      );
+      if (userConfirmed) {
+        uploadDataModel(file);
+      }
     }
-
-    const fileNameWithoutExtension = fileName.split('.').slice(0, -1).join('.');
-    const duplicateDataType = Boolean(
-      appMetadata.dataTypes?.find(
-        (dataType) => dataType.id.toLowerCase() === fileNameWithoutExtension.toLowerCase(),
-      ),
-    );
-    if (duplicateDataType) {
+    if (
+      getDuplicatedDataTypeIdNotBeingDataModelInAppMetadata(appMetadata, fileNameWithoutExtension)
+    ) {
+      // Only show error if there are duplicates that does not have AppLogic.classRef
       toast.error(t('schema_editor.error_data_type_name_exists'));
-      return false;
     }
-    return true;
   };
 
   return (
@@ -77,9 +80,9 @@ export const XSDUpload = ({
           variant={uploaderButtonVariant}
           ref={fileInputRef}
           uploaderButtonText={uploadButtonText}
-          customFileNameValidation={{
-            validateFileName,
-            onInvalidFileName: () => {},
+          customFileValidation={{
+            validateFileName: validateFileName,
+            onInvalidFileName: handleInvalidFileName,
           }}
           dataTestId={fileSelectorInputId}
         />
