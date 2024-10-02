@@ -42,6 +42,9 @@ export const DesignView = (): ReactNode => {
     app,
     selectedFormLayoutSetName,
   );
+  // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
+  // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
+  useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,
