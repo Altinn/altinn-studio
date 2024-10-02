@@ -92,77 +92,61 @@ type StudioProfileMenuGroupItemProps = {
   item: StudioProfileMenuItem;
   onClickItem: () => void;
 };
+
 const StudioProfileMenuGroupItem = ({
   item,
   onClickItem,
-}: StudioProfileMenuGroupItemProps): ReactElement => {
-  const handleClickMenuItemButton = (menuItem: StudioProfileMenuItem) => {
-    menuItem.action.type === 'button' && menuItem.action.onClick();
-    onClickItem();
-  };
-
-  if (item.action.type === 'button') {
-    return (
-      <StudioProfileMenuButton
-        key={item.itemName}
-        itemName={item.itemName}
-        isActive={item.isActive}
-        onClick={() => handleClickMenuItemButton(item)}
-      />
-    );
-  }
-  return (
-    <StudioProfileMenuLink
-      key={item.itemName}
-      itemName={item.itemName}
-      href={item.action.href}
-      openInNewTab={item.action.openInNewTab}
+}: StudioProfileMenuGroupItemProps): ReactElement =>
+  item.action.type === 'button' ? (
+    <StudioProfileMenuButton
+      item={item as StudioProfileMenuItem<'button'>}
+      onClickButton={onClickItem}
     />
+  ) : (
+    <StudioProfileMenuLink item={item as StudioProfileMenuItem<'link'>} />
   );
-};
 
 type StudioProfileMenuButtonProps = {
-  itemName: string;
-  isActive?: boolean;
+  item: StudioProfileMenuItem<'button'>;
+  onClickButton: () => void;
 } & DropdownMenuItemProps;
 
 const StudioProfileMenuButton = ({
-  itemName,
-  isActive,
+  item,
+  onClickButton,
   ...rest
 }: StudioProfileMenuButtonProps): ReactElement => {
+  const handleClick = () => {
+    item.action.onClick();
+    onClickButton();
+  };
   return (
     <DropdownMenu.Item
-      key={itemName}
       className={classes.menuItemButton}
-      aria-checked={isActive}
+      aria-checked={item.isActive}
       role='menuitemradio'
+      onClick={handleClick}
       {...rest}
     >
-      {itemName}
+      {item.itemName}
     </DropdownMenu.Item>
   );
 };
 
 type StudioProfileMenuLinkProps = {
-  itemName: string;
-  href: string;
-  openInNewTab?: boolean;
+  item: StudioProfileMenuItem<'link'>;
 };
 
-const StudioProfileMenuLink = ({
-  itemName,
-  href,
-  openInNewTab,
-}: StudioProfileMenuLinkProps): ReactElement => {
+const StudioProfileMenuLink = ({ item }: StudioProfileMenuLinkProps): ReactElement => {
+  const { href, openInNewTab } = item.action;
   return (
-    <DropdownMenu.Item key={itemName} asChild>
+    <DropdownMenu.Item asChild>
       <a
         href={href}
         target={openInNewTab ? '_blank' : undefined}
         rel={openInNewTab ? 'noopener noreferrer' : undefined}
       >
-        {itemName}
+        {item.itemName}
       </a>
     </DropdownMenu.Item>
   );
