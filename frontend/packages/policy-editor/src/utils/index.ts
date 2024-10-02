@@ -238,7 +238,19 @@ export const findSubjectByPolicyRuleSubject = (
   );
 };
 
+const findLargestNumberedRuleId = (rules: PolicyRuleCard[]): number | undefined => {
+  const numberedIds = rules.map((rule) => Number(rule.ruleId)).filter((ruleId) => !isNaN(ruleId));
+
+  if (numberedIds.length === 0) {
+    return undefined;
+  }
+  return Math.max(...numberedIds);
+};
+
 export const getNewRuleId = (rules: PolicyRuleCard[]): string => {
-  const lastId: number = Number(rules[rules.length - 1]?.ruleId ?? 0) + 1;
-  return String(lastId);
+  const largestNumberedRuleId = findLargestNumberedRuleId(rules);
+  if (largestNumberedRuleId === undefined) {
+    return '1';
+  }
+  return String(largestNumberedRuleId + 1);
 };

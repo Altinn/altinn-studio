@@ -6,7 +6,7 @@ import { StudioIconTextfield } from './StudioIconTextfield';
 type Story = StoryFn<typeof StudioIconTextfield>;
 
 const meta: Meta = {
-  title: 'StudioIconTextfield',
+  title: 'Components/StudioIconTextfield',
   component: StudioIconTextfield,
   argTypes: {
     value: {

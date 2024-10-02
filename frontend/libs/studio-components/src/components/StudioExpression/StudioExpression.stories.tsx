@@ -8,7 +8,7 @@ import { dataLookupOptions } from './test-data/dataLookupOptions';
 type Story = StoryFn<typeof StudioExpression>;
 
 const meta: Meta = {
-  title: 'StudioExpression',
+  title: 'Components/StudioExpression',
   component: StudioExpression,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioExpression {...args} />;

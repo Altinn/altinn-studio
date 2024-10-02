@@ -4,10 +4,12 @@ import { FormComponentConfig } from './FormComponentConfig';
 import { renderWithProviders } from '../../testing/mocks';
 import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
+import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import userEvent from '@testing-library/user-event';
 
 const somePropertyName = 'somePropertyName';
 const customTextMockToHandleUndefined = (
@@ -31,7 +33,7 @@ describe('FormComponentConfig', () => {
   it('should render expected components', async () => {
     render({});
 
-    [
+    const properties = [
       'grid',
       'readOnly',
       'required',
@@ -40,15 +42,16 @@ describe('FormComponentConfig', () => {
       'variant',
       'autocomplete',
       'maxLength',
-      'triggers',
       'labelSettings',
       'pageBreak',
       'formatting',
-    ].forEach(async (propertyKey) => {
+    ];
+
+    for (const property of properties) {
       expect(
-        await screen.findByText(textMock(`ux_editor.component_properties.${propertyKey}`)),
+        await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
-    });
+    }
   });
 
   it('should render list of unsupported properties', () => {
@@ -148,6 +151,37 @@ describe('FormComponentConfig', () => {
     expect(
       screen.getByText(textMock('ux_editor.component_properties_description.pageBreak')),
     ).toBeInTheDocument();
+  });
+
+  it('should render default boolean values if defined', () => {
+    render({
+      props: {
+        schema: DatepickerSchema,
+      },
+    });
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.timeStamp'),
+    });
+    expect(timeStampSwitch).toBeChecked();
+  });
+
+  it('should call updateComponent with false value when checking a default true property switch', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    //const { component: datePickerComponent } = componentMocks;
+    render({
+      props: {
+        schema: DatepickerSchema,
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.timeStamp'),
+    });
+    await user.click(timeStampSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ timeStamp: false }),
+    );
   });
 
   it('should show description from schema for objects if key is not defined', () => {

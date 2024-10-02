@@ -1,27 +1,53 @@
 {
-  "schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
-  "data": {
-    "layout": [
-      {
-        "id": "component-id",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": "some-old-id",
-          "body": "another-key"
-        }
-      },
-      {
-        "id": "component-id",
-        "type": "Header",
-        "textResourceBindings": {
-          "title": ["concat", "Endringer med fra-verdi over ", ["dataModel", "hideRowValue"], " NOK"],
-          "label": [
-            "concat",
-            ["text", "optionsFromRepeatingGroup"],
-            ["concat", " ", ["text", "question-2"]]
-          ]
-        }
-      }
-    ]
-  }
+    "schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+    "data": {
+        "layout": [
+            {
+                "id": "component-id",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": "some-old-id",
+                    "body": "another-key"
+                }
+            },
+            {
+                "id": "component-id",
+                "type": "Header",
+                "textResourceBindings": {
+                    "title": [
+                        "concat",
+                        "Endringer med fra-verdi over ",
+                        ["dataModel", "hideRowValue"],
+                        " NOK"
+                    ],
+                    "label": [
+                        "concat",
+                        ["text", "optionsFromRepeatingGroup"],
+                        ["concat", " ", ["text", "question-2"]]
+                    ]
+                }
+            },
+            {
+                "id": "component-using-options",
+                "type": "Checkboxes",
+                "options": [
+                    {
+                        "value": "1",
+                        "label": "id-used-by-options",
+                        "helpText": "help-text-used-by-options",
+                        "description": "description-used-by-options"
+                    }
+                ]
+            },
+            {
+                "id": "component-using-source",
+                "type": "Checkboxes",
+                "source": {
+                    "group": "list",
+                    "label": "source-label",
+                    "value": "source-value"
+                }
+            }
+        ]
+    }
 }

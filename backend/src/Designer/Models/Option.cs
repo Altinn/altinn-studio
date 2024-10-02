@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -27,11 +26,13 @@ public class Option
     /// Description, typically displayed below the label.
     /// </summary>
     [JsonPropertyName("description")]
-    public Optional<string> Description { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string Description { get; set; }
 
     /// <summary>
     /// Help text, typically wrapped inside a popover.
     /// </summary>
     [JsonPropertyName("helpText")]
-    public Optional<string> HelpText { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string HelpText { get; set; }
 }

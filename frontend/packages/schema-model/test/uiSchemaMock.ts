@@ -45,6 +45,11 @@ const combinationNodeChild1Pointer = '#/properties/combinationNodeWithMultipleCh
 const combinationNodeChild2Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/1';
 const combinationNodeChild3Pointer = '#/properties/combinationNodeWithMultipleChildren/anyOf/2';
 
+const combinationDefNodePointer = '#/$defs/combinationDef';
+const combinationDefNodeChild1Pointer = '#/$defs/combinationDef/oneOf/0';
+const combinationDefNodeChild2Pointer = '#/$defs/combinationDef/oneOf/1';
+const referenceToCombinationDefNodePointer = '#/properties/referenceToCombinationDef';
+
 export const nodeMockBase: UiSchemaNode = {
   objectKind: ObjectKind.Field,
   fieldType: FieldType.String,
@@ -77,6 +82,8 @@ export const rootNodeMock: FieldNode = {
     referenceDefinitionPointer,
     nodeWithSameNameAsStringNodePointer,
     combinationNodeWithMultipleChildrenPointer,
+    referenceToCombinationDefNodePointer,
+    combinationDefNodePointer,
   ],
 };
 
@@ -274,6 +281,30 @@ export const combinationNodeChild3Mock: FieldNode = {
   title: 'Child 3',
 };
 
+export const combinationDefNodeMock: CombinationNode = {
+  ...nodeMockBase,
+  schemaPointer: combinationDefNodePointer,
+  objectKind: ObjectKind.Combination,
+  combinationType: CombinationKind.OneOf,
+  children: [combinationDefNodeChild1Pointer, combinationDefNodeChild2Pointer],
+};
+
+export const combinationDefNodeChild1Mock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: combinationDefNodeChild1Pointer,
+};
+
+export const combinationDefNodeChild2Mock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: combinationDefNodeChild2Pointer,
+};
+
+export const referenceToCombinationDefNodeMock: ReferenceNode = {
+  ...defaultReferenceNode,
+  schemaPointer: referenceToCombinationDefNodePointer,
+  reference: combinationDefNodePointer,
+};
+
 export const uiSchemaMock: UiSchemaNodes = [
   rootNodeMock,
   parentNodeMock,
@@ -305,4 +336,8 @@ export const uiSchemaMock: UiSchemaNodes = [
   combinationNodeChild1Mock,
   combinationNodeChild2Mock,
   combinationNodeChild3Mock,
+  combinationDefNodeMock,
+  combinationDefNodeChild1Mock,
+  combinationDefNodeChild2Mock,
+  referenceToCombinationDefNodeMock,
 ];

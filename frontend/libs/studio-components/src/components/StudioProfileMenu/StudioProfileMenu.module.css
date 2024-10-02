@@ -1,0 +1,11 @@
+.userOrgNames {
+  text-align: right;
+  white-space: pre-line;
+  line-height: var(--fds-spacing-6);
+  margin-right: var(--fds-spacing-2);
+  color: inherit;
+}
+
+.selected {
+  background-color: var(--fds-semantic-surface-neutral-selected);
+}
