@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import { renderWithProviders } from '../../../testing/mocks';
+import { formLayoutSettingsMock, renderWithProviders } from '../../../testing/mocks';
 import { PageConfigPanel } from './PageConfigPanel';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -124,6 +124,10 @@ const renderPageConfigPanel = (
 ) => {
   queryClientMock.setQueryData([QueryKey.TextResources, org, app], textResources);
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSet], layouts);
+  queryClientMock.setQueryData(
+    [QueryKey.FormLayoutSettings, org, app, layoutSet],
+    formLayoutSettingsMock,
+  );
   queryClientMock.setQueryData(
     [QueryKey.DataModelMetadata, org, app, layoutSet, dataModelName],
     [],
