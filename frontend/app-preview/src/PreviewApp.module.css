@@ -1,13 +1,3 @@
-:root {
-  --font-family: 'Inter', sans-serif;
-
-  /*
-    Added to make sure the font-family is correct in app-preview.
-    For some reason, the correct font-family does not work without this.
-  */
-  font-family: var(--font-family);
-}
-
 .previewContainer {
   --toolbar-height: 80px;
   --subtoolbar-height: 60px;
