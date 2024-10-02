@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import {
   StudioAvatar,
   StudioPageHeader,
-  StudioProfileMenu,
   type StudioProfileMenuGroup,
   useMediaQuery,
   type StudioProfileMenuItem,
@@ -83,7 +82,7 @@ const DashboardHeaderMenu = () => {
   ];
 
   return (
-    <StudioProfileMenu
+    <StudioPageHeader.ProfileMenu
       triggerButtonText={showButtonText && triggerButtonText}
       ariaLabelTriggerButton={triggerButtonText}
       color='dark'
