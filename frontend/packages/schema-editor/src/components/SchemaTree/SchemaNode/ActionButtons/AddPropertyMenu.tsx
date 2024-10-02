@@ -1,21 +1,11 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
-import { ActionButton } from './ActionButton';
-import { DropdownMenu } from '@digdir/designsystemet-react';
+import type { FieldType, ObjectKind } from '@altinn/schema-model';
 import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
-import {
-  CombinationIcon,
-  ReferenceIcon,
-  PlusIcon,
-  ObjectIcon,
-  StringIcon,
-  BooleanIcon,
-  NumberIcon,
-} from '@studio/icons';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import type { IconProps } from '@studio/icons';
+import { AddPropertiesMenu } from '../../../AddPropertiesMenu';
+import { useTranslation } from 'react-i18next';
+import classes from './ActionButton.module.css';
 
 interface AddPropertyMenuProps {
   schemaPointer: string;
@@ -26,57 +16,26 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
-  const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
+
   const addProperty = useAddProperty();
 
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, schemaPointer);
-    setSelectedUniquePointer(savableModel.getUniquePointer(childPointer, uniquePointer));
-    closeDropdown();
+    if (childPointer) {
+      const uniqueChildPointer = savableModel.getUniquePointer(childPointer, uniquePointer);
+      setSelectedUniquePointer(uniqueChildPointer);
+    }
   };
 
-  const closeDropdown = () => setIsAddDropdownOpen(false);
-
   return (
-    <DropdownMenu open={isAddDropdownOpen} onClose={closeDropdown} size='small' portal>
-      <DropdownMenu.Trigger asChild>
-        <ActionButton
-          aria-expanded={isAddDropdownOpen}
-          aria-haspopup='menu'
-          icon={<PlusIcon />}
-          onClick={() => setIsAddDropdownOpen(true)}
-          titleKey='schema_editor.add_node_of_type'
-        />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
-        <DropdownMenu.Group>
-          {propertyItems.map(({ kind, fieldType, icon: Icon }) => (
-            <DropdownMenu.Item
-              key={`${kind}-${fieldType}`}
-              onClick={() => addPropertyAndClose(kind, fieldType)}
-            >
-              <Icon />
-              {t(`schema_editor.add_${fieldType || kind}`)}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+    <AddPropertiesMenu
+      onItemClick={addPropertyAndClose}
+      anchorButtonProps={{
+        children: '',
+        title: t('schema_editor.add_node_of_type'),
+        variant: 'tertiary',
+        className: classes.actionButton,
+      }}
+    />
   );
 };
-
-type PropertyItems = {
-  kind: ObjectKind;
-  fieldType?: FieldType;
-  icon: (IconProps: IconProps) => JSX.Element;
-};
-
-const propertyItems: PropertyItems[] = [
-  { kind: ObjectKind.Field, fieldType: FieldType.Object, icon: ObjectIcon },
-  { kind: ObjectKind.Field, fieldType: FieldType.String, icon: StringIcon },
-  { kind: ObjectKind.Field, fieldType: FieldType.Integer, icon: NumberIcon },
-  { kind: ObjectKind.Field, fieldType: FieldType.Number, icon: NumberIcon },
-  { kind: ObjectKind.Field, fieldType: FieldType.Boolean, icon: BooleanIcon },
-  { kind: ObjectKind.Combination, icon: CombinationIcon },
-  { kind: ObjectKind.Reference, icon: ReferenceIcon },
-];

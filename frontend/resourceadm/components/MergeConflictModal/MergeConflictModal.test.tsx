@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -9,71 +10,32 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MergeConflictModal } from './MergeConflictModal';
 
 const repoName = 'ttd-resources';
+const mockButtonText: string = 'Mock Button';
+const originalWindowLocation = window.location;
 
 describe('MergeConflictModal', () => {
-  afterEach(jest.clearAllMocks);
+  beforeEach(() => {
+    delete window.location;
+    window.location = {
+      ...originalWindowLocation,
+      reload: jest.fn(),
+    };
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+    window.location = originalWindowLocation;
+  });
 
   it('should reset changes when reset button is clicked', async () => {
     const user = userEvent.setup();
-    renderMergeConflictModal();
+    await renderAndOpenModal(user);
 
     const resetChangesButton = await screen.findByRole('button', {
       name: textMock('merge_conflict.remove_my_changes'),
     });
     await user.click(resetChangesButton);
 
-    const repoTextfield = await screen.findByLabelText(
-      textMock('resourceadm.reset_repo_confirm_repo_name'),
-    );
-    await user.type(repoTextfield, repoName);
-
-    const confirmResetButton = await screen.findByRole('button', {
-      name: textMock('local_changes.modal_confirm_delete_button'),
-    });
-    await user.click(confirmResetButton);
-
-    expect(queriesMock.resetRepoChanges).toHaveBeenCalled();
-  });
-
-  it('should not call reset changes when reset button is clicked if wrong repo name is entered', async () => {
-    const user = userEvent.setup();
-    renderMergeConflictModal();
-
-    const resetChangesButton = await screen.findByRole('button', {
-      name: textMock('merge_conflict.remove_my_changes'),
-    });
-    await user.click(resetChangesButton);
-
-    const repoTextfield = await screen.findByLabelText(
-      textMock('resourceadm.reset_repo_confirm_repo_name'),
-    );
-    await user.type(repoTextfield, 'not-correct-text');
-
-    const confirmResetButton = await screen.findByRole('button', {
-      name: textMock('local_changes.modal_confirm_delete_button'),
-    });
-    await user.click(confirmResetButton);
-
-    expect(queriesMock.resetRepoChanges).not.toHaveBeenCalled();
-  });
-
-  it('should close reset changes modal when cancel button is clicked', async () => {
-    const user = userEvent.setup();
-    renderMergeConflictModal();
-
-    const resetChangesButton = await screen.findByRole('button', {
-      name: textMock('merge_conflict.remove_my_changes'),
-    });
-    await user.click(resetChangesButton);
-
-    const cancelButton = await screen.findByRole('button', {
-      name: textMock('general.cancel'),
-    });
-    await user.click(cancelButton);
-
-    expect(
-      screen.queryByText(textMock('local_changes.modal_delete_modal_title')),
-    ).not.toBeInTheDocument();
+    expect(window.location.reload).toHaveBeenCalled();
   });
 });
 
@@ -81,8 +43,26 @@ const renderMergeConflictModal = () => {
   return render(
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
-        <MergeConflictModal isOpen={true} org='ttd' repo={repoName} />
+        <TestComponentWithButton />
       </ServicesContextProvider>
     </MemoryRouter>,
+  );
+};
+
+const renderAndOpenModal = async (user: UserEvent) => {
+  renderMergeConflictModal();
+
+  const openModalButton = screen.getByRole('button', { name: mockButtonText });
+  await user.click(openModalButton);
+};
+
+const TestComponentWithButton = () => {
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  return (
+    <>
+      <button onClick={() => modalRef.current?.showModal()}>{mockButtonText}</button>
+      <MergeConflictModal ref={modalRef} org='ttd' repo={repoName} />
+    </>
   );
 };

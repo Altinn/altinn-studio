@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Models
         /// Gets or sets the ServiceCode for identifying service
         /// </summary>
         [Required]
-        public string ServiceCode { get; set; }
+        public required string ServiceCode { get; set; }
 
         /// <summary>
         /// Gets or sets the ServiceEditionCode for identifying service
@@ -24,12 +24,12 @@ namespace Altinn.Studio.Designer.Models
         /// Gets or sets the resourceId
         /// </summary>
         [Required]
-        public string ResourceId { get; set; }
+        public required string ResourceId { get; set; }
 
         /// <summary>
         /// Gets or sets the time and date for when to include in delegationExport-batch
         /// </summary>
         [Required]
-        public DateTime DateTimeForExport { get; set; }
+        public required DateTimeOffset DateTimeForExport { get; set; }
     }
 }
