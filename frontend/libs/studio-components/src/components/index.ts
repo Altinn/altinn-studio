@@ -30,7 +30,6 @@ export * from './StudioPageHeader';
 export * from './StudioPageSpinner';
 export * from './StudioParagraph';
 export * from './StudioPopover';
-export * from './StudioProfileMenu';
 export * from './StudioProperty';
 export * from './StudioRecommendedNextAction';
 export * from './StudioResizableLayout';

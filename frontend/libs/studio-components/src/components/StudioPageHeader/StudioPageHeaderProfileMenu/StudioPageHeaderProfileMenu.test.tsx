@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioProfileMenu, type StudioProfileMenuProps } from './StudioProfileMenu';
+import {
+  StudioPageHeaderProfileMenu,
+  type StudioPageHeaderProfileMenuProps,
+} from './StudioPageHeaderProfileMenu';
 import userEvent from '@testing-library/user-event';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
 import { type StudioProfileMenuGroup } from './types/StudioProfileMenuGroup';
@@ -43,7 +46,7 @@ const mockProfileMenuGroups: StudioProfileMenuGroup[] = [
 const mockTriggerButtonText: string = 'Trigger';
 const mockAriaLabel: string = 'Trigger';
 
-const defaultProps: StudioProfileMenuProps = {
+const defaultProps: StudioPageHeaderProfileMenuProps = {
   triggerButtonText: mockTriggerButtonText,
   profileImage: defaultProfileImage,
   profileMenuGroups: mockProfileMenuGroups,
@@ -192,6 +195,6 @@ describe('StudioProfileMenu', () => {
   });
 });
 
-const renderStudioProfileMenu = (props?: Partial<StudioProfileMenuProps>) => {
-  return render(<StudioProfileMenu {...defaultProps} {...props} />);
+const renderStudioProfileMenu = (props?: Partial<StudioPageHeaderProfileMenuProps>) => {
+  return render(<StudioPageHeaderProfileMenu {...defaultProps} {...props} />);
 };
