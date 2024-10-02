@@ -65,9 +65,9 @@ export const EditStringValue = ({
             </Combobox>
           ) : (
             <StudioNativeSelect
-              label={fieldProps.label}
+              label={fieldProps.label + ' - string selector'}
               value={fieldProps.value}
-              onChange={(e: any) => fieldProps.onChange(e.target.value)}
+              onChange={(e) => fieldProps.onChange(e.target.value)}
               id={`component-${propertyKey}-select${component.id}`}
               size='sm'
             >

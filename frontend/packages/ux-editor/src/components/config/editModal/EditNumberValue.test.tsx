@@ -15,13 +15,18 @@ const waitForData = async () => {
   await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
 };
 
-const render = async ({ maxLength = undefined, handleComponentChange = jest.fn() } = {}) => {
+const renderEditNumberValue = async ({
+  enumValues = null,
+  maxLength = undefined,
+  handleComponentChange = jest.fn(),
+} = {}) => {
   await waitForData();
 
   return renderWithProviders(
     <EditNumberValue
       handleComponentChange={handleComponentChange}
       propertyKey='maxLength'
+      enumValues={enumValues}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
         type: ComponentType.Input,
@@ -38,10 +43,29 @@ const render = async ({ maxLength = undefined, handleComponentChange = jest.fn()
 
 describe('EditNumberValue', () => {
   it('should render', async () => {
-    await render();
+    await renderEditNumberValue();
     expect(
       screen.getByText(textMock('ux_editor.component_properties.maxLength')),
     ).toBeInTheDocument();
+  });
+
+  it('should call onChange for enum values', async () => {
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    await renderEditNumberValue({ handleComponentChange, enumValues: ['1', '2', '3'] });
+
+    await user.selectOptions(screen.getByRole('combobox'), '1');
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: ComponentType.Input,
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      maxLength: 1,
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: 'some-path' },
+    });
   });
 
   it('should save to backend and reload the preview when changing value, including the case of changing it to undefined/empty', async () => {
@@ -52,24 +76,24 @@ describe('EditNumberValue', () => {
       }),
     ).result;
 
-    const mockhHandleComponentChange = jest
+    const mockHandleComponentChange = jest
       .fn()
       .mockImplementation(async (mutationArgs, mutateOptions) => {
         await handleSaveMutation.current.mutateAsync(mutationArgs, mutateOptions);
       });
 
-    await render({ handleComponentChange: mockhHandleComponentChange });
+    await renderEditNumberValue({ handleComponentChange: mockHandleComponentChange });
 
     const input = screen.getByRole('textbox');
     await user.type(input, '12');
     // The component is updated for each keystroke, so we expect the mock to be called twice -
     // I think it should prevent this behavior with this new issue: https://github.com/Altinn/altinn-studio/issues/11989
-    expect(mockhHandleComponentChange).toHaveBeenCalledTimes(2);
+    expect(mockHandleComponentChange).toHaveBeenCalledTimes(2);
     expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(2);
     expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set', true);
 
-    mockhHandleComponentChange.mockClear();
+    mockHandleComponentChange.mockClear();
     await user.clear(input);
-    expect(mockhHandleComponentChange).toHaveBeenCalledTimes(1);
+    expect(mockHandleComponentChange).toHaveBeenCalledTimes(1);
   });
 });
