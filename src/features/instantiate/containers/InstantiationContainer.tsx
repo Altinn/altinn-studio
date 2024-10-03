@@ -2,6 +2,8 @@ import React from 'react';
 
 import { AltinnAppHeader } from 'src/components/altinnAppHeader';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
+import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import classes from 'src/features/instantiate/containers/InstantiationContainer.module.css';
@@ -18,13 +20,17 @@ export function InstantiationContainer({ children }: IInstantiateContainerProps)
   const profile = useProfile();
 
   return (
-    <RenderStart>
-      <div className={classes.container}>
-        <AltinnAppHeader profile={profile} />
-        <main id='main-content'>{children}</main>
-        <Footer />
-        <ReadyForPrint />
-      </div>
-    </RenderStart>
+    <TaskStoreProvider>
+      <DataLoadingProvider>
+        <RenderStart>
+          <div className={classes.container}>
+            <AltinnAppHeader profile={profile} />
+            <main id='main-content'>{children}</main>
+            <Footer />
+            <ReadyForPrint />
+          </div>
+        </RenderStart>
+      </DataLoadingProvider>
+    </TaskStoreProvider>
   );
 }

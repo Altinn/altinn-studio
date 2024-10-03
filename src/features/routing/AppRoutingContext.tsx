@@ -7,13 +7,19 @@ import { createStore } from 'zustand';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 
 export type NavigationEffectCb = () => void;
+
+interface ContextParams {
+  partyId?: string;
+  instanceGuid?: string;
+  taskId?: string;
+  pageKey?: string;
+  componentId?: string;
+  dataElementId?: string;
+  mainPageKey?: string;
+  isSubformPage?: boolean;
+}
 interface Context {
-  params: {
-    partyId?: string;
-    instanceGuid?: string;
-    taskId?: string;
-    pageKey?: string;
-  };
+  params: ContextParams;
   queryKeys: {
     [key: string]: string | undefined;
   };
@@ -55,7 +61,7 @@ export function AppRoutingProvider({ children }: PropsWithChildren) {
 }
 
 export const useAllNavigationParamsAsRef = () => useSelectorAsRef((ctx) => ctx.params);
-export const useNavigationParam = (key: keyof Context['params']) => useSelector((ctx) => ctx.params[key]);
+export const useNavigationParam = <T extends keyof ContextParams>(key: T) => useSelector((ctx) => ctx.params[key]);
 export const useNavigationEffect = () => useSelector((ctx) => ctx.effectCallback);
 export const useSetNavigationEffect = () => useSelector((ctx) => ctx.setEffectCallback);
 export const useQueryKeysAsString = () => useSelector((ctx) => queryKeysToString(ctx.queryKeys));
@@ -65,24 +71,40 @@ export const useQueryKey = (key: string) => useSelector((ctx) => ctx.queryKeys[k
 // Use this instead of the native one to avoid re-rendering whenever the route changes
 export const useNavigate = () => useSelector((ctx) => ctx.navigateRef).current;
 
-const useNavigationParams = (): Context['params'] => {
-  const instanceMatch = useMatch('/instance/:partyId/:instanceGuid');
-  const taskIdMatch = useMatch('/instance/:partyId/:instanceGuid/:taskId');
-  const pageKeyMatch = useMatch('/instance/:partyId/:instanceGuid/:taskId/:pageKey');
-  const statelessMatch = useMatch('/:pageKey');
+export const useNavigationParams = (): Context['params'] => {
+  const matches = [
+    useMatch('/instance/:partyId/:instanceGuid'),
+    useMatch('/instance/:partyId/:instanceGuid/:taskId'),
+    useMatch('/instance/:partyId/:instanceGuid/:taskId/:pageKey'),
+    useMatch('/:pageKey'), // Stateless
 
-  const partyId = pageKeyMatch?.params.partyId ?? taskIdMatch?.params.partyId ?? instanceMatch?.params.partyId;
-  const instanceGuid =
-    pageKeyMatch?.params.instanceGuid ?? taskIdMatch?.params.instanceGuid ?? instanceMatch?.params.instanceGuid;
-  const taskId = pageKeyMatch?.params.taskId ?? taskIdMatch?.params.taskId;
-  const _pageKey = pageKeyMatch?.params.pageKey ?? statelessMatch?.params.pageKey;
+    // Subform
+    useMatch('/instance/:partyId/:instanceGuid/:taskId/:mainPageKey/:componentId'),
+    useMatch('/instance/:partyId/:instanceGuid/:taskId/:mainPageKey/:componentId/:dataElementId'),
+    useMatch('/instance/:partyId/:instanceGuid/:taskId/:mainPageKey/:componentId/:dataElementId/:pageKey'),
+  ];
+
+  const partyId = matches.reduce((acc, match) => acc ?? match?.params['partyId'], undefined);
+  const instanceGuid = matches.reduce((acc, match) => acc ?? match?.params['instanceGuid'], undefined);
+  const taskId = matches.reduce((acc, match) => acc ?? match?.params['taskId'], undefined);
+  const componentId = matches.reduce((acc, match) => acc ?? match?.params['componentId'], undefined);
+  const dataElementId = matches.reduce((acc, match) => acc ?? match?.params['dataElementId'], undefined);
+  const _pageKey = matches.reduce((acc, match) => acc ?? match?.params['pageKey'], undefined);
+  const _mainPageKey = matches.reduce((acc, match) => acc ?? match?.params['mainPageKey'], undefined);
   const pageKey = _pageKey === undefined ? undefined : decodeURIComponent(_pageKey);
+  const mainPageKey = _mainPageKey === undefined ? undefined : decodeURIComponent(_mainPageKey);
+
+  const isSubformPage = !!mainPageKey;
 
   return {
     partyId,
     instanceGuid,
     taskId,
     pageKey,
+    componentId,
+    dataElementId,
+    mainPageKey,
+    isSubformPage,
   };
 };
 

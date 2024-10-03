@@ -722,13 +722,13 @@ const common = {
     )
       .setTitle('Layout sets')
       .setDescription('Settings regarding layout pages and components'),
-  ILayoutSet: () =>
+  ILayoutSetDefault: () =>
     new CG.obj(
       new CG.prop(
         'id',
         new CG.str().setTitle('ID').setDescription('The layout-set ID. Must be unique within a given application.'),
       ),
-      new CG.prop('dataType', new CG.str().setTitle('Data type').setDescription('The datatype to use this layoyut.')),
+      new CG.prop('dataType', new CG.str().setTitle('Data type').setDescription('The datatype to use this layout.')),
       new CG.prop(
         'tasks',
         new CG.arr(new CG.str())
@@ -737,8 +737,28 @@ const common = {
           .setDescription('An array specifying which task to use a layout-set'),
       ),
     )
-      .setTitle('Layout set')
-      .setDescription('Settings regarding a specific layout-set'),
+      .setTitle('Default Layout Set')
+      .setDescription('Settings regarding a default layout-set'),
+
+  ILayoutSetSubform: () =>
+    new CG.obj(
+      new CG.prop(
+        'id',
+        new CG.str().setTitle('ID').setDescription('The layout-set ID. Must be unique within a given application.'),
+      ),
+      new CG.prop('dataType', new CG.str().setTitle('Data type').setDescription('The datatype to use this layout.')),
+      new CG.prop(
+        'type',
+        new CG.const('subform').setTitle('Type').setDescription('The type of layout set, here subform.'),
+      ),
+    )
+      .setTitle('Layout Set')
+      .setDescription('A layout set with either tasks or type, but not both.'),
+  ILayoutSet: () =>
+    new CG.union(CG.common('ILayoutSetDefault'), CG.common('ILayoutSetSubform'))
+      .setUnionType('discriminated')
+      .setTitle('Layout Set Union')
+      .setDescription('todo'),
   PatternFormatProps: () =>
     new CG.obj(
       new CG.prop('format', new CG.expr(ExprVal.String)),

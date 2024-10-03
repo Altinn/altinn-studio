@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useRef } from 'react';
 
 import { create } from 'zustand';
 
@@ -34,15 +34,17 @@ export const createTaskStore = () =>
 const StoreContext = createContext<ReturnType<typeof createTaskStore> | null>(null);
 
 export function TaskStoreProvider({ children }: React.PropsWithChildren) {
-  const store = createTaskStore();
-
-  return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
+  const storeRef = useRef<ReturnType<typeof createTaskStore>>();
+  if (!storeRef.current) {
+    storeRef.current = createTaskStore();
+  }
+  return <StoreContext.Provider value={storeRef.current}>{children}</StoreContext.Provider>;
 }
 
-export const useTaskStore = <T,>(selector: (state: TaskState) => T): T => {
+export const useTaskStore = <T,>(selector: (state: TaskState) => T) => {
   const store = useContext(StoreContext);
   if (!store) {
-    return {} as T;
+    throw new Error('useTaskStore must be used within a TaskStoreProvider');
   }
   return store(selector);
 };

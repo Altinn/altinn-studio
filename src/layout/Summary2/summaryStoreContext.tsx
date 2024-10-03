@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useRef } from 'react';
 
 import { create } from 'zustand';
 
@@ -23,9 +23,13 @@ const createSummary2Store = (summaryNode: LayoutNode<'Summary2'>, summaryItem: C
 const StoreContext = createContext<ReturnType<typeof createSummary2Store> | null>(null);
 
 export function Summary2StoreProvider({ children, summaryNode, summaryItem }: Summary2StoreProviderProps) {
-  const store = createSummary2Store(summaryNode, summaryItem);
+  const storeRef = useRef<ReturnType<typeof createSummary2Store>>();
 
-  return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;
+  if (!storeRef.current) {
+    storeRef.current = createSummary2Store(summaryNode, summaryItem);
+  }
+
+  return <StoreContext.Provider value={storeRef.current}>{children}</StoreContext.Provider>;
 }
 
 export const useSummary2Store = <T,>(selector: (state: SummaryTaskState) => T): T => {

@@ -8,6 +8,8 @@ import type { UnionToIntersection } from 'utility-types';
 import type { StoreApi } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
+import { DataLoadingState, useDataLoadingStore } from 'src/core/contexts/dataLoadingContext';
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { AttachmentsStorePlugin } from 'src/features/attachments/AttachmentsStorePlugin';
@@ -475,6 +477,9 @@ function ResettableStore({ counter, children }: PropsWithChildren<{ counter: num
 function IndicateReadiness() {
   const [readiness, hiddenViaRulesRan] = Store.useSelector((s) => [s.readiness, s.hiddenViaRulesRan]);
   const ready = readiness === NodesReadiness.Ready && hiddenViaRulesRan;
+  const setDataElements = useDataLoadingStore((state) => state.setDataElements);
+  const dataElements = useDataLoadingStore((state) => state.dataElements);
+  const overriddenDataModelUuid = useTaskStore((state) => state.overriddenDataModelUuid);
   document.body.setAttribute('data-nodes-ready', ready.toString());
 
   useEffect(() => {
@@ -483,6 +488,16 @@ function IndicateReadiness() {
       document.body.removeAttribute('data-nodes-ready');
     };
   }, [ready]);
+
+  useEffect(() => {
+    if (
+      ready &&
+      overriddenDataModelUuid &&
+      (!(overriddenDataModelUuid in dataElements) || dataElements[overriddenDataModelUuid] !== DataLoadingState.Ready)
+    ) {
+      setDataElements({ [overriddenDataModelUuid]: DataLoadingState.Ready });
+    }
+  }, [dataElements, overriddenDataModelUuid, ready, setDataElements]);
 
   if (!GeneratorDebug.displayReadiness) {
     return null;

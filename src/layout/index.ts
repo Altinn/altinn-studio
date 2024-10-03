@@ -1,4 +1,4 @@
-import type { MutableRefObject } from 'react';
+import type { MutableRefObject, ReactNode } from 'react';
 
 import { getComponentConfigs } from 'src/layout/components.generated';
 import type { CompBehaviors } from 'src/codegen/Config';
@@ -102,6 +102,14 @@ export function implementsValidateComponent<Def extends CompDef>(
   def: Def,
 ): def is Def & ValidateComponent<TypeFromDef<Def>> {
   return 'runComponentValidation' in def;
+}
+
+export interface SubRouting<Type extends CompTypes> {
+  subRouting: (props: { node: LayoutNode<Type> }) => ReactNode;
+}
+
+export function implementsSubRouting<Def extends CompDef>(def: Def): def is Def & SubRouting<TypeFromDef<Def>> {
+  return 'subRouting' in def;
 }
 
 export type ValidationFilterFunction = (

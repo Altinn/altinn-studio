@@ -17,6 +17,8 @@ export interface IApplicationLogic {
   autoCreate?: boolean | null;
   classRef?: string | null;
   schemaRef?: string | null;
+  allowInSubform?: boolean | null;
+  disallowUserCreate?: boolean | null;
 }
 
 export interface IDisplayAttachment {

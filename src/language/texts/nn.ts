@@ -55,6 +55,14 @@ export function nn(): FixedLanguageList {
       body: 'Vi venter på verifikasjon, når den er på plass blir du vidaresendt.',
     },
     form_filler: {
+      error_add_subform: 'Det oppstod ein feil ved oppretting av underskjema, ver vennleg og prøv igjen.',
+      error_delete_subform: 'Noko gjekk gale ved sletting av underskjema, ver venleg og prøv igjen',
+      error_fetch_subform: 'Feil ved lasting av skjemadata',
+      error_max_count_reached_subform_server: 'Maksimalt tal på {0} oppføringar er nådd',
+      error_max_count_reached_subform_local: 'Maksimalt tal på {0} oppføringar er nådd ({1})',
+      error_min_count_not_reached_subform: 'Minst {0} {1} oppføring er påkravd',
+      error_validation_inside_subform: 'Det er feil i ein eller fleire {0} oppføringar',
+      subform_default_header: 'Oppføringer',
       alert_confirm: 'Bekreft',
       checkbox_alert: 'Er du sikker på at du vil fjerne avkrysningen?',
       multi_select_alert: 'Er du sikker på at du vil slette <b>{0}</b>?',
@@ -130,6 +138,8 @@ export function nn(): FixedLanguageList {
       create_new: 'Opprett ny',
       create: 'Opprett',
       customer_service_phone_number: '+47 75 00 60 00',
+      customer_service_slack: 'https://altinn.slack.com/',
+      customer_service_email: 'servicedesk@altinn.no',
       delete: 'Slett',
       download: 'Nedlasting {0}',
       disabled: 'Deaktivert',
@@ -364,9 +374,19 @@ export function nn(): FixedLanguageList {
       navigateLastPage: 'Naviger til siste side i tabell',
     },
     config_error: {
+      layoutset_subform_config_error_customer_support:
+        'Om du treng hjelp kan du nå Altinn på:<br/><br/>Telefon: <a href="tel:{0}">{0}</a><br/>E-post: {1}<br/>Slack: {2}',
+      layoutset_subform_config_error:
+        'Layout set med id <strong>{0}</strong> er feilkonfigurert.<br /><br />Layout set kan ikkje ha både <strong>type</strong> <em>og</em> <strong>tasks</strong> definert.',
+      layoutset_error: 'Layout set error',
       component_has_errors: 'Ein feil oppstod for <code>{0}</code>:',
       component_has_errors_after:
         'Medan du har feil i konfigurasjonen kan me ikkje vise komponenten i skjemaet. Rett opp i feila og prøv igjen.',
+      subform_no_datatype_layoutset: 'Datatype-spesifikasjon ikkje funnen i layout-sets.json.',
+      subform_no_datatype_appmetadata: "Datatype '{0}' vart ikkje funnen i applicationmetadata.json.",
+      subform_datatype_not_allowed: "Datatype '{0}' er ikkje tillaten for bruk i underskjema.",
+      subform_misconfigured_add_button:
+        "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er ei motseiing, Sidan brukaren aldri vil få lov til å utføre handlingane bak legg-til knappen.",
     },
     version_error: {
       version_mismatch: 'Versjonsfeil',

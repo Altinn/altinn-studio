@@ -1,11 +1,13 @@
 import { useCallback } from 'react';
 
+import { useInvalidateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { getVisibilityMask } from 'src/features/validation/utils';
 import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { usePageOrder } from 'src/hooks/useNavigatePage';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
+import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 import type { PageValidation } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -21,9 +23,10 @@ export function useOnPageNavigationValidation() {
   const validating = Validation.useValidating();
   const pageOrder = usePageOrder();
   const traversalSelector = useNodeTraversalSelector();
+  const invalidateInitialValidations = useInvalidateInitialValidations();
 
   /* Ensures the callback will have the latest state */
-  const callback = useEffectEvent((currentPage: LayoutPage, config: PageValidation): boolean => {
+  const callback = useEffectEvent(async (currentPage: LayoutPage, config: PageValidation): Promise<boolean> => {
     const pageConfig = config.page ?? 'current';
     const masks = config.show;
 
@@ -57,6 +60,14 @@ export function useOnPageNavigationValidation() {
     } else {
       // Get all nodes
       nodes = traversalSelector((t) => t.flat(), []);
+    }
+
+    // We need to get updated validations from backend to validate subform
+    if (nodes.some((n) => n.isType('Subform'))) {
+      await invalidateInitialValidations();
+      await validating();
+      // TODO(Subform): Figure out a better way to wait for validations to have propagated to node data
+      await waitForAnimationFrames(10); // Ugh
     }
 
     // Get nodes with errors along with their errors

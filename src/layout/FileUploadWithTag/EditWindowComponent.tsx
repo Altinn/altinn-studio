@@ -141,7 +141,6 @@ export function EditWindowComponent({
         className={classes.gap}
       >
         {textResourceBindings?.tagTitle && (
-          // eslint-disable-next-line jsx-a11y/label-has-associated-control
           <label
             className={classes.label}
             htmlFor={`attachment-tag-dropdown-${uniqueId}`}

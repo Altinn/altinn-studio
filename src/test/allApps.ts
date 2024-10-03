@@ -9,6 +9,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
+import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IFormDynamics } from 'src/features/form/dynamics';
@@ -178,7 +179,9 @@ export class ExternalApp {
 
     if (this.compat) {
       for (const set of Object.values(layoutSets.sets)) {
-        set.tasks = ['Task_1'];
+        if (layoutSetIsDefault(set)) {
+          set.tasks = ['Task_1'];
+        }
       }
     }
 

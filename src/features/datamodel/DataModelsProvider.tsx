@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { useIsFetching } from '@tanstack/react-query';
 import { createStore } from 'zustand';
 import type { JSONSchema7 } from 'json-schema';
 
+import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
@@ -111,7 +111,7 @@ function initialCreateStore() {
   }));
 }
 
-const { Provider, useSelector, useMemoSelector, useLaxMemoSelector } = createZustandContext({
+const { Provider, useSelector, useMemoSelector, useLaxMemoSelector, useSelectorAsRef } = createZustandContext({
   name: 'DataModels',
   required: true,
   initialCreateStore,
@@ -135,6 +135,10 @@ function DataModelsLoader() {
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const instance = useLaxInstanceData();
+
+  // Subform
+  const overriddenDataElement = useTaskStore((state) => state.overriddenDataModelUuid);
+  const overriddenDataType = useTaskStore((state) => state.overriddenDataModelType);
 
   // Find all data types referenced in dataModelBindings in the layout
   useEffect(() => {
@@ -178,7 +182,10 @@ function DataModelsLoader() {
     <>
       {allDataTypes?.map((dataType) => (
         <React.Fragment key={dataType}>
-          <LoadInitialData dataType={dataType} />
+          <LoadInitialData
+            dataType={dataType}
+            overrideDataElement={dataType === overriddenDataType ? overriddenDataElement : undefined}
+          />
           <LoadSchema dataType={dataType} />
         </React.Fragment>
       ))}
@@ -196,7 +203,6 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
     (state) => state,
   );
   const isPDF = useIsPdf();
-  const isLoadingFormData = useIsLoadingFormData();
 
   if (error) {
     // Error trying to fetch data, if missing rights we display relevant page
@@ -209,10 +215,6 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
 
   if (!allDataTypes || !writableDataTypes) {
     return <Loader reason='data-types' />;
-  }
-
-  if (isLoadingFormData) {
-    return <Loader reason='initial-data-loading' />;
   }
 
   // in PDF mode, we do not load schema, validations, or expression validation config. So we should not block loading in that case
@@ -241,29 +243,16 @@ interface LoaderProps {
   dataType: string;
 }
 
-/**
- * If you change the URL so the form context reloads,
- * It is possible to render the provider with stale data while
- * the new initial data is loading, which can cause FomDataEffects
- * to patch with incorrect precondition, causing a crash.
- */
-function useIsLoadingFormData() {
-  return useIsFetching({ queryKey: ['fetchFormData'] }) > 0;
-}
-
-function LoadInitialData({ dataType }: LoaderProps) {
+function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { overrideDataElement?: string }) {
   const setInitialData = useSelector((state) => state.setInitialData);
   const setError = useSelector((state) => state.setError);
   const instance = useLaxInstanceData();
-  const dataElementId = getFirstDataElementId(instance, dataType);
+  const dataElementId = overrideDataElement ?? getFirstDataElementId(instance, dataType);
   const url = useDataModelUrl({ dataType, dataElementId, includeRowIds: true });
   const { data, error } = useFormDataQuery(url);
-  const hasBeenSet = useRef(false);
-
   useEffect(() => {
-    if (data && url && !hasBeenSet.current) {
+    if (data && url) {
       setInitialData(dataType, data, dataElementId ?? null);
-      hasBeenSet.current = true;
     }
   }, [data, dataElementId, dataType, setInitialData, url]);
 
@@ -316,7 +305,7 @@ function LoadExpressionValidationConfig({ dataType }: LoaderProps) {
 }
 
 export const DataModels = {
-  useFullState: () => useSelector((state) => state),
+  useFullStateRef: () => useSelectorAsRef((state) => state),
 
   useLaxDefaultDataType: () => useLaxMemoSelector((state) => state.defaultDataType),
 
@@ -340,23 +329,13 @@ export const DataModels = {
   useExpressionValidationConfig: (dataType: string) =>
     useSelector((state) => state.expressionValidationConfigs[dataType]),
 
-  /**
-   * Takes a dataElementId and returns the corresponding data type if we have it,
-   * it will return the default data type if undefined is provided,
-   * this is to be backwards compatible with validation issues where the data element id was
-   * sometimes not set.
-   */
-  useGetDataTypeForDataElementId: () => {
-    const typeToElement = useMemoSelector((state) => state.dataElementIds);
-    const defaultDataType = useMemoSelector((state) => state.defaultDataType);
-    return useCallback(
-      (dataElementId: string | undefined) =>
-        (dataElementId
-          ? Object.entries(typeToElement)
-              .find(([_, id]) => dataElementId === id)
-              ?.at(0)
-          : defaultDataType) ?? null,
-      [defaultDataType, typeToElement],
-    );
+  useDefaultDataElementId: () =>
+    useMemoSelector((state) => (state.defaultDataType ? state.dataElementIds[state.defaultDataType] : null)),
+
+  useDataElementIdForDataType: (dataType: string) => useMemoSelector((state) => state.dataElementIds[dataType]),
+
+  useGetDataElementIdForDataType: () => {
+    const dataElementIds = useMemoSelector((state) => state.dataElementIds);
+    return useCallback((dataType: string) => dataElementIds[dataType], [dataElementIds]);
   },
 };

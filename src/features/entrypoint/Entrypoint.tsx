@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { Form, FormFirstPage } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
+import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { FormProvider } from 'src/features/form/FormContext';
 import { InstantiateContainer } from 'src/features/instantiate/containers/InstantiateContainer';
@@ -20,22 +21,24 @@ import { PresentationType } from 'src/types';
 import type { ShowTypes } from 'src/features/applicationMetadata/types';
 
 const RenderStateless = () => (
-  <FormProvider>
-    <Routes>
-      <Route
-        path=':pageKey'
-        element={
-          <PresentationComponent type={PresentationType.Stateless}>
-            <Form />
-          </PresentationComponent>
-        }
-      />
-      <Route
-        path='*'
-        element={<FormFirstPage />}
-      />
-    </Routes>
-  </FormProvider>
+  <DataLoadingProvider>
+    <FormProvider>
+      <Routes>
+        <Route
+          path=':pageKey'
+          element={
+            <PresentationComponent type={PresentationType.Stateless}>
+              <Form />
+            </PresentationComponent>
+          }
+        />
+        <Route
+          path='*'
+          element={<FormFirstPage />}
+        />
+      </Routes>
+    </FormProvider>
+  </DataLoadingProvider>
 );
 
 const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {

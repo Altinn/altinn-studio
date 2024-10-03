@@ -49,6 +49,7 @@ export interface ValidationStorePluginConfig {
       mask: ValidationMask | 'visible',
       severity?: ValidationSeverity,
       includeHidden?: boolean, // Defaults to false
+      filter?: (nodeData: NodeData) => boolean,
     ) => string[] | typeof ContextNotProvided;
     usePageHasVisibleRequiredValidations: (pageKey: string | undefined) => boolean;
   };
@@ -161,7 +162,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
       useGetNodesWithErrors: () => {
         const zustand = store.useLaxStore();
         return useCallback(
-          (mask, severity, includeHidden = false) => {
+          (mask, severity, includeHidden = false, filter) => {
             if (zustand === ContextNotProvided) {
               return ContextNotProvided;
             }
@@ -173,6 +174,10 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             const out: string[] = [];
             for (const nodeId of Object.keys(state.nodeData)) {
               const nodeData = state.nodeData[nodeId];
+              if (filter && !filter(nodeData)) {
+                continue;
+              }
+
               const validations = getValidations({ state, nodeData, mask, severity, includeHidden });
               if (validations.length > 0) {
                 out.push(nodeId);

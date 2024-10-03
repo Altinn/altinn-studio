@@ -1,3 +1,4 @@
+import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { getComponentCapabilities } from 'src/layout';
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { ILikertFilter } from 'src/layout/Likert/config.generated';
@@ -54,5 +55,12 @@ export function behavesLikeDataTask(task: string | null | undefined, layoutSets:
     return false;
   }
 
-  return layoutSets?.sets.some((set) => set.tasks?.includes(task)) || false;
+  return (
+    layoutSets?.sets.some((set) => {
+      if (layoutSetIsDefault(set) && set.tasks?.length) {
+        return set.tasks.includes(task);
+      }
+      return false;
+    }) || false
+  );
 }

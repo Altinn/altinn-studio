@@ -8,5 +8,7 @@
     "**/node_modules": true
   },
   "typescript.surveys.enabled": false,
-  "editor.codeActionsOnSave": { "source.fixAll": true }
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  }
 }

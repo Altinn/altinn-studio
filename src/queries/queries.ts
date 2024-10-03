@@ -16,6 +16,8 @@ import {
   getCreateInstancesUrl,
   getCustomValidationConfigUrl,
   getDataElementUrl,
+  getDataModelGuidUrl,
+  getDataModelTypeUrl,
   getFetchFormDynamicsUrl,
   getFileTagUrl,
   getFileUploadUrl,
@@ -155,6 +157,21 @@ export const doAttachmentRemove = async (instanceId: string, dataGuid: string, l
     throw new Error('Failed to remove attachment');
   }
   return response.data;
+};
+
+export const doSubformEntryAdd = async (instanceId: string, dataType: string, data: unknown): Promise<IData> => {
+  const response = await httpPost(getDataModelTypeUrl(instanceId, dataType), undefined, data);
+  if (response.status >= 300) {
+    throw new Error('Failed to add sub form');
+  }
+  return response.data;
+};
+
+export const doSubformEntryDelete = async (instanceId: string, dataGuid: string): Promise<void> => {
+  const response = await httpDelete(getDataModelGuidUrl(instanceId, dataGuid));
+  if (response.status !== 200) {
+    throw new Error('Failed to delete sub form');
+  }
 };
 
 // When saving data for normal/stateful apps

@@ -269,7 +269,7 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const proxies = useFormDataWriteProxies();
   const ruleConnections = useRuleConnections();
   const { allDataTypes, writableDataTypes, defaultDataType, initialData, schemaLookup, dataElementIds } =
-    DataModels.useFullState();
+    DataModels.useFullStateRef().current;
   const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
 
   if (!writableDataTypes || !allDataTypes) {

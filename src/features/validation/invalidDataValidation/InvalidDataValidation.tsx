@@ -4,6 +4,7 @@ import dot from 'dot-object';
 
 import { FrontendValidationSource, ValidationMask } from '..';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { Validation } from 'src/features/validation/validationContext';
 
@@ -14,6 +15,7 @@ function isScalar(value: unknown): value is string | number | boolean {
 export function InvalidDataValidation({ dataType }: { dataType: string }) {
   const updateDataModelValidations = Validation.useUpdateDataModelValidations();
   const invalidData = FD.useInvalidDebounced(dataType);
+  const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   useEffect(() => {
     let validations = {};
@@ -37,8 +39,8 @@ export function InvalidDataValidation({ dataType }: { dataType: string }) {
           return validations;
         }, {});
     }
-    updateDataModelValidations('invalidData', dataType, validations);
-  }, [dataType, invalidData, updateDataModelValidations]);
+    updateDataModelValidations('invalidData', dataElementId, validations);
+  }, [dataElementId, invalidData, updateDataModelValidations]);
 
   return null;
 }

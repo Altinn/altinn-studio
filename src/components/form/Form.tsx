@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 import deepEqual from 'fast-deep-equal';
@@ -18,31 +18,44 @@ import {
   useNavigate,
   useNavigationParam,
   useQueryKey,
+  useQueryKeysAsString,
   useQueryKeysAsStringAsRef,
 } from 'src/features/routing/AppRoutingContext';
+import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { SearchParams, useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
 import { NodesInternal, useGetPage, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import type { NavigateToNodeOptions } from 'src/features/form/layout/NavigateToNode';
+import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 import type { NodeData } from 'src/utils/layout/types';
 
 interface FormState {
   hasRequired: boolean;
   mainIds: string[] | undefined;
   errorReportIds: string[];
+  formErrors: NodeRefValidation<AnyValidation<'error'>>[];
+  taskErrors: BaseValidation<'error'>[];
 }
 
 export function Form() {
   const currentPageId = useCurrentView();
+
+  return <FormPage currentPageId={currentPageId} />;
+}
+
+export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
   const { isValidPageId, navigateToPage } = useNavigatePage();
   const [formState, setFormState] = useState<FormState>({
     hasRequired: false,
     mainIds: undefined,
     errorReportIds: [],
+    formErrors: [],
+    taskErrors: [],
   });
-  const { hasRequired, mainIds, errorReportIds } = formState;
+  const { hasRequired, mainIds, errorReportIds, formErrors, taskErrors } = formState;
   const requiredFieldsMissing = NodesInternal.usePageHasVisibleRequiredValidations(currentPageId);
 
   useRedirectToStoredPage();
@@ -54,7 +67,9 @@ export function Form() {
       await navigateToPage(targetView, {
         ...options?.pageNavOptions,
         shouldFocusComponent: options?.shouldFocus ?? options?.pageNavOptions?.shouldFocusComponent ?? true,
-        replace: window.location.href.includes(SearchParams.FocusComponentId),
+        replace:
+          window.location.href.includes(SearchParams.FocusComponentId) ||
+          window.location.href.includes(SearchParams.ExitSubform),
       });
       return true;
     }
@@ -103,7 +118,11 @@ export function Form() {
           aria-live='polite'
           className={classes.errorReport}
         >
-          <ErrorReport renderIds={errorReportIds} />
+          <ErrorReport
+            renderIds={errorReportIds}
+            formErrors={formErrors}
+            taskErrors={taskErrors}
+          />
         </Grid>
       </Grid>
       <ReadyForPrint />
@@ -113,13 +132,18 @@ export function Form() {
 }
 
 export function FormFirstPage() {
+  const navigate = useNavigate();
   const startUrl = useStartUrl();
-  return (
-    <Navigate
-      to={startUrl}
-      replace
-    />
-  );
+
+  const currentLocation = `${useLocation().pathname}${useQueryKeysAsString()}`;
+
+  useEffect(() => {
+    if (currentLocation !== startUrl) {
+      navigate(startUrl, { replace: true });
+    }
+  }, [currentLocation, navigate, startUrl]);
+
+  return <Loader reason='navigate-to-start' />;
 }
 
 /**
@@ -217,7 +241,9 @@ function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
       if (
         prevState.hasRequired === hasRequired &&
         deepEqual(mainIds, prevState.mainIds) &&
-        deepEqual(errorReportIds, prevState.errorReportIds)
+        deepEqual(errorReportIds, prevState.errorReportIds) &&
+        prevState.formErrors === formErrors &&
+        prevState.taskErrors === taskErrors
       ) {
         return prevState;
       }
@@ -226,32 +252,55 @@ function ErrorProcessing({ setFormState }: ErrorProcessingProps) {
         hasRequired,
         mainIds,
         errorReportIds,
+        formErrors,
+        taskErrors,
       };
     });
-  }, [setFormState, hasRequired, mainIds, errorReportIds]);
+  }, [setFormState, hasRequired, mainIds, errorReportIds, formErrors, taskErrors]);
 
   return null;
 }
 
 function HandleNavigationFocusComponent() {
+  const onFormSubmitValidation = useOnFormSubmitValidation();
   const searchStringRef = useQueryKeysAsStringAsRef();
   const componentId = useQueryKey(SearchParams.FocusComponentId);
+  const exitSubform = useQueryKey(SearchParams.ExitSubform)?.toLocaleLowerCase() === 'true';
+  const validate = useQueryKey(SearchParams.Validate)?.toLocaleLowerCase() === 'true';
   const focusNode = useNode(componentId ?? undefined);
   const navigateTo = useNavigateToNode();
   const navigate = useNavigate();
 
   React.useEffect(() => {
     (async () => {
-      if (focusNode) {
-        await navigateTo(focusNode, { shouldFocus: true });
+      // Replace URL if we have query params
+      if (focusNode || exitSubform || validate) {
         const location = new URLSearchParams(searchStringRef.current);
         location.delete(SearchParams.FocusComponentId);
+        location.delete(SearchParams.ExitSubform);
+        location.delete(SearchParams.Validate);
         const baseHash = window.location.hash.slice(1).split('?')[0];
         const nextLocation = location.size > 0 ? `${baseHash}?${location.toString()}` : baseHash;
         navigate(nextLocation, { replace: true });
       }
+
+      // Set validation visibility to the equivalent of trying to submit
+      if (validate) {
+        onFormSubmitValidation();
+      }
+
+      // Focus on node?
+      if (focusNode) {
+        const nodeNavOptions: NavigateToNodeOptions = {
+          shouldFocus: true,
+          pageNavOptions: {
+            resetReturnToView: !exitSubform,
+          },
+        };
+        await navigateTo(focusNode, nodeNavOptions);
+      }
     })();
-  }, [navigateTo, focusNode, navigate, searchStringRef]);
+  }, [navigateTo, focusNode, navigate, searchStringRef, exitSubform, validate, onFormSubmitValidation]);
 
   return null;
 }

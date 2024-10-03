@@ -27,6 +27,7 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
   const formData = FD.useDebounced(dataType);
   const schema = DataModels.useDataModelSchema(dataType);
   const dataTypeDef = useDataModelType(dataType);
+  const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   /**
    * Create a validator for the current schema and data type.
@@ -107,7 +108,7 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
           validations[field].push({
             message,
             field,
-            dataType,
+            dataElementId,
             source: FrontendValidationSource.Schema,
             category,
             severity: 'error',
@@ -115,9 +116,9 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
         }
       }
 
-      updateDataModelValidations('schema', dataType, validations);
+      updateDataModelValidations('schema', dataElementId, validations);
     }
-  }, [dataType, formData, rootElementPath, schema, updateDataModelValidations, validator]);
+  }, [dataElementId, formData, rootElementPath, schema, updateDataModelValidations, validator]);
 
   return null;
 }

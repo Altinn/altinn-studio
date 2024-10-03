@@ -1,6 +1,9 @@
 import React from 'react';
 
+import { Paragraph } from '@digdir/designsystemet-react';
+
 import { Label } from 'src/components/label/Label';
+import { Lang } from 'src/features/language/Lang';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
@@ -20,6 +23,14 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
   const mobileView = useIsMobileOrTablet();
   const pdfModeActive = usePdfModeActive();
   const isSmall = mobileView && !pdfModeActive;
+  const filteredAttachments = attachments.filter((attachment) => {
+    // If we have file upload with tags, we should hide files where the user have not yet
+    // selected a tag, in the summary.
+    if (!hasTag) {
+      return attachment;
+    }
+    return attachment.data.tags && attachment.data.tags?.length > 0;
+  });
 
   return (
     <>
@@ -30,21 +41,22 @@ export function AttachmentSummaryComponent2({ targetNode }: IAttachmentSummaryCo
         className={classes.summaryLabelMargin}
         weight={'regular'}
       />
-      <FileTable
-        node={targetNode}
-        mobileView={isSmall}
-        attachments={attachments.filter((attachment) => {
-          // If we have file upload with tags, we should hide files where the user have not yet
-          // selected a tag, in the summary.
-          if (!hasTag) {
-            return attachment;
-          }
-          return attachment.data.tags && attachment.data.tags?.length > 0;
-        })}
-        options={options}
-        isSummary={true}
-        isFetching={isFetching}
-      />
+      {filteredAttachments.length === 0 ? (
+        <Paragraph asChild>
+          <span className={classes.emptyField}>
+            <Lang id={'general.empty_summary'} />
+          </span>
+        </Paragraph>
+      ) : (
+        <FileTable
+          node={targetNode}
+          mobileView={isSmall}
+          attachments={filteredAttachments}
+          options={options}
+          isSummary={true}
+          isFetching={isFetching}
+        />
+      )}
     </>
   );
 }

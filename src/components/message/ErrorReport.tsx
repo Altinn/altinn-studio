@@ -7,14 +7,15 @@ import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
-import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useGetUniqueKeyFromObject } from 'src/utils/useGetKeyFromObject';
-import type { NodeRefValidation } from 'src/features/validation';
+import type { AnyValidation, BaseValidation, NodeRefValidation } from 'src/features/validation';
 
 export interface IErrorReportProps {
   renderIds: string[];
+  formErrors: NodeRefValidation<AnyValidation<'error'>>[];
+  taskErrors: BaseValidation<'error'>[];
 }
 
 const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" style="position: relative; top: 2px">
@@ -22,8 +23,7 @@ const ArrowForwardSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 </svg>`;
 const listStyleImg = `url("data:image/svg+xml,${encodeURIComponent(ArrowForwardSvg)}")`;
 
-export const ErrorReport = ({ renderIds }: IErrorReportProps) => {
-  const { formErrors, taskErrors } = useTaskErrors();
+export const ErrorReport = ({ renderIds, formErrors, taskErrors }: IErrorReportProps) => {
   const hasErrors = Boolean(formErrors.length) || Boolean(taskErrors.length);
   const getUniqueKeyFromObject = useGetUniqueKeyFromObject();
 

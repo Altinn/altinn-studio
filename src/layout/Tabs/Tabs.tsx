@@ -59,6 +59,7 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
             key={tab.id}
             value={tab.id}
             role='tabpanel'
+            className={classes.tabContent}
           >
             <Grid
               container={true}

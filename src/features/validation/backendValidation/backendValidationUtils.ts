@@ -52,19 +52,19 @@ function isStandardBackend(rawSource: string): boolean {
  */
 export function mapBackendIssuesToFieldValdiations(
   issues: BackendValidationIssue[],
-  getDataTypeForElementId: ReturnType<typeof DataModels.useGetDataTypeForDataElementId>,
+  defaultDataElementId: string | null,
 ): FieldValidation[] {
   const fieldValidations: FieldValidation[] = [];
   for (const issue of issues) {
-    const { field, source, dataElementId } = issue;
+    const { field, source, dataElementId: _dataElementId } = issue;
 
     if (!field) {
       continue;
     }
 
-    const dataType = getDataTypeForElementId(dataElementId);
+    const dataElementId = _dataElementId ?? defaultDataElementId;
 
-    if (!dataType) {
+    if (!dataElementId) {
       continue;
     }
 
@@ -87,7 +87,7 @@ export function mapBackendIssuesToFieldValdiations(
       }
     }
 
-    fieldValidations.push({ field, dataType, severity, message, category, source });
+    fieldValidations.push({ field, dataElementId, severity, message, category, source });
   }
 
   return fieldValidations;
@@ -152,15 +152,15 @@ export function mapValidatorGroupsToDataModelValidations(
   // Map validator groups to validations per data type and field
   for (const group of Object.values(validators)) {
     for (const validation of group) {
-      if (!backendValidations[validation.dataType]) {
-        backendValidations[validation.dataType] = {};
+      if (!backendValidations[validation.dataElementId]) {
+        backendValidations[validation.dataElementId] = {};
       }
 
-      if (!backendValidations[validation.dataType][validation.field]) {
-        backendValidations[validation.dataType][validation.field] = [];
+      if (!backendValidations[validation.dataElementId][validation.field]) {
+        backendValidations[validation.dataElementId][validation.field] = [];
       }
 
-      backendValidations[validation.dataType][validation.field].push(validation);
+      backendValidations[validation.dataElementId][validation.field].push(validation);
     }
   }
 

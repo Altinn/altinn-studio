@@ -20,6 +20,7 @@ import { ErrorBoundary } from 'src/components/ErrorBoundary';
 import { ThemeWrapper } from 'src/components/ThemeWrapper';
 import { KeepAliveProvider } from 'src/core/auth/KeepAliveProvider';
 import { AppQueriesProvider } from 'src/core/contexts/AppQueriesProvider';
+import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { WindowTitleProvider } from 'src/core/ui/WindowTitleProvider';
 import { ApplicationMetadataProvider } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { ApplicationSettingsProvider } from 'src/features/applicationSettings/ApplicationSettingsProvider';
@@ -80,36 +81,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function Root() {
   return (
-    <InstantiationProvider>
-      <ApplicationMetadataProvider>
-        <GlobalFormDataReadersProvider>
-          <LayoutSetsProvider>
-            <ProfileProvider>
-              <TextResourcesProvider>
-                <OrgsProvider>
-                  <ApplicationSettingsProvider>
-                    <PartyProvider>
-                      <KeepAliveProvider>
-                        <WindowTitleProvider>
-                          <App />
-                          <ToastContainer
-                            position='top-center'
-                            theme='colored'
-                            transition={Slide}
-                            draggable={false}
-                          />
-                          <ScrollRestoration />
-                        </WindowTitleProvider>
-                      </KeepAliveProvider>
-                    </PartyProvider>
-                  </ApplicationSettingsProvider>
-                </OrgsProvider>
-              </TextResourcesProvider>
-            </ProfileProvider>
-            <PartyPrefetcher />
-          </LayoutSetsProvider>
-        </GlobalFormDataReadersProvider>
-      </ApplicationMetadataProvider>
-    </InstantiationProvider>
+    <TaskStoreProvider>
+      <InstantiationProvider>
+        <ApplicationMetadataProvider>
+          <GlobalFormDataReadersProvider>
+            <LayoutSetsProvider>
+              <ProfileProvider>
+                <TextResourcesProvider>
+                  <OrgsProvider>
+                    <ApplicationSettingsProvider>
+                      <PartyProvider>
+                        <KeepAliveProvider>
+                          <WindowTitleProvider>
+                            <App />
+                            <ToastContainer
+                              position='top-center'
+                              theme='colored'
+                              transition={Slide}
+                              draggable={false}
+                            />
+                            <ScrollRestoration />
+                          </WindowTitleProvider>
+                        </KeepAliveProvider>
+                      </PartyProvider>
+                    </ApplicationSettingsProvider>
+                  </OrgsProvider>
+                </TextResourcesProvider>
+              </ProfileProvider>
+              <PartyPrefetcher />
+            </LayoutSetsProvider>
+          </GlobalFormDataReadersProvider>
+        </ApplicationMetadataProvider>
+      </InstantiationProvider>
+    </TaskStoreProvider>
   );
 }

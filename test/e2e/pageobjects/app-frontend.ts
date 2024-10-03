@@ -25,6 +25,9 @@ export class AppFrontend {
 
     /** @see https://dev.altinn.studio/repos/ttd/multiple-datamodels-test */
     multipleDatamodelsTest: 'multiple-datamodels-test',
+
+    /** @see https://dev.altinn.studio/repos/ttd/subform-test */
+    subformTest: 'subform-test',
   };
 
   //Start app instance page

@@ -3,7 +3,7 @@ import React from 'react';
 import { jest } from '@jest/globals';
 import fs from 'node:fs';
 
-import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
@@ -95,7 +95,7 @@ describe('Expression validation shared tests', () => {
 
     expect(updateDataModelValidations).toHaveBeenCalledWith(
       'expression',
-      defaultDataTypeMock,
+      defaultMockDataElementId,
       expect.objectContaining({}),
     );
 

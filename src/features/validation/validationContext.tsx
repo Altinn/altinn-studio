@@ -52,11 +52,11 @@ interface Internals {
    */
   updateDataModelValidations: (
     key: Exclude<keyof Internals['individualValidations'], 'backend'>,
-    dataType: string,
+    dataElementId: string,
     validations?: FieldValidations,
   ) => void;
   updateBackendValidations: (
-    backendValidations: { [dataType: string]: FieldValidations } | undefined,
+    backendValidations: { [dataElementId: string]: FieldValidations } | undefined,
     processedLast?: { incremental?: BackendValidationIssueGroups; initial?: BackendValidationIssue[] },
     taskValdiations?: BaseValidation[],
   ) => void;
@@ -89,15 +89,15 @@ function initialCreateStore() {
       },
       incrementalProcessedLast: undefined,
       initialProcessedLast: undefined,
-      updateDataModelValidations: (key, dataType, validations) =>
+      updateDataModelValidations: (key, dataElementId, validations) =>
         set((state) => {
           if (validations) {
-            state.individualValidations[key][dataType] = validations;
-            state.state.dataModels[dataType] = mergeFieldValidations(
-              state.individualValidations.backend[dataType],
-              state.individualValidations.invalidData[dataType],
-              state.individualValidations.schema[dataType],
-              state.individualValidations.expression[dataType],
+            state.individualValidations[key][dataElementId] = validations;
+            state.state.dataModels[dataElementId] = mergeFieldValidations(
+              state.individualValidations.backend[dataElementId],
+              state.individualValidations.invalidData[dataElementId],
+              state.individualValidations.schema[dataElementId],
+              state.individualValidations.expression[dataElementId],
             );
           }
         }),
@@ -114,12 +114,14 @@ function initialCreateStore() {
           }
           if (backendValidations) {
             state.individualValidations.backend = backendValidations;
-            for (const dataType of Object.keys(backendValidations)) {
-              state.state.dataModels[dataType] = mergeFieldValidations(
-                state.individualValidations.backend[dataType],
-                state.individualValidations.invalidData[dataType],
-                state.individualValidations.schema[dataType],
-                state.individualValidations.expression[dataType],
+
+            const keys = new Set([...Object.keys(backendValidations), ...Object.keys(state.state.dataModels)]);
+            for (const dataElementId of keys) {
+              state.state.dataModels[dataElementId] = mergeFieldValidations(
+                state.individualValidations.backend[dataElementId],
+                state.individualValidations.invalidData[dataElementId],
+                state.individualValidations.schema[dataElementId],
+                state.individualValidations.expression[dataElementId],
               );
             }
           }
@@ -279,6 +281,7 @@ function useDS<U>(outerSelector: (state: ValidationContext) => U) {
 
 export type ValidationSelector = ReturnType<typeof Validation.useSelector>;
 export type ValidationDataModelSelector = ReturnType<typeof Validation.useDataModelSelector>;
+export type DataElementHasErrorsSelector = ReturnType<typeof Validation.useDataElementHasErrorsSelector>;
 
 export const Validation = {
   useFullStateRef: () => useSelectorAsRef((state) => state.state),
@@ -286,6 +289,22 @@ export const Validation = {
   // Selectors. These are memoized, so they won't cause a re-render unless the selected fields change.
   useSelector: () => useDS((state) => state),
   useDataModelSelector: () => useDS((state) => state.state.dataModels),
+
+  useDataElementHasErrorsSelector: () =>
+    useDelayedSelector({
+      mode: 'simple',
+      selector: (dataElementId: string) => (state) => {
+        const dataElementValidations = state.state.dataModels[dataElementId];
+        for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
+          for (const validation of fieldValidations) {
+            if (validation.severity === 'error') {
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+    }),
 
   useSetShowAllErrors: () =>
     useLaxSelector((state) => async () => {

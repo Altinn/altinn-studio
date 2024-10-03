@@ -1,7 +1,11 @@
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { Expression, ExprValToActual } from 'src/features/expressions/types';
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
+import type { DataElementHasErrorsSelector } from 'src/features/validation/validationContext';
 import type { FormDataSelector } from 'src/layout';
+import type { ILayoutSets } from 'src/layout/common.generated';
+import type { IInstance } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 
@@ -81,7 +85,7 @@ export type ValidationState = {
 };
 
 export type DataModelValidations = {
-  [dataType: string]: FieldValidations;
+  [dataElementId: string]: FieldValidations;
 };
 
 export type FieldValidations = {
@@ -119,7 +123,7 @@ export type BaseValidation<Severity extends ValidationSeverity = ValidationSever
  */
 export type FieldValidation<Severity extends ValidationSeverity = ValidationSeverity> = BaseValidation<Severity> & {
   field: string;
-  dataType: string;
+  dataElementId: string;
 };
 
 /**
@@ -145,6 +149,17 @@ export type AttachmentValidation<Severity extends ValidationSeverity = Validatio
      */
     visibility?: number;
   };
+
+/**
+ * Validation message associated with a subform
+ */
+export type SubformValidation<Severity extends ValidationSeverity = ValidationSeverity> = BaseValidation<Severity> & {
+  subformDataElementIds: string[];
+};
+
+export function isSubformValidation(validation: NodeValidation): validation is NodeValidation<SubformValidation> {
+  return 'subformDataElementIds' in validation;
+}
 
 export type AnyValidation<Severity extends ValidationSeverity = ValidationSeverity> =
   | FieldValidation<Severity>
@@ -177,6 +192,10 @@ export type ValidationDataSources = {
   invalidDataSelector: FormDataSelector;
   attachmentsSelector: AttachmentsSelector;
   nodeDataSelector: NodeDataSelector;
+  applicationMetadata: ApplicationMetadata;
+  instance: IInstance | undefined;
+  layoutSets: ILayoutSets;
+  dataElementHasErrorsSelector: DataElementHasErrorsSelector;
 };
 
 /**

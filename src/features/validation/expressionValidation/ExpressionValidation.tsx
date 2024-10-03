@@ -36,6 +36,7 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
   const dataSources = useExpressionDataSources();
   const allNodes = useNodeTraversal((t) => t.allNodes());
   const nodeDataSelector = NodesInternal.useNodeDataSelector();
+  const dataElementId = DataModels.useDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
 
   useEffect(() => {
     if (expressionValidationConfig && Object.keys(expressionValidationConfig).length > 0 && formData && allNodes) {
@@ -101,16 +102,17 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
         }
       }
 
-      updateDataModelValidations('expression', dataType, validations);
+      updateDataModelValidations('expression', dataElementId, validations);
     }
   }, [
     expressionValidationConfig,
     formData,
-    dataType,
+    dataElementId,
     updateDataModelValidations,
     allNodes,
     nodeDataSelector,
     dataSources,
+    dataType,
   ]);
 
   return null;

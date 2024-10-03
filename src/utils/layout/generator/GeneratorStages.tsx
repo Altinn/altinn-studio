@@ -452,16 +452,16 @@ export const NodesStateQueue = {
  * up (setTimeout is slow, at least when debugging), we'll set a timeout once if this selector find out the generator
  * has finished.
  */
-let commitTimeout: ReturnType<typeof setTimeout> | null = null;
 function useCommitWhenFinished() {
   const commit = useCommit();
   const stateRef = useSelectorAsRef((s) => s);
+  const commitTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   return useCallback(() => {
-    if (stateRef.current.currentStage === StageFinished && !commitTimeout) {
-      commitTimeout = setTimeout(() => {
+    if (stateRef.current.currentStage === StageFinished && !commitTimeout.current) {
+      commitTimeout.current = setTimeout(() => {
         commit();
-        commitTimeout = null;
+        commitTimeout.current = null;
       }, 4);
     }
   }, [stateRef, commit]);

@@ -56,3 +56,9 @@
   font-size: 0.875rem;
   padding: 4px 4px 4px 6px;
 }
+
+.emptyField {
+  font-style: italic;
+  line-height: 1.6875;
+  color: var(--fds-semantic-text-neutral-subtle);
+}

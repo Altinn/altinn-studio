@@ -5,6 +5,7 @@ import type { AxiosError } from 'axios';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
+import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
@@ -72,12 +73,14 @@ export const InstanceProvider = ({ children }: { children: React.ReactNode }) =>
   }
 
   return (
-    <InnerInstanceProvider
-      partyId={partyId}
-      instanceGuid={instanceGuid}
-    >
-      {children}
-    </InnerInstanceProvider>
+    <DataLoadingProvider>
+      <InnerInstanceProvider
+        partyId={partyId}
+        instanceGuid={instanceGuid}
+      >
+        {children}
+      </InnerInstanceProvider>
+    </DataLoadingProvider>
   );
 };
 

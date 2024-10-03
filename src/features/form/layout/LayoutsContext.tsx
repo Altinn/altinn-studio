@@ -10,6 +10,7 @@ import { useCurrentDataModelName } from 'src/features/datamodel/useBindingSchema
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { applyLayoutQuirks } from 'src/features/form/layout/quirks';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useHasInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
@@ -75,10 +76,24 @@ export function useLayoutSetId() {
     return overriddenLayoutSetId;
   }
 
-  const layoutSetId = taskId != null ? layoutSets?.sets.find((set) => set.tasks?.includes(taskId))?.id : undefined;
+  const layoutSetId =
+    taskId != null
+      ? layoutSets?.sets.find((set) => {
+          if (layoutSetIsDefault(set) && set.tasks?.length) {
+            return set.tasks.includes(taskId);
+          }
+          return false;
+        })?.id
+      : undefined;
 
   return layoutSetId ?? currentProcessLayoutSetId;
 }
+
+export function useDataTypeFromLayoutSet(layoutSetName: string) {
+  const layoutSets = useLayoutSets();
+  return layoutSets.sets.find((set) => set.id === layoutSetName)?.dataType;
+}
+
 export const LayoutsProvider = Provider;
 export const useLayouts = () => useCtx().layouts;
 

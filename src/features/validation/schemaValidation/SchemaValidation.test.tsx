@@ -3,6 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
+import { defaultMockDataElementId } from 'src/__mocks__/getInstanceDataMock';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import * as UseBindingSchema from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -255,6 +256,7 @@ describe('SchemaValidation', () => {
 
             jest.spyOn(FD, 'useDebounced').mockReturnValue(formData);
             jest.spyOn(DataModels, 'useDataModelSchema').mockReturnValue(schema);
+            jest.spyOn(DataModels, 'useDataElementIdForDataType').mockReturnValue(defaultMockDataElementId);
             jest.spyOn(UseBindingSchema, 'useDataModelType').mockReturnValue({} as IDataType);
 
             const updateDataModelValidations = jest.fn();
@@ -272,7 +274,11 @@ describe('SchemaValidation', () => {
                   field: expect.arrayContaining([expect.objectContaining({ field: 'field', severity: 'error' })]),
                 });
 
-            expect(updateDataModelValidations).toHaveBeenCalledWith('schema', 'mockDataType', expectedValidations);
+            expect(updateDataModelValidations).toHaveBeenCalledWith(
+              'schema',
+              defaultMockDataElementId,
+              expectedValidations,
+            );
           });
         });
       });

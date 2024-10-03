@@ -9,6 +9,7 @@ import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLaxInstance, useStrictInstance } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { Validation } from 'src/features/validation/validationContext';
@@ -35,6 +36,7 @@ function useProcessNext() {
   const onFormSubmitValidation = useOnFormSubmitValidation();
   const updateInitialValidations = useUpdateInitialValidations();
   const setShowAllErrors = Validation.useSetShowAllErrors();
+  const onSubmitFormValidation = useOnFormSubmitValidation();
 
   const utils = useMutation({
     mutationFn: async ({ action }: ProcessNextProps = {}) => {
@@ -60,7 +62,9 @@ function useProcessNext() {
       } else if (validationIssues) {
         // Set initial validation to validation issues from process/next and make all errors visible
         updateInitialValidations(validationIssues);
-        setShowAllErrors !== ContextNotProvided && setShowAllErrors();
+        if (!(await onSubmitFormValidation(true))) {
+          setShowAllErrors !== ContextNotProvided && setShowAllErrors();
+        }
       }
     },
     onError: (error: HttpClientError) => {
@@ -150,4 +154,12 @@ export function ProcessNavigationProvider({ children }: React.PropsWithChildren)
   );
 }
 
-export const useProcessNavigation = () => useCtx();
+export const useProcessNavigation = () => {
+  // const { isSubformPage } = useNavigationParams();
+  const isSubformPage = useNavigationParam('isSubformPage');
+  if (isSubformPage) {
+    throw new Error('Cannot use process navigation in a subform');
+  }
+
+  return useCtx();
+};

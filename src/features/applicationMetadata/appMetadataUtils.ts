@@ -1,6 +1,7 @@
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { useLaxApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
+import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ILayoutSets } from 'src/layout/common.generated';
@@ -53,7 +54,12 @@ export function getDataTypeByTaskId({ taskId, application, layoutSets }: GetData
     return undefined;
   }
 
-  const typeFromLayoutSet = layoutSets.sets.find((set) => set.tasks?.includes(taskId))?.dataType;
+  const typeFromLayoutSet = layoutSets.sets.find((set) => {
+    if (layoutSetIsDefault(set) && set.tasks?.length) {
+      return set.tasks.includes(taskId);
+    }
+    return false;
+  })?.dataType;
   const foundInMetaData = application?.dataTypes.find((element) => element.id === typeFromLayoutSet);
   if (typeFromLayoutSet && !foundInMetaData) {
     window.logError(
@@ -118,5 +124,13 @@ export const getCurrentTaskDataElementId = (props: GetCurrentTaskDataElementIdPr
 };
 
 export function getFirstDataElementId(instance: IInstance | undefined, dataType: string) {
-  return (instance?.data ?? []).find((element) => element.dataType === dataType)?.id;
+  const elements = (instance?.data ?? []).filter((element) => element.dataType === dataType);
+  if (elements.length > 1) {
+    window.logWarnOnce(
+      `Found multiple data elements with data type ${dataType} in instance, cannot determine which one to use`,
+    );
+    return undefined;
+  }
+
+  return elements.length > 0 ? elements[0].id : undefined;
 }

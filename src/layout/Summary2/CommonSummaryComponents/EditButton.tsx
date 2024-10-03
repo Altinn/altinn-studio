@@ -12,14 +12,21 @@ import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import type { NavigationResult } from 'src/features/form/layout/NavigateToNode';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type EditButtonProps = {
   componentNode: LayoutNode;
   summaryComponentId: string;
+  navigationOverride?: (() => Promise<NavigationResult> | void) | null;
 } & React.HTMLAttributes<HTMLButtonElement>;
 
-export function EditButton({ componentNode, summaryComponentId, className }: EditButtonProps) {
+export function EditButton({
+  componentNode,
+  summaryComponentId,
+  className,
+  navigationOverride = null,
+}: EditButtonProps) {
   const navigateTo = useNavigateToNode();
   const { langAsString } = useLanguage();
   const setReturnToView = useSetReturnToView();
@@ -33,9 +40,16 @@ export function EditButton({ componentNode, summaryComponentId, className }: Edi
   );
   const accessibleTitle = titleTrb ? langAsString(titleTrb) : '';
 
-  const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
-    overriddenTaskId,
-  }));
+  const { overriddenTaskId, overriddenDataModelUuid } = useTaskStore(
+    ({ overriddenTaskId, overriddenDataModelUuid }) => ({
+      overriddenTaskId,
+      overriddenDataModelUuid,
+    }),
+  );
+
+  if (overriddenDataModelUuid) {
+    return null;
+  }
 
   if (pdfModeActive || (overriddenTaskId && overriddenTaskId?.length > 0)) {
     return null;
@@ -46,12 +60,17 @@ export function EditButton({ componentNode, summaryComponentId, className }: Edi
       return;
     }
 
-    await navigateTo(componentNode, {
-      shouldFocus: true,
-      pageNavOptions: {
-        resetReturnToView: false,
-      },
-    });
+    if (navigationOverride) {
+      await navigationOverride();
+    } else {
+      await navigateTo(componentNode, {
+        shouldFocus: true,
+        pageNavOptions: {
+          resetReturnToView: false,
+        },
+      });
+    }
+
     setReturnToView?.(currentPageId);
     setNodeOfOrigin?.(summaryComponentId);
   };
