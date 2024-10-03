@@ -258,7 +258,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         parsedResponse.NewDataModels.Should().HaveCount(2);
         var newData = parsedResponse
             .NewDataModels.Should()
-            .ContainSingle(d => d.Id == _dataGuid)
+            .ContainSingle(d => d.DataElementId == _dataGuid)
             .Which.Data.Should()
             .BeOfType<JsonElement>()
             .Which.Deserialize<Skjema>()!;
@@ -266,7 +266,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         var newExtraData = parsedResponse
             .NewDataModels.Should()
-            .ContainSingle(d => d.Id == extraDataGuid)
+            .ContainSingle(d => d.DataElementId == extraDataGuid)
             .Which.Data.Should()
             .BeOfType<JsonElement>()
             .Which.Deserialize<Skjema>()!;

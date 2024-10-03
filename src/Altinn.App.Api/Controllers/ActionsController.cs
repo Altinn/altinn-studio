@@ -5,7 +5,6 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
@@ -34,7 +33,6 @@ public class ActionsController : ControllerBase
     private readonly IValidationService _validationService;
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
-    private readonly IAppModel _appModel;
     private readonly ModelSerializationService _modelSerialization;
 
     /// <summary>
@@ -47,7 +45,6 @@ public class ActionsController : ControllerBase
         IValidationService validationService,
         IDataClient dataClient,
         IAppMetadata appMetadata,
-        IAppModel appModel,
         ModelSerializationService modelSerialization
     )
     {
@@ -57,7 +54,6 @@ public class ActionsController : ControllerBase
         _validationService = validationService;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
-        _appModel = appModel;
         _modelSerialization = modelSerialization;
     }
 

@@ -3535,7 +3535,7 @@ components:
     DataModelPairResponse:
       type: object
       properties:
-        id:
+        dataElementId:
           type: string
           format: uuid
         data:

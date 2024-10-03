@@ -358,28 +358,19 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        long filesize;
-
-        using (
-            Stream streamToWriteTo = File.Open(
-                dataPath + @"blob/" + dataGuid,
-                FileMode.Truncate,
-                FileAccess.ReadWrite,
-                FileShare.ReadWrite
-            )
-        )
-        {
+        using var memoryStream = new MemoryStream();
             stream.Seek(0, SeekOrigin.Begin);
-            await stream.CopyToAsync(streamToWriteTo);
-            streamToWriteTo.Flush();
-            filesize = streamToWriteTo.Length;
-        }
+        await stream.CopyToAsync(memoryStream);
+
+        var fileData = memoryStream.ToArray();
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
+
         var dataElement =
             GetDataElements(org, app, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid)
                 .FirstOrDefault(de => de.Id == dataGuid.ToString())
             ?? throw new Exception($"Data element with id {dataGuid} not found in instance");
 
-        dataElement.Size = filesize;
+        dataElement.Size = fileData.Length;
         await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId);
 
         return dataElement;
@@ -424,24 +415,15 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        long filesize;
+        using var memoryStream = new MemoryStream();
+        stream.Seek(0, SeekOrigin.Begin);
+        await stream.CopyToAsync(memoryStream);
 
-        using (
-            Stream streamToWriteTo = File.Open(
-                dataPath + @"blob/" + dataGuid,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.ReadWrite
-            )
-        )
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            await stream.CopyToAsync(streamToWriteTo);
-            streamToWriteTo.Flush();
-            filesize = streamToWriteTo.Length;
-        }
+        var fileData = memoryStream.ToArray();
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
 
-        dataElement.Size = filesize;
+        dataElement.Size = fileData.Length;
+
         await WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
 
         return dataElement;

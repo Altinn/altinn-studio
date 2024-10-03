@@ -480,7 +480,7 @@ public class DataController : ControllerBase
                 new DataPatchResponse()
                 {
                     ValidationIssues = newResponse.ValidationIssues.ToDictionary(d => d.Source, d => d.Issues),
-                    NewDataModel = newResponse.NewDataModels.First(m => m.Id == dataGuid).Data,
+                    NewDataModel = newResponse.NewDataModels.First(m => m.DataElementId == dataGuid).Data,
                 }
             );
         }
@@ -578,7 +578,6 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
-                // TODO: handle added and deleted data elements
                 foreach (var change in res.Ok.ChangedDataElements)
                 {
                     await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentFormData);

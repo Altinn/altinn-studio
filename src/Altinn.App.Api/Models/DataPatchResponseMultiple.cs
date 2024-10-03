@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
@@ -12,22 +13,28 @@ public class DataPatchResponseMultiple
     /// <summary>
     /// The validation issues that were found during the patch operation.
     /// </summary>
+    [JsonPropertyName("validationIssues")]
     public required List<ValidationSourcePair> ValidationIssues { get; init; }
 
     /// <summary>
     /// The current data in all data models updated by the patch operation.
     /// </summary>
+    [JsonPropertyName("newDataModels")]
     public required List<DataModelPairResponse> NewDataModels { get; init; }
-
-    /// <summary>
-    /// Pair of Guid and data object.
-    /// </summary>
-    /// <param name="Id">The guid of the DataElement</param>
-    /// <param name="Data">The form data of the data element</param>
-    public record DataModelPairResponse(Guid Id, object Data);
 
     /// <summary>
     /// The instance with updated dataElement list.
     /// </summary>
+    [JsonPropertyName("instance")]
     public required Instance Instance { get; init; }
+
+    /// <summary>
+    /// Pair of Guid and data object.
+    /// </summary>
+    /// <param name="DataElementId">The guid of the DataElement</param>
+    /// <param name="Data">The form data of the data element</param>
+    public record DataModelPairResponse(
+        [property: JsonPropertyName("dataElementId")] Guid DataElementId,
+        [property: JsonPropertyName("data")] object Data
+    );
 }

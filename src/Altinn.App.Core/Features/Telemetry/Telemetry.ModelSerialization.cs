@@ -13,7 +13,7 @@ partial class Telemetry
 
     internal Activity? StartSerializeToJsonActivity(Type typeToSerialize)
     {
-        var activity = ActivitySource.StartActivity("SerializationService.SerializeXml");
+        var activity = ActivitySource.StartActivity("SerializationService.SerializeJson");
         activity?.SetTag("Type", typeToSerialize.FullName);
         return activity;
     }

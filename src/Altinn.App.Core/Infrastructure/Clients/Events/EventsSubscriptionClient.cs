@@ -17,7 +17,6 @@ public class EventsSubscriptionClient : IEventsSubscription
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
-    private readonly PlatformSettings _platformSettings;
     private readonly GeneralSettings _generalSettings;
     private readonly HttpClient _client;
     private readonly IEventSecretCodeProvider _secretCodeProvider;
@@ -34,7 +33,6 @@ public class EventsSubscriptionClient : IEventsSubscription
         ILogger<EventsSubscriptionClient> logger
     )
     {
-        _platformSettings = platformSettings.Value;
         _generalSettings = generalSettings.Value;
         httpClient.BaseAddress = new Uri(platformSettings.Value.ApiEventsEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
