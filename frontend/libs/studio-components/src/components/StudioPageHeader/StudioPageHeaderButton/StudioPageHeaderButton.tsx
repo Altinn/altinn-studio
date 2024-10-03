@@ -11,7 +11,7 @@ export type StudioPageHeaderButtonProps = {
 } & Omit<StudioButtonProps, 'color' | 'variant'>;
 
 export const StudioPageHeaderButton = forwardRef<HTMLButtonElement, StudioPageHeaderButtonProps>(
-  ({ color, variant, ...rest }, ref): ReactElement => {
+  ({ color, variant, className: givenClass, ...rest }, ref): ReactElement => {
     const getClassName = (): string => {
       if (variant === 'regular' && color === 'dark') return classes.regularDark;
       if (variant === 'regular' && color === 'light') return classes.regularLight;
@@ -19,7 +19,13 @@ export const StudioPageHeaderButton = forwardRef<HTMLButtonElement, StudioPageHe
       if (variant === 'preview' && color === 'light') return classes.previewLight;
     };
 
-    return <StudioButton ref={ref} className={cn(classes.button, getClassName())} {...rest} />;
+    return (
+      <StudioButton
+        ref={ref}
+        className={cn(classes.button, givenClass, getClassName())}
+        {...rest}
+      />
+    );
   },
 );
 
