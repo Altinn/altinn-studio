@@ -128,7 +128,7 @@ public interface IAppResources
     /// <summary>
     /// Gets the full layout model for the task
     /// </summary>
-    LayoutModel GetLayoutModelForTask(string taskId);
+    LayoutModel? GetLayoutModelForTask(string taskId);
 
     /// <summary>
     /// Gets the full layout model for the optional set

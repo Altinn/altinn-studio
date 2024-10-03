@@ -1,4 +1,3 @@
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -12,7 +11,15 @@ public interface IValidator
     /// <summary>
     /// The task id for the task that the validator is associated with or "*" if the validator should run for all tasks.
     /// </summary>
+    /// <remarks>Ignored if <see cref="ShouldRunForTask"/> is implemented</remarks>
     public string TaskId { get; }
+
+    /// <summary>
+    /// Check if this validator should run for the given task
+    ///
+    /// Default implementations check <see cref="TaskId"/>
+    /// </summary>
+    public bool ShouldRunForTask(string taskId) => TaskId == "*" || TaskId == taskId;
 
     /// <summary>
     /// Unique string that identifies the source of the validation issues from this validator
@@ -65,12 +72,12 @@ public interface IValidator
 /// <summary>
 /// Represents a change in a data element with current and previous deserialized data
 /// </summary>
-public class DataElementChange
+public sealed class DataElementChange
 {
     /// <summary>
     /// The data element the change is related to
     /// </summary>
-    public required DataElementId DataElement { get; init; }
+    public required DataElement DataElement { get; init; }
 
     /// <summary>
     /// The state of the data element before the change
@@ -81,4 +88,14 @@ public class DataElementChange
     /// The state of the data element after the change
     /// </summary>
     public required object CurrentFormData { get; init; }
+
+    /// <summary>
+    /// The binary representation (for storage) of the data element before changes
+    /// </summary>
+    public ReadOnlyMemory<byte>? PreviousBinaryData { get; init; }
+
+    /// <summary>
+    /// The binary representation (for storage) of the data element after changes
+    /// </summary>
+    public ReadOnlyMemory<byte>? CurrentBinaryData { get; init; }
 }

@@ -226,9 +226,14 @@ public sealed class ValidationServiceTests : IDisposable
             .Verifiable(hasRelevantChanges is null ? Times.Never : Times.AtLeastOnce);
     }
 
-    private void SourcePropertyIsSet(Dictionary<string, List<ValidationIssueWithSource>> result)
+    private void SourcePropertyIsSet(List<ValidationSourcePair> result)
     {
-        Assert.All(result.Values, SourcePropertyIsSet);
+        var issues = result.SelectMany(p => p.Issues).ToArray();
+        if (issues.Length == 0)
+        {
+            return;
+        }
+        issues.Should().AllSatisfy(i => i.Source.Should().NotBeNull());
     }
 
     private void SourcePropertyIsSet(List<ValidationIssueWithSource> result)
@@ -326,7 +331,7 @@ public sealed class ValidationServiceTests : IDisposable
             DefaultLanguage
         );
 
-        result.Should().ContainKey("specificValidator").WhoseValue.Should().HaveCount(0);
+        result.Should().ContainSingle(p => p.Source == "specificValidator").Which.Issues.Should().HaveCount(0);
         result.Should().HaveCount(1);
         SourcePropertyIsSet(result);
     }
@@ -382,15 +387,15 @@ public sealed class ValidationServiceTests : IDisposable
         );
         resultData
             .Should()
-            .ContainKey("specificValidator")
-            .WhoseValue.Should()
+            .ContainSingle(p => p.Source == "specificValidator")
+            .Which.Issues.Should()
             .ContainSingle()
             .Which.CustomTextKey.Should()
             .Be("NameNotOla");
         resultData
             .Should()
-            .ContainKey("alwaysUsedValidator")
-            .WhoseValue.Should()
+            .ContainSingle(p => p.Source == "alwaysUsedValidator")
+            .Which.Issues.Should()
             .ContainSingle()
             .Which.CustomTextKey.Should()
             .Be("AlwaysNameNotOla");

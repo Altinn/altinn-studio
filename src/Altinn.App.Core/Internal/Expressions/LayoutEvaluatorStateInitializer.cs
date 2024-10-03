@@ -82,7 +82,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         }
 
         // Not implemented
-        public void AddFormDataElement(string dataType, object data)
+        public void AddFormDataElement(string dataType, object model)
         {
             throw new NotImplementedException(
                 "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"

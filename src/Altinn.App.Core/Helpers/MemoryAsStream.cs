@@ -1,5 +1,8 @@
 namespace Altinn.App.Core.Helpers;
 
+/// <summary>
+/// A read only stream that can be used to pass <see cref="ReadOnlyMemory{T}"/> to a function that request a Stream without any copying.
+/// </summary>
 internal class MemoryAsStream : Stream
 {
     private readonly ReadOnlyMemory<byte> _memory;

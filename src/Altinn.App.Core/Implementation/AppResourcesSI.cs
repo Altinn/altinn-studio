@@ -317,17 +317,23 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public LayoutModel GetLayoutModelForTask(string taskId)
+    public LayoutModel? GetLayoutModelForTask(string taskId)
     {
         using var activity = _telemetry?.StartGetLayoutModelActivity();
-        var layoutSets = GetLayoutSet() ?? throw new InvalidOperationException("no layout sets found");
+        var layoutSets = GetLayoutSet();
+        if (layoutSets is null)
+        {
+            return null;
+        }
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
 
         var layouts = layoutSets.Sets.Select(set => LoadLayout(set, dataTypes)).ToList();
 
-        var layoutSet =
-            GetLayoutSetForTask(taskId)
-            ?? throw new InvalidOperationException("No layout set found for task " + taskId);
+        var layoutSet = GetLayoutSetForTask(taskId);
+        if (layoutSet is null)
+        {
+            return null;
+        }
 
         return new LayoutModel(layouts, layoutSet);
     }

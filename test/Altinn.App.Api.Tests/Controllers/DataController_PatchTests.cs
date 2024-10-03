@@ -29,7 +29,7 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    protected static new readonly JsonSerializerOptions JsonSerializerOptions =
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
         new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -93,7 +93,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var serializedPatch = JsonSerializer.Serialize(
             new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators, },
-            JsonSerializerOptions
+            _jsonSerializerOptions
         );
         OutputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
@@ -101,9 +101,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         OutputHelper.WriteLine("\nResponse:");
-        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
         response.Should().HaveStatusCode(expectedStatus);
-        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, JsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
         return (response, responseString, responseObject);
     }
 
@@ -124,16 +124,16 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             url += $"?language={language}";
         }
         OutputHelper.WriteLine($"Calling PATCH {url}");
-        var serializedPatch = JsonSerializer.Serialize(requestMultiple, JsonSerializerOptions);
+        var serializedPatch = JsonSerializer.Serialize(requestMultiple, _jsonSerializerOptions);
         OutputHelper.WriteLine(serializedPatch);
         using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
         var response = await GetClient().PatchAsync(url, updateDataElementContent);
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         OutputHelper.WriteLine("\nResponse:");
-        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
         response.Should().HaveStatusCode(expectedStatus);
-        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, JsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<TResponse>(responseString, _jsonSerializerOptions)!;
         return (response, responseString, responseObject);
     }
 
@@ -229,7 +229,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         OutputHelper.WriteLine(createExtraElementResponseString);
         createExtraElementResponse.Should().HaveStatusCode(HttpStatusCode.Created);
         var extraDataId = JsonSerializer
-            .Deserialize<DataElement>(createExtraElementResponseString, JsonSerializerOptions)
+            .Deserialize<DataElement>(createExtraElementResponseString, _jsonSerializerOptions)
             ?.Id;
         extraDataId.Should().NotBeNull();
         var extraDataGuid = Guid.Parse(extraDataId!);
@@ -249,19 +249,25 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(request, HttpStatusCode.OK);
 
-        parsedResponse.ValidationIssues.Should().ContainKey("Required").WhoseValue.Should().BeEmpty();
+        parsedResponse
+            .ValidationIssues.Should()
+            .ContainSingle(p => p.Source == "Required")
+            .Which.Issues.Should()
+            .BeEmpty();
 
-        parsedResponse.NewDataModels.Should().HaveCount(2).And.ContainKey(_dataGuid).And.ContainKey(extraDataGuid);
+        parsedResponse.NewDataModels.Should().HaveCount(2);
         var newData = parsedResponse
-            .NewDataModels[_dataGuid]
-            .Should()
+            .NewDataModels.Should()
+            .ContainSingle(d => d.Id == _dataGuid)
+            .Which.Data.Should()
             .BeOfType<JsonElement>()
             .Which.Deserialize<Skjema>()!;
         newData.Melding!.Name.Should().Be("Ola Olsen");
 
         var newExtraData = parsedResponse
-            .NewDataModels[extraDataGuid]
-            .Should()
+            .NewDataModels.Should()
+            .ContainSingle(d => d.Id == extraDataGuid)
+            .Which.Data.Should()
             .BeOfType<JsonElement>()
             .Which.Deserialize<Skjema>()!;
         newExtraData.Melding!.Name.Should().Be("Kari Olsen");
@@ -312,7 +318,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var validationResponseString = await validationResponse.Content.ReadAsStringAsync();
         var validationResponseObject = JsonSerializer.Deserialize<List<ValidationIssueWithSource>>(
             validationResponseString,
-            JsonSerializerOptions
+            _jsonSerializerOptions
         )!;
         validationResponseObject.Should().BeEquivalentTo(parsedResponse.ValidationIssues.Values.SelectMany(d => d));
 
@@ -852,9 +858,9 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         var responseString = await response.Content.ReadAsStringAsync();
         using var responseParsedRaw = JsonDocument.Parse(responseString);
         OutputHelper.WriteLine("\nResponse:");
-        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, JsonSerializerOptions));
+        OutputHelper.WriteLine(JsonSerializer.Serialize(responseParsedRaw, _jsonSerializerOptions));
         response.Should().HaveStatusCode(HttpStatusCode.OK);
-        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, JsonSerializerOptions)!;
+        var responseObject = JsonSerializer.Deserialize<Skjema>(responseString, _jsonSerializerOptions)!;
 
         responseObject.Melding!.Random.Should().Be("randomFromDataRead");
 

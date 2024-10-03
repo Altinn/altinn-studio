@@ -93,7 +93,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         throw new NotImplementedException();
     }
 
-    public void AddFormDataElement(string dataType, object data)
+    public void AddFormDataElement(string dataType, object model)
     {
         throw new NotImplementedException();
     }

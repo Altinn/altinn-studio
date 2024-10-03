@@ -85,16 +85,17 @@ public class ExpressionValidatorTests
                 init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
             )
             .ReturnsAsync(evaluatorState);
-        _appResources
-            .Setup(ar => ar.GetValidationConfiguration("default"))
-            .Returns(JsonSerializer.Serialize(testCase.ValidationConfig));
-        _appResources
-            .Setup(ar => ar.GetLayoutSetForTask(null!))
-            .Returns(new LayoutSet() { Id = "layout", DataType = "default", });
 
         var dataAccessor = new InstanceDataAccessorFake(instance) { { dataElement, dataModel } };
 
-        var validationIssues = await _validator.ValidateFormData(instance, dataElement, dataAccessor, "Task_1", null);
+        var validationIssues = await _validator.ValidateFormData(
+            instance,
+            dataElement,
+            dataAccessor,
+            JsonSerializer.Serialize(testCase.ValidationConfig),
+            "Task_1",
+            null
+        );
 
         var result = validationIssues.Select(i => new
         {

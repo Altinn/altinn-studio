@@ -54,7 +54,7 @@ public class ValidationServiceTests : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    private Mock<IValidator> RegistrerValidatorMock(
+    private Mock<IValidator> RegisterValidatorMock(
         string source,
         bool? hasRelevantChanges = null,
         List<DataElementChange>? expectedChanges = null,
@@ -64,6 +64,7 @@ public class ValidationServiceTests : IAsyncLifetime
     )
     {
         var mock = new Mock<IValidator>(MockBehavior.Strict);
+        mock.Setup(v => v.ShouldRunForTask(TaskId)).Returns(true);
         mock.Setup(v => v.ValidationSource).Returns(source);
         if (hasRelevantChanges.HasValue && expectedChanges is not null)
         {
@@ -131,8 +132,8 @@ public class ValidationServiceTests : IAsyncLifetime
         var changes = new List<DataElementChange>();
         var issues = new List<ValidationIssue>();
 
-        RegistrerValidatorMock("IgnoredValidator"); // Throws error if changes or validation is called
-        RegistrerValidatorMock("Validator", hasRelevantChanges: true, changes, issues);
+        RegisterValidatorMock("IgnoredValidator"); // Throws error if changes or validation is called
+        RegisterValidatorMock("Validator", hasRelevantChanges: true, changes, issues);
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
         var result = await validationService.ValidateIncrementalFormData(
@@ -143,7 +144,7 @@ public class ValidationServiceTests : IAsyncLifetime
             new List<string> { "IgnoredValidator" },
             null
         );
-        result.Should().ContainKey("Validator").WhoseValue.Should().BeEmpty();
+        result.Should().ContainSingle(p => p.Source == "Validator").Which.Issues.Should().BeEmpty();
     }
 
     [Fact]
@@ -157,8 +158,8 @@ public class ValidationServiceTests : IAsyncLifetime
             Code = "TestCode"
         };
 
-        RegistrerValidatorMock(source: "IgnoredValidator");
-        RegistrerValidatorMock(
+        RegisterValidatorMock(source: "IgnoredValidator");
+        RegisterValidatorMock(
             source: "Validator",
             hasRelevantChanges: true,
             issues: [issue],
@@ -189,13 +190,13 @@ public class ValidationServiceTests : IAsyncLifetime
         bool? onlyIncrementalValidators
     )
     {
-        var incrementalMock = RegistrerValidatorMock(
+        var incrementalMock = RegisterValidatorMock(
             source: "Validator",
             hasRelevantChanges: null,
             issues: [],
             noIncrementalValidation: false
         );
-        var nonIncrementalMock = RegistrerValidatorMock(
+        var nonIncrementalMock = RegisterValidatorMock(
             source: "NonIncrementalValidator",
             hasRelevantChanges: null,
             issues: [],

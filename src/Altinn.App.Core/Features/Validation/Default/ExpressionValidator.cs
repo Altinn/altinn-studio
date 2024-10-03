@@ -40,8 +40,15 @@ public class ExpressionValidator : IValidator
         _appMetadata = appMetadata;
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// We implement <see cref="ShouldRunForTask"/> instead
+    /// </summary>
     public string TaskId => "*";
+
+    /// <summary>
+    /// Only run for tasks that specifies a layout set
+    /// </summary>
+    public bool ShouldRunForTask(string taskId) => GetDataTypesWithExpressionsForTask(taskId).Any();
 
     /// <summary>
     /// This validator has the code "Expression" and this is known by the frontend, who may request this validator to not run for incremental validation.
@@ -66,19 +73,22 @@ public class ExpressionValidator : IValidator
         string? language
     )
     {
-        var dataTypes = (await _appMetadata.GetApplicationMetadata()).DataTypes;
-        var formDataElementsForTask = instance
-            .Data.Where(d =>
-            {
-                var dataType = dataTypes.Find(dt => dt.Id == d.DataType);
-                return dataType != null && dataType.TaskId == taskId;
-            })
-            .ToList();
         var validationIssues = new List<ValidationIssue>();
-        foreach (var dataElement in formDataElementsForTask)
+        foreach (var (dataType, validationConfig) in GetDataTypesWithExpressionsForTask(taskId))
         {
-            var issues = await ValidateFormData(instance, dataElement, instanceDataAccessor, taskId, language);
-            validationIssues.AddRange(issues);
+            var formDataElementsForTask = instance.Data.Where(d => d.DataType == dataType.Id);
+            foreach (var dataElement in formDataElementsForTask)
+            {
+                var issues = await ValidateFormData(
+                    instance,
+                    dataElement,
+                    instanceDataAccessor,
+                    validationConfig,
+                    taskId,
+                    language
+                );
+                validationIssues.AddRange(issues);
+            }
         }
 
         return validationIssues;
@@ -88,17 +98,11 @@ public class ExpressionValidator : IValidator
         Instance instance,
         DataElement dataElement,
         IInstanceDataAccessor dataAccessor,
+        string rawValidationConfig,
         string taskId,
         string? language
     )
     {
-        var rawValidationConfig = _appResourceService.GetValidationConfiguration(dataElement.DataType);
-        if (rawValidationConfig == null)
-        {
-            // No validation configuration exists for this data type
-            return new List<ValidationIssue>();
-        }
-
         using var validationConfig = JsonDocument.Parse(rawValidationConfig);
 
         var evaluatorState = await _layoutEvaluatorStateInitializer.Init(
@@ -424,5 +428,20 @@ public class ExpressionValidator : IValidator
             }
         }
         return expressionValidations;
+    }
+
+    private IEnumerable<KeyValuePair<DataType, string>> GetDataTypesWithExpressionsForTask(string taskId)
+    {
+        var appMetadata = _appMetadata.GetApplicationMetadata().Result;
+        foreach (
+            var dataType in appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null)
+        )
+        {
+            var validationConfig = _appResourceService.GetValidationConfiguration(dataType.Id);
+            if (validationConfig != null)
+            {
+                yield return KeyValuePair.Create(dataType, validationConfig);
+            }
+        }
     }
 }

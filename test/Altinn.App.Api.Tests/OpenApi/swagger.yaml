@@ -690,6 +690,7 @@ paths:
             text/xml:
               schema:
                 $ref: '#/components/schemas/ProblemDetails'
+      deprecated: true
     delete:
       tags:
         - Data
@@ -3531,6 +3532,15 @@ components:
           type: string
           nullable: true
       additionalProperties: false
+    DataModelPairResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        data:
+          nullable: true
+      additionalProperties: false
     DataPatchRequest:
       required:
         - ignoredValidators
@@ -3586,15 +3596,14 @@ components:
       type: object
       properties:
         validationIssues:
-          type: object
-          additionalProperties:
-            type: array
-            items:
-              $ref: '#/components/schemas/ValidationIssueWithSource'
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationSourcePair'
           nullable: true
         newDataModels:
-          type: object
-          additionalProperties: { }
+          type: array
+          items:
+            $ref: '#/components/schemas/DataModelPairResponse'
           nullable: true
         instance:
           $ref: '#/components/schemas/Instance'
@@ -4545,6 +4554,18 @@ components:
           type: array
           items:
             type: string
+          nullable: true
+      additionalProperties: false
+    ValidationSourcePair:
+      type: object
+      properties:
+        source:
+          type: string
+          nullable: true
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationIssueWithSource'
           nullable: true
       additionalProperties: false
     ValidationStatus:

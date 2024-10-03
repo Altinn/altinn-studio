@@ -14,22 +14,35 @@ namespace Altinn.App.Core.Internal.Data;
 ///
 /// Do not add this to the DI container, as it should only be created explicitly because of data leak potential.
 /// </summary>
-internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
+internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
 {
+    // DataClient needs a few arguments to fetch data
     private readonly string _org;
     private readonly string _app;
     private readonly Guid _instanceGuid;
     private readonly int _instanceOwnerPartyId;
+
+    // Services from DI
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerializationService;
+
+    // Caches
+    // Cache for the most up to date form data (can be mutated or replaced with SetFormData(dataElementId, data))
     private readonly LazyCache<object> _formDataCache = new();
+
+    // Cache for the binary content of the file as currently in storage (updated on save)
     private readonly LazyCache<ReadOnlyMemory<byte>> _binaryCache = new();
+
+    // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
     private readonly ConcurrentBag<DataElementId> _dataElementsToDelete = new();
+
+    // Data elements to add (eg AddFormDataElement(dataTypeString, data)), but not yet added to instance or storage
     private readonly ConcurrentBag<(
         DataType dataType,
         string contentType,
         string? filename,
+        object? model,
         ReadOnlyMemory<byte> bytes
     )> _dataElementsToAdd = new();
 
@@ -68,6 +81,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         );
     }
 
+    /// <inheritdoc />
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementId dataElementId) =>
         await _binaryCache.GetOrCreate(
             dataElementId,
@@ -82,7 +96,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
             ?? throw new InvalidOperationException($"Data element with id {dataElementId.Id} not found in instance");
     }
 
-    public DataType GetDataType(DataElementId dataElementId)
+    private DataType GetDataType(DataElementId dataElementId)
     {
         var dataElement = GetDataElement(dataElementId);
         var appMetadata = _appMetadata.GetApplicationMetadata().Result;
@@ -96,7 +110,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     }
 
     /// <inheritdoc />
-    public void AddFormDataElement(string dataTypeString, object data)
+    public void AddFormDataElement(string dataTypeString, object model)
     {
         var dataType = GetDataTypeByString(dataTypeString);
         if (dataType.AppLogic?.ClassRef is not { } classRef)
@@ -106,7 +120,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
             );
         }
 
-        var modelType = data.GetType();
+        var modelType = model.GetType();
         if (modelType.FullName != classRef)
         {
             throw new InvalidOperationException(
@@ -114,9 +128,10 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
             );
         }
 
-        var (bytes, contentType) = _modelSerializationService.SerializeToStorage(data, dataType);
+        ObjectUtils.InitializeAltinnRowId(model);
+        var (bytes, contentType) = _modelSerializationService.SerializeToStorage(model, dataType);
 
-        _dataElementsToAdd.Add((dataType, contentType, null, bytes));
+        _dataElementsToAdd.Add((dataType, contentType, null, model, bytes));
     }
 
     /// <inheritdoc />
@@ -134,23 +149,22 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
                 $"Data type {dataTypeString} has a AppLogic.ClassRef in app metadata, and is not a binary data element"
             );
         }
-        _dataElementsToAdd.Add((dataType, contentType, filename, bytes));
+        _dataElementsToAdd.Add((dataType, contentType, filename, null, bytes));
     }
 
     /// <inheritdoc />
     public void RemoveDataElement(DataElementId dataElementId)
     {
-        var idAsString = dataElementId.ToString();
-        var dataElement = Instance.Data.Find(d => d.Id == idAsString);
+        var dataElement = Instance.Data.Find(d => d.Id == dataElementId.Id);
         if (dataElement is null)
         {
-            throw new InvalidOperationException($"Data element with id {idAsString} not found in instance");
+            throw new InvalidOperationException($"Data element with id {dataElementId.Id} not found in instance");
         }
 
         _dataElementsToDelete.Add(dataElementId);
     }
 
-    public List<DataElementChange> GetDataElementChanges()
+    public List<DataElementChange> GetDataElementChanges(bool initializeAltinnRowId)
     {
         var changes = new List<DataElementChange>();
         foreach (var dataElement in Instance.Data)
@@ -162,11 +176,12 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
                 continue;
             var dataType = GetDataType(dataElementId);
             var previousBinary = _binaryCache.GetCachedValueOrDefault(dataElementId);
-
-            ObjectUtils.InitializeAltinnRowId(data);
-            ObjectUtils.PrepareModelForXmlStorage(data);
-
-            var (currentBinary, _) = _modelSerializationService.SerializeToStorage(data, dataType);
+            if (initializeAltinnRowId)
+            {
+                ObjectUtils.InitializeAltinnRowId(data);
+            }
+            var (currentBinary, contentType) = _modelSerializationService.SerializeToStorage(data, dataType);
+            _binaryCache.Set(dataElementId, currentBinary);
 
             if (!currentBinary.Span.SequenceEqual(previousBinary.Span))
             {
@@ -178,7 +193,9 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
                         PreviousFormData = _modelSerializationService.DeserializeFromStorage(
                             previousBinary.Span,
                             dataType
-                        )
+                        ),
+                        CurrentBinaryData = currentBinary,
+                        PreviousBinaryData = previousBinary,
                     }
                 );
             }
@@ -195,7 +212,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         // Updating and deleting is done in SaveChanges and happen in parallel with validation.
 
         // Upload added data elements
-        foreach (var (dataType, contentType, filename, bytes) in _dataElementsToAdd)
+        foreach (var (dataType, contentType, filename, data, bytes) in _dataElementsToAdd)
         {
             async Task InsertBinaryData()
             {
@@ -206,6 +223,11 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
                     filename,
                     new MemoryAsStream(bytes)
                 );
+                _binaryCache.Set(dataElement, bytes);
+                if (data is not null)
+                {
+                    _formDataCache.Set(dataElement, data);
+                }
                 createdDataElements.Add(dataElement);
             }
 
@@ -239,31 +261,26 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
         Instance.Data.AddRange(createdDataElements);
     }
 
-    internal async Task SaveChanges(List<DataElementChange> changes, bool initializeRowId)
+    internal async Task SaveChanges(List<DataElementChange> changes)
     {
         var tasks = new List<Task>();
 
         foreach (var change in changes)
         {
-            var dataType = GetDataType(change.DataElement);
-            if (initializeRowId)
+            if (change.CurrentBinaryData is null)
             {
-                ObjectUtils.InitializeAltinnRowId(change.CurrentFormData);
+                throw new InvalidOperationException("Changes sent to SaveChanges must have a CurrentBinaryData value");
             }
 
-            var (binaryData, contentType) = _modelSerializationService.SerializeToStorage(
-                change.CurrentFormData,
-                dataType
-            );
-            // Update cache so that we can compare with the saved data to ensure no changes after save
-            _binaryCache.Set(change.DataElement, binaryData);
+            var dataElement = GetDataElement(change.DataElement);
+
             tasks.Add(
                 _dataClient.UpdateBinaryData(
                     new InstanceIdentifier(Instance),
-                    contentType,
-                    null,
-                    change.DataElement.Guid,
-                    new MemoryAsStream(binaryData)
+                    dataElement.ContentType,
+                    dataElement.Filename,
+                    Guid.Parse(change.DataElement.Id),
+                    new MemoryAsStream(change.CurrentBinaryData.Value)
                 )
             );
         }
@@ -276,7 +293,29 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
     /// </summary>
     internal void SetFormData(DataElementId dataElementId, object data)
     {
+        var dataType = GetDataType(dataElementId);
+        if (dataType.AppLogic?.ClassRef is not { } classRef)
+        {
+            throw new InvalidOperationException($"Data element {dataElementId.Id} don't have app logic");
+        }
+        if (data.GetType().FullName != classRef)
+        {
+            throw new InvalidOperationException(
+                $"Data object registered for {dataElementId.Id} is not of type {classRef} as specified in application metadata for data type {dataType.Id}, but {data.GetType().FullName}"
+            );
+        }
         _formDataCache.Set(dataElementId, data);
+    }
+
+    /// <summary>
+    /// Compatibility function to update both formDataCache and binaryCache as we assume storage has already been updated.
+    /// </summary>
+    [Obsolete("Should only be used for actions that set UpdatedDataModels on UserActionResult which is deprecated")]
+    internal void ReplaceFormDataAssumeSavedToStorage(DataElementId dataElementId, object newModel)
+    {
+        SetFormData(dataElementId, newModel);
+        var (data, _) = _modelSerializationService.SerializeToStorage(newModel, GetDataType(dataElementId));
+        _binaryCache.Set(dataElementId, data);
     }
 
     /// <summary>
@@ -339,7 +378,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataAccessor
 
     internal void VerifyDataElementsUnchanged()
     {
-        var changes = GetDataElementChanges();
+        var changes = GetDataElementChanges(initializeAltinnRowId: false);
         if (changes.Count > 0)
         {
             throw new InvalidOperationException(

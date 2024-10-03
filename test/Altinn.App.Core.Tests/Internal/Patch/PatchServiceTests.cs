@@ -14,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -46,6 +47,7 @@ public sealed class PatchServiceTests : IDisposable
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Strict);
     private readonly TelemetrySink _telemetrySink = new();
+    private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
 
     // ValidatorMocks
     private readonly Mock<IFormDataValidator> _formDataValidator = new(MockBehavior.Strict);
@@ -83,6 +85,7 @@ public sealed class PatchServiceTests : IDisposable
             )
             .ReturnsAsync(_dataElement)
             .Verifiable();
+        _webHostEnvironment.SetupGet(whe => whe.EnvironmentName).Returns("Development");
         var validatorFactory = new ValidatorFactory(
             [],
             Options.Create(new GeneralSettings()),
@@ -95,12 +98,15 @@ public sealed class PatchServiceTests : IDisposable
         var validationService = new ValidationService(validatorFactory, _vLoggerMock.Object);
 
         _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
+
         _patchService = new PatchService(
             _appMetadataMock.Object,
             _dataClientMock.Object,
             validationService,
-            new List<IDataProcessor> { _dataProcessorMock.Object },
+            [_dataProcessorMock.Object],
+            [],
             _modelSerializationService,
+            _webHostEnvironment.Object,
             _telemetrySink.Object
         );
     }
@@ -173,8 +179,8 @@ public sealed class PatchServiceTests : IDisposable
         change.DataElement.Id.Should().Be(_dataGuid.ToString());
         change.CurrentFormData.Should().BeOfType<MyModel>().Subject.Name.Should().Be("Test Testesen");
         var validator = res.ValidationIssues.Should().ContainSingle().Which;
-        validator.Key.Should().Be("formDataValidator");
-        var issue = validator.Value.Should().ContainSingle().Which;
+        validator.Source.Should().Be("formDataValidator");
+        var issue = validator.Issues.Should().ContainSingle().Which;
         issue.Description.Should().Be("First error");
         _dataProcessorMock.Verify(d =>
             d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<MyModel>(), It.IsAny<MyModel?>(), null)

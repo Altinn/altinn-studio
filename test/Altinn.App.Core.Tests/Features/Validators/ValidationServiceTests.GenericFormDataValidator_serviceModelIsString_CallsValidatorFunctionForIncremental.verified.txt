@@ -51,16 +51,19 @@
     ],
     Metrics: []
   },
-  issues: {
-    Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default: [
-      {
-        Severity: Error,
-        DataElementId: DataElementId_0,
-        Code: TestCode,
-        Description: Test error,
-        Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default,
-        NoIncrementalUpdates: false
-      }
-    ]
-  }
+  issues: [
+    {
+      Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default,
+      Issues: [
+        {
+          Severity: Error,
+          DataElementId: DataElementId_0,
+          Code: TestCode,
+          Description: Test error,
+          Source: Altinn.App.Core.Tests.Features.Validators.ValidationServiceTests+GenericValidatorFake-default,
+          NoIncrementalUpdates: false
+        }
+      ]
+    }
+  ]
 }

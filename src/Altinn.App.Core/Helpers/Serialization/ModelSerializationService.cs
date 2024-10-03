@@ -88,12 +88,7 @@ public class ModelSerializationService
 
         XmlSerializer serializer = _xmlSerializer.GetSerializer(modelType);
         serializer.Serialize(xmlWriter, model);
-        if (!memoryStream.TryGetBuffer(out var segment))
-        {
-            throw new InvalidOperationException("Failed to get buffer from memory stream");
-        }
-
-        return segment.AsMemory().RemoveBom();
+        return memoryStream.ToArray().AsMemory().RemoveBom();
     }
 
     /// <summary>
@@ -161,11 +156,8 @@ public class ModelSerializationService
     }
 
     /// <summary>
-    ///
+    /// Deserialize utf8 encoded xml data to a model of the specified type
     /// </summary>
-    /// <param name="data"></param>
-    /// <param name="modelType"></param>
-    /// <returns></returns>
     public object DeserializeXml(ReadOnlySpan<byte> data, Type modelType)
     {
         using var activity = _telemetry?.StartDeserializeFromXmlActivity(modelType);

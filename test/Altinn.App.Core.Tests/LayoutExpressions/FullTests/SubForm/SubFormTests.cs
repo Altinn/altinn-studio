@@ -246,6 +246,22 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
         _appResourcesMock
             .Setup(ar => ar.GetLayoutModelForTask(TaskId))
             .Returns(new LayoutModel([_mainLayoutComponent, _subLayoutComponent], null));
+        _appResourcesMock
+            .Setup(ar => ar.GetLayoutSet())
+            .Returns(
+                new LayoutSets()
+                {
+                    Sets =
+                    [
+                        new LayoutSet()
+                        {
+                            Id = "layoutId",
+                            Tasks = [TaskId],
+                            DataType = DefaultDataType
+                        }
+                    ]
+                }
+            );
         _httpContextAccessorMock.SetupGet(hca => hca.HttpContext).Returns(new DefaultHttpContext());
     }
 

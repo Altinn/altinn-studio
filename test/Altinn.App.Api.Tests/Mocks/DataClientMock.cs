@@ -56,7 +56,6 @@ public class DataClientMock : IDataClient
         bool delay
     )
     {
-        await Task.CompletedTask;
         string dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
         if (delay)
@@ -314,24 +313,13 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        long filesize;
+        using var stream = new MemoryStream();
+        await request.Body.CopyToAsync(stream);
 
-        using (
-            Stream streamToWriteTo = File.Open(
-                dataPath + @"blob/" + dataGuid,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.ReadWrite
-            )
-        )
-        {
-            await request.Body.CopyToAsync(streamToWriteTo);
-            streamToWriteTo.Flush();
-            filesize = streamToWriteTo.Length;
-            streamToWriteTo.Close();
-        }
+        var fileData = stream.ToArray();
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
 
-        dataElement.Size = filesize;
+        dataElement.Size = fileData.Length;
 
         await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 

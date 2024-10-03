@@ -2,10 +2,20 @@
   Activities: [
     {
       ActivityName: Process.HandleEvents,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
       IdFormat: W3C
     },
     {
       ActivityName: Process.Start,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
       IdFormat: W3C,
       Status: Ok,
       Events: [
@@ -32,6 +42,11 @@
     },
     {
       ActivityName: Process.StoreEvents,
+      Tags: [
+        {
+          instance.guid: Guid_1
+        }
+      ],
       IdFormat: W3C
     }
   ],

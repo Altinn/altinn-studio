@@ -99,3 +99,10 @@ public class ValidationIssueWithSource
     [JsonPropertyName("customTextParams")]
     public List<string>? CustomTextParams { get; set; }
 }
+
+/// <summary>
+/// API responses that returns validation issues grouped by source, typically return a list of these.
+/// </summary>
+/// <param name="Source">The <see cref="IValidator.ValidationSource"/> for the Validator that created theese issues</param>
+/// <param name="Issues">List of issues</param>
+public record ValidationSourcePair(string Source, List<ValidationIssueWithSource> Issues);
