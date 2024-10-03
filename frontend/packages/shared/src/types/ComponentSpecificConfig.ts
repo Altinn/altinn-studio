@@ -106,6 +106,8 @@ type SummarizableComponentProps = {
 
 export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
+export type SummaryCustomTargetType = 'list' | 'string' | 'not set';
+
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
