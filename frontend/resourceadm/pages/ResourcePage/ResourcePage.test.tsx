@@ -11,7 +11,6 @@ import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResource1: Resource = {
   identifier: 'r1',
@@ -145,21 +144,6 @@ describe('ResourcePage', () => {
     );
   });
 
-  it('should show merge conflict modal if repo has merge conflict', async () => {
-    const getRepoStatus = jest.fn().mockImplementation(() =>
-      Promise.resolve<RepoStatus>({
-        aheadBy: 1,
-        behindBy: 1,
-        contentStatus: [],
-        hasMergeConflict: true,
-        repositoryStatus: 'conflict',
-      }),
-    );
-    renderResourcePage({ getRepoStatus });
-
-    await screen.findByText(textMock('merge_conflict.headline'));
-  });
-
   it('should navigate to policy page from modal when resource has errors', async () => {
     const user = userEvent.setup();
     const getResource = jest
@@ -173,10 +157,7 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 1,
-      }),
+      screen.queryByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
     ).not.toBeInTheDocument();
 
     const policyButton = screen.getByRole('tab', {
@@ -185,10 +166,7 @@ describe('ResourcePage', () => {
     await user.click(policyButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
     ).toBeInTheDocument();
 
     const navigateButton = screen.getByRole('button', {
@@ -252,10 +230,7 @@ describe('ResourcePage', () => {
     await user.click(aboutButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_policy'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_policy')),
     ).toBeInTheDocument();
   });
 

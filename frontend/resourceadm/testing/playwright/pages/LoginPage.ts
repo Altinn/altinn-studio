@@ -3,12 +3,12 @@ import { Routes, url } from '../helpers/routes';
 
 // Since this page is a Razor page, it's not using the nb/en.json files, which are used in the frontend.
 const loginPageTexts: Record<string, string> = {
-  login: 'logg inn',
-  username: 'Brukernavn eller epost',
+  login: 'Logg inn',
+  username: 'Brukernavn eller e-postadresse',
   password: 'Passord',
-  error_message: 'Ugyldig brukernavn eller passord.',
-  links: 'Links',
-  authorize: 'Authorize Application',
+  error_message: 'Brukernavn eller passord er feil.',
+  links: 'Lenker',
+  authorize: 'Autoriser applikasjon',
 };
 
 export class LoginPage {
