@@ -84,7 +84,7 @@ describe('EditNumberValue', () => {
     });
   });
 
-  it('should call onChange when selecting from the native select', async () => {
+  it('should call onChange when choosing option from select', async () => {
     const user = userEvent.setup();
     const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
     await renderEditNumberValue({
