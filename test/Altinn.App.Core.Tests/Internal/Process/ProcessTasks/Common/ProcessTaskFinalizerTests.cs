@@ -27,6 +27,7 @@ public class ProcessTaskFinalizerTests
         _processTaskFinalizer = new ProcessTaskFinalizer(
             _appMetadataMock.Object,
             _dataClientMock.Object,
+            _appModelMock.Object,
             new ModelSerializationService(_appModelMock.Object),
             _layoutEvaluatorStateInitializerMock.Object,
             _appSettings
