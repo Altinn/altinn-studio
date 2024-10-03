@@ -2,5 +2,8 @@
   "files.exclude": {
     "**/node_modules": true
   },
-  "dotnet.defaultSolution": "disable"
+  "dotnet.defaultSolution": "disable",
+  "cSpell.words": [
+    "filstørrelsen"
+  ]
 }
