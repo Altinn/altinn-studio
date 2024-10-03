@@ -4,29 +4,21 @@ import { useTranslation } from 'react-i18next';
 import {
   StudioAvatar,
   StudioPageHeader,
-  StudioProfileMenu,
+  type StudioProfileMenuGroup,
   useMediaQuery,
   type StudioProfileMenuItem,
 } from '@studio/components';
 import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
 import { type Organization } from 'app-shared/types/Organization';
-import { repositoryBasePath, repositoryOwnerPath } from 'app-shared/api/paths';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { HeaderContext, SelectedContextType } from 'dashboard/context/HeaderContext';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
-import { getOrgNameByUsername, getOrgUsernameByUsername } from 'dashboard/utils/userUtils';
-
-const TRUNCATE_APP_USERNAME = 30;
+import { useProfileMenuTriggerButtonText } from 'dashboard/hooks/useProfileMenuTriggerButtonText';
+import { useRepoPath } from 'dashboard/hooks/useRepoPath';
+import { usePageHeaderTitle } from 'dashboard/hooks/usePageHeaderTitle';
 
 export const DashboardHeader = () => {
-  const selectedContext = useSelectedContext();
-  const { selectableOrgs } = useContext(HeaderContext);
-  const { t } = useTranslation();
-
-  const pageHeaderTitle: string =
-    selectedContext !== SelectedContextType.All && selectedContext !== SelectedContextType.Self
-      ? getOrgNameByUsername(selectedContext, selectableOrgs)
-      : t('general.back_to_dashboard');
+  const pageHeaderTitle: string = usePageHeaderTitle();
 
   return (
     <StudioPageHeader>
@@ -42,41 +34,17 @@ export const DashboardHeader = () => {
 
 const DashboardHeaderMenu = () => {
   const { t } = useTranslation();
-  const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const selectedContext = useSelectedContext();
   const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
 
-  const getTriggerButtonText = (): string => {
-    if (shouldHideButtonText) return;
-
-    const username = user.full_name || user.login;
-
-    if (
-      selectedContext !== SelectedContextType.All &&
-      selectedContext !== SelectedContextType.Self
-    ) {
-      return t('shared.header_user_for_org', {
-        user: username,
-        org: getOrgNameByUsername(selectedContext, selectableOrgs),
-      });
-    }
-    return username;
-  };
+  const triggerButtonText = useProfileMenuTriggerButtonText();
+  const repoPath = useRepoPath();
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate('/' + context + location.search);
-  };
-
-  const org = getOrgUsernameByUsername(selectedContext, selectableOrgs);
-
-  const getRepoPath = () => {
-    const owner = org || user?.login;
-    if (owner) {
-      return repositoryOwnerPath(owner);
-    }
-    return repositoryBasePath();
   };
 
   const allMenuItem: StudioProfileMenuItem = {
@@ -95,12 +63,11 @@ const DashboardHeaderMenu = () => {
   const selfMenuItem: StudioProfileMenuItem = {
     action: { type: 'button', onClick: () => handleSetSelectedContext(SelectedContextType.Self) },
     itemName: user?.full_name || user?.login,
-    hasDivider: true,
     isActive: selectedContext === SelectedContextType.Self,
   };
 
   const giteaMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: getRepoPath() },
+    action: { type: 'link', href: repoPath },
     itemName: t('shared.header_go_to_gitea'),
   };
 
@@ -109,10 +76,15 @@ const DashboardHeaderMenu = () => {
     itemName: t('shared.header_logout'),
   };
 
+  const profileMenuGroups: StudioProfileMenuGroup[] = [
+    { items: [allMenuItem, ...selectableOrgMenuItems, selfMenuItem] },
+    { items: [giteaMenuItem, logOutMenuItem] },
+  ];
+
   return (
-    <StudioProfileMenu
-      triggerButtonText={getTriggerButtonText()}
-      ariaLabelTriggerButton={getTriggerButtonText()}
+    <StudioPageHeader.ProfileMenu
+      triggerButtonText={showButtonText && triggerButtonText}
+      ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'
       profileImage={
@@ -122,14 +94,7 @@ const DashboardHeaderMenu = () => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      profileMenuItems={[
-        allMenuItem,
-        ...selectableOrgMenuItems,
-        selfMenuItem,
-        giteaMenuItem,
-        logOutMenuItem,
-      ]}
-      truncateAt={TRUNCATE_APP_USERNAME}
+      profileMenuGroups={profileMenuGroups}
     />
   );
 };

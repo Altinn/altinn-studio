@@ -83,22 +83,24 @@ describe('DashboardHeader', () => {
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
 
-    const allItem = screen.getByRole('menuitem', { name: textMock('shared.header_all') });
+    const allItem = screen.getByRole('menuitemradio', { name: textMock('shared.header_all') });
     expect(allItem).toBeInTheDocument();
 
-    const org1Item = screen.getByRole('menuitem', { name: mockOrg1.full_name });
+    const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     expect(org1Item).toBeInTheDocument();
 
-    const org2Item = screen.getByRole('menuitem', { name: mockOrg2.full_name });
+    const org2Item = screen.getByRole('menuitemradio', { name: mockOrg2.full_name });
     expect(org2Item).toBeInTheDocument();
 
-    const userItem = screen.getByRole('menuitem', { name: userMock.full_name });
+    const userItem = screen.getByRole('menuitemradio', { name: userMock.full_name });
     expect(userItem).toBeInTheDocument();
 
     const giteaItem = screen.getByRole('menuitem', { name: textMock('shared.header_go_to_gitea') });
     expect(giteaItem).toBeInTheDocument();
 
-    const logoutItem = screen.getByRole('menuitem', { name: textMock('shared.header_logout') });
+    const logoutItem = screen.getByRole('menuitemradio', {
+      name: textMock('shared.header_logout'),
+    });
     expect(logoutItem).toBeInTheDocument();
   });
 
@@ -113,10 +115,46 @@ describe('DashboardHeader', () => {
     const avatarButton = screen.getByRole('button', { name: userMock.full_name });
     await user.click(avatarButton);
 
-    const org1Item = screen.getByRole('menuitem', { name: mockOrg1.full_name });
+    const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
     expect(mockNavigate).toHaveBeenCalledWith(`/${mockOrg1.username}`);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should navigate to the "All" context when the "All" menu item is clicked', async () => {
+    const user = userEvent.setup();
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: SelectedContextType.Self,
+    });
+
+    renderDashboardHeader();
+
+    const avatarButton = screen.getByRole('button', { name: userMock.full_name });
+    await user.click(avatarButton);
+
+    const allItem = screen.getByRole('menuitemradio', { name: textMock('shared.header_all') });
+    await user.click(allItem);
+
+    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.All}`);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('should navigate to the "Self" context when the "Self" menu item is clicked', async () => {
+    const user = userEvent.setup();
+    (useParams as jest.Mock).mockReturnValue({
+      selectedContext: SelectedContextType.All,
+    });
+
+    renderDashboardHeader();
+
+    const avatarButton = screen.getByRole('button', { name: userMock.full_name });
+    await user.click(avatarButton);
+
+    const selfItem = screen.getByRole('menuitemradio', { name: userMock.full_name });
+    await user.click(selfItem);
+
+    expect(mockNavigate).toHaveBeenCalledWith(`/${SelectedContextType.Self}`);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 });

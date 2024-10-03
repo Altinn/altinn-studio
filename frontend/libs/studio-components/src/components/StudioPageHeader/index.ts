@@ -5,6 +5,7 @@ import {
 import { StudioPageHeaderButton } from './StudioPageHeaderButton';
 import {
   StudioPageHeaderProfileMenu,
+  type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
   type StudioProfileMenuItem,
 } from './StudioPageHeaderProfileMenu';
