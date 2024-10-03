@@ -52,12 +52,26 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     /// <inheritdoc/>
     public async Task<Stream> GeneratePdf(Uri uri, CancellationToken ct)
     {
+        return await GeneratePdf(uri, null, ct);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct)
+    {
         bool hasWaitForSelector = !string.IsNullOrWhiteSpace(_pdfGeneratorSettings.WaitForSelector);
         PdfGeneratorRequest generatorRequest =
             new()
             {
                 Url = uri.AbsoluteUri,
-                WaitFor = hasWaitForSelector ? _pdfGeneratorSettings.WaitForSelector : _pdfGeneratorSettings.WaitForTime
+                WaitFor = hasWaitForSelector
+                    ? _pdfGeneratorSettings.WaitForSelector
+                    : _pdfGeneratorSettings.WaitForTime,
+                Options =
+                {
+                    HeaderTemplate = "<div/>",
+                    FooterTemplate = footerContent ?? "<div/>",
+                    DisplayHeaderFooter = footerContent != null,
+                },
             };
 
         generatorRequest.Cookies.Add(

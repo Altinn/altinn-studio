@@ -11,6 +11,21 @@ internal class PdfGeneratorRequestOptions
     public bool DisplayHeaderFooter { get; set; } = false;
 
     /// <summary>
+    /// HTML template for the print header. Should be valid HTML with the following classes used to inject values into them:
+    ///  * `date` formatted print date
+    ///  * `title` document title
+    ///  * `url` document location
+    ///  * `pageNumber` current page number
+    ///  * `totalPages` total pages in the document
+    /// </summary>
+    public string HeaderTemplate { get; set; } = string.Empty;
+
+    /// <summary>
+    /// HTML template for the print footer. Has the same constraints and support for special classes as HeaderTemplate.
+    /// </summary>
+    public string FooterTemplate { get; set; } = string.Empty;
+
+    /// <summary>
     /// Indicate wheter the background should be included.
     /// </summary>
     public bool PrintBackground { get; set; } = true;
