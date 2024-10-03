@@ -1,4 +1,17 @@
 import jsonpointer from 'jsonpointer';
+import { sortTextResourceBindings } from './languageUtils';
+
+export const allPropertyKeys = [];
+
+/**
+ * Expands a ref in a schema from a reference to the actual schema
+ * @param ref The ref to expand
+ * @param layoutSchema The full layout schema
+ * @returns The expanded schema
+ */
+export const expandRef = (ref: string, layoutSchema: any) => {
+  return jsonpointer.get(layoutSchema, ref.replace('#/', '/'));
+};
 
 /**
  * Expands allOf node in schema by combining all properties together in one object.
@@ -52,47 +65,6 @@ export const expandAnyOf = (schema: any, layoutSchema: any) => {
 };
 
 /**
- * Expands a ref in a schema from a reference to the actual schema
- * @param ref The ref to expand
- * @param layoutSchema The full layout schema
- * @returns The expanded schema
- */
-export const expandRef = (ref: string, layoutSchema: any) => {
-  return jsonpointer.get(layoutSchema, ref.replace('#/', '/'));
-};
-
-/**
- * Ensures that a schema with enum values has type string
- * @param schema The schema to ensure string type for
- */
-export const ensureStringTypeWithEnums = (schema: any) => {
-  if (schema.enum) {
-    schema.type = 'string';
-  } else if (schema.items?.enum) {
-    schema.items.type = 'string';
-  }
-};
-
-/**
- * Verifies that a schema has all expected properties
- * @param schema The schema to verify
- * @param expectedProperties The list of expected properties
- * @returns Boolean indicating if the schema has all expected properties
- */
-export const verifySchema = (schema: any, expectedProperties: string[]) => {
-  const schemaProperties = Object.keys(schema.properties);
-  const missingProperties = expectedProperties.filter(
-    (property) => !schemaProperties.includes(property),
-  );
-  if (missingProperties.length > 0) {
-    console.log(`Missing properties: ${missingProperties.join(', ')}`);
-    return false;
-  }
-
-  return true;
-};
-
-/**
  * Expands all refs in properties in a schema
  * @param properties The properties to expand
  * @param layoutSchema The full layout schema
@@ -117,8 +89,121 @@ export const expandRefsInProperties = (properties: any, layoutSchema: any) => {
     if (expandedProperties[property].anyOf) {
       expandedProperties[property].anyOf = expandAnyOf(expandedProperties[property], layoutSchema);
     }
-    ensureStringTypeWithEnums(expandedProperties[property]);
+    ensureTypeWithEnums(expandedProperties[property]);
   }
 
   return expandedProperties;
+};
+
+/**
+ * Ensures that a schema with enum values has correct type (string or number)
+ * @param schema The schema to ensure type for
+ */
+export const ensureTypeWithEnums = (schema: any) => {
+  if (schema.enum && schema.enum.length > 0) {
+    const firstEnumValue = schema.enum[0];
+    if (typeof firstEnumValue === 'string') {
+      schema.type = 'string';
+    } else if (typeof firstEnumValue === 'number') {
+      schema.type = 'number';
+    }
+  } else if (schema.items?.enum && schema.items.enum.length > 0) {
+    const firstEnumValue = schema.items.enum[0];
+    if (typeof firstEnumValue === 'string') {
+      schema.items.type = 'string';
+    } else if (typeof firstEnumValue === 'number') {
+      schema.items.type = 'number';
+    }
+  }
+};
+
+/**
+ * Verifies that a schema has all expected properties
+ * @param schema The schema to verify
+ * @param expectedProperties The list of expected properties
+ * @returns Boolean indicating if the schema has all expected properties
+ */
+export const verifySchema = (schema: any, expectedProperties: string[]) => {
+  const schemaProperties = Object.keys(schema.properties);
+  const missingProperties = expectedProperties.filter(
+    (property) => !schemaProperties.includes(property),
+  );
+  if (missingProperties.length > 0) {
+    console.log(`Missing properties: ${missingProperties.join(', ')}`);
+    return false;
+  }
+  return true;
+};
+
+/**
+ * Adds property keys to the global list.
+ * @param propertyKeys Array of property keys to add.
+ */
+const addProperties = (propertyKeys: string[]) => {
+  allPropertyKeys.push(...propertyKeys);
+};
+
+/**
+ * Retrieves the component schema based on the version (the v4 schema has an external reference)
+ * @param definitionName The name of the component definition.
+ * @param layoutSchema The full layout schema.
+ * @param version The app frontend version.
+ * @returns The component schema.
+ */
+
+const getComponentSchema = (definitionName: string, layoutSchema: any, version: string) => {
+  if (version === 'v4') {
+    console.log('definitionName: ', definitionName + 'External');
+    return expandRef(layoutSchema.definitions[definitionName].$ref, layoutSchema);
+  }
+  console.log('definitionName: ', definitionName);
+  return layoutSchema.definitions[definitionName];
+};
+
+/**
+ * Generates a component schema by expanding definitions and resolving references.
+ * @param componentName The name of the component.
+ * @param layoutSchema The full layout schema.
+ * @param version The app frontend version.
+ * @returns The generated component schema.
+ */
+export const generateComponentSchema = (
+  componentName: string,
+  layoutSchema: any,
+  version: string,
+) => {
+  const definitionName = `Comp${componentName}`;
+  const componentSchema = getComponentSchema(definitionName, layoutSchema, version);
+
+  let schema: any = {
+    $id: `https://altinncdn.no/schemas/json/component/${componentName}.schema.v1.json`,
+    $schema: layoutSchema.$schema,
+  };
+
+  if (componentSchema.allOf) {
+    schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
+    const expectedProperties = Object.keys(
+      componentSchema.allOf[componentSchema.allOf.length - 1].properties,
+    );
+    addProperties(expectedProperties);
+
+    if (!verifySchema(schema, expectedProperties)) {
+      return null;
+    }
+  } else if (componentSchema.anyOf) {
+    schema.anyOf = expandAnyOf(componentSchema, layoutSchema);
+  }
+
+  // Expand all refs in properties
+  schema.properties = expandRefsInProperties(schema.properties, layoutSchema);
+
+  // Sort text resource binding keys
+  if (schema.properties?.textResourceBindings) {
+    schema.properties.textResourceBindings.properties = sortTextResourceBindings(
+      schema.properties.textResourceBindings.properties,
+    );
+  }
+
+  schema.title = `${componentName} component schema`;
+  return schema;
 };

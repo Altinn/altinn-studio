@@ -12,7 +12,8 @@ export const versionSettings = {
     componentSchemaPath: '../../packages/ux-editor/src/testing/schemas/json/component',
   },
 };
-export const isValidVersion = (version: string) =>
-  validVersions.includes(version as AppFrontendVersion);
+
 export const validVersions = ['v3', 'v4'] as const;
 export type AppFrontendVersion = (typeof validVersions)[number];
+export const isValidVersion = (version: string) =>
+  validVersions.includes(version as AppFrontendVersion);

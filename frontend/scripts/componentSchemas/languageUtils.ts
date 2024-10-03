@@ -1,7 +1,43 @@
 import nb from '../../language/src/nb.json';
 
-// Logs language keys and values related to the "Tekst" accordion in the component configuration.
-// Use it to find missing entries in the language file(s).
+export const allTextResourceBindingKeys = [];
+
+/**
+ * Adds text resource binding keys from a schema to the global list.
+ * @param schema The schema to extract keys from.
+ */
+export const addTextResourceBindingKeys = (schema: any) => {
+  if (schema.properties?.textResourceBindings) {
+    const textResourceBindingKeys = Object.keys(schema.properties.textResourceBindings.properties);
+    allTextResourceBindingKeys.push(...textResourceBindingKeys);
+  }
+};
+
+/**
+ * Sorts text resource bindings, placing 'title', 'description', and 'help' first.
+ * @param textResourceBindings The text resource bindings to sort.
+ * @returns The sorted text resource bindings.
+ */
+export const sortTextResourceBindings = (textResourceBindings: any) => {
+  const { title, description, help, ...rest } = textResourceBindings;
+  const sorted: any = {};
+  if (title) {
+    sorted.title = title;
+  }
+  if (description) {
+    sorted.description = description;
+  }
+  if (help) {
+    sorted.help = help;
+  }
+  return { ...sorted, ...rest };
+};
+
+/**
+ * Logs language keys and values displayed in the "Tekst" accordion in the component configuration column.
+ * Use it to find missing entries in the language file.
+ * @param textResourceBindingKeys Array of text resource binding keys.
+ */
 export const logTextResourceLabels = (textResourceBindingKeys: string[]) => {
   textResourceBindingKeys.sort().forEach((key) => {
     console.log(
@@ -13,8 +49,11 @@ export const logTextResourceLabels = (textResourceBindingKeys: string[]) => {
   });
 };
 
-// Logs various language keys and values related to the component configuration.
-// Use it to find missing entries in the language file(s).
+/**
+ * Logs all language keys and values in the component configuration column, except for those in the "Tekst" accordion.
+ * Use it to find missing entries in the language file.
+ * @param componentPropertyKeys Array of component property keys.
+ */
 export const logComponentPropertyLabels = (componentPropertyKeys: string[]) => {
   componentPropertyKeys.sort().forEach((key) => {
     console.log(
