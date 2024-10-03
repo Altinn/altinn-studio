@@ -71,7 +71,7 @@ describe('LandingPage', () => {
     );
 
     expect(
-      screen.getByRole('menuitem', { name: textMock('shared.header_logout') }),
+      screen.getByRole('menuitemradio', { name: textMock('shared.header_logout') }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('menuitem', { name: textMock('sync_header.documentation') }),

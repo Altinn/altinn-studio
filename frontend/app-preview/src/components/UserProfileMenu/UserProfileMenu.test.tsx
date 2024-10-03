@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { UserProfileMenu, type UserProfileMenuProps } from './UserProfileMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { type StudioProfileMenuItem, useMediaQuery } from '@studio/components';
+import { useMediaQuery } from '@studio/components';
 import { type Repository, type User } from 'app-shared/types/Repository';
 import { app, org } from '@studio/testing/testids';
 import { repository } from 'app-shared/mocks/mocks';
+import { renderWithProviders } from 'app-preview/test/mocks';
 
 jest.mock('@studio/components/src/hooks/useMediaQuery');
 
@@ -32,23 +33,9 @@ const repositoryMock: Repository = {
   full_name: 'org/test-repo',
 };
 
-const profileMenuItemsMock: StudioProfileMenuItem[] = [
-  {
-    action: { type: 'button', onClick: jest.fn() },
-    itemName: 'Menu Item 1',
-  },
-  {
-    action: { type: 'link', href: '/link' },
-    itemName: 'Menu Item 2',
-  },
-];
-
 const defaultProps: UserProfileMenuProps = {
   user: userMock,
   repository: repositoryMock,
-  color: 'dark',
-  variant: 'regular',
-  profileMenuItems: profileMenuItemsMock,
 };
 
 describe('UserProfileMenu', () => {
@@ -88,5 +75,5 @@ describe('UserProfileMenu', () => {
 });
 
 const renderUserProfileMenu = (props?: Partial<UserProfileMenuProps>) => {
-  return render(<UserProfileMenu {...defaultProps} {...props} />);
+  return renderWithProviders()(<UserProfileMenu {...defaultProps} {...props} />);
 };
