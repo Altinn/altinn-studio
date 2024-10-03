@@ -14,8 +14,10 @@ using Altinn.App.PlatformServices.Tests.Mocks;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Constants;
+using Castle.Core.Logging;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Moq;
@@ -42,6 +44,8 @@ public class PdfServiceTests
     private readonly IOptions<PlatformSettings> _platformSettingsOptions = Options.Create<PlatformSettings>(new() { });
 
     private readonly Mock<IUserTokenProvider> _userTokenProvider;
+
+    private readonly Mock<ILogger<PdfService>> _logger = new();
 
     public PdfServiceTests()
     {
@@ -134,7 +138,9 @@ public class PdfServiceTests
     {
         // Arrange
         TelemetrySink telemetrySink = new();
-        _pdfGeneratorClient.Setup(s => s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>()));
+        _pdfGeneratorClient.Setup(s =>
+            s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+        );
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
         var target = SetupPdfService(
@@ -164,6 +170,7 @@ public class PdfServiceTests
                         && u.AbsoluteUri.Contains(instance.AppId)
                         && u.AbsoluteUri.Contains(instance.Id)
                     ),
+                    It.Is<string?>(s => s == null),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -189,7 +196,9 @@ public class PdfServiceTests
     public async Task GenerateAndStorePdf_with_generatedFrom()
     {
         // Arrange
-        _pdfGeneratorClient.Setup(s => s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>()));
+        _pdfGeneratorClient.Setup(s =>
+            s.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>())
+        );
 
         _generalSettingsOptions.Value.ExternalAppBaseUrl = "https://{org}.apps.{hostName}/{org}/{app}";
 
@@ -228,6 +237,7 @@ public class PdfServiceTests
                         && u.AbsoluteUri.Contains(instance.AppId)
                         && u.AbsoluteUri.Contains(instance.Id)
                     ),
+                    It.Is<string?>(s => s == null),
                     It.IsAny<CancellationToken>()
                 ),
             Times.Once
@@ -394,6 +404,7 @@ public class PdfServiceTests
             pdfGeneratorClient?.Object ?? _pdfGeneratorClient.Object,
             pdfGeneratorSettingsOptions ?? _pdfGeneratorSettingsOptions,
             generalSettingsOptions ?? _generalSettingsOptions,
+            _logger.Object,
             telemetrySink?.Object
         );
     }

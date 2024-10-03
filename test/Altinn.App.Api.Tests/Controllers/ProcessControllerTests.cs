@@ -522,7 +522,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             );
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
         using var pdfReturnStream = new MemoryStream();
-        pdfMock.Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ReturnsAsync(pdfReturnStream);
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(dataValidator.Object);
@@ -547,7 +549,9 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     {
         var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
         using var pdfReturnStream = new MemoryStream();
-        pdfMock.Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ReturnsAsync(pdfReturnStream);
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
         OverrideServicesForThisTest = (services) =>
         {
             services.AddSingleton(pdfMock.Object);

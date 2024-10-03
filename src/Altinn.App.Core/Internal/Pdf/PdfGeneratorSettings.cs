@@ -24,4 +24,9 @@ public class PdfGeneratorSettings
     /// </summary>
     /// <remarks>This will be ignored if <see cref="WaitForSelector"/> has been assigned a value.</remarks>
     public int WaitForTime { get; set; } = 5000;
+
+    /// <summary>
+    /// Shows a footer on each page in the PDF with the date, altinn-referance, page number and total pages.
+    /// </summary>
+    public bool DisplayFooter { get; set; }
 }

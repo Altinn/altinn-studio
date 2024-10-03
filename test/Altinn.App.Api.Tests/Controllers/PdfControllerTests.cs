@@ -10,10 +10,12 @@ using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.Platform.Storage.Interface.Models;
+using Castle.Core.Logging;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
@@ -41,6 +43,8 @@ public class PdfControllerTests
     private readonly IOptions<PdfGeneratorSettings> _pdfGeneratorSettingsOptions = Options.Create<PdfGeneratorSettings>(
         new() { }
     );
+
+    private readonly Mock<ILogger<PdfService>> _logger = new();
 
     public PdfControllerTests()
     {
@@ -92,7 +96,8 @@ public class PdfControllerTests
             _profile.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
-            generalSettingsOptions
+            generalSettingsOptions,
+            _logger.Object
         );
         var pdfController = new PdfController(
             _instanceClient.Object,
@@ -146,7 +151,8 @@ public class PdfControllerTests
             _profile.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
-            generalSettingsOptions
+            generalSettingsOptions,
+            _logger.Object
         );
         var pdfController = new PdfController(
             _instanceClient.Object,
@@ -225,7 +231,8 @@ public class PdfControllerTests
             _profile.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
-            generalSettingsOptions
+            generalSettingsOptions,
+            _logger.Object
         );
         var pdfController = new PdfController(
             _instanceClient.Object,
@@ -306,7 +313,8 @@ public class PdfControllerTests
             _profile.Object,
             pdfGeneratorClient,
             _pdfGeneratorSettingsOptions,
-            generalSettingsOptions
+            generalSettingsOptions,
+            _logger.Object
         );
         var pdfController = new PdfController(
             _instanceClient.Object,

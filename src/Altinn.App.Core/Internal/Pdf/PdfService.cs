@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Extensions;
@@ -11,6 +12,7 @@ using Altinn.App.Core.Models;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
@@ -28,6 +30,7 @@ public class PdfService : IPdfService
 
     private readonly IPdfGeneratorClient _pdfGeneratorClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
+    private readonly ILogger<PdfService> _logger;
     private readonly GeneralSettings _generalSettings;
     private readonly Telemetry? _telemetry;
     private const string PdfElementType = "ref-data-as-pdf";
@@ -43,6 +46,7 @@ public class PdfService : IPdfService
     /// <param name="pdfGeneratorClient">PDF generator client for the experimental PDF generator service</param>
     /// <param name="pdfGeneratorSettings">PDF generator related settings.</param>
     /// <param name="generalSettings">The app general settings.</param>
+    /// <param name="logger">The logger.</param>
     /// <param name="telemetry">Telemetry for metrics and traces.</param>
     public PdfService(
         IAppResources appResources,
@@ -52,6 +56,7 @@ public class PdfService : IPdfService
         IPdfGeneratorClient pdfGeneratorClient,
         IOptions<PdfGeneratorSettings> pdfGeneratorSettings,
         IOptions<GeneralSettings> generalSettings,
+        ILogger<PdfService> logger,
         Telemetry? telemetry = null
     )
     {
@@ -62,6 +67,7 @@ public class PdfService : IPdfService
         _pdfGeneratorClient = pdfGeneratorClient;
         _pdfGeneratorSettings = pdfGeneratorSettings.Value;
         _generalSettings = generalSettings.Value;
+        _logger = logger;
         _telemetry = telemetry;
     }
 
@@ -113,7 +119,10 @@ public class PdfService : IPdfService
 
         Uri uri = BuildUri(baseUrl, pagePath, language);
 
-        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, ct);
+        bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
+        string? footerContent = displayFooter ? GetFooterContent(instance) : null;
+
+        Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, footerContent, ct);
 
         return pdfContent;
     }
@@ -224,5 +233,44 @@ public class PdfService : IPdfService
     {
         fileName = Uri.EscapeDataString(fileName.AsFileName(false));
         return fileName;
+    }
+
+    private string GetFooterContent(Instance instance)
+    {
+        TimeZoneInfo timeZone = TimeZoneInfo.Utc;
+        try
+        {
+            // attempt to set timezone to norwegian
+            timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Oslo");
+        }
+        catch (TimeZoneNotFoundException e)
+        {
+            _logger.LogWarning($"Could not find timezone Europe/Oslo. Defaulting to UTC. {e.Message}");
+        }
+
+        DateTimeOffset now = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, timeZone);
+
+        string dateGenerated = now.ToString("G", new CultureInfo("nb-NO"));
+        string altinnReferenceId = instance.Id.Split("/")[1].Split("-")[4];
+
+        string footerTemplate =
+            $@"<div style='font-family: Inter; font-size: 12px; width: 100%; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 0 70px 0 70px;'>
+                <div style='display: flex; flex-direction: row; width: 100%; align-items: center'>
+                    <span class='title'></span>
+                    <div
+                        id='header-template'
+                        style='color: #F00; font-weight: 700; border: 1px solid #F00; padding: 6px 8px; margin-left: auto;'
+                    >
+                        <span>{dateGenerated} </span>
+                        <span>ID:{altinnReferenceId}</span>
+                    </div>
+                </div>
+                <div style='display: flex; flex-direction-row; align-items: center;'>
+                    <span class='pageNumber'></span>
+                    /
+                    <span class='totalPages'></span>
+                </div>
+            </div>";
+        return footerTemplate;
     }
 }
