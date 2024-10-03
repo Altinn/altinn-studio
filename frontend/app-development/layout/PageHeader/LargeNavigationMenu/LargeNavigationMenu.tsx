@@ -12,31 +12,39 @@ export type LargeNavigationMenuProps = {
 };
 
 export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): ReactElement => {
-  const { variant } = usePageHeaderContext();
-
-  const location = useLocation();
-  const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
-
   return (
     <div className={classes.wrapper}>
       <ul className={classes.menu}>
         {menuItems.map((menuItem: NavigationMenuItem) => (
-          <li key={menuItem.name}>
-            <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>
-              <NavLink to={menuItem.link}>
-                <span
-                  className={cn({
-                    [classes.active]: getRouterRouteByPathname(menuItem.link) === currentRoutePath,
-                  })}
-                >
-                  {menuItem.name}
-                </span>
-                {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
-              </NavLink>
-            </StudioPageHeader.HeaderButton>
-          </li>
+          <HeaderButtonListItem key={menuItem.name} menuItem={menuItem} />
         ))}
       </ul>
     </div>
+  );
+};
+
+type HeaderButtonListItemProps = {
+  menuItem: NavigationMenuItem;
+};
+const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactElement => {
+  const { variant } = usePageHeaderContext();
+  const location = useLocation();
+  const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
+
+  return (
+    <li key={menuItem.name}>
+      <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>
+        <NavLink to={menuItem.link}>
+          <span
+            className={cn({
+              [classes.active]: getRouterRouteByPathname(menuItem.link) === currentRoutePath,
+            })}
+          >
+            {menuItem.name}
+          </span>
+          {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
+        </NavLink>
+      </StudioPageHeader.HeaderButton>
+    </li>
   );
 };

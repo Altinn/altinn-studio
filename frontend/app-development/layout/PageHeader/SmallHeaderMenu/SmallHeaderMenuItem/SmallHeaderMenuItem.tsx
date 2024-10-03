@@ -2,9 +2,10 @@ import React, { type ReactElement } from 'react';
 import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { DropdownMenu, Tag } from '@digdir/designsystemet-react';
+import { DropdownMenu } from '@digdir/designsystemet-react';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
+import { StudioBetaTag } from '@studio/components';
 
 export type SmallHeaderMenuItemProps = {
   menuItem: NavigationMenuSmallItem;
@@ -40,7 +41,7 @@ export const SmallHeaderMenuItem = ({
         rel={menuItem.action.openInNewTab ? 'noopener noreferrer' : ''}
       >
         {t(menuItem.name)}
-        {menuItem.isBeta && <Tag color='first'>{t('general.beta')}</Tag>}
+        {menuItem.isBeta && <StudioBetaTag />}
       </NavLink>
     </DropdownMenu.Item>
   );

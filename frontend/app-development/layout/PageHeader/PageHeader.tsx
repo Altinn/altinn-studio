@@ -17,9 +17,7 @@ export type PageHeaderProps = {
 };
 
 export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): ReactElement => {
-  const { t } = useTranslation();
   const { app } = useStudioEnvironmentParams();
-  const { menuItems } = usePageHeaderContext();
 
   const shouldDisplayDesktopMenu = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
 
@@ -27,19 +25,7 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
     <StudioPageHeader>
       <StudioPageHeader.Main>
         <StudioPageHeader.Left showTitle={shouldDisplayDesktopMenu} title={app} />
-        {shouldDisplayDesktopMenu && (
-          <StudioPageHeader.Center>
-            {menuItems && (
-              <LargeNavigationMenu
-                menuItems={menuItems.map((menuItem: HeaderMenuItem) => ({
-                  link: menuItem.link,
-                  name: t(menuItem.key),
-                  isBeta: menuItem.isBeta,
-                }))}
-              />
-            )}
-          </StudioPageHeader.Center>
-        )}
+        {shouldDisplayDesktopMenu && <CenterContent />}
         <StudioPageHeader.Right>
           <RightContent />
         </StudioPageHeader.Right>
@@ -50,6 +36,25 @@ export const PageHeader = ({ showSubMenu, isRepoError }: PageHeaderProps): React
         </StudioPageHeader.Sub>
       )}
     </StudioPageHeader>
+  );
+};
+
+const CenterContent = (): ReactElement => {
+  const { t } = useTranslation();
+  const { menuItems } = usePageHeaderContext();
+
+  return (
+    <StudioPageHeader.Center>
+      {menuItems && (
+        <LargeNavigationMenu
+          menuItems={menuItems.map((menuItem: HeaderMenuItem) => ({
+            link: menuItem.link,
+            name: t(menuItem.key),
+            isBeta: menuItem.isBeta,
+          }))}
+        />
+      )}
+    </StudioPageHeader.Center>
   );
 };
 
