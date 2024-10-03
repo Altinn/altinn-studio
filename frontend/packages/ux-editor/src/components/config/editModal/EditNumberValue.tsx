@@ -65,7 +65,6 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
           <StudioDecimalInput
             {...fieldProps}
             onChange={fieldProps.onChange}
-            description={componentPropertyLabel(propertyKey as string)}
             validationErrorMessage={t('validation_errors.numbers_only')}
           />
         )
