@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
-import { StudioBetaTag, StudioPageHeaderButton } from '@studio/components';
+import { StudioBetaTag, StudioPageHeader } from '@studio/components';
 import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
@@ -22,7 +22,7 @@ export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): Re
       <ul className={classes.menu}>
         {menuItems.map((menuItem: NavigationMenuItem) => (
           <li key={menuItem.name}>
-            <StudioPageHeaderButton asChild color='dark' variant={variant}>
+            <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>
               <NavLink to={menuItem.link}>
                 <span
                   className={cn({
@@ -33,7 +33,7 @@ export const LargeNavigationMenu = ({ menuItems }: LargeNavigationMenuProps): Re
                 </span>
                 {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
               </NavLink>
-            </StudioPageHeaderButton>
+            </StudioPageHeader.HeaderButton>
           </li>
         ))}
       </ul>

@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import classes from './PreviewButton.module.css';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, useMediaQuery } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PlayFillIcon } from '@studio/icons';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
@@ -22,11 +22,11 @@ export const PreviewButton = (): ReactElement => {
   const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${layout ? `?layout=${layout}` : ''}`;
 
   return (
-    <StudioPageHeaderButton asChild color='dark' variant={variant}>
+    <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>
       <a href={previewLink} className={classes.previewLink} aria-label={t('top_menu.preview')}>
         <PlayFillIcon className={classes.playIcon} />
         {shouldDisplayText && t('top_menu.preview')}
       </a>
-    </StudioPageHeaderButton>
+    </StudioPageHeader.HeaderButton>
   );
 };
