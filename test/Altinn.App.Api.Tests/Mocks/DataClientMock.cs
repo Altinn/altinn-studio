@@ -126,16 +126,14 @@ public class DataClientMock : IDataClient
         return await File.ReadAllBytesAsync(dataPath);
     }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async Task<List<AttachmentList>> GetBinaryDataList(
         string org,
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid
     )
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
-        var dataElements = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
+        var dataElements = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
         List<AttachmentList> list = new();
         foreach (DataElement dataElement in dataElements)
         {
@@ -255,21 +253,18 @@ public class DataClientMock : IDataClient
         ArgumentNullException.ThrowIfNull(dataToSerialize);
         string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
 
-        DataElement? dataElement = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid)
-            .FirstOrDefault(de => de.Id == dataGuid.ToString());
-        var application = await _appMetadata.GetApplicationMetadata();
-        var dataType =
-            application.DataTypes.Find(d => d.Id == dataElement?.DataType)
-            ?? throw new InvalidOperationException(
-                $"Data type {dataElement?.DataType} not found in applicationmetadata.json"
-            );
-
-        if (dataElement == null)
-        {
-            throw new Exception(
+        DataElement dataElement =
+            await GetDataElement(org, app, instanceOwnerPartyId, instanceGuid, dataGuid.ToString())
+            ?? throw new Exception(
                 $"Unable to find data element for org: {org}/{app} party: {instanceOwnerPartyId} instance: {instanceGuid} data: {dataGuid}"
             );
-        }
+        ;
+        var application = await _appMetadata.GetApplicationMetadata();
+        var dataType =
+            application.DataTypes.Find(d => d.Id == dataElement.DataType)
+            ?? throw new InvalidOperationException(
+                $"Data type {dataElement.DataType} not found in applicationmetadata.json"
+            );
 
         Directory.CreateDirectory(dataPath + @"blob");
 
@@ -359,16 +354,19 @@ public class DataClientMock : IDataClient
         Directory.CreateDirectory(dataPath + @"blob");
 
         using var memoryStream = new MemoryStream();
-            stream.Seek(0, SeekOrigin.Begin);
+        stream.Seek(0, SeekOrigin.Begin);
         await stream.CopyToAsync(memoryStream);
 
         var fileData = memoryStream.ToArray();
         await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
 
-        var dataElement =
-            GetDataElements(org, app, instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid)
-                .FirstOrDefault(de => de.Id == dataGuid.ToString())
-            ?? throw new Exception($"Data element with id {dataGuid} not found in instance");
+        var dataElement = await GetDataElement(
+            org,
+            app,
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid.ToString()
+        );
 
         dataElement.Size = fileData.Length;
         await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId);
@@ -457,17 +455,13 @@ public class DataClientMock : IDataClient
         // 🤬The signature does not take org/app,
         // but our test data is organized by org/app.
         (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
-        List<DataElement> dataElement = GetDataElements(
+        DataElement element = await GetDataElement(
             org,
             app,
             instanceIdentifier.InstanceOwnerPartyId,
-            instanceIdentifier.InstanceGuid
+            instanceIdentifier.InstanceGuid,
+            dataGuid.ToString()
         );
-        DataElement? element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
-        if (element is null)
-        {
-            throw new Exception("Data element not found.");
-        }
         element.Locked = true;
         await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
         return element;
@@ -478,17 +472,15 @@ public class DataClientMock : IDataClient
         // 🤬The signature does not take org/app,
         // but our test data is organized by org/app.
         (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
-        List<DataElement> dataElement = GetDataElements(
+        DataElement element = await GetDataElement(
             org,
             app,
             instanceIdentifier.InstanceOwnerPartyId,
-            instanceIdentifier.InstanceGuid
+            instanceIdentifier.InstanceGuid,
+            dataGuid.ToString()
         );
-        DataElement? element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
-        if (element is null)
-        {
-            throw new Exception("Data element not found.");
-        }
+        ;
+
         element.Locked = false;
         await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
         return element;
@@ -513,7 +505,7 @@ public class DataClientMock : IDataClient
         await File.WriteAllBytesAsync(dataElementPath, jsonBytes);
     }
 
-    private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+    private async Task<List<DataElement>> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
     {
         string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
         List<DataElement> dataElements = new();
@@ -527,7 +519,7 @@ public class DataClientMock : IDataClient
 
         foreach (string file in files)
         {
-            string content = File.ReadAllText(Path.Combine(path, file));
+            string content = await File.ReadAllTextAsync(Path.Combine(path, file));
             DataElement? dataElement = JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions);
 
             if (dataElement != null)
@@ -545,5 +537,19 @@ public class DataClientMock : IDataClient
         }
 
         return dataElements;
+    }
+
+    private async Task<DataElement> GetDataElement(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceId,
+        string dataElementGuid
+    )
+    {
+        string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
+        string content = await File.ReadAllTextAsync(Path.Combine(path, dataElementGuid + ".json"));
+        return JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions)
+            ?? throw new JsonException("Returned null when deserializing data element");
     }
 }
