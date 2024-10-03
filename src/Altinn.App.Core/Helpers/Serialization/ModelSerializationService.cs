@@ -84,7 +84,7 @@ public class ModelSerializationService
             NewLineHandling = NewLineHandling.None,
         };
         using var memoryStream = new MemoryStream();
-        XmlWriter xmlWriter = XmlWriter.Create(memoryStream, xmlWriterSettings);
+        using XmlWriter xmlWriter = XmlWriter.Create(memoryStream, xmlWriterSettings);
 
         XmlSerializer serializer = _xmlSerializer.GetSerializer(modelType);
         serializer.Serialize(xmlWriter, model);

@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Tests.Helpers;
 
 public class MemoryAsStreamTests
 {
-    private static byte[] _byteSequence = GenerateNonRepeatingByteArray();
+    private static readonly byte[] _byteSequence = GenerateNonRepeatingByteArray();
 
     /// <summary>
     /// For testing <see cref="MemoryAsStream"/> class we need to handle a sequence of bytes where errors are

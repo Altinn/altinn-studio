@@ -193,7 +193,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
             {
                 ObjectUtils.InitializeAltinnRowId(data);
             }
-            var (currentBinary, contentType) = _modelSerializationService.SerializeToStorage(data, dataType);
+            var (currentBinary, _) = _modelSerializationService.SerializeToStorage(data, dataType);
             _binaryCache.Set(dataElementIdentifier, currentBinary);
 
             if (!currentBinary.Span.SequenceEqual(previousBinary.Span))

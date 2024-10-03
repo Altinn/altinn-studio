@@ -105,7 +105,7 @@ public class DataClient : IDataClient
         var (data, contentType) = _modelSerializationService.SerializeToStorage(dataToSerialize, dataType);
 
         StreamContent streamContent = new StreamContent(new MemoryAsStream(data));
-        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+        streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
         HttpResponseMessage response = await _client.PostAsync(token, apiUrl, streamContent);
 
         if (response.IsSuccessStatusCode)

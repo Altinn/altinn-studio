@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Extensions;
@@ -228,7 +229,7 @@ public class DataClientMock : IDataClient
                 Id = dataGuid.ToString(),
                 InstanceGuid = instanceGuid.ToString(),
                 DataType = dataTypeString,
-                ContentType = "application/xml",
+                ContentType = contentType,
             };
 
         Directory.CreateDirectory(dataPath + @"blob");
@@ -273,6 +274,8 @@ public class DataClientMock : IDataClient
         Directory.CreateDirectory(dataPath + @"blob");
 
         var (serializedBytes, contentType) = _modelSerialization.SerializeToStorage(dataToSerialize, dataType);
+
+        Debug.Assert(contentType == dataElement.ContentType, "Content type should not change when updating data");
         await File.WriteAllBytesAsync(Path.Join(dataPath, "blob", dataGuid.ToString()), serializedBytes.ToArray());
 
         dataElement.LastChanged = DateTime.UtcNow;
