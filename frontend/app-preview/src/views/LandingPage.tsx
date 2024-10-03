@@ -8,17 +8,10 @@ import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import {
-  StudioPageHeader,
-  StudioPageSpinner,
-  type StudioProfileMenuItem,
-  useMediaQuery,
-} from '@studio/components';
+import { StudioPageHeader, StudioPageSpinner, useMediaQuery } from '@studio/components';
 import { UserProfileMenu } from '../components/UserProfileMenu';
 import { PreviewControlHeader } from '../components/PreviewControlHeader';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
@@ -31,7 +24,6 @@ export const LandingPage = () => {
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
   const { data: user, isPending: isPendingUser } = useUserQuery();
-  const { mutate: logout } = useLogoutMutation();
   const { data: repository } = useRepoMetadataQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
@@ -49,17 +41,6 @@ export const LandingPage = () => {
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
-
-  const docsMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: altinnDocsUrl('') },
-    itemName: t('sync_header.documentation'),
-    hasDivider: true,
-  };
-  const logOutMenuItem: StudioProfileMenuItem = {
-    action: { type: 'button', onClick: logout },
-    itemName: t('shared.header_logout'),
-  };
-  const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
 
   if (previewConnection) {
     previewConnection.on('ReceiveMessage', function (message) {
@@ -82,13 +63,7 @@ export const LandingPage = () => {
         <StudioPageHeader.Main>
           <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
           <StudioPageHeader.Right>
-            <UserProfileMenu
-              user={user}
-              repository={repository}
-              color='light'
-              variant='preview'
-              profileMenuItems={profileMenuItems}
-            />
+            <UserProfileMenu user={user} repository={repository} />
           </StudioPageHeader.Right>
         </StudioPageHeader.Main>
         <StudioPageHeader.Sub>

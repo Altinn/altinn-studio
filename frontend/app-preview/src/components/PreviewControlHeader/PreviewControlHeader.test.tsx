@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { PreviewControlHeader, type PreviewControlHeaderProps } from './PreviewControlHeader';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'app-preview/test/mocks';
@@ -10,6 +10,13 @@ import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { type QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { useInstanceIdQuery } from 'app-shared/hooks/queries';
+
+// Move
+jest.mock('app-shared/hooks/queries');
+
+// Move
+export const mockLayoutId: string = 'layout1';
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -52,8 +59,17 @@ describe('PreviewControlHeader', () => {
     jest.clearAllMocks();
   });
 
-  it('should render the toggle buttons with the correct initial state', () => {
+  it('should render the spinner initially loading the component', () => {
     renderPreviewControlHeader();
+    expect(screen.getByTitle(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
+  });
+
+  it('should render the toggle buttons with the correct initial state', async () => {
+    renderPreviewControlHeader();
+
+    await waitForElementToBeRemoved(
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     expect(
       screen.getByRole('radio', { name: textMock('preview.view_size_desktop') }),
@@ -66,6 +82,10 @@ describe('PreviewControlHeader', () => {
   it('should call setViewSize with "mobile" when the mobile button is clicked', async () => {
     const user = userEvent.setup();
     renderPreviewControlHeader();
+
+    await waitForElementToBeRemoved(
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     const mobileButton = screen.getByRole('radio', { name: textMock('preview.view_size_mobile') });
     await user.click(mobileButton);
@@ -102,6 +122,7 @@ describe('PreviewControlHeader', () => {
   });
 
   it('should not render the layout sets dropdown if layoutSets is not available', () => {
+    (useInstanceIdQuery as jest.Mock).mockReturnValue(mockLayoutId);
     renderPreviewControlHeader();
 
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();

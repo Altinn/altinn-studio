@@ -5,49 +5,55 @@ import { useUserNameAndOrg } from 'app-shared/components/AltinnHeaderProfile/hoo
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import {
   useMediaQuery,
-  StudioProfileMenu,
   StudioAvatar,
-  type StudioProfileMenuProps,
+  StudioPageHeader,
+  type StudioProfileMenuItem,
+  type StudioProfileMenuGroup,
 } from '@studio/components';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
-
-const TRUNCATE_APP_USERNAME = 30;
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export type UserProfileMenuProps = {
   user: User;
   repository: Repository;
-  color: StudioProfileMenuProps['color'];
-  variant: StudioProfileMenuProps['variant'];
-  profileMenuItems: StudioProfileMenuProps['profileMenuItems'];
 };
 
-export const UserProfileMenu = ({
-  user,
-  repository,
-  color,
-  variant,
-  profileMenuItems,
-}: UserProfileMenuProps): ReactElement => {
+export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): ReactElement => {
   const { t } = useTranslation();
   const { org } = useStudioEnvironmentParams();
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
   const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const { mutate: logout } = useLogoutMutation();
+
+  const docsMenuItem: StudioProfileMenuItem = {
+    action: { type: 'link', href: altinnDocsUrl('') },
+    itemName: t('sync_header.documentation'),
+  };
+  const logOutMenuItem: StudioProfileMenuItem = {
+    action: { type: 'button', onClick: logout },
+    itemName: t('shared.header_logout'),
+  };
+
+  const profileMenuGroups: StudioProfileMenuGroup[] = [
+    { items: [docsMenuItem] },
+    { items: [logOutMenuItem] },
+  ];
 
   return (
-    <StudioProfileMenu
+    <StudioPageHeader.ProfileMenu
       triggerButtonText={shouldDisplayText ? userNameAndOrg : undefined}
       ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
-          src={user?.avatar_url ? user.avatar_url : undefined}
+          src={user?.avatar_url}
           alt={t('general.profile_icon')}
           title={t('shared.header_profile_icon_text')}
         />
       }
-      profileMenuItems={profileMenuItems}
-      color={color}
-      variant={variant}
-      truncateAt={TRUNCATE_APP_USERNAME}
+      profileMenuGroups={profileMenuGroups}
+      color='light'
+      variant='preview'
     />
   );
 };

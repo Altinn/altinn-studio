@@ -6,6 +6,7 @@ import { StudioPageHeaderButton } from './StudioPageHeaderButton';
 import {
   StudioPageHeaderProfileMenu,
   type StudioProfileMenuGroup,
+  type StudioProfileMenuItem,
 } from './StudioPageHeaderProfileMenu';
 import { StudioPageHeaderCenter } from './StudioPageHeaderCenter';
 import { StudioPageHeaderLeft } from './StudioPageHeaderLeft';
@@ -33,4 +34,9 @@ StudioPageHeader.Sub = StudioPageHeaderSub;
 StudioPageHeader.HeaderButton = StudioPageHeaderButton;
 StudioPageHeader.ProfileMenu = StudioPageHeaderProfileMenu;
 
-export { StudioPageHeader, type StudioPageHeaderProps, type StudioProfileMenuGroup };
+export {
+  StudioPageHeader,
+  type StudioPageHeaderProps,
+  type StudioProfileMenuGroup,
+  type StudioProfileMenuItem,
+};

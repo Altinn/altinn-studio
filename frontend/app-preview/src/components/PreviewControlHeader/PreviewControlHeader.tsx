@@ -3,7 +3,7 @@ import classes from './PreviewControlHeader.module.css';
 import { useTranslation } from 'react-i18next';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export type PreviewControlHeaderProps = {
@@ -21,20 +21,20 @@ export const PreviewControlHeader = ({
 }: PreviewControlHeaderProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const { data: layoutSets, isPending: loadingLayoutSets } = useLayoutSetsQuery(org, app);
 
   const handleLayoutSetChange = (event: ChangeEvent<HTMLSelectElement>) => {
     handleChangeLayoutSet(event.target.value);
   };
 
+  if (loadingLayoutSets) {
+    return <StudioSpinner spinnerTitle={t('preview.loading_preview_controller')} />;
+  }
+
   return (
     <div className={classes.wrapper}>
       <div className={classes.viewSizeButtons}>
-        <ToggleGroup
-          onChange={setViewSize}
-          value={viewSize === 'desktop' ? 'desktop' : 'mobile'}
-          size='sm'
-        >
+        <ToggleGroup onChange={setViewSize} value={viewSize} size='sm'>
           <ToggleGroup.Item value='desktop'>{t('preview.view_size_desktop')}</ToggleGroup.Item>
           <ToggleGroup.Item value='mobile'>{t('preview.view_size_mobile')}</ToggleGroup.Item>
         </ToggleGroup>
