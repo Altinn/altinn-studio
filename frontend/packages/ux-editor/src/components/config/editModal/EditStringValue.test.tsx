@@ -35,11 +35,22 @@ const renderEditStringValue = ({
   );
 
 describe('EditStringValue', () => {
-  it('should render', () => {
+  it('should render component as input field, when not given enum prop', () => {
     renderEditStringValue();
+
     expect(
-      screen.getByText(textMock('ux_editor.component_properties.maxLength')),
+      screen.getByRole('textbox', { name: textMock('ux_editor.component_properties.maxLength') }),
     ).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('should render component as select, when given enum prop', () => {
+    renderEditStringValue({ enumValues: ['one', 'two', 'three'] });
+
+    expect(
+      screen.getByRole('combobox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('should call onChange handler with the correct arguments', async () => {

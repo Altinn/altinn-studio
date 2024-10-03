@@ -1,6 +1,5 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-
 import { EditNumberValue } from './EditNumberValue';
 import { renderWithProviders, renderHookWithProviders } from '../../../testing/mocks';
 import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
@@ -42,21 +41,60 @@ const renderEditNumberValue = async ({
 };
 
 describe('EditNumberValue', () => {
-  it('should render', async () => {
-    await renderEditNumberValue();
-    expect(
-      screen.getByText(textMock('ux_editor.component_properties.maxLength')),
-    ).toBeInTheDocument();
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
-  it('should call onChange for enum values', async () => {
+  it('should render component as input field, when not given enum prop', async () => {
+    await renderEditNumberValue();
+
+    expect(
+      screen.getByRole('textbox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('should render component as select, when given enum prop', async () => {
+    await renderEditNumberValue({ enumValues: [1, 2, 3] });
+
+    expect(
+      screen.getByRole('combobox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('should call onChange when typing in input field', async () => {
     const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
-    await renderEditNumberValue({ handleComponentChange, enumValues: ['1', '2', '3'] });
+    const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
+    await renderEditNumberValue({
+      handleComponentChange: mockHandleComponentChange,
+    });
+
+    await user.type(screen.getByRole('textbox'), '2');
+
+    expect(mockHandleComponentChange).toHaveReturnedWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: ComponentType.Input,
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      maxLength: 2,
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: 'some-path' },
+    });
+  });
+
+  it('should call onChange when selecting from the native select', async () => {
+    const user = userEvent.setup();
+    const mockHandleComponentChange = jest.fn((componentProperties, _) => componentProperties);
+    await renderEditNumberValue({
+      handleComponentChange: mockHandleComponentChange,
+      enumValues: [1, 2, 3],
+    });
 
     await user.selectOptions(screen.getByRole('combobox'), '1');
 
-    expect(handleComponentChange).toHaveBeenCalledWith({
+    expect(mockHandleComponentChange).toHaveReturnedWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
       type: ComponentType.Input,
       textResourceBindings: {
@@ -75,7 +113,6 @@ describe('EditNumberValue', () => {
         mutationFn: () => Promise.resolve(),
       }),
     ).result;
-
     const mockHandleComponentChange = jest
       .fn()
       .mockImplementation(async (mutationArgs, mutateOptions) => {

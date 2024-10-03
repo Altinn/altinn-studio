@@ -5,9 +5,10 @@ import { StudioDecimalInput, StudioNativeSelect } from '@studio/components';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormItem } from '../../../types/FormItem';
 import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
-import { useAppContext, useComponentPropertyLabel } from '../../../hooks';
+import { useComponentPropertyLabel, useAppContext } from '../../../hooks';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useTranslation } from 'react-i18next';
+import { setComponentProperty } from '@altinn/ux-editor/utils/component';
 
 type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
 
@@ -30,8 +31,11 @@ export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<Fo
   const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
 
   const handleValueChange = async (newValue: number) => {
-    handleComponentChange({ ...component, [propertyKey]: newValue });
-    await refetchLayouts(selectedFormLayoutSetName, true);
+    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue), {
+      onSuccess: async () => {
+        await refetchLayouts(selectedFormLayoutSetName, true);
+      },
+    });
   };
 
   return (
