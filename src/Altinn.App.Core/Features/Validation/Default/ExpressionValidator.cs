@@ -115,17 +115,21 @@ public class ExpressionValidator : IValidator
 
         var validationIssues = new List<ValidationIssue>();
         var expressionValidations = ParseExpressionValidationConfig(validationConfig.RootElement, _logger);
-        DataElementId dataElementId = dataElement;
+        DataElementIdentifier dataElementIdentifier = dataElement;
         foreach (var validationObject in expressionValidations)
         {
-            var baseField = new DataReference() { Field = validationObject.Key, DataElementId = dataElementId };
+            var baseField = new DataReference()
+            {
+                Field = validationObject.Key,
+                DataElementIdentifier = dataElementIdentifier
+            };
             var resolvedFields = await evaluatorState.GetResolvedKeys(baseField);
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
             {
                 if (
                     hiddenFields.Exists(d =>
-                        d.DataElementId == dataElementId
+                        d.DataElementIdentifier == dataElementIdentifier
                         && resolvedField.Field.StartsWith(d.Field, StringComparison.InvariantCulture)
                     )
                 )
@@ -136,7 +140,7 @@ public class ExpressionValidator : IValidator
                     component: null,
                     rowIndices: DataModel.GetRowIndices(resolvedField.Field),
                     rowLength: null,
-                    dataElementId: resolvedField.DataElementId
+                    dataElementIdentifier: resolvedField.DataElementIdentifier
                 );
                 var positionalArguments = new object[] { resolvedField };
                 foreach (var validation in validations)
@@ -184,7 +188,7 @@ public class ExpressionValidator : IValidator
                     var validationIssue = new ValidationIssue
                     {
                         Field = resolvedField.Field,
-                        DataElementId = resolvedField.DataElementId.Id.ToString(),
+                        DataElementId = resolvedField.DataElementIdentifier.Id.ToString(),
                         Severity = validation.Severity ?? ValidationIssueSeverity.Error,
                         CustomTextKey = validation.Message,
                         Code = validation.Message,

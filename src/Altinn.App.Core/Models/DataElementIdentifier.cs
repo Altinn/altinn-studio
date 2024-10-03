@@ -3,9 +3,9 @@ using Altinn.Platform.Storage.Interface.Models;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Wrapper type for a <see cref="DataElement.Id"/>
+/// Wrapper type for a <see cref="DataElement.Id"/> as Guid and string
 /// </summary>
-public readonly struct DataElementId : IEquatable<DataElementId>
+public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
 {
     /// <summary>
     /// The backing field for the parsed guid that identifies a <see cref="DataElement"/>
@@ -17,7 +17,7 @@ public readonly struct DataElementId : IEquatable<DataElementId>
     /// </summary>
     public string Id { get; }
 
-    private DataElementId(Guid guid, string id)
+    private DataElementIdentifier(Guid guid, string id)
     {
         Guid = guid;
         Id = id;
@@ -26,18 +26,18 @@ public readonly struct DataElementId : IEquatable<DataElementId>
     /// <summary>
     /// Implicit conversion to allow DataElements to be used as DataElementIds
     /// </summary>
-    public static implicit operator DataElementId(DataElement dataElement) =>
+    public static implicit operator DataElementIdentifier(DataElement dataElement) =>
         new(Guid.Parse(dataElement.Id), dataElement.Id);
 
     /// <summary>
     /// Make the implicit conversion from string (containing a valid guid) to DataElementIdentifier work
     /// </summary>
-    public static explicit operator DataElementId(string id) => new(Guid.Parse(id), id);
+    public static explicit operator DataElementIdentifier(string id) => new(Guid.Parse(id), id);
 
     /// <summary>
     /// Make the implicit conversion from guid to DataElementIdentifier work
     /// </summary>
-    public static explicit operator DataElementId(Guid guid) => new(guid, guid.ToString());
+    public static explicit operator DataElementIdentifier(Guid guid) => new(guid, guid.ToString());
 
     /// <summary>
     /// Make the ToString method return the ID
@@ -50,17 +50,21 @@ public readonly struct DataElementId : IEquatable<DataElementId>
     /// <inheritdoc />
     public override bool Equals(object? obj)
     {
-        return obj is DataElementId other && Equals(other);
+        return obj is DataElementIdentifier other && Equals(other);
     }
 
-    /// <inheritdoc />
-    public static bool operator ==(DataElementId left, DataElementId right)
+    /// <summary>
+    /// Override as in a record type
+    /// </summary>
+    public static bool operator ==(DataElementIdentifier left, DataElementIdentifier right)
     {
         return left.Equals(right);
     }
 
-    /// <inheritdoc />
-    public static bool operator !=(DataElementId left, DataElementId right)
+    /// <summary>
+    /// Override as in a record type
+    /// </summary>
+    public static bool operator !=(DataElementIdentifier left, DataElementIdentifier right)
     {
         return !left.Equals(right);
     }
@@ -68,7 +72,7 @@ public readonly struct DataElementId : IEquatable<DataElementId>
     /// <summary>
     /// Override equality to only compare the guid
     /// </summary>
-    public bool Equals(DataElementId other)
+    public bool Equals(DataElementIdentifier other)
     {
         return Guid.Equals(other.Guid);
     }

@@ -30,5 +30,5 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     ///
     /// Actual removal from storage is not done until the instance is saved.
     /// </summary>
-    void RemoveDataElement(DataElementId dataElementId);
+    void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
 }

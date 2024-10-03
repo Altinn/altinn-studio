@@ -35,7 +35,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     private readonly LazyCache<ReadOnlyMemory<byte>> _binaryCache = new();
 
     // Data elements to delete (eg RemoveDataElement(dataElementId)), but not yet deleted from instance or storage
-    private readonly ConcurrentBag<DataElementId> _dataElementsToDelete = new();
+    private readonly ConcurrentBag<DataElementIdentifier> _dataElementsToDelete = new();
 
     // Data elements to add (eg AddFormDataElement(dataTypeString, data)), but not yet added to instance or storage
     private readonly ConcurrentBag<(
@@ -68,37 +68,48 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     public Instance Instance { get; }
 
     /// <inheritdoc />
-    public async Task<object> GetFormData(DataElementId dataElementId)
+    public async Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
     {
         return await _formDataCache.GetOrCreate(
-            dataElementId,
+            dataElementIdentifier,
             async () =>
             {
-                var binaryData = await GetBinaryData(dataElementId);
+                var binaryData = await GetBinaryData(dataElementIdentifier);
 
-                return _modelSerializationService.DeserializeFromStorage(binaryData.Span, GetDataType(dataElementId));
+                return _modelSerializationService.DeserializeFromStorage(
+                    binaryData.Span,
+                    GetDataType(dataElementIdentifier)
+                );
             }
         );
     }
 
     /// <inheritdoc />
-    public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementId dataElementId) =>
+    public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier) =>
         await _binaryCache.GetOrCreate(
-            dataElementId,
+            dataElementIdentifier,
             async () =>
-                await _dataClient.GetDataBytes(_org, _app, _instanceOwnerPartyId, _instanceGuid, dataElementId.Guid)
+                await _dataClient.GetDataBytes(
+                    _org,
+                    _app,
+                    _instanceOwnerPartyId,
+                    _instanceGuid,
+                    dataElementIdentifier.Guid
+                )
         );
 
     /// <inheritdoc />
-    public DataElement GetDataElement(DataElementId dataElementId)
+    public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
     {
-        return Instance.Data.Find(d => d.Id == dataElementId.Id)
-            ?? throw new InvalidOperationException($"Data element with id {dataElementId.Id} not found in instance");
+        return Instance.Data.Find(d => d.Id == dataElementIdentifier.Id)
+            ?? throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} not found in instance"
+            );
     }
 
-    private DataType GetDataType(DataElementId dataElementId)
+    private DataType GetDataType(DataElementIdentifier dataElementIdentifier)
     {
-        var dataElement = GetDataElement(dataElementId);
+        var dataElement = GetDataElement(dataElementIdentifier);
         var appMetadata = _appMetadata.GetApplicationMetadata().Result;
         var dataType = appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
         if (dataType is null)
@@ -153,15 +164,17 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     }
 
     /// <inheritdoc />
-    public void RemoveDataElement(DataElementId dataElementId)
+    public void RemoveDataElement(DataElementIdentifier dataElementIdentifier)
     {
-        var dataElement = Instance.Data.Find(d => d.Id == dataElementId.Id);
+        var dataElement = Instance.Data.Find(d => d.Id == dataElementIdentifier.Id);
         if (dataElement is null)
         {
-            throw new InvalidOperationException($"Data element with id {dataElementId.Id} not found in instance");
+            throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} not found in instance"
+            );
         }
 
-        _dataElementsToDelete.Add(dataElementId);
+        _dataElementsToDelete.Add(dataElementIdentifier);
     }
 
     public List<DataElementChange> GetDataElementChanges(bool initializeAltinnRowId)
@@ -169,19 +182,19 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         var changes = new List<DataElementChange>();
         foreach (var dataElement in Instance.Data)
         {
-            DataElementId dataElementId = dataElement;
-            object? data = _formDataCache.GetCachedValueOrDefault(dataElementId);
+            DataElementIdentifier dataElementIdentifier = dataElement;
+            object? data = _formDataCache.GetCachedValueOrDefault(dataElementIdentifier);
             // Skip data elements that have not been fetched
             if (data is null)
                 continue;
-            var dataType = GetDataType(dataElementId);
-            var previousBinary = _binaryCache.GetCachedValueOrDefault(dataElementId);
+            var dataType = GetDataType(dataElementIdentifier);
+            var previousBinary = _binaryCache.GetCachedValueOrDefault(dataElementIdentifier);
             if (initializeAltinnRowId)
             {
                 ObjectUtils.InitializeAltinnRowId(data);
             }
             var (currentBinary, contentType) = _modelSerializationService.SerializeToStorage(data, dataType);
-            _binaryCache.Set(dataElementId, currentBinary);
+            _binaryCache.Set(dataElementIdentifier, currentBinary);
 
             if (!currentBinary.Span.SequenceEqual(previousBinary.Span))
             {
@@ -291,31 +304,31 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     /// <summary>
     /// Add or replace existing data element data in the cache
     /// </summary>
-    internal void SetFormData(DataElementId dataElementId, object data)
+    internal void SetFormData(DataElementIdentifier dataElementIdentifier, object data)
     {
-        var dataType = GetDataType(dataElementId);
+        var dataType = GetDataType(dataElementIdentifier);
         if (dataType.AppLogic?.ClassRef is not { } classRef)
         {
-            throw new InvalidOperationException($"Data element {dataElementId.Id} don't have app logic");
+            throw new InvalidOperationException($"Data element {dataElementIdentifier.Id} don't have app logic");
         }
         if (data.GetType().FullName != classRef)
         {
             throw new InvalidOperationException(
-                $"Data object registered for {dataElementId.Id} is not of type {classRef} as specified in application metadata for data type {dataType.Id}, but {data.GetType().FullName}"
+                $"Data object registered for {dataElementIdentifier.Id} is not of type {classRef} as specified in application metadata for data type {dataType.Id}, but {data.GetType().FullName}"
             );
         }
-        _formDataCache.Set(dataElementId, data);
+        _formDataCache.Set(dataElementIdentifier, data);
     }
 
     /// <summary>
     /// Compatibility function to update both formDataCache and binaryCache as we assume storage has already been updated.
     /// </summary>
     [Obsolete("Should only be used for actions that set UpdatedDataModels on UserActionResult which is deprecated")]
-    internal void ReplaceFormDataAssumeSavedToStorage(DataElementId dataElementId, object newModel)
+    internal void ReplaceFormDataAssumeSavedToStorage(DataElementIdentifier dataElementIdentifier, object newModel)
     {
-        SetFormData(dataElementId, newModel);
-        var (data, _) = _modelSerializationService.SerializeToStorage(newModel, GetDataType(dataElementId));
-        _binaryCache.Set(dataElementId, data);
+        SetFormData(dataElementIdentifier, newModel);
+        var (data, _) = _modelSerializationService.SerializeToStorage(newModel, GetDataType(dataElementIdentifier));
+        _binaryCache.Set(dataElementIdentifier, data);
     }
 
     /// <summary>
@@ -325,7 +338,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     {
         private readonly Dictionary<Guid, Lazy<Task<T>>> _cache = new();
 
-        public async Task<T> GetOrCreate(DataElementId key, Func<Task<T>> valueFactory)
+        public async Task<T> GetOrCreate(DataElementIdentifier key, Func<Task<T>> valueFactory)
         {
             Lazy<Task<T>>? lazyTask;
             lock (_cache)
@@ -339,7 +352,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
             return await lazyTask.Value;
         }
 
-        public void Set(DataElementId key, T data)
+        public void Set(DataElementIdentifier key, T data)
         {
             lock (_cache)
             {
@@ -347,12 +360,12 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
             }
         }
 
-        public T? GetCachedValueOrDefault(DataElementId id)
+        public T? GetCachedValueOrDefault(DataElementIdentifier identifier)
         {
             lock (_cache)
             {
                 if (
-                    _cache.TryGetValue(id.Guid, out var lazyTask)
+                    _cache.TryGetValue(identifier.Guid, out var lazyTask)
                     && lazyTask.IsValueCreated
                     && lazyTask.Value.IsCompletedSuccessfully
                 )

@@ -88,9 +88,9 @@ internal class PatchService : IPatchService
                 };
             }
 
-            DataElementId dataElementId = dataElement;
+            DataElementIdentifier dataElementIdentifier = dataElement;
 
-            var oldModel = await dataAccessor.GetFormData(dataElementId); // TODO: Fetch data in parallel
+            var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
             var patchResult = jsonPatch.Apply(oldModelNode);
 
@@ -133,7 +133,7 @@ internal class PatchService : IPatchService
                     DataElement = dataElement,
                     PreviousFormData = oldModel,
                     CurrentFormData = newModel,
-                    PreviousBinaryData = await dataAccessor.GetBinaryData(dataElementId),
+                    PreviousBinaryData = await dataAccessor.GetBinaryData(dataElementIdentifier),
                     CurrentBinaryData = null,
                 }
             );

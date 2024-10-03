@@ -12,7 +12,7 @@ namespace Altinn.App.Core.Helpers.DataModel;
 public class DataModel
 {
     private readonly IInstanceDataAccessor _dataAccessor;
-    private readonly Dictionary<string, DataElementId?> _dataIdsByType = [];
+    private readonly Dictionary<string, DataElementIdentifier?> _dataIdsByType = [];
 
     /// <summary>
     /// Constructor that wraps a POCO data model, and gives extra tool for working with the data
@@ -40,19 +40,19 @@ public class DataModel
     /// </summary>
     public Instance Instance => _dataAccessor.Instance;
 
-    private async Task<object> ServiceModel(ModelBinding key, DataElementId defaultDataElementId)
+    private async Task<object> ServiceModel(ModelBinding key, DataElementIdentifier defaultDataElementIdentifier)
     {
-        return (await ServiceModelAndDataElementId(key, defaultDataElementId)).model;
+        return (await ServiceModelAndDataElementId(key, defaultDataElementIdentifier)).model;
     }
 
-    private async Task<(DataElementId dataElementId, object model)> ServiceModelAndDataElementId(
+    private async Task<(DataElementIdentifier dataElementId, object model)> ServiceModelAndDataElementId(
         ModelBinding key,
-        DataElementId defaultDataElementId
+        DataElementIdentifier defaultDataElementIdentifier
     )
     {
         if (key.DataType == null)
         {
-            return (defaultDataElementId, await _dataAccessor.GetFormData(defaultDataElementId));
+            return (defaultDataElementIdentifier, await _dataAccessor.GetFormData(defaultDataElementIdentifier));
         }
 
         if (_dataIdsByType.TryGetValue(key.DataType, out var dataElementId))
@@ -80,9 +80,13 @@ public class DataModel
     /// "Bedrifter[1].Ansatte.Alder", will fail, because the indicies will be reset
     /// after an inline index is used
     /// </remarks>
-    public async Task<object?> GetModelData(ModelBinding key, DataElementId defaultDataElementId, int[]? rowIndexes)
+    public async Task<object?> GetModelData(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes
+    )
     {
-        var model = await ServiceModel(key, defaultDataElementId);
+        var model = await ServiceModel(key, defaultDataElementIdentifier);
         var modelWrapper = new DataModelWrapper(model);
         return modelWrapper.GetModelData(key.Field, rowIndexes);
     }
@@ -90,9 +94,13 @@ public class DataModel
     /// <summary>
     /// Get the count of data elements set in a group (enumerable)
     /// </summary>
-    public async Task<int?> GetModelDataCount(ModelBinding key, DataElementId defaultDataElementId, int[]? rowIndexes)
+    public async Task<int?> GetModelDataCount(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes
+    )
     {
-        var model = await ServiceModel(key, defaultDataElementId);
+        var model = await ServiceModel(key, defaultDataElementIdentifier);
         var modelWrapper = new DataModelWrapper(model);
         return modelWrapper.GetModelDataCount(key.Field, rowIndexes);
     }
@@ -109,11 +117,11 @@ public class DataModel
     /// </example>
     public async Task<DataReference[]> GetResolvedKeys(DataReference reference)
     {
-        var model = await _dataAccessor.GetFormData(reference.DataElementId);
+        var model = await _dataAccessor.GetFormData(reference.DataElementIdentifier);
         var modelWrapper = new DataModelWrapper(model);
         return modelWrapper
             .GetResolvedKeys(reference.Field)
-            .Select(k => new DataReference { Field = k, DataElementId = reference.DataElementId })
+            .Select(k => new DataReference { Field = k, DataElementIdentifier = reference.DataElementIdentifier })
             .ToArray();
     }
 
@@ -138,9 +146,13 @@ public class DataModel
     /// indicies = [1,2]
     /// => "bedrift[1].ansatte[2].navn"
     /// </example>
-    public async Task<DataReference> AddIndexes(ModelBinding key, DataElementId defaultDataElementId, int[]? rowIndexes)
+    public async Task<DataReference> AddIndexes(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes
+    )
     {
-        var (dataElementId, serviceModel) = await ServiceModelAndDataElementId(key, defaultDataElementId);
+        var (dataElementId, serviceModel) = await ServiceModelAndDataElementId(key, defaultDataElementIdentifier);
         if (serviceModel is null)
         {
             throw new DataModelException($"Could not find service model for dataType {key.DataType}");
@@ -148,7 +160,7 @@ public class DataModel
 
         var modelWrapper = new DataModelWrapper(serviceModel);
         var field = modelWrapper.AddIndicies(key.Field, rowIndexes);
-        return new DataReference() { Field = field, DataElementId = dataElementId };
+        return new DataReference() { Field = field, DataElementIdentifier = dataElementId };
     }
 
     /// <summary>
@@ -156,11 +168,11 @@ public class DataModel
     /// </summary>
     public async Task RemoveField(DataReference reference, RowRemovalOption rowRemovalOption)
     {
-        var serviceModel = await _dataAccessor.GetFormData(reference.DataElementId);
+        var serviceModel = await _dataAccessor.GetFormData(reference.DataElementIdentifier);
         if (serviceModel is null)
         {
             throw new DataModelException(
-                $"Could not find service model for data element id {reference.DataElementId} to remove values"
+                $"Could not find service model for data element id {reference.DataElementIdentifier} to remove values"
             );
         }
 

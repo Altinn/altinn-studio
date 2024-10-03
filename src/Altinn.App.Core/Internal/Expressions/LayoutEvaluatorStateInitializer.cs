@@ -52,9 +52,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 
         public Instance Instance { get; }
 
-        public Task<object> GetFormData(DataElementId dataElementId)
+        public Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
         {
-            if (dataElementId != _dataElement)
+            if (dataElementIdentifier != _dataElement)
             {
                 return Task.FromException<object>(
                     new InvalidOperationException(
@@ -65,14 +65,14 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             return Task.FromResult(_data);
         }
 
-        public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementId dataElementId)
+        public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
         {
             return Task.FromException<ReadOnlyMemory<byte>>(new NotImplementedException());
         }
 
-        public DataElement GetDataElement(DataElementId dataElementId)
+        public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
         {
-            if (dataElementId != _dataElement)
+            if (dataElementIdentifier != _dataElement)
             {
                 throw new InvalidOperationException(
                     "Use the new ILayoutEvaluatorStateInitializer interface to support multiple data models and subforms"
@@ -102,7 +102,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         }
 
         // Not implemented
-        public void RemoveDataElement(DataElementId dataElementId)
+        public void RemoveDataElement(DataElementIdentifier dataElementIdentifier)
         {
             throw new NotImplementedException(
                 "The obsolete LayoutEvaluatorStateInitializer.Init method does not support removing data elements"

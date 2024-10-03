@@ -79,7 +79,7 @@ public static class LayoutEvaluator
                 var rowIndices = context.RowIndices?.Append(index).ToArray() ?? [index];
                 var indexedBinding = await state.AddInidicies(
                     repGroup.DataModelBindings["group"],
-                    context.DataElementId,
+                    context.DataElementIdentifier,
                     rowIndices
                 );
 
@@ -166,7 +166,7 @@ public static class LayoutEvaluator
             {
                 foreach (var (bindingName, binding) in context.Component.DataModelBindings)
                 {
-                    var value = await state.GetModelData(binding, context.DataElementId, context.RowIndices);
+                    var value = await state.GetModelData(binding, context.DataElementIdentifier, context.RowIndices);
                     if (value is null)
                     {
                         var field = await state.AddInidicies(binding, context);
@@ -174,7 +174,7 @@ public static class LayoutEvaluator
                             new ValidationIssue()
                             {
                                 Severity = ValidationIssueSeverity.Error,
-                                DataElementId = field.DataElementId.ToString(),
+                                DataElementId = field.DataElementIdentifier.ToString(),
                                 Field = field.Field,
                                 Description =
                                     $"{field.Field} is required in component with id {context.Component.LayoutId}.{context.Component.PageId}.{context.Component.Id} for binding {bindingName}",

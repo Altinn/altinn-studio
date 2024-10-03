@@ -111,7 +111,7 @@ public static class ExpressionEvaluator
         {
             return await DataModel(
                 new ModelBinding() { Field = dataReference.Field },
-                dataReference.DataElementId,
+                dataReference.DataElementIdentifier,
                 context.RowIndices,
                 state
             );
@@ -127,17 +127,17 @@ public static class ExpressionEvaluator
                     $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
                 )
         };
-        return await DataModel(key, context.DataElementId, context.RowIndices, state);
+        return await DataModel(key, context.DataElementIdentifier, context.RowIndices, state);
     }
 
     private static async Task<object?> DataModel(
         ModelBinding key,
-        DataElementId defaultDataElementId,
+        DataElementIdentifier defaultDataElementIdentifier,
         int[]? indexes,
         LayoutEvaluatorState state
     )
     {
-        var data = await state.GetModelData(key, defaultDataElementId, indexes);
+        var data = await state.GetModelData(key, defaultDataElementIdentifier, indexes);
 
         // Only allow IConvertible types to be returned from data model
         // Objects and arrays should return null
@@ -182,7 +182,7 @@ public static class ExpressionEvaluator
             return null;
         }
 
-        return await DataModel(binding, context.DataElementId, context.RowIndices, state);
+        return await DataModel(binding, context.DataElementIdentifier, context.RowIndices, state);
     }
 
     private static string? Concat(object?[] args)

@@ -33,7 +33,7 @@ public class DataPatchResult
     /// <summary>
     /// Store a pair with Id and Data
     /// </summary>
-    /// <param name="Id">The data element id</param>
+    /// <param name="Identifier">The data element id</param>
     /// <param name="Data">The deserialized data</param>
-    public record DataModelPair(DataElementId Id, object Data);
+    public record DataModelPair(DataElementIdentifier Identifier, object Data);
 }

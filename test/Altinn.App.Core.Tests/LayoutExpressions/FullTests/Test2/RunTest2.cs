@@ -53,32 +53,32 @@ public class RunTest2
                     new DataReference
                     {
                         Field = "some.data[0].binding",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     },
                     new DataReference()
                     {
                         Field = "some.data[0].binding2",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     },
                     new DataReference
                     {
                         Field = "some.data[0].binding3",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     },
                     new DataReference
                     {
                         Field = "some.data[1].binding",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     },
                     new DataReference
                     {
                         Field = "some.data[1].binding2",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     },
                     new DataReference
                     {
                         Field = "some.data[1].binding3",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     }
                 ]
             );
@@ -124,7 +124,7 @@ public class RunTest2
                     new DataReference()
                     {
                         Field = "some.data[1].binding2",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     }
                 ]
             );

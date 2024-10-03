@@ -595,7 +595,7 @@ public class DataController : ControllerBase
                         Instance = res.Ok.Instance,
                         NewDataModels = res
                             .Ok.UpdatedData.Select(d => new DataPatchResponseMultiple.DataModelPairResponse(
-                                d.Id.Guid,
+                                d.Identifier.Guid,
                                 d.Data
                             ))
                             .ToList(),

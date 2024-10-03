@@ -55,12 +55,12 @@ public class RunTest1
                     new DataReference()
                     {
                         Field = "some.data.binding3",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     },
                     new DataReference()
                     {
                         Field = "some.data.binding2",
-                        DataElementId = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId()
                     }
                 ]
             );
