@@ -6,10 +6,10 @@ import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useUrlParams } from '../../../hooks/useUrlParams';
 import {
   StudioPageHeader,
-  StudioProfileMenu,
   type StudioProfileMenuItem,
   useMediaQuery,
   StudioAvatar,
+  type StudioProfileMenuGroup,
 } from '@studio/components';
 import { repositoryOwnerPath } from 'app-shared/api/paths';
 import { type Organization } from 'app-shared/types/Organization';
@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { type SelectedContextType, HeaderContext } from 'resourceadm/context/HeaderContext';
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
+import { useProfileMenuTriggerButtonText } from 'resourceadm/hooks/useProfileMenuTriggerButtonText';
 
 export const ResourceadmHeader = () => {
   const { org } = useUrlParams();
@@ -44,29 +45,17 @@ export const ResourceadmHeader = () => {
 
 const ResourceadmHeaderMenu = () => {
   const { t } = useTranslation();
-  const shouldHideButtonText = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+  const showButtonText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org: selectedContext } = useUrlParams();
   const { mutate: logout } = useLogoutMutation();
   const { user, selectableOrgs } = useContext(HeaderContext);
   const navigate = useNavigate();
 
-  const getTriggerButtonText = (): string => {
-    if (shouldHideButtonText) return;
-
-    const username = user.full_name || user.login;
-
-    return t('shared.header_user_for_org', {
-      user: username,
-      org: getOrgNameByUsername(selectedContext, selectableOrgs),
-    });
-  };
+  const triggerButtonText = useProfileMenuTriggerButtonText();
+  const repoPath: string = repositoryOwnerPath(selectedContext);
 
   const handleSetSelectedContext = (context: string | SelectedContextType) => {
     navigate(`/${context}/${context}-resources`);
-  };
-
-  const getRepoPath = () => {
-    return repositoryOwnerPath(selectedContext);
   };
 
   const selectableOrgMenuItems: StudioProfileMenuItem[] =
@@ -77,7 +66,7 @@ const ResourceadmHeaderMenu = () => {
     })) ?? [];
 
   const giteaMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: getRepoPath() },
+    action: { type: 'link', href: repoPath },
     itemName: t('shared.header_go_to_gitea'),
   };
 
@@ -86,10 +75,15 @@ const ResourceadmHeaderMenu = () => {
     itemName: t('shared.header_logout'),
   };
 
+  const profileMenuGroups: StudioProfileMenuGroup[] = [
+    { items: [...selectableOrgMenuItems] },
+    { items: [giteaMenuItem, logOutMenuItem] },
+  ];
+
   return (
-    <StudioProfileMenu
-      triggerButtonText={getTriggerButtonText()}
-      ariaLabelTriggerButton={getTriggerButtonText()}
+    <StudioPageHeader.ProfileMenu
+      triggerButtonText={showButtonText && triggerButtonText}
+      ariaLabelTriggerButton={triggerButtonText}
       color='dark'
       variant='regular'
       profileImage={
@@ -99,7 +93,7 @@ const ResourceadmHeaderMenu = () => {
           title={t('shared.header_profile_icon_text')}
         />
       }
-      profileMenuItems={[...selectableOrgMenuItems, giteaMenuItem, logOutMenuItem]}
+      profileMenuGroups={profileMenuGroups}
     />
   );
 };

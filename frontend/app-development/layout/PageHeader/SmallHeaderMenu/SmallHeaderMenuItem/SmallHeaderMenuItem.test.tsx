@@ -32,7 +32,7 @@ describe('SmallHeaderMenuItem', () => {
     renderSmallHeaderMenuItem();
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock(menuItemName)} ${textMock('general.beta')}`,
+      name: `${textMock(menuItemName)} Beta`,
     });
     expect(linkElement).toBeInTheDocument();
     expect(linkElement).toHaveAttribute('href', menuItemLink);
@@ -44,7 +44,7 @@ describe('SmallHeaderMenuItem', () => {
     });
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock(menuItemName)} ${textMock('general.beta')}`,
+      name: `${textMock(menuItemName)} Beta`,
     });
     expect(linkElement).toHaveClass('active');
   });
@@ -54,7 +54,7 @@ describe('SmallHeaderMenuItem', () => {
     renderSmallHeaderMenuItem();
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock(menuItemName)} ${textMock('general.beta')}`,
+      name: `${textMock(menuItemName)} Beta`,
     });
     await user.click(linkElement);
 
@@ -76,7 +76,7 @@ describe('SmallHeaderMenuItem', () => {
     });
 
     const linkElement = screen.getByRole('menuitem', {
-      name: `${textMock('testMenuItem')} ${textMock('general.beta')}`,
+      name: `${textMock('testMenuItem')} Beta`,
     });
     expect(linkElement).toHaveAttribute('target', '_blank');
     expect(linkElement).toHaveAttribute('rel', 'noopener noreferrer');

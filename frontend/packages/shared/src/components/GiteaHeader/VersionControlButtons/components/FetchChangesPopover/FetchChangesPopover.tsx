@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPageHeaderButton, StudioPopover, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -58,7 +58,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger asChild>
-        <StudioPageHeaderButton
+        <StudioPageHeader.HeaderButton
           onClick={handleOpenPopover}
           disabled={hasMergeConflict}
           icon={<DownloadIcon />}
@@ -68,7 +68,7 @@ export const FetchChangesPopover = (): React.ReactElement => {
         >
           {shouldDisplayText && t('sync_header.fetch_changes')}
           {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
-        </StudioPageHeaderButton>
+        </StudioPageHeader.HeaderButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
         {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}

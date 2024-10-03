@@ -7,7 +7,6 @@ import {
   StudioPageHeaderProfileMenu,
   type StudioProfileMenuItem,
   type StudioProfileMenuGroup,
-  type StudioProfileMenuItem,
 } from './StudioPageHeaderProfileMenu';
 import { StudioPageHeaderCenter } from './StudioPageHeaderCenter';
 import { StudioPageHeaderLeft } from './StudioPageHeaderLeft';

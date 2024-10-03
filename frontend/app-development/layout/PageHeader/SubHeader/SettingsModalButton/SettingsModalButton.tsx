@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import React from 'react';
-import { StudioPageHeaderButton, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, useMediaQuery } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { SettingsModal } from './SettingsModal';
@@ -17,7 +17,7 @@ export const SettingsModalButton = (): ReactNode => {
 
   return (
     <>
-      <StudioPageHeaderButton
+      <StudioPageHeader.HeaderButton
         color='light'
         onClick={() => settingsRef.current.openSettings()}
         icon={<CogIcon />}
@@ -25,7 +25,7 @@ export const SettingsModalButton = (): ReactNode => {
         aria-label={t('sync_header.settings')}
       >
         {shouldDisplayText && t('sync_header.settings')}
-      </StudioPageHeaderButton>
+      </StudioPageHeader.HeaderButton>
       <SettingsModal ref={settingsRef} />
     </>
   );

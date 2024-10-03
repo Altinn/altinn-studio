@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioPageHeaderButton, StudioPopover, useMediaQuery } from '@studio/components';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +60,7 @@ export const ShareChangesPopover = () => {
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger asChild>
-        <StudioPageHeaderButton
+        <StudioPageHeader.HeaderButton
           onClick={handleOpenPopover}
           disabled={!hasPushRights || hasMergeConflict}
           title={renderCorrectTitle()}
@@ -71,7 +71,7 @@ export const ShareChangesPopover = () => {
         >
           {shouldDisplayText && t('sync_header.changes_to_share')}
           {displayNotification && <Notification />}
-        </StudioPageHeaderButton>
+        </StudioPageHeader.HeaderButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}

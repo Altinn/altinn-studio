@@ -3,7 +3,7 @@ import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
 import { userMock } from './userMock';
-import { type StudioProfileMenuItem } from '@studio/components';
+import { type StudioProfileMenuGroup, type StudioProfileMenuItem } from '@studio/components';
 import { type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 
 const menuItemsMock: HeaderMenuItem[] = [
@@ -21,17 +21,19 @@ const menuItemsMock: HeaderMenuItem[] = [
   },
 ];
 
-export const profileMenuItemsMock: StudioProfileMenuItem[] = [
-  {
-    action: { type: 'button', onClick: () => {} },
-    itemName: 'test',
-  },
-];
+const profileMenuItem1Mock: StudioProfileMenuItem = {
+  action: { type: 'button', onClick: () => {} },
+  itemName: 'test',
+};
+
+export const profileMenuItemsMock: StudioProfileMenuItem[] = [profileMenuItem1Mock];
+export const profileMenuGroupsMock: StudioProfileMenuGroup[] = [{ items: [profileMenuItem1Mock] }];
 
 export const pageHeaderContextMock: PageHeaderContextProps = {
   user: userMock,
   menuItems: menuItemsMock,
   profileMenuItems: profileMenuItemsMock,
+  profileMenuGroups: profileMenuGroupsMock,
   repoOwnerIsOrg: true,
   variant: 'regular',
 };

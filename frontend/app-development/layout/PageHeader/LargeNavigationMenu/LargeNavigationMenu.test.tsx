@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { LargeNavigationMenu, type LargeNavigationMenuProps } from './LargeNavigationMenu';
 import { MemoryRouter } from 'react-router-dom';
-import { textMock } from '@studio/testing/mocks/i18nMock';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
@@ -38,7 +37,7 @@ describe('LargeNavigationMenu', () => {
   it('should display the beta tag for items marked as beta', () => {
     renderLargeNavigationMenu();
 
-    const betaTags = screen.getAllByText(textMock('general.beta'));
+    const betaTags = screen.getAllByText('Beta');
 
     expect(betaTags.length).toEqual(menuItems.filter((item) => item.isBeta).length);
   });
@@ -46,7 +45,7 @@ describe('LargeNavigationMenu', () => {
   it('should not display the beta tag for items not marked as beta', () => {
     renderLargeNavigationMenu();
 
-    const betaTags = screen.getAllByText(textMock('general.beta'));
+    const betaTags = screen.getAllByText('Beta');
 
     expect(menuItems.length - betaTags.length).toEqual(
       menuItems.filter((item) => !item.isBeta).length,

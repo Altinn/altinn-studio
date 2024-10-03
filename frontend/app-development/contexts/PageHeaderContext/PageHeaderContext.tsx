@@ -1,7 +1,11 @@
 import React, { type ReactElement, type ReactNode, createContext, useContext } from 'react';
 import { type User } from 'app-shared/types/Repository';
 import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenuItem';
-import { type StudioProfileMenuItem, type StudioPageHeaderProps } from '@studio/components';
+import {
+  type StudioProfileMenuItem,
+  type StudioPageHeaderProps,
+  type StudioProfileMenuGroup,
+} from '@studio/components';
 import { getTopBarMenuItems } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -12,7 +16,8 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 export type PageHeaderContextProps = {
   user: User;
   menuItems: HeaderMenuItem[];
-  profileMenuItems: StudioProfileMenuItem[]; // TODO - a better way for this type?
+  profileMenuItems: StudioProfileMenuItem[];
+  profileMenuGroups: StudioProfileMenuGroup[];
   repoOwnerIsOrg: boolean;
   variant: StudioPageHeaderProps['variant'];
 };
@@ -38,7 +43,6 @@ export const PageHeaderContextProvider = ({
   const docsMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: altinnDocsUrl('nb'), openInNewTab: true },
     itemName: t('sync_header.documentation'),
-    hasDivider: true,
   };
 
   const logOutMenuItem: StudioProfileMenuItem = {
@@ -47,9 +51,15 @@ export const PageHeaderContextProvider = ({
   };
 
   const profileMenuItems: StudioProfileMenuItem[] = [docsMenuItem, logOutMenuItem];
+  const profileMenuGroups: StudioProfileMenuGroup[] = [
+    { items: [docsMenuItem] },
+    { items: [logOutMenuItem] },
+  ];
 
   return (
-    <PageHeaderContext.Provider value={{ user, menuItems, profileMenuItems, variant: 'regular' }}>
+    <PageHeaderContext.Provider
+      value={{ user, menuItems, profileMenuItems, profileMenuGroups, variant: 'regular' }}
+    >
       {children}
     </PageHeaderContext.Provider>
   );

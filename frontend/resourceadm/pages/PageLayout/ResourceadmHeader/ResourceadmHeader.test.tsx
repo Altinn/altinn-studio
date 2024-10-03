@@ -79,16 +79,18 @@ describe('ResourceadmHeader', () => {
     });
     await user.click(avatarButton);
 
-    const org1Item = screen.getByRole('menuitem', { name: mockOrg1.full_name });
+    const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     expect(org1Item).toBeInTheDocument();
 
-    const org2Item = screen.getByRole('menuitem', { name: mockOrg2.full_name });
+    const org2Item = screen.getByRole('menuitemradio', { name: mockOrg2.full_name });
     expect(org2Item).toBeInTheDocument();
 
     const giteaItem = screen.getByRole('menuitem', { name: textMock('shared.header_go_to_gitea') });
     expect(giteaItem).toBeInTheDocument();
 
-    const logoutItem = screen.getByRole('menuitem', { name: textMock('shared.header_logout') });
+    const logoutItem = screen.getByRole('menuitemradio', {
+      name: textMock('shared.header_logout'),
+    });
     expect(logoutItem).toBeInTheDocument();
   });
 
@@ -105,7 +107,7 @@ describe('ResourceadmHeader', () => {
     });
     await user.click(avatarButton);
 
-    const org1Item = screen.getByRole('menuitem', { name: mockOrg1.full_name });
+    const org1Item = screen.getByRole('menuitemradio', { name: mockOrg1.full_name });
     await user.click(org1Item);
 
     expect(mockNavigate).toHaveBeenCalledWith(

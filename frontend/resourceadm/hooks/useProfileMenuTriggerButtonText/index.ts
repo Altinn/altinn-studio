@@ -1,0 +1,1 @@
+export { useProfileMenuTriggerButtonText } from './useProfileMenuTriggerButtonText';

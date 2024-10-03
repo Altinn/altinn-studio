@@ -69,20 +69,3 @@ const renderSubHeader = ({ componentProps }: Partial<Props> = {}) => {
     </PageHeaderContext.Provider>,
   );
 };
-
-/*
-const setup = ({ componentProps, repositoryType }: SetupOptions = {}) => {
-  const doReloadPreviewMock = jest.fn();
-  const org = 'test-org';
-  const app = 'test-app';
-
-  (useStudioEnvironmentParams as jest.Mock).mockReturnValue({ org, app });
-  (usePreviewContext as jest.Mock).mockReturnValue({ doReloadPreview: doReloadPreviewMock });
-  const getRepositoryType = require('app-shared/utils/repository').getRepositoryType;
-  getRepositoryType.mockReturnValue(repositoryType || RepositoryType.Apps);
-
-  renderWithProviders()(<SubHeader {...defaultProps} {...componentProps} />);
-
-  return { doReloadPreviewMock };
-};
-*/
