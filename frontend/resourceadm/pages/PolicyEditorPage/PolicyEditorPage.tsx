@@ -88,6 +88,103 @@ export const PolicyEditorPage = ({
         policy={policyData}
         actions={mergedActions}
         subjects={mergedSubjects}
+        accessPackages={[
+          {
+            id: 'category_economy',
+            name: {
+              nn: 'Skatt og Merverdiavgift',
+              nb: 'Skatt og Merverdiavgift',
+              en: 'Economy',
+            },
+            description: {
+              nn: 'Underkatagori for tilgangspakker til tjenester som angår skatt og merverdiavgift.',
+              nb: 'Underkatagori for tilgangspakker til tjenester som angår skatt og merverdiavgift.',
+              en: 'Grants access to economical services',
+            },
+            packages: [
+              {
+                urn: 'urn:altinn:accesspackage:foretaksskatt',
+                name: {
+                  nn: 'Foretaksskatt',
+                  nb: 'Foretaksskatt',
+                  en: 'Foretaksskatt',
+                },
+                description: {
+                  nn: 'Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  nb: 'Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  en: 'Lets you submit tax info',
+                },
+              },
+              {
+                urn: 'urn:altinn:accesspackage:skattegrunnlag',
+                name: {
+                  nn: 'Skattegrunnlag',
+                  nb: 'Skattegrunnlag',
+                  en: 'Skattegrunnlag',
+                },
+                description: {
+                  nn: 'Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  nb: 'Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  en: 'Lets you submit tax info',
+                },
+              },
+              {
+                urn: 'urn:altinn:accesspackage:merverdiavgift',
+                name: {
+                  nn: 'Merverdiavgift',
+                  nb: 'Merverdiavgift',
+                  en: 'Merverdiavgift',
+                },
+                description: {
+                  nn: 'Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  nb: 'Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  en: 'Lets you submit tax info',
+                },
+              },
+            ],
+          },
+          {
+            id: 'category_transport',
+            name: {
+              nn: 'Transport og lagring',
+              nb: 'Transport og lagring',
+              en: 'Transport',
+            },
+            description: {
+              nn: 'Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring inkludert passasjer og godstransport, samt post- og kurervirksomhet. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+              nb: 'Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring inkludert passasjer og godstransport, samt post- og kurervirksomhet. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+              en: 'Grants access to economical services',
+            },
+            packages: [
+              {
+                urn: 'urn:altinn:accesspackage:sjofart',
+                name: {
+                  nn: 'Sjøfart',
+                  nb: 'Sjøfart',
+                  en: 'Sjøfart',
+                },
+                description: {
+                  nn: 'Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  nb: 'Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  en: 'Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                },
+              },
+              {
+                urn: 'urn:altinn:accesspackage:lufttransport',
+                name: {
+                  nn: 'Lufttransport',
+                  nb: 'Lufttransport',
+                  en: 'Lufttransport',
+                },
+                description: {
+                  nn: 'Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  nb: 'Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                  en: 'Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+                },
+              },
+            ],
+          },
+        ]}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}

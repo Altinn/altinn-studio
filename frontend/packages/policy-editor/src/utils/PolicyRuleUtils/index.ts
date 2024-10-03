@@ -1,4 +1,9 @@
-import type { PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
+import type {
+  PolicyAccessPackageCategory,
+  PolicyAction,
+  PolicyRuleCard,
+  PolicySubject,
+} from '../../types';
 
 /**
  * Function to update the fields inside the rule object in the rule array.
@@ -40,6 +45,32 @@ export const getSubjectOptions = (subjects: PolicySubject[], policyRule: PolicyR
   return subjects
     .filter((s) => !policyRule.subject.includes(s.subjectId))
     .map((s) => ({ value: s.subjectId, label: s.subjectTitle }));
+};
+
+/**
+ * Returns an array of action packages used in this rule
+ *
+ * @param allPackages the list of all access packages
+ * @param policyRule the currect policy rule
+ *
+ * @returns a list of access packages
+ */
+export const getAccessPackageOptions = (
+  allPackages: PolicyAccessPackageCategory[],
+  policyRule: PolicyRuleCard,
+) => {
+  return allPackages
+    .flatMap((category) => category.packages)
+    .filter((accessPackage) => policyRule.accessPackages.indexOf(accessPackage.urn) > -1);
+  const returnValue = [];
+  allPackages.forEach((accessPackageCategory) => {
+    accessPackageCategory.packages.forEach((accessPackage) => {
+      if (policyRule.accessPackages.indexOf(accessPackage.urn) > -1) {
+        returnValue.push(accessPackage);
+      }
+    });
+  });
+  return returnValue;
 };
 
 /**
