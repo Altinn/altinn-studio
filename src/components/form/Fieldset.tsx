@@ -33,6 +33,7 @@ export const Fieldset = ({
   const legendAsText = elementAsString(legend);
   return (
     <DSFieldset
+      size='sm'
       hideLegend={!legend}
       legend={
         <div className={classes.legendContent}>

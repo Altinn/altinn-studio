@@ -1,9 +1,11 @@
 .legendContent {
+  font-size: 1.125rem;
   display: flex;
   gap: 0.25rem;
   align-items: center;
 }
 
 .description {
+  font-size: 1.125rem;
   margin: 0;
 }
