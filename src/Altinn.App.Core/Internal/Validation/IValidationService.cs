@@ -16,7 +16,7 @@ public interface IValidationService
     /// <param name="dataAccessor">Accessor for instance data to be validated</param>
     /// <param name="taskId">The task to run validations for (overriding instance.Process?.CurrentTask?.ElementId)</param>
     /// <param name="ignoredValidators">List of <see cref="IValidator.ValidationSource"/> to ignore</param>
-    /// <param name="onlyIncrementalValidators"></param>
+    /// <param name="onlyIncrementalValidators">only run validators that implements incremental validation</param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>List of validation issues for this data element</returns>
     Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
@@ -39,7 +39,7 @@ public interface IValidationService
     /// <param name="ignoredValidators">List of <see cref="IValidator.ValidationSource"/> to ignore</param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>Dictionary where the key is the <see cref="IValidator.ValidationSource"/> and the value is the list of issues this validator produces</returns>
-    public Task<Dictionary<string, List<ValidationIssueWithSource>>> ValidateIncrementalFormData(
+    public Task<List<ValidationSourcePair>> ValidateIncrementalFormData(
         Instance instance,
         IInstanceDataAccessor dataAccessor,
         string taskId,

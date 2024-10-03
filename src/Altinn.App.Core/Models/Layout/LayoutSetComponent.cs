@@ -50,9 +50,9 @@ public record LayoutSetComponent
     public IEnumerable<PageComponent> Pages => _pages;
 
     /// <summary>
-    /// Get the <see cref="DataElementId"/> of the <see cref="DataElement"/> that is default for this layout
+    /// Get the <see cref="DataElementIdentifier"/> of the <see cref="DataElement"/> that is default for this layout
     /// </summary>
-    public DataElementId GetDefaultDataElementId(Instance instance)
+    public DataElementIdentifier GetDefaultDataElementId(Instance instance)
     {
         var dataType = DefaultDataType.Id;
         return instance.Data.Find(d => d.DataType == dataType)

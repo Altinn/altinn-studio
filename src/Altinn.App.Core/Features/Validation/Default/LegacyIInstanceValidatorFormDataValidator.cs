@@ -59,10 +59,13 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
     {
         var issues = new List<ValidationIssue>();
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var dataTypes = appMetadata.DataTypes.Where(d => d.TaskId == taskId).Select(d => d.Id).ToList();
+        var dataTypes = appMetadata
+            .DataTypes.Where(d => d.TaskId == taskId && d.AppLogic?.ClassRef != null)
+            .Select(d => d.Id)
+            .ToList();
         foreach (var dataElement in instance.Data.Where(d => dataTypes.Contains(d.DataType)))
         {
-            var data = await instanceDataAccessor.GetData(dataElement);
+            var data = await instanceDataAccessor.GetFormData(dataElement);
             var modelState = new ModelStateDictionary();
             await _instanceValidator.ValidateData(data, modelState);
             issues.AddRange(

@@ -52,9 +52,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 
         public Instance Instance { get; }
 
-        public Task<object> GetData(DataElementId dataElementId)
+        public Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
         {
-            if (dataElementId != _dataElement)
+            if (dataElementIdentifier != _dataElement)
             {
                 return Task.FromException<object>(
                     new InvalidOperationException(
@@ -65,15 +65,48 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             return Task.FromResult(_data);
         }
 
-        public Task<object?> GetSingleDataByType(string dataType)
+        public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
         {
-            if (_dataElement.DataType != dataType)
+            return Task.FromException<ReadOnlyMemory<byte>>(new NotImplementedException());
+        }
+
+        public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
+        {
+            if (dataElementIdentifier != _dataElement)
             {
-                return Task.FromException<object?>(
-                    new InvalidOperationException("Data type does not match the data element")
+                throw new InvalidOperationException(
+                    "Use the new ILayoutEvaluatorStateInitializer interface to support multiple data models and subforms"
                 );
             }
-            return Task.FromResult<object?>(_data);
+            return _dataElement;
+        }
+
+        // Not implemented
+        public void AddFormDataElement(string dataType, object model)
+        {
+            throw new NotImplementedException(
+                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"
+            );
+        }
+
+        public void AddAttachmentDataElement(
+            string dataType,
+            string contentType,
+            string? filename,
+            ReadOnlyMemory<byte> data
+        )
+        {
+            throw new NotImplementedException(
+                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"
+            );
+        }
+
+        // Not implemented
+        public void RemoveDataElement(DataElementIdentifier dataElementIdentifier)
+        {
+            throw new NotImplementedException(
+                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support removing data elements"
+            );
         }
     }
 

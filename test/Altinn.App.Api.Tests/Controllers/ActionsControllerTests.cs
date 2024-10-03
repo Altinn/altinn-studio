@@ -17,8 +17,13 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
+    private readonly ITestOutputHelper _outputHelper;
+
     public ActionsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
-        : base(factory, outputHelper) { }
+        : base(factory, outputHelper)
+    {
+        _outputHelper = outputHelper;
+    }
 
     [Fact]
     public async Task Perform_returns_403_if_user_not_authorized()
@@ -189,7 +194,8 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var content = await response.Content.ReadAsStringAsync();
         var expectedString = """
             {
-              "updatedDataModels": null,
+              "updatedDataModels": {},
+              "updatedValidationIssues": {},
               "clientActions": [
                 {
                   "id": "nextPage",
@@ -333,8 +339,10 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205
-    private static void CompareResult<T>(string expectedString, string actualString)
+    private void CompareResult<T>(string expectedString, string actualString)
     {
+        _outputHelper.WriteLine($"Expected: {expectedString}");
+        _outputHelper.WriteLine($"Actual: {actualString}");
         T? expected = JsonSerializer.Deserialize<T>(expectedString);
         T? actual = JsonSerializer.Deserialize<T>(actualString);
         actual.Should().BeEquivalentTo(expected);

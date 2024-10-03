@@ -13,5 +13,5 @@ public record struct DataReference
     /// <summary>
     /// The Id of the data element that the field is referencing
     /// </summary>
-    public required DataElementId DataElementId { get; init; }
+    public required DataElementIdentifier DataElementIdentifier { get; init; }
 }

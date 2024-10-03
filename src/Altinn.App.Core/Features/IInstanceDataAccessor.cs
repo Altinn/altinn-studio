@@ -16,11 +16,20 @@ public interface IInstanceDataAccessor
     /// <summary>
     /// Get the actual data represented in the data element.
     /// </summary>
-    /// <returns>The deserialized data model for this data element or a stream for binary elements</returns>
-    Task<object> GetData(DataElementId dataElementId);
+    /// <returns>The deserialized data model for this data element or an exception for non-form data elements</returns>
+    Task<object> GetFormData(DataElementIdentifier dataElementIdentifier);
 
     /// <summary>
-    /// Get actual data represented, when there should only be a single element of this type.
+    /// Gets the raw binary data from a DataElement.
+    /// </summary>´
+    /// <remarks>Form data elements (with appLogic) will get json serialized UTF-8</remarks>
+    /// <throws>Throws an InvalidOperationException if the data element is not found on the instance</throws>
+    /// <returns></returns>
+    Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier);
+
+    /// <summary>
+    /// Get a data element from an instance by id,
     /// </summary>
-    Task<object?> GetSingleDataByType(string dataType);
+    /// <throws>Throws an InvalidOperationException if the data element is not found on the instance</throws>
+    DataElement GetDataElement(DataElementIdentifier dataElementIdentifier);
 }

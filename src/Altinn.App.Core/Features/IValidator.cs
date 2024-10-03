@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -12,7 +11,15 @@ public interface IValidator
     /// <summary>
     /// The task id for the task that the validator is associated with or "*" if the validator should run for all tasks.
     /// </summary>
+    /// <remarks>Ignored if <see cref="ShouldRunForTask"/> is implemented</remarks>
     public string TaskId { get; }
+
+    /// <summary>
+    /// Check if this validator should run for the given task
+    ///
+    /// Default implementations check <see cref="TaskId"/>
+    /// </summary>
+    public bool ShouldRunForTask(string taskId) => TaskId == "*" || TaskId == taskId;
 
     /// <summary>
     /// Unique string that identifies the source of the validation issues from this validator
@@ -65,52 +72,30 @@ public interface IValidator
 /// <summary>
 /// Represents a change in a data element with current and previous deserialized data
 /// </summary>
-public class DataElementChange
+public sealed class DataElementChange
 {
-    /// <summary>
-    /// If the data element has app logic you can expect <see cref="CurrentValue"/> and <see cref="PreviousValue"/> to be available
-    /// </summary>
-    [MemberNotNullWhen(true, nameof(CurrentValue), nameof(PreviousValue))]
-    public required bool HasAppLogic { get; init; }
-
     /// <summary>
     /// The data element the change is related to
     /// </summary>
     public required DataElement DataElement { get; init; }
 
     /// <summary>
-    /// The type of change that has occurred
-    /// </summary>
-    public required DataElementChangeType ChangeType { get; init; }
-
-    /// <summary>
     /// The state of the data element before the change
     /// </summary>
-    public required object? PreviousValue { get; init; }
+    public required object PreviousFormData { get; init; }
 
     /// <summary>
     /// The state of the data element after the change
     /// </summary>
-    public required object? CurrentValue { get; init; }
-}
-
-/// <summary>
-/// Enum specifying the type of changes that can occur to a data element
-/// </summary>
-public enum DataElementChangeType
-{
-    /// <summary>
-    /// The data element has appLogic and was updated
-    /// </summary>
-    Update,
+    public required object CurrentFormData { get; init; }
 
     /// <summary>
-    /// The data element was added
+    /// The binary representation (for storage) of the data element before changes
     /// </summary>
-    Add,
+    public ReadOnlyMemory<byte>? PreviousBinaryData { get; init; }
 
     /// <summary>
-    /// The data element was removed
+    /// The binary representation (for storage) of the data element after changes
     /// </summary>
-    Delete,
+    public ReadOnlyMemory<byte>? CurrentBinaryData { get; init; }
 }

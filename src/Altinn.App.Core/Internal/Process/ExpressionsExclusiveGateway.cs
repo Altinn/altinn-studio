@@ -89,7 +89,8 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
                 dataTypeId = layoutSet?.DataType;
             }
             var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-            DataElementId dataElement = instance.Data.Find(d => d.DataType == dataTypeId) ?? new DataElementId();
+            DataElementIdentifier dataElement =
+                instance.Data.Find(d => d.DataType == dataTypeId) ?? new DataElementIdentifier();
 
             var componentContext = new ComponentContext(
                 component: null,

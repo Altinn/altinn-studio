@@ -55,7 +55,13 @@ public class RunTest3
         hidden
             .Should()
             .BeEquivalentTo(
-                [new DataReference() { Field = "some.data[2]", DataElementId = state.GetDefaultDataElementId() }]
+                [
+                    new DataReference()
+                    {
+                        Field = "some.data[2]",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    }
+                ]
             );
 
         // Verify before removing data
@@ -116,7 +122,13 @@ public class RunTest3
         hidden
             .Should()
             .BeEquivalentTo(
-                [new DataReference() { Field = "some.data[2]", DataElementId = state.GetDefaultDataElementId() }]
+                [
+                    new DataReference()
+                    {
+                        Field = "some.data[2]",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    }
+                ]
             );
 
         // Verify before removing data

@@ -58,6 +58,11 @@ public class ValidatorFactory : IValidatorFactory
         _appMetadata = appMetadata;
     }
 
+    private IEnumerable<IValidator> GetIValidators(string taskId)
+    {
+        return _validators.Where(v => v.ShouldRunForTask(taskId));
+    }
+
     private IEnumerable<ITaskValidator> GetTaskValidators(string taskId)
     {
         return _taskValidators.Where(tv => tv.TaskId == "*" || tv.TaskId == taskId);
@@ -121,7 +126,7 @@ public class ValidatorFactory : IValidatorFactory
     {
         var validators = new List<IValidator>();
         // add new style validators
-        validators.AddRange(_validators);
+        validators.AddRange(GetIValidators(taskId));
         // add legacy task validators, data element validators and form data validators
         validators.AddRange(GetTaskValidators(taskId).Select(tv => new TaskValidatorWrapper(tv)));
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;

@@ -455,6 +455,7 @@ public class DataController : ControllerBase
     [ProducesResponseType(typeof(DataPatchResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 409)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]
+    [Obsolete("Use PatchFormDataMultiple instead")]
     public async Task<ActionResult<DataPatchResponse>> PatchFormData(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -478,8 +479,8 @@ public class DataController : ControllerBase
             return Ok(
                 new DataPatchResponse()
                 {
-                    ValidationIssues = newResponse.ValidationIssues,
-                    NewDataModel = newResponse.NewDataModels[dataGuid],
+                    ValidationIssues = newResponse.ValidationIssues.ToDictionary(d => d.Source, d => d.Issues),
+                    NewDataModel = newResponse.NewDataModels.First(m => m.Id == dataGuid).Data,
                 }
             );
         }
@@ -577,23 +578,27 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
+                // TODO: handle added and deleted data elements
                 foreach (var change in res.Ok.ChangedDataElements)
                 {
-                    if (change.HasAppLogic)
-                    {
-                        await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentValue);
-                        await UpdatePresentationTextsOnInstance(
-                            instance,
-                            change.DataElement.DataType,
-                            change.CurrentValue
-                        );
-                    }
+                    await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentFormData);
+                    await UpdatePresentationTextsOnInstance(
+                        instance,
+                        change.DataElement.DataType,
+                        change.CurrentFormData
+                    );
                 }
 
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
-                        NewDataModels = res.Ok.GetUpdatedData(),
+                        Instance = res.Ok.Instance,
+                        NewDataModels = res
+                            .Ok.UpdatedData.Select(d => new DataPatchResponseMultiple.DataModelPairResponse(
+                                d.Identifier.Guid,
+                                d.Data
+                            ))
+                            .ToList(),
                         ValidationIssues = res.Ok.ValidationIssues
                     }
                 );

@@ -42,7 +42,7 @@ internal class FormDataValidatorWrapper : IValidator
                 continue;
             }
 
-            var data = await instanceDataAccessor.GetData(dataElement);
+            var data = await instanceDataAccessor.GetFormData(dataElement);
             var dataElementValidationResult = await _formDataValidator.ValidateFormData(
                 instance,
                 dataElement,
@@ -70,11 +70,8 @@ internal class FormDataValidatorWrapper : IValidator
             foreach (var change in changes)
             {
                 if (
-                    change.HasAppLogic
-                    && (
-                        _formDataValidator.DataType == "*" || _formDataValidator.DataType == change.DataElement.DataType
-                    )
-                    && _formDataValidator.HasRelevantChanges(change.CurrentValue, change.PreviousValue)
+                    (_formDataValidator.DataType == "*" || _formDataValidator.DataType == change.DataElement.DataType)
+                    && _formDataValidator.HasRelevantChanges(change.CurrentFormData, change.PreviousFormData)
                 )
                 {
                     return Task.FromResult(true);

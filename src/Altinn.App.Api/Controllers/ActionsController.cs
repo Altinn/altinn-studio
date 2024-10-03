@@ -3,7 +3,7 @@ using Altinn.App.Api.Models;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -35,6 +35,7 @@ public class ActionsController : ControllerBase
     private readonly IDataClient _dataClient;
     private readonly IAppMetadata _appMetadata;
     private readonly IAppModel _appModel;
+    private readonly ModelSerializationService _modelSerialization;
 
     /// <summary>
     /// Create new instance of the <see cref="ActionsController"/> class
@@ -46,7 +47,8 @@ public class ActionsController : ControllerBase
         IValidationService validationService,
         IDataClient dataClient,
         IAppMetadata appMetadata,
-        IAppModel appModel
+        IAppModel appModel,
+        ModelSerializationService modelSerialization
     )
     {
         _authorization = authorization;
@@ -56,12 +58,13 @@ public class ActionsController : ControllerBase
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _appModel = appModel;
+        _modelSerialization = modelSerialization;
     }
 
     /// <summary>
     /// Perform a task action on an instance
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -127,8 +130,9 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
 
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
         UserActionContext userActionContext =
-            new(instance, userId.Value, actionRequest.ButtonId, actionRequest.Metadata, language);
+            new(dataAccessor, userId.Value, actionRequest.ButtonId, actionRequest.Metadata, language);
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler == null)
         {
@@ -160,80 +164,60 @@ public class ActionsController : ControllerBase
             );
         }
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
-        Dictionary<string, Dictionary<string, List<ValidationIssueWithSource>>>? validationIssues = null;
-
+        // If the action handler returns UpdatedDataModels, instead of using the dataMutator
+        // we need to update the dataAccessor with the new data in case it was fetched with DataClient
+#pragma warning disable CS0618 // Type or member is obsolete
         if (result.UpdatedDataModels is { Count: > 0 })
         {
-            var changes = await SaveChangedModels(instance, dataAccessor, result.UpdatedDataModels);
+            foreach (var (elementId, newModel) in result.UpdatedDataModels)
+            {
+                if (newModel is null)
+                {
+                    continue;
+                }
 
-            validationIssues = await GetValidations(
-                instance,
-                dataAccessor,
-                changes,
-                actionRequest.IgnoredValidators,
-                language
-            );
+                var dataElement =
+                    instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase))
+                    ?? throw new InvalidOperationException(
+                        $"Action handler {actionHandler.GetType().Name} returned an updated data model for a data element that does not exist: {elementId}"
+                    );
+
+                // update dataAccessor to use the changed data
+                dataAccessor.ReplaceFormDataAssumeSavedToStorage(dataElement, newModel);
+            }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
+
+        await dataAccessor.UpdateInstanceData();
+
+        var saveTask = dataAccessor.SaveChanges(changes);
+
+        var validationIssues = await GetIncrementalValidations(
+            instance,
+            dataAccessor,
+            changes,
+            actionRequest.IgnoredValidators,
+            language
+        );
+        await saveTask;
 
         return Ok(
             new UserActionResponse()
             {
                 ClientActions = result.ClientActions,
-                UpdatedDataModels = result.UpdatedDataModels,
+                UpdatedDataModels = changes.ToDictionary(c => c.DataElement.Id, c => c.CurrentFormData),
                 UpdatedValidationIssues = validationIssues,
                 RedirectUrl = result.RedirectUrl,
             }
         );
     }
 
-    private async Task<List<DataElementChange>> SaveChangedModels(
-        Instance instance,
-        CachedInstanceDataAccessor dataAccessor,
-        Dictionary<string, object> resultUpdatedDataModels
-    )
-    {
-        var changes = new List<DataElementChange>();
-        var instanceIdentifier = new InstanceIdentifier(instance);
-        foreach (var (elementId, newModel) in resultUpdatedDataModels)
-        {
-            if (newModel is null)
-            {
-                continue;
-            }
-            var dataElement = instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase));
-            var previousData = await dataAccessor.GetData(dataElement);
-
-            ObjectUtils.InitializeAltinnRowId(newModel);
-            ObjectUtils.PrepareModelForXmlStorage(newModel);
-
-            await _dataClient.UpdateData(
-                newModel,
-                instanceIdentifier.InstanceGuid,
-                newModel.GetType(),
-                instance.Org,
-                instance.AppId.Split('/')[1],
-                instanceIdentifier.InstanceOwnerPartyId,
-                Guid.Parse(dataElement.Id)
-            );
-            // update dataAccessor to use the changed data
-            dataAccessor.Set(dataElement, newModel);
-            // add change to list
-            changes.Add(
-                new DataElementChange
-                {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
-                    DataElement = dataElement,
-                    PreviousValue = previousData,
-                    CurrentValue = newModel,
-                }
-            );
-        }
-        return changes;
-    }
-
-    private async Task<Dictionary<string, Dictionary<string, List<ValidationIssueWithSource>>>?> GetValidations(
+    private async Task<Dictionary<
+        string,
+        Dictionary<string, List<ValidationIssueWithSource>>
+    >?> GetIncrementalValidations(
         Instance instance,
         IInstanceDataAccessor dataAccessor,
         List<DataElementChange> changes,
@@ -259,7 +243,7 @@ public class ActionsController : ControllerBase
     private static Dictionary<
         string,
         Dictionary<string, List<ValidationIssueWithSource>>
-    > PartitionValidationIssuesByDataElement(Dictionary<string, List<ValidationIssueWithSource>> validationIssues)
+    > PartitionValidationIssuesByDataElement(List<ValidationSourcePair> validationIssues)
     {
         var updatedValidationIssues = new Dictionary<string, Dictionary<string, List<ValidationIssueWithSource>>>();
         foreach (var (validationSource, issuesFromSource) in validationIssues)

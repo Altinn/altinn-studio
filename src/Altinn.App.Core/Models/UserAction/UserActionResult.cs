@@ -26,7 +26,7 @@ public enum ResultType
 /// <summary>
 /// Represents the result of a user action
 /// </summary>
-public class UserActionResult
+public sealed class UserActionResult
 {
     /// <summary>
     /// Gets or sets a value indicating whether the user action was a success

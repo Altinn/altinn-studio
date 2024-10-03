@@ -134,29 +134,29 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
 
     [Theory]
     [MemberData(nameof(StringTests))]
-    public async Task TestSerializeDeserializeAsStorage(string? value, string? storedValue)
+    public void TestSerializeDeserializeAsStorage(string? value, string? storedValue)
     {
         var test = CreateObject(value);
 
         // Serialize and deserialize twice to ensure that all changes in serialization is applied
-        var testResult = await SerializeDeserialize(test);
-        testResult = await SerializeDeserialize(testResult);
+        var testResult = SerializeDeserialize(test);
+        testResult = SerializeDeserialize(testResult);
 
         AssertObject(testResult, value, storedValue);
     }
 
-    private async Task<YttersteObjekt> SerializeDeserialize(YttersteObjekt test)
+    private YttersteObjekt SerializeDeserialize(YttersteObjekt test)
     {
         // Serialize
         using var serializationStream = new MemoryStream();
-        DataClient.Serialize<YttersteObjekt>(test, typeof(YttersteObjekt), serializationStream);
+        var modelSerializer = new ModelSerializationService(null!);
+        var serialized = modelSerializer.SerializeToXml(test);
 
         serializationStream.Seek(0, SeekOrigin.Begin);
-        _output.WriteLine(Encoding.UTF8.GetString(serializationStream.ToArray()));
+        _output.WriteLine(Encoding.UTF8.GetString(serialized.Span));
 
         // Deserialize
-        ModelDeserializer serializer = new ModelDeserializer(_loggerMock.Object, typeof(YttersteObjekt));
-        var deserialized = await serializer.DeserializeAsync(serializationStream, "application/xml");
+        var deserialized = modelSerializer.DeserializeXml(serialized.Span, typeof(YttersteObjekt));
         var testResult = deserialized.Should().BeOfType<YttersteObjekt>().Which;
 
         return testResult;
@@ -267,13 +267,13 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
 
     [Theory]
     [MemberData(nameof(DecimalTests))]
-    public async Task TestSerializeDeserializeAsStorage_Decimal(decimal? value)
+    public void TestSerializeDeserializeAsStorage_Decimal(decimal? value)
     {
         var test = CreateObject(value);
 
         // Serialize and deserialize twice to ensure that all changes in serialization is applied
-        var testResult = await SerializeDeserialize(test);
-        testResult = await SerializeDeserialize(testResult);
+        var testResult = SerializeDeserialize(test);
+        testResult = SerializeDeserialize(testResult);
 
         AssertObject(testResult, value);
     }

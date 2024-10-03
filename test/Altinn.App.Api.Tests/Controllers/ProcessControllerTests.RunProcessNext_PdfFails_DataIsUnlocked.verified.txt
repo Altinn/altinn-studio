@@ -13,6 +13,14 @@
       IdFormat: W3C
     },
     {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C
+    },
+    {
       ActivityName: ApplicationMetadata.Service.GetLayoutSets,
       IdFormat: W3C
     },
@@ -26,6 +34,18 @@
     },
     {
       ActivityName: ApplicationMetadata.Service.GetLayoutSettingsForSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
       IdFormat: W3C
     },
     {
@@ -205,16 +225,19 @@
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunValidator,
+      ActivityName: SerializationService.DeserializeXml,
       Tags: [
         {
-          validation.issue_count: 0
-        },
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: SerializationService.DeserializeXml,
+      Tags: [
         {
-          validator.source: Required
-        },
-        {
-          validator.type: RequiredLayoutValidator
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
         }
       ],
       IdFormat: W3C
@@ -226,10 +249,10 @@
           validation.issue_count: 0
         },
         {
-          validator.source: Expression
+          validator.source: Required
         },
         {
-          validator.type: ExpressionValidator
+          validator.type: RequiredLayoutValidator
         }
       ],
       IdFormat: W3C

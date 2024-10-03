@@ -15,4 +15,12 @@ public class ExampleModel
     /// The age
     /// </summary>
     public int Age { get; set; } = 0;
+
+    public bool ShouldError { get; set; } = false;
+
+    public string Error
+    {
+        get { return ShouldError ? throw new Exception() : string.Empty; }
+        set { }
+    }
 }

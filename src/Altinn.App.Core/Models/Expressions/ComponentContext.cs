@@ -19,11 +19,11 @@ public sealed class ComponentContext
         BaseComponent? component,
         int[]? rowIndices,
         int? rowLength,
-        DataElementId dataElementId,
+        DataElementIdentifier dataElementIdentifier,
         IEnumerable<ComponentContext>? childContexts = null
     )
     {
-        DataElementId = dataElementId;
+        DataElementIdentifier = dataElementIdentifier;
         Component = component;
         RowIndices = rowIndices;
         _rowLength = rowLength;
@@ -95,7 +95,7 @@ public sealed class ComponentContext
                 Component,
                 rowIndices,
                 rowLength: hiddenRows.Length,
-                dataElementId: DataElementId,
+                dataElementIdentifier: DataElementIdentifier,
                 childContexts: childContexts
             );
             var rowHidden = await ExpressionEvaluator.EvaluateBooleanExpression(state, rowContext, "hiddenRow", false);
@@ -121,7 +121,7 @@ public sealed class ComponentContext
     /// <summary>
     /// The Id of the default data element in this context
     /// </summary>
-    public DataElementId DataElementId { get; }
+    public DataElementIdentifier DataElementIdentifier { get; }
 
     /// <summary>
     /// Get all children and children of children of this componentContext (not including this)

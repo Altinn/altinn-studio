@@ -1,4 +1,5 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -277,7 +278,7 @@ public class ProcessNavigatorTests
             new NullLogger<ProcessNavigator>(),
             _dataClient.Object,
             _appMetadata.Object,
-            _appModel.Object
+            new ModelSerializationService(_appModel.Object)
         );
     }
 }

@@ -1,6 +1,6 @@
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
@@ -20,7 +20,7 @@ public class ValidateController : ControllerBase
 {
     private readonly IInstanceClient _instanceClient;
     private readonly IDataClient _dataClient;
-    private readonly IAppModel _appModel;
+    private readonly ModelSerializationService _modelSerialization;
     private readonly IAppMetadata _appMetadata;
     private readonly IValidationService _validationService;
 
@@ -32,14 +32,14 @@ public class ValidateController : ControllerBase
         IValidationService validationService,
         IAppMetadata appMetadata,
         IDataClient dataClient,
-        IAppModel appModel
+        ModelSerializationService modelSerialization
     )
     {
         _instanceClient = instanceClient;
         _validationService = validationService;
         _appMetadata = appMetadata;
         _dataClient = dataClient;
-        _appModel = appModel;
+        _modelSerialization = modelSerialization;
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class ValidateController : ControllerBase
 
         try
         {
-            var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+            var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
             var ignoredSources = ignoredValidators?.Split(',').ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 instance,
@@ -155,7 +155,7 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
+        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
 
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(

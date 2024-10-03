@@ -140,9 +140,13 @@ public class LayoutEvaluatorState
     /// <summary>
     /// Get field from dataModel with key and context
     /// </summary>
-    public async Task<object?> GetModelData(ModelBinding key, DataElementId defaultDataElementId, int[]? indexes)
+    public async Task<object?> GetModelData(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? indexes
+    )
     {
-        return await _dataModel.GetModelData(key, defaultDataElementId, indexes);
+        return await _dataModel.GetModelData(key, defaultDataElementIdentifier, indexes);
     }
 
     /// <summary>
@@ -205,21 +209,25 @@ public class LayoutEvaluatorState
     /// </example>
     public async Task<DataReference> AddInidicies(ModelBinding binding, ComponentContext context)
     {
-        return await _dataModel.AddIndexes(binding, context.DataElementId, context.RowIndices);
+        return await _dataModel.AddIndexes(binding, context.DataElementIdentifier, context.RowIndices);
     }
 
     /// <summary>
     /// Return a full dataModelBiding from a context aware binding by adding indexes
     /// </summary>
-    public async Task<DataReference> AddInidicies(ModelBinding binding, DataElementId dataElementId, int[]? indexes)
+    public async Task<DataReference> AddInidicies(
+        ModelBinding binding,
+        DataElementIdentifier dataElementIdentifier,
+        int[]? indexes
+    )
     {
-        return await _dataModel.AddIndexes(binding, dataElementId, indexes);
+        return await _dataModel.AddIndexes(binding, dataElementIdentifier, indexes);
     }
 
     /// <summary>
     /// This is the wrong abstraction, but used in tests that work
     /// </summary>
-    internal DataElementId GetDefaultDataElementId()
+    internal DataElementIdentifier GetDefaultDataElementId()
     {
         return _componentModel?.GetDefaultDataElementId(_instanceContext)
             ?? throw new InvalidOperationException("Component model not loaded");

@@ -2,15 +2,16 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.App.Core.Internal.Patch;
 
@@ -21,10 +22,12 @@ internal class PatchService : IPatchService
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
-    private readonly IAppModel _appModel;
+    private readonly ModelSerializationService _modelSerializationService;
+    private readonly IWebHostEnvironment _hostingEnvironment;
     private readonly Telemetry? _telemetry;
     private readonly IValidationService _validationService;
     private readonly IEnumerable<IDataProcessor> _dataProcessors;
+    private readonly IEnumerable<IDataWriteProcessor> _dataWriteProcessors;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions =
         new() { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, PropertyNameCaseInsensitive = true, };
@@ -37,7 +40,9 @@ internal class PatchService : IPatchService
         IDataClient dataClient,
         IValidationService validationService,
         IEnumerable<IDataProcessor> dataProcessors,
-        IAppModel appModel,
+        IEnumerable<IDataWriteProcessor> dataWriteProcessors,
+        ModelSerializationService modelSerializationService,
+        IWebHostEnvironment hostingEnvironment,
         Telemetry? telemetry = null
     )
     {
@@ -45,7 +50,9 @@ internal class PatchService : IPatchService
         _dataClient = dataClient;
         _validationService = validationService;
         _dataProcessors = dataProcessors;
-        _appModel = appModel;
+        _dataWriteProcessors = dataWriteProcessors;
+        _modelSerializationService = modelSerializationService;
+        _hostingEnvironment = hostingEnvironment;
         _telemetry = telemetry;
     }
 
@@ -59,25 +66,31 @@ internal class PatchService : IPatchService
     {
         using var activity = _telemetry?.StartDataPatchActivity(instance);
 
-        InstanceIdentifier instanceIdentifier = new(instance);
-        AppIdentifier appIdentifier = (await _appMetadata.GetApplicationMetadata()).AppIdentifier;
+        var dataAccessor = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient,
+            _appMetadata,
+            _modelSerializationService
+        );
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _appModel);
-        var changes = new List<DataElementChange>();
+        List<DataElementChange> changesAfterPatch = new();
 
-        foreach (var (dataElementId, jsonPatch) in patches)
+        foreach (var (dataElementGuid, jsonPatch) in patches)
         {
-            var dataElement = instance.Data.Find(d => d.Id == dataElementId.ToString());
+            var dataElement = instance.Data.Find(d => d.Id == dataElementGuid.ToString());
+
             if (dataElement is null)
             {
                 return new DataPatchError()
                 {
                     Title = "Unknown data element to patch",
-                    Detail = $"Data element with id {dataElementId} not found in instance",
+                    Detail = $"Data element with id {dataElementGuid} not found in instance",
                 };
             }
 
-            var oldModel = await dataAccessor.GetData(dataElement);
+            DataElementIdentifier dataElementIdentifier = dataElement;
+
+            var oldModel = await dataAccessor.GetFormData(dataElementIdentifier); // TODO: Fetch data in parallel
             var oldModelNode = JsonSerializer.SerializeToNode(oldModel);
             var patchResult = jsonPatch.Apply(oldModelNode);
 
@@ -109,15 +122,39 @@ internal class PatchService : IPatchService
                     ErrorType = DataPatchErrorType.DeserializationFailed
                 };
             }
-            var newModel = newModelResult.Ok;
 
-            foreach (var dataProcessor in _dataProcessors)
+            var newModel = newModelResult.Ok;
+            // Reset dataAccessor to provide the patched model.
+            dataAccessor.SetFormData(dataElement, newModel);
+
+            changesAfterPatch.Add(
+                new DataElementChange
+                {
+                    DataElement = dataElement,
+                    PreviousFormData = oldModel,
+                    CurrentFormData = newModel,
+                    PreviousBinaryData = await dataAccessor.GetBinaryData(dataElementIdentifier),
+                    CurrentBinaryData = null,
+                }
+            );
+        }
+
+        foreach (var dataProcessor in _dataProcessors)
+        {
+            foreach (var change in changesAfterPatch)
             {
+                var dataElementGuid = Guid.Parse(change.DataElement.Id);
                 using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataProcessor);
                 try
                 {
                     // TODO: Create new dataProcessor interface that takes multiple models at the same time.
-                    await dataProcessor.ProcessDataWrite(instance, dataElementId, newModel, oldModel, language);
+                    await dataProcessor.ProcessDataWrite(
+                        instance,
+                        dataElementGuid,
+                        change.CurrentFormData,
+                        change.PreviousFormData,
+                        language
+                    );
                 }
                 catch (Exception e)
                 {
@@ -125,33 +162,33 @@ internal class PatchService : IPatchService
                     throw;
                 }
             }
-            ObjectUtils.InitializeAltinnRowId(newModel);
-            ObjectUtils.PrepareModelForXmlStorage(newModel);
-            changes.Add(
-                new DataElementChange
-                {
-                    HasAppLogic = true,
-                    ChangeType = DataElementChangeType.Update,
-                    DataElement = dataElement,
-                    PreviousValue = oldModel,
-                    CurrentValue = newModel,
-                }
-            );
-
-            // save form data to storage
-            await _dataClient.UpdateData(
-                newModel,
-                instanceIdentifier.InstanceGuid,
-                newModel.GetType(),
-                appIdentifier.Org,
-                appIdentifier.App,
-                instanceIdentifier.InstanceOwnerPartyId,
-                dataElementId
-            );
-
-            // Ensure that validation runs on the modified model.
-            dataAccessor.Set(dataElement, newModel);
         }
+
+        foreach (var dataWriteProcessor in _dataWriteProcessors)
+        {
+            using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataWriteProcessor);
+            try
+            {
+                await dataWriteProcessor.ProcessDataWrite(
+                    dataAccessor,
+                    instance.Process.CurrentTask.ElementId,
+                    changesAfterPatch,
+                    language
+                );
+            }
+            catch (Exception e)
+            {
+                processWriteActivity?.Errored(e);
+                throw;
+            }
+        }
+
+        // Get all changes to data elements by comparing the serialized values
+        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
+        // Start saving changes in parallel with validation
+        Task saveChanges = dataAccessor.SaveChanges(changes);
+        // Update instance data to reflect the changes and save created data elements
+        await dataAccessor.UpdateInstanceData();
 
         var validationIssues = await _validationService.ValidateIncrementalFormData(
             instance,
@@ -162,7 +199,40 @@ internal class PatchService : IPatchService
             language
         );
 
-        return new DataPatchResult { ChangedDataElements = changes, ValidationIssues = validationIssues };
+        // don't await saving until validation is done, so that they run in parallel
+        await saveChanges;
+
+        if (_hostingEnvironment.IsDevelopment())
+        {
+            // Ensure that validation did not change the data elements
+            dataAccessor.VerifyDataElementsUnchanged();
+        }
+
+        var updatedData = changes
+            .Select(change => new DataPatchResult.DataModelPair(change.DataElement, change.CurrentFormData))
+            .ToList();
+        // Ensure that all data elements that were patched are included in the updated data
+        // (even if they were not changed or the change was reverted by dataProcessor)
+        foreach (var patchedElementGuid in patches.Keys)
+        {
+            if (changes.TrueForAll(c => c.DataElement.Id != patchedElementGuid.ToString()))
+            {
+                var dataElement =
+                    instance.Data.Find(d => d.Id == patchedElementGuid.ToString())
+                    ?? throw new InvalidOperationException("Data element not found in instance");
+                updatedData.Add(
+                    new DataPatchResult.DataModelPair(dataElement, await dataAccessor.GetFormData(dataElement))
+                );
+            }
+        }
+
+        return new DataPatchResult
+        {
+            Instance = instance,
+            ChangedDataElements = changes,
+            UpdatedData = updatedData,
+            ValidationIssues = validationIssues,
+        };
     }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)

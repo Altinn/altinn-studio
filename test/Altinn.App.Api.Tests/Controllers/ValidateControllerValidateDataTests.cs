@@ -2,6 +2,7 @@ using System.Collections;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -203,7 +204,7 @@ public class ValidationControllerValidateDataTests
             _validationMock.Object,
             _appMetadataMock.Object,
             _dataClientMock.Object,
-            _appModelMock.Object
+            new ModelSerializationService(_appModelMock.Object)
         );
 
         // Act and Assert

@@ -25,7 +25,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         Instance.Data ??= new();
     }
 
-    private readonly Dictionary<DataElementId, object> _dataById = new();
+    private readonly Dictionary<DataElementIdentifier, object> _dataById = new();
     private readonly Dictionary<string, object> _dataByType = new();
     private readonly List<KeyValuePair<DataElement, object>> _data = new();
 
@@ -78,14 +78,39 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public Instance Instance { get; }
 
-    public Task<object> GetData(DataElementId dataElementId)
+    public Task<object> GetFormData(DataElementIdentifier dataElementIdentifier)
     {
-        return Task.FromResult(_dataById[dataElementId]);
+        return Task.FromResult(_dataById[dataElementIdentifier]);
     }
 
-    public Task<object?> GetSingleDataByType(string dataType)
+    public Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
-        return Task.FromResult(_dataByType.GetValueOrDefault(dataType));
+        throw new NotImplementedException();
+    }
+
+    public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddFormDataElement(string dataType, object model)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void AddAttachmentDataElement(
+        string dataType,
+        string contentType,
+        string? filename,
+        ReadOnlyMemory<byte> data
+    )
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RemoveDataElement(DataElementIdentifier dataElementIdentifier)
+    {
+        throw new NotImplementedException();
     }
 
     public IEnumerator<KeyValuePair<DataElement?, object>> GetEnumerator()

@@ -93,7 +93,7 @@ public class ValidationService : IValidationService
     }
 
     /// <inheritdoc/>
-    public async Task<Dictionary<string, List<ValidationIssueWithSource>>> ValidateIncrementalFormData(
+    public async Task<List<ValidationSourcePair>> ValidateIncrementalFormData(
         Instance instance,
         IInstanceDataAccessor dataAccessor,
         string taskId,
@@ -136,13 +136,10 @@ public class ValidationService : IValidationService
                             )
                         )
                         .ToList();
-                    return new KeyValuePair<string, List<ValidationIssueWithSource>?>(
-                        validator.ValidationSource,
-                        issuesWithSource
-                    );
+                    return new ValidationSourcePair(validator.ValidationSource, issuesWithSource);
                 }
 
-                return new KeyValuePair<string, List<ValidationIssueWithSource>?>();
+                return null;
             }
             catch (Exception e)
             {
@@ -159,12 +156,12 @@ public class ValidationService : IValidationService
         });
 
         // Wait for all validation tasks to complete
-        var lists = await Task.WhenAll(validationTasks);
-        var errorCount = lists.Sum(k => k.Value?.Count ?? 0);
-        activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, errorCount);
 
-        // ! Value is null if no relevant changes. Filter out these before return with ! because ofType don't filter nullables.
-        return lists.Where(k => k.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value!);
+        var lists = await Task.WhenAll(validationTasks);
+
+        var errorCount = lists.Sum(k => k?.Issues.Count ?? 0);
+        activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, errorCount);
+        return lists.OfType<ValidationSourcePair>().ToList();
     }
 
     private static void ThrowIfDuplicateValidators(IValidator[] validators, string taskId)

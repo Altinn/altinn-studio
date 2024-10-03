@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -13,6 +14,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -45,6 +47,7 @@ public sealed class PatchServiceTests : IDisposable
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Strict);
     private readonly TelemetrySink _telemetrySink = new();
+    private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
 
     // ValidatorMocks
     private readonly Mock<IFormDataValidator> _formDataValidator = new(MockBehavior.Strict);
@@ -52,6 +55,7 @@ public sealed class PatchServiceTests : IDisposable
 
     // System under test
     private readonly PatchService _patchService;
+    private readonly ModelSerializationService _modelSerializationService;
 
     public PatchServiceTests()
     {
@@ -71,18 +75,17 @@ public sealed class PatchServiceTests : IDisposable
         _dataElementValidator.Setup(dev => dev.ValidationSource).Returns("dataElementValidator");
         _dataClientMock
             .Setup(d =>
-                d.UpdateData<object>(
-                    It.IsAny<MyModel>(),
+                d.UpdateBinaryData(
+                    It.IsAny<InstanceIdentifier>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
                     It.IsAny<Guid>(),
-                    It.IsAny<Type>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>()
+                    It.IsAny<Stream>()
                 )
             )
             .ReturnsAsync(_dataElement)
             .Verifiable();
+        _webHostEnvironment.SetupGet(whe => whe.EnvironmentName).Returns("Development");
         var validatorFactory = new ValidatorFactory(
             [],
             Options.Create(new GeneralSettings()),
@@ -94,12 +97,16 @@ public sealed class PatchServiceTests : IDisposable
         );
         var validationService = new ValidationService(validatorFactory, _vLoggerMock.Object);
 
+        _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
+
         _patchService = new PatchService(
             _appMetadataMock.Object,
             _dataClientMock.Object,
             validationService,
-            new List<IDataProcessor> { _dataProcessorMock.Object },
-            _appModelMock.Object,
+            [_dataProcessorMock.Object],
+            [],
+            _modelSerializationService,
+            _webHostEnvironment.Object,
             _telemetrySink.Object
         );
     }
@@ -114,7 +121,7 @@ public sealed class PatchServiceTests : IDisposable
 
     private static readonly DataElement _dataElement = new() { Id = _dataGuid.ToString(), DataType = _dataType.Id };
 
-    private class MyModel
+    public class MyModel
     {
         [MinLength(20)]
         public string? Name { get; set; }
@@ -126,19 +133,7 @@ public sealed class PatchServiceTests : IDisposable
         JsonPatch jsonPatch = new JsonPatch(PatchOperation.Replace(JsonPointer.Parse("/Name"), "Test Testesen"));
         List<string> ignoredValidators = new List<string> { "required" };
         var oldModel = new MyModel { Name = "OrginaltNavn" };
-        _dataClientMock
-            .Setup(d =>
-                d.GetFormData(
-                    It.IsAny<Guid>(),
-                    It.IsAny<Type>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>()
-                )
-            )
-            .ReturnsAsync(oldModel)
-            .Verifiable();
+        SetupDataClient(oldModel);
         var validationIssues = new List<ValidationIssue>()
         {
             new() { Severity = ValidationIssueSeverity.Error, Description = "First error", }
@@ -182,10 +177,10 @@ public sealed class PatchServiceTests : IDisposable
             .BeOfType<DataElementChange>()
             .Which;
         change.DataElement.Id.Should().Be(_dataGuid.ToString());
-        change.CurrentValue.Should().BeOfType<MyModel>().Subject.Name.Should().Be("Test Testesen");
+        change.CurrentFormData.Should().BeOfType<MyModel>().Subject.Name.Should().Be("Test Testesen");
         var validator = res.ValidationIssues.Should().ContainSingle().Which;
-        validator.Key.Should().Be("formDataValidator");
-        var issue = validator.Value.Should().ContainSingle().Which;
+        validator.Source.Should().Be("formDataValidator");
+        var issue = validator.Issues.Should().ContainSingle().Which;
         issue.Description.Should().Be("First error");
         _dataProcessorMock.Verify(d =>
             d.ProcessDataWrite(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<MyModel>(), It.IsAny<MyModel?>(), null)
@@ -203,19 +198,7 @@ public sealed class PatchServiceTests : IDisposable
         );
         List<string> ignoredValidators = new List<string> { "required" };
         var oldModel = new MyModel { Name = "OrginaltNavn" };
-        _dataClientMock
-            .Setup(d =>
-                d.GetFormData(
-                    It.IsAny<Guid>(),
-                    It.IsAny<Type>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>()
-                )
-            )
-            .ReturnsAsync(oldModel)
-            .Verifiable();
+        SetupDataClient(oldModel);
         var validationIssues = new List<ValidationIssue>()
         {
             new() { Severity = ValidationIssueSeverity.Error, Description = "First error", }
@@ -265,19 +248,7 @@ public sealed class PatchServiceTests : IDisposable
         JsonPatch jsonPatch = new JsonPatch(PatchOperation.Add(JsonPointer.Parse("/Age"), 1));
         List<string> ignoredValidators = new List<string> { "required" };
         var oldModel = new MyModel { Name = "OrginaltNavn" };
-        _dataClientMock
-            .Setup(d =>
-                d.GetFormData(
-                    It.IsAny<Guid>(),
-                    It.IsAny<Type>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<int>(),
-                    It.IsAny<Guid>()
-                )
-            )
-            .ReturnsAsync(oldModel)
-            .Verifiable();
+        SetupDataClient(oldModel);
         var validationIssues = new List<ValidationIssue>()
         {
             new() { Severity = ValidationIssueSeverity.Error, Description = "First error", }
@@ -319,6 +290,22 @@ public sealed class PatchServiceTests : IDisposable
                 "The JSON property 'Age' could not be mapped to any .NET member contained in type 'Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel'."
             );
         err.ErrorType.Should().Be(DataPatchErrorType.DeserializationFailed);
+    }
+
+    private void SetupDataClient(MyModel oldModel)
+    {
+        _dataClientMock
+            .Setup(d =>
+                d.GetDataBytes(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<int>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<Guid>()
+                )
+            )
+            .ReturnsAsync(_modelSerializationService.SerializeToXml(oldModel).ToArray())
+            .Verifiable();
     }
 
     public void Dispose()

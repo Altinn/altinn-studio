@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
@@ -247,21 +248,21 @@ public class ExpressionsExclusiveGatewayTests
     {
         _resources.Setup(r => r.GetLayoutSetForTask("Task_1")).Returns(layoutSet);
         var appMetadata = new ApplicationMetadata("ttd/test-app") { DataTypes = dataTypes };
+        var modelSerializationService = new ModelSerializationService(_appModel.Object);
         _appMetadata.Setup(m => m.GetApplicationMetadata()).ReturnsAsync(appMetadata).Verifiable(Times.AtLeastOnce);
         if (formData != null)
         {
             _dataClient
                 .Setup(d =>
-                    d.GetFormData(
-                        It.IsAny<Guid>(),
-                        It.IsAny<Type>(),
+                    d.GetDataBytes(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<int>(),
+                        It.IsAny<Guid>(),
                         It.IsAny<Guid>()
                     )
                 )
-                .ReturnsAsync(formData);
+                .ReturnsAsync(modelSerializationService.SerializeToXml(formData).ToArray());
 
             _appModel.Setup(am => am.GetModelType(_classRef)).Returns(formData.GetType());
         }
@@ -272,7 +273,7 @@ public class ExpressionsExclusiveGatewayTests
             instance,
             _dataClient.Object,
             _appMetadata.Object,
-            _appModel.Object
+            modelSerializationService
         );
 
         var layoutStateInit = new LayoutEvaluatorStateInitializer(
