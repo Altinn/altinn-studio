@@ -4,10 +4,7 @@ import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Accordion } from '@digdir/designsystemet-react';
-import type { IFormLayouts } from '../../types/global';
-import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { PlusIcon } from '@studio/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
 import { PageAccordion } from './PageAccordion';
 import { useAppContext, useFormLayouts } from '../../hooks';
@@ -17,16 +14,14 @@ import {
   duplicatedIdsExistsInLayout,
   findLayoutsContainingDuplicateComponents,
 } from '../../utils/formLayoutUtils';
+import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
+import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
+import { PlusIcon } from '@studio/icons';
+import { usePdf } from '../../hooks/usePdf/usePdf';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
  */
-const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
-  return Object.entries(formLayouts).map(([key, value]) => ({
-    page: key,
-    data: value,
-  }));
-};
 
 /**
  * @component
@@ -47,17 +42,22 @@ export const DesignView = (): ReactNode => {
     app,
     selectedFormLayoutSetName,
   );
-  const layouts = useFormLayouts();
+  // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
+  // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
+  useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
     org,
     app,
     selectedFormLayoutSetName,
   );
+  const layouts = useFormLayouts();
+  const { getPdfLayoutName } = usePdf();
   const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
 
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
+
   /**
    * Handles the click of an accordion. It updates the URL and sets the
    * local storage for which page view that is open
@@ -73,10 +73,10 @@ export const DesignView = (): ReactNode => {
   };
 
   const handleAddPage = () => {
-    let newNum = 1;
-    let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
+    let newNum = layoutOrder.length + 1;
+    let newLayoutName = `${t('ux_editor.page')}${newNum}`;
 
-    while (layoutOrder.indexOf(newLayoutName) > -1) {
+    while (layoutOrder.includes(newLayoutName) || getPdfLayoutName() === newLayoutName) {
       newNum += 1;
       newLayoutName = `${t('ux_editor.page')}${newNum}`;
     }
@@ -105,7 +105,7 @@ export const DesignView = (): ReactNode => {
     if (layout === undefined) return null;
 
     // Check if the layout has unique component IDs
-    const isValidLayout = !duplicatedIdsExistsInLayout(layout.data);
+    const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
 
     return (
       <PageAccordion
@@ -113,13 +113,13 @@ export const DesignView = (): ReactNode => {
         pageName={layout.page}
         isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
-        isValid={isValidLayout}
-        hasUniqueIds={!layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
+        isInvalid={isInvalidLayout}
+        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
       >
         {layout.page === selectedFormLayoutName && (
           <FormLayout
             layout={layout.data}
-            isValid={isValidLayout}
+            isInvalid={isInvalidLayout}
             duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
           />
         )}
@@ -144,6 +144,20 @@ export const DesignView = (): ReactNode => {
           {t('ux_editor.pages_add')}
         </StudioButton>
       </div>
+      {getPdfLayoutName() && (
+        <div className={classes.wrapper}>
+          <div className={classes.accordionWrapper}>
+            <PdfLayoutAccordion
+              pdfLayoutName={getPdfLayoutName()}
+              selectedFormLayoutName={selectedFormLayoutName}
+              onAccordionClick={() => handleClickAccordion(getPdfLayoutName())}
+              hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
+                getPdfLayoutName(),
+              )}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
