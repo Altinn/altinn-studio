@@ -22,8 +22,9 @@ interface ResourceAdmHeaderProps {
 }
 
 export const ResourceAdmHeader = ({ organizations, user }: ResourceAdmHeaderProps) => {
-  const { org } = useUrlParams();
-  const pageHeaderTitle: string = getOrgNameByUsername(org, organizations);
+  const { org, resourceId } = useUrlParams();
+  const resourcePath = resourceId ? ` / ${resourceId}` : '';
+  const pageHeaderTitle: string = `${getOrgNameByUsername(org, organizations)}${resourcePath}`;
 
   return (
     <StudioPageHeader>
