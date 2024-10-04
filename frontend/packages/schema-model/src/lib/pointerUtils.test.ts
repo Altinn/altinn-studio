@@ -3,6 +3,7 @@ import {
   changeNameInPointer,
   createDefinitionPointer,
   createPropertyPointer,
+  extractCategoryFromPointer,
   extractNameFromPointer,
   makePointerFromArray,
 } from './pointerUtils';
@@ -13,6 +14,7 @@ import {
   simpleParentNodeMock,
   stringNodeMock,
 } from '../../test/uiSchemaMock';
+import { CombinationKind, Keyword } from '@altinn/schema-model/types';
 
 describe('pointerUtils', () => {
   test('makePointerFromArray', () => {
@@ -62,6 +64,29 @@ describe('pointerUtils', () => {
 
     it('Returns an empty string when an empty string is passed', () => {
       expect(extractNameFromPointer('')).toBe('');
+    });
+  });
+
+  describe('extractCategoryFromPointer', () => {
+    it('Returns "properties" when the pointer is a property pointer', () => {
+      expect(extractCategoryFromPointer('#/properties/hello')).toBe(Keyword.Properties);
+      expect(extractCategoryFromPointer('#/anyOf/hello/properties/world')).toBe(Keyword.Properties);
+      expect(extractCategoryFromPointer('#/$defs/test/properties/hello')).toBe(Keyword.Properties);
+    });
+
+    it('Returns the combination kind when the pointer is a combination pointer', () => {
+      expect(extractCategoryFromPointer('#/allOf/0')).toBe(CombinationKind.AllOf);
+      expect(extractCategoryFromPointer('#/properties/test/anyOf/1')).toBe(CombinationKind.AnyOf);
+      expect(extractCategoryFromPointer('#/allOf/test/oneOf/2')).toBe(CombinationKind.OneOf);
+      expect(extractCategoryFromPointer('#/$defs/test/anyOf/3')).toBe(CombinationKind.AnyOf);
+    });
+
+    it('Returns "$defs" when the pointer is a definition pointer', () => {
+      expect(extractCategoryFromPointer('#/$defs/test')).toBe(Keyword.Definitions);
+    });
+
+    it('Returns undefined when the pointer is the root pointer', () => {
+      expect(extractCategoryFromPointer('#')).toBe(undefined);
     });
   });
 

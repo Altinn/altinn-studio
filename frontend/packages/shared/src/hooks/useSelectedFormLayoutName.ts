@@ -19,7 +19,9 @@ export const useSelectedFormLayoutName = (
 
   const isValidLayout = (layoutName: string): boolean => {
     const layoutPagesOrder = formLayoutSettings?.pages?.order;
-    return layoutPagesOrder?.includes(layoutName);
+    const isExistingLayout = layoutPagesOrder?.includes(layoutName);
+    const isPdf = formLayoutSettings?.pages?.pdfLayoutName === layoutName;
+    return isExistingLayout || isPdf;
   };
 
   const [selectedFormLayoutName, setSelectedFormLayoutName] = useSearchParamsState<string>(

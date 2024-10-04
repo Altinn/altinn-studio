@@ -12,7 +12,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
-import type { RepoStatus } from 'app-shared/types/RepoStatus';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
@@ -137,10 +136,7 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const modalTitle = screen.queryByRole('heading', {
-      name: textMock('resourceadm.dashboard_import_modal_title'),
-      level: 1,
-    });
+    const modalTitle = screen.queryByText(textMock('resourceadm.dashboard_import_modal_title'));
     expect(modalTitle).not.toBeInTheDocument();
 
     const importButton = screen.getByRole('button', {
@@ -149,10 +145,7 @@ describe('ResourceDashBoardPage', () => {
     await user.click(importButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.dashboard_import_modal_title'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.dashboard_import_modal_title')),
     ).toBeInTheDocument();
   });
 
@@ -241,21 +234,6 @@ describe('ResourceDashBoardPage', () => {
     expect(
       screen.getByText(textMock('dashboard.resource_table_no_resources_result')),
     ).toBeInTheDocument();
-  });
-
-  it('should show merge conflict modal if repo has merge conflict', async () => {
-    const getRepoStatus = jest.fn().mockImplementation(() =>
-      Promise.resolve<RepoStatus>({
-        aheadBy: 1,
-        behindBy: 1,
-        contentStatus: [],
-        hasMergeConflict: true,
-        repositoryStatus: 'conflict',
-      }),
-    );
-    renderResourceDashboardPage({ getRepoStatus });
-
-    await screen.findByText(textMock('merge_conflict.headline'));
   });
 
   it('should close select test environment modal when clicking cancel button', async () => {

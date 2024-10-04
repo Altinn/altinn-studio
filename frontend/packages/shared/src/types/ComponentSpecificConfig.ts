@@ -104,6 +104,8 @@ type SummarizableComponentProps = {
   renderAsSummary?: BooleanExpression;
 };
 
+export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
+
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -129,6 +131,20 @@ type CustomAction = ClientAction | ServerAction;
 type PageValidation = {
   page: 'current' | 'currentAndPrevious' | 'all';
   show: AllowedValidationMasks;
+};
+
+export type Summary2OverrideConfig = {
+  componentId: string;
+  hidden?: boolean;
+  forceShow?: boolean;
+  emptyFieldText?: string;
+  hideEmptyFields?: boolean;
+};
+
+export type Summary2TargetConfig = {
+  type?: SummaryTargetType;
+  id?: string;
+  taskId?: string;
 };
 
 export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
@@ -368,7 +384,12 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       hideBottomBorder?: boolean;
     };
   };
-  [ComponentType.Summary2]: {};
+  [ComponentType.Summary2]: {
+    target: Summary2TargetConfig;
+    showPageInAccordion?: boolean;
+    hideEmptyFields?: boolean;
+    overrides?: Summary2OverrideConfig[];
+  };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &
     LabeledComponentProps & {
