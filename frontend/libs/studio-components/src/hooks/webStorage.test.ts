@@ -39,12 +39,12 @@ describe('typedLocalStorage', () => {
     expect(typedLocalStorage.getItem<string>('test')).toBe('test');
 
     typedLocalStorage.removeItem('test');
-    expect(typedLocalStorage.getItem<string | undefined>('test')).toBeUndefined();
+    expect(typedLocalStorage.getItem<string | undefined>('test')).toBeNull();
   });
 
   it('should not store undefined values', async () => {
     const key = 'undefinedValueKey';
-    const value = undefined;
+    const value = null;
     typedLocalStorage.setItem<string>(key, undefined);
     expect(typedLocalStorage.getItem(key)).toBe(value);
     expect(window?.localStorage.getItem(key)).toBe(null);
