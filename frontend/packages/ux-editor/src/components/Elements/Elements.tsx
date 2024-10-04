@@ -72,7 +72,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
 
   const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
     selectedLayoutIsCustomReceipt,
-    processTaskType: processTaskType,
+    processTaskType,
     selectedLayoutSetType: selectedLayoutSet?.type,
   });
 
