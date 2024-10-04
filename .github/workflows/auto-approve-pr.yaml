@@ -1,9 +1,8 @@
 name: Auto-Approve PR
 
 on:
-  pull_request_target:
-    types:
-      - labeled
+  pull_request:
+    types: [ labeled ]
 
 jobs:
   auto-approve:
