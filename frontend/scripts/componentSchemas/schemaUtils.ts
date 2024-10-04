@@ -1,16 +1,68 @@
 import jsonpointer from 'jsonpointer';
 import { sortTextResourceBindings } from './languageUtils';
 
-export const allPropertyKeys = [];
+/**
+ * Generates a component schema by expanding definitions and resolving references.
+ * @param componentName The name of the component.
+ * @param layoutSchema The full layout schema.
+ * @param version The app frontend version.
+ * @returns The generated component schema.
+ */
+export const generateComponentSchema = (
+  componentName: string,
+  layoutSchema: any,
+  version: string,
+) => {
+  const definitionName = `Comp${componentName}`;
+  const componentSchema = getComponentSchema(definitionName, layoutSchema, version);
+
+  let schema: any = {
+    $id: `https://altinncdn.no/schemas/json/component/${componentName}.schema.v1.json`,
+    $schema: layoutSchema.$schema,
+  };
+
+  if (componentSchema.allOf) {
+    schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
+    const expectedProperties = Object.keys(
+      componentSchema.allOf[componentSchema.allOf.length - 1].properties,
+    );
+    addProperties(expectedProperties);
+
+    if (!verifySchema(schema, expectedProperties)) {
+      return null;
+    }
+  } else if (componentSchema.anyOf) {
+    schema.anyOf = expandAnyOf(componentSchema, layoutSchema);
+  }
+
+  // Expand all refs in properties
+  schema.properties = expandRefsInProperties(schema.properties, layoutSchema);
+
+  // Sort text resource binding keys
+  if (schema.properties?.textResourceBindings) {
+    schema.properties.textResourceBindings.properties = sortTextResourceBindings(
+      schema.properties.textResourceBindings.properties,
+    );
+  }
+
+  schema.title = `${componentName} component schema`;
+  return schema;
+};
 
 /**
- * Expands a ref in a schema from a reference to the actual schema
- * @param ref The ref to expand
- * @param layoutSchema The full layout schema
- * @returns The expanded schema
+ * Retrieves the component schema based on the version (the v4 schema has an external reference)
+ * @param definitionName The name of the component definition.
+ * @param layoutSchema The full layout schema.
+ * @param version The app frontend version.
+ * @returns The component schema.
  */
-export const expandRef = (ref: string, layoutSchema: any) => {
-  return jsonpointer.get(layoutSchema, ref.replace('#/', '/'));
+export const getComponentSchema = (definitionName: string, layoutSchema: any, version: string) => {
+  if (version === 'v4') {
+    console.log('definitionName: ', definitionName + 'External');
+    return expandRef(layoutSchema.definitions[definitionName].$ref, layoutSchema);
+  }
+  console.log('definitionName: ', definitionName);
+  return layoutSchema.definitions[definitionName];
 };
 
 /**
@@ -40,6 +92,16 @@ export const expandAllOf = (schema: any, layoutSchema: any, componentNode: boole
   });
   expandedSchema.required = schema.allOf?.[schema.allOf.length - 1].required;
   return expandedSchema;
+};
+
+/**
+ * Expands a ref in a schema from a reference to the actual schema
+ * @param ref The ref to expand
+ * @param layoutSchema The full layout schema
+ * @returns The expanded schema
+ */
+export const expandRef = (ref: string, layoutSchema: any) => {
+  return jsonpointer.get(layoutSchema, ref.replace('#/', '/'));
 };
 
 /**
@@ -95,26 +157,14 @@ export const expandRefsInProperties = (properties: any, layoutSchema: any) => {
   return expandedProperties;
 };
 
+export const allPropertyKeys = [];
+
 /**
- * Ensures that a schema with enum values has correct type (string or number)
- * @param schema The schema to ensure type for
+ * Adds property keys to the global list.
+ * @param propertyKeys Array of property keys to add.
  */
-export const ensureTypeWithEnums = (schema: any) => {
-  if (schema.enum && schema.enum.length > 0) {
-    const firstEnumValue = schema.enum[0];
-    if (typeof firstEnumValue === 'string') {
-      schema.type = 'string';
-    } else if (typeof firstEnumValue === 'number') {
-      schema.type = 'number';
-    }
-  } else if (schema.items?.enum && schema.items.enum.length > 0) {
-    const firstEnumValue = schema.items.enum[0];
-    if (typeof firstEnumValue === 'string') {
-      schema.items.type = 'string';
-    } else if (typeof firstEnumValue === 'number') {
-      schema.items.type = 'number';
-    }
-  }
+const addProperties = (propertyKeys: string[]) => {
+  allPropertyKeys.push(...propertyKeys);
 };
 
 /**
@@ -136,74 +186,23 @@ export const verifySchema = (schema: any, expectedProperties: string[]) => {
 };
 
 /**
- * Adds property keys to the global list.
- * @param propertyKeys Array of property keys to add.
+ * Ensures that a schema with enum values has correct type (string or number)
+ * @param schema The schema to ensure type for
  */
-const addProperties = (propertyKeys: string[]) => {
-  allPropertyKeys.push(...propertyKeys);
-};
-
-/**
- * Retrieves the component schema based on the version (the v4 schema has an external reference)
- * @param definitionName The name of the component definition.
- * @param layoutSchema The full layout schema.
- * @param version The app frontend version.
- * @returns The component schema.
- */
-
-const getComponentSchema = (definitionName: string, layoutSchema: any, version: string) => {
-  if (version === 'v4') {
-    console.log('definitionName: ', definitionName + 'External');
-    return expandRef(layoutSchema.definitions[definitionName].$ref, layoutSchema);
-  }
-  console.log('definitionName: ', definitionName);
-  return layoutSchema.definitions[definitionName];
-};
-
-/**
- * Generates a component schema by expanding definitions and resolving references.
- * @param componentName The name of the component.
- * @param layoutSchema The full layout schema.
- * @param version The app frontend version.
- * @returns The generated component schema.
- */
-export const generateComponentSchema = (
-  componentName: string,
-  layoutSchema: any,
-  version: string,
-) => {
-  const definitionName = `Comp${componentName}`;
-  const componentSchema = getComponentSchema(definitionName, layoutSchema, version);
-
-  let schema: any = {
-    $id: `https://altinncdn.no/schemas/json/component/${componentName}.schema.v1.json`,
-    $schema: layoutSchema.$schema,
-  };
-
-  if (componentSchema.allOf) {
-    schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
-    const expectedProperties = Object.keys(
-      componentSchema.allOf[componentSchema.allOf.length - 1].properties,
-    );
-    addProperties(expectedProperties);
-
-    if (!verifySchema(schema, expectedProperties)) {
-      return null;
+export const ensureTypeWithEnums = (schema: any) => {
+  if (schema.enum && schema.enum.length > 0) {
+    const firstEnumValue = schema.enum[0];
+    if (typeof firstEnumValue === 'string') {
+      schema.type = 'string';
+    } else if (typeof firstEnumValue === 'number') {
+      schema.type = 'number';
     }
-  } else if (componentSchema.anyOf) {
-    schema.anyOf = expandAnyOf(componentSchema, layoutSchema);
+  } else if (schema.items?.enum && schema.items.enum.length > 0) {
+    const firstEnumValue = schema.items.enum[0];
+    if (typeof firstEnumValue === 'string') {
+      schema.items.type = 'string';
+    } else if (typeof firstEnumValue === 'number') {
+      schema.items.type = 'number';
+    }
   }
-
-  // Expand all refs in properties
-  schema.properties = expandRefsInProperties(schema.properties, layoutSchema);
-
-  // Sort text resource binding keys
-  if (schema.properties?.textResourceBindings) {
-    schema.properties.textResourceBindings.properties = sortTextResourceBindings(
-      schema.properties.textResourceBindings.properties,
-    );
-  }
-
-  schema.title = `${componentName} component schema`;
-  return schema;
 };
