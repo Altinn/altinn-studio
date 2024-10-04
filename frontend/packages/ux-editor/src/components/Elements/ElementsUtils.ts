@@ -11,7 +11,7 @@ export class ElementsUtils {
     selectedLayoutIsCustomReceipt,
     selectedLayoutSetType,
     processTaskType,
-  }: GetConfigurationModeArgs): ConfPageType {
+  }: GetConfigurationModeArgs): ConfPageType | undefined {
     if (selectedLayoutIsCustomReceipt) {
       return 'receipt';
     }
@@ -23,5 +23,7 @@ export class ElementsUtils {
     if (selectedLayoutSetType === 'subform') {
       return 'subform';
     }
+
+    return undefined;
   }
 }
