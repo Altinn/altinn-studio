@@ -166,7 +166,12 @@ public class DataController : ControllerBase
             if (dataTypeFromMetadata.MaxCount > 0 && existingElements >= dataTypeFromMetadata.MaxCount)
             {
                 return Conflict(
-                    $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})"
+                    new ProblemDetails
+                    {
+                        Title = "Max count reached",
+                        Detail = $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})",
+                        Status = (int)HttpStatusCode.Conflict
+                    }
                 );
             }
 
