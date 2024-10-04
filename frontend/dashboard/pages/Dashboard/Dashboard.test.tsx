@@ -4,7 +4,7 @@ import { MockServicesContextWrapper } from '../../dashboardTestUtils';
 import { Dashboard } from './Dashboard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { Repository, User } from 'app-shared/types/Repository';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
 import type { SearchRepositoryResponse } from 'app-shared/types/api';
