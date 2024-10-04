@@ -1,6 +1,8 @@
 import jsonpointer from 'jsonpointer';
 import { sortTextResourceBindings } from './languageUtils';
 
+export const allPropertyKeys = [];
+
 export const generateComponentSchema = (
   componentName: string,
   layoutSchema: any,
@@ -19,7 +21,7 @@ export const generateComponentSchema = (
     const expectedProperties = Object.keys(
       componentSchema.allOf[componentSchema.allOf.length - 1].properties,
     );
-    pushPropertyKeys(expectedProperties);
+    allPropertyKeys.push(...expectedProperties);
 
     if (!verifySchema(schema, expectedProperties)) {
       return null;
@@ -141,12 +143,6 @@ export const expandRefsInProperties = (properties: any, layoutSchema: any) => {
   }
 
   return expandedProperties;
-};
-
-export const allPropertyKeys = [];
-
-const pushPropertyKeys = (propertyKeys: string[]) => {
-  allPropertyKeys.push(...propertyKeys);
 };
 
 /**
