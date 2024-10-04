@@ -4,12 +4,12 @@ import { act, renderHook } from '@testing-library/react';
 import { type QueryParamsRouter } from '../utils/router/QueryParamsRouter';
 
 interface RouterInstanceMock extends QueryParamsRouter {
-  getCurrentRoute: jest.Mock;
+  currentRoute: PageName;
   navigate: jest.Mock;
 }
 
 const mockRouterInstance: RouterInstanceMock = {
-  getCurrentRoute: jest.fn(),
+  currentRoute: 'root',
   navigate: jest.fn(),
 };
 
@@ -23,7 +23,7 @@ describe('useNavigation Hook', () => {
   const mockCurrentPage: PageName = 'root';
 
   beforeEach(() => {
-    mockRouterInstance.getCurrentRoute.mockReturnValue(mockCurrentPage);
+    mockRouterInstance.currentRoute = mockCurrentPage;
   });
 
   afterEach(() => {

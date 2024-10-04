@@ -1,7 +1,9 @@
 import type { PageName } from '../../types/PageName';
 
+const pageRouterQueryParamKey: string = 'currentLibraryRoute';
+
 export interface QueryParamsRouter {
-  getCurrentRoute: () => string;
+  currentRoute: PageName;
   navigate: (queryParam: string) => void;
 }
 
@@ -18,16 +20,14 @@ export class QueryParamsRouterImpl implements QueryParamsRouter {
     return QueryParamsRouterImpl.instance;
   }
 
-  public getCurrentRoute(): PageName {
+  public get currentRoute(): PageName {
     const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get('currentLibraryRoute') as string as PageName;
+    return searchParams.get(pageRouterQueryParamKey) as string as PageName;
   }
 
-  public navigate(queryParam: string) {
-    const url = new URL(window.location.href);
-
-    const searchParams = new URLSearchParams(url.search);
-    searchParams.set('currentLibraryRoute', queryParam);
+  public navigate(queryParam: string): void {
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set(pageRouterQueryParamKey, queryParam);
     window.history.pushState(null, '', `?${searchParams.toString()}`);
   }
 }

@@ -11,6 +11,7 @@ describe('QueryParamsRouterImpl', () => {
 
   describe('getCurrentRoute', () => {
     const router = QueryParamsRouterImpl.getInstance();
+
     beforeEach(() => {
       Object.defineProperty(window, 'location', {
         value: {
@@ -21,7 +22,7 @@ describe('QueryParamsRouterImpl', () => {
     });
 
     it('should return the correct currentLibraryRoute from query parameters', () => {
-      const route = router.getCurrentRoute();
+      const route = router.currentRoute;
       expect(route).toBe('myRoute');
     });
   });

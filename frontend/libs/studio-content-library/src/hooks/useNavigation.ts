@@ -9,7 +9,7 @@ type UseNavigationResult = {
 
 export const useNavigation = (): UseNavigationResult => {
   const router = QueryParamsRouterImpl.getInstance();
-  const [currentPage, setCurrentPage] = useState<PageName>(router.getCurrentRoute());
+  const [currentPage, setCurrentPage] = useState<PageName>(router.currentRoute);
 
   const navigate = (page: PageName): void => {
     router.navigate(page);
