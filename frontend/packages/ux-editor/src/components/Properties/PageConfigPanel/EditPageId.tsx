@@ -15,7 +15,7 @@ export interface EditPageIdProps {
 }
 export const EditPageId = ({ layoutName }: EditPageIdProps) => {
   const { app, org } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
   const { mutate: mutateTextId } = useTextIdMutation(org, app);
   const { mutate: updateLayoutName } = useUpdateLayoutNameMutation(
     org,
@@ -37,7 +37,7 @@ export const EditPageId = ({ layoutName }: EditPageIdProps) => {
       { oldName: layoutName, newName },
       {
         onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName);
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
         },
       },
     );
