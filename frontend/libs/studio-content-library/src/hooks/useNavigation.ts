@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { QueryParamsRouterImpl } from '../utils/router/QueryParamsRouter';
-import type { Page } from '../types';
+import type { PageName } from '../types/PageName';
 
 type UseNavigationResult = {
-  navigate: (page: Page) => void;
+  navigate: (page: PageName) => void;
   currentPage: string;
 };
 
 export const useNavigation = (): UseNavigationResult => {
   const router = QueryParamsRouterImpl.getInstance();
-  const [currentPage, setCurrentPage] = useState<Page>(router.getCurrentRoute());
+  const [currentPage, setCurrentPage] = useState<PageName>(router.getCurrentRoute());
 
-  const navigate = (page: Page): void => {
+  const navigate = (page: PageName): void => {
     router.navigate(page);
     setCurrentPage(page);
   };

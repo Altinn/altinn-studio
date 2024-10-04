@@ -1,6 +1,6 @@
-import type { Page } from '../../types';
+import type { PageName } from '../../types/PageName';
 
-interface QueryParamsRouter {
+export interface QueryParamsRouter {
   getCurrentRoute: () => string;
   navigate: (queryParam: string) => void;
 }
@@ -18,9 +18,9 @@ export class QueryParamsRouterImpl implements QueryParamsRouter {
     return QueryParamsRouterImpl.instance;
   }
 
-  public getCurrentRoute(): Page {
+  public getCurrentRoute(): PageName {
     const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get('currentLibraryRoute') as string as Page;
+    return searchParams.get('currentLibraryRoute') as string as PageName;
   }
 
   public navigate(queryParam: string) {

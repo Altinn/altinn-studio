@@ -9,8 +9,7 @@ module.exports = {
             patterns: [
               {
                 group: ['@tanstack/react-query'],
-                message:
-                  'In this library should not contain tanstack-query or any other data-library',
+                message: 'This library should not contain tanstack-query or any other data-library',
               },
             ],
           },

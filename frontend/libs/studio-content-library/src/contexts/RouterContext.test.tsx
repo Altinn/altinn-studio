@@ -63,7 +63,7 @@ describe('RouterContext', () => {
     };
 
     expect(() => render(<TestComponent />)).toThrow(
-      'useRouterContext must be used within a RouterContextProvide',
+      'useRouterContext must be used within a RouterContextProvider',
     );
     expect(consoleError).toHaveBeenCalled();
   });

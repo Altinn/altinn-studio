@@ -1,20 +1,26 @@
 import { useNavigation } from './useNavigation';
-import type { Page } from '../types';
+import type { PageName } from '../types/PageName';
 import { act, renderHook } from '@testing-library/react';
+import { type QueryParamsRouter } from '../utils/router/QueryParamsRouter';
 
-const mockRouterInstance = {
+interface RouterInstanceMock extends QueryParamsRouter {
+  getCurrentRoute: jest.Mock;
+  navigate: jest.Mock;
+}
+
+const mockRouterInstance: RouterInstanceMock = {
   getCurrentRoute: jest.fn(),
   navigate: jest.fn(),
 };
 
 jest.mock('../utils/router/QueryParamsRouter', () => ({
   QueryParamsRouterImpl: {
-    getInstance: jest.fn(() => mockRouterInstance), // Return the mock instance
+    getInstance: jest.fn(() => mockRouterInstance),
   },
 }));
 
 describe('useNavigation Hook', () => {
-  const mockCurrentPage = 'root' as Page;
+  const mockCurrentPage: PageName = 'root';
 
   beforeEach(() => {
     mockRouterInstance.getCurrentRoute.mockReturnValue(mockCurrentPage);
@@ -30,7 +36,7 @@ describe('useNavigation Hook', () => {
   });
 
   it('should navigate to a new page', () => {
-    const newPage = 'codeList' as Page;
+    const newPage: PageName = 'codeList';
 
     const { result } = renderHook(() => useNavigation());
 

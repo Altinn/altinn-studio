@@ -20,11 +20,11 @@ export class RouterRouteMapperImpl implements RouterRouteMapper {
     return this._configuredRoutes;
   }
 
-  constructor(private pages: Partial<PageConfig>) {
+  constructor(private pages: PageConfig) {
     this._configuredRoutes = this.getConfiguredRoutes(this.pages);
   }
 
-  private getConfiguredRoutes(pages: Partial<PageConfig>): PageMap {
+  private getConfiguredRoutes(pages: PageConfig): PageMap {
     const pageMap = new Map<string, (props: PageProps) => ReactElement>();
 
     Object.keys(pages).forEach((page) => {

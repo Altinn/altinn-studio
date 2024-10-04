@@ -4,9 +4,9 @@ import { RouterPage } from '../pages/RouterPage';
 import { RouterContextProvider } from '../contexts/RouterContext';
 
 export class ResourceContentLibraryImpl {
-  private readonly pages: Partial<PageConfig>;
+  private readonly pages: PageConfig;
 
-  constructor(config: { pages: Partial<PageConfig> }) {
+  constructor(config: { pages: PageConfig }) {
     this.pages = config.pages;
     this.getContentResourceLibrary = this.getContentResourceLibrary.bind(this);
   }

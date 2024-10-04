@@ -6,13 +6,13 @@ export type RouterContextProps = {
   navigate: (page: string) => void;
 };
 
-export const RouterContext = createContext<Partial<RouterContextProps>>(undefined);
+export const RouterContext = createContext<RouterContextProps>(undefined);
 
 export type RouterContextProviderProps = {
   children: React.ReactNode;
 };
 
-export const RouterContextProvider = ({ children }: Partial<RouterContextProviderProps>) => {
+export const RouterContextProvider = ({ children }: RouterContextProviderProps) => {
   const { navigate, currentPage } = useNavigation();
 
   return (
@@ -27,7 +27,7 @@ export const RouterContextProvider = ({ children }: Partial<RouterContextProvide
   );
 };
 
-export const useRouterContext = (): Partial<RouterContextProps> => {
+export const useRouterContext = (): RouterContextProps => {
   const context = useContext(RouterContext);
   if (context === undefined) {
     throw new Error('useRouterContext must be used within a RouterContextProvider');

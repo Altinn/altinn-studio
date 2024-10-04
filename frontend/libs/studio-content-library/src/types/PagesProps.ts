@@ -3,7 +3,7 @@ import type { CodeListProps } from '../pages/CodeList';
 
 type PagePropsMap = {
   root: RootPageProps;
-  codeList: CodeListProps;
+  codeList?: CodeListProps;
 };
 
 type GlobalPageConfig<T> = {
