@@ -2,22 +2,13 @@ import nb from '../../language/src/nb.json';
 
 export const allTextResourceBindingKeys = [];
 
-/**
- * Adds text resource binding keys from a schema to the global list.
- * @param schema The schema to extract keys from.
- */
-export const addTextResourceBindingKeys = (schema: any) => {
+export const pushTextResourceBindingKeys = (schema: any) => {
   if (schema.properties?.textResourceBindings) {
     const textResourceBindingKeys = Object.keys(schema.properties.textResourceBindings.properties);
     allTextResourceBindingKeys.push(...textResourceBindingKeys);
   }
 };
 
-/**
- * Sorts text resource bindings, placing 'title', 'description', and 'help' first.
- * @param textResourceBindings The text resource bindings to sort.
- * @returns The sorted text resource bindings.
- */
 export const sortTextResourceBindings = (textResourceBindings: any) => {
   const { title, description, help, ...rest } = textResourceBindings;
   const sorted: any = {};

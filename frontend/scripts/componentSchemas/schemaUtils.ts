@@ -1,13 +1,6 @@
 import jsonpointer from 'jsonpointer';
 import { sortTextResourceBindings } from './languageUtils';
 
-/**
- * Generates a component schema by expanding definitions and resolving references.
- * @param componentName The name of the component.
- * @param layoutSchema The full layout schema.
- * @param version The app frontend version.
- * @returns The generated component schema.
- */
 export const generateComponentSchema = (
   componentName: string,
   layoutSchema: any,
@@ -26,7 +19,7 @@ export const generateComponentSchema = (
     const expectedProperties = Object.keys(
       componentSchema.allOf[componentSchema.allOf.length - 1].properties,
     );
-    addProperties(expectedProperties);
+    pushPropertyKeys(expectedProperties);
 
     if (!verifySchema(schema, expectedProperties)) {
       return null;
@@ -49,13 +42,6 @@ export const generateComponentSchema = (
   return schema;
 };
 
-/**
- * Retrieves the component schema based on the version (the v4 schema has an external reference)
- * @param definitionName The name of the component definition.
- * @param layoutSchema The full layout schema.
- * @param version The app frontend version.
- * @returns The component schema.
- */
 export const getComponentSchema = (definitionName: string, layoutSchema: any, version: string) => {
   if (version === 'v4') {
     console.log('definitionName: ', definitionName + 'External');
@@ -159,11 +145,7 @@ export const expandRefsInProperties = (properties: any, layoutSchema: any) => {
 
 export const allPropertyKeys = [];
 
-/**
- * Adds property keys to the global list.
- * @param propertyKeys Array of property keys to add.
- */
-const addProperties = (propertyKeys: string[]) => {
+const pushPropertyKeys = (propertyKeys: string[]) => {
   allPropertyKeys.push(...propertyKeys);
 };
 

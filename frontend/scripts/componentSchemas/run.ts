@@ -3,17 +3,13 @@ import type { AppFrontendVersion } from './version';
 import { isValidVersion } from './version';
 import { getLayoutSchema } from './api';
 import {
-  addTextResourceBindingKeys,
+  pushTextResourceBindingKeys,
   allTextResourceBindingKeys,
   logComponentPropertyLabels,
   logTextResourceLabels,
 } from './languageUtils';
 import { writeToFile } from './fileUtils';
 
-/**
- * Main function that runs the script.
- * Fetches the layout schema, generates component schemas, and logs language keys.
- */
 const run = async () => {
   let version: string = process.argv.length > 2 ? process.argv[2] : '';
   if (!isValidVersion(version)) {
@@ -30,7 +26,7 @@ const run = async () => {
     componentName = componentName === 'AddressComponent' ? 'Address' : componentName;
 
     const schema = generateComponentSchema(componentName, layoutSchema, version);
-    addTextResourceBindingKeys(schema);
+    pushTextResourceBindingKeys(schema);
     writeToFile(componentName, schema, version as AppFrontendVersion);
   });
 
