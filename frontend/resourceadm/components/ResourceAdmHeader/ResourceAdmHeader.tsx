@@ -56,12 +56,13 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
     navigate(`/${context}/${getAppName(context)}${location.search}`);
   };
 
-  const selectableOrgMenuItems: StudioProfileMenuItem[] =
-    selectableOrgs.map((selectableOrg: Organization) => ({
+  const selectableOrgMenuItems: StudioProfileMenuItem[] = selectableOrgs.map(
+    (selectableOrg: Organization) => ({
       action: { type: 'button', onClick: () => handleSetSelectedContext(selectableOrg.username) },
       itemName: selectableOrg?.full_name || selectableOrg.username,
       isActive: org === selectableOrg.username,
-    })) ?? [];
+    }),
+  );
 
   const giteaMenuItem: StudioProfileMenuItem = {
     action: { type: 'link', href: repoPath },
@@ -86,7 +87,7 @@ const DashboardHeaderMenu = ({ organizations, user }: ResourceAdmHeaderProps) =>
       variant='regular'
       profileImage={
         <StudioAvatar
-          src={user?.avatar_url ? user.avatar_url : undefined}
+          src={user?.avatar_url}
           alt={t('general.profile_icon')}
           title={t('shared.header_profile_icon_text')}
         />
