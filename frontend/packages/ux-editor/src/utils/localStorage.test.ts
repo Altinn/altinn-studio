@@ -9,7 +9,7 @@ describe('cleanupStaleLocalStorageKeys', () => {
 
     cleanupStaleLocalStorageKeys();
 
-    expect(typedLocalStorage.getItem(unsupportedKey)).toBeUndefined();
+    expect(typedLocalStorage.getItem(unsupportedKey)).toBeNull();
   });
 
   it('Does not remove other keys from local storage', () => {
