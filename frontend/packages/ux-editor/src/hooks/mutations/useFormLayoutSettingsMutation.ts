@@ -9,7 +9,7 @@ export const useFormLayoutSettingsMutation = (org: string, app: string, layoutSe
   const previewConnection = usePreviewConnection();
   const { saveFormLayoutSettings } = useServicesContext();
   const queryClient = useQueryClient();
-  const { refetchLayoutSettings } = useAppContext();
+  const { updateLayoutSettingsForPreview } = useAppContext();
   return useMutation({
     mutationFn: (settings: ILayoutSettings) =>
       saveFormLayoutSettings(org, app, layoutSetName, settings).then(() => settings),
@@ -25,7 +25,7 @@ export const useFormLayoutSettingsMutation = (org: string, app: string, layoutSe
         savedSettings,
       );
 
-      await refetchLayoutSettings(layoutSetName);
+      await updateLayoutSettingsForPreview(layoutSetName);
     },
   });
 };
