@@ -15,6 +15,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Auto approve PR
-        run: gh pr review --approve
+        run: gh pr review ${{ github.event.pull_request.number }} --approve
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
