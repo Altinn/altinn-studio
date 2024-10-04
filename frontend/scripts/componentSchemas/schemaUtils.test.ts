@@ -57,9 +57,9 @@ describe('ensureTypeWithEnums', () => {
 
   it('should not modify schema if there is no enum or items.enum', () => {
     const schema: any = {
-      type: 'object',
+      type: 'array',
     };
     ensureTypeWithEnums(schema);
-    expect(schema).toEqual({ type: 'object' });
+    expect(schema).toEqual({ type: 'array' });
   });
 });
