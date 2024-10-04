@@ -4,6 +4,9 @@ import type { AltinnHeaderProfileProps } from './AltinnHeaderProfile';
 import { AltinnHeaderProfile } from './AltinnHeaderProfile';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 describe('AltinnHeaderProfile', () => {
   it('should render users name if user and org are the same', () => {
@@ -87,5 +90,10 @@ export const render = (props?: Partial<AltinnHeaderProfileProps>) => {
     },
   };
 
-  return rtlRender(<AltinnHeaderProfile {...defaultProps} {...props} />);
+  // This code will be replaced in issue: #11611 which is being split up into smaller chunks now.
+  return rtlRender(
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <AltinnHeaderProfile {...defaultProps} {...props} />
+    </ServicesContextProvider>,
+  );
 };

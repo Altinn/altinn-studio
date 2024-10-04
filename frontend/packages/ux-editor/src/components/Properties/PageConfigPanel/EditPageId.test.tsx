@@ -53,8 +53,8 @@ describe('EditPageId', () => {
       layoutSetName,
     );
     expect(updateTextId).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(layoutSetName);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith(layoutSetName);
   });
 
   it('does not call updateFormLayoutName and textIdMutation when page ID is unchanged', async () => {

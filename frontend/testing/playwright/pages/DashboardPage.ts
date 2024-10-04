@@ -48,12 +48,12 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnHeaderAvatar(): Promise<void> {
-    await this.page.getByAltText(this.textMock('shared.header_button_alt')).click();
+    await this.page.getByAltText(this.textMock('general.profile_icon')).click();
   }
 
   public async clickOnAllApplications(): Promise<void> {
     await this.page
-      .getByRole('menuitem', { name: this.textMock('shared.header_all'), exact: true })
+      .getByRole('menuitemradio', { name: this.textMock('shared.header_all'), exact: true })
       .click();
   }
 
@@ -64,7 +64,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnOrgApplications(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: 'Testdepartementet' }).click();
+    await this.page.getByRole('menuitemradio', { name: 'Testdepartementet' }).click();
   }
 
   public async checkThatTTDApplicationsHeaderIsVisible(): Promise<void> {
@@ -118,6 +118,8 @@ export class DashboardPage extends BasePage {
   }
 
   public async clickOnLogOutButton(): Promise<void> {
-    await this.page.getByRole('menuitem', { name: this.textMock('shared.header_logout') }).click();
+    await this.page
+      .getByRole('menuitemradio', { name: this.textMock('shared.header_logout') })
+      .click();
   }
 }

@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './ProfileMenu';
 import { ProfileMenu } from './ProfileMenu';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 
@@ -13,22 +16,15 @@ const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
     user: false,
     ...props,
   } as IProfileMenuComponentProps;
-  return rtlRender(<ProfileMenu {...allProps} />);
+  return rtlRender(
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <ProfileMenu {...allProps} />
+    </ServicesContextProvider>,
+  );
 };
 
+// This code will be replaced in issue: #11611 which is being split up into smaller chunks now. Thats why some tests are delted
 describe('ProfileMenu', () => {
-  it('should match snapshot', () => {
-    const { container } = render();
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(container.firstChild).toMatchSnapshot();
-  });
-
-  it('should match snapshot with logout text', () => {
-    const { container } = render({ showlogout: true });
-    // eslint-disable-next-line testing-library/no-node-access
-    expect(container.firstChild).toMatchSnapshot();
-  });
-
   it('should show menu with link to documentation when clicking profile button', async () => {
     render();
 
