@@ -76,3 +76,11 @@ quality/testing:
 skip-releasenotes:
 - changed-files:
   - any-glob-to-any-file: ['.github/**/*', '.husky/**/*', '.vscode/**/*', '.yarn/**/*', 'testdata/**/*', 'development/**/*', 'src/**/*']
+
+backend:
+- changed-files:
+  - any-glob-to-any-file: 'backend/**/*'
+
+frontend:
+- changed-files:
+  - any-glob-to-any-file: 'frontend/**/*'
