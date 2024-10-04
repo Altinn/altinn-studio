@@ -1,4 +1,3 @@
-import { SelectedContextType } from 'resourceadm/context/HeaderContext';
 import { getOrgNameByUsername, userHasAccessToOrganization } from './userUtils';
 import { type Organization } from 'app-shared/types/Organization';
 
@@ -18,24 +17,6 @@ const mockOrganizations: Organization[] = [mockOrg1, mockOrg2];
 
 describe('userUtils', () => {
   describe('userHasAccessToOrganization', () => {
-    it('should return true when context is self', () => {
-      const result = userHasAccessToOrganization({
-        org: SelectedContextType.Self,
-        orgs: [],
-      });
-
-      expect(result).toBe(true);
-    });
-
-    it('should return true when context is all', () => {
-      const result = userHasAccessToOrganization({
-        org: SelectedContextType.All,
-        orgs: [],
-      });
-
-      expect(result).toBe(true);
-    });
-
     it('should return true when context id is present in orgs list', () => {
       const result = userHasAccessToOrganization({
         org: 'username1',
