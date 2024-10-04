@@ -1,6 +1,7 @@
-using Altinn.App.Core.Internal.App;
+using System;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -15,9 +16,11 @@ namespace Altinn.App.logic.MetaData
         public CustomMetaData(
             IOptions<AppSettings> settings,
             IFrontendFeatures frontendFeatures,
-            IHttpContextAccessor httpContextAccessor)
+            IServiceProvider serviceProvider,
+            IHttpContextAccessor httpContextAccessor
+        )
         {
-            _internal = new AppMetadata(settings, frontendFeatures);
+            _internal = new AppMetadata(settings, frontendFeatures, serviceProvider);
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -28,8 +31,9 @@ namespace Altinn.App.logic.MetaData
             // This is a special case copied from the frontend-test app. We only create pdfs if the cookie
             // "createPdf" is set. We do this because PDF generation isn't tested directly in the cypress tests,
             // and it seems like process/next will fail if too many PDFs are generated at the same time.
-            var shouldCreatePdf = _httpContextAccessor.HttpContext != null &&
-                                  _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
+            var shouldCreatePdf =
+                _httpContextAccessor.HttpContext != null
+                && _httpContextAccessor.HttpContext.Request.Cookies.ContainsKey("createPdf");
 
             if (!shouldCreatePdf)
             {
