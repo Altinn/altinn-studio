@@ -65,8 +65,8 @@ describe('EditNumberValue', () => {
     // The component is updated for each keystroke, so we expect the mock to be called twice -
     // I think it should prevent this behavior with this new issue: https://github.com/Altinn/altinn-studio/issues/11989
     expect(mockhHandleComponentChange).toHaveBeenCalledTimes(2);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(2);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set', true);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(2);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set', true);
 
     mockhHandleComponentChange.mockClear();
     await user.clear(input);
