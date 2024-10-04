@@ -14,7 +14,7 @@ export function useCurrentLayoutSet() {
   const application = useLaxApplicationMetadata();
   const layoutSets = useLaxLayoutSets();
   const taskId = useProcessTaskId();
-  const { overriddenLayoutSetId } = useTaskStore(({ overriddenLayoutSetId }) => ({ overriddenLayoutSetId }));
+  const overriddenLayoutSetId = useTaskStore((state) => state.overriddenLayoutSetId);
 
   if (application === ContextNotProvided || layoutSets === ContextNotProvided) {
     return undefined;

@@ -16,7 +16,7 @@ import {
   useQueryKeysAsStringAsRef,
   useSetNavigationEffect,
 } from 'src/features/routing/AppRoutingContext';
-import { useInvalidateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
+import { useRefetchInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { ProcessTaskType } from 'src/types';
 import { Hidden } from 'src/utils/layout/NodesContext';
@@ -180,7 +180,7 @@ export const useNavigatePage = () => {
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useQueryKeysAsStringAsRef();
   const getTaskType = useGetTaskType();
-  const invalidateInitialValidations = useInvalidateInitialValidations();
+  const refetchInitialValidations = useRefetchInitialValidations(true);
 
   const { autoSaveBehavior } = usePageSettings();
   const order = usePageOrder();
@@ -357,7 +357,7 @@ export const useNavigatePage = () => {
       window.logWarn('Tried to close subform page while not in a subform.');
       return;
     }
-    await invalidateInitialValidations();
+    await refetchInitialValidations();
 
     await navigateToPage(navParams.current.mainPageKey, {
       exitSubform: true,

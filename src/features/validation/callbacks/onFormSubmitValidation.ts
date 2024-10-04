@@ -6,21 +6,21 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { Validation } from 'src/features/validation/validationContext';
 import { useEffectEvent } from 'src/hooks/useEffectEvent';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { waitForAnimationFrames } from 'src/utils/waitForAnimationFrames';
 
 /**
  * Checks for any validation errors before submitting the form.
  * returns true if there are any errors, in that case submitting should be prevented.
- * It first shows any frontend errors.
- * If there are no frontend errors, it shows any backend errors.
- * If there are no backend errors, it shows any backend errors that cannot be mapped to a visible node. Including task errors.
+ * If includeNonIncrementalValidations is false, then we try to submit if there are only nonIncremental validations,
+ * these are not updated on PATCH, but will be validated on process/next,
+ * so to prevent the user having to refresh the page we should ignore them when clicking submit.
+ * We should however show them after we get the results of process/next.
  */
 export function useOnFormSubmitValidation() {
   const validation = Validation.useLaxRef();
   const setNodeVisibility = NodesInternal.useLaxSetNodeVisibility();
   const getNodesWithErrors = NodesInternal.useGetNodesWithErrors();
 
-  const callback = useEffectEvent((includeSubform: boolean): boolean => {
+  const callback = useEffectEvent((includeNonIncrementalValidations: boolean): boolean => {
     if (validation.current === ContextNotProvided || setNodeVisibility === ContextNotProvided) {
       // If the validation context or nodes context is not provided, we cannot validate
       return false;
@@ -29,19 +29,23 @@ export function useOnFormSubmitValidation() {
     /*
      * Check if there are any frontend validation errors, and if so, show them now and block submit
      */
-    const nodesWithFrontendErrors = getNodesWithErrors(
-      ValidationMask.All,
-      'error',
-      false,
-      (data) => includeSubform || data.layout.type !== 'Subform',
-    );
+    const nodesWithFrontendErrors = getNodesWithErrors(ValidationMask.All, 'error', false);
     if (nodesWithFrontendErrors === ContextNotProvided) {
       // If the nodes are not provided, we cannot validate them
       return false;
     }
 
-    if (nodesWithFrontendErrors.length > 0) {
-      setNodeVisibility(nodesWithFrontendErrors, ValidationMask.All);
+    const [nodes, validations] = nodesWithFrontendErrors;
+    if (
+      includeNonIncrementalValidations
+        ? validations.length > 0
+        : validations.filter((v) => !v.noIncrementalUpdates).length > 0
+    ) {
+      // Currently, SubForm is the only type of non-incremental validation that has a visibility included in All,
+      // non-incremental validations from backend gets a StandardBackend visibility set. Therefore we want to show
+      // errors in SubForm even if it only has an incremental validation which is why we don't filter on the nodes that get visibility,
+      // even if the validation itself is filtered out for being non-incremental. We only need it not to block process/next.
+      setNodeVisibility(nodes, ValidationMask.All);
       return true;
     }
 
@@ -49,7 +53,7 @@ export function useOnFormSubmitValidation() {
   });
 
   return useCallback(
-    async (includeSubform = false) => {
+    async (includeNonIncrementalValidations = false) => {
       const validating = validation.current === ContextNotProvided ? undefined : validation.current?.validating;
       if (!validating) {
         // If the validation context is not provided, we cannot validate
@@ -57,9 +61,7 @@ export function useOnFormSubmitValidation() {
       }
 
       await validating();
-      // TODO(Subform): Figure out a better way to wait for validations to have propagated to node data
-      includeSubform && (await waitForAnimationFrames(10)); // Ugh
-      return callback(includeSubform);
+      return callback(includeNonIncrementalValidations);
     },
     [callback, validation],
   );

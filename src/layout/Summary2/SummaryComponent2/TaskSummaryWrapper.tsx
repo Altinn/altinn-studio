@@ -12,19 +12,11 @@ interface TaskSummaryProps {
 }
 
 export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren<TaskSummaryProps>) {
-  const {
-    setTaskId,
-    setOverriddenDataModelType,
-    setOverriddenDataModelUuid,
-    setOverriddenLayoutSetId,
-    overriddenTaskId,
-  } = useTaskStore((state) => ({
-    setTaskId: state.setTaskId,
-    setOverriddenDataModelUuid: state.setOverriddenDataModelUuid,
-    setOverriddenLayoutSetId: state.setOverriddenLayoutSetId,
-    overriddenTaskId: state.overriddenTaskId,
-    setOverriddenDataModelType: state.setOverriddenDataModelType,
-  }));
+  const setTaskId = useTaskStore((state) => state.setTaskId);
+  const setOverriddenDataModelType = useTaskStore((state) => state.setOverriddenDataModelType);
+  const setOverriddenDataModelUuid = useTaskStore((state) => state.setOverriddenDataModelUuid);
+  const setOverriddenLayoutSetId = useTaskStore((state) => state.setOverriddenLayoutSetId);
+  const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
 
   const layoutSets = useLayoutSets();
 

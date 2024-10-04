@@ -10,7 +10,7 @@ export const getIncomingApplicationMetadataMock = (
       nb: 'Test App',
     },
     autoDeleteOnProcessEnd: false,
-    altinnNugetVersion: '8.0.0.108',
+    altinnNugetVersion: '8.5.0.141',
     dataTypes: [
       {
         id: 'test-data-model',

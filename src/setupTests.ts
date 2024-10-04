@@ -39,6 +39,14 @@ Object.defineProperty(document, 'fonts', {
   value: { ready: Promise.resolve({}) },
 });
 
+// https://github.com/jsdom/jsdom/issues/3002
+Element.prototype.getClientRects = () => ({
+  item: () => null,
+  length: 0,
+  // @ts-expect-error ignore
+  [Symbol.iterator]: jest.fn(),
+});
+
 // Forcing a low timeout for useDelayedSaveState()
 global.delayedSaveState = 50;
 

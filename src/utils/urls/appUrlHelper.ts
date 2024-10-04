@@ -66,8 +66,11 @@ export const getActionsUrl = (partyId: string, instanceId: string, language?: st
 
 export const getCreateInstancesUrl = (partyId: number) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 
-export const getValidationUrl = (instanceId: string, language: string) => {
-  const queryString = getQueryStringFromObject({ language });
+export const getValidationUrl = (instanceId: string, language: string, onlyIncrementalValidators?: boolean) => {
+  const queryString = getQueryStringFromObject({
+    language,
+    onlyIncrementalValidators: onlyIncrementalValidators?.toString(),
+  });
   return `${appPath}/instances/${instanceId}/validate${queryString}`;
 };
 

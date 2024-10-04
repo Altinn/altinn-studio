@@ -313,7 +313,7 @@ function FormDataEffects() {
 
   const { mutate: performSave, error } = useFormDataSaveMutation();
   const isSaving = useIsSaving();
-  const isUpdatingInitialValidaitons = useIsUpdatingInitialValidations();
+  const isUpdatingInitialValidations = useIsUpdatingInitialValidations();
   const debounce = useDebounceImmediately();
   const hasUnsavedChangesNow = useHasUnsavedChangesNow();
 
@@ -358,7 +358,7 @@ function FormDataEffects() {
 
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = useSelector(hasDebouncedUnsavedChanges);
-  const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidaitons;
+  const canSaveNow = !isSaving && !lockedBy && !isUpdatingInitialValidations;
   const shouldSave = (needsToSave && canSaveNow && autoSaving) || manualSaveRequested;
 
   useEffect(() => {

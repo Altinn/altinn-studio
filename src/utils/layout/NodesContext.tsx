@@ -41,6 +41,7 @@ import { RepeatingChildrenStorePlugin } from 'src/utils/layout/plugins/Repeating
 import { TraversalTask } from 'src/utils/layout/useNodeTraversal';
 import type { AttachmentsStorePluginConfig } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { OptionsStorePluginConfig } from 'src/features/options/OptionsStorePlugin';
+import type { ValidationsProcessedLast } from 'src/features/validation';
 import type { ValidationStorePluginConfig } from 'src/features/validation/ValidationStorePlugin';
 import type { DSReturn, InnerSelectorMode, OnlyReRenderWhen } from 'src/hooks/delayedSelectors';
 import type { WaitForState } from 'src/hooks/useWaitForState';
@@ -106,6 +107,7 @@ export interface SetNodePropRequest<T extends CompTypes, K extends keyof NodeDat
   prop: K;
   value: NodeData<T>[K];
   partial?: boolean;
+  force?: boolean;
 }
 
 export interface SetPagePropRequest<K extends keyof PageData> {
@@ -250,7 +252,7 @@ export function createNodesDataStore() {
       set((state) => {
         let changes = false;
         const nodeData = { ...state.nodeData };
-        for (const { node, prop, value, partial } of requests) {
+        for (const { node, prop, value, partial, force } of requests) {
           if (!nodeData[node.id]) {
             continue;
           }
@@ -267,7 +269,7 @@ export function createNodesDataStore() {
             thisNode[prop as any] = value;
           }
 
-          if (!deepEqual(nodeData[node.id][prop], thisNode[prop])) {
+          if (force || !deepEqual(nodeData[node.id][prop], thisNode[prop])) {
             changes = true;
             nodeData[node.id] = thisNode;
           }
@@ -914,6 +916,34 @@ export const NodesInternal = {
         await waitForCommits();
       }
     }, [waitForState, waitForCommits]);
+  },
+
+  useWaitForValidationsReady() {
+    const store = Store.useLaxStore();
+    const waitForState = useWaitForState<undefined, NodesContext | typeof ContextNotProvided>(store);
+    const waitForCommits = Store.useSelector((s) => s.waitForCommits);
+    return useCallback(
+      async (
+        validationsFromSave: ValidationsProcessedLast['incremental'],
+        lastInitialValidations: ValidationsProcessedLast['initial'],
+      ) => {
+        await waitForState((state) => {
+          if (state === ContextNotProvided) {
+            return true;
+          }
+          return Object.values(state.nodeData).every(
+            (nodeData) =>
+              !('validationsProcessedLast' in nodeData) ||
+              (nodeData.validationsProcessedLast.incremental === validationsFromSave &&
+                nodeData.validationsProcessedLast.initial === lastInitialValidations),
+          );
+        });
+        if (waitForCommits) {
+          await waitForCommits();
+        }
+      },
+      [waitForState, waitForCommits],
+    );
   },
 
   useFullErrorList() {

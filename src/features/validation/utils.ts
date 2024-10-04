@@ -6,7 +6,7 @@ import type {
   ValidationMaskKeys,
   ValidationSeverity,
 } from 'src/features/validation';
-import type { AllowedValidationMasks } from 'src/layout/common.generated';
+import type { CompIntermediate, CompInternal } from 'src/layout/layout';
 
 export function mergeFieldValidations(...X: (FieldValidations | undefined)[]): FieldValidations {
   if (X.length === 0) {
@@ -70,10 +70,16 @@ export function selectValidations<T extends BaseValidation>(
 }
 
 /**
- * Gets the initial validation mask for a component using its showValidations property
- * If the value is not set, it will default to all validations except required
+ * Gets the initial validation mask for a component using its showValidations property.
+ * If the value is not set, it will default to all validations except required.
+ * If the item is undefined, it will return 0.
  */
-export function getInitialMaskFromNode(showValidations: AllowedValidationMasks | null | undefined): number {
+export function getInitialMaskFromNodeItem(item: CompInternal | CompIntermediate | undefined): number {
+  if (!item) {
+    return 0;
+  }
+
+  const showValidations = 'showValidations' in item ? item.showValidations : null;
   // If not set, null, or undefined, default to all validations except required
   if (!showValidations) {
     return ValidationMask.AllExceptRequired;

@@ -177,7 +177,7 @@ function DataModelsLoader() {
   }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, instance]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
-  // We only need to load validation and expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
+  // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
   return (
     <>
       {allDataTypes?.map((dataType) => (
@@ -217,7 +217,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
     return <Loader reason='data-types' />;
   }
 
-  // in PDF mode, we do not load schema, validations, or expression validation config. So we should not block loading in that case
+  // in PDF mode, we do not load schema, or expression validation config. So we should not block loading in that case
   // Edit: Since #2244, layout and data model binding validations work differently, so enabling schema loading to make things work for now.
 
   for (const dataType of allDataTypes) {

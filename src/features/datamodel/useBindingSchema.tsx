@@ -120,7 +120,7 @@ export function useDataModelUrl({ dataType, dataElementId, includeRowIds, langua
 }
 
 export function useCurrentDataModelName() {
-  const { overriddenDataModelType } = useTaskStore(({ overriddenDataModelType }) => ({ overriddenDataModelType }));
+  const overriddenDataModelType = useTaskStore((state) => state.overriddenDataModelType);
 
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();

@@ -65,6 +65,14 @@ export type ValidationCategoryKey = Exclude<ValidationMaskKeys, ValidationMaskCo
 /*  A value of 0 represents a validation to be shown immediately */
 export type ValidationCategory = (typeof ValidationMask)[ValidationCategoryKey] | 0;
 
+/*
+ * Visibility setting used for selecting errors for nodes.
+ * 'visible' = Select all validations with a ValidationMask matching the nodes current visibility
+ * 'showAll' = Matches both current visibility and all backend validations, needed for "showAllBackendErrors"
+ * number = Select all validations with a ValidationMask maching the mask (number, because you can OR multiple masks together in any combination)
+ */
+export type NodeVisibility = 'visible' | 'showAll' | number;
+
 export type WaitForValidation = (forceSave?: boolean) => Promise<void>;
 
 export type ValidationContext = {
@@ -75,8 +83,8 @@ export type ValidationContext = {
    * If there are no frontend errors, but process next still returns validation errors,
    * this will show all backend errors.
    */
-  setShowAllErrors: (showAllErrors: boolean) => void;
-  showAllErrors: boolean;
+  setShowAllBackendErrors: (showAllErrors: boolean) => void;
+  showAllBackendErrors: boolean;
 };
 
 export type ValidationState = {
@@ -115,6 +123,7 @@ export type BaseValidation<Severity extends ValidationSeverity = ValidationSever
   severity: Severity;
   category: ValidationCategory;
   source: string;
+  noIncrementalUpdates?: boolean;
 };
 
 /**
@@ -124,7 +133,16 @@ export type BaseValidation<Severity extends ValidationSeverity = ValidationSever
 export type FieldValidation<Severity extends ValidationSeverity = ValidationSeverity> = BaseValidation<Severity> & {
   field: string;
   dataElementId: string;
+  // When showing all backend validations we want to associate the validations to nodes if we can, and show the rest as unclickable
+  // I order to avoid showing the same validation multiple times we need a unique identifier.
+  backendValidationId?: string;
 };
+
+export function hasBackendValidationId<T extends AnyValidation>(
+  validation: T,
+): validation is T & { backendValidationId: string } {
+  return 'backendValidationId' in validation && typeof validation.backendValidationId === 'string';
+}
 
 /**
  * Validation message associated with a component in the layout
@@ -164,7 +182,8 @@ export function isSubformValidation(validation: NodeValidation): validation is N
 export type AnyValidation<Severity extends ValidationSeverity = ValidationSeverity> =
   | FieldValidation<Severity>
   | ComponentValidation<Severity>
-  | AttachmentValidation<Severity>;
+  | AttachmentValidation<Severity>
+  | SubformValidation<Severity>;
 
 /**
  * Validation message format used by frontend components.
@@ -181,6 +200,11 @@ export type NodeValidation<Validation extends AnyValidation<any> = AnyValidation
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type NodeRefValidation<Validation extends AnyValidation<any> = AnyValidation<any>> = Validation & {
   nodeId: string;
+};
+
+export type ValidationsProcessedLast = {
+  incremental: BackendValidationIssueGroups | undefined;
+  initial: BackendValidationIssue[] | undefined;
 };
 
 /**
@@ -208,6 +232,7 @@ export interface BackendValidationIssue {
   dataElementId?: string;
   severity: BackendValidationSeverity;
   source: string;
+  noIncrementalUpdates?: boolean; // true if it will not be validated on PATCH, should be ignored when trying to submit
   customTextKey?: string;
   customTextParams?: ValidLangParam[]; //TODO(Validation): Probably broken for text resources currently
   showImmediately?: boolean; // Not made available

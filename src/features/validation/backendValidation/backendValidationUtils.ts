@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
@@ -5,6 +7,8 @@ import { BackendValidationSeverity, BuiltInValidationIssueSources, ValidationMas
 import { validationTexts } from 'src/features/validation/backendValidation/validationTexts';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { isAtLeastVersion } from 'src/utils/versionCompare';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { TextReference } from 'src/features/language/useLanguage';
 import type {
   BackendFieldValidatorGroups,
@@ -56,7 +60,7 @@ export function mapBackendIssuesToFieldValdiations(
 ): FieldValidation[] {
   const fieldValidations: FieldValidation[] = [];
   for (const issue of issues) {
-    const { field, source, dataElementId: _dataElementId } = issue;
+    const { field, source, noIncrementalUpdates, dataElementId: _dataElementId } = issue;
 
     if (!field) {
       continue;
@@ -77,7 +81,7 @@ export function mapBackendIssuesToFieldValdiations(
      * Custom backend validations should use the CustomBackend mask
      */
     let category: number = ValidationMask.Backend;
-    if (!isStandardBackend(issue.source)) {
+    if (!isStandardBackend(issue.source) && !noIncrementalUpdates) {
       if (issue.showImmediately) {
         category = 0;
       } else if (issue.actLikeRequired) {
@@ -87,7 +91,16 @@ export function mapBackendIssuesToFieldValdiations(
       }
     }
 
-    fieldValidations.push({ field, dataElementId, severity, message, category, source });
+    fieldValidations.push({
+      field,
+      dataElementId,
+      severity,
+      message,
+      category,
+      source,
+      noIncrementalUpdates,
+      backendValidationId: uuidv4(),
+    });
   }
 
   return fieldValidations;
@@ -96,7 +109,7 @@ export function mapBackendIssuesToFieldValdiations(
 export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue[]): BaseValidation[] {
   const taskValidations: BaseValidation[] = [];
   for (const issue of issues) {
-    const { field, source } = issue;
+    const { field, source, noIncrementalUpdates } = issue;
     if (field) {
       continue;
     }
@@ -104,7 +117,7 @@ export function mapBackendIssuesToTaskValidations(issues: BackendValidationIssue
     const severity = getValidationIssueSeverity(issue);
     const message = getValidationIssueMessage(issue);
 
-    taskValidations.push({ severity, message, category: 0, source });
+    taskValidations.push({ severity, message, category: 0, source, noIncrementalUpdates });
   }
   return taskValidations;
 }
@@ -165,4 +178,21 @@ export function mapValidatorGroupsToDataModelValidations(
   }
 
   return backendValidations;
+}
+
+/**
+ * TODO(Subform): Make sure we reference the correct version here, and in applicationMetadataMock
+ *
+ * Prior to app-lib version 8.5.0 there was no way of identifying validation messages that were not run incrementally (ITaskValidator),
+ * this led to an edge case where if an ITaskValidator returned a validation message with a field, we could not
+ * distinguish this from a regular custom backend validation which does runs incrementally. The problem is that we block
+ * submit when we have custom backend validation errors until they are fixed, but since ITaskValidator is not run
+ * incrementally it would never get fixed until the user refreshed the page. This issue was somewhat mitigated
+ * by the old dataElement validation API which did not run ITaskValidators.
+ *
+ * Therefore, if this function returns false, this means that the app does not make this distinction, but
+ * has the old API available, so this needs to be used for backwards compatibility.
+ */
+export function appSupportsIncrementalValidationFeatures({ altinnNugetVersion }: ApplicationMetadata) {
+  return !altinnNugetVersion || isAtLeastVersion({ actualVersion: altinnNugetVersion, minimumVersion: '8.5.0.141' });
 }

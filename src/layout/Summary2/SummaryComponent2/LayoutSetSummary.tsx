@@ -12,9 +12,7 @@ type LayoutSetSummaryProps = {
 export function LayoutSetSummary({ pageKey }: LayoutSetSummaryProps) {
   const pageOrder = usePageOrder();
 
-  const { summaryItem } = useSummary2Store((state) => ({
-    summaryItem: state.summaryItem,
-  }));
+  const summaryItem = useSummary2Store((state) => state.summaryItem);
 
   const filteredPages = pageOrder.filter((layoutId) => {
     if (!pageKey) {

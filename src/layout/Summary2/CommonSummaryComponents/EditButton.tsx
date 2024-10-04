@@ -40,12 +40,8 @@ export function EditButton({
   );
   const accessibleTitle = titleTrb ? langAsString(titleTrb) : '';
 
-  const { overriddenTaskId, overriddenDataModelUuid } = useTaskStore(
-    ({ overriddenTaskId, overriddenDataModelUuid }) => ({
-      overriddenTaskId,
-      overriddenDataModelUuid,
-    }),
-  );
+  const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
+  const overriddenDataModelUuid = useTaskStore((state) => state.overriddenDataModelUuid);
 
   if (overriddenDataModelUuid) {
     return null;

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import type { AttachmentValidation, NodeValidation } from '..';
 
+import { Validation } from 'src/features/validation/validationContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { AttachmentsPlugin } from 'src/features/attachments/AttachmentsPlugin';
 import type { ValidationPlugin } from 'src/features/validation/ValidationPlugin';
@@ -17,7 +18,8 @@ export function useAttachmentValidations(
   node: LayoutNode<ValidTypes>,
   attachmentId: string | undefined,
 ): NodeValidation<AttachmentValidation>[] {
-  const validations = NodesInternal.useVisibleValidations(node);
+  const showAll = Validation.useShowAllBackendErrors();
+  const validations = NodesInternal.useVisibleValidations(node, showAll);
 
   return useMemo(() => {
     if (!attachmentId) {

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import type { NodeValidation } from '..';
 
+import { Validation } from 'src/features/validation/validationContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -12,7 +13,8 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
  */
 const emptyArray = [];
 export function useUnifiedValidationsForNode(node: LayoutNode | undefined): NodeValidation[] {
-  const validations = NodesInternal.useVisibleValidations(node);
+  const showAll = Validation.useShowAllBackendErrors();
+  const validations = NodesInternal.useVisibleValidations(node, showAll);
 
   return useMemo(() => {
     if (!node) {

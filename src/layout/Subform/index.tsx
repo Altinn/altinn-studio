@@ -137,6 +137,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
         severity: 'error',
         source: FrontendValidationSource.Component,
         category: ValidationMask.Required,
+        noIncrementalUpdates: true, // Validations for subform data is not updated incrementally in the main form
       };
 
       validations.push(validation);

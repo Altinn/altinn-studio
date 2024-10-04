@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
-import { FrontendValidationSource } from 'src/features/validation/index';
-import { selectValidations } from 'src/features/validation/utils';
+import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
+import { getInitialMaskFromNodeItem, selectValidations } from 'src/features/validation/utils';
 import { Hidden, isHidden, nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { TraversalTask } from 'src/utils/layout/useNodeTraversal';
@@ -10,8 +10,9 @@ import type {
   AnyValidation,
   AttachmentValidation,
   NodeRefValidation,
-  ValidationMask,
+  NodeVisibility,
   ValidationSeverity,
+  ValidationsProcessedLast,
 } from 'src/features/validation/index';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IsHiddenOptions, NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
@@ -20,7 +21,7 @@ import type { NodeData } from 'src/utils/layout/types';
 
 export type ValidationsSelector = (
   node: LayoutNode,
-  mask: ValidationMask | 'visible',
+  mask: NodeVisibility,
   severity?: ValidationSeverity,
   includeHidden?: boolean, // Defaults to false
 ) => AnyValidation[];
@@ -38,19 +39,19 @@ export interface ValidationStorePluginConfig {
     useSetAttachmentVisibility: () => ValidationStorePluginConfig['extraFunctions']['setAttachmentVisibility'];
     useRawValidationVisibility: (node: LayoutNode | undefined) => number;
     useRawValidations: (node: LayoutNode | undefined) => AnyValidation[];
-    useVisibleValidations: (node: LayoutNode | undefined, severity?: ValidationSeverity) => AnyValidation[];
+    useValidationsProcessedLast: (node: LayoutNode | undefined) => ValidationsProcessedLast | undefined;
+    useVisibleValidations: (node: LayoutNode | undefined, showAll?: boolean) => AnyValidation[];
     useValidationsSelector: () => ValidationsSelector;
     useAllValidations: (
-      mask: ValidationMask | 'visible',
+      mask: NodeVisibility,
       severity?: ValidationSeverity,
       includeHidden?: boolean, // Defaults to false
     ) => NodeRefValidation[] | typeof ContextNotProvided;
     useGetNodesWithErrors: () => (
-      mask: ValidationMask | 'visible',
+      mask: NodeVisibility,
       severity?: ValidationSeverity,
       includeHidden?: boolean, // Defaults to false
-      filter?: (nodeData: NodeData) => boolean,
-    ) => string[] | typeof ContextNotProvided;
+    ) => [string[], AnyValidation[]] | typeof ContextNotProvided;
     usePageHasVisibleRequiredValidations: (pageKey: string | undefined) => boolean;
   };
 }
@@ -66,8 +67,10 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           nodesProduce((state) => {
             for (const node of nodes) {
               const nodeData = typeof node === 'string' ? state.nodeData[node] : state.nodeData[node.id];
+              const initialMask = getInitialMaskFromNodeItem(nodeData.item);
+
               if (nodeData && 'validationVisibility' in nodeData) {
-                nodeData.validationVisibility = newVisibility;
+                nodeData.validationVisibility = newVisibility | initialMask;
               }
             }
           }),
@@ -109,6 +112,17 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }
           return 'validationVisibility' in nodeData ? nodeData.validationVisibility : 0;
         }),
+      useValidationsProcessedLast: (node) =>
+        store.useSelector((state) => {
+          if (!node) {
+            return;
+          }
+          const nodeData = state.nodeData[node.id];
+          if (!nodeData) {
+            return;
+          }
+          return 'validationsProcessedLast' in nodeData ? nodeData.validationsProcessedLast : undefined;
+        }),
       useRawValidations: (node) =>
         store.useSelector((state) => {
           if (!node) {
@@ -121,26 +135,21 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           const out = 'validations' in nodeData ? nodeData.validations : undefined;
           return out && out.length > 0 ? out : emptyArray;
         }),
-      useVisibleValidations: (node, severity) => {
+      useVisibleValidations: (node, showAll) => {
         const isHidden = Hidden.useIsHidden(node);
         return store.useSelector((state) => {
           if (!node || isHidden) {
             return emptyArray;
           }
           const nodeData = state.nodeData[node.id];
-          return getValidations({ state, nodeData, mask: 'visible', severity });
+          return getValidations({ state, nodeData, mask: showAll ? 'showAll' : 'visible' });
         });
       },
       useValidationsSelector: () =>
         store.useDelayedSelector({
           mode: 'simple',
           selector:
-            (
-              node: LayoutNode,
-              mask: ValidationMask | 'visible',
-              severity?: ValidationSeverity,
-              includeHidden: boolean = false,
-            ) =>
+            (node: LayoutNode, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden: boolean = false) =>
             (state: NodesContext) => {
               const nodeData = state.nodeData[node.id];
               return getValidations({ state, nodeData, mask, severity, includeHidden });
@@ -162,7 +171,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
       useGetNodesWithErrors: () => {
         const zustand = store.useLaxStore();
         return useCallback(
-          (mask, severity, includeHidden = false, filter) => {
+          (mask, severity, includeHidden = false) => {
             if (zustand === ContextNotProvided) {
               return ContextNotProvided;
             }
@@ -171,19 +180,18 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             // constantly recompute this.
             const state = zustand.getState();
 
-            const out: string[] = [];
+            const outNodes: string[] = [];
+            const outValidations: AnyValidation[] = [];
             for (const nodeId of Object.keys(state.nodeData)) {
               const nodeData = state.nodeData[nodeId];
-              if (filter && !filter(nodeData)) {
-                continue;
-              }
 
               const validations = getValidations({ state, nodeData, mask, severity, includeHidden });
               if (validations.length > 0) {
-                out.push(nodeId);
+                outNodes.push(nodeId);
+                outValidations.push(...validations);
               }
             }
-            return out;
+            return [outNodes, outValidations];
           },
           [zustand],
         );
@@ -224,7 +232,7 @@ function getNodeFromState(state: NodesContext, nodeId: string): LayoutNode | und
 interface GetValidationsProps {
   state: NodesContext;
   nodeData: NodeData | undefined;
-  mask: ValidationMask | 'visible';
+  mask: NodeVisibility;
   severity?: ValidationSeverity;
   includeHidden?: boolean;
 }
@@ -245,7 +253,14 @@ function getValidations({
     return emptyArray;
   }
 
-  const visibility = nodeData.validationVisibility;
-  const validations = selectValidations(nodeData.validations, mask === 'visible' ? visibility : mask, severity);
+  const nodeVisibility = nodeData.validationVisibility;
+  const visibilityMask =
+    mask === 'visible'
+      ? nodeVisibility
+      : mask === 'showAll'
+        ? nodeVisibility | ValidationMask.Backend | ValidationMask.CustomBackend
+        : mask;
+
+  const validations = selectValidations(nodeData.validations, visibilityMask, severity);
   return validations.length > 0 ? validations : emptyArray;
 }

@@ -35,9 +35,7 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
     'form_filler.file_uploader_mb',
   )}`;
 
-  const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
-    overriddenTaskId,
-  }));
+  const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
 
   const hasOverridenTaskId = !!overriddenTaskId;
 

@@ -47,9 +47,7 @@ function useNodeAttachments(): Record<string, IAttachment> {
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveAttachments'>>;
   const nodeData = useNodeFormData(node);
 
-  const { overriddenTaskId } = useTaskStore(({ overriddenTaskId }) => ({
-    overriddenTaskId,
-  }));
+  const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
 
   const application = useApplicationMetadata();
   const currentTask = useLaxProcessData()?.currentTask?.elementId;
