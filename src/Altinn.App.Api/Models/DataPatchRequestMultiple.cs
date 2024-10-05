@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Controllers;
-using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 
 namespace Altinn.App.Api.Models;
@@ -12,10 +11,20 @@ namespace Altinn.App.Api.Models;
 public class DataPatchRequestMultiple
 {
     /// <summary>
-    /// The Patch operation to perform in a dictionary keyed on the <see cref="DataElement.Id"/>.
+    /// The Patch operations to perform.
     /// </summary>
     [JsonPropertyName("patches")]
-    public required Dictionary<Guid, JsonPatch> Patches { get; init; }
+    public required List<PatchListItem> Patches { get; init; }
+
+    /// <summary>
+    /// Item class for the list of patches with Id
+    /// </summary>
+    /// <param name="DataElementId">The guid for the data element this patch applies to</param>
+    /// <param name="Patch">The JsonPatch</param>
+    public record PatchListItem(
+        [property: JsonPropertyName("dataElementId")] Guid DataElementId,
+        [property: JsonPropertyName("patch")] JsonPatch Patch
+    );
 
     /// <summary>
     /// List of validators to ignore during the patch operation.

@@ -243,7 +243,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
         var request = new DataPatchRequestMultiple()
         {
-            Patches = new Dictionary<Guid, JsonPatch> { [_dataGuid] = patch, [extraDataGuid] = patch2, },
+            Patches = new() { new(_dataGuid, patch), new(extraDataGuid, patch2), },
             IgnoredValidators = []
         };
 

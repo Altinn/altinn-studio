@@ -17,6 +17,9 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions(
+        JsonSerializerDefaults.Web
+    );
     private readonly ITestOutputHelper _outputHelper;
 
     public ActionsControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
@@ -194,6 +197,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var content = await response.Content.ReadAsStringAsync();
         var expectedString = """
             {
+              "instance": {},
               "updatedDataModels": {},
               "updatedValidationIssues": {},
               "clientActions": [
@@ -205,7 +209,18 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
               "error": null
             }
             """;
-        CompareResult<UserActionResponse>(expectedString, content);
+        CompareResult<UserActionResponse>(
+            expectedString,
+            content,
+            mutator: actionResponse =>
+            {
+                // Don't compare the instance object
+                if (actionResponse != null)
+                {
+                    actionResponse.Instance = new();
+                }
+            }
+        );
     }
 
     [Fact]
@@ -339,12 +354,14 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     }
 
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205
-    private void CompareResult<T>(string expectedString, string actualString)
+    private void CompareResult<T>(string expectedString, string actualString, Action<T?>? mutator = null)
     {
         _outputHelper.WriteLine($"Expected: {expectedString}");
         _outputHelper.WriteLine($"Actual: {actualString}");
-        T? expected = JsonSerializer.Deserialize<T>(expectedString);
-        T? actual = JsonSerializer.Deserialize<T>(actualString);
+        T? expected = JsonSerializer.Deserialize<T>(expectedString, _jsonSerializerOptions);
+        T? actual = JsonSerializer.Deserialize<T>(actualString, _jsonSerializerOptions);
+        mutator?.Invoke(actual);
+        mutator?.Invoke(expected);
         actual.Should().BeEquivalentTo(expected);
     }
 }

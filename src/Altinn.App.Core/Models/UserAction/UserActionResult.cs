@@ -41,6 +41,9 @@ public sealed class UserActionResult
     /// <summary>
     /// Gets or sets a dictionary of updated data models. Key should be elementId and value should be the updated data model
     /// </summary>
+    [Obsolete(
+        "Updates done to data from UserActionContext.DataMutator is tracked and don't need to be returned in the response"
+    )]
     public Dictionary<string, object>? UpdatedDataModels { get; set; }
 
     /// <summary>
@@ -117,6 +120,9 @@ public sealed class UserActionResult
     /// </summary>
     /// <param name="dataModelId"></param>
     /// <param name="dataModel"></param>
+    [Obsolete(
+        "Updates done to data from UserActionContext.DataMutator is tracked and don't need to be returned in the response"
+    )]
     public void AddUpdatedDataModel(string dataModelId, object dataModel)
     {
         if (UpdatedDataModels == null)

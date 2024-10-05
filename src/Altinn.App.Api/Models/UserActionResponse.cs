@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.App.Core.Models.Validation;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Api.Models;
 
@@ -9,6 +10,12 @@ namespace Altinn.App.Api.Models;
 /// </summary>
 public class UserActionResponse
 {
+    /// <summary>
+    /// The instance that might have some values updated by the action
+    /// </summary>
+    [JsonPropertyName("instance")]
+    public required Instance Instance { get; set; }
+
     /// <summary>
     /// Data models that have been updated
     /// </summary>

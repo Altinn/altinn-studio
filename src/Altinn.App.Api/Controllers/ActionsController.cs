@@ -135,6 +135,7 @@ public class ActionsController : ControllerBase
             return new NotFoundObjectResult(
                 new UserActionResponse()
                 {
+                    Instance = instance,
                     Error = new ActionError()
                     {
                         Code = "ActionNotFound",
@@ -156,33 +157,14 @@ public class ActionsController : ControllerBase
                     ProcessErrorType.BadRequest => 400,
                     _ => 500
                 },
-                value: new UserActionResponse() { ClientActions = result.ClientActions, Error = result.Error }
+                value: new UserActionResponse()
+                {
+                    Instance = instance,
+                    ClientActions = result.ClientActions,
+                    Error = result.Error
+                }
             );
         }
-
-        // If the action handler returns UpdatedDataModels, instead of using the dataMutator
-        // we need to update the dataAccessor with the new data in case it was fetched with DataClient
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (result.UpdatedDataModels is { Count: > 0 })
-        {
-            foreach (var (elementId, newModel) in result.UpdatedDataModels)
-            {
-                if (newModel is null)
-                {
-                    continue;
-                }
-
-                var dataElement =
-                    instance.Data.First(d => d.Id.Equals(elementId, StringComparison.OrdinalIgnoreCase))
-                    ?? throw new InvalidOperationException(
-                        $"Action handler {actionHandler.GetType().Name} returned an updated data model for a data element that does not exist: {elementId}"
-                    );
-
-                // update dataAccessor to use the changed data
-                dataAccessor.ReplaceFormDataAssumeSavedToStorage(dataElement, newModel);
-            }
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
 
@@ -199,11 +181,25 @@ public class ActionsController : ControllerBase
         );
         await saveTask;
 
+        var updatedDataModels = changes.ToDictionary(c => c.DataElement.Id, c => c.CurrentFormData);
+
+#pragma warning disable CS0618 // Type or member is obsolete
+        if (result.UpdatedDataModels is { Count: > 0 })
+        {
+            foreach (var (elementId, data) in result.UpdatedDataModels)
+            {
+                // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
+                // we still need to return it to the frontend, but we assume it was already saved to storage
+                updatedDataModels.TryAdd(elementId, data);
+            }
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
         return Ok(
             new UserActionResponse()
             {
+                Instance = instance,
                 ClientActions = result.ClientActions,
-                UpdatedDataModels = changes.ToDictionary(c => c.DataElement.Id, c => c.CurrentFormData),
+                UpdatedDataModels = updatedDataModels,
                 UpdatedValidationIssues = validationIssues,
                 RedirectUrl = result.RedirectUrl,
             }

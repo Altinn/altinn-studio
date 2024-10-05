@@ -131,62 +131,24 @@ public class DataController : ControllerBase
 
         try
         {
-            Application application = await _appMetadata.GetApplicationMetadata();
-
-            DataType? dataTypeFromMetadata = application.DataTypes.First(e =>
-                e.Id.Equals(dataType, StringComparison.OrdinalIgnoreCase)
-            );
-
-            if (dataTypeFromMetadata is null)
+            var instanceResult = await GetInstanceDataOrError(org, app, instanceOwnerPartyId, instanceGuid, dataType);
+            if (!instanceResult.Success)
             {
-                return BadRequest(
-                    $"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}."
-                );
+                return Problem(instanceResult.Error);
             }
 
-            if (!ValidContributorHelper.IsValidContributor(dataTypeFromMetadata, User.GetOrg(), User.GetOrgNumber()))
+            var (instance, dataTypeFromMetadata) = instanceResult.Ok;
+
+            if (DataElementAccessChecker.GetCreateProblem(instance, dataTypeFromMetadata, User) is { } accessProblem)
             {
-                return Forbid();
+                return Problem(accessProblem);
             }
 
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance is null)
+            if (dataTypeFromMetadata.AppLogic?.ClassRef is not null)
             {
-                return NotFound($"Did not find instance {instance}");
+                return await CreateAppModelData(org, app, instance, dataType);
             }
-
-            if (!InstanceIsActive(instance))
-            {
-                return Conflict(
-                    $"Cannot upload data for archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
-            }
-
-            int existingElements = instance.Data.Count(d => d.DataType == dataTypeFromMetadata.Id);
-            if (dataTypeFromMetadata.MaxCount > 0 && existingElements >= dataTypeFromMetadata.MaxCount)
-            {
-                return Conflict(
-                    new ProblemDetails
-                    {
-                        Title = "Max count reached",
-                        Detail = $"Element type `{dataType}` has reached its maximum allowed count ({dataTypeFromMetadata.MaxCount})",
-                        Status = (int)HttpStatusCode.Conflict
-                    }
-                );
-            }
-
-            if (dataTypeFromMetadata.AppLogic is not null)
-            {
-                if (dataTypeFromMetadata.AppLogic.DisallowUserCreate && !UserHasValidOrgClaim())
-                {
-                    return BadRequest($"Element type `{dataType}` cannot be manually created.");
-                }
-
-                if (dataTypeFromMetadata.AppLogic.ClassRef is not null)
-                {
-                    return await CreateAppModelData(org, app, instance, dataType);
-                }
-            }
+            // else, handle the binary upload
 
             (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
                 DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
@@ -310,29 +272,22 @@ public class DataController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance is null)
-            {
-                return NotFound($"Did not find instance {instance}");
-            }
-
-            DataElement? dataElement = instance.Data.First(m =>
-                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+            var instanceResult = await GetInstanceDataOrError(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataElementGuid: dataGuid
             );
-
-            if (dataElement is null)
+            if (!instanceResult.Success)
             {
-                return NotFound("Did not find data element");
+                return Problem(instanceResult.Error);
             }
+            var (instance, dataType, dataElement) = instanceResult.Ok;
 
-            DataType? dataType = await GetDataType(dataElement);
-
-            if (dataType is null)
+            if (DataElementAccessChecker.GetReaderProblem(instance, dataType, User) is { } accessProblem)
             {
-                var error =
-                    $"Could not determine if {dataElement.DataType} requires app logic for application {org}/{app}";
-                _logger.LogError(error);
-                return BadRequest(error);
+                return Problem(accessProblem);
             }
 
             if (dataType.AppLogic?.ClassRef is not null)
@@ -389,35 +344,16 @@ public class DataController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            if (!InstanceIsActive(instance))
+            var instanceResult = await GetInstanceDataOrError(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+            if (!instanceResult.Success)
             {
-                return Conflict(
-                    $"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
+                return Problem(instanceResult.Error);
             }
+            var (instance, dataType, dataElement) = instanceResult.Ok;
 
-            DataElement? dataElement = instance.Data.First(m =>
-                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-            );
-
-            if (dataElement is null)
+            if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
             {
-                return NotFound("Did not find data element");
-            }
-
-            DataType? dataType = await GetDataType(dataElement);
-
-            if (dataType is null)
-            {
-                _logger.LogError(
-                    "Could not determine if {dataType} requires app logic for application {org}/{app}",
-                    dataType,
-                    org,
-                    app
-                );
-                return BadRequest($"Could not determine if data type {dataType} requires application logic.");
+                return Problem(accessProblem);
             }
 
             if (dataType.AppLogic?.ClassRef is not null)
@@ -471,9 +407,10 @@ public class DataController : ControllerBase
         [FromQuery] string? language = null
     )
     {
+        // Validation valid request is performed in the PatchFormDataMultiple method
         var request = new DataPatchRequestMultiple()
         {
-            Patches = new() { [dataGuid] = dataPatchRequest.Patch },
+            Patches = new() { new(dataGuid, dataPatchRequest.Patch) },
             IgnoredValidators = dataPatchRequest.IgnoredValidators
         };
         var response = await PatchFormDataMultiple(org, app, instanceOwnerPartyId, instanceGuid, request, language);
@@ -522,61 +459,31 @@ public class DataController : ControllerBase
     {
         try
         {
-            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            if (!InstanceIsActive(instance))
+            var instanceResult = await GetInstanceDataOrError(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataPatchRequest.Patches.Select(p => p.DataElementId)
+            );
+            if (!instanceResult.Success)
             {
-                return Conflict(
-                    new ProblemDetails()
-                    {
-                        Title = "Instance is not active",
-                        Detail =
-                            $"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}",
-                        Status = (int)HttpStatusCode.Conflict,
-                    }
-                );
+                return Problem(instanceResult.Error);
             }
+            var (instance, dataTypes) = instanceResult.Ok;
 
-            foreach (Guid dataGuid in dataPatchRequest.Patches.Keys)
+            // Verify that the data elements isn't restricted for the user
+            foreach (var dataType in dataTypes)
             {
-                var dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
-
-                if (dataElement is null)
+                if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
                 {
-                    return NotFound(
-                        new ProblemDetails()
-                        {
-                            Title = "Did not find data element",
-                            Detail =
-                                $"Data element with id {dataGuid} not found on instance {instanceOwnerPartyId}/{instanceGuid}",
-                            Status = (int)HttpStatusCode.NotFound,
-                        }
-                    );
-                }
-
-                var dataType = await GetDataType(dataElement);
-
-                if (dataType?.AppLogic?.ClassRef is null)
-                {
-                    _logger.LogError(
-                        "Could not determine if {dataType} requires app logic for application {org}/{app}",
-                        dataType?.Id,
-                        org,
-                        app
-                    );
-                    return BadRequest(
-                        new ProblemDetails()
-                        {
-                            Title = "Could not determine if data type requires application logic",
-                            Detail = $"Could not determine if data type {dataType?.Id} requires application logic."
-                        }
-                    );
+                    return Problem(accessProblem);
                 }
             }
 
             ServiceResult<DataPatchResult, DataPatchError> res = await _patchService.ApplyPatches(
                 instance,
-                dataPatchRequest.Patches,
+                dataPatchRequest.Patches.ToDictionary(i => i.DataElementId, i => i.Patch),
                 language,
                 dataPatchRequest.IgnoredValidators
             );
@@ -614,7 +521,7 @@ public class DataController : ControllerBase
         {
             return HandlePlatformHttpException(
                 e,
-                $"Unable to update data element {string.Join(", ", dataPatchRequest.Patches.Keys)} for instance {instanceOwnerPartyId}/{instanceGuid}"
+                $"Unable to update data element {string.Join(", ", dataPatchRequest.Patches.Select(i => i.DataElementId))} for instance {instanceOwnerPartyId}/{instanceGuid}"
             );
         }
     }
@@ -640,45 +547,16 @@ public class DataController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance is null)
+            var instanceResult = await GetInstanceDataOrError(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+            if (!instanceResult.Success)
             {
-                return NotFound("Did not find instance");
+                return Problem(instanceResult.Error);
             }
+            var (instance, dataType, dataElement) = instanceResult.Ok;
 
-            if (!InstanceIsActive(instance))
+            if (DataElementAccessChecker.GetDeleteProblem(instance, dataType, dataGuid, User) is { } accessProblem)
             {
-                return Conflict(
-                    $"Cannot delete data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
-            }
-
-            DataElement? dataElement = instance.Data.Find(m =>
-                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-            );
-
-            if (dataElement is null)
-            {
-                return NotFound("Did not find data element");
-            }
-
-            DataType? dataType = await GetDataType(dataElement);
-
-            if (dataType is null)
-            {
-                string errorMsg =
-                    $"Could not determine if {dataElement.DataType} requires app logic for application {org}/{app}";
-                _logger.LogError(errorMsg);
-                return BadRequest(errorMsg);
-            }
-
-            if (
-                dataType.AppLogic?.ClassRef is not null
-                && dataType.AppLogic.DisallowUserDelete
-                && !UserHasValidOrgClaim()
-            )
-            {
-                return BadRequest("Deleting form data is not possible at this moment.");
+                return Problem(accessProblem);
             }
 
             return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
@@ -1077,11 +955,6 @@ public class DataController : ControllerBase
         };
     }
 
-    private static bool InstanceIsActive(Instance i)
-    {
-        return i?.Status?.Archived is null && i?.Status?.SoftDeleted is null && i?.Status?.HardDeleted is null;
-    }
-
     private ObjectResult Problem(DataPatchError error)
     {
         int code = error.ErrorType switch
@@ -1104,8 +977,179 @@ public class DataController : ControllerBase
         );
     }
 
-    /// <summary>
-    /// Checks if the current claims principal has a valid `urn:altinn:org` claim
-    /// </summary>
-    private bool UserHasValidOrgClaim() => !string.IsNullOrWhiteSpace(User.GetOrg());
+    private ObjectResult Problem(ProblemDetails error)
+    {
+        return StatusCode(error.Status ?? (int)HttpStatusCode.InternalServerError, error);
+    }
+
+    private async Task<
+        ServiceResult<(Instance instance, DataType dataType, DataElement dataElement), ProblemDetails>
+    > GetInstanceDataOrError(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataElementGuid)
+    {
+        try
+        {
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            if (instance is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Instance Not Found",
+                    Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.NotFound
+                };
+            }
+
+            var dataElement = instance.Data.FirstOrDefault(m =>
+                m.Id.Equals(dataElementGuid.ToString(), StringComparison.Ordinal)
+            );
+
+            if (dataElement is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Data Element Not Found",
+                    Detail =
+                        $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.BadRequest
+                };
+            }
+
+            var dataType = await GetDataType(dataElement);
+            if (dataType is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Data Type Not Found",
+                    Detail =
+                        $"""Could not find the specified data type: "{dataElement.DataType}" in applicationmetadata.json""",
+                    Status = (int)HttpStatusCode.BadRequest
+                };
+            }
+
+            return (instance, dataType, dataElement);
+        }
+        catch (PlatformHttpException e)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Instance Not Found",
+                Detail = e.Message,
+                Status = (int)e.Response.StatusCode
+            };
+        }
+    }
+
+    private async Task<ServiceResult<(Instance, IEnumerable<DataType>), ProblemDetails>> GetInstanceDataOrError(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        IEnumerable<Guid> dataElementGuids
+    )
+    {
+        try
+        {
+            var application = await _appMetadata.GetApplicationMetadata();
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            if (instance is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Instance Not Found",
+                    Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.NotFound
+                };
+            }
+
+            HashSet<DataType> dataTypes = [];
+
+            foreach (var dataElementGuid in dataElementGuids)
+            {
+                var dataElement = instance.Data.FirstOrDefault(m =>
+                    m.Id.Equals(dataElementGuid.ToString(), StringComparison.Ordinal)
+                );
+
+                if (dataElement is null)
+                {
+                    return new ProblemDetails()
+                    {
+                        Title = "Data Element Not Found",
+                        Detail =
+                            $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
+                        Status = (int)HttpStatusCode.NotFound
+                    };
+                }
+                var dataType = application.DataTypes.Find(e => e.Id == dataElement.DataType);
+                if (dataType is null)
+                {
+                    return new ProblemDetails()
+                    {
+                        Title = "Data Type Not Found",
+                        Detail =
+                            $"""Data element {dataElement.Id} requires data type "{dataElement.DataType}", but it was not found in applicationmetadata.json""",
+                        Status = (int)HttpStatusCode.InternalServerError
+                    };
+                }
+                dataTypes.Add(dataType);
+            }
+
+            return (instance, dataTypes);
+        }
+        catch (PlatformHttpException e)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Instance Not Found",
+                Detail = e.Message,
+                Status = (int)e.Response.StatusCode
+            };
+        }
+    }
+
+    private async Task<ServiceResult<(Instance instance, DataType dataType), ProblemDetails>> GetInstanceDataOrError(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        string dataTypeId
+    )
+    {
+        try
+        {
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            if (instance is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Instance Not Found",
+                    Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.NotFound
+                };
+            }
+
+            var application = await _appMetadata.GetApplicationMetadata();
+            var dataType = application.DataTypes.Find(e => e.Id == dataTypeId);
+
+            if (dataType is null)
+            {
+                return new ProblemDetails
+                {
+                    Title = "Data Type Not Found",
+                    Detail = $"""Could not find the specified data type: "{dataTypeId}" in applicationmetadata.json""",
+                    Status = (int)HttpStatusCode.BadRequest
+                };
+            }
+
+            return (instance, dataType);
+        }
+        catch (PlatformHttpException e)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Instance Not Found",
+                Detail = e.Message,
+                Status = (int)e.Response.StatusCode
+            };
+        }
+    }
 }

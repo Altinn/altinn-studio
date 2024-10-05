@@ -3562,9 +3562,9 @@ components:
       type: object
       properties:
         patches:
-          type: object
-          additionalProperties:
-            $ref: '#/components/schemas/JsonPatch'
+          type: array
+          items:
+            $ref: '#/components/schemas/PatchListItem'
           nullable: true
         ignoredValidators:
           type: array
@@ -4047,6 +4047,15 @@ components:
         subUnit:
           type: boolean
       additionalProperties: false
+    PatchListItem:
+      type: object
+      properties:
+        dataElementId:
+          type: string
+          format: uuid
+        patch:
+          $ref: '#/components/schemas/JsonPatch'
+      additionalProperties: false
     PatchOperation:
       type: object
       properties:
@@ -4473,8 +4482,12 @@ components:
           nullable: true
       additionalProperties: false
     UserActionResponse:
+      required:
+        - instance
       type: object
       properties:
+        instance:
+          $ref: '#/components/schemas/Instance'
         updatedDataModels:
           type: object
           additionalProperties: { }
