@@ -1,0 +1,10 @@
+.subHeader {
+  display: flex;
+  align-items: center;
+  height: var(--subtoolbar-height);
+  padding-inline: var(--fds-spacing-4);
+}
+
+.icon {
+  font-size: var(--fds-sizing-6);
+}
