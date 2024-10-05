@@ -30,3 +30,7 @@ export const stringNumberToAriaLabel = (s: string): string => {
 export const isOrgNrString = (s: string): boolean => {
   return /^\d{9}$/.test(s); // regex for search string is exactly 9 digits
 };
+
+export const getAppName = (org: string): string => {
+  return `${org}-resources`;
+};

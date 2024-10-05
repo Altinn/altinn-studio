@@ -1,11 +1,6 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import classes from './PageLayout.module.css';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import AppHeader, {
-  HeaderContext,
-  SelectedContextType,
-} from 'app-shared/navigation/main-header/Header';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
@@ -13,6 +8,7 @@ import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import postMessages from 'app-shared/utils/postMessages';
 import { MergeConflictModal } from '../../components/MergeConflictModal';
+import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
 
 /**
  * @component
@@ -26,7 +22,7 @@ export const PageLayout = (): React.JSX.Element => {
   const { data: organizations } = useOrganizationsQuery();
   const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
 
-  const { org = SelectedContextType.Self, app } = useUrlParams();
+  const { org, app } = useUrlParams();
   const { data: repoStatus } = useRepoStatusQuery(org, app);
 
   const navigate = useNavigate();
@@ -63,22 +59,11 @@ export const PageLayout = (): React.JSX.Element => {
     };
   }, [mergeConflictModalRef]);
 
-  const headerContextValue: IHeaderContext = useMemo(
-    () => ({
-      selectableOrgs: organizations,
-      user,
-    }),
-    [organizations, user],
-  );
-
   return (
     <>
-      <HeaderContext.Provider value={headerContextValue}>
-        <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
-        {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
-        <AppHeader />
-        <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
-      </HeaderContext.Provider>
+      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
+      {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
+      <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
       <Outlet />
     </>
   );

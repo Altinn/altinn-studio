@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 
 export const useSelectedContext = () => {
   const { selectedContext = SelectedContextType.None } = useParams();
