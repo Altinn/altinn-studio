@@ -1,4 +1,5 @@
 import React from 'react';
+import classes from './ResourceAdmHeader.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,6 +16,7 @@ import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation'
 import type { User } from 'app-shared/types/Repository';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAppName } from '../../utils/stringUtils';
+import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 
 interface ResourceAdmHeaderProps {
   organizations: Organization[];
@@ -34,6 +36,9 @@ export const ResourceAdmHeader = ({ organizations, user }: ResourceAdmHeaderProp
           <DashboardHeaderMenu organizations={organizations} user={user} />
         </StudioPageHeader.Right>
       </StudioPageHeader.Main>
+      <StudioPageHeader.Sub>
+        <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
+      </StudioPageHeader.Sub>
     </StudioPageHeader>
   );
 };
