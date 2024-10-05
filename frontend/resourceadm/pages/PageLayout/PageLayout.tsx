@@ -1,10 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import classes from './PageLayout.module.css';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
 import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { GiteaHeader } from 'app-shared/components/GiteaHeader';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import postMessages from 'app-shared/utils/postMessages';
 import { MergeConflictModal } from '../../components/MergeConflictModal';
@@ -63,7 +61,6 @@ export const PageLayout = (): React.JSX.Element => {
     <>
       <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
-      <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
       <Outlet />
     </>
   );
