@@ -4,6 +4,5 @@ import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export const useTextResourceValue = (id: string) => {
   const selector = textResourceByLanguageAndIdSelector(DEFAULT_LANGUAGE, id);
-  const value = useTextResourcesSelector(selector)?.value;
-  return value;
+  return useTextResourcesSelector(selector)?.value;
 };

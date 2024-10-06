@@ -46,7 +46,9 @@ export const TextResource = ({
   const prevFormItemId = usePrevious(formItemId);
   const prevFormLayoutName = usePrevious(formLayoutName);
 
-  const [currentValue, setCurrentValue] = useState<string>(useTextResourceValue(textResourceId));
+  const initialTextResourceValue = useTextResourceValue(textResourceId);
+  const [currentValue, setCurrentValue] = useState<string>(initialTextResourceValue);
+
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleOpen = () => {
