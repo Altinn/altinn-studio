@@ -88,8 +88,11 @@ describe('PageAccordion', () => {
       mockSelectedLayoutSet,
     );
 
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith(mockSelectedLayoutSet, false);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith(
+      mockSelectedLayoutSet,
+      false,
+    );
   });
 
   it('Disables delete button when isPending is true', async () => {
