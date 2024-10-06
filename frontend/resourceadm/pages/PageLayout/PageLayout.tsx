@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import classes from './PageLayout.module.css';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
@@ -62,7 +61,6 @@ export const PageLayout = (): React.JSX.Element => {
     <>
       <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
       {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
-      <GiteaHeader menuOnlyHasRepository rightContentClassName={classes.extraPadding} />
       <Outlet />
     </>
   );
