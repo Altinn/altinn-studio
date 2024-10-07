@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { StudioPageHeader, useMediaQuery } from '@studio/components';
 import { CogIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +7,7 @@ import { useSettingsModalContext } from '../../../../contexts/SettingsModalConte
 import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
-export const SettingsModalButton = (): ReactNode => {
+export const SettingsModalButton = (): ReactElement => {
   const { t } = useTranslation();
   const { variant } = usePageHeaderContext();
   const { settingsRef } = useSettingsModalContext();

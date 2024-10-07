@@ -107,7 +107,7 @@ export const groupMenuItemsByGroup = (menuItems: HeaderMenuItem[]): HeaderMenuGr
   return Object.values(groups);
 };
 
-export const getRouterRouteByPathname = (pathname: string): string => {
+export const extractLastRouterParam = (pathname: string): string => {
   const pathnameArray = pathname.split('/');
   return pathnameArray[pathnameArray.length - 1];
 };

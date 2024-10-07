@@ -72,7 +72,7 @@ const DropdownContentProfile = ({ profileText }: DropdownContentProfileProps): R
   return (
     <div className={classes.profileWrapper}>
       <StudioAvatar
-        src={user?.avatar_url ? user.avatar_url : undefined}
+        src={user?.avatar_url}
         alt={t('general.profile_icon')}
         title={t('shared.header_profile_icon_text')}
       />
