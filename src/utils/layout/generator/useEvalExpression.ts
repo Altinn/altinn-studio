@@ -14,7 +14,7 @@ export function useEvalExpressionInGenerator<V extends ExprVal>(
   expr: ExprValToActualOrExpr<V> | undefined,
   defaultValue: ExprValToActual<V>,
 ) {
-  const enabled = GeneratorStages.AddNodes.useIsDone();
+  const enabled = GeneratorStages.useIsDoneAddingNodes();
   return useEvalExpression(type, node, expr, defaultValue, enabled);
 }
 

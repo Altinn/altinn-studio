@@ -10,7 +10,7 @@ import dot from 'dot-object';
 import { Caption } from 'src/components/form/Caption';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useStrictInstanceData } from 'src/features/instance/InstanceContext';
+import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
@@ -50,10 +50,9 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
 
   const { langAsString } = useLanguage();
   const addEntryMutation = useAddEntryMutation(dataType);
-  const instanceData = useStrictInstanceData();
+  const dataElements = useStrictDataElements(dataType);
   const navigate = useNavigate();
   const [isAdding, setIsAdding] = useState(false);
-  const dataElements = instanceData.data.filter((d) => d.dataType === dataType) ?? [];
   const [subformEntries, updateSubformEntries] = useState(dataElements);
 
   const subformIdsWithError = useComponentValidationsForNode(node).find(isSubformValidation)?.subformDataElementIds;
@@ -186,8 +185,8 @@ function SubformTableRow({
 }) {
   const id = dataElement.id;
   const { tableColumns = [] } = useNodeItem(node);
-  const instance = useStrictInstanceData();
-  const url = getStatefulDataModelUrl(instance.id, id, true);
+  const instanceId = useStrictInstanceId();
+  const url = getStatefulDataModelUrl(instanceId, id, true);
   const { isFetching, data, error, failureCount } = useFormDataQuery(url);
   const { langAsString } = useLanguage();
   const navigate = useNavigate();

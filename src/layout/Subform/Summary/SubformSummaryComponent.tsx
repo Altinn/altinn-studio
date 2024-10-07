@@ -4,7 +4,7 @@ import { Spinner } from '@digdir/designsystemet-react';
 
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useStrictInstanceData } from 'src/features/instance/InstanceContext';
+import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { DataQueryWithDefaultValue } from 'src/layout/Subform/SubformComponent';
@@ -21,7 +21,7 @@ export interface ISubformSummaryComponent {
 export function SubformSummaryComponent({ targetNode }: ISubformSummaryComponent): React.JSX.Element | null {
   const { layoutSet, id } = useNodeItem(targetNode);
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = useStrictInstanceData().data.filter((d) => d.dataType === dataType) ?? [];
+  const dataElements = useStrictDataElements(dataType);
 
   return (
     <div
@@ -48,8 +48,8 @@ export function SubformSummaryComponent({ targetNode }: ISubformSummaryComponent
 function SubformSummaryRow({ dataElement, node }: { dataElement: IData; node: LayoutNode<'Subform'> }) {
   const id = dataElement.id;
   const { tableColumns = [], summaryDelimiter = ' — ' } = useNodeItem(node);
-  const instance = useStrictInstanceData();
-  const url = getStatefulDataModelUrl(instance.id, id, true);
+  const instanceId = useStrictInstanceId();
+  const url = getStatefulDataModelUrl(instanceId, id, true);
   const { isFetching, data, error, failureCount } = useFormDataQuery(url);
   const { langAsString } = useLanguage();
 

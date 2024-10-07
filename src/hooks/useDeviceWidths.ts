@@ -40,6 +40,7 @@ function useBrowserWidth(condition: Condition) {
   useEffect(() => {
     const handleResize = () => setState(condition(window.innerWidth));
     window.addEventListener('resize', handleResize);
+    handleResize(); // Size may have changed between render and effect
     return () => window.removeEventListener('resize', handleResize);
   }, [condition]);
 

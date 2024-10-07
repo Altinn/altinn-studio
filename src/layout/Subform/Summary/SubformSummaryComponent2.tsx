@@ -7,7 +7,7 @@ import { Label } from 'src/components/label/Label';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useStrictInstanceData } from 'src/features/instance/InstanceContext';
+import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useDoOverrideSummary } from 'src/layout/Subform/SubformWrapper';
 import classes from 'src/layout/Subform/Summary/SubformSummaryComponent2.module.css';
@@ -20,9 +20,8 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export const SummarySubformWrapper = ({ node }: PropsWithChildren<{ node: LayoutNode<'Subform'> }>) => {
   const { layoutSet, id, textResourceBindings } = useNodeItem(node);
-  const instanceData = useStrictInstanceData();
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = instanceData.data.filter((d) => d.dataType === dataType) ?? [];
+  const dataElements = useStrictDataElements(dataType);
 
   return (
     <>

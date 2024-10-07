@@ -1,8 +1,8 @@
+import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import {
   uploadFileAndVerify,
   uploadFileWithTagAndVerify,
-} from 'test/e2e/integration/component-library/utils/uploadFileAndVerify';
-import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+} from 'test/e2e/support/apps/component-library/uploadFileAndVerify';
 
 const appFrontend = new AppFrontend();
 

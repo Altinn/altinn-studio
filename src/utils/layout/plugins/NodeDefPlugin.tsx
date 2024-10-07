@@ -5,6 +5,7 @@ import type { SerializableSetting } from 'src/codegen/SerializableSetting';
 import type { CompInternal, CompTypes } from 'src/layout/layout';
 import type { ChildClaimerProps, ExprResolver } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type { BaseNodeData, StateFactoryProps } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
@@ -193,6 +194,14 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
    */
   stateFactory(_props: DefPluginStateFactoryProps<Config>): DefPluginExtraState<Config> {
     return {} as DefPluginExtraState<Config>;
+  }
+
+  /**
+   * Checks if the state is ready. This can be overridden to add custom checks to ensure the state in this plugin
+   * is ready for use.
+   */
+  stateIsReady(_state: DefPluginState<Config>, _fullState: NodesContext): boolean {
+    return true;
   }
 
   /**

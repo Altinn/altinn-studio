@@ -112,6 +112,9 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
         // uploading a new attachment (which got added to the current model), but before the previous save response
         // came back from the backend.
         return;
+      } else if (!current && deepEqual(prev, next)) {
+        // No need to make any changes, the current model is already the same as the target model.
+        return;
       } else if (!current) {
         patch.push({
           op: 'test',
@@ -129,6 +132,9 @@ function compareArrays({ prev, next, current, hasCurrent, patch, path }: Compare
         // Same special case as above, but for when the next array is empty (i.e. the backend hasn't seen any values in
         // this array yet, but while saving the user has added some values to the current model, for example by
         // uploading an attachment which adds a UUID reference).
+        return;
+      } else if (!current && prev.length === 0) {
+        // No need to make any changes, the current model is already the same as the target model.
         return;
       } else {
         patch.push({

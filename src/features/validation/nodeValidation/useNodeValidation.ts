@@ -66,7 +66,7 @@ export function useNodeValidation(
           [dataType, field],
         );
         if (fieldValidations) {
-          validations.push(...fieldValidations.map((v) => ({ ...v, node, bindingKey })));
+          validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
         }
       }
 

@@ -1,5 +1,5 @@
-import { fillInInputAndVerify } from 'test/e2e/integration/component-library/utils/inputAndVerify';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { fillInInputAndVerify } from 'test/e2e/support/apps/component-library/inputAndVerify';
 
 const appFrontend = new AppFrontend();
 

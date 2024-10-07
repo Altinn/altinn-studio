@@ -6,6 +6,7 @@ import { Grid } from '@material-ui/core';
 import { Back, Delete as DeleteIcon, Next } from '@navikt/ds-icons';
 import cn from 'classnames';
 
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { GenericComponent } from 'src/layout/GenericComponent';
 import {
@@ -82,6 +83,9 @@ function RepeatingGroupsEditContainerInternal({
     ...group.textResourceBindings,
     ...textsForRow,
   };
+
+  const freshUuid = FD.useFreshRowUuid(group.dataModelBindings?.group, row?.index);
+  const isFresh = freshUuid === editId;
 
   const isNested = typeof group.baseComponentId === 'string';
   let saveButtonVisible =
@@ -182,6 +186,7 @@ function RepeatingGroupsEditContainerInternal({
                     variant='tertiary'
                     color='second'
                     onClick={() => prevMultiPage()}
+                    disabled={!isFresh}
                   >
                     <Back
                       fontSize='1rem'
@@ -198,6 +203,7 @@ function RepeatingGroupsEditContainerInternal({
                     variant='tertiary'
                     color='second'
                     onClick={() => nextMultiPage()}
+                    disabled={!isFresh}
                   >
                     <Lang id={'general.next'} />
                     <Next
@@ -222,6 +228,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant='primary'
                   color='first'
                   size='small'
+                  disabled={!isFresh}
                 >
                   <Lang id={texts?.save_and_next_button ? texts?.save_and_next_button : 'general.save_and_next'} />
                 </Button>
@@ -235,6 +242,7 @@ function RepeatingGroupsEditContainerInternal({
                   variant={saveAndNextButtonVisible ? 'secondary' : 'primary'}
                   color='first'
                   size='small'
+                  disabled={!isFresh}
                 >
                   <Lang id={texts?.save_button ? texts?.save_button : 'general.save_and_close'} />
                 </Button>

@@ -6,6 +6,7 @@ import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
 import { lookupPropertiesInSchema } from 'src/features/datamodel/SimpleSchemaTraversal';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { getRootElementPath, getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
+import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
 
 describe('schemaUtils', () => {
@@ -157,8 +158,9 @@ describe('schemaUtils', () => {
             continue;
           }
           const bindings = component.dataModelBindings as IDataModelBindings;
-          for (const binding of Object.values(bindings)) {
-            const firstLeg = binding.split('.')[0];
+          for (const _binding of Object.values(bindings)) {
+            const binding = _binding as IDataModelReference;
+            const firstLeg = binding.field.split('.')[0];
             const foundInPath = availableProperties.has(firstLeg);
             const foundInRoot = availablePropertiesOnRoot.has(firstLeg);
             const foundInFirstProperty = availablePropertiesOnFirstProperty.has(firstLeg);

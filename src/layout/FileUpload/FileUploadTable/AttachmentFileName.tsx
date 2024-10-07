@@ -4,7 +4,7 @@ import { Link } from '@digdir/designsystemet-react';
 import { FileCsvIcon, FileExcelIcon, FileIcon, FilePdfIcon, FileWordIcon } from '@navikt/aksel-icons';
 
 import { isAttachmentUploaded } from 'src/features/attachments';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
 import classes from 'src/layout/FileUpload/FileUploadTable/AttachmentFileName.module.css';
@@ -15,7 +15,7 @@ import type { IAttachment } from 'src/features/attachments';
 
 export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAttachment; mobileView: boolean }) => {
   const language = useCurrentLanguage();
-  const instanceId = useLaxInstanceData()?.id;
+  const instanceId = useLaxInstanceId();
   const pdfModeActive = usePdfModeActive();
   const url =
     isAttachmentUploaded(attachment) && instanceId

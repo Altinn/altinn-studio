@@ -776,6 +776,7 @@ describe('Group', () => {
     // Navigating between pages should clear the state for which group row is editing, so now the
     // first one (that is not hidden) should be open
     cy.gotoNavPage('prefill');
+    cy.get(appFrontend.group.prefill.liten).should('be.visible');
     cy.gotoNavPage('repeating');
 
     cy.get(appFrontend.group.editContainer).find('input').first().should('have.value', 'NOK 120');

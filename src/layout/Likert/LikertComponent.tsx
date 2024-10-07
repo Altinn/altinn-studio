@@ -145,6 +145,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                   <GenericComponent
                     key={comp.id}
                     node={comp}
+                    overrideDisplay={{ directRender: true }}
                     overrideItemProps={override}
                   />
                 );

@@ -61,7 +61,8 @@ export function SummaryRepeatingGroup(props: SummaryRendererProps<'RepeatingGrou
 }
 
 function RegularRepeatingGroup(props: FullProps) {
-  const { onChangeClick, changeText, summaryNode, targetNode, overrides, rows } = props;
+  const { onChangeClick, changeText, summaryNode, targetNode, overrides, rows: _rows } = props;
+  const rows = _rows.filter(typedBoolean);
 
   const { display: summaryDisplay } = useNodeItem(summaryNode) ?? {};
   const { textResourceBindings: trb } = useNodeItem(targetNode);
@@ -104,7 +105,7 @@ function RegularRepeatingGroup(props: FullProps) {
               <Lang id={'general.empty_summary'} />
             </span>
           ) : (
-            rows.filter(typedBoolean).map((row) => (
+            rows.map((row) => (
               <RegularRepeatingGroupRow
                 key={`row-${row.uuid}`}
                 {...props}

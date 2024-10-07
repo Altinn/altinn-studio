@@ -278,7 +278,6 @@ describe('DropdownComponent', () => {
     ['nullable', null],
   ])('should be possible to use a %s option value', async (label, value) => {
     const options: IRawOption[] = [{ label, value }];
-    jest.useFakeTimers();
     const user = userEvent.setup({ delay: null });
     const { mutations } = await render({
       component: {
@@ -295,6 +294,7 @@ describe('DropdownComponent', () => {
       },
     });
 
+    jest.useFakeTimers();
     await user.click(await screen.findByRole('combobox'));
     await user.click(screen.getByText(label));
 

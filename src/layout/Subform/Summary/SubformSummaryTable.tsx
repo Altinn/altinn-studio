@@ -9,7 +9,7 @@ import { Caption } from 'src/components/form/Caption';
 import { Label } from 'src/components/label/Label';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useStrictInstanceData } from 'src/features/instance/InstanceContext';
+import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
@@ -42,8 +42,8 @@ function SubformTableRow({
 }) {
   const id = dataElement.id;
   const { tableColumns = [] } = useNodeItem(targetNode);
-  const instance = useStrictInstanceData();
-  const url = getStatefulDataModelUrl(instance.id, id, true);
+  const instanceId = useStrictInstanceId();
+  const url = getStatefulDataModelUrl(instanceId, id, true);
   const { isFetching, data, error } = useFormDataQuery(url);
   const { langAsString } = useLanguage();
   const navigate = useNavigate();
@@ -118,8 +118,7 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
   }
 
   const pdfModeActive = usePdfModeActive();
-  const instanceData = useStrictInstanceData();
-  const dataElements = instanceData.data.filter((d) => d.dataType === dataType) ?? [];
+  const dataElements = useStrictDataElements(dataType);
 
   if (dataElements.length == 0) {
     return (

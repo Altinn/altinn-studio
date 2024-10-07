@@ -4,7 +4,7 @@ import { useDynamicsQueryDef } from 'src/features/form/dynamics/DynamicsContext'
 import { useLayoutQueryDef, useLayoutSetId } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSettingsQueryDef } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useRulesQueryDef } from 'src/features/form/rules/RulesContext';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useOrderDetailsQueryDef } from 'src/features/payment/OrderDetailsProvider';
 import { usePaymentInformationQueryDef } from 'src/features/payment/PaymentInformationProvider';
 import { useHasPayment, useIsPayment } from 'src/features/payment/utils';
@@ -18,7 +18,7 @@ export function FormPrefetcher() {
   const layoutSetId = useLayoutSetId();
   const isPDF = useIsPdf();
   const dataTypeId = useCurrentDataModelName() ?? 'unknown';
-  const instance = useLaxInstance();
+  const instanceId = useLaxInstanceId();
 
   // Prefetch layouts
   usePrefetchQuery(useLayoutQueryDef(true, dataTypeId, layoutSetId));
@@ -31,11 +31,11 @@ export function FormPrefetcher() {
   usePrefetchQuery(useRulesQueryDef(layoutSetId));
 
   // Prefetch payment data if applicable
-  usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instance?.instanceId));
-  usePrefetchQuery(useOrderDetailsQueryDef(useHasPayment(), instance?.instanceId));
+  usePrefetchQuery(usePaymentInformationQueryDef(useIsPayment(), instanceId));
+  usePrefetchQuery(useOrderDetailsQueryDef(useHasPayment(), instanceId));
 
   // Prefetch PDF format only if we are in PDF mode
-  usePrefetchQuery(usePdfFormatQueryDef(true, instance?.instanceId, dataGuid), isPDF);
+  usePrefetchQuery(usePdfFormatQueryDef(true, instanceId, dataGuid), isPDF);
 
   return null;
 }

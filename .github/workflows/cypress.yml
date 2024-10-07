@@ -72,7 +72,7 @@ jobs:
           npx cypress verify\n
           bash -c 'yarn serve 8080 >/dev/null &'\n
           bash -c 'npx percy exec --parallel -- npx cypress run
-            --spec \'test/e2e/integration/*/*.ts\'
+            --spec test/e2e/integration
             --env environment=tt02
             --record
             --parallel
@@ -130,7 +130,7 @@ jobs:
           npx cypress verify\n
           bash -c 'yarn serve 8080 >/dev/null &'\n
          bash -c 'npx cypress run
-              --spec \'test/e2e/integration/*/*.ts\'
+              --spec test/e2e/integration
               --config watchForFileChanges=false
               --env environment=tt02'
         "

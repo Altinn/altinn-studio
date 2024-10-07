@@ -18,7 +18,7 @@ import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteSta
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -78,7 +78,7 @@ const {
 function useFormDataSaveMutation() {
   const { doPatchFormData, doPostStatelessFormData } = useAppMutations();
   const getDataModelUrl = useGetDataModelUrl();
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
   const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
   const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
   const saveFinished = useSelector((s) => s.saveFinished);
@@ -90,7 +90,6 @@ function useFormDataSaveMutation() {
     FormDataContext
   >(useStore());
   const useIsSavingRef = useAsRef(useIsSaving());
-  const onSaveFinishedRef = useSelectorAsRef((s) => s.onSaveFinished);
   const queryClient = useQueryClient();
 
   // This updates the query cache with the new data models every time a save has finished. This means we won't have to
@@ -160,8 +159,11 @@ function useFormDataSaveMutation() {
           return;
         }
 
-        onSaveFinishedRef.current?.();
-        return { newDataModels: await Promise.all(newDataModels), savedData: next, validationIssues: undefined };
+        return {
+          newDataModels: await Promise.all(newDataModels),
+          savedData: next,
+          validationIssues: undefined,
+        };
       } else {
         // Stateful needs to use either old patch or multi patch
 
@@ -203,7 +205,6 @@ function useFormDataSaveMutation() {
             }
           }
 
-          onSaveFinishedRef.current?.();
           return { newDataModels: dataModelChanges, validationIssues, savedData: next };
         } else {
           const dataType = dataTypes[0];
@@ -216,7 +217,7 @@ function useFormDataSaveMutation() {
           if (!dataElementId) {
             throw new Error(`Cannot patch data, dataElementId for dataType '${dataType}' could not be determined`);
           }
-          const url = getDataModelUrl({ dataElementId });
+          const url = getDataModelUrl({ dataElementId, includeRowIds: true });
           if (!url) {
             throw new Error(`Cannot patch data, url for dataType '${dataType}' could not be determined`);
           }
@@ -225,7 +226,6 @@ function useFormDataSaveMutation() {
             // Ignore validations that require layout parsing in the backend which will slow down requests significantly
             ignoredValidators: IgnoredValidators,
           });
-          onSaveFinishedRef.current?.();
           return {
             newDataModels: [{ dataType, data: newDataModel, dataElementId }],
             validationIssues,
@@ -593,8 +593,10 @@ export const FD = {
    * the value will be returned as-is. If the value is not found, undefined is returned. Null may also be returned if
    * the value is explicitly set to null.
    */
-  useDebouncedPick(reference: IDataModelReference): FDValue {
-    return useSelector((v) => dot.pick(reference.field, v.dataModels[reference.dataType].debouncedCurrentData));
+  useDebouncedPick(reference: IDataModelReference | undefined): FDValue {
+    return useSelector((v) =>
+      reference ? dot.pick(reference.field, v.dataModels[reference.dataType].debouncedCurrentData) : undefined,
+    );
   },
 
   /**
@@ -807,13 +809,17 @@ export const FD = {
    * Returns the number of rows in a repeating group. This will always be 'fresh', meaning it will update immediately
    * when a new row is added/removed.
    */
-  useFreshNumRows: (binding: IDataModelReference | undefined): number =>
+  useFreshNumRows: (reference: IDataModelReference | undefined): number =>
     useMemoSelector((s) => {
-      if (!binding) {
+      if (!reference) {
         return 0;
       }
 
-      const rawRows = dot.pick(binding.field, s.dataModels[binding.dataType].currentData);
+      const model = s.dataModels[reference.dataType];
+      if (!model) {
+        return 0;
+      }
+      const rawRows = dot.pick(reference.field, model.currentData);
       if (!Array.isArray(rawRows) || !rawRows.length) {
         return 0;
       }
@@ -825,13 +831,17 @@ export const FD = {
    * Get the UUID of a row in a repeating group. This will always be 'fresh', meaning it will update immediately when
    * a new row is added/removed.
    */
-  useFreshRowUuid: (binding: IDataModelReference | undefined, index: number): string | undefined =>
+  useFreshRowUuid: (reference: IDataModelReference | undefined, index: number | undefined): string | undefined =>
     useMemoSelector((s) => {
-      if (!binding) {
+      if (!reference || index === undefined) {
         return undefined;
       }
 
-      const rawRows = dot.pick(binding.field, s.dataModels[binding.dataType].currentData);
+      const model = s.dataModels[reference.dataType];
+      if (!model) {
+        return undefined;
+      }
+      const rawRows = dot.pick(reference.field, model.currentData);
       if (!Array.isArray(rawRows) || !rawRows.length) {
         return undefined;
       }

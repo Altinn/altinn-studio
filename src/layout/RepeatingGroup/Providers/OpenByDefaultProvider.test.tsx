@@ -73,7 +73,7 @@ describe('openByDefault', () => {
     hiddenRow?: CompRepeatingGroupExternal['hiddenRow'];
   }
 
-  function render({ existingRows, edit, hiddenRow }: Props) {
+  async function render({ existingRows, edit, hiddenRow }: Props) {
     const layout: ILayout = [
       {
         id: 'myGroup',
@@ -135,9 +135,10 @@ describe('openByDefault', () => {
   }
 
   async function waitUntil({ state, mutations, expectedPatch, newModelAfterSave, expectedWarning }: WaitForStateProps) {
-    jest.advanceTimersByTime(3000);
     if (newModelAfterSave && mutations) {
-      await waitFor(() => expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1));
+      await waitFor(() => {
+        expect(mutations.doPatchFormData.mock).toHaveBeenCalledTimes(1);
+      });
 
       expect(mutations.doPatchFormData.mock).toHaveBeenCalledWith(
         expect.anything(),
@@ -155,10 +156,7 @@ describe('openByDefault', () => {
 
     // Because this typically happens in a loop, we need to wait a little more and check again to make sure
     // the state doesn't change again.
-    jest.advanceTimersByTime(3000);
-    jest.useRealTimers();
     await new Promise((resolve) => setTimeout(resolve, 300));
-    jest.useFakeTimers();
     expect(getState()).toEqual(state);
     expect(mutations?.doPatchFormData.mock).not.toHaveBeenCalled();
 
@@ -170,7 +168,6 @@ describe('openByDefault', () => {
   }
 
   beforeAll(() => {
-    jest.useFakeTimers();
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest
       .spyOn(window, 'logWarn')
@@ -183,7 +180,6 @@ describe('openByDefault', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
@@ -12,7 +12,7 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useStrictInstanceData } from 'src/features/instance/InstanceContext';
+import { useStrictDataElements } from 'src/features/instance/InstanceContext';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsPayment } from 'src/features/payment/utils';
 import classes from 'src/features/pdf/PDFView.module.css';
@@ -127,12 +127,8 @@ function DataLoaderStoreInitWorker({
   const setDataLoaderElements = useDataLoadingStore((state) => state.setDataElements);
   const dataLoaderElements = useDataLoadingStore((state) => state.dataElements);
 
-  const instanceData = useStrictInstanceData();
   const dataType = useDataTypeFromLayoutSet(layoutSet);
-  const dataElements = useMemo(
-    () => instanceData.data.filter((d) => d.dataType === dataType) ?? [],
-    [instanceData, dataType],
-  );
+  const dataElements = useStrictDataElements(dataType);
 
   useEffect(() => {
     const elements: Record<string, DataLoadingState> = {};

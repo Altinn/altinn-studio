@@ -1,17 +1,16 @@
-import React, { useRef } from 'react';
+import React from 'react';
+
+import deepEqual from 'fast-deep-equal';
 
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
-import {
-  GeneratorCondition,
-  GeneratorStages,
-  NodesStateQueue,
-  StageEvaluateExpressions,
-} from 'src/utils/layout/generator/GeneratorStages';
+import { GeneratorCondition, StageEvaluateExpressions } from 'src/utils/layout/generator/GeneratorStages';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeFormData } from 'src/utils/layout/useNodeItem';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { IAttachment } from 'src/features/attachments/index';
@@ -26,19 +25,17 @@ export function StoreAttachmentsInNode() {
       stage={StageEvaluateExpressions}
       mustBeAdded='parent'
     >
-      <PerformWork />
+      <StoreAttachmentsInNodeWorker />
     </GeneratorCondition>
   );
 }
 
-function PerformWork() {
+function StoreAttachmentsInNodeWorker() {
   const node = GeneratorInternal.useParent() as LayoutNode<CompWithBehavior<'canHaveAttachments'>>;
-  const setNodeProp = NodesStateQueue.useSetNodeProp();
   const attachments = useNodeAttachments();
 
-  GeneratorStages.EvaluateExpressions.useEffect(() => {
-    setNodeProp({ node, prop: 'attachments', value: attachments });
-  }, [node, setNodeProp, attachments]);
+  const hasBeenSet = NodesInternal.useNodeData(node, (data) => deepEqual(data.attachments, attachments));
+  NodesStateQueue.useSetNodeProp({ node, prop: 'attachments', value: attachments }, !hasBeenSet);
 
   return null;
 }
@@ -59,23 +56,33 @@ function useNodeAttachments(): Record<string, IAttachment> {
     return mapAttachments(node, data ?? [], application, taskId, nodeData);
   }, [node, data, application, currentTask, nodeData, overriddenTaskId]);
 
-  const prevAttachments = useRef<Record<string, IAttachment>>({});
+  const prev = NodesInternal.useNodeData(node, (data) => data.attachments);
+
   return useMemoDeepEqual(() => {
-    const prevResult = prevAttachments.current ?? new Map<string, IAttachment>();
     const result: Record<string, IAttachment> = {};
 
     for (const attachment of mappedAttachments) {
+      const prevStored = prev?.[attachment.id];
       result[attachment.id] = {
         uploaded: true,
-        updating: prevResult[attachment.id]?.updating ?? false,
-        deleting: prevResult[attachment.id]?.deleting ?? false,
-        data: attachment,
+        updating: prevStored?.updating || false,
+        deleting: prevStored?.deleting || false,
+        data: {
+          ...attachment,
+          tags: prevStored?.data.tags ?? attachment.tags,
+        },
       };
     }
 
-    prevAttachments.current = result;
+    // Find any not-yet uploaded attachments and add them back to the result
+    for (const [id, attachment] of Object.entries(prev ?? {})) {
+      if (!attachment.uploaded) {
+        result[id] = attachment;
+      }
+    }
+
     return result;
-  }, [mappedAttachments]);
+  }, [mappedAttachments, prev]);
 }
 
 function mapAttachments(

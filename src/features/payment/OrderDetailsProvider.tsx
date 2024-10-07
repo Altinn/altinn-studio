@@ -6,7 +6,7 @@ import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
 import { useQueryWithStaleData } from 'src/core/queries/useQueryWithStaleData';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useHasPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
@@ -25,7 +25,7 @@ export function useOrderDetailsQueryDef(enabled: boolean, instanceId?: string): 
 }
 
 const useOrderDetailsQuery = () => {
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
   const enabled = useHasPayment();
   const utils = useQueryWithStaleData<OrderDetails, HttpClientError>(useOrderDetailsQueryDef(enabled, instanceId));
 

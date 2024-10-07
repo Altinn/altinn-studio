@@ -56,7 +56,7 @@ interface Internals {
   updateBackendValidations: (
     backendValidations: { [dataElementId: string]: FieldValidations } | undefined,
     processedLast?: Partial<ValidationsProcessedLast>,
-    taskValdiations?: BaseValidation[],
+    taskValidations?: BaseValidation[],
   ) => void;
   updateValidating: (validating: WaitForValidation) => void;
 }
@@ -101,7 +101,7 @@ function initialCreateStore() {
             );
           }
         }),
-      updateBackendValidations: (backendValidations, processedLast, taskValdiations) =>
+      updateBackendValidations: (backendValidations, processedLast, taskValidations) =>
         set((state) => {
           if (processedLast?.incremental) {
             state.processedLast.incremental = processedLast.incremental;
@@ -109,8 +109,8 @@ function initialCreateStore() {
           if (processedLast?.initial) {
             state.processedLast.initial = processedLast.initial;
           }
-          if (taskValdiations) {
-            state.state.task = taskValdiations;
+          if (taskValidations) {
+            state.state.task = taskValidations;
           }
           if (backendValidations) {
             /**
@@ -168,7 +168,6 @@ export function ValidationProvider({ children }: PropsWithChildren) {
 
 function useWaitForValidation(): WaitForValidation {
   const waitForNodesReady = NodesInternal.useWaitUntilReady();
-  const waitForValidationsReady = NodesInternal.useWaitForValidationsReady();
   const waitForSave = FD.useWaitForSave();
   const waitForState = useWaitForState<ValidationsProcessedLast['initial'], ValidationContext & Internals>(useStore());
   const hasPendingAttachments = useHasPendingAttachments();
@@ -192,7 +191,6 @@ function useWaitForValidation(): WaitForValidation {
       // Wait until we've saved changed to backend, and we've processed the backend validations we got from that save
       await waitForNodesReady();
       const validationsFromSave = await waitForSave(forceSave);
-      await waitForNodesReady();
       // If validationsFromSave is not defined, we check if initial validations are done processing
       const lastInitialValidations = await waitForState((state, setReturnValue) => {
         const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
@@ -208,7 +206,7 @@ function useWaitForValidation(): WaitForValidation {
 
         return false;
       });
-      await waitForValidationsReady(validationsFromSave, lastInitialValidations);
+      await waitForNodesReady({ initial: lastInitialValidations, incremental: validationsFromSave });
     },
     [
       enabled,
@@ -218,7 +216,6 @@ function useWaitForValidation(): WaitForValidation {
       waitForNodesReady,
       waitForSave,
       waitForState,
-      waitForValidationsReady,
     ],
   );
 }
@@ -338,6 +335,7 @@ export const Validation = {
   useUpdateBackendValidations: () => useSelector((state) => state.updateBackendValidations),
 
   useProcessedLast: () => useSelector((state) => state.processedLast),
+  useProcessedLastRef: () => useSelectorAsRef((state) => state.processedLast),
 
   useRef: () => useSelectorAsRef((state) => state),
   useLaxRef: () => useLaxSelectorAsRef((state) => state),

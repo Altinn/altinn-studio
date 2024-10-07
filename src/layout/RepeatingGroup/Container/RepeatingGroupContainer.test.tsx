@@ -134,6 +134,7 @@ async function render({ container, numRows = 3, validationIssues = [] }: IRender
       }),
       fetchBackendValidations: async () => validationIssues,
     },
+    mockFormDataSaving: true,
   });
 }
 

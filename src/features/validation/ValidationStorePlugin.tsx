@@ -3,7 +3,7 @@ import { useCallback } from 'react';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation/index';
 import { getInitialMaskFromNodeItem, selectValidations } from 'src/features/validation/utils';
-import { Hidden, isHidden, nodesProduce } from 'src/utils/layout/NodesContext';
+import { isHidden, nodesProduce } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import { TraversalTask } from 'src/utils/layout/useNodeTraversal';
 import type {
@@ -12,12 +12,12 @@ import type {
   NodeRefValidation,
   NodeVisibility,
   ValidationSeverity,
-  ValidationsProcessedLast,
 } from 'src/features/validation/index';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IsHiddenOptions, NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { NodeData } from 'src/utils/layout/types';
+import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export type ValidationsSelector = (
   node: LayoutNode,
@@ -39,8 +39,14 @@ export interface ValidationStorePluginConfig {
     useSetAttachmentVisibility: () => ValidationStorePluginConfig['extraFunctions']['setAttachmentVisibility'];
     useRawValidationVisibility: (node: LayoutNode | undefined) => number;
     useRawValidations: (node: LayoutNode | undefined) => AnyValidation[];
-    useValidationsProcessedLast: (node: LayoutNode | undefined) => ValidationsProcessedLast | undefined;
     useVisibleValidations: (node: LayoutNode | undefined, showAll?: boolean) => AnyValidation[];
+    useVisibleValidationsDeep: (
+      node: LayoutNode | undefined,
+      mask: NodeVisibility,
+      stopAtDepth?: number,
+      restriction?: TraversalRestriction,
+      severity?: ValidationSeverity,
+    ) => NodeRefValidation[];
     useValidationsSelector: () => ValidationsSelector;
     useAllValidations: (
       mask: NodeVisibility,
@@ -67,7 +73,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           nodesProduce((state) => {
             for (const node of nodes) {
               const nodeData = typeof node === 'string' ? state.nodeData[node] : state.nodeData[node.id];
-              const initialMask = getInitialMaskFromNodeItem(nodeData.item);
+              const initialMask = getInitialMaskFromNodeItem(nodeData.layout);
 
               if (nodeData && 'validationVisibility' in nodeData) {
                 nodeData.validationVisibility = newVisibility | initialMask;
@@ -112,17 +118,6 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }
           return 'validationVisibility' in nodeData ? nodeData.validationVisibility : 0;
         }),
-      useValidationsProcessedLast: (node) =>
-        store.useSelector((state) => {
-          if (!node) {
-            return;
-          }
-          const nodeData = state.nodeData[node.id];
-          if (!nodeData) {
-            return;
-          }
-          return 'validationsProcessedLast' in nodeData ? nodeData.validationsProcessedLast : undefined;
-        }),
       useRawValidations: (node) =>
         store.useSelector((state) => {
           if (!node) {
@@ -135,16 +130,22 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           const out = 'validations' in nodeData ? nodeData.validations : undefined;
           return out && out.length > 0 ? out : emptyArray;
         }),
-      useVisibleValidations: (node, showAll) => {
-        const isHidden = Hidden.useIsHidden(node);
-        return store.useSelector((state) => {
-          if (!node || isHidden) {
+      useVisibleValidations: (node, showAll) =>
+        store.useSelector((state) => {
+          if (!node) {
             return emptyArray;
           }
           const nodeData = state.nodeData[node.id];
           return getValidations({ state, nodeData, mask: showAll ? 'showAll' : 'visible' });
-        });
-      },
+        }),
+      useVisibleValidationsDeep: (node, mask, stopAtDepth, restriction, severity) =>
+        store.useMemoSelector((state) => {
+          if (!node) {
+            return emptyArray;
+          }
+          const nodeData = state.nodeData[node.id];
+          return getRecursiveValidations({ state, nodeData, mask, severity, stopAtDepth, restriction });
+        }),
       useValidationsSelector: () =>
         store.useDelayedSelector({
           mode: 'simple',
@@ -263,4 +264,40 @@ function getValidations({
 
   const validations = selectValidations(nodeData.validations, visibilityMask, severity);
   return validations.length > 0 ? validations : emptyArray;
+}
+
+interface GetDeepValidationsProps extends GetValidationsProps {
+  depth?: number;
+  stopAtDepth?: number;
+  restriction?: TraversalRestriction;
+}
+
+function getRecursiveValidations(props: GetDeepValidationsProps): NodeRefValidation[] {
+  const nodeId = props.nodeData?.layout.id;
+  const out: NodeRefValidation[] = [];
+  const depth = props.depth ?? 0;
+  if (!nodeId) {
+    return emptyArray;
+  }
+
+  const nodeValidations = getValidations(props);
+  for (const validation of nodeValidations) {
+    out.push({ ...validation, nodeId });
+  }
+
+  if (props.stopAtDepth !== undefined && depth >= props.stopAtDepth) {
+    return out;
+  }
+
+  const directChildren = props.state.childrenMap[nodeId];
+  if (directChildren) {
+    for (const childId of directChildren) {
+      const childData = props.state.nodeData[childId];
+      if (childData && childData.rowIndex === props.restriction) {
+        out.push(...getRecursiveValidations({ ...props, nodeData: childData, depth: depth + 1 }));
+      }
+    }
+  }
+
+  return out;
 }

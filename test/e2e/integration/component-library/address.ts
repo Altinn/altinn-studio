@@ -1,5 +1,5 @@
-import { fillInAddressAndVerify } from 'test/e2e/integration/component-library/utils/fillAddressAndVerify';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
+import { fillInAddressAndVerify } from 'test/e2e/support/apps/component-library/fillAddressAndVerify';
 
 const appFrontend = new AppFrontend();
 

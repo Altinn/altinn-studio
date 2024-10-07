@@ -1,15 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import dot from 'dot-object';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
+import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
   GeneratorCondition,
   GeneratorRunProvider,
-  GeneratorStages,
-  NodesStateQueue,
   StageAddNodes,
   StageEvaluateExpressions,
 } from 'src/utils/layout/generator/GeneratorStages';
@@ -22,6 +21,7 @@ import type { IDataModelReference } from 'src/layout/common.generated';
 import type { CompExternal } from 'src/layout/layout';
 import type { ChildClaims, ChildMutator } from 'src/utils/layout/generator/GeneratorContext';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { RepChildrenRow } from 'src/utils/layout/plugins/RepeatingChildrenPlugin';
 
 interface Props {
   claims: ChildClaims;
@@ -38,12 +38,19 @@ export function NodeRepeatingChildren(props: Props) {
       stage={StageAddNodes}
       mustBeAdded='parent'
     >
-      <PerformWork {...props} />
+      <NodeRepeatingChildrenWorker {...props} />
     </GeneratorCondition>
   );
 }
 
-function PerformWork({ claims, binding, multiPageSupport, externalProp, internalProp, pluginKey }: Props) {
+function NodeRepeatingChildrenWorker({
+  claims,
+  binding,
+  multiPageSupport,
+  externalProp,
+  internalProp,
+  pluginKey,
+}: Props) {
   const item = GeneratorInternal.useIntermediateItem();
   const groupBinding = item?.dataModelBindings?.[binding];
   const numRows = FD.useFreshNumRows(groupBinding);
@@ -55,10 +62,10 @@ function PerformWork({ claims, binding, multiPageSupport, externalProp, internal
 
   return (
     <>
-      {Array.from({ length: numRows }, (_, index) => ({ index })).map((row) => (
-        <GeneratorRunProvider key={row.index}>
+      {Array.from({ length: numRows }).map((_, index) => (
+        <GeneratorRunProvider key={index}>
           <GenerateRow
-            rowIndex={row.index}
+            rowIndex={index}
             groupBinding={groupBinding}
             claims={claims}
             multiPageMapping={multiPageMapping}
@@ -74,7 +81,7 @@ function PerformWork({ claims, binding, multiPageSupport, externalProp, internal
 interface GenerateRowProps {
   rowIndex: number;
   claims: ChildClaims;
-  groupBinding: IDataModelReference | undefined;
+  groupBinding: IDataModelReference;
   multiPageMapping: MultiPageMapping | undefined;
   internalProp: string;
   pluginKey: string;
@@ -95,7 +102,7 @@ function _GenerateRow({ rowIndex, claims, groupBinding, multiPageMapping, intern
     [rowIndex, depth, groupBinding],
   );
 
-  GeneratorStages.AddNodes.useEffect(
+  useEffect(
     () => () => {
       removeRow(node, internalProp);
     },
@@ -105,6 +112,7 @@ function _GenerateRow({ rowIndex, claims, groupBinding, multiPageMapping, intern
   return (
     <GeneratorRowProvider
       rowIndex={rowIndex}
+      groupBinding={groupBinding}
       directMutators={directMutators}
       recursiveMutators={recursiveMutators}
     >
@@ -142,14 +150,11 @@ function ResolveRowExpressions({ internalProp }: ResolveRowProps) {
   const item = GeneratorInternal.useIntermediateItem();
   const props = useExpressionResolverProps(firstChild, item as CompExternal, rowIndex);
 
-  const setExtra = NodesStateQueue.useSetRowExtras();
   const def = useDef(item!.type);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resolvedRowExtras = useMemoDeepEqual(() => (def as CompDef).evalExpressionsForRow(props as any), [def, props]);
 
-  GeneratorStages.EvaluateExpressions.useEffect(() => {
-    setExtra({ node: parent, rowIndex: rowIndex!, internalProp, extras: resolvedRowExtras });
-  }, [resolvedRowExtras, setExtra, parent, rowIndex, internalProp]);
+  NodesStateQueue.useSetRowExtras({ node: parent, rowIndex: rowIndex!, internalProp, extras: resolvedRowExtras });
 
   return null;
 }
@@ -163,12 +168,14 @@ function MaintainRowUuid({
 }) {
   const parent = GeneratorInternal.useParent() as LayoutNode;
   const rowIndex = GeneratorInternal.useRowIndex() as number;
-  const setUuid = NodesStateQueue.useSetRowUuid();
   const rowUuid = FD.useFreshRowUuid(groupBinding, rowIndex) as string;
+  const existingUuid = NodesInternal.useNodeData(
+    parent,
+    (data) => data.item?.[internalProp]?.find((row: RepChildrenRow) => row.index === rowIndex)?.uuid,
+  );
 
-  GeneratorStages.AddNodes.useEffect(() => {
-    setUuid({ node: parent, rowIndex: rowIndex!, internalProp, rowUuid });
-  }, [setUuid, parent, rowIndex, internalProp, rowUuid]);
+  const isSet = rowUuid === existingUuid;
+  NodesStateQueue.useSetRowUuid({ node: parent, rowIndex: rowIndex!, internalProp, rowUuid }, !isSet);
 
   return null;
 }

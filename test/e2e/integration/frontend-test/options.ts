@@ -21,11 +21,26 @@ describe('Options', () => {
     // Select a different source, expect previous selection to be cleared and
     // new value to be selectable in the reference option
     cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
-    cy.get(appFrontend.changeOfName.reference).and('have.value', '');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', '');
     cy.dsSelect(appFrontend.changeOfName.reference, 'Sophie Salt');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Sophie Salt');
     cy.dsSelect(appFrontend.changeOfName.reference2, 'Dole');
     cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Dole');
+
+    /** TODO: Enable this part again when the bug is fixed
+     * @see https://github.com/digdir/designsystemet/issues/2264
+     * @see https://github.com/Altinn/app-frontend-react/issues/2486
+     * @see https://github.com/Altinn/app-frontend-react/pull/2500
+    // If we change the source back to the previous one, the previous selections should be cleared
+    // and the previous options should be available again
+    cy.dsSelect(appFrontend.changeOfName.sources, 'Altinn');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', '');
+    cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
+    cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', '');
+    cy.dsSelect(appFrontend.changeOfName.reference2, 'Ole');
+    cy.get(appFrontend.changeOfName.reference2).should('have.value', 'Ole');
+     */
   });
 
   it('is possible to build options from repeating groups', () => {
@@ -137,7 +152,7 @@ describe('Options', () => {
   it('clears options when source changes and old value is no longer valid', () => {
     cy.goto('changename');
 
-    cy.get(appFrontend.changeOfName.sources).should('be.visible');
+    cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
     cy.dsSelect(appFrontend.changeOfName.reference, 'Ola Nordmann');
     cy.get(appFrontend.changeOfName.reference).should('have.value', 'Ola Nordmann');
@@ -308,5 +323,30 @@ describe('Options', () => {
     // A continuation of this test could add a choice for the user to prevent the CustomButton from resetting
     // isForeign back to 'false' when the reset button is clicked. This would allow us to test the case where
     // the foreign option components are still visible when the reset button is clicked.
+  });
+
+  it('should not remove stale values prematurely when deleting repeating group rows', () => {
+    const allColors = ['Rød', 'Grønn', 'Blå', 'Gul', 'Svart', 'Hvit', 'Brun', 'Oransje', 'Lilla', 'Rosa'];
+
+    cy.gotoHiddenPage('shifting-options');
+    cy.findByRole('button', { name: 'Legg til 10 rader' }).click();
+    const rows = '[id^="group-balloons-"][id$="-table-body"] tr';
+    cy.get(rows).should('have.length', 10);
+
+    function assertRows(...balloonNumbers: number[]) {
+      cy.log(`Asserting balloons: ${balloonNumbers.join(', ')}`);
+      for (const i in balloonNumbers) {
+        const num = balloonNumbers[i];
+        cy.get(rows).eq(parseInt(i)).find('td').eq(1).should('have.text', `Ballong ${num} er ${allColors[num]}`);
+      }
+    }
+
+    assertRows(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+    cy.get(rows).eq(0).findByRole('button', { name: `Slett-0` }).click();
+    cy.waitUntilSaved();
+    cy.waitUntilNodesReady();
+
+    assertRows(1, 2, 3, 4, 5, 6, 7, 8, 9);
   });
 });

@@ -5,7 +5,7 @@ import { skipToken, useQuery } from '@tanstack/react-query';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { delayedContext } from 'src/core/contexts/delayedContext';
 import { createQueryContext } from 'src/core/contexts/queryContext';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useIsPayment } from 'src/features/payment/utils';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
@@ -27,7 +27,7 @@ export function usePaymentInformationQueryDef(
 }
 
 const usePaymentInformationQuery = () => {
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
   const enabled = useIsPayment();
 
   const utils = useQuery(usePaymentInformationQueryDef(enabled, instanceId));

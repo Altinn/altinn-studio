@@ -2,14 +2,12 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
-import { LayoutStyle } from 'src/layout/common.generated';
 import { LikertItemDef } from 'src/layout/LikertItem/config.def.generated';
 import { LikertItemComponent } from 'src/layout/LikertItem/LikertItemComponent';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { CompInternal } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -24,10 +22,6 @@ export class LikertItem extends LikertItemDef {
       );
     },
   );
-
-  directRender(item: CompInternal<'LikertItem'>): boolean {
-    return item.layout === LayoutStyle.Table;
-  }
 
   getDisplayData(
     node: LayoutNode<'LikertItem'>,

@@ -1,23 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-import deepEqual from 'fast-deep-equal';
-
-import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
-import { resolveQueryParameters } from 'src/features/options/evalQueryParameters';
-import { useGetOptionsQuery } from 'src/features/options/useGetOptionsQuery';
+import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
-import { useAsRef } from 'src/hooks/useAsRef';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
-import { useGetAwaitingCommits } from 'src/utils/layout/generator/GeneratorStages';
-import { Hidden, NodesInternal } from 'src/utils/layout/NodesContext';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { filterDuplicateOptions, verifyOptions } from 'src/utils/options';
-import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
@@ -27,14 +18,14 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 export type OptionsValueType = 'single' | 'multi';
 
 interface FetchOptionsProps {
-  valueType: OptionsValueType;
   node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
 }
 
-interface SetOptionsProps {
+interface SortedOptionsProps {
+  unsorted: IOptionInternal[];
   valueType: OptionsValueType;
-  dataModelBindings?: IDataModelBindingsOptionsSimple;
+  item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
 }
 
 export interface GetOptionsResult {
@@ -63,18 +54,6 @@ export interface SetOptionsResult {
   setData: (values: string[]) => void;
 }
 
-interface EffectProps {
-  node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
-  item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
-  options: IOptionInternal[] | undefined;
-  preselectedOption: IOptionInternal | undefined;
-  unsafeSelectedValues: string[];
-  setRawData: (key: keyof IDataModelBindingsOptionsSimple, value: FDLeafValue) => void;
-  setValues: (values: string[]) => void;
-  valueType: OptionsValueType;
-  downstreamParameters: string | undefined;
-}
-
 const defaultOptions: IOptionInternal[] = [];
 
 type SortOrder = 'asc' | 'desc';
@@ -88,8 +67,11 @@ const compareOptionAlphabetically =
     return sortOrder === 'asc' ? comparison : -comparison;
   };
 
-function useSetOptions(props: SetOptionsProps, alwaysOptions: IOptionInternal[]): SetOptionsResult {
-  const { valueType, dataModelBindings } = props;
+export function useSetOptions(
+  valueType: OptionsValueType,
+  dataModelBindings: IDataModelBindingsOptionsSimple | undefined,
+  options: IOptionInternal[],
+): SetOptionsResult {
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
   const value = formData.simpleBinding ?? '';
 
@@ -99,8 +81,8 @@ function useSetOptions(props: SetOptionsProps, alwaysOptions: IOptionInternal[])
   );
 
   const selectedValues = useMemo(
-    () => currentValues.filter((value) => alwaysOptions.find((option) => option.value === value)),
-    [alwaysOptions, currentValues],
+    () => currentValues.filter((value) => options.find((option) => option.value === value)),
+    [options, currentValues],
   );
 
   const setData = useCallback(
@@ -121,261 +103,83 @@ function useSetOptions(props: SetOptionsProps, alwaysOptions: IOptionInternal[])
     setData,
   };
 }
-/**
- * If given the 'preselectedOptionIndex' property, we should automatically select the given option index as soon
- * as options are ready. The code is complex to guard against overwriting data that has been set by the user.
- */
-function useEffectPreselectedOptionIndex({ node, setValues, preselectedOption, unsafeSelectedValues }: EffectProps) {
-  const isNodeHidden = Hidden.useIsHidden(node);
-  const isNodesReady = NodesInternal.useIsReady();
-  const hasSelectedInitial = useRef(false);
-  const hasValue = unsafeSelectedValues.length > 0;
-  const shouldSelectOptionAutomatically =
-    !hasValue &&
-    !hasSelectedInitial.current &&
-    preselectedOption !== undefined &&
-    isNodesReady &&
-    isNodeHidden !== true;
 
-  useEffect(() => {
-    if (shouldSelectOptionAutomatically) {
-      setValues([preselectedOption.value]);
-      hasSelectedInitial.current = true;
-    }
-  }, [preselectedOption, shouldSelectOptionAutomatically, setValues]);
+function useOptionsUrl(node: LayoutNode, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
+  const { optionsId, secure, mapping, queryParameters } = item;
+  return useGetOptionsUrl(node, optionsId, mapping, queryParameters, secure);
 }
 
-/**
- * If options has changed and the values no longer include the current value, we should clear the value.
- * This is especially useful when fetching options from an API with mapping, or when generating options
- * from a repeating group. If the options changed and the selected option (or selected row in a repeating group)
- * is gone, we should not save stale/invalid data, so we clear it.
- */
-function useEffectRemoveStaleValues(props: EffectProps) {
-  const isNodeHidden = Hidden.useIsHidden(props.node);
-  const isNodesReady = NodesInternal.useIsReady();
-  const [_, setForceRerender] = useState(0);
-  const getAwaiting = useGetAwaitingCommits();
-  const ready = isNodesReady && !isNodeHidden;
-  const propsAsRef = useAsRef(props);
-  const readyAsRef = useAsRef(ready);
-
-  useEffect(() => {
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    function cleanup() {
-      timeout !== undefined && clearTimeout(timeout);
-    }
-
-    function isReady() {
-      if (!readyAsRef.current) {
-        return false;
-      }
-      const awaitingCommits = getAwaiting();
-      if (awaitingCommits > 0) {
-        // We should not remove values if there are pending commits. We'll force a re-render to delay this check until
-        // the pending commits are done. This is needed because getAwaiting() is not reactive.
-        timeout = setTimeout(() => setForceRerender((r) => r + 1), 100);
-        return false;
-      }
-      return true;
-    }
-
-    if (!isReady()) {
-      return cleanup;
-    }
-
-    timeout = setTimeout(() => {
-      // If you have larger sweeping changes in the data model happening at once, such as a data processing change
-      // or a click on a CustomButton, we might not have run the hidden expressions yet when this effect runs.
-      // We'll wait a bit to make sure the hidden expressions have run before we remove the values, and if we're
-      // hidden at that point, skip the removal.
-      const { options, unsafeSelectedValues, setValues } = propsAsRef.current;
-      if (!options || !isReady()) {
-        return;
-      }
-      const itemsToRemove = unsafeSelectedValues.filter((v) => !options?.find((option) => option.value === v));
-      if (itemsToRemove.length > 0) {
-        setValues(unsafeSelectedValues.filter((v) => !itemsToRemove.includes(v)));
-      }
-    }, 200);
-
-    return cleanup;
-  }, [getAwaiting, readyAsRef, propsAsRef, ready]);
-}
-
-/**
- * This effect is responsible for setting the label/display value in the data model.
- */
-function useEffectStoreLabel({ node, item, options, unsafeSelectedValues, valueType, setRawData }: EffectProps) {
-  const isNodeHidden = Hidden.useIsHidden(node);
-  const isNodesReady = NodesInternal.useIsReady();
-  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
-  const { langAsString } = useLanguage();
-  const formData = FD.useFreshBindings(dataModelBindings, 'raw');
-
-  const translatedLabels = useMemo(
-    () =>
-      options
-        ?.filter((option) => unsafeSelectedValues.includes(option.value))
-        .map((option) => option.label)
-        .map((label) => langAsString(label)),
-    [langAsString, options, unsafeSelectedValues],
-  );
-
-  const labelsHaveChanged = !deepEqual(translatedLabels, 'label' in formData ? formData.label : undefined);
-  const shouldSetData =
-    labelsHaveChanged && !isNodeHidden && isNodesReady && dataModelBindings && 'label' in dataModelBindings;
-
-  useEffect(() => {
-    if (!shouldSetData) {
-      return;
-    }
-
-    if (!translatedLabels || translatedLabels.length === 0) {
-      setRawData('label', undefined);
-      return;
-    } else if (valueType === 'single') {
-      setRawData('label', translatedLabels.at(0));
-    } else {
-      setRawData('label', translatedLabels);
-    }
-  }, [setRawData, shouldSetData, translatedLabels, valueType]);
-}
-
-function useEffectSetDownstreamParameters({ item, downstreamParameters, setRawData }: EffectProps) {
-  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
-  useEffect(() => {
-    if (dataModelBindings && 'metadata' in dataModelBindings && dataModelBindings.metadata && downstreamParameters) {
-      // The value might be url-encoded
-      setRawData('metadata', decodeURIComponent(downstreamParameters));
-    }
-  }, [dataModelBindings, downstreamParameters, setRawData]);
-}
-
-export function useFetchOptions({ node, valueType, item }: FetchOptionsProps): GetOptionsResult {
-  const { options, optionsId, secure, source, mapping, queryParameters, sortOrder, dataModelBindings } = item;
-
-  const dataSources = useExpressionDataSources();
-  const resolvedQueryParameters = resolveQueryParameters(queryParameters, node, dataSources);
-
-  const preselectedOptionIndex = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
-  const { langAsString } = useLanguage();
-  const selectedLanguage = useCurrentLanguage();
-  const setLeafValue = FD.useSetLeafValue();
-
-  const setRawData = useCallback(
-    (key: keyof IDataModelBindingsOptionsSimple, newValue: FDLeafValue) => {
-      if (!dataModelBindings || !(key in dataModelBindings)) {
-        return;
-      }
-
-      setLeafValue({
-        reference: dataModelBindings[key],
-        newValue,
-      });
-    },
-    [dataModelBindings, setLeafValue],
-  );
+export function useFetchOptions({ node, item }: FetchOptionsProps) {
+  const { options, optionsId, source } = item;
+  const url = useOptionsUrl(node, item);
 
   const sourceOptions = useSourceOptions({ source, node });
   const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
-  const {
-    data: fetchedOptions,
+  const { data, isFetching, error } = useGetOptionsQuery(url);
+  useLogFetchError(error, item);
+
+  const downstreamParameters: string | undefined = data?.headers['altinn-downstreamparameters'];
+
+  return {
+    unsorted: sourceOptions ?? data?.data ?? staticOptions ?? defaultOptions,
     isFetching,
-    isError,
-  } = useGetOptionsQuery(optionsId, mapping, resolvedQueryParameters, secure);
+    downstreamParameters,
+  };
+}
 
-  const [calculatedOptions, preselectedOption] = useMemo(() => {
-    let draft = sourceOptions || fetchedOptions?.data || staticOptions;
-    verifyOptions(draft, valueType === 'multi');
-    let preselectedOption: IOptionInternal | undefined = undefined;
-    if (preselectedOptionIndex !== undefined && draft && draft[preselectedOptionIndex]) {
-      // This index uses the original options array, before any filtering or sorting
-      preselectedOption = draft[preselectedOptionIndex];
-    }
-
-    verifyOptions(draft, valueType === 'multi');
-
-    if (draft && draft.length < 2) {
-      // No need to sort or filter if there are 0 or 1 options. Using langAsString() can lead to re-rendering, so
-      // we avoid it if we don't need it.
-      return [draft, preselectedOption];
-    }
-
-    if (draft) {
-      draft = filterDuplicateOptions(draft);
-    }
-    if (draft && sortOrder) {
-      draft = [...draft].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
-    }
-
-    return [draft, preselectedOption];
-  }, [
-    fetchedOptions?.data,
-    langAsString,
-    preselectedOptionIndex,
-    selectedLanguage,
-    sortOrder,
-    sourceOptions,
-    staticOptions,
-    valueType,
-  ]);
-
-  // Log error if fetching options failed
+// Log error if fetching options failed
+function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
   useEffect(() => {
-    if (isError) {
+    if (error) {
+      const { id, optionsId, secure, mapping, queryParameters } = item;
       const _optionsId = optionsId ? `\noptionsId: ${optionsId}` : '';
       const _mapping = mapping ? `\nmapping: ${JSON.stringify(mapping)}` : '';
       const _queryParameters = queryParameters ? `\nqueryParameters: ${JSON.stringify(queryParameters)}` : '';
       const _secure = secure ? `\nsecure: ${secure}` : '';
 
       window.logErrorOnce(
-        `Failed to fetch options for node ${node.id}${_optionsId}${_mapping}${_queryParameters}${_secure}`,
+        `Failed to fetch options for node ${id}${_optionsId}${_mapping}${_queryParameters}${_secure}`,
       );
     }
-  }, [isError, mapping, node, optionsId, queryParameters, secure]);
+  }, [error, item]);
+}
 
-  const alwaysOptions = calculatedOptions || defaultOptions;
-  const { unsafeSelectedValues, setData } = useSetOptions(
-    { valueType, dataModelBindings: dataModelBindings as IDataModelBindingsOptionsSimple },
-    alwaysOptions,
-  );
+const emptyArray: never[] = [];
+export function useSortedOptions({ unsorted, valueType, item }: SortedOptionsProps) {
+  const sortOrder = item.sortOrder;
+  const preselectedOptionIndex = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
+  const language = useLanguage();
+  const langAsString = language.langAsString;
+  const selectedLanguage = useCurrentLanguage();
 
-  const downstreamParameters: string | undefined = fetchedOptions?.headers['altinn-downstreamparameters'];
-  const effectProps: EffectProps = useMemo(
-    () => ({
-      node,
-      item,
-      options: calculatedOptions,
-      valueType,
-      preselectedOption,
-      unsafeSelectedValues,
-      setRawData,
-      setValues: setData,
-      downstreamParameters,
-    }),
-    [
-      node,
-      item,
-      calculatedOptions,
-      valueType,
-      preselectedOption,
-      unsafeSelectedValues,
-      setRawData,
-      setData,
-      downstreamParameters,
-    ],
-  );
+  return useMemo(() => {
+    let options = structuredClone(unsorted);
+    verifyOptions(options, valueType === 'multi');
+    let preselectedOption: IOptionInternal | undefined = undefined;
+    if (preselectedOptionIndex !== undefined && options && options[preselectedOptionIndex]) {
+      // This index uses the original options array, before any filtering or sorting
+      preselectedOption = options[preselectedOptionIndex];
+    }
 
-  useEffectPreselectedOptionIndex(effectProps);
-  useEffectRemoveStaleValues(effectProps);
-  useEffectStoreLabel(effectProps);
-  useEffectSetDownstreamParameters(effectProps);
+    verifyOptions(options, valueType === 'multi');
 
-  return {
-    options: alwaysOptions,
-    isFetching,
-  };
+    if (!options || options.length === 0) {
+      return { options: emptyArray, preselectedOption };
+    }
+
+    if (options.length < 2) {
+      // No need to sort or filter if there are 0 or 1 options. Using langAsString() can lead to re-rendering, so
+      // we avoid it if we don't need it.
+      return { options, preselectedOption };
+    }
+
+    options = filterDuplicateOptions(options);
+    if (sortOrder) {
+      options = [...options].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
+    }
+
+    return { options, preselectedOption };
+  }, [langAsString, preselectedOptionIndex, selectedLanguage, sortOrder, unsorted, valueType]);
 }
 
 export function useGetOptions(
@@ -386,8 +190,16 @@ export function useGetOptions(
     | IDataModelBindingsOptionsSimple
     | undefined;
 
+  return useGetOptionsUsingDmb(node, valueType, dataModelBindings);
+}
+
+export function useGetOptionsUsingDmb(
+  node: LayoutNode<CompWithBehavior<'canHaveOptions'>>,
+  valueType: OptionsValueType,
+  dataModelBindings: IDataModelBindingsOptionsSimple | undefined,
+): GetOptionsResult & SetOptionsResult {
   const get = useNodeOptions(node);
-  const set = useSetOptions({ valueType, dataModelBindings }, get.options);
+  const set = useSetOptions(valueType, dataModelBindings, get.options);
 
   return useMemo(() => ({ ...get, ...set }), [get, set]);
 }

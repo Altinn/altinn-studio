@@ -1,14 +1,8 @@
-import { useMemo } from 'react';
-
-import type { NodeValidation } from '..';
-
 import { Validation } from 'src/features/validation/validationContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
+import type { NodeRefValidation } from 'src/features/validation/index';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
-
-const emptyArray: NodeValidation[] = [];
 
 /**
  * Returns all validation messages for a nodes children and optionally the node itself.
@@ -17,28 +11,8 @@ export function useDeepValidationsForNode(
   node: LayoutNode | undefined,
   onlyChildren: boolean = false,
   restriction?: TraversalRestriction,
-): NodeValidation[] {
+): NodeRefValidation[] {
   const showAll = Validation.useShowAllBackendErrors();
-  const validationsSelector = NodesInternal.useValidationsSelector();
-  const nodesToValidate = useNodeTraversal((t) => {
-    if (!node || t.targetIsRoot()) {
-      return [];
-    }
-
-    if (onlyChildren) {
-      return t.children(undefined, restriction);
-    }
-
-    return t.flat(undefined, restriction);
-  }, node);
-
-  return useMemo(() => {
-    if (!nodesToValidate || nodesToValidate.length === 0) {
-      return emptyArray;
-    }
-
-    return nodesToValidate.flatMap((node) =>
-      validationsSelector(node, showAll ? 'showAll' : 'visible').map((validation) => ({ ...validation, node })),
-    );
-  }, [nodesToValidate, showAll, validationsSelector]);
+  const mask = showAll ? 'showAll' : 'visible';
+  return NodesInternal.useVisibleValidationsDeep(node, mask, onlyChildren ? 1 : undefined, restriction);
 }

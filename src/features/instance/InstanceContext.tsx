@@ -1,21 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect } from 'react';
+import type { PropsWithChildren } from 'react';
 
-import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { AxiosError } from 'axios';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import { createStore } from 'zustand';
+import type { QueryObserverResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { createContext } from 'src/core/contexts/context';
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
+import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
-import { useStateDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { buildInstanceDataSources } from 'src/utils/instanceDataSources';
-import { isAxiosError } from 'src/utils/isAxiosError';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
-import type { IInstance, IInstanceDataSources } from 'src/types/shared';
+import type { IData, IInstance, IInstanceDataSources } from 'src/types/shared';
 
 export interface InstanceContext {
   // Instance identifiers
@@ -27,35 +28,94 @@ export interface InstanceContext {
   data: IInstance | undefined;
   dataSources: IInstanceDataSources | null;
 
-  // Fetching/query states
-  isFetching: boolean;
-  error: AxiosError | undefined;
-
   // Methods/utilities
+  appendDataElement: (element: IData) => void;
+  mutateDataElement: (elementId: string, mutator: (element: IData) => IData) => void;
+  removeDataElement: (elementId: string) => void;
+
   changeData: ChangeInstanceData;
-  reFetch: () => Promise<void>;
+  reFetch: () => Promise<QueryObserverResult<IInstance>>;
+  setReFetch: (reFetch: () => Promise<QueryObserverResult<IInstance>>) => void;
 }
 
 export type ChangeInstanceData = (callback: (instance: IInstance | undefined) => IInstance | undefined) => void;
 
-const { Provider, useCtx, useHasProvider } = createContext<InstanceContext | undefined>({
+type InstanceStoreProps = Pick<InstanceContext, 'partyId' | 'instanceGuid'>;
+
+const { Provider, useMemoSelector, useSelector, useLaxSelector, useHasProvider } = createZustandContext({
   name: 'InstanceContext',
-  required: false,
-  default: undefined,
+  required: true,
+  initialCreateStore: (props: InstanceStoreProps) =>
+    createStore<InstanceContext>((set) => ({
+      ...props,
+      instanceId: `${props.partyId}/${props.instanceGuid}`,
+      data: undefined,
+      dataSources: null,
+      appendDataElement: (element) =>
+        set((state) => {
+          if (!state.data) {
+            throw new Error('Cannot append data element when instance data is not set');
+          }
+          const next = { ...state.data, data: [...state.data.data, element] };
+          return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+        }),
+      mutateDataElement: (elementId, mutator) =>
+        set((state) => {
+          if (!state.data) {
+            throw new Error('Cannot mutate data element when instance data is not set');
+          }
+          const next = {
+            ...state.data,
+            data: state.data.data.map((element) => (element.id === elementId ? mutator(element) : element)),
+          };
+          return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+        }),
+      removeDataElement: (elementId) =>
+        set((state) => {
+          if (!state.data) {
+            throw new Error('Cannot remove data element when instance data is not set');
+          }
+          const next = { ...state.data, data: state.data.data.filter((element) => element.id !== elementId) };
+          return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+        }),
+      changeData: (callback) =>
+        set((state) => {
+          const next = callback(state.data);
+          if (next && state.data !== next) {
+            return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
+          }
+          return {};
+        }),
+      reFetch: async () => {
+        throw new Error('reFetch not implemented yet');
+      },
+      setReFetch: (reFetch) =>
+        set({
+          reFetch: async () => {
+            const result = await reFetch();
+            set((state) => ({ ...state, data: result.data, dataSources: buildInstanceDataSources(result.data) }));
+            return result;
+          },
+        }),
+    })),
 });
 
 // Also used for prefetching @see appPrefetcher.ts
-export function useInstanceDataQueryDef(partyId?: string, instanceGuid?: string): QueryDefinition<IInstance> {
+export function useInstanceDataQueryDef(
+  hasResultFromInstantiation: boolean,
+  partyId?: string,
+  instanceGuid?: string,
+): QueryDefinition<IInstance> {
   const { fetchInstanceData } = useAppQueries();
   return {
     queryKey: ['fetchInstanceData', partyId, instanceGuid],
     queryFn: partyId && instanceGuid ? () => fetchInstanceData(partyId, instanceGuid) : skipToken,
-    enabled: !!partyId && !!instanceGuid,
+    enabled: !!partyId && !!instanceGuid && !hasResultFromInstantiation,
   };
 }
 
-function useGetInstanceDataQuery(partyId: string, instanceGuid: string) {
-  const utils = useQuery(useInstanceDataQueryDef(partyId, instanceGuid));
+function useGetInstanceDataQuery(hasResultFromInstantiation: boolean, partyId: string, instanceGuid: string) {
+  const utils = useQuery(useInstanceDataQueryDef(hasResultFromInstantiation, partyId, instanceGuid));
 
   useEffect(() => {
     utils.error && window.logError('Fetching instance data failed:\n', utils.error);
@@ -92,76 +152,51 @@ const InnerInstanceProvider = ({
   children: React.ReactNode;
   partyId: string;
   instanceGuid: string;
-}) => {
-  const queryClient = useQueryClient();
-  const [data, setData] = useStateDeepEqual<IInstance | undefined>(undefined);
-  const [error, setError] = useState<AxiosError | undefined>(undefined);
-  const dataSources = useMemo(() => buildInstanceDataSources(data), [data]);
+}) => (
+  <Provider
+    partyId={partyId}
+    instanceGuid={instanceGuid}
+  >
+    <BlockUntilLoaded>
+      <ProcessProvider instanceId={`${partyId}/${instanceGuid}`}>{children}</ProcessProvider>
+    </BlockUntilLoaded>
+  </Provider>
+);
+
+const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
+  const partyId = useSelector((state) => state.partyId);
+  const instanceGuid = useSelector((state) => state.instanceGuid);
+  const changeData = useSelector((state) => state.changeData);
+  const setReFetch = useSelector((state) => state.setReFetch);
   const instantiation = useInstantiation();
-  const fetchQuery = useGetInstanceDataQuery(partyId, instanceGuid);
+  const {
+    error: queryError,
+    isLoading,
+    data: queryData,
+    refetch,
+  } = useGetInstanceDataQuery(!!instantiation.lastResult, partyId, instanceGuid);
+  const isDataSet = useSelector((state) => state.data !== undefined);
 
-  const changeData: ChangeInstanceData = useCallback(
-    (callback) => {
-      setData((prev) => {
-        const next = callback(prev);
-        if (next) {
-          return next;
-        }
-        return prev;
-      });
-    },
-    [setData],
-  );
-
-  // Update data
-  useEffect(() => {
-    changeData((prev) => (instantiation.error ? undefined : (instantiation.lastResult ?? prev)));
-  }, [changeData, instantiation.lastResult, instantiation.error]);
+  const error = instantiation.error ?? queryError;
+  const data = instantiation.lastResult ?? queryData;
 
   useEffect(() => {
-    if (fetchQuery.data && !fetchQuery.error) {
-      changeData(() => fetchQuery.data);
-    }
-  }, [changeData, fetchQuery.data, fetchQuery.error]);
+    data && changeData(() => data);
+  }, [changeData, data]);
 
-  // Update error states
   useEffect(() => {
-    fetchQuery.error && isAxiosError(fetchQuery.error) && setError(fetchQuery.error);
-    instantiation.error && setError(instantiation.error);
-  }, [fetchQuery.error, instantiation.error]);
+    setReFetch(refetch);
+  }, [refetch, setReFetch]);
 
   if (error) {
     return <DisplayError error={error} />;
   }
 
-  if (fetchQuery.isLoading) {
+  if (isLoading || !isDataSet) {
     return <Loader reason='instance' />;
   }
 
-  if (!data) {
-    return false;
-  }
-
-  return (
-    <Provider
-      value={{
-        data,
-        dataSources,
-        isFetching: fetchQuery.isFetching,
-        error,
-        changeData,
-        reFetch: async () => {
-          setData(undefined);
-          await queryClient.invalidateQueries({ queryKey: ['fetchInstanceData'] });
-        },
-        partyId,
-        instanceGuid,
-        instanceId: `${partyId}/${instanceGuid}`,
-      }}
-    >
-      <ProcessProvider instance={data}>{children}</ProcessProvider>
-    </Provider>
-  );
+  return <>{children}</>;
 };
 
 /**
@@ -170,26 +205,21 @@ const InnerInstanceProvider = ({
  * know should only be used in instanceful contexts. Code paths that have to work in stateless/instanceless contexts
  * should use the lax versions and handle the undefined case.
  */
+function useLaxInstance<U>(selector: (state: InstanceContext) => U) {
+  const out = useLaxSelector(selector);
+  return out === ContextNotProvided ? undefined : out;
+}
 
-export const useLaxInstance = () => useCtx();
-export const useLaxInstanceData = () => useLaxInstance()?.data;
-export const useLaxInstanceDataSources = () => useLaxInstance()?.dataSources ?? null;
+export const useLaxInstanceId = () => useLaxInstance((state) => state.instanceId);
+export const useLaxInstanceData = () => useLaxInstance((state) => state.data);
+export const useLaxAppendDataElement = () => useLaxInstance((state) => state.appendDataElement);
+export const useLaxMutateDataElement = () => useLaxInstance((state) => state.mutateDataElement);
+export const useLaxRemoveDataElement = () => useLaxInstance((state) => state.removeDataElement);
+export const useLaxInstanceDataSources = () => useLaxInstance((state) => state.dataSources) ?? null;
 export const useHasInstance = () => useHasProvider();
 
-export const useStrictInstance = () => {
-  const instance = useLaxInstance();
-  if (!instance) {
-    throw new Error('Tried using instance context outside of instance context provider');
-  }
-
-  return instance;
-};
-
-export const useStrictInstanceData = () => {
-  const data = useStrictInstance().data;
-  if (!data) {
-    throw new Error('Tried using instance data before data was loaded');
-  }
-
-  return data;
-};
+const emptyArray: never[] = [];
+export const useStrictInstance = () => useSelector((state) => state);
+export const useStrictInstanceId = () => useSelector((state) => state.instanceId);
+export const useStrictDataElements = (dataType: string | undefined) =>
+  useMemoSelector((state) => state.data?.data.filter((d) => d.dataType === dataType)) ?? emptyArray;

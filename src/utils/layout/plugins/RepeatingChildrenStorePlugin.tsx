@@ -53,6 +53,10 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
             }
 
             const existingRows = thisNode.item && (thisNode.item[internalProp] as RepChildrenRow[] | undefined);
+            if (!existingRows || !existingRows[rowIndex]) {
+              continue;
+            }
+
             const existingRow = existingRows ? existingRows[rowIndex] : undefined;
             const nextRow = { ...existingRow, ...extras, index: rowIndex } as RepChildrenRow;
             if (existingRows && existingRow && deepEqual(existingRow, nextRow)) {
@@ -86,6 +90,10 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
             }
 
             const existingRows = thisNode.item && (thisNode.item[internalProp] as RepChildrenRow[] | undefined);
+            if (!existingRows || !existingRows[rowIndex]) {
+              continue;
+            }
+
             const existingRow = existingRows ? existingRows[rowIndex] : undefined;
             const nextRow = { ...existingRow, uuid: rowUuid, index: rowIndex } as RepChildrenRow;
             if (existingRows && existingRow && deepEqual(existingRow, nextRow)) {
@@ -112,17 +120,25 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
             return {};
           }
           const existingRows = thisNode.item && (thisNode.item[internalProp] as RepChildrenRow[] | undefined);
-          if (!existingRows) {
-            return {};
-          }
-          const lastRow = existingRows[existingRows.length - 1];
-          if (!lastRow) {
+          if (!existingRows || !existingRows[existingRows.length - 1]) {
             return {};
           }
 
           // When removing rows, we'll always remove the last one. There is no such thing as removing a row in the
           // middle, as the indexes will always re-flow to the total number of rows left.
           const newRows = existingRows.slice(0, -1);
+
+          // In these rows, all the UUIDs will change now that we've removed one. Removing these from existing rows
+          // so that we don't have stale UUIDs in the state while waiting for them to be set.
+          for (const rowIdx in newRows) {
+            const row = { ...newRows[rowIdx] };
+            if (row.uuid) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              delete (row as any).uuid;
+            }
+            newRows[rowIdx] = row;
+          }
+
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           nodeData[node.id] = { ...thisNode, item: { ...thisNode.item, [internalProp]: newRows } as any };
 

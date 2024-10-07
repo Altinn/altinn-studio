@@ -63,7 +63,6 @@ function useLegacyHiddenComponents() {
           [node],
         );
         for (const firstChild of firstChildren ?? []) {
-          runConditionalRenderingRule(rule, firstChild, ...props);
           if (rule.repeatingGroup.childGroupId && firstChild) {
             const rowIndex = firstChild.rowIndex!;
             const childId = `${rule.repeatingGroup.childGroupId}-${rowIndex}`;
@@ -84,6 +83,8 @@ function useLegacyHiddenComponents() {
                 runConditionalRenderingRule(rule, firstNestedChild, ...props);
               }
             }
+          } else if (firstChild) {
+            runConditionalRenderingRule(rule, firstChild, ...props);
           }
         }
       }

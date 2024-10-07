@@ -388,6 +388,7 @@ describe('Repeating group attachments', () => {
       ['[1].nested-grp-1234[1].fileUploadList[1]', filenames[1].nested[1][2]],
     ].sort();
 
+    cy.log('Form data check number 1');
     expectAttachmentsToBe(attachmentState);
     expectFormDataToBe(formData);
 
@@ -397,6 +398,7 @@ describe('Repeating group attachments', () => {
       cy.reload();
       cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
 
+      cy.log('Form data check number 2');
       expectFormDataToBe(formData);
       expectAttachmentsToBe(attachmentState);
     } else {
@@ -456,6 +458,7 @@ describe('Repeating group attachments', () => {
     );
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
 
+    cy.log('Form data check number 3');
     expectFormDataToBe(formDataAfterDeletingFirstNestedRow);
     expectAttachmentsToBe(attachmentStateAfterDeletingFirstNestedRow);
 
@@ -494,6 +497,7 @@ describe('Repeating group attachments', () => {
       ['[0].nested-grp-1234[1].fileUploadList[1]', filenames[1].nested[1][2]],
     ].sort();
 
+    cy.log('Form data check number 4');
     expectAttachmentsToBe(attachmentStateAfterDeletingFirstRow);
     expectFormDataToBe(formDataAfterDeletingFirstRow);
 
@@ -502,6 +506,7 @@ describe('Repeating group attachments', () => {
       cy.reload();
       verifyPreview(true);
 
+      cy.log('Form data check number 5');
       expectAttachmentsToBe(attachmentStateAfterDeletingFirstRow);
       expectFormDataToBe(formDataAfterDeletingFirstRow);
     }

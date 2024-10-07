@@ -14,6 +14,7 @@ import { useOnPageNavigationValidation } from 'src/features/validation/callbacks
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { promisify } from 'src/utils/promisify';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
@@ -151,6 +152,7 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
   const partyId = useNavigationParam('partyId');
   const instanceGuid = useNavigationParam('instanceGuid');
   const { handleClientActions, handleDataModelUpdate } = useHandleClientActions();
+  const markNotReady = NodesInternal.useMarkNotReady();
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async ({ action, buttonId }: PerformActionMutationProps) => {
@@ -166,6 +168,11 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
       await lockTools.lock();
       try {
         const result = await mutateAsync({ action, buttonId });
+
+        // Server actions can bring back changes to the data model, which could cause the node tree to update. Marking
+        // it as not ready now will prevent some re-renders with stale data while the result is handled later.
+        markNotReady();
+
         await handleDataModelUpdate(lockTools, result);
         if (result.clientActions) {
           await handleClientActions(result.clientActions);
@@ -179,7 +186,7 @@ function useHandleServerActionMutation(lockTools: FormDataLockTools): UsePerform
         }
       }
     },
-    [handleClientActions, handleDataModelUpdate, lockTools, mutateAsync],
+    [handleClientActions, handleDataModelUpdate, lockTools, mutateAsync, markNotReady],
   );
 
   return { handleServerAction, isPending };

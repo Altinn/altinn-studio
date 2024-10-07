@@ -10,6 +10,7 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -90,6 +91,8 @@ function _RepeatingGroupTableRow({
   const id = node.id;
   const group = useNodeItem(node);
   const row = group.rows.find((r) => r && r.uuid === uuid && r.index === index);
+  const freshUuid = FD.useFreshRowUuid(group.dataModelBindings?.group, index);
+  const isFresh = freshUuid === uuid;
   const rowExpressions = row?.groupExpressions;
   const editForRow = rowExpressions?.edit;
   const editForGroup = group.edit;
@@ -121,7 +124,7 @@ function _RepeatingGroupTableRow({
     .map((n) => n.id);
   const rowValidations = useDeepValidationsForNode(node, true, index);
   const rowHasErrors = rowValidations.some(
-    (validation) => validation.severity === 'error' && !tableEditingNodeIds.includes(validation.node.id),
+    (validation) => validation.severity === 'error' && !tableEditingNodeIds.includes(validation.nodeId),
   );
 
   const editButtonText = rowHasErrors
@@ -249,6 +252,7 @@ function _RepeatingGroupTableRow({
                   aria-label={`${editButtonText} ${firstCellData ?? ''}`}
                   data-testid='edit-button'
                   className={classes.tableButton}
+                  disabled={!isFresh}
                 >
                   {editButtonText}
                   {rowHasErrors ? (
@@ -282,6 +286,7 @@ function _RepeatingGroupTableRow({
                   firstCellData={firstCellData}
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
+                  disabled={!isFresh}
                 >
                   {deleteButtonText}
                 </DeleteElement>
@@ -334,6 +339,7 @@ function _RepeatingGroupTableRow({
                   firstCellData={firstCellData}
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
+                  disabled={!isFresh}
                 >
                   {isEditingRow || !mobileViewSmall ? deleteButtonText : null}
                 </DeleteElement>
@@ -374,6 +380,7 @@ function DeleteElement({
   deleteButtonText,
   firstCellData,
   langAsString,
+  disabled,
   alertOnDeleteProps: { alertOpen, setAlertOpen, confirmChange, cancelChange, handleChange: handleDelete },
   children,
 }: {
@@ -385,6 +392,7 @@ function DeleteElement({
   firstCellData: string | undefined;
   langAsString: (key: string) => string;
   alertOnDeleteProps: AlertOnChange<(row: BaseRow) => void>;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -408,7 +416,7 @@ function DeleteElement({
         variant='tertiary'
         color='danger'
         size='small'
-        disabled={isDeletingRow}
+        disabled={isDeletingRow || disabled}
         onClick={() => handleDelete({ index, uuid })}
         aria-label={`${deleteButtonText}-${firstCellData}`}
         data-testid='delete-button'

@@ -7,7 +7,7 @@ import { type BackendValidationIssue, BackendValidationSeverity } from '..';
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { appSupportsIncrementalValidationFeatures } from 'src/features/validation/backendValidation/backendValidationUtils';
@@ -17,7 +17,7 @@ import { useAsRef } from 'src/hooks/useAsRef';
  * The same queryKey must be used for all of the functions below
  */
 function useBackendValidationQueryKey() {
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
   const currentProcessTaskId = useLaxProcessData()?.currentTask?.elementId;
 
   return useMemo(() => ['validation', instanceId, currentProcessTaskId], [currentProcessTaskId, instanceId]);
@@ -101,7 +101,7 @@ function useBackendValidationQueryFunc(onlyIncrementalValidators: boolean, force
   const { fetchBackendValidations, fetchBackendValidationsForDataElement } = useAppQueries();
   const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(useApplicationMetadata());
   const currentDataElementID = useCurrentDataModelGuid();
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
   const currentLanguage = useAsRef(useCurrentLanguage());
 
   return useMemo(() => {

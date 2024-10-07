@@ -11,25 +11,24 @@ describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {
     let formDataReqCounter = 0;
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangeFormData' });
-    cy.goto('group').then(() => {
-      cy.intercept('PATCH', '**/data/**', () => {
-        formDataReqCounter++;
-      }).as('saveFormData');
-      cy.get(appFrontend.group.prefill.liten).check();
-      cy.wait('@saveFormData').then(() => {
-        expect(formDataReqCounter).to.be.eq(1);
-      });
-      cy.get(appFrontend.nextButton).clickAndGone();
-      cy.get(appFrontend.backButton).clickAndGone();
+    cy.goto('group');
+    cy.intercept('PATCH', '**/data/**', () => {
+      formDataReqCounter++;
+    }).as('saveFormData');
+    cy.get(appFrontend.group.prefill.liten).check();
+    cy.wait('@saveFormData').then(() => {
+      expect(formDataReqCounter).to.be.eq(1);
+    });
+    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.get(appFrontend.backButton).clickAndGone();
 
-      // Doing an extra wait to be sure no request is sent to backend
-      cy.waitUntilSaved();
-      cy.waitUntilNodesReady();
-      cy.waitForNetworkIdle(100);
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(100).then(() => {
-        expect(formDataReqCounter).to.be.eq(1);
-      });
+    // Doing an extra wait to be sure no request is sent to backend
+    cy.waitUntilSaved();
+    cy.waitUntilNodesReady();
+    cy.waitForNetworkIdle(100);
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(100).then(() => {
+      expect(formDataReqCounter).to.be.eq(1);
     });
   });
 
@@ -37,51 +36,50 @@ describe('Auto save behavior', () => {
     let formDataReqCounter = 0;
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
 
-    cy.goto('group').then(() => {
-      cy.intercept('PATCH', '**/data/**', () => {
-        formDataReqCounter++;
-      }).as('saveFormData');
-      cy.get(appFrontend.group.prefill.liten).check();
-      // Doing a hard wait to be sure no request is sent to backend
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(1000).then(() => {
-        expect(formDataReqCounter).to.be.eq(0);
-      });
+    cy.goto('group');
+    cy.intercept('PATCH', '**/data/**', () => {
+      formDataReqCounter++;
+    }).as('saveFormData');
+    cy.get(appFrontend.group.prefill.liten).check();
+    // Doing a hard wait to be sure no request is sent to backend
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1000).then(() => {
+      expect(formDataReqCounter).to.be.eq(0);
+    });
 
-      // NavigationButtons
-      cy.get(appFrontend.nextButton).clickAndGone();
-      cy.wait('@saveFormData').then(() => {
-        expect(formDataReqCounter).to.be.eq(1);
-      });
+    // NavigationButtons
+    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.wait('@saveFormData').then(() => {
+      expect(formDataReqCounter).to.be.eq(1);
+    });
 
-      // Clicking the back button does not save anything, because we didn't
-      // change anything in the form data worth saving
-      cy.get(appFrontend.backButton).clickAndGone();
+    // Clicking the back button does not save anything, because we didn't
+    // change anything in the form data worth saving
+    cy.get(appFrontend.backButton).clickAndGone();
 
-      cy.navPage('prefill').should('have.attr', 'aria-current', 'page');
-      cy.get(appFrontend.group.prefill.liten).should('be.visible');
+    cy.navPage('prefill').should('have.attr', 'aria-current', 'page');
+    cy.get(appFrontend.group.prefill.liten).should('be.visible');
 
-      // Go forward again, change something and then observe the back button saves
-      cy.get(appFrontend.nextButton).clickAndGone();
-      cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-      cy.get(appFrontend.backButton).clickAndGone();
-      cy.wait('@saveFormData').then(() => {
-        expect(formDataReqCounter).to.be.eq(2);
-      });
+    // Go forward again, change something and then observe the back button saves
+    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.get(appFrontend.backButton).clickAndGone();
+    cy.wait('@saveFormData').then(() => {
+      expect(formDataReqCounter).to.be.eq(2);
+    });
 
-      // NavigationBar
-      cy.get(appFrontend.group.prefill.middels).check();
-      cy.get(appFrontend.navMenu).findByRole('button', { name: '2. repeating' }).click();
-      cy.wait('@saveFormData').then(() => {
-        expect(formDataReqCounter).to.be.eq(3);
-      });
+    // NavigationBar
+    cy.get(appFrontend.group.prefill.middels).check();
+    cy.get(appFrontend.navMenu).findByRole('button', { name: '2. repeating' }).click();
+    cy.wait('@saveFormData').then(() => {
+      expect(formDataReqCounter).to.be.eq(3);
+    });
 
-      // Icon previous button
-      cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).uncheck();
-      cy.get(appFrontend.prevButton).clickAndGone();
-      cy.wait('@saveFormData').then(() => {
-        expect(formDataReqCounter).to.be.eq(4);
-      });
+    // Icon previous button
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).uncheck();
+    cy.get(appFrontend.prevButton).clickAndGone();
+    cy.wait('@saveFormData').then(() => {
+      expect(formDataReqCounter).to.be.eq(4);
     });
   });
 

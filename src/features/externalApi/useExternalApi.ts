@@ -1,7 +1,7 @@
 import { skipToken, useQueries, useQuery } from '@tanstack/react-query';
 import type { UseQueryOptions } from '@tanstack/react-query';
 
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { fetchExternalApi } from 'src/queries/queries';
 
 export type ExternalApisResult = { data: Record<string, unknown>; errors: Record<string, Error> };
@@ -21,7 +21,7 @@ function getExternalApiQueryDef({
 }
 
 export function useExternalApis(ids: string[]): ExternalApisResult {
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
   const queries = ids.map((externalApiId) => ({
     ...getExternalApiQueryDef({ externalApiId, instanceId }),
   }));
@@ -49,7 +49,7 @@ export function useExternalApis(ids: string[]): ExternalApisResult {
 }
 
 export function useExternalApi(id: string): unknown {
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
 
   return useQuery(getExternalApiQueryDef({ externalApiId: id, instanceId }));
 }

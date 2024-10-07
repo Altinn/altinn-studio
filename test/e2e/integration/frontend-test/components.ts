@@ -785,7 +785,9 @@ describe('UI Components', () => {
 
     // Force the map component to remount to skip the zoom animation
     cy.gotoNavPage('form');
+    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible'); // Making sure the page is loaded
     cy.gotoNavPage('map');
+    cy.get(component('map')).should('be.visible');
 
     // Make sure tiles are not faded before taking the snapshot
     cy.get('.leaflet-layer img').each((layer) => cy.wrap(layer).should('have.css', 'opacity', '1'));

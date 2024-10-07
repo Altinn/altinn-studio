@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 
 import { usePrefetchQuery } from 'src/core/queries/usePrefetchQuery';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useGetOptionsQueryDef } from 'src/features/options/useGetOptionsQuery';
 import { duplicateStringFilter } from 'src/utils/stringHelper';
@@ -15,7 +15,7 @@ type O = ISelectionComponent;
 export function StaticOptionPrefetcher() {
   const layouts = useLayouts();
   const language = useCurrentLanguage();
-  const instanceId = useLaxInstance()?.instanceId;
+  const instanceId = useLaxInstanceId();
 
   const optionUrls: string[] = useMemo(
     () =>

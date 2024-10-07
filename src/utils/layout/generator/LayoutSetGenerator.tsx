@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ExprVal } from 'src/features/expressions/types';
-import { useHiddenLayoutsExpressions, useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useHiddenLayoutsExpressions } from 'src/features/form/layout/LayoutsContext';
 import { getComponentCapabilities, getComponentDef } from 'src/layout';
 import { ContainerComponent } from 'src/layout/LayoutComponent';
+import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal, GeneratorPageProvider } from 'src/utils/layout/generator/GeneratorContext';
 import {
@@ -13,7 +14,6 @@ import {
 import {
   GeneratorCondition,
   GeneratorStages,
-  NodesStateQueue,
   StageAddNodes,
   StageMarkHidden,
 } from 'src/utils/layout/generator/GeneratorStages';
@@ -29,7 +29,6 @@ import type {
   ContainerGeneratorProps,
 } from 'src/layout/LayoutComponent';
 import type { ChildClaim, ChildClaims, ChildClaimsMap } from 'src/utils/layout/generator/GeneratorContext';
-import type { HiddenState } from 'src/utils/layout/NodesContext';
 
 const style: React.CSSProperties = GeneratorDebug.displayState
   ? {
@@ -53,7 +52,7 @@ interface ChildrenState {
 }
 
 export function LayoutSetGenerator() {
-  const layouts = useLayouts();
+  const layouts = GeneratorInternal.useLayouts();
   const pages = useMemo(() => new LayoutPages(), []);
 
   const children = (
@@ -88,8 +87,8 @@ export function LayoutSetGenerator() {
 function SaveFinishedNodesToStore({ pages }: { pages: LayoutPages }) {
   const existingNodes = useNodesWhenNotReady();
   const setNodes = NodesInternal.useSetNodes();
-  const isFinishedAddingNodes = GeneratorStages.AddNodes.useIsDone();
-  const numPages = Object.keys(useLayouts()).length;
+  const isFinishedAddingNodes = GeneratorStages.useIsDoneAddingNodes();
+  const numPages = Object.keys(GeneratorInternal.useLayouts()).length;
   const shouldSet = existingNodes !== pages && pages && (isFinishedAddingNodes || numPages === 0);
 
   useEffect(() => {
@@ -215,15 +214,6 @@ function PageGenerator({ layout, name, layoutSet }: PageProps) {
     return claims;
   }, [map, layout]);
 
-  const layoutMap = useMemo(() => {
-    const out: { [id: string]: CompExternal } = {};
-    for (const component of layout) {
-      out[component.id] = component;
-    }
-
-    return out;
-  }, [layout]);
-
   if (layout.length === 0) {
     return null;
   }
@@ -254,7 +244,6 @@ function PageGenerator({ layout, name, layoutSet }: PageProps) {
       {map !== undefined && (
         <GeneratorPageProvider
           parent={page}
-          layoutMap={layoutMap}
           childrenMap={map}
         >
           <GenerateNodeChildren
@@ -276,7 +265,7 @@ interface CommonProps {
 function AddPage({ layoutSet, page, name }: CommonProps) {
   const addPage = NodesInternal.useAddPage();
 
-  GeneratorStages.AddNodes.useEffect(() => {
+  useEffect(() => {
     addPage(name);
     if (!page.isRegisteredInCollection(layoutSet)) {
       page.registerCollection(name, layoutSet);
@@ -287,22 +276,11 @@ function AddPage({ layoutSet, page, name }: CommonProps) {
 }
 
 function MarkPageHidden({ name, page }: Omit<CommonProps, 'layoutSet'>) {
-  const setPageProp = NodesStateQueue.useSetPageProp();
-  const hiddenByTracks = Hidden.useIsPageHiddenViaTracks(name);
-  const hiddenByExpression = useIsHiddenPage(page);
+  const inOrder = Hidden.useIsPageInOrder(name);
+  const hidden = useIsHiddenPage(page);
 
-  const hidden: HiddenState = useMemo(
-    () => ({
-      hiddenByTracks,
-      hiddenByExpression,
-      hiddenByRules: false,
-    }),
-    [hiddenByTracks, hiddenByExpression],
-  );
-
-  GeneratorStages.MarkHidden.useEffect(() => {
-    setPageProp({ pageKey: name, prop: 'hidden', value: hidden });
-  }, [hidden, name, setPageProp]);
+  NodesStateQueue.useSetPageProp({ pageKey: name, prop: 'hidden', value: hidden });
+  NodesStateQueue.useSetPageProp({ pageKey: name, prop: 'inOrder', value: inOrder });
 
   return null;
 }
@@ -386,7 +364,7 @@ function GenerateNodeChildrenInternal({ claims, layoutMap }: NodeChildrenInterna
           <GenerateComponent
             layout={layoutMap[id]}
             claim={claims[id]}
-            childClaims={map[id]}
+            childClaims={map?.[id]}
           />
         </GeneratorErrorBoundary>
       ))}
@@ -394,9 +372,9 @@ function GenerateNodeChildrenInternal({ claims, layoutMap }: NodeChildrenInterna
   );
 }
 
-function useIsHiddenPage(page: LayoutPage) {
+function useIsHiddenPage(page: LayoutPage): boolean {
   const hiddenExpr = useHiddenLayoutsExpressions();
-  return useEvalExpressionInGenerator(ExprVal.Boolean, page, hiddenExpr[page.pageKey], false);
+  return useEvalExpressionInGenerator(ExprVal.Boolean, page, hiddenExpr[page.pageKey], false) ?? false;
 }
 
 interface ComponentClaimChildrenProps {

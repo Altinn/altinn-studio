@@ -4,7 +4,6 @@ import type { FC } from 'react';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { formatLayoutSchemaValidationError } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { getNodeDef } from 'src/layout';
-import { GeneratorStages } from 'src/utils/layout/generator/GeneratorStages';
 import { GeneratorValidation } from 'src/utils/layout/generator/validation/GenerationValidationContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { duplicateStringFilter } from 'src/utils/stringHelper';
@@ -56,7 +55,7 @@ function DataModelValidation<T extends CompTypes>({ node, intermediateItem }: No
   }, [intermediateItem, node, lookupBinding, nodeDataSelector]);
 
   // Must run after nodes have been added for the errors to actually be added
-  GeneratorStages.MarkHidden.useEffect(() => {
+  useEffect(() => {
     if (!errors.length) {
       return;
     }

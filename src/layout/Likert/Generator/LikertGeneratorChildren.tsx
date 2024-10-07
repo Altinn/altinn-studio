@@ -1,14 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { getLikertStartStopIndex } from 'src/utils/formLayout';
 import { GeneratorInternal, GeneratorRowProvider } from 'src/utils/layout/generator/GeneratorContext';
-import {
-  GeneratorCondition,
-  GeneratorRunProvider,
-  GeneratorStages,
-  StageAddNodes,
-} from 'src/utils/layout/generator/GeneratorStages';
+import { GeneratorCondition, GeneratorRunProvider, StageAddNodes } from 'src/utils/layout/generator/GeneratorStages';
 import { GenerateNodeChildrenWithStaticLayout } from 'src/utils/layout/generator/LayoutSetGenerator';
 import {
   mutateComponentId,
@@ -27,12 +22,12 @@ export function LikertGeneratorChildren() {
       stage={StageAddNodes}
       mustBeAdded='parent'
     >
-      <PerformWork />
+      <LikertGeneratorChildrenWorker />
     </GeneratorCondition>
   );
 }
 
-function PerformWork() {
+function LikertGeneratorChildrenWorker() {
   const item = GeneratorInternal.useIntermediateItem() as CompIntermediate<'Likert'>;
   const questionsBinding = item?.dataModelBindings?.questions;
   const rows = FD.useFreshRows(questionsBinding);
@@ -123,7 +118,7 @@ function _GenerateRow({ rowIndex, questionsBinding }: GenerateRowProps) {
     [rowIndex, depth, questionsBinding],
   );
 
-  GeneratorStages.AddNodes.useEffect(
+  useEffect(
     () => () => {
       removeRow(node, 'rows');
     },
@@ -134,6 +129,7 @@ function _GenerateRow({ rowIndex, questionsBinding }: GenerateRowProps) {
     <GeneratorRowProvider
       rowIndex={rowIndex}
       recursiveMutators={recursiveMutators}
+      groupBinding={questionsBinding}
     >
       <GenerateNodeChildrenWithStaticLayout
         claims={childClaims}

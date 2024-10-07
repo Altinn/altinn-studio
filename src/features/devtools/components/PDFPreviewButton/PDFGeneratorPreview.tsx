@@ -4,7 +4,7 @@ import { Button, Modal, Spinner } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
-import { useLaxInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -20,7 +20,7 @@ export function PDFGeneratorPreview({ buttonTitle }: { buttonTitle?: string }) {
   const [errorText, setErrorText] = React.useState<string | null>(null);
 
   const taskType = useTaskTypeFromBackend();
-  const instanceId = useLaxInstance()?.data?.id;
+  const instanceId = useLaxInstanceData()?.id;
   const language = useCurrentLanguage();
   const isLocalOrStaging = useIsLocalOrStaging();
 

@@ -208,4 +208,12 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
 
     return hiddenImplicitly;
   }
+
+  stateIsReady(state: NodeData<'RepeatingGroup'>): boolean {
+    if (!super.stateIsReady(state)) {
+      return false;
+    }
+
+    return state.item?.rows?.every((row) => row && row.groupExpressions !== undefined) ?? false;
+  }
 }

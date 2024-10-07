@@ -7,6 +7,7 @@ import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GenerateImportedSymbol } from 'src/codegen/dataTypes/GenerateImportedSymbol';
 import type { TypesFromCategory } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type {
   DefPluginChildClaimerProps,
   DefPluginExtraInItem,
@@ -264,5 +265,15 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig>
     // Repeating children plugins do not have any specific logic here, but beware that
     // the RepeatingGroup component does.
     return false;
+  }
+
+  stateIsReady(state: DefPluginState<ToInternal<E>>, fullState: NodesContext): boolean {
+    if (!super.stateIsReady(state, fullState)) {
+      return false;
+    }
+
+    const internalProp = this.settings.internalProp;
+    const rows = state.item?.[internalProp] as Row<E>[] | undefined;
+    return rows?.every((row) => row && row.uuid !== undefined) ?? false;
   }
 }
