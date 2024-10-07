@@ -14,4 +14,5 @@
 .accordionHeader {
   display: flex;
   gap: var(--fds-spacing-4);
+  align-items: center;
 }

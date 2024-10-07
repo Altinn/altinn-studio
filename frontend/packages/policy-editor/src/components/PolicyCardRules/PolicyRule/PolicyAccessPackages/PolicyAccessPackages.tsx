@@ -60,7 +60,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
 
   return (
     <div className={classes.accessPackages}>
-      <Label size='small'>Tilgangspakker</Label>
+      <Label size='sm'>Tilgangspakker</Label>
       {chosenAccessPackages.length === 0 && <div>Her ser du tilgangspakkene du har lagt til</div>}
       {chosenAccessPackages.length > 0 && (
         <Accordion color='second'>
@@ -94,7 +94,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         </Accordion>
       )}
       <Divider marginless />
-      <Paragraph size='large'>Kategorier</Paragraph>
+      <Label size='sm'>Kategorier</Label>
       <div>
         {accessPackages.map((category) => {
           // find number of chosen packages in current category
@@ -144,7 +144,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         })}
       </div>
       {showAllErrors && policyError.subjectsError && (
-        <ErrorMessage size='small'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
+        <ErrorMessage size='sm'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
       )}
     </div>
   );
