@@ -94,9 +94,6 @@ const DropdownMenuGroups = ({
   const { t } = useTranslation();
   const { menuItems, profileMenuItems } = usePageHeaderContext();
 
-  const menuGroupHeader = (menuGroup: NavigationMenuSmallGroup): string =>
-    menuGroup.showName ? t(menuGroup.name) : '';
-
   const groupedMenuItems: HeaderMenuGroup[] = groupMenuItemsByGroup(menuItems);
 
   const profileMenuGroup: NavigationMenuSmallGroup = {
@@ -113,9 +110,9 @@ const DropdownMenuGroups = ({
     profileMenuGroup,
   ];
 
-  return menuGroups.map((menuGroup: NavigationMenuSmallGroup, index: number) => (
+  return menuGroups.map((menuGroup: NavigationMenuSmallGroup) => (
     <DropdownMenu.Group
-      heading={menuGroupHeader(menuGroup)}
+      heading={menuGroup.showName && t(menuGroup.name)}
       className={classes.dropDownMenuGroup}
       key={menuGroup.name}
     >

@@ -6,6 +6,8 @@ import { PageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 import { pageHeaderContextMock } from 'app-development/test/headerMocks';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'app-development/test/mocks';
+import { type PageHeaderContextProps } from 'app-development/contexts/PageHeaderContext/PageHeaderContext';
+import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 
 describe('SmallHeaderMenu', () => {
   afterEach(() => {
@@ -90,11 +92,28 @@ describe('SmallHeaderMenu', () => {
       expect(screen.getByRole('menuitem', { name: profileMenuItem.itemName })).toBeInTheDocument();
     });
   });
+
+  it('should show the header name when group is "Tools"', async () => {
+    const user = userEvent.setup();
+    renderSmallHeaderMenu({
+      ...pageHeaderContextMock,
+      menuItems: [{ ...pageHeaderContextMock.menuItems[0], group: HeaderMenuGroupKey.Tools }],
+    });
+
+    const button = screen.getByRole('button', { name: textMock('top_menu.menu') });
+    await user.click(button);
+
+    const heading = screen.getByRole('heading', {
+      name: textMock(HeaderMenuGroupKey.Tools),
+      level: 2,
+    });
+    expect(heading).toBeInTheDocument();
+  });
 });
 
-const renderSmallHeaderMenu = () => {
+const renderSmallHeaderMenu = (contextProps: Partial<PageHeaderContextProps> = {}) => {
   return renderWithProviders()(
-    <PageHeaderContext.Provider value={pageHeaderContextMock}>
+    <PageHeaderContext.Provider value={{ ...pageHeaderContextMock, ...contextProps }}>
       <SmallHeaderMenu />
     </PageHeaderContext.Provider>,
   );
