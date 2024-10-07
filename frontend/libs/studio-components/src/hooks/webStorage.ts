@@ -24,7 +24,7 @@ const createWebStorage = (storage: WebStorage): TypedStorage => {
     getItem: <T>(key: string): T | undefined => {
       const storedItem = storage.getItem(key);
       if (!storedItem) {
-        return undefined;
+        return null;
       }
 
       try {
