@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { getAppName } from '../../utils/stringUtils';
 
 interface ResourceAdminUrlParams {
   org: string;
@@ -14,7 +15,7 @@ export const useUrlParams = (): Readonly<ResourceAdminUrlParams> => {
 
   return {
     org: params.org,
-    app: `${params.org}-resources`,
+    app: getAppName(params.org),
     env: params.env,
     resourceId: params.resourceId,
     accessListId: params.accessListId,
