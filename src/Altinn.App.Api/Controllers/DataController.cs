@@ -349,7 +349,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataType, dataElement) = instanceResult.Ok;
+            var (instance, dataType, _) = instanceResult.Ok;
 
             if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
             {
@@ -410,7 +410,7 @@ public class DataController : ControllerBase
         // Validation valid request is performed in the PatchFormDataMultiple method
         var request = new DataPatchRequestMultiple()
         {
-            Patches = new() { new(dataGuid, dataPatchRequest.Patch) },
+            Patches = [new(dataGuid, dataPatchRequest.Patch)],
             IgnoredValidators = dataPatchRequest.IgnoredValidators
         };
         var response = await PatchFormDataMultiple(org, app, instanceOwnerPartyId, instanceGuid, request, language);
@@ -552,7 +552,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataType, dataElement) = instanceResult.Ok;
+            var (instance, dataType, _) = instanceResult.Ok;
 
             if (DataElementAccessChecker.GetDeleteProblem(instance, dataType, dataGuid, User) is { } accessProblem)
             {

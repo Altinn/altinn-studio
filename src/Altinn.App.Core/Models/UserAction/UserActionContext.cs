@@ -28,7 +28,7 @@ public class UserActionContext
         DataMutator = dataMutator;
         UserId = userId;
         ButtonId = buttonId;
-        ActionMetadata = actionMetadata ?? new Dictionary<string, string>();
+        ActionMetadata = actionMetadata ?? [];
         Language = language;
     }
 
@@ -54,7 +54,7 @@ public class UserActionContext
         DataMutator = null!;
         UserId = userId;
         ButtonId = buttonId;
-        ActionMetadata = actionMetadata ?? new Dictionary<string, string>();
+        ActionMetadata = actionMetadata ?? [];
         Language = language;
     }
 

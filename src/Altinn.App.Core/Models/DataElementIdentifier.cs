@@ -47,12 +47,6 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
         return Id;
     }
 
-    /// <inheritdoc />
-    public override bool Equals(object? obj)
-    {
-        return obj is DataElementIdentifier other && Equals(other);
-    }
-
     /// <summary>
     /// Override as in a record type
     /// </summary>
@@ -67,6 +61,12 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     public static bool operator !=(DataElementIdentifier left, DataElementIdentifier right)
     {
         return !left.Equals(right);
+    }
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj)
+    {
+        return obj is DataElementIdentifier other && Equals(other);
     }
 
     /// <summary>
