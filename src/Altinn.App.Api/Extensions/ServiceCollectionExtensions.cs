@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Controllers.Attributes;
+using Altinn.App.Api.Controllers.Conventions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
@@ -43,10 +45,18 @@ public static class ServiceCollectionExtensions
         IMvcBuilder mvcBuilder = services.AddControllersWithViews(options =>
         {
             options.Filters.Add<TelemetryEnrichingResultFilter>();
+            options.Conventions.Add(new AltinnControllerConventions());
         });
         mvcBuilder
             .AddApplicationPart(typeof(InstancesController).Assembly)
             .AddXmlSerializerFormatters()
+            .AddJsonOptions(
+                JsonSettingNames.AltinnApi,
+                options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                }
+            )
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
