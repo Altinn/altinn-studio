@@ -20,7 +20,7 @@ export function AppPrefetcher() {
     matchPath({ path: '/instance/:partyId/:instanceGuid/*' }, window.location.hash.slice(1))?.params ?? {};
   const instanceId = partyId && instanceGuid ? `${partyId}/${instanceGuid}` : undefined;
 
-  usePrefetchQuery(getApplicationMetadataQueryDef());
+  usePrefetchQuery(getApplicationMetadataQueryDef(instanceGuid));
   usePrefetchQuery(useLayoutSetsQueryDef());
   usePrefetchQuery(useProfileQueryDef(true), Boolean(partyId));
   usePrefetchQuery(useOrgsQueryDef());

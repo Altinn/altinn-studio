@@ -61,8 +61,6 @@ const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
     return <InstantiateContainer />;
   }
 
-  window.logErrorOnce('Unknown applicationMetadata.onEntry type:', show);
-
   return <UnknownError />;
 };
 

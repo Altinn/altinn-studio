@@ -469,9 +469,13 @@ const renderBase = async ({
     injectFormDataSavingSimulator(queryMocks, mutationMocks, mockFormDataSaving);
   }
 
+  if (!router) {
+    throw new Error('No router provided');
+  }
+
   const ProviderWrapper = ({ children }: PropsWithChildren) => (
     <Providers
-      Router={router || PageNavigationRouter({ currentPageId: 'formLayout' })}
+      Router={router}
       queryClient={queryClient}
       queries={{
         ...queryMocks,
@@ -569,6 +573,7 @@ const renderBase = async ({
 export const renderWithMinimalProviders = async (props: ExtendedRenderOptions) =>
   await renderBase({
     ...props,
+    router: props.router ?? PageNavigationRouter({ currentPageId: 'formLayout' }),
     Providers: MinimalProviders,
   });
 
@@ -578,6 +583,7 @@ export const renderWithoutInstanceAndLayout = async ({
 }: ExtendedRenderOptions & { withFormProvider?: boolean }) =>
   await renderBase({
     ...rest,
+    router: rest.router ?? DefaultRouter,
     Providers: withFormProvider
       ? ({ children, ...props }: ProvidersProps) => (
           <DefaultProviders {...props}>

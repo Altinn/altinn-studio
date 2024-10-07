@@ -9,13 +9,13 @@ import { createQueryContext } from 'src/core/contexts/queryContext';
 import { onEntryValuesThatHaveState } from 'src/features/applicationMetadata/appMetadataUtils';
 import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { VersionErrorOrChildren } from 'src/features/applicationMetadata/VersionErrorOrChildren';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { fetchApplicationMetadata } from 'src/queries/queries';
-import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 import { isAtLeastVersion } from 'src/utils/versionCompare';
 import type { ApplicationMetadata, IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 // Also used for prefetching @see appPrefetcher.ts
-export function getApplicationMetadataQueryDef() {
+export function getApplicationMetadataQueryDef(instanceGuid: string | undefined) {
   return {
     queryKey: ['fetchApplicationMetadata'],
     queryFn: fetchApplicationMetadata,
@@ -31,7 +31,7 @@ export function getApplicationMetadataQueryDef() {
             minimumVersion: MINIMUM_APPLICATION_VERSION.build,
           }),
         onEntry,
-        isStatelessApp: isStatelessApp(onEntry.show),
+        isStatelessApp: isStatelessApp(!!instanceGuid, onEntry.show),
         logoOptions: data.logo,
       };
     },
@@ -39,7 +39,8 @@ export function getApplicationMetadataQueryDef() {
 }
 
 const useApplicationMetadataQuery = () => {
-  const query = useQuery(getApplicationMetadataQueryDef());
+  const instanceGuid = useNavigationParam('instanceGuid');
+  const query = useQuery(getApplicationMetadataQueryDef(instanceGuid));
 
   useEffect(() => {
     query.error && window.logError('Fetching application metadata failed:\n', query.error);
@@ -56,12 +57,9 @@ const { Provider, useCtx, useLaxCtx, useHasProvider } = delayedContext(() =>
   }),
 );
 
-function isStatelessApp(show: ApplicationMetadata['onEntry']['show']) {
-  const expr = getInstanceIdRegExp({ prefix: '/instance' });
-  const match = RegExp(expr).exec(window.location.href); // This should probably be reconsidered when changing router.
-
+function isStatelessApp(hasInstanceGuid: boolean, show: ApplicationMetadata['onEntry']['show']) {
   // App can be setup as stateless but then go over to a stateful process task
-  return match ? false : !!show && !onEntryValuesThatHaveState.includes(show);
+  return hasInstanceGuid ? false : !!show && !onEntryValuesThatHaveState.includes(show);
 }
 
 export function ApplicationMetadataProvider({ children }: PropsWithChildren) {

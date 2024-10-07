@@ -30,14 +30,15 @@ const render = async () => {
       },
     },
     inInstance: false,
+    initialPage: 'page1',
     router: ({ children }) => (
       <MemoryRouter
         basename={'/ttd/test'}
-        initialEntries={['/ttd/test/instance/1337/dfe95272-6873-48a6-abae-57b3f7c18689/Task_1/formLayout']}
+        initialEntries={['/ttd/test']}
       >
         <Routes>
           <Route
-            path={'/instance/1337/dfe95272-6873-48a6-abae-57b3f7c18689/Task_1/formLayout'}
+            path={'/'}
             element={children}
           />
           <Route
