@@ -1,0 +1,15 @@
+.textfieldCell,
+.textareaCell {
+  padding: var(--fds-spacing-1) 0;
+  font-size: var(--studio-input-table-font-size);
+}
+
+.buttonCell button {
+  display: flex;
+}
+
+.textfieldCell:not(:hover) input:not(:hover):not(:active):not(:focus),
+.textareaCell:not(:hover) textarea:not(:hover):not(:active):not(:focus) {
+  background-color: transparent;
+  border-color: transparent;
+}
