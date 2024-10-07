@@ -254,34 +254,6 @@
         }
       },
       {
-        "id": "request-personalCases-table",
-        "type": "List",
-        "textResourceBindings": {
-          "tableTitle": "trademarkResults"
-        },
-        "tableHeaders": {
-          "trademarkWord": "SimilarTrademarks.SearchResult.TrademarkText",
-          "goodsAndsServicesClassNumber": "SimilarTrademarks.SearchResult.GoodsAndServicesClassNumber",
-          "status": "SimilarTrademarks.SearchResult.Status",
-          "applicationNumber": "SimilarTrademarks.SearchResult.ApplicationNumber"
-        },
-        "tableHeadersMobile": [
-          "trademarkWord",
-          "goodsAndsServicesClassNumber"
-        ],
-        "dataModelBindings": {
-          "simpleBinding": "SimilarTrademarks.SearchResult.ApplicationNumber"
-        },
-        "mapping": {
-          "HF_altinnAppSpecificData.searchIpCaseString": "search"
-        },
-        "dataListId": "casesList",
-        "required": true,
-        "secure": true,
-        "bindingToShowInSummary": "reportedData.idApplication",
-        "hidden": true
-      },
-      {
         "id": "displaySearch",
         "type": "Group",
         "children": [
