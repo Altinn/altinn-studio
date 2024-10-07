@@ -12,11 +12,11 @@ export type RedirectBoxProps = {
 export const RedirectBox = ({
   title,
   children,
-  className,
+  className: givenClassName,
 }: RedirectBoxProps): React.ReactElement => {
-  const fullClass = cn(classes.wrapper, className);
+  const className = cn(classes.wrapper, givenClassName);
   return (
-    <div className={fullClass}>
+    <div className={className}>
       <StudioLabelAsParagraph size='small'>{title}</StudioLabelAsParagraph>
       <div className={classes.children}>{children}</div>
     </div>
