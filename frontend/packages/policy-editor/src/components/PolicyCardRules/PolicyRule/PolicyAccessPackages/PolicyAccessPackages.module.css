@@ -10,3 +10,8 @@
   flex-direction: column;
   gap: var(--fds-spacing-4);
 }
+
+.accordionHeader {
+  display: flex;
+  gap: var(--fds-spacing-4);
+}

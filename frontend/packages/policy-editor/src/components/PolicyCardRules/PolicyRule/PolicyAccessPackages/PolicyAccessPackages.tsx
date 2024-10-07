@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Label, ErrorMessage, Paragraph, Accordion } from '@digdir/designsystemet-react';
+import { Label, ErrorMessage, Paragraph, Accordion, Tag } from '@digdir/designsystemet-react';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getAccessPackageOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
@@ -56,6 +56,8 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     savePolicy(updatedRules);
   };
 
+  const chosenUrns = chosenAccessPackages.map((x) => x.urn);
+
   return (
     <div className={classes.accessPackages}>
       <Label size='small'>Tilgangspakker</Label>
@@ -95,11 +97,21 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <Paragraph size='large'>Kategorier</Paragraph>
       <div>
         {accessPackages.map((category) => {
+          // find number of chosen packages in current category
+          const chosenInCategory = category.packages.filter(
+            (x) => chosenUrns.indexOf(x.urn) > -1,
+          ).length;
           return (
             <Accordion key={category.id} color='first'>
               <Accordion.Item>
                 <Accordion.Header>
-                  {category.name[selectedLanguage]} ({category.packages.length} tilgangspakker)
+                  <div className={classes.accordionHeader}>
+                    <span>{category.name[selectedLanguage]}</span>
+                    <Tag size='sm'>
+                      {chosenInCategory > 0 ? `${chosenInCategory} av ` : ''}
+                      {category.packages.length}
+                    </Tag>
+                  </div>
                 </Accordion.Header>
                 <Accordion.Content>
                   <div className={classes.categoryContent}>
