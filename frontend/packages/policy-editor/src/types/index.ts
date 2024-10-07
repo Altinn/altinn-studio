@@ -2,7 +2,7 @@ export interface PolicyRuleCard {
   ruleId: string;
   description: string;
   subject: string[];
-  accessPackages: string[];
+  accessPackages?: string[];
   actions: string[];
   resources: PolicyRuleResource[][];
 }
