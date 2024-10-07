@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StudioCard, StudioNativeSelect } from '@studio/components';
 import type {
   Summary2OverrideConfig,
@@ -19,6 +19,13 @@ export const Summary2OverrideDisplaytype = ({
   const customConfigType = useCustomConfigType();
   const { t } = useTranslation();
 
+  useEffect(() => {
+    if (!override.displayType) {
+      const updatedCustomType = { ...override, displayType: 'string' as SummaryCustomTargetType };
+      onChange(updatedCustomType);
+    }
+  }, [override, onChange]);
+
   const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = event.target.value as SummaryCustomTargetType;
     const updatedCustomType = { ...override, displayType: newType };
@@ -31,6 +38,7 @@ export const Summary2OverrideDisplaytype = ({
         size='sm'
         label={t('ux_editor.component_properties.overrides_type')}
         onChange={handleCustomTypeChange}
+        value={override.displayType || 'string'}
       >
         {customConfigType.map((type) => (
           <option key={type.value} value={type.value}>
