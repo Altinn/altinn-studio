@@ -1,6 +1,5 @@
 import React from 'react';
 import { v1 as uuidv1 } from 'uuid';
-import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
@@ -10,7 +9,6 @@ import type {
   IRuleModelFieldElement,
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
-import { withTranslation } from 'react-i18next';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import type {
   ConditionalRenderingConnection,
@@ -18,12 +16,13 @@ import type {
 } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
-import { Buldings2Icon, XMarkOctagonFillIcon } from '@studio/icons';
+import { PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
+import { StudioModal } from '@studio/components';
+import { withTranslation } from 'react-i18next';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;
-  cancelEdit: () => void;
   saveEdit: (id: string, connection: ConditionalRenderingConnection) => void;
   ruleModelElements: IRuleModelFieldElement[];
   conditionalRendering: ConditionalRenderingConnections;
@@ -39,6 +38,7 @@ interface IConditionalRenderingComponentState {
   connectionId: string | null;
   selectableActions: string[];
   conditionalRendering: ConditionalRenderingConnection;
+  dialogRef: React.RefObject<HTMLDialogElement>;
 }
 
 class ConditionalRendering extends React.Component<
@@ -60,6 +60,7 @@ class ConditionalRendering extends React.Component<
           [id]: '',
         },
       },
+      dialogRef: React.createRef(),
     };
   }
 
@@ -97,6 +98,23 @@ class ConditionalRendering extends React.Component<
    */
   public handleSaveEdit = (): void => {
     this.props.saveEdit(this.state.connectionId, this.state.conditionalRendering);
+    if (!this.props.connectionId) {
+      const id = uuidv1();
+      this.setState({
+        selectedFunctionNr: null,
+        connectionId: uuidv1(),
+        selectableActions: ['Show', 'Hide'],
+        conditionalRendering: {
+          selectedFunction: '',
+          inputParams: {},
+          selectedAction: '',
+          selectedFields: {
+            [id]: '',
+          },
+        },
+      });
+    }
+    this.state.dialogRef?.current?.close();
   };
 
   /**
@@ -265,21 +283,22 @@ class ConditionalRendering extends React.Component<
     const selectedMethod = this.state.conditionalRendering.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <Modal
-        isOpen={true}
-        onRequestClose={() => {}}
-        className={classes.modalBody}
-        ariaHideApp={false}
-        overlayClassName={classes.reactModalOverlay}
-      >
-        <div className={classes.modalHeader}>
-          <Buldings2Icon className={classes.configConditionalIcon} />
-          <h1 className={classes.modalHeaderTitle}>
-            {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
-          </h1>
-        </div>
-
-        <div className={classes.modalBodyContent}>
+      <StudioModal.Root>
+        {!this.props.connectionId ? (
+          <StudioModal.Trigger
+            aria-label={this.props.t('right_menu.rules_conditional_rendering_add_alt')}
+            className={classes.addIcon}
+            icon={<PlusIcon />}
+            variant='tertiary'
+          />
+        ) : (
+          <StudioModal.Trigger>{selectedMethod}</StudioModal.Trigger>
+        )}
+        <StudioModal.Dialog
+          ref={this.state.dialogRef}
+          heading={this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
+          closeButtonTitle=''
+        >
           <div className={classes.formGroup}>
             <label htmlFor='selectConditionalRule' className={classes.label}>
               {this.props.t('ux_editor.modal_configure_conditional_rendering_helper')}
@@ -428,12 +447,17 @@ class ConditionalRendering extends React.Component<
                 {this.props.t('general.delete')}
               </button>
             ) : null}
-            <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
+            <button
+              className={classes.cancelButton}
+              onClick={() => {
+                this.state.dialogRef?.current?.close();
+              }}
+            >
               {this.props.t('general.cancel')}
             </button>
           </div>
-        </div>
-      </Modal>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
     );
   }
 }
