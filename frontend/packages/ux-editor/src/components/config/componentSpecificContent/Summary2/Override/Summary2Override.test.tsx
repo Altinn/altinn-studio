@@ -32,6 +32,80 @@ describe('Summary2Override', () => {
     expect(defaultProps.onChange).toHaveBeenCalledWith([]);
   });
 
+  it('should be able to show "vis type" comobox when componenetId is checkbox', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'Checkboxes' }],
+    });
+    await user.click(addNewOverrideButton());
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should be able to show "vis type" comobox when componenetId is multipleSelect', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'MultipleSelect' }],
+    });
+    await user.click(addNewOverrideButton());
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("shouldn't show vis type comobox when componenetId is not checkbox or multipleSelect", async () => {
+    render({
+      overrides: [{ componentId: '1' }],
+    });
+    await userEvent.click(addNewOverrideButton());
+    expect(
+      screen.queryByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should not checked  "isCompact" checkbox when isCompact is false', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: component1IdMock, isCompact: false }],
+    });
+    const compactCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.overrides_is_compact'),
+    });
+    expect(compactCheckbox).toBeInTheDocument();
+    expect(compactCheckbox).not.toBeChecked();
+    await user.click(compactCheckbox);
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: component1IdMock, isCompact: true }]),
+      ),
+    );
+  });
+
+  it('should "isCompact" checkboxbe be checked when isCompact is true', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: component1IdMock, isCompact: true }],
+    });
+    const compactCheckbox = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.overrides_is_compact'),
+    });
+    expect(compactCheckbox).toBeInTheDocument();
+    expect(compactCheckbox).toBeChecked();
+    await user.click(compactCheckbox);
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: component1IdMock, isCompact: false }]),
+      ),
+    );
+  });
+
   it('should be able to change override componentId', async () => {
     const user = userEvent.setup();
     render({
@@ -96,6 +170,166 @@ describe('Summary2Override', () => {
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
         expect.arrayContaining([{ componentId: '1', hideEmptyFields: true }]),
+      ),
+    );
+  });
+
+  it('should render the list of custom types', async () => {
+    render({
+      overrides: [{ componentId: 'MultipleSelect' }],
+    });
+    await userEvent.click(addNewOverrideButton());
+    expect(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_list'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_string'),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_not_set'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should be able to change override displayType when choosing list and componentId is MultipleSelect', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'MultipleSelect', displayType: 'list' }],
+    });
+    await user.click(addNewOverrideButton());
+    await user.click(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_list'),
+      }),
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'MultipleSelect', displayType: 'list' }]),
+      ),
+    );
+  });
+
+  it('should be able to change override displayType when choosing string and componentId is MultipleSelect', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'MultipleSelect', displayType: 'string' }],
+    });
+    await user.click(addNewOverrideButton());
+    await user.click(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_string'),
+      }),
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'MultipleSelect', displayType: 'string' }]),
+      ),
+    );
+  });
+
+  it('should be able to change override displayType when choosing notSet and componentId is MultipleSelect', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'MultipleSelect', displayType: 'notSet' }],
+    });
+    await user.click(addNewOverrideButton());
+    await user.click(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_not_set'),
+      }),
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'MultipleSelect', displayType: 'notSet' }]),
+      ),
+    );
+  });
+
+  it('should be able to change override displayType when choosing list and componentId is Checkboxes', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'Checkboxes', displayType: 'list' }],
+    });
+    await user.click(addNewOverrideButton());
+    await user.click(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_list'),
+      }),
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'Checkboxes', displayType: 'list' }]),
+      ),
+    );
+  });
+
+  it('should be able to change override displayType when choosing string and componentId is Checkboxes', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'Checkboxes', displayType: 'string' }],
+    });
+    await user.click(addNewOverrideButton());
+    await user.click(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_string'),
+      }),
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'Checkboxes', displayType: 'string' }]),
+      ),
+    );
+  });
+
+  it('should be able to change override displayType when choosing notSet and componentId is Checkboxes', async () => {
+    const user = userEvent.setup();
+    render({
+      overrides: [{ componentId: 'Checkboxes', displayType: 'notSet' }],
+    });
+    await user.click(addNewOverrideButton());
+    await user.click(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.overrides_type'),
+      }),
+    );
+    await user.click(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.component_properties.overrides_not_set'),
+      }),
+    );
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'Checkboxes', displayType: 'notSet' }]),
       ),
     );
   });

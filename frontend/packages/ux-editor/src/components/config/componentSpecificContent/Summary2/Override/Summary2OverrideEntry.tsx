@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-  StudioCard,
-  StudioDeleteButton,
-  StudioNativeSelect,
-  StudioTextfield,
-} from '@studio/components';
-import type {
-  Summary2OverrideConfig,
-  SummaryCustomTargetType,
-} from 'app-shared/types/ComponentSpecificConfig';
+import { StudioDeleteButton, StudioTextfield } from '@studio/components';
+import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@digdir/designsystemet-react';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
@@ -16,8 +8,10 @@ import { useAppContext, useComponentTypeName } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-import { useCustomConfigType } from './hook/useCustomConfigType';
+
 import { ComponentType } from 'app-shared/types/ComponentType';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
+import { Summary2OverrideDisplaytype } from './Summary2OverrideDisplaytype';
 
 type Summary2OverrideEntryProps = {
   override: Summary2OverrideConfig;
@@ -35,11 +29,22 @@ export const Summary2OverrideEntry = ({
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const componentTypeName = useComponentTypeName();
-  const customConfigType = useCustomConfigType();
 
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
+
+  const getComponentsInAGroup = () => {
+    return Object.values(formLayoutsData).flatMap((item) =>
+      Object.keys(item.order)
+        .filter((key) => key !== BASE_CONTAINER_ID)
+        .flatMap((key) => item.order[key]),
+    );
+  };
+
+  const componentsInGroup = getComponentsInAGroup();
+  const isComponentInGroup = componentsInGroup.includes(override.componentId);
+
   const componentOptions = components.map((e) => ({
     id: e.id,
     description: componentTypeName(e.type),
@@ -50,15 +55,10 @@ export const Summary2OverrideEntry = ({
     onChange(newOverride);
   };
 
-  const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newType = event.target.value as SummaryCustomTargetType;
-    const updatedCustomType = { type: newType };
-    return updatedCustomType;
-  };
-
   const checkboxOrMultipleselect =
     override.componentId.includes(ComponentType.MultipleSelect) ||
     override.componentId.includes(ComponentType.Checkboxes);
+
   return (
     <>
       <Summmary2ComponentReferenceSelector
@@ -106,19 +106,22 @@ export const Summary2OverrideEntry = ({
         }
       ></StudioTextfield>
       {override.componentId && checkboxOrMultipleselect && (
-        <StudioCard.Content>
-          <StudioNativeSelect
-            size='sm'
-            label={t('ux_editor.component_properties.overrides_type')}
-            onChange={handleCustomTypeChange}
-          >
-            {customConfigType.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </StudioNativeSelect>
-        </StudioCard.Content>
+        <Summary2OverrideDisplaytype override={override} onChange={onChange} />
+      )}
+      {isComponentInGroup && (
+        <Checkbox
+          size='sm'
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onChangeOverride(
+              event.target.value as keyof Summary2OverrideConfig,
+              event.target.checked,
+            )
+          }
+          checked={override.isCompact ?? false}
+          value={'isCompact'}
+        >
+          {t('ux_editor.component_properties.overrides_is_compact')}
+        </Checkbox>
       )}
       <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
     </>

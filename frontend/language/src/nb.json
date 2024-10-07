@@ -1234,6 +1234,7 @@
   "ux_editor.component_properties.optionsId": "Kodeliste",
   "ux_editor.component_properties.overrides": "Overstyringer",
   "ux_editor.component_properties.overrides_description": "Overstyringer per komponent for oppsummeringen",
+  "ux_editor.component_properties.overrides_is_compact": "Kompakt visning",
   "ux_editor.component_properties.overrides_list": "Liste",
   "ux_editor.component_properties.overrides_not_set": "Ikke satt",
   "ux_editor.component_properties.overrides_string": "String",
