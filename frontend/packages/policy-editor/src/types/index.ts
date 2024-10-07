@@ -59,7 +59,7 @@ export interface PolicyRule {
   description: string;
   subject: string[];
   actions: string[];
-  accessPackages: string[];
+  accessPackages?: string[];
   resources: string[][];
 }
 
