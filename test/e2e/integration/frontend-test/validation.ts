@@ -765,18 +765,18 @@ describe('Validation', () => {
       cy.goto('likert');
       cy.findByRole('button', { name: /Send inn/ }).click();
 
-      cy.findByRole('radiogroup', {
-        name: 'Spørsmål Hører skolen på elevenes forslag?*',
+      cy.findByRole('row', {
+        name: /Hører skolen på elevenes forslag\? \*/i,
       }).within(() => {
-        cy.findByRole('radio', { name: 'Alltid' }).should('not.be.focused');
+        cy.findByRole('radio', { name: /Alltid/ }).should('not.be.focused');
       });
 
       cy.findByRole('button', { name: /Du må fylle ut hører skolen på elevenes forslag/ }).click();
 
-      cy.findByRole('radiogroup', {
-        name: 'Spørsmål Hører skolen på elevenes forslag?*',
+      cy.findByRole('row', {
+        name: /Hører skolen på elevenes forslag\? \*/i,
       }).within(() => {
-        cy.findByRole('radio', { name: 'Alltid' }).should('be.focused');
+        cy.findByRole('radio', { name: /Alltid/ }).should('be.focused');
       });
     });
 

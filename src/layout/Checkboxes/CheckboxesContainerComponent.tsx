@@ -28,7 +28,7 @@ export const CheckboxContainerComponent = ({ node, overrideDisplay }: ICheckboxC
 
   const labelTextGroup = (
     <LabelContent
-      labelId={`label-${id}`}
+      componentId={id}
       label={textResourceBindings?.title}
       readOnly={readOnly}
       required={required}

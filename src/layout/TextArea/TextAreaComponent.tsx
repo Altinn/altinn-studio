@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Textarea } from '@digdir/designsystemet-react';
 
+import { getDescriptionId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -43,7 +44,7 @@ export function TextAreaComponent({ node, overrideDisplay }: ITextAreaProps) {
         data-testid={id}
         aria-describedby={
           overrideDisplay?.renderedInTable !== true && textResourceBindings?.description
-            ? `description-${id}`
+            ? getDescriptionId(id)
             : undefined
         }
         aria-label={overrideDisplay?.renderedInTable === true ? langAsString(textResourceBindings?.title) : undefined}

@@ -167,7 +167,7 @@ describe('Grid component', () => {
       name: /prosentandel av gjeld i studielån hjelpetekst for prosentandel av gjeld i studielån dette er en beskrivende tekst/i,
     }).should('exist');
     cy.findByRole('button', { name: /Hjelpetekst for Prosentandel av gjeld i studielån/i }).click();
-    cy.focused().should('have.attr', 'id', 'label-fordeling-studie-helptext');
+    cy.focused().should('have.attr', 'id', 'fordeling-studie-helptext');
     cy.get(appFrontend.helpText.alert).should('contain.text', 'Dette er en hjelpetekst');
   });
 });

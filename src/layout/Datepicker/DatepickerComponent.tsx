@@ -7,6 +7,7 @@ import { CalendarIcon } from '@navikt/aksel-icons';
 import moment from 'moment';
 import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
+import { getDescriptionId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -194,7 +195,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
                 input: classes.input,
               },
               ...(textResourceBindings?.description && {
-                'aria-describedby': `description-${id}`,
+                'aria-describedby': getDescriptionId(id),
               }),
             }}
             inputProps={{

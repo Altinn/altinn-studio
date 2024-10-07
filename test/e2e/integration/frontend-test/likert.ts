@@ -30,23 +30,25 @@ describe('Likert', () => {
     );
 
     // Check the second required question and take a snapshot
-    likertPage.selectRadio(likertPage.requiredQuestions[1], likertPage.options[1]);
+    likertPage.selectRadioDesktop(likertPage.requiredQuestions[1], likertPage.options[1]);
     cy.get(appFrontend.fieldValidation('likert-group-required-item-4')).should(
       notContainTextCaseInsensitive(`Du må fylle ut ${likertPage.requiredQuestions[1]}`),
     );
     cy.snapshot('likert');
   });
+
   it('Should fill out optional likert and see results in summary component', () => {
     cy.goto('likert');
     cy.findByRole('table', { name: likertPage.optionalTableTitle }).within(() => {
       cy.findByText('Spørsmål');
     });
-    likertPage.selectRadio(likertPage.optionalQuestions[0], likertPage.options[2]);
-    likertPage.selectRadio(likertPage.optionalQuestions[1], likertPage.options[1]);
-    likertPage.selectRadio(likertPage.optionalQuestions[2], likertPage.options[1]);
+    likertPage.selectRadioDesktop(likertPage.optionalQuestions[0], likertPage.options[2]);
+    likertPage.selectRadioDesktop(likertPage.optionalQuestions[1], likertPage.options[1]);
+    likertPage.selectRadioDesktop(likertPage.optionalQuestions[2], likertPage.options[1]);
     cy.get('[data-testid=summary-summary1]').should(($summary) => {
       const text = $summary.text();
-      expect(text).to.contain(likertPage.optionalTableTitle);
+
+      expect(text).to.match(likertPage.optionalTableTitle);
       expect(text).to.contain(`${likertPage.optionalQuestions[0]} : ${likertPage.options[2]}`);
       expect(text).to.contain(`${likertPage.optionalQuestions[1]} : ${likertPage.options[1]}`);
       expect(text).to.contain(`${likertPage.optionalQuestions[2]} : ${likertPage.options[1]}`);

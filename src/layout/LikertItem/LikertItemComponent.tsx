@@ -1,9 +1,10 @@
 import React, { forwardRef } from 'react';
 
-import { Radio, Table } from '@digdir/designsystemet-react';
+import { Label, Radio, Table } from '@digdir/designsystemet-react';
 
-import { Label } from 'src/components/label/Label';
-import { useLanguage } from 'src/features/language/useLanguage';
+import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { getLabelId } from 'src/components/label/Label';
+import { Lang } from 'src/features/language/Lang';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { LayoutStyle } from 'src/layout/common.generated';
@@ -37,38 +38,41 @@ LikertItemComponent.displayName = 'LikertItemComponent';
 
 const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroupProps>((props, ref) => {
   const { node } = props;
-  const { langAsString } = useLanguage();
   const { selectedValues, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
   const validations = useUnifiedValidationsForNode(node);
 
-  const { id, readOnly } = useNodeItem(node);
+  const { id, readOnly, textResourceBindings, required } = useNodeItem(node);
   const groupContainer =
     node.parent instanceof BaseLayoutNode && node.parent.isType('Likert') ? node.parent : undefined;
-  const groupContainerId = groupContainer?.id;
-
-  const headerColumnId = `${groupContainerId}-likert-columnheader-left`;
-  const rowLabelId = `row-label-${id}`;
 
   return (
     <Table.Row
-      aria-labelledby={`${headerColumnId} ${rowLabelId}`}
       data-componentid={node.id}
       data-is-loading={fetchingOptions ? 'true' : 'false'}
-      role='radiogroup'
       ref={ref}
+      role='row'
     >
-      <Table.Cell id={rowLabelId}>
+      <Table.Cell
+        id={getLabelId(node.id)}
+        role='rowheader'
+      >
         <Label
-          node={node}
-          renderLabelAs='legend'
+          asChild
+          size='sm'
           weight='regular'
-          size='small'
         >
-          <ComponentValidations validations={validations} />
+          <span>
+            <Lang id={textResourceBindings?.title} />
+          </span>
         </Label>
+        <RequiredIndicator required={required} />
+        <ComponentValidations validations={validations} />
       </Table.Cell>
-      {calculatedOptions?.map((option) => {
+      {calculatedOptions?.map((option, index) => {
         const isChecked = selectedValues[0] === option.value;
+        const rowLabelId = getLabelId(id);
+        const labelledby = `${rowLabelId} ${groupContainer?.baseId}-likert-columnheader-${index}`;
+
         return (
           <Table.Cell key={option.value}>
             <Radio
@@ -78,7 +82,7 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
               value={option.value}
               className={classes.likertRadioButton}
               name={rowLabelId}
-              aria-label={langAsString(option.label)}
+              aria-labelledby={labelledby}
             />
           </Table.Cell>
         );

@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
+import { getDescriptionId } from 'src/components/label/Label';
 import { InputComponent } from 'src/layout/Input/InputComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -94,7 +95,7 @@ describe('InputComponent', () => {
     });
 
     const inputComponent = screen.getByRole('textbox');
-    expect(inputComponent.getAttribute('aria-describedby')).toContain('description-mock-id');
+    expect(inputComponent.getAttribute('aria-describedby')).toContain(getDescriptionId('mock-id'));
   });
 
   it('should not show aria-describedby if textResourceBindings.description is not present', async () => {

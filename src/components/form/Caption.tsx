@@ -1,8 +1,9 @@
 import React from 'react';
 import type { HtmlHTMLAttributes } from 'react';
 
-import { Label } from '@digdir/designsystemet-react';
+import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import cn from 'classnames';
+import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/components/form/Caption.module.css';
 import { Description } from 'src/components/form/Description';
@@ -18,6 +19,7 @@ export type CaptionProps = {
   helpText?: React.ReactNode;
   required?: boolean;
   labelSettings?: ILabelSettings;
+  designSystemLabelProps?: DesignsystemetLabelProps;
 } & Omit<HtmlHTMLAttributes<HTMLTableCaptionElement>, 'children' | 'title'>;
 
 export const Caption = ({
@@ -28,18 +30,21 @@ export const Caption = ({
   id,
   className,
   helpText,
+  designSystemLabelProps,
   ...rest
 }: CaptionProps) => {
   const { elementAsString } = useLanguage();
   const titleAsText = elementAsString(title);
+
   return (
     <caption
       {...rest}
       className={cn(classes.tableCaption, className)}
     >
-      <Label
+      <DesignsystemetLabel
         asChild
         className={classes.captionTitle}
+        {...designSystemLabelProps}
       >
         <div>
           {title}
@@ -56,10 +61,11 @@ export const Caption = ({
             />
           )}
         </div>
-      </Label>
+      </DesignsystemetLabel>
       {description && (
         <Description
-          id={id}
+          className={classes.description}
+          componentId={id}
           description={description}
         />
       )}

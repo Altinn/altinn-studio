@@ -3,6 +3,7 @@ import React from 'react';
 import { formatNumericText } from '@digdir/design-system-react';
 import cn from 'classnames';
 
+import { getLabelId } from 'src/components/label/Label';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -41,7 +42,7 @@ export const NumberComponent = ({ node }: PropsFromGenericComponent<'Number'>) =
           alt={textResourceBindings.title}
         />
       )}
-      <span aria-labelledby={`label-${node.id}`}>{displayData}</span>
+      <span aria-labelledby={getLabelId(node.id)}>{displayData}</span>
     </ComponentStructureWrapper>
   );
 };

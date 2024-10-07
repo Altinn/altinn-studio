@@ -7,12 +7,18 @@ export class Likert {
 
   public optionalQuestions = ['Gjør du leksene dine?', 'Fungerer kalkulatoren din?', 'Er pulten din ryddig?'];
 
-  public optionalTableTitle = 'Skolearbeid (Frivillig)';
-  public requiredTableTitle = 'Medvirkning';
+  public optionalTableTitle = /Skolearbeid \(Frivillig\)/i;
+  public requiredTableTitle = /Medvirkning/i;
 
   public options = ['Alltid', 'Nesten alltid', 'Ofte', 'Noen ganger', 'Sjelden'];
 
-  selectRadio(question, option) {
+  selectRadioDesktop(question, option) {
+    cy.findByRole('row', { name: new RegExp(question) }).within(() => {
+      cy.findByRole('radio', { name: new RegExp(option) }).check();
+    });
+  }
+
+  selectRadioMobile(question, option) {
     cy.findByRole('radiogroup', { name: new RegExp(question) }).within(() => {
       cy.findByRole('radio', { name: new RegExp(option) }).check();
     });

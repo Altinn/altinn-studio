@@ -107,7 +107,7 @@ function ensureTableHasNumColumns(tableContainer: string, numRows: number, numCo
 function testLikert() {
   cy.findByRole('group', { name: likertPage.requiredTableTitle }).within(() => {
     likertPage.requiredQuestions.forEach((question, index) => {
-      likertPage.selectRadio(`${question} *`, likertPage.options[index]);
+      likertPage.selectRadioMobile(`${question} *`, likertPage.options[index]);
     });
   });
   sendIn();

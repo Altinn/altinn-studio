@@ -6,3 +6,7 @@
 .fullWidth {
   width: 100%;
 }
+
+.leftAlign {
+  text-align: left;
+}

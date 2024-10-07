@@ -5,6 +5,7 @@ import type { FileRejection } from 'react-dropzone';
 import { CloudUpIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/FileUpload/DropZone/DropzoneComponent.module.css';
@@ -92,8 +93,8 @@ export function DropzoneComponent({
           styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
           styles = hasValidationMessages ? { ...styles, ...validationErrorStyle } : styles;
 
-          const labelId = `label-${id}`;
-          const descriptionId = textResourceBindings?.description ? `description-${id}` : undefined;
+          const labelId = getLabelId(id);
+          const descriptionId = textResourceBindings?.description ? getDescriptionId(id) : undefined;
           const dragLabelId = `file-upload-drag-${id}`;
           const formatLabelId = `file-upload-format-${id}`;
           const ariaDescribedBy = descriptionId

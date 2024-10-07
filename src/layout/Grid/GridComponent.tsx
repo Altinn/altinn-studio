@@ -274,7 +274,7 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
     >
       {labelFromNode && (
         <LabelContent
-          labelId={`label-${labelFromNode.id}`}
+          componentId={labelFromNode.id}
           label={title}
           required={required}
           help={help}

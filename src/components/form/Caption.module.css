@@ -1,10 +1,14 @@
 .tableCaption {
   text-align: left;
+  padding-bottom: var(--fds-spacing-2);
 }
 
 .captionTitle {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding-bottom: 0.75rem;
+}
+
+.description {
+  padding-bottom: var(--fds-spacing-3);
 }

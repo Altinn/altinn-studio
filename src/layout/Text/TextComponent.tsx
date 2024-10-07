@@ -2,6 +2,7 @@ import React from 'react';
 
 import cn from 'classnames';
 
+import { getLabelId } from 'src/components/label/Label';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import classes from 'src/layout/Text/TextComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -30,7 +31,7 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
           alt={textResourceBindings.title}
         />
       )}
-      <span aria-labelledby={`label-${node.id}`}>{value}</span>
+      <span aria-labelledby={getLabelId(node.id)}>{value}</span>
     </ComponentStructureWrapper>
   );
 };

@@ -6,6 +6,7 @@ import cn from 'classnames';
 import { Description } from 'src/components/form/Description';
 import { OptionalIndicator } from 'src/components/form/OptionalIndicator';
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { getDescriptionId } from 'src/components/label/Label';
 import classes from 'src/components/label/LabelContent.module.css';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -13,7 +14,7 @@ import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import type { ILabelSettings } from 'src/layout/common.generated';
 
 export type LabelContentProps = Readonly<{
-  labelId: string;
+  componentId: string;
   label?: string;
   description?: string;
   required?: boolean;
@@ -23,7 +24,7 @@ export type LabelContentProps = Readonly<{
 }> & { className?: string };
 
 export function LabelContent({
-  labelId,
+  componentId,
   label,
   description,
   required,
@@ -32,7 +33,7 @@ export function LabelContent({
   labelSettings,
   className,
 }: LabelContentProps) {
-  const { overrideDisplay } = useFormComponentCtx() || {};
+  const { overrideDisplay } = useFormComponentCtx() ?? {};
   const { langAsString } = useLanguage();
 
   if (overrideDisplay?.renderLabel === false) {
@@ -53,7 +54,7 @@ export function LabelContent({
         </span>
         {help && (
           <HelpText
-            id={`${labelId}-helptext`}
+            id={`${componentId}-helptext`}
             title={
               label ? `${langAsString('helptext.button_title_prefix')} ${label}` : langAsString('helptext.button_title')
             }
@@ -64,7 +65,9 @@ export function LabelContent({
       </span>
       {description && (
         <Description
-          key={`description-${labelId}`}
+          className={classes.description}
+          componentId={componentId}
+          key={getDescriptionId(componentId)}
           description={<Lang id={description} />}
         />
       )}

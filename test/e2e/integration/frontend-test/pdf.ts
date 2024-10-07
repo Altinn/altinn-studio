@@ -173,12 +173,12 @@ describe('PDF', () => {
     cy.goto('likert');
     cy.findByRole('table', { name: likertPage.optionalTableTitle }).within(() => {
       likertPage.optionalQuestions.forEach((question, index) => {
-        likertPage.selectRadio(question, likertPage.options[index]);
+        likertPage.selectRadioDesktop(question, likertPage.options[index]);
       });
     });
     cy.findByRole('table', { name: likertPage.requiredTableTitle }).within(() => {
       likertPage.requiredQuestions.forEach((question, index) => {
-        likertPage.selectRadio(`${question} *`, likertPage.options[index]);
+        likertPage.selectRadioDesktop(`${question} *`, likertPage.options[index]);
       });
     });
 

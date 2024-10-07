@@ -119,7 +119,7 @@ function fillOutLikert() {
   const likertPage = new Likert();
   cy.findByRole('table', { name: likertPage.requiredTableTitle }).within(() => {
     likertPage.requiredQuestions.forEach((question, index) => {
-      likertPage.selectRadio(`${question} *`, likertPage.options[index]);
+      likertPage.selectRadioDesktop(`${question} *`, likertPage.options[index]);
     });
   });
 }

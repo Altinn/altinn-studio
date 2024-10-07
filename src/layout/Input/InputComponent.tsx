@@ -17,6 +17,7 @@ export type IInputProps = PropsFromGenericComponent<'Input'>;
 
 import type { TextfieldProps } from '@digdir/designsystemet-react/dist/types/components/form/Textfield/Textfield';
 
+import { getDescriptionId } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useIsValid } from 'src/features/validation/selectors/isValid';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -99,7 +100,7 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
   const characterLimit = useCharacterLimit(maxLength);
   const commonProps = {
     'aria-label': ariaLabel,
-    'aria-describedby': textResourceBindings?.description ? `description-${id}` : undefined,
+    'aria-describedby': textResourceBindings?.description ? getDescriptionId(id) : undefined,
     autoComplete: autocomplete,
     characterLimit: !readOnly ? characterLimit : undefined,
     role: 'textbox',
@@ -123,7 +124,7 @@ export const InputComponent: React.FunctionComponent<IInputProps> = ({ node, ove
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue('simpleBinding', e.target.value)}
           disabled={readOnly}
           aria-label={ariaLabel}
-          aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
+          aria-describedby={textResourceBindings?.description ? getDescriptionId(id) : undefined}
           data-testid={`${id}-${variant}`}
           onBlur={debounce}
         />
