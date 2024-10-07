@@ -32,9 +32,7 @@ export function TopToolbar({
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
-  const modelPath = dataModels.find(
-    (model) => model.fileName === selectedOption?.value.fileName,
-  )?.repositoryRelativeUrl;
+  const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
   const { t } = useTranslation();
   const { mutate: createDataModel } = useCreateDataModelMutation();

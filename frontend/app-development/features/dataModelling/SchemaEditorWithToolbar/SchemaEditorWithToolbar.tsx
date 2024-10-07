@@ -22,9 +22,13 @@ export const SchemaEditorWithToolbar = ({
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
-  const modelPath = dataModels.find(
+
+  const existingSelectedOption = dataModels.some(
     (model) => model.fileName === selectedOption?.value.fileName,
-  )?.repositoryRelativeUrl;
+  )
+    ? selectedOption
+    : undefined;
+  const modelPath = existingSelectedOption?.value?.repositoryRelativeUrl;
 
   useEffect(() => {
     dataModels.forEach((model) => {
@@ -40,7 +44,7 @@ export const SchemaEditorWithToolbar = ({
         createNewOpen={createNewOpen}
         createPathOption={createPathOption}
         dataModels={dataModels}
-        selectedOption={selectedOption}
+        selectedOption={existingSelectedOption}
         setCreateNewOpen={setCreateNewOpen}
         setSelectedOption={setSelectedOption}
         onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
