@@ -3,13 +3,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import classes from './ProfileMenu.module.css';
 import { Menu, MenuItem } from '@mui/material';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { post } from '../../../utils/networking';
-import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../../api/paths';
+import { repositoryPath } from '../../../api/paths';
 import { useTranslation } from 'react-i18next';
 import type { User } from 'app-shared/types/Repository';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { StudioButton } from '@studio/components';
 import { profileButtonId } from '@studio/testing/testids';
+import { useLogoutMutation } from 'app-shared/hooks/mutations/useLogoutMutation';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -36,16 +36,13 @@ export const ProfileMenu = ({
 }: IProfileMenuComponentProps): ReactNode => {
   const menuRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { mutate: logout } = useLogoutMutation();
 
   const { org, app } = useStudioEnvironmentParams();
 
   const handleClick = (event: any) => setMenuOpen(true);
   const handleClose = () => setMenuOpen(false);
   const { t } = useTranslation();
-  const handleLogout = () =>
-    post(userLogoutPath())
-      .then(() => window.location.assign(userLogoutAfterPath()))
-      .finally(() => true);
 
   /**
    * Closes the menu when clicking outside the menu
@@ -122,7 +119,7 @@ export const ProfileMenu = ({
           </a>
         </MenuItem>
         {showlogout && (
-          <MenuItem onClick={handleLogout} className={classes.menuItem}>
+          <MenuItem onClick={() => logout()} className={classes.menuItem}>
             {t('shared.header_logout')}
           </MenuItem>
         )}

@@ -9,6 +9,9 @@ import { TopBarMenu } from 'app-shared/enums/TopBarMenu';
 import { MemoryRouter } from 'react-router-dom';
 import type { AltinnButtonActionItem } from './types';
 import { app, org } from '@studio/testing/testids';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const mockTo: string = '/test';
 const mockMenuKey: TopBarMenu = TopBarMenu.About;
@@ -173,9 +176,12 @@ const render = (props: Partial<AltinnHeaderProps> = {}) => {
     buttonActions: [],
   };
 
+  // This code will be replaced in issue: #11611 which is being split up into smaller chunks now.
   return rtlRender(
-    <MemoryRouter>
-      <AltinnHeader {...defaultProps} {...props} />
-    </MemoryRouter>,
+    <ServicesContextProvider {...queriesMock} client={createQueryClientMock()}>
+      <MemoryRouter>
+        <AltinnHeader {...defaultProps} {...props} />
+      </MemoryRouter>
+    </ServicesContextProvider>,
   );
 };
