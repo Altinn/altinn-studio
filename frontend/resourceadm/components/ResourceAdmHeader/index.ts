@@ -1,0 +1,1 @@
+export { ResourceAdmHeader } from './ResourceAdmHeader';

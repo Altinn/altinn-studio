@@ -1,14 +1,3 @@
-.header {
-  font-family: var(--font-family);
-  align-items: center;
-  height: var(--header-height);
-  width: 100vw;
-  --component-button-outline-primary-color-background-default: #efefef;
-  --component-button-outline-primary-color-border-default: #1e2b3c;
-  --component-button-outline-primary-color-border-hover: none;
-  --component-button-outline-primary-color-text-default: #1e2b3c !important;
-}
-
 .iframeDesktop {
   height: 100%;
   width: 100%;
