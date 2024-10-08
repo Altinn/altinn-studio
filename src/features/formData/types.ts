@@ -1,5 +1,10 @@
 import type { JsonPatch } from 'src/features/formData/jsonPatch/types';
-import type { BackendValidationIssueGroups, BuiltInValidationIssueSources } from 'src/features/validation';
+import type {
+  BackendValidationIssueGroupListItem,
+  BackendValidationIssueGroups,
+  BuiltInValidationIssueSources,
+} from 'src/features/validation';
+import type { IInstance } from 'src/types/shared';
 
 /**
  * This is the default time (in milliseconds) to wait before debouncing the form data. That means, we'll wait this
@@ -31,11 +36,22 @@ export interface IDataModelPatchResponse {
 }
 
 export interface IDataModelMultiPatchRequest {
-  patches: { [dataElementId: string]: JsonPatch };
+  patches: IPatchListItem[];
   ignoredValidators: BuiltInValidationIssueSources[];
 }
 
+export interface IPatchListItem {
+  dataElementId: string;
+  patch: JsonPatch;
+}
+
 export interface IDataModelMultiPatchResponse {
-  validationIssues: BackendValidationIssueGroups;
-  newDataModels: { [dataElementId: string]: object };
+  validationIssues: BackendValidationIssueGroupListItem[];
+  newDataModels: IDataModelPairResponse[];
+  instance: IInstance;
+}
+
+export interface IDataModelPairResponse {
+  dataElementId: string;
+  data: object;
 }

@@ -6,7 +6,7 @@ import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
 import { useIsInFormContext } from 'src/features/form/FormContext';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 
 export function DownloadXMLButton() {
   const isInForm = useIsInFormContext();
@@ -18,7 +18,7 @@ export function DownloadXMLButton() {
 }
 
 const InnerDownloadXMLButton = () => {
-  const instance = useLaxInstanceData();
+  const instanceId = useLaxInstanceId();
   // TODO(Datamodels): How should this work with multiple data models?
   const dataUrl = ''; //useCurrentDataModelUrl(false);
 
@@ -30,7 +30,7 @@ const InnerDownloadXMLButton = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.setAttribute('href', url);
-      a.setAttribute('download', `${window.org}-${window.app}-${instance?.id ?? 'stateless'}.xml`);
+      a.setAttribute('download', `${window.org}-${window.app}-${instanceId ?? 'stateless'}.xml`);
       a.click();
     }
   };

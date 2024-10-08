@@ -111,6 +111,7 @@ async function render(props: TestProps) {
         <TestComponent {...props} />
       </>
     ),
+    instanceId: instanceData.id,
     queries: {
       fetchInstanceData: async () => instanceData,
       fetchLayoutSets: async () => {

@@ -12,8 +12,10 @@ import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchema
 import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FDLeafValue } from 'src/features/formData/FormDataWrite';
 import type { FormDataWriteProxies, Proxy } from 'src/features/formData/FormDataWriteProxies';
+import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
+import type { IInstance } from 'src/types/shared';
 
 export interface DataModelState {
   // These values contain the current data model, with the values immediately available whenever the user is typing.
@@ -146,9 +148,11 @@ export interface UpdatedDataModel {
 export interface FDSaveResult {
   newDataModels: UpdatedDataModel[];
   validationIssues: BackendValidationIssueGroups | undefined;
+  instance?: IInstance;
 }
 
 export interface FDActionResult {
+  instance?: IInstance;
   updatedDataModels:
     | {
         [dataElementId: string]: object;
@@ -187,6 +191,7 @@ export type FormDataContext = FormDataState & FormDataMethods;
 
 function makeActions(
   set: (fn: (state: FormDataContext) => void) => void,
+  changeInstance: ChangeInstanceData | undefined,
   ruleConnections: IRuleConnections | null,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
 ): FormDataMethods {
@@ -230,10 +235,15 @@ function makeActions(
   }
 
   function processChanges(state: FormDataContext, toProcess: FDSaveFinished) {
-    const { validationIssues, savedData, newDataModels } = toProcess;
+    const { validationIssues, savedData, newDataModels, instance } = toProcess;
     state.manualSaveRequested = false;
     state.validationIssues = validationIssues;
     state.onSaveFinished?.(toProcess);
+
+    if (instance && changeInstance) {
+      changeInstance(() => instance);
+    }
+
     for (const [dataType, { dataElementId, isDefault }] of Object.entries(state.dataModels)) {
       const next = dataElementId
         ? newDataModels.find((m) => m.dataElementId === dataElementId)?.data // Stateful apps
@@ -494,6 +504,7 @@ function makeActions(
           }
 
           processChanges(state, {
+            instance: actionResult.instance,
             newDataModels,
             savedData: Object.entries(state.dataModels).reduce((savedData, [dataType, { lastSavedData }]) => {
               savedData[dataType] = lastSavedData;
@@ -512,10 +523,11 @@ export const createFormDataWriteStore = (
   proxies: FormDataWriteProxies,
   ruleConnections: IRuleConnections | null,
   schemaLookup: { [dataType: string]: SchemaLookupTool },
+  changeInstance: ChangeInstanceData | undefined,
 ) =>
   createStore<FormDataContext>()(
     immer((set) => {
-      const actions = makeActions(set, ruleConnections, schemaLookup);
+      const actions = makeActions(set, changeInstance, ruleConnections, schemaLookup);
       for (const name of Object.keys(actions)) {
         const fnName = name as keyof FormDataMethods;
         const original = actions[fnName];

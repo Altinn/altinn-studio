@@ -5,7 +5,7 @@ import { useAttachmentsSelector } from 'src/features/attachments/hooks';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceAllDataElements } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { Validation } from 'src/features/validation/validationContext';
 import { implementsValidateComponent, implementsValidateEmptyField } from 'src/layout';
@@ -85,7 +85,7 @@ function useValidationDataSources(): ValidationDataSources {
   const currentLanguage = useCurrentLanguage();
   const nodeSelector = NodesInternal.useNodeDataSelector();
   const applicationMetadata = useApplicationMetadata();
-  const instance = useLaxInstanceData();
+  const dataElements = useLaxInstanceAllDataElements();
   const layoutSets = useLayoutSets();
   const dataElementHasErrorsSelector = Validation.useDataElementHasErrorsSelector();
 
@@ -97,7 +97,7 @@ function useValidationDataSources(): ValidationDataSources {
       currentLanguage,
       nodeDataSelector: nodeSelector,
       applicationMetadata,
-      instance,
+      dataElements,
       layoutSets,
       dataElementHasErrorsSelector,
     }),
@@ -108,7 +108,7 @@ function useValidationDataSources(): ValidationDataSources {
       currentLanguage,
       nodeSelector,
       applicationMetadata,
-      instance,
+      dataElements,
       layoutSets,
       dataElementHasErrorsSelector,
     ],

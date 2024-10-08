@@ -14,7 +14,7 @@ import { sortAttachmentsByName } from 'src/features/attachments/sortAttachments'
 import { FD } from 'src/features/formData/FormDataWrite';
 import {
   useLaxAppendDataElement,
-  useLaxInstanceData,
+  useLaxInstanceId,
   useLaxMutateDataElement,
   useLaxRemoveDataElement,
 } from 'src/features/instance/InstanceContext';
@@ -478,7 +478,7 @@ interface MutationVariables {
 
 function useAttachmentsUploadMutation() {
   const { doAttachmentUpload } = useAppMutations();
-  const instanceId = useLaxInstanceData()?.id;
+  const instanceId = useLaxInstanceId();
 
   const options: UseMutationOptions<IData, AxiosError, MutationVariables> = {
     mutationFn: ({ dataTypeId, file }: MutationVariables) => {
@@ -498,7 +498,7 @@ function useAttachmentsUploadMutation() {
 
 function useAttachmentsAddTagMutation() {
   const { doAttachmentAddTag } = useAppMutations();
-  const instanceId = useLaxInstanceData()?.id;
+  const instanceId = useLaxInstanceId();
 
   return useMutation({
     mutationFn: ({ dataGuid, tagToAdd }: { dataGuid: string; tagToAdd: string }) => {
@@ -516,7 +516,7 @@ function useAttachmentsAddTagMutation() {
 
 function useAttachmentsRemoveTagMutation() {
   const { doAttachmentRemoveTag } = useAppMutations();
-  const instanceId = useLaxInstanceData()?.id;
+  const instanceId = useLaxInstanceId();
 
   return useMutation({
     mutationFn: ({ dataGuid, tagToRemove }: { dataGuid: string; tagToRemove: string }) => {
@@ -534,7 +534,7 @@ function useAttachmentsRemoveTagMutation() {
 
 function useAttachmentsRemoveMutation() {
   const { doAttachmentRemove } = useAppMutations();
-  const instanceId = useLaxInstanceData()?.id;
+  const instanceId = useLaxInstanceId();
   const language = useCurrentLanguage();
 
   return useMutation({

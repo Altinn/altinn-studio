@@ -2,21 +2,20 @@ import React, { useMemo } from 'react';
 
 import { AltinnAttachment } from 'src/components/atoms/AltinnAttachment';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceAllDataElements } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DataTypeReference, filterDisplayPdfAttachments, getDisplayAttachments } from 'src/utils/attachmentsUtils';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IData, IDataType } from 'src/types/shared';
+import type { IDataType } from 'src/types/shared';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
-const emptyDataArray: IData[] = [];
 const emptyDataTypeArray: IDataType[] = [];
 
 export function AttachmentListComponent({ node }: IAttachmentListProps) {
-  const instanceData = useLaxInstanceData()?.data ?? emptyDataArray;
+  const instanceData = useLaxInstanceAllDataElements();
   const currentTaskId = useLaxProcessData()?.currentTask?.elementId;
   const dataTypes = useApplicationMetadata().dataTypes ?? emptyDataTypeArray;
   const { dataTypeIds, textResourceBindings } = useNodeItem(node);

@@ -9,7 +9,7 @@ import { useParties } from 'src/features/party/PartiesProvider';
 import { ConfirmPage } from 'src/features/processEnd/confirm/containers/ConfirmPage';
 
 export const Confirm = () => {
-  const instance = useLaxInstanceData();
+  const instance = useLaxInstanceData((data) => data);
   const parties = useParties();
   const applicationMetadata = useApplicationMetadata();
   const appName = useAppName();

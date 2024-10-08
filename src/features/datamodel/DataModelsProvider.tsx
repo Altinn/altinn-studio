@@ -11,6 +11,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { getFirstDataElementId } from 'src/features/applicationMetadata/appMetadataUtils';
 import { useCustomValidationConfigQuery } from 'src/features/customValidation/useCustomValidationQuery';
+import { UpdateDataElementIdsForCypress } from 'src/features/datamodel/DataElementIdsForCypress';
 import { useCurrentDataModelName, useDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useDataModelSchemaQuery } from 'src/features/datamodel/useDataModelSchemaQuery';
 import {
@@ -22,7 +23,7 @@ import {
 } from 'src/features/datamodel/utils';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceAllDataElements, useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -121,6 +122,7 @@ export function DataModelsProvider({ children }: PropsWithChildren) {
   return (
     <Provider>
       <DataModelsLoader />
+      {window.Cypress && <UpdateDataElementIdsForCypress />}
       <BlockUntilLoaded>{children}</BlockUntilLoaded>
     </Provider>
   );
@@ -134,7 +136,7 @@ function DataModelsLoader() {
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
-  const instance = useLaxInstanceData();
+  const dataElements = useLaxInstanceAllDataElements();
 
   // Subform
   const overriddenDataElement = useTaskStore((state) => state.overriddenDataModelUuid);
@@ -160,7 +162,7 @@ function DataModelsLoader() {
         window.logErrorOnce(error.message);
         continue;
       }
-      if (!isStateless && !instance?.data.find((data) => data.dataType === dataType)) {
+      if (!isStateless && !dataElements.find((data) => data.dataType === dataType)) {
         const error = new MissingDataElementException(dataType);
         window.logErrorOnce(error.message);
         continue;
@@ -168,13 +170,13 @@ function DataModelsLoader() {
 
       allValidDataTypes.push(dataType);
 
-      if (isDataTypeWritable(dataType, isStateless, instance)) {
+      if (isDataTypeWritable(dataType, isStateless, dataElements)) {
         writableDataTypes.push(dataType);
       }
     }
 
     setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType);
-  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, instance]);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
@@ -246,8 +248,8 @@ interface LoaderProps {
 function LoadInitialData({ dataType, overrideDataElement }: LoaderProps & { overrideDataElement?: string }) {
   const setInitialData = useSelector((state) => state.setInitialData);
   const setError = useSelector((state) => state.setError);
-  const instance = useLaxInstanceData();
-  const dataElementId = overrideDataElement ?? getFirstDataElementId(instance, dataType);
+  const dataElements = useLaxInstanceDataElements(dataType);
+  const dataElementId = overrideDataElement ?? getFirstDataElementId(dataElements, dataType);
   const url = useDataModelUrl({ dataType, dataElementId, includeRowIds: true });
   const { data, error } = useFormDataQuery(url);
   useEffect(() => {
@@ -338,4 +340,6 @@ export const DataModels = {
     const dataElementIds = useMemoSelector((state) => state.dataElementIds);
     return useCallback((dataType: string) => dataElementIds[dataType], [dataElementIds]);
   },
+
+  useDataElementIds: () => useSelector((state) => state.dataElementIds),
 };

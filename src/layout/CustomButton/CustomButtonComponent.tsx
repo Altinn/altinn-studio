@@ -22,7 +22,7 @@ import type { PropsFromGenericComponent } from 'src/layout';
 import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 import type * as CBTypes from 'src/layout/CustomButton/config.generated';
 import type { ClientActionHandlers } from 'src/layout/CustomButton/typeHelpers';
-import type { IUserAction } from 'src/types/shared';
+import type { IInstance, IUserAction } from 'src/types/shared';
 
 type Props = PropsFromGenericComponent<'CustomButton'>;
 
@@ -43,6 +43,7 @@ type UpdatedValidationIssues = {
 type FormDataLockTools = ReturnType<typeof FD.useLocking>;
 
 export type ActionResult = {
+  instance: IInstance | undefined;
   updatedDataModels?: UpdatedDataModels;
   updatedValidationIssues?: UpdatedValidationIssues;
   clientActions?: CBTypes.ClientAction[];
@@ -110,6 +111,7 @@ function useHandleClientActions(): UseHandleClientActions {
 
   const handleDataModelUpdate: UseHandleClientActions['handleDataModelUpdate'] = useCallback(
     async (lockTools, result) => {
+      const instance = result.instance;
       const updatedDataModels = result.updatedDataModels;
       const _updatedValidationIssues = result.updatedValidationIssues;
 
@@ -127,6 +129,7 @@ function useHandleClientActions(): UseHandleClientActions {
         : undefined;
 
       lockTools.unlock({
+        instance,
         updatedDataModels,
         updatedValidationIssues,
       });

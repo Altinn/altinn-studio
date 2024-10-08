@@ -1,6 +1,6 @@
 import type { CyUser } from 'test/e2e/support/auth';
 
-import type { BackendValidationIssue, BackendValidationIssueGroups } from 'src/features/validation';
+import type { BackendValidationIssue, BackendValidationIssueGroupListItem } from 'src/features/validation';
 import type { ILayoutSets } from 'src/layout/common.generated';
 import type { CompExternal, ILayoutCollection, ILayouts } from 'src/layout/layout';
 
@@ -273,6 +273,6 @@ declare global {
 }
 
 export type BackendValidationResult = {
-  validations: BackendValidationIssueGroups | null;
+  validations: BackendValidationIssueGroupListItem[] | null;
 };
 export type BackendValdiationPredicate = (validationIssue: BackendValidationIssue) => boolean | null | undefined;

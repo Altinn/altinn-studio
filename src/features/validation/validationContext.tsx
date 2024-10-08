@@ -252,8 +252,18 @@ function UpdateShowAllErrors() {
   const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(useApplicationMetadata());
 
   const isFirstRender = useRef(true);
+
+  /**
+   * Call /validate manually whenever a data element changes to get updated non-incremental validations.
+   * This should happen whenever any data element changes, so we should check the lastChanged on each data element,
+   * or if new data elements are added. Single-patch does not return updated instance data so for now we need to
+   * also check useLastSaveValidationIssues which will change on each patch.
+   */
   const lastSaved = FD.useLastSaveValidationIssues();
-  const instanceData = useLaxInstanceData();
+  const instanceDataChanges = useLaxInstanceData((instance) =>
+    instance.data.map(({ id, lastChanged }) => ({ id, lastChanged })),
+  );
+
   // Since process/next returns non-incremental validations, we need to also check these to see when they are removed
   const refetchInitialValidations = useRefetchInitialValidations(false, !hasIncrementalValidationFeatures);
   useEffect(() => {
@@ -262,8 +272,12 @@ function UpdateShowAllErrors() {
       isFirstRender.current = false;
       return;
     }
-    refetchInitialValidations();
-  }, [refetchInitialValidations, instanceData, lastSaved]);
+    // Adding or deleting an attachment can lead to changes in both the data model and an update
+    // in the attachments data elements, which can lead to two updates right after each other,
+    // so debouncing a little so that we don't call validate too much as it can be heavy.
+    const timer = setTimeout(() => refetchInitialValidations, 1000);
+    return () => clearTimeout(timer);
+  }, [refetchInitialValidations, instanceDataChanges, lastSaved]);
 
   /**
    * Hide unbound errors as soon as possible.

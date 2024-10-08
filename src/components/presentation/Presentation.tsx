@@ -15,7 +15,7 @@ import { RenderStart } from 'src/core/ui/RenderStart';
 import { Footer } from 'src/features/footer/Footer';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceStatus } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
 import { useProfile } from 'src/features/profile/ProfileProvider';
@@ -31,7 +31,7 @@ export interface IPresentationProvidedProps extends PropsWithChildren {
 
 export const PresentationComponent = ({ header, type, children, renderNavBar = true }: IPresentationProvidedProps) => {
   const party = useCurrentParty();
-  const instance = useLaxInstanceData();
+  const instanceStatus = useLaxInstanceStatus();
   const userParty = useProfile()?.party;
   const { expandedWidth } = useUiConfigContext();
 
@@ -57,10 +57,10 @@ export const PresentationComponent = ({ header, type, children, renderNavBar = t
           headerBackgroundColor={backgroundColor}
         />
         <main className={classes.page}>
-          {isProcessStepsArchived && instance?.status?.substatus && (
+          {isProcessStepsArchived && instanceStatus?.substatus && (
             <AltinnSubstatusPaper
-              label={<Lang id={instance.status.substatus.label} />}
-              description={<Lang id={instance.status.substatus.description} />}
+              label={<Lang id={instanceStatus.substatus.label} />}
+              description={<Lang id={instanceStatus.substatus.description} />}
             />
           )}
           {renderNavBar && <NavBar type={type} />}

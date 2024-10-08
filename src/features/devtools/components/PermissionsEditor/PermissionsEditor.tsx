@@ -3,12 +3,12 @@ import React from 'react';
 import { Checkbox } from '@digdir/designsystemet-react';
 
 import classes from 'src/features/devtools/components/PermissionsEditor/PermissionsEditor.module.css';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import type { IProcess, ITask } from 'src/types/shared';
 
 export const PermissionsEditor = () => {
-  const instanceId = useLaxInstanceData()?.id;
+  const instanceId = useLaxInstanceId();
   const { write, actions } = useLaxProcessData()?.currentTask || {};
 
   function handleChange(mutator: (obj: ITask) => ITask) {

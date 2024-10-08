@@ -3,7 +3,7 @@ import React from 'react';
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 
 import { Caption } from 'src/components/form/Caption';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { usePaymentInformation } from 'src/features/payment/PaymentInformationProvider';
@@ -68,7 +68,7 @@ type PaymentReceiptDetailsProps = {
 export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDetailsProps) => {
   const selectedLanguage = useCurrentLanguage();
   const paymentInfo = usePaymentInformation();
-  const instance = useLaxInstanceData();
+  const instanceId = useLaxInstanceId();
   const receiver = paymentInfo?.orderDetails?.receiver;
   const payer = paymentInfo?.paymentDetails?.payer;
   const privatePersonPayer = payer?.privatePerson;
@@ -126,12 +126,12 @@ export const PaymentReceiptDetails = ({ title, description }: PaymentReceiptDeta
             <Lang id='payment.receipt.payment_id' />: <b>{paymentInfo.paymentDetails.paymentId}</b>
           </Paragraph>
         )}
-        {instance && (
+        {instanceId && (
           <Paragraph
             size='small'
             spacing={false}
           >
-            <Lang id='payment.receipt.altinn_ref' />: <b>{getInstanceReferenceNumber(instance)}</b>
+            <Lang id='payment.receipt.altinn_ref' />: <b>{getInstanceReferenceNumber(instanceId)}</b>
           </Paragraph>
         )}
         {paymentInfo?.paymentDetails?.chargedDate && (

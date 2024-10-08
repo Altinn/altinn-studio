@@ -58,9 +58,19 @@ describe('validating multiple data models', () => {
   });
 
   it('expression validation for multiple datamodels', () => {
+    const dataElementIds: { modell1?: string; modell2?: string } = {};
     const validationResult: BackendValidationResult = { validations: null };
     cy.runAllBackendValidations();
     cy.waitForLoad();
+
+    // Get mapping between dataElementId and dataType
+    cy.window().then((win) => {
+      for (const [dataType, dataElementId] of Object.entries(win.CypressState?.dataElementIds ?? {})) {
+        if (dataElementId) {
+          dataElementIds[dataType] = dataElementId;
+        }
+      }
+    });
 
     cy.get(appFrontend.fieldValidation(appFrontend.multipleDatamodelsTest.textField1)).should('not.exist');
     cy.getNextPatchValidations(validationResult);
@@ -69,17 +79,24 @@ describe('validating multiple data models', () => {
       'contain.text',
       'Feil er feil',
     );
-    // TODO: Verify data element id
     cy.expectValidationToExist(
       validationResult,
       'Expression',
-      (v) => v.severity === 1 && v.customTextKey === 'Feil er feil' && v.field === 'tekstfelt',
+      (v) =>
+        v.severity === 1 &&
+        v.customTextKey === 'Feil er feil' &&
+        v.field === 'tekstfelt' &&
+        v.dataElementId === dataElementIds.modell1,
     );
-    // cy.expectValidationNotToExist(
-    //   validationResult,
-    //   'Required',
-    //   (v) => v.severity === 1 && v.code === 'required' && v.field === 'tekstfelt', // TODO: Check the dataElementId somehow
-    // );
+    cy.expectValidationNotToExist(
+      validationResult,
+      'Required',
+      (v) =>
+        v.severity === 1 &&
+        v.code === 'required' &&
+        v.field === 'tekstfelt' &&
+        v.dataElementId === dataElementIds.modell1,
+    );
 
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.getNextPatchValidations(validationResult);
@@ -87,7 +104,11 @@ describe('validating multiple data models', () => {
     cy.expectValidationToExist(
       validationResult,
       'Required',
-      (v) => v.severity === 1 && v.code === 'required' && v.field === 'tekstfelt', // TODO: Check the dataElementId somehow
+      (v) =>
+        v.severity === 1 &&
+        v.code === 'required' &&
+        v.field === 'tekstfelt' &&
+        v.dataElementId === dataElementIds.modell1,
     );
 
     cy.get(appFrontend.fieldValidation(appFrontend.multipleDatamodelsTest.textField2)).should('not.exist');
@@ -97,11 +118,14 @@ describe('validating multiple data models', () => {
       'contain.text',
       'Feil er advarsel',
     );
-    // TODO: Verify data element id
     cy.expectValidationToExist(
       validationResult,
       'Expression',
-      (v) => v.severity === 2 && v.customTextKey === 'Feil er advarsel' && v.field === 'tekstfelt',
+      (v) =>
+        v.severity === 2 &&
+        v.customTextKey === 'Feil er advarsel' &&
+        v.field === 'tekstfelt' &&
+        v.dataElementId === dataElementIds.modell2,
     );
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.findByRole('textbox', { name: /tekstfelt 2/i }).clear();
@@ -121,14 +145,14 @@ describe('validating multiple data models', () => {
       'contain.text',
       'Du kan ikke velge både IKT og Verkstedindustri',
     );
-    // TODO: Verify data element id
     cy.expectValidationToExist(
       validationResult,
       'Expression',
       (v) =>
         v.severity === 1 &&
         v.customTextKey === 'Du kan ikke velge både IKT og Verkstedindustri' &&
-        v.field === 'bransje',
+        v.field === 'bransje' &&
+        v.dataElementId === dataElementIds.modell1,
     );
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
 
@@ -146,14 +170,14 @@ describe('validating multiple data models', () => {
       'contain.text',
       'Etternavn kan ikke inneholde utropstegn!!!',
     );
-    // TODO: Verify data element id
     cy.expectValidationToExist(
       validationResult,
       'Expression',
       (v) =>
         v.severity === 1 &&
         v.customTextKey === 'Etternavn kan ikke inneholde utropstegn!!!' &&
-        v.field === 'personer[0].etternavn',
+        v.field === 'personer[0].etternavn' &&
+        v.dataElementId === dataElementIds.modell2,
     );
 
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);

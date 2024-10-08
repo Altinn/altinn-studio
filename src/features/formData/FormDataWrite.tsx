@@ -18,7 +18,7 @@ import { createFormDataWriteStore } from 'src/features/formData/FormDataWriteSta
 import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxChangeInstance, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -35,6 +35,8 @@ import type {
   FormDataContext,
   UpdatedDataModel,
 } from 'src/features/formData/FormDataWriteStateMachine';
+import type { IPatchListItem } from 'src/features/formData/types';
+import type { ChangeInstanceData } from 'src/features/instance/InstanceContext';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, IMapping } from 'src/layout/common.generated';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -49,6 +51,7 @@ interface FormDataContextInitialProps {
   proxies: FormDataWriteProxies;
   ruleConnections: IRuleConnections | null;
   schemaLookup: { [dataType: string]: SchemaLookupTool };
+  changeInstance: ChangeInstanceData | undefined;
 }
 
 const {
@@ -71,8 +74,9 @@ const {
     proxies,
     ruleConnections,
     schemaLookup,
+    changeInstance,
   }: FormDataContextInitialProps) =>
-    createFormDataWriteStore(initialDataModels, autoSaving, proxies, ruleConnections, schemaLookup),
+    createFormDataWriteStore(initialDataModels, autoSaving, proxies, ruleConnections, schemaLookup, changeInstance),
 });
 
 function useFormDataSaveMutation() {
@@ -174,38 +178,48 @@ function useFormDataSaveMutation() {
             throw new Error(`Cannot patch data, multipatch url could not be determined`);
           }
 
-          const patches = dataTypes.reduce((patches, dataType) => {
-            const { dataElementId, debouncedCurrentData, lastSavedData } = dataModelsRef.current[dataType];
-            if (dataElementId && debouncedCurrentData !== lastSavedData) {
+          const patches: IPatchListItem[] = [];
+
+          for (const dataType of dataTypes) {
+            const { dataElementId } = dataModelsRef.current[dataType];
+            if (dataElementId && next[dataType] !== prev[dataType]) {
               const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
               if (patch.length > 0) {
-                patches[dataElementId] = patch;
+                patches.push({ dataElementId, patch });
               }
             }
-            return patches;
-          }, {});
+          }
 
-          if (Object.keys(patches).length === 0) {
+          if (patches.length === 0) {
             return;
           }
 
-          const { newDataModels, validationIssues } = await doPatchMultipleFormData(multiPatchUrl, {
+          const { newDataModels, validationIssues, instance } = await doPatchMultipleFormData(multiPatchUrl, {
             patches,
             // Ignore validations that require layout parsing in the backend which will slow down requests significantly
             ignoredValidators: IgnoredValidators,
           });
 
           const dataModelChanges: UpdatedDataModel[] = [];
-          for (const dataElementId of Object.keys(newDataModels)) {
+          for (const { dataElementId, data } of newDataModels) {
             const dataType = Object.keys(dataModelsRef.current).find(
               (dataType) => dataModelsRef.current[dataType].dataElementId === dataElementId,
             );
             if (dataType) {
-              dataModelChanges.push({ dataType, data: newDataModels[dataElementId], dataElementId });
+              dataModelChanges.push({ dataType, data, dataElementId });
             }
           }
 
-          return { newDataModels: dataModelChanges, validationIssues, savedData: next };
+          const validationIssueGroups: BackendValidationIssueGroups = Object.fromEntries(
+            validationIssues.map(({ source, issues }) => [source, issues]),
+          );
+
+          return {
+            newDataModels: dataModelChanges,
+            validationIssues: validationIssueGroups,
+            instance,
+            savedData: next,
+          };
         } else {
           const dataType = dataTypes[0];
           const patch = createPatch({ prev: prev[dataType], next: next[dataType] });
@@ -271,6 +285,7 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
   const { allDataTypes, writableDataTypes, defaultDataType, initialData, schemaLookup, dataElementIds } =
     DataModels.useFullStateRef().current;
   const autoSaveBehaviour = usePageSettings().autoSaveBehavior;
+  const changeInstance = useLaxChangeInstance();
 
   if (!writableDataTypes || !allDataTypes) {
     throw new Error('FormDataWriteProvider failed because data types have not been loaded, see DataModelsProvider.');
@@ -299,6 +314,7 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
       proxies={proxies}
       ruleConnections={ruleConnections}
       schemaLookup={schemaLookup}
+      changeInstance={changeInstance}
     >
       <FormDataEffects />
       {children}

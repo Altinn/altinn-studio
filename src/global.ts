@@ -25,6 +25,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Cypress?: any; // Can be used to test if we are running in Cypress
     CypressState?: {
+      dataElementIds?: { [dataType: string]: string | null };
       attachments?: IAttachmentsMap;
       formData?: { [key: string]: unknown };
       nodesStore?: NodesContextStore;

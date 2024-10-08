@@ -5,7 +5,7 @@ import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
 import { getLayoutSetForDataElement } from 'src/utils/layout';
 import type { ApplicationMetadata, ShowTypes } from 'src/features/applicationMetadata/types';
 import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IInstance } from 'src/types/shared';
+import type { IData } from 'src/types/shared';
 
 interface CommonProps {
   application: ApplicationMetadata;
@@ -14,7 +14,7 @@ interface CommonProps {
 }
 
 interface GetCurrentTaskDataElementIdProps extends CommonProps {
-  instance: IInstance | null | undefined;
+  dataElements: IData[];
 }
 
 interface GetDataTypeByLayoutSetIdProps {
@@ -119,12 +119,12 @@ export function getCurrentDataTypeForApplication({ application, layoutSets, task
 
 export const getCurrentTaskDataElementId = (props: GetCurrentTaskDataElementIdProps) => {
   const currentDataTypeId = getCurrentDataTypeForApplication(props);
-  const currentTaskDataElement = (props.instance?.data || []).find((element) => element.dataType === currentDataTypeId);
+  const currentTaskDataElement = props.dataElements.find((element) => element.dataType === currentDataTypeId);
   return currentTaskDataElement?.id;
 };
 
-export function getFirstDataElementId(instance: IInstance | undefined, dataType: string) {
-  const elements = (instance?.data ?? []).filter((element) => element.dataType === dataType);
+export function getFirstDataElementId(dataElements: IData[], dataType: string) {
+  const elements = dataElements.filter((element) => element.dataType === dataType);
   if (elements.length > 1) {
     window.logWarnOnce(
       `Found multiple data elements with data type ${dataType} in instance, cannot determine which one to use`,

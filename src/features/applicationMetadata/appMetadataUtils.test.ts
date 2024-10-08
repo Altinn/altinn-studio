@@ -156,7 +156,7 @@ describe('appMetadata.ts', () => {
     it('should return current task data element id', () => {
       const result = getCurrentTaskDataElementId({
         application: appMetadata,
-        instance,
+        dataElements: instance.data,
         layoutSets,
         taskId: 'Task_1',
       });

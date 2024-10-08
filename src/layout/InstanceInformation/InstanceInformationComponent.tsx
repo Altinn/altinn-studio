@@ -7,7 +7,7 @@ import type { PropsFromGenericComponent } from '..';
 
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppReceiver } from 'src/core/texts/appTexts';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceData, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
@@ -17,7 +17,7 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInternal } from 'src/layout/layout';
-import type { IInstance, IParty } from 'src/types/shared';
+import type { IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
   langTools: IUseLanguage,
@@ -58,7 +58,7 @@ export const returnInstanceMetaDataObject = (
   return obj;
 };
 
-export const getInstanceReferenceNumber = (instance: IInstance): string => instance.id.split('/')[1].split('-')[4];
+export const getInstanceReferenceNumber = (instanceId: string): string => instanceId.split('/')[1].split('-')[4];
 
 export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInformation'>, 'elements'>) {
   const { dateSent, sender, receiver, referenceNumber } = elements || {};
@@ -66,16 +66,18 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   const langTools = useLanguage();
   const selectedLanguage = useCurrentLanguage();
 
-  const instance = useLaxInstanceData();
+  const instanceOwner = useLaxInstanceData((data) => data.instanceOwner);
+  const lastChanged = useLaxInstanceData((data) => data.lastChanged);
+  const instanceId = useLaxInstanceId();
   const parties = useParties();
   const appReceiver = useAppReceiver();
 
   const instanceOwnerParty =
-    instance && parties?.find((party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId);
+    instanceOwner && parties?.find((party: IParty) => party.partyId.toString() === instanceOwner.partyId);
 
   const instanceDateSent =
     dateSent !== false &&
-    moment(instance?.lastChanged).tz('Europe/Oslo').format(getDateFormat(PrettyDateAndTime, selectedLanguage));
+    moment(lastChanged).tz('Europe/Oslo').format(getDateFormat(PrettyDateAndTime, selectedLanguage));
 
   const instanceSender =
     sender !== false &&
@@ -84,7 +86,7 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
 
   const instanceReceiver = receiver !== false ? (appReceiver ?? 'Error: Receiver org not found') : undefined;
 
-  const instanceReferenceNumber = referenceNumber !== false && instance && getInstanceReferenceNumber(instance);
+  const instanceReferenceNumber = referenceNumber !== false && instanceId && getInstanceReferenceNumber(instanceId);
 
   const instanceMetaDataObject = returnInstanceMetaDataObject(
     langTools,

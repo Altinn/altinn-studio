@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
+import deepEqual from 'fast-deep-equal';
 import { createStore } from 'zustand';
 import type { QueryObserverResult } from '@tanstack/react-query';
 
@@ -11,6 +12,7 @@ import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { Loader } from 'src/core/loading/Loader';
+import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
 import { ProcessProvider } from 'src/features/instance/ProcessContext';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
@@ -42,7 +44,7 @@ export type ChangeInstanceData = (callback: (instance: IInstance | undefined) =>
 
 type InstanceStoreProps = Pick<InstanceContext, 'partyId' | 'instanceGuid'>;
 
-const { Provider, useMemoSelector, useSelector, useLaxSelector, useHasProvider } = createZustandContext({
+const { Provider, useMemoSelector, useSelector, useLaxMemoSelector, useHasProvider } = createZustandContext({
   name: 'InstanceContext',
   required: true,
   initialCreateStore: (props: InstanceStoreProps) =>
@@ -81,7 +83,8 @@ const { Provider, useMemoSelector, useSelector, useLaxSelector, useHasProvider }
       changeData: (callback) =>
         set((state) => {
           const next = callback(state.data);
-          if (next && state.data !== next) {
+          const clean = cleanUpInstanceData(next);
+          if (clean && !deepEqual(state.data, clean)) {
             return { ...state, data: next, dataSources: buildInstanceDataSources(next) };
           }
           return {};
@@ -206,20 +209,31 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
  * should use the lax versions and handle the undefined case.
  */
 function useLaxInstance<U>(selector: (state: InstanceContext) => U) {
-  const out = useLaxSelector(selector);
+  const out = useLaxMemoSelector(selector);
   return out === ContextNotProvided ? undefined : out;
 }
 
+const emptyArray: never[] = [];
+
 export const useLaxInstanceId = () => useLaxInstance((state) => state.instanceId);
-export const useLaxInstanceData = () => useLaxInstance((state) => state.data);
+export const useLaxInstanceData = <U,>(selector: (data: IInstance) => U) =>
+  useLaxInstance((state) => (state.data ? selector(state.data) : undefined));
+export const useLaxInstanceAllDataElements = () => useLaxInstance((state) => state.data?.data) ?? emptyArray;
+export const useLaxInstanceDataElements = (dataType: string | undefined) =>
+  useLaxInstance((state) => state.data?.data.filter((d) => d.dataType === dataType)) ?? emptyArray;
+export const useLaxInstanceStatus = () => useLaxInstance((state) => state.data?.status);
 export const useLaxAppendDataElement = () => useLaxInstance((state) => state.appendDataElement);
 export const useLaxMutateDataElement = () => useLaxInstance((state) => state.mutateDataElement);
 export const useLaxRemoveDataElement = () => useLaxInstance((state) => state.removeDataElement);
 export const useLaxInstanceDataSources = () => useLaxInstance((state) => state.dataSources) ?? null;
+export const useLaxChangeInstance = (): ChangeInstanceData | undefined => useLaxInstance((state) => state.changeData);
 export const useHasInstance = () => useHasProvider();
 
-const emptyArray: never[] = [];
-export const useStrictInstance = () => useSelector((state) => state);
+export const useStrictInstanceRefetch = () => useSelector((state) => state.reFetch);
 export const useStrictInstanceId = () => useSelector((state) => state.instanceId);
+export const useStrictAppendDataElement = () => useSelector((state) => state.appendDataElement);
+export const useStrictMutateDataElement = () => useSelector((state) => state.mutateDataElement);
+export const useStrictRemoveDataElement = () => useSelector((state) => state.removeDataElement);
+export const useStrictAllDataElements = () => useMemoSelector((state) => state.data?.data) ?? emptyArray;
 export const useStrictDataElements = (dataType: string | undefined) =>
   useMemoSelector((state) => state.data?.data.filter((d) => d.dataType === dataType)) ?? emptyArray;

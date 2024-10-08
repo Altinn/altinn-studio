@@ -9,7 +9,7 @@ import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSi
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceAllDataElements, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
@@ -77,7 +77,10 @@ export const getSummaryDataObject = ({
 
 export const ReceiptContainer = () => {
   const applicationMetadata = useApplicationMetadata();
-  const instance = useLaxInstanceData();
+  const lastChanged = useLaxInstanceData((i) => i.lastChanged);
+  const instanceOrg = useLaxInstanceData((i) => i.org);
+  const instanceOwner = useLaxInstanceData((i) => i.instanceOwner);
+  const dataElements = useLaxInstanceAllDataElements();
   const parties = useParties();
   const langTools = useLanguage();
   const receiver = useAppReceiver();
@@ -87,36 +90,34 @@ export const ReceiptContainer = () => {
   const instanceGuid = useNavigationParam('instanceGuid');
 
   const lastChangedDateTime = useMemo(() => {
-    if (instance && instance.data) {
-      return moment(instance.lastChanged).format('DD.MM.YYYY / HH:mm');
+    if (lastChanged) {
+      return moment(lastChanged).format('DD.MM.YYYY / HH:mm');
     }
     return undefined;
-  }, [instance]);
+  }, [lastChanged]);
 
   const attachments = useMemo(() => {
-    if (instance && instance.data) {
+    if (dataElements.length) {
       const defaultElementIds = applicationMetadata.dataTypes
         .filter((dataType) => !!dataType.appLogic)
         .map((type) => type.id);
 
-      const attachmentsResult = filterDisplayAttachments(instance.data, defaultElementIds);
+      const attachmentsResult = filterDisplayAttachments(dataElements, defaultElementIds);
       return attachmentsResult || [];
     }
     return undefined;
-  }, [applicationMetadata, instance]);
+  }, [applicationMetadata, dataElements]);
 
   const pdf = useMemo(() => {
-    if (instance && instance.data) {
-      return filterDisplayPdfAttachments(instance.data);
+    if (dataElements.length) {
+      return filterDisplayPdfAttachments(dataElements);
     }
     return undefined;
-  }, [instance]);
+  }, [dataElements]);
 
   const instanceMetaObject = useMemo(() => {
-    if (instance && instance.org && parties && instanceGuid && lastChangedDateTime) {
-      const instanceOwnerParty = parties.find(
-        (party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId,
-      );
+    if (instanceOrg && instanceOwner && parties && instanceGuid && lastChangedDateTime) {
+      const instanceOwnerParty = parties.find((party: IParty) => party.partyId.toString() === instanceOwner.partyId);
 
       return getSummaryDataObject({
         langTools,
@@ -128,7 +129,7 @@ export const ReceiptContainer = () => {
     }
 
     return undefined;
-  }, [instance, parties, instanceGuid, lastChangedDateTime, langTools, receiver]);
+  }, [instanceOrg, parties, instanceGuid, lastChangedDateTime, langTools, receiver, instanceOwner]);
 
   const requirementMissing = !attachments
     ? 'attachments'
@@ -136,13 +137,13 @@ export const ReceiptContainer = () => {
       ? 'instanceMetaObject'
       : !lastChangedDateTime
         ? 'lastChangedDateTime'
-        : !instance
+        : !instanceOwner
           ? 'instance'
           : !parties
             ? 'parties'
             : undefined;
 
-  if (requirementMissing || !(instance && parties && instanceMetaObject && pdf)) {
+  if (requirementMissing || !(instanceOwner && parties && instanceMetaObject && pdf)) {
     return (
       <AltinnContentLoader
         width={705}

@@ -3,6 +3,7 @@ import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
+import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
@@ -73,18 +74,6 @@ import type {
   IProcess,
   IProfile,
 } from 'src/types/shared';
-
-const cleanUpInstanceData = async (_instance: IInstance | Promise<IInstance>) => {
-  const instance = await _instance;
-  if (instance && 'process' in instance) {
-    // Even though the process state is part of the instance data we fetch from the server, we don't want to expose it
-    // to the rest of the application. This is because the process state is also fetched separately, and that
-    // is the one we want to use, as it contains more information about permissions than the instance data provides.
-    delete instance.process;
-  }
-
-  return instance;
-};
 
 export const doSetCurrentParty = (partyId: number) =>
   putWithoutConfig<'Party successfully updated' | string | null>(getSetCurrentPartyUrl(partyId));
@@ -197,8 +186,8 @@ export const fetchLogo = async (): Promise<string> =>
 export const fetchActiveInstances = (partyId: number): Promise<ISimpleInstance[]> =>
   httpGet(getActiveInstancesUrl(partyId));
 
-export const fetchInstanceData = (partyId: string, instanceGuid: string): Promise<IInstance> =>
-  cleanUpInstanceData(httpGet(`${instancesControllerUrl}/${partyId}/${instanceGuid}`));
+export const fetchInstanceData = async (partyId: string, instanceGuid: string): Promise<IInstance> =>
+  await httpGet<IInstance>(`${instancesControllerUrl}/${partyId}/${instanceGuid}`);
 
 export const fetchProcessState = (instanceId: string): Promise<IProcess> => httpGet(getProcessStateUrl(instanceId));
 

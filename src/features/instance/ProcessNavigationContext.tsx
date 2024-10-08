@@ -7,7 +7,7 @@ import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
-import { useLaxInstanceId, useStrictInstance } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceId, useStrictInstanceRefetch } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
@@ -29,7 +29,7 @@ const AbortedDueToFailure = Symbol('AbortedDueToFailure');
 
 function useProcessNext() {
   const { doProcessNext } = useAppMutations();
-  const { reFetch: reFetchInstanceData } = useStrictInstance();
+  const reFetchInstanceData = useStrictInstanceRefetch();
   const language = useCurrentLanguage();
   const setProcessData = useSetProcessData();
   const currentProcessData = useLaxProcessData();

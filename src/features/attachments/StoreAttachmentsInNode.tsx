@@ -4,7 +4,7 @@ import deepEqual from 'fast-deep-equal';
 
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
@@ -48,12 +48,12 @@ function useNodeAttachments(): Record<string, IAttachment> {
 
   const application = useApplicationMetadata();
   const currentTask = useLaxProcessData()?.currentTask?.elementId;
-  const data = useLaxInstanceData()?.data;
+  const data = useLaxInstanceDataElements(node.baseId);
 
   const mappedAttachments = useMemoDeepEqual(() => {
     const taskId = overriddenTaskId ? overriddenTaskId : currentTask;
 
-    return mapAttachments(node, data ?? [], application, taskId, nodeData);
+    return mapAttachments(node, data, application, taskId, nodeData);
   }, [node, data, application, currentTask, nodeData, overriddenTaskId]);
 
   const prev = NodesInternal.useNodeData(node, (data) => data.attachments);

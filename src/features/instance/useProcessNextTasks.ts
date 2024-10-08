@@ -1,21 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
-import { useLaxInstanceData } from 'src/features/instance/InstanceContext';
+import { useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { useLaxProcessData, useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { ProcessTaskType } from 'src/types';
 
 function useProcessNextTasksQuery() {
   const { fetchProcessNextSteps } = useAppQueries();
-  const instance = useLaxInstanceData();
+  const instanceId = useStrictInstanceId();
   const process = useLaxProcessData();
   const taskId = process?.currentTask?.elementId;
   const taskType = useTaskTypeFromBackend();
 
   return useQuery({
-    queryKey: ['fetchProcessNextSteps', instance?.id, taskId],
-    queryFn: () => fetchProcessNextSteps(instance!.id),
-    enabled: !!instance?.id && !!taskId && taskType !== ProcessTaskType.Archived,
+    queryKey: ['fetchProcessNextSteps', instanceId, taskId],
+    queryFn: () => fetchProcessNextSteps(instanceId),
+    enabled: !!instanceId && !!taskId && taskType !== ProcessTaskType.Archived,
   });
 }
 
