@@ -118,7 +118,7 @@ public static class TypeAssertions
             .First(x => x.Name == "DynamicAnnotationClass").Properties().Single();
         IsEquivalentTo(expectedProperty.PropertyType, property.PropertyType);
         var expectedAnnotation = expectedProperty.CustomAttributes.Single();
-        Assert.Single(property.CustomAttributes.Where(x => x.ToString() == expectedAnnotation.ToString()));
+        Assert.Single(property.CustomAttributes, x => x.ToString() == expectedAnnotation.ToString());
     }
 
     private static string DynamicAnnotationClassString(string propertyName, string propertyType, string annotation) =>
