@@ -45,26 +45,26 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
     {
         var layoutSetsFile = await repository.GetLayoutSetsFile(cancellationToken);
 
+        await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
+            notification.EditingContext,
+            SyncErrorCodes.LayoutSetsTaskIdSyncError,
+            "App/ui/layout-sets.json",
+            async () =>
+            {
+                bool hasChanged = false;
+
+                var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
+                if (TryChangeLayoutSetTaskIds(layoutSets, notification.OldId, notification.NewId))
+                {
+                    await repository.SaveLayoutSets(layoutSets);
+                    hasChanged = true;
+                }
+
+                return hasChanged;
+            });
+
         foreach (string layoutSetName in layoutSetsFile.Sets.Select(layoutSet => layoutSet.Id))
         {
-            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
-                notification.EditingContext,
-                SyncErrorCodes.LayoutSetsTaskIdSyncError,
-                "App/ui/layout-sets.json",
-                async () =>
-                {
-                    bool hasChanged = false;
-
-                    var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-                    if (TryChangeLayoutSetTaskIds(layoutSets, notification.OldId, notification.NewId))
-                    {
-                        await repository.SaveLayoutSets(layoutSets);
-                        hasChanged = true;
-                    }
-
-                    return hasChanged;
-                });
-
             await ProcessLayouts(layoutSetName, notification, repository, cancellationToken);
         }
     }
