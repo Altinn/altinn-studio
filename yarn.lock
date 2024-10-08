@@ -1770,9 +1770,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@digdir/designsystemet-react@npm:0.63.0":
-  version: 0.63.0
-  resolution: "@digdir/designsystemet-react@npm:0.63.0"
+"@digdir/designsystemet-react@npm:0.63.1":
+  version: 0.63.1
+  resolution: "@digdir/designsystemet-react@npm:0.63.1"
   dependencies:
     "@floating-ui/react": "npm:0.26.12"
     "@navikt/aksel-icons": "npm:^5.12.2"
@@ -1781,7 +1781,7 @@ __metadata:
   peerDependencies:
     react: ">=18.3.1"
     react-dom: ">=18.3.1"
-  checksum: 10c0/722cf541ccbd480156edee67c4b18c63d44daec44cde032aee97977c3e5e10c4f6f726cb25f5df427545312317b4f2043feff3f9e080788c6b181041a5c0c5ea
+  checksum: 10c0/20ad11de9fb0203ff10cffd0966b56a39503a7863db1aa69b772e38b47c3fd98828a60310a4ce8c1d4163d7edc9704341222877286e6a7ad65723b7909e2ac5b
   languageName: node
   linkType: hard
 
@@ -5160,7 +5160,7 @@ __metadata:
     "@date-io/moment": "npm:1.3.13"
     "@digdir/design-system-react": "npm:0.54.0"
     "@digdir/designsystemet-css": "npm:0.10.0"
-    "@digdir/designsystemet-react": "npm:0.63.0"
+    "@digdir/designsystemet-react": "npm:0.63.1"
     "@digdir/designsystemet-theme": "npm:0.15.3"
     "@eslint/compat": "npm:^1.1.1"
     "@faker-js/faker": "npm:^9.0.0"
