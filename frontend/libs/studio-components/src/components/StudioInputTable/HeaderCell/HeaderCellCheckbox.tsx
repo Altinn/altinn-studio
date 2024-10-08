@@ -6,11 +6,11 @@ import { StudioCheckbox } from '../../StudioCheckbox';
 export type HeaderCellCheckboxProps = Omit<StudioCheckboxProps, 'value'> & { value?: string };
 
 export const HeaderCellCheckbox = forwardRef<HTMLInputElement, HeaderCellCheckboxProps>(
-  ({ value: givenValue, ...rest }, ref) => {
+  ({ value: givenValue, className, ...rest }, ref) => {
     const defaultValue = useId();
     const value = givenValue ?? defaultValue;
     return (
-      <StudioTable.HeaderCell>
+      <StudioTable.HeaderCell className={className}>
         <StudioCheckbox ref={ref} value={value} {...rest} />
       </StudioTable.HeaderCell>
     );

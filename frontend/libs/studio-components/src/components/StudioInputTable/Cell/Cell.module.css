@@ -4,8 +4,12 @@
   font-size: var(--studio-input-table-font-size);
 }
 
+.buttonCell {
+  text-align: center;
+}
+
 .buttonCell button {
-  display: flex;
+  display: inline-flex;
 }
 
 .textfieldCell:not(:hover) input:not(:hover):not(:active):not(:focus),
