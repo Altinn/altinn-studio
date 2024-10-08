@@ -312,7 +312,7 @@ class ConditionalRendering extends React.Component<
               style={{ fontSize: '16px' }}
             >
               <option value=''>{this.props.t('general.choose_method')}</option>
-              {this.props.ruleModelElements.map((funcObj: any) => {
+              {this.props.ruleModelElements?.map((funcObj: any) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>
                     {funcObj.name}
