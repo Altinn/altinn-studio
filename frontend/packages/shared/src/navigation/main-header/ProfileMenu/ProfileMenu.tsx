@@ -114,7 +114,7 @@ export const ProfileMenu = ({
           </MenuItem>
         )}
         <MenuItem className={classes.menuItem}>
-          <a href={altinnDocsUrl('')} target='_blank' rel='noopener noreferrer'>
+          <a href={altinnDocsUrl()} target='_blank' rel='noopener noreferrer'>
             {t('sync_header.documentation')}
           </a>
         </MenuItem>

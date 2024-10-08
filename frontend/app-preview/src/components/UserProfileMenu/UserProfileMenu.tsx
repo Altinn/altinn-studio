@@ -27,7 +27,7 @@ export const UserProfileMenu = ({ user, repository }: UserProfileMenuProps): Rea
   const { mutate: logout } = useLogoutMutation();
 
   const docsMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: altinnDocsUrl('') },
+    action: { type: 'link', href: altinnDocsUrl() },
     itemName: t('sync_header.documentation'),
   };
   const logOutMenuItem: StudioProfileMenuItem = {
