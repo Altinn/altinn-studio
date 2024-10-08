@@ -77,7 +77,7 @@ export function EditCodeList<T extends SelectionComponentType>({
       <p style={{ marginBottom: 0 }}>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}>
           <a
-            href={altinnDocsUrl('altinn-studio/guides/options/static-codelists/')}
+            href={altinnDocsUrl('altinn-studio/reference/data/options/static-codelists/')}
             target='_newTab'
             rel='noopener noreferrer'
           />
