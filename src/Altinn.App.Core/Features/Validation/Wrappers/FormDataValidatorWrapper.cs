@@ -37,6 +37,11 @@ internal class FormDataValidatorWrapper : IValidator
         var validateAllElements = _formDataValidator.DataType == "*";
         foreach (var dataElement in instance.Data)
         {
+            var dataType = instanceDataAccessor.GetDataType(dataElement);
+            if (dataType.AppLogic?.ClassRef == null)
+            {
+                continue;
+            }
             if (!validateAllElements && _formDataValidator.DataType != dataElement.DataType)
             {
                 continue;

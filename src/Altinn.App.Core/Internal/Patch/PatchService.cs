@@ -5,6 +5,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
@@ -22,6 +23,7 @@ internal class PatchService : IPatchService
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _instanceClient;
     private readonly ModelSerializationService _modelSerializationService;
     private readonly IWebHostEnvironment _hostingEnvironment;
     private readonly Telemetry? _telemetry;
@@ -38,6 +40,7 @@ internal class PatchService : IPatchService
     public PatchService(
         IAppMetadata appMetadata,
         IDataClient dataClient,
+        IInstanceClient instanceClient,
         IValidationService validationService,
         IEnumerable<IDataProcessor> dataProcessors,
         IEnumerable<IDataWriteProcessor> dataWriteProcessors,
@@ -48,6 +51,7 @@ internal class PatchService : IPatchService
     {
         _appMetadata = appMetadata;
         _dataClient = dataClient;
+        _instanceClient = instanceClient;
         _validationService = validationService;
         _dataProcessors = dataProcessors;
         _dataWriteProcessors = dataWriteProcessors;
@@ -69,6 +73,7 @@ internal class PatchService : IPatchService
         var dataAccessor = new CachedInstanceDataAccessor(
             instance,
             _dataClient,
+            _instanceClient,
             _appMetadata,
             _modelSerializationService
         );
@@ -139,56 +144,19 @@ internal class PatchService : IPatchService
             );
         }
 
-        foreach (var dataProcessor in _dataProcessors)
-        {
-            foreach (var change in changesAfterPatch)
-            {
-                var dataElementGuid = Guid.Parse(change.DataElement.Id);
-                using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataProcessor);
-                try
-                {
-                    // TODO: Create new dataProcessor interface that takes multiple models at the same time.
-                    await dataProcessor.ProcessDataWrite(
-                        instance,
-                        dataElementGuid,
-                        change.CurrentFormData,
-                        change.PreviousFormData,
-                        language
-                    );
-                }
-                catch (Exception e)
-                {
-                    processWriteActivity?.Errored(e);
-                    throw;
-                }
-            }
-        }
-
-        foreach (var dataWriteProcessor in _dataWriteProcessors)
-        {
-            using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataWriteProcessor);
-            try
-            {
-                await dataWriteProcessor.ProcessDataWrite(
-                    dataAccessor,
-                    instance.Process.CurrentTask.ElementId,
-                    changesAfterPatch,
-                    language
-                );
-            }
-            catch (Exception e)
-            {
-                processWriteActivity?.Errored(e);
-                throw;
-            }
-        }
+        await RunDataProcessors(
+            dataAccessor,
+            changesAfterPatch,
+            taskId: instance.Process.CurrentTask.ElementId,
+            language
+        );
 
         // Get all changes to data elements by comparing the serialized values
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
         // Start saving changes in parallel with validation
         Task saveChanges = dataAccessor.SaveChanges(changes);
         // Update instance data to reflect the changes and save created data elements
-        await dataAccessor.UpdateInstanceData();
+        await dataAccessor.UpdateInstanceData(changes);
 
         var validationIssues = await _validationService.ValidateIncrementalFormData(
             instance,
@@ -233,6 +201,53 @@ internal class PatchService : IPatchService
             UpdatedData = updatedData,
             ValidationIssues = validationIssues,
         };
+    }
+
+    public async Task RunDataProcessors(
+        IInstanceDataMutator dataMutator,
+        List<DataElementChange> changes,
+        string taskId,
+        string? language
+    )
+    {
+        foreach (var dataProcessor in _dataProcessors)
+        {
+            foreach (var change in changes)
+            {
+                var dataElementGuid = Guid.Parse(change.DataElement.Id);
+                using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataProcessor);
+                try
+                {
+                    // TODO: Create new dataProcessor interface that takes multiple models at the same time.
+                    await dataProcessor.ProcessDataWrite(
+                        dataMutator.Instance,
+                        dataElementGuid,
+                        change.CurrentFormData,
+                        change.PreviousFormData,
+                        language
+                    );
+                }
+                catch (Exception e)
+                {
+                    processWriteActivity?.Errored(e);
+                    throw;
+                }
+            }
+        }
+
+        foreach (var dataWriteProcessor in _dataWriteProcessors)
+        {
+            using var processWriteActivity = _telemetry?.StartDataProcessWriteActivity(dataWriteProcessor);
+            try
+            {
+                await dataWriteProcessor.ProcessDataWrite(dataMutator, taskId, changes, language);
+            }
+            catch (Exception e)
+            {
+                processWriteActivity?.Errored(e);
+                throw;
+            }
+        }
     }
 
     private static ServiceResult<object, string> DeserializeModel(Type type, JsonNode? patchResult)

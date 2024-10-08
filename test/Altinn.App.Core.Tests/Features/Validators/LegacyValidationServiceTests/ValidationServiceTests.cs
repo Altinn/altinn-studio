@@ -5,6 +5,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -75,6 +76,7 @@ public sealed class ValidationServiceTests : IDisposable
 
     private readonly Mock<ILogger<ValidationService>> _loggerMock = new();
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
 
     private readonly IInstanceDataAccessor _dataAccessor;
 
@@ -114,6 +116,7 @@ public sealed class ValidationServiceTests : IDisposable
         _dataAccessor = new CachedInstanceDataAccessor(
             _defaultInstance,
             _dataClientMock.Object,
+            _instanceClientMock.Object,
             _appMetadataMock.Object,
             _modelSerialization
         );
@@ -374,6 +377,7 @@ public sealed class ValidationServiceTests : IDisposable
         var dataAccessor = new CachedInstanceDataAccessor(
             _defaultInstance,
             _dataClientMock.Object,
+            _instanceClientMock.Object,
             _appMetadataMock.Object,
             _modelSerialization
         );
@@ -452,6 +456,7 @@ public sealed class ValidationServiceTests : IDisposable
         var dataAccessor = new CachedInstanceDataAccessor(
             _defaultInstance,
             _dataClientMock.Object,
+            _instanceClientMock.Object,
             _appMetadataMock.Object,
             _modelSerialization
         );

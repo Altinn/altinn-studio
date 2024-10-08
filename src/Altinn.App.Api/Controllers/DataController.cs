@@ -54,6 +54,7 @@ public class DataController : ControllerBase
     private readonly IFileValidationService _fileValidationService;
     private readonly IFeatureManager _featureManager;
     private readonly IPatchService _patchService;
+    private readonly ModelSerializationService _modelDeserializer;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -73,6 +74,7 @@ public class DataController : ControllerBase
     /// <param name="fileAnalyserService">Service used to analyse files uploaded.</param>
     /// <param name="fileValidationService">Service used to validate files uploaded.</param>
     /// <param name="patchService">Service for applying a json patch to a json serializable object</param>
+    /// <param name="modelDeserializer">Service for serializing and deserializing models</param>
     public DataController(
         ILogger<DataController> logger,
         IInstanceClient instanceClient,
@@ -86,7 +88,8 @@ public class DataController : ControllerBase
         IFileValidationService fileValidationService,
         IAppMetadata appMetadata,
         IFeatureManager featureManager,
-        IPatchService patchService
+        IPatchService patchService,
+        ModelSerializationService modelDeserializer
     )
     {
         _logger = logger;
@@ -103,6 +106,7 @@ public class DataController : ControllerBase
         _fileValidationService = fileValidationService;
         _featureManager = featureManager;
         _patchService = patchService;
+        _modelDeserializer = modelDeserializer;
     }
 
     /// <summary>
@@ -349,7 +353,7 @@ public class DataController : ControllerBase
             {
                 return Problem(instanceResult.Error);
             }
-            var (instance, dataType, _) = instanceResult.Ok;
+            var (instance, dataType, dataElement) = instanceResult.Ok;
 
             if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
             {
@@ -358,7 +362,7 @@ public class DataController : ControllerBase
 
             if (dataType.AppLogic?.ClassRef is not null)
             {
-                return await PutFormData(org, app, instance, dataGuid, dataType, language);
+                return await PutFormData(instance, dataElement, dataType, language);
             }
 
             (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
@@ -490,16 +494,6 @@ public class DataController : ControllerBase
 
             if (res.Success)
             {
-                foreach (var change in res.Ok.ChangedDataElements)
-                {
-                    await UpdateDataValuesOnInstance(instance, change.DataElement.DataType, change.CurrentFormData);
-                    await UpdatePresentationTextsOnInstance(
-                        instance,
-                        change.DataElement.DataType,
-                        change.CurrentFormData
-                    );
-                }
-
                 return Ok(
                     new DataPatchResponseMultiple()
                     {
@@ -842,68 +836,79 @@ public class DataController : ControllerBase
     }
 
     private async Task<ActionResult> PutFormData(
-        string org,
-        string app,
         Instance instance,
-        Guid dataGuid,
+        DataElement dataElement,
         DataType dataType,
         string? language
     )
     {
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-
-        string classRef = dataType.AppLogic.ClassRef;
-        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-
-        ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-        object? serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
-
-        if (!string.IsNullOrEmpty(deserializer.Error))
+        var deserializationResult = await _modelDeserializer.DeserializeSingleFromStream(
+            Request.Body,
+            Request.ContentType,
+            dataType
+        );
+        if (!deserializationResult.Success)
         {
-            return BadRequest(deserializer.Error);
+            return Problem(deserializationResult.Error);
         }
 
-        if (serviceModel is null)
-        {
-            return BadRequest("No data found in content");
-        }
+        var serviceModel = deserializationResult.Ok;
 
-        Dictionary<string, object?>? changedFields = await JsonHelper.ProcessDataWriteWithDiff(
+        var dataMutator = new CachedInstanceDataAccessor(
             instance,
-            dataGuid,
-            serviceModel,
-            language,
-            _dataProcessors,
-            _logger
+            _dataClient,
+            _instanceClient,
+            _appMetadata,
+            _modelDeserializer
         );
+        // Get the previous service model for dataProcessing to work
+        var oldServiceModel = await dataMutator.GetFormData(dataElement);
+        // Set the new service model so that dataAccessors see the new state
+        dataMutator.SetFormData(dataElement, serviceModel);
 
-        await UpdatePresentationTextsOnInstance(instance, dataType.Id, serviceModel);
-        await UpdateDataValuesOnInstance(instance, dataType.Id, serviceModel);
+        List<DataElementChange> changesFromRequest =
+        [
+            new()
+            {
+                DataElement = dataElement,
+                PreviousFormData = oldServiceModel,
+                CurrentFormData = serviceModel,
+            }
+        ];
 
-        ObjectUtils.InitializeAltinnRowId(serviceModel);
-        ObjectUtils.PrepareModelForXmlStorage(serviceModel);
-
-        // Save Formdata to database
-        DataElement updatedDataElement = await _dataClient.UpdateData(
-            serviceModel,
-            instanceGuid,
-            _appModel.GetModelType(classRef),
-            org,
-            app,
-            instanceOwnerPartyId,
-            dataGuid
+        // Run data processors keeping track of changes for diff return
+        var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
+        await _patchService.RunDataProcessors(
+            dataMutator,
+            changesFromRequest,
+            instance.Process.CurrentTask.ElementId,
+            language
         );
+        var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
 
-        SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
+        // Save changes
+        var changesAfterDataProcessors = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+        await dataMutator.UpdateInstanceData(changesAfterDataProcessors);
+        await dataMutator.SaveChanges(changesAfterDataProcessors);
 
-        string dataUrl = updatedDataElement.SelfLinks.Apps;
-        if (changedFields is not null)
+        //set self links
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+        SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
+        string dataUrl = dataElement.SelfLinks.Apps;
+
+        if (jsonBeforeDataProcessors != jsonAfterDataProcessors)
         {
-            CalculationResult calculationResult = new(updatedDataElement) { ChangedFields = changedFields };
-            return Ok(calculationResult);
+            // Return the changes caused by the data processors
+            var changedFields = JsonHelper.FindChangedFields(jsonBeforeDataProcessors, jsonAfterDataProcessors);
+            if (changedFields.Count > 0)
+            {
+                CalculationResult calculationResult = new(dataElement) { ChangedFields = changedFields };
+                return Ok(calculationResult);
+            }
         }
 
-        return Created(dataUrl, updatedDataElement);
+        return Created(dataUrl, dataElement);
     }
 
     private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, object serviceModel)
@@ -1079,6 +1084,7 @@ public class DataController : ControllerBase
                         Status = (int)HttpStatusCode.NotFound
                     };
                 }
+
                 var dataType = application.DataTypes.Find(e => e.Id == dataElement.DataType);
                 if (dataType is null)
                 {
@@ -1090,6 +1096,7 @@ public class DataController : ControllerBase
                         Status = (int)HttpStatusCode.InternalServerError
                     };
                 }
+
                 dataTypes.Add(dataType);
             }
 

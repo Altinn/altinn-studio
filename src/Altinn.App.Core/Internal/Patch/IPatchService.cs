@@ -1,3 +1,4 @@
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
@@ -12,15 +13,20 @@ public interface IPatchService
     /// <summary>
     /// Applies a patch to a Form Data element
     /// </summary>
-    /// <param name="instance"></param>
-    /// <param name="patches"></param>
-    /// <param name="language"></param>
-    /// <param name="ignoredValidators"></param>
-    /// <returns></returns>
     Task<ServiceResult<DataPatchResult, DataPatchError>> ApplyPatches(
         Instance instance,
         Dictionary<Guid, JsonPatch> patches,
         string? language,
         List<string>? ignoredValidators
+    );
+
+    /// <summary>
+    /// Runs data processors on all the changes.
+    /// </summary>
+    Task RunDataProcessors(
+        IInstanceDataMutator dataMutator,
+        List<DataElementChange> changes,
+        string taskId,
+        string? language
     );
 }

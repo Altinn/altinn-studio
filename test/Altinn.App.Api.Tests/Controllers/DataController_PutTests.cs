@@ -55,6 +55,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
             $"/{org}/{app}/instances/{instanceId}/data/{dataGuid}",
             updateDataElementContent
         );
+        OutputHelper.WriteLine(await response.Content.ReadAsStringAsync());
         response.StatusCode.Should().Be(HttpStatusCode.Created);
 
         // Verify stored data

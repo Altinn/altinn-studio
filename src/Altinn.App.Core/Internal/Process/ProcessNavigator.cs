@@ -2,6 +2,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Models.Process;
@@ -19,6 +20,7 @@ public class ProcessNavigator : IProcessNavigator
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
     private readonly IDataClient _dataClient;
+    private IInstanceClient _instanceClient;
     private readonly IAppMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerialization;
 
@@ -30,6 +32,7 @@ public class ProcessNavigator : IProcessNavigator
         ExclusiveGatewayFactory gatewayFactory,
         ILogger<ProcessNavigator> logger,
         IDataClient dataClient,
+        IInstanceClient instanceClient,
         IAppMetadata appMetadata,
         ModelSerializationService modelSerialization
     )
@@ -40,6 +43,7 @@ public class ProcessNavigator : IProcessNavigator
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _modelSerialization = modelSerialization;
+        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
@@ -113,6 +117,7 @@ public class ProcessNavigator : IProcessNavigator
                 IInstanceDataAccessor dataAccessor = new CachedInstanceDataAccessor(
                     instance,
                     _dataClient,
+                    _instanceClient,
                     _appMetadata,
                     _modelSerialization
                 );

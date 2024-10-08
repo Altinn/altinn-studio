@@ -41,12 +41,19 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     private sealed class SingleDataElementAccessor : IInstanceDataAccessor
     {
         private readonly DataElement _dataElement;
+        private readonly ApplicationMetadata _applicationMetadata;
         private readonly object _data;
 
-        public SingleDataElementAccessor(Instance instance, DataElement dataElement, object data)
+        public SingleDataElementAccessor(
+            Instance instance,
+            DataElement dataElement,
+            ApplicationMetadata applicationMetadata,
+            object data
+        )
         {
             Instance = instance;
             _dataElement = dataElement;
+            _applicationMetadata = applicationMetadata;
             _data = data;
         }
 
@@ -72,13 +79,22 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
 
         public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
         {
-            if (dataElementIdentifier != _dataElement)
-            {
-                throw new InvalidOperationException(
-                    "Use the new ILayoutEvaluatorStateInitializer interface to support multiple data models and subforms"
+            return Instance.Data.Find(d => d.Id == dataElementIdentifier.Id)
+                ?? throw new InvalidOperationException(
+                    $"Data element of id {dataElementIdentifier.Id} not found on instance"
                 );
+        }
+
+        public DataType GetDataType(DataElementIdentifier dataElementIdentifier)
+        {
+            var dataElement = GetDataElement(dataElementIdentifier);
+            var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+            if (dataType is null)
+            {
+                throw new InvalidOperationException($"Data type {dataElement.DataType} not found in applicationmetadata.json");
             }
-            return _dataElement;
+
+            return dataType;
         }
 
         // Not implemented
@@ -125,7 +141,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         var dataElement = instance.Data.Find(d => d.DataType == layouts.DefaultDataType.Id);
         Debug.Assert(dataElement is not null);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var dataAccessor = new SingleDataElementAccessor(instance, dataElement, data);
+        var dataAccessor = new SingleDataElementAccessor(instance, dataElement, appMetadata, data);
         return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, appMetadata, gatewayAction);
     }
 

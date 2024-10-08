@@ -5,7 +5,10 @@ using System.Xml;
 using System.Xml.Serialization;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Models.Result;
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Core.Helpers.Serialization;
 
@@ -104,41 +107,44 @@ public class ModelSerializationService
         return json;
     }
 
-    // public async Task<ServiceResult<object, ProblemDetails>> DeserializeSingleFromRequest(
-    //     Stream body,
-    //     string? contentType,
-    //     DataType dataType
-    // )
-    // {
-    //     using var memoryStream = new MemoryStream();
-    //     await body.CopyToAsync(memoryStream);
-    //     if (!memoryStream.TryGetBuffer(out var segment))
-    //     {
-    //         throw new InvalidOperationException("Failed to get buffer from memory stream");
-    //     }
-    //
-    //     var modelType = GetModelTypeForDataType(dataType);
-    //     object model;
-    //     if (contentType?.Contains("application/xml") ?? true) // default to xml if no content type is provided
-    //     {
-    //         model = DeserializeXml(segment, modelType);
-    //     }
-    //     else if (contentType.Contains("application/json"))
-    //     {
-    //         model = DeserializeJson(segment, modelType);
-    //     }
-    //     else
-    //     {
-    //         return new ProblemDetails()
-    //         {
-    //             Title = "Unsupported content type",
-    //             Detail = $"Content type {contentType} is not supported for deserialization",
-    //             Status = StatusCodes.Status415UnsupportedMediaType,
-    //         };
-    //     }
-    //
-    //     return model;
-    // }
+    /// <summary>
+    /// Deserialize a single object from a stream
+    /// </summary>
+    public async Task<ServiceResult<object, ProblemDetails>> DeserializeSingleFromStream(
+        Stream body,
+        string? contentType,
+        DataType dataType
+    )
+    {
+        using var memoryStream = new MemoryStream();
+        await body.CopyToAsync(memoryStream);
+        if (!memoryStream.TryGetBuffer(out var segment))
+        {
+            throw new InvalidOperationException("Failed to get buffer from memory stream");
+        }
+
+        var modelType = GetModelTypeForDataType(dataType);
+        object model;
+        if (contentType?.Contains("application/xml") ?? true) // default to xml if no content type is provided
+        {
+            model = DeserializeXml(segment, modelType);
+        }
+        else if (contentType.Contains("application/json"))
+        {
+            model = DeserializeJson(segment, modelType);
+        }
+        else
+        {
+            return new ProblemDetails()
+            {
+                Title = "Unsupported content type",
+                Detail = $"Content type {contentType} is not supported for deserialization",
+                Status = StatusCodes.Status415UnsupportedMediaType,
+            };
+        }
+
+        return model;
+    }
 
     /// <summary>
     /// Deserialize utf8 encoded json data to a model of the specified type

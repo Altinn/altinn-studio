@@ -126,9 +126,15 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
+        var dataMutator = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient,
+            _instanceClient,
+            _appMetadata,
+            _modelSerialization
+        );
         UserActionContext userActionContext =
-            new(dataAccessor, userId.Value, actionRequest.ButtonId, actionRequest.Metadata, language);
+            new(dataMutator, userId.Value, actionRequest.ButtonId, actionRequest.Metadata, language);
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler == null)
         {
@@ -166,15 +172,15 @@ public class ActionsController : ControllerBase
             );
         }
 
-        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: true);
+        var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
-        await dataAccessor.UpdateInstanceData();
+        await dataMutator.UpdateInstanceData(changes);
 
-        var saveTask = dataAccessor.SaveChanges(changes);
+        var saveTask = dataMutator.SaveChanges(changes);
 
         var validationIssues = await GetIncrementalValidations(
             instance,
-            dataAccessor,
+            dataMutator,
             changes,
             actionRequest.IgnoredValidators,
             language

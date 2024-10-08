@@ -8,6 +8,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -39,6 +40,7 @@ public sealed class ProcessEngineTest : IDisposable
     private readonly Mock<IProcessEventDispatcher> _processEventDispatcherMock = new();
     private readonly Mock<IProcessTaskCleaner> _processTaskCleanerMock = new();
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
 
@@ -1070,6 +1072,7 @@ public sealed class ProcessEngineTest : IDisposable
             _processTaskCleanerMock.Object,
             new UserActionService(userActions ?? []),
             _dataClientMock.Object,
+            _instanceClientMock.Object,
             new ModelSerializationService(_appModelMock.Object, telemetrySink?.Object),
             _appMetadataMock.Object,
             telemetrySink?.Object

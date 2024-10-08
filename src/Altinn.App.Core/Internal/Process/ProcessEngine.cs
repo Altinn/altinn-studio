@@ -7,6 +7,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -33,6 +34,7 @@ public class ProcessEngine : IProcessEngine
     private readonly Telemetry? _telemetry;
     private readonly IProcessTaskCleaner _processTaskCleaner;
     private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _instanceClient;
     private readonly ModelSerializationService _modelSerialization;
     private readonly IAppMetadata _appMetadata;
 
@@ -48,6 +50,7 @@ public class ProcessEngine : IProcessEngine
         IProcessTaskCleaner processTaskCleaner,
         UserActionService userActionService,
         IDataClient dataClient,
+        IInstanceClient instanceClient,
         ModelSerializationService modelSerialization,
         IAppMetadata appMetadata,
         Telemetry? telemetry = null
@@ -61,6 +64,7 @@ public class ProcessEngine : IProcessEngine
         _processTaskCleaner = processTaskCleaner;
         _userActionService = userActionService;
         _dataClient = dataClient;
+        _instanceClient = instanceClient;
         _modelSerialization = modelSerialization;
         _appMetadata = appMetadata;
         _telemetry = telemetry;
@@ -170,6 +174,7 @@ public class ProcessEngine : IProcessEngine
         var cachedDataMutator = new CachedInstanceDataAccessor(
             instance,
             _dataClient,
+            _instanceClient,
             _appMetadata,
             _modelSerialization
         );
@@ -191,7 +196,7 @@ public class ProcessEngine : IProcessEngine
         }
 
         var changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);
-        await cachedDataMutator.UpdateInstanceData();
+        await cachedDataMutator.UpdateInstanceData(changes);
         await cachedDataMutator.SaveChanges(changes);
 
         ProcessStateChange? nextResult = await HandleMoveToNext(instance, request.User, request.Action);

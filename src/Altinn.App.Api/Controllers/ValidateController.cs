@@ -80,7 +80,13 @@ public class ValidateController : ControllerBase
 
         try
         {
-            var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
+            var dataAccessor = new CachedInstanceDataAccessor(
+                instance,
+                _dataClient,
+                _instanceClient,
+                _appMetadata,
+                _modelSerialization
+            );
             var ignoredSources = ignoredValidators?.Split(',').ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
                 instance,
@@ -155,7 +161,13 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerialization);
+        var dataAccessor = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient,
+            _instanceClient,
+            _appMetadata,
+            _modelSerialization
+        );
 
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(

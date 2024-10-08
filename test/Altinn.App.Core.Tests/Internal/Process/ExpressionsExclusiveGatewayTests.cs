@@ -6,6 +6,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
@@ -26,6 +27,7 @@ public class ExpressionsExclusiveGatewayTests
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
     private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClient = new(MockBehavior.Strict);
 
     private const string Org = "ttd";
     private const string App = "test";
@@ -272,6 +274,7 @@ public class ExpressionsExclusiveGatewayTests
         var dataAccessor = new CachedInstanceDataAccessor(
             instance,
             _dataClient.Object,
+            _instanceClient.Object,
             _appMetadata.Object,
             modelSerializationService
         );

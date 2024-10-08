@@ -32,4 +32,10 @@ public interface IInstanceDataAccessor
     /// </summary>
     /// <throws>Throws an InvalidOperationException if the data element is not found on the instance</throws>
     DataElement GetDataElement(DataElementIdentifier dataElementIdentifier);
+
+    /// <summary>
+    /// Get the dataType of a data element.
+    /// </summary>
+    /// <throws>Throws an InvalidOperationException if the data element is not found on the instance</throws>
+    DataType GetDataType(DataElementIdentifier dataElementIdentifier);
 }

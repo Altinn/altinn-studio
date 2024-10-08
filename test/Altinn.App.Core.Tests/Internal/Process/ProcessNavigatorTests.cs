@@ -3,6 +3,7 @@ using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
@@ -19,6 +20,7 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 public class ProcessNavigatorTests
 {
     private readonly Mock<IDataClient> _dataClient = new(MockBehavior.Strict);
+    private readonly Mock<IInstanceClient> _instanceClient = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
 
@@ -277,6 +279,7 @@ public class ProcessNavigatorTests
             new ExclusiveGatewayFactory(gatewayFilters),
             new NullLogger<ProcessNavigator>(),
             _dataClient.Object,
+            _instanceClient.Object,
             _appMetadata.Object,
             new ModelSerializationService(_appModel.Object)
         );

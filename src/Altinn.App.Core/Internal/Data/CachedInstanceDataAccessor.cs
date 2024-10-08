@@ -4,6 +4,7 @@ using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -24,6 +25,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
 
     // Services from DI
     private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _instanceClient;
     private readonly IAppMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerializationService;
 
@@ -46,9 +48,14 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         ReadOnlyMemory<byte> bytes
     )> _dataElementsToAdd = new();
 
+    // The update functions returns updated data elements.
+    // We want to make sure that the data elements are updated in the instance object
+    private readonly ConcurrentBag<DataElement> _savedDataElements = new();
+
     public CachedInstanceDataAccessor(
         Instance instance,
         IDataClient dataClient,
+        IInstanceClient instanceClient,
         IAppMetadata appMetadata,
         ModelSerializationService modelSerializationService
     )
@@ -63,6 +70,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         _dataClient = dataClient;
         _appMetadata = appMetadata;
         _modelSerializationService = modelSerializationService;
+        _instanceClient = instanceClient;
     }
 
     public Instance Instance { get; }
@@ -103,18 +111,19 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     {
         return Instance.Data.Find(d => d.Id == dataElementIdentifier.Id)
             ?? throw new InvalidOperationException(
-                $"Data element with id {dataElementIdentifier.Id} not found in instance"
+                $"Data element of id {dataElementIdentifier.Id} not found on instance"
             );
     }
 
-    private DataType GetDataType(DataElementIdentifier dataElementIdentifier)
+    /// <inheritdoc />
+    public DataType GetDataType(DataElementIdentifier dataElementIdentifier)
     {
         var dataElement = GetDataElement(dataElementIdentifier);
         var appMetadata = _appMetadata.GetApplicationMetadata().Result;
         var dataType = appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
         if (dataType is null)
         {
-            throw new InvalidOperationException($"Data type {dataElement.DataType} not found in instance");
+            throw new InvalidOperationException($"Data type {dataElement.DataType} not found in applicationmetadata.json");
         }
 
         return dataType;
@@ -184,7 +193,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         {
             DataElementIdentifier dataElementIdentifier = dataElement;
             object? data = _formDataCache.GetCachedValueOrDefault(dataElementIdentifier);
-            // Skip data elements that have not been fetched
+            // Skip data elements that have not been deserialized into a object
             if (data is null)
                 continue;
             var dataType = GetDataType(dataElementIdentifier);
@@ -217,7 +226,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         return changes;
     }
 
-    internal async Task UpdateInstanceData()
+    internal async Task UpdateInstanceData(List<DataElementChange> changes)
     {
         var tasks = new List<Task>();
         ConcurrentBag<DataElement> createdDataElements = new();
@@ -267,6 +276,13 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
 
         await Task.WhenAll(tasks);
 
+        //Update DataValues and presentation texts
+        foreach (var change in changes)
+        {
+            await UpdateDataValuesOnInstance(Instance, change.DataElement.DataType, change.CurrentFormData);
+            await UpdatePresentationTextsOnInstance(Instance, change.DataElement.DataType, change.CurrentFormData);
+        }
+
         // Remove deleted data elements from instance.Data
         Instance.Data.RemoveAll(dataElement => _dataElementsToDelete.Any(d => d.Id == dataElement.Id));
 
@@ -285,17 +301,19 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
                 throw new InvalidOperationException("Changes sent to SaveChanges must have a CurrentBinaryData value");
             }
 
-            var dataElement = GetDataElement(change.DataElement);
-
-            tasks.Add(
-                _dataClient.UpdateBinaryData(
+            async Task UpdateDataDlement()
+            {
+                var newDataElement = await _dataClient.UpdateBinaryData(
                     new InstanceIdentifier(Instance),
-                    dataElement.ContentType,
-                    dataElement.Filename,
+                    change.DataElement.ContentType,
+                    change.DataElement.Filename,
                     Guid.Parse(change.DataElement.Id),
                     new MemoryAsStream(change.CurrentBinaryData.Value)
-                )
-            );
+                );
+                _savedDataElements.Add(newDataElement);
+            }
+
+            tasks.Add(UpdateDataDlement());
         }
 
         await Task.WhenAll(tasks);
@@ -318,17 +336,6 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
             );
         }
         _formDataCache.Set(dataElementIdentifier, data);
-    }
-
-    /// <summary>
-    /// Compatibility function to update both formDataCache and binaryCache as we assume storage has already been updated.
-    /// </summary>
-    [Obsolete("Should only be used for actions that set UpdatedDataModels on UserActionResult which is deprecated")]
-    internal void ReplaceFormDataAssumeSavedToStorage(DataElementIdentifier dataElementIdentifier, object newModel)
-    {
-        SetFormData(dataElementIdentifier, newModel);
-        var (data, _) = _modelSerializationService.SerializeToStorage(newModel, GetDataType(dataElementIdentifier));
-        _binaryCache.Set(dataElementIdentifier, data);
     }
 
     /// <summary>
@@ -396,6 +403,44 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         {
             throw new InvalidOperationException(
                 $"Data elements of type {string.Join(", ", changes.Select(c => c.DataElement.DataType).Distinct())} have been changed by validators"
+            );
+        }
+    }
+
+    private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, object serviceModel)
+    {
+        var updatedValues = DataHelper.GetUpdatedDataValues(
+            (await _appMetadata.GetApplicationMetadata()).PresentationFields,
+            instance.PresentationTexts,
+            dataType,
+            serviceModel
+        );
+
+        if (updatedValues.Count > 0)
+        {
+            await _instanceClient.UpdatePresentationTexts(
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
+                Guid.Parse(instance.Id.Split("/")[1]),
+                new PresentationTexts { Texts = updatedValues }
+            );
+        }
+    }
+
+    private async Task UpdateDataValuesOnInstance(Instance instance, string dataType, object serviceModel)
+    {
+        var updatedValues = DataHelper.GetUpdatedDataValues(
+            (await _appMetadata.GetApplicationMetadata()).DataFields,
+            instance.DataValues,
+            dataType,
+            serviceModel
+        );
+
+        if (updatedValues.Count > 0)
+        {
+            await _instanceClient.UpdateDataValues(
+                int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
+                Guid.Parse(instance.Id.Split("/")[1]),
+                new DataValues { Values = updatedValues }
             );
         }
     }

@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
@@ -18,6 +19,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _intanceClient;
     private readonly IAppModel _appModel;
     private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IOptions<AppSettings> _appSettings;
@@ -29,6 +31,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     public ProcessTaskFinalizer(
         IAppMetadata appMetadata,
         IDataClient dataClient,
+        IInstanceClient intanceClient,
         IAppModel appModel,
         ModelSerializationService modelSerializer,
         ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
@@ -39,6 +42,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         _dataClient = dataClient;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appSettings = appSettings;
+        _intanceClient = intanceClient;
         _appModel = appModel;
         _modelSerializer = modelSerializer;
     }
@@ -46,7 +50,13 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     /// <inheritdoc/>
     public async Task Finalize(string taskId, Instance instance)
     {
-        var dataAccessor = new CachedInstanceDataAccessor(instance, _dataClient, _appMetadata, _modelSerializer);
+        var dataAccessor = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient,
+            _intanceClient,
+            _appMetadata,
+            _modelSerializer
+        );
 
         ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
@@ -65,7 +75,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
         await Task.WhenAll(tasks);
 
         var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
-        await dataAccessor.UpdateInstanceData();
+        await dataAccessor.UpdateInstanceData(changes);
         await dataAccessor.SaveChanges(changes);
     }
 

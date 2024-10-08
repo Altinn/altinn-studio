@@ -90,7 +90,26 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
 
     public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
     {
-        throw new NotImplementedException();
+        return Instance.Data.Find(d => d.Id == dataElementIdentifier.Id)
+            ?? throw new InvalidOperationException(
+                $"Data element of id {dataElementIdentifier.Id} not found on instance"
+            );
+    }
+
+    public DataType GetDataType(DataElementIdentifier dataElementIdentifier)
+    {
+        if (_applicationMetadata is null)
+        {
+            throw new InvalidOperationException("Application metadata not set for InstanceDataAccessorFake");
+        }
+        var dataElement = GetDataElement(dataElementIdentifier);
+        var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+        if (dataType is null)
+        {
+            throw new InvalidOperationException($"Data type {dataElement.DataType} not found in applicationmetadata");
+        }
+
+        return dataType;
     }
 
     public void AddFormDataElement(string dataType, object model)
