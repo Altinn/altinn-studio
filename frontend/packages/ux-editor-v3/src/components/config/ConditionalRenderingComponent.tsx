@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { v1 as uuidv1 } from 'uuid';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
