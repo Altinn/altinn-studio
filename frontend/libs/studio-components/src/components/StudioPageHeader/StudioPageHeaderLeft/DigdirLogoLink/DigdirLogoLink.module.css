@@ -4,6 +4,7 @@
   gap: var(--fds-spacing-1);
   overflow: hidden;
   padding: var(--fds-spacing-2);
+  flex: 1;
 }
 
 .titleText {

@@ -45,7 +45,9 @@ export const StudioPageHeaderProfileMenu = ({
           aria-label={ariaLabelTriggerButton}
           title={triggerButtonText}
         >
-          <span className={classes.triggerButtonText}>{triggerButtonText}</span>
+          <span className={classes.triggerButtonText}>
+            {triggerButtonText}naeiongeugbeabgugbaubgaeub
+          </span>
           {profileImage}
         </StudioPageHeaderButton>
       </DropdownMenu.Trigger>
