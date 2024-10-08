@@ -45,7 +45,7 @@ export interface PolicyAccessPackageCategory {
     nn: string;
     en: string;
   };
-  packages: PolicyAccessPackage[];
+  accessPackages: PolicyAccessPackage[];
 }
 
 export interface PolicyAction {

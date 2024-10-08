@@ -41,7 +41,12 @@ import type {
   ITextResourcesWithLanguage,
 } from 'app-shared/types/global';
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
-import type { Policy, PolicyAction, PolicySubject } from 'packages/policy-editor';
+import type {
+  Policy,
+  PolicyAccessPackageCategory,
+  PolicyAction,
+  PolicySubject,
+} from 'packages/policy-editor';
 import {
   appConfig,
   deploymentsResponse,
@@ -142,6 +147,9 @@ export const queriesMock: ServicesContextProps = {
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getAccessPackages: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<PolicyAccessPackageCategory[]>([])),
   getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
   getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
   getResourcePublishStatus: jest

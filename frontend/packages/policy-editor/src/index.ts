@@ -3,6 +3,7 @@ export type {
   Policy,
   PolicyAction,
   PolicySubject,
+  PolicyAccessPackageCategory,
   PolicyRule,
   PolicyRuleResource,
   RequiredAuthLevel,

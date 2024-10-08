@@ -60,17 +60,8 @@ export const getAccessPackageOptions = (
   policyRule: PolicyRuleCard,
 ) => {
   return allPackages
-    .flatMap((category) => category.packages)
+    .flatMap((category) => category.accessPackages)
     .filter((accessPackage) => policyRule.accessPackages.indexOf(accessPackage.urn) > -1);
-  const returnValue = [];
-  allPackages.forEach((accessPackageCategory) => {
-    accessPackageCategory.packages.forEach((accessPackage) => {
-      if (policyRule.accessPackages.indexOf(accessPackage.urn) > -1) {
-        returnValue.push(accessPackage);
-      }
-    });
-  });
-  return returnValue;
 };
 
 /**

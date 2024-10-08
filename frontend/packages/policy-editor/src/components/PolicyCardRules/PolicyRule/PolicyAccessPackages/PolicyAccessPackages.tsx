@@ -98,7 +98,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <div>
         {accessPackages.map((category) => {
           // find number of chosen packages in current category
-          const chosenInCategory = category.packages.filter(
+          const chosenInCategory = category.accessPackages.filter(
             (x) => chosenUrns.indexOf(x.urn) > -1,
           ).length;
           return (
@@ -109,14 +109,14 @@ export const PolicyAccessPackages = (): React.ReactElement => {
                     <span>{category.name[selectedLanguage]}</span>
                     <Tag size='sm'>
                       {chosenInCategory > 0 ? `${chosenInCategory} av ` : ''}
-                      {category.packages.length}
+                      {category.accessPackages.length}
                     </Tag>
                   </div>
                 </Accordion.Header>
                 <Accordion.Content>
                   <div className={classes.categoryContent}>
                     <Paragraph size='sm'>{category.description[selectedLanguage]}</Paragraph>
-                    {category.packages.map((accessPackage) => {
+                    {category.accessPackages.map((accessPackage) => {
                       const isChecked = chosenAccessPackages.some(
                         (x) => x.urn === accessPackage.urn,
                       );
