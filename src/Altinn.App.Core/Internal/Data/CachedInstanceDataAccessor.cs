@@ -303,7 +303,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
                 throw new InvalidOperationException("Changes sent to SaveChanges must have a CurrentBinaryData value");
             }
 
-            async Task UpdateDataDlement()
+            async Task UpdateDataElement()
             {
                 var newDataElement = await _dataClient.UpdateBinaryData(
                     new InstanceIdentifier(Instance),
@@ -315,7 +315,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
                 _savedDataElements.Add(newDataElement);
             }
 
-            tasks.Add(UpdateDataDlement());
+            tasks.Add(UpdateDataElement());
         }
 
         await Task.WhenAll(tasks);
@@ -375,8 +375,7 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
             {
                 if (
                     _cache.TryGetValue(identifier.Guid, out var lazyTask)
-                    && lazyTask.IsValueCreated
-                    && lazyTask.Value.IsCompletedSuccessfully
+                    && lazyTask is { IsValueCreated: true, Value.IsCompletedSuccessfully: true }
                 )
                 {
                     return lazyTask.Value.Result;

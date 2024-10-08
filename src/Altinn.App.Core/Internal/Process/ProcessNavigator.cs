@@ -20,7 +20,7 @@ public class ProcessNavigator : IProcessNavigator
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
     private readonly IDataClient _dataClient;
-    private IInstanceClient _instanceClient;
+    private readonly IInstanceClient _instanceClient;
     private readonly IAppMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerialization;
 
@@ -92,7 +92,7 @@ public class ProcessNavigator : IProcessNavigator
 
             var gateway = (ExclusiveGateway)directFlowTarget;
             List<SequenceFlow> outgoingFlows = _processReader.GetOutgoingSequenceFlows(directFlowTarget);
-            IProcessExclusiveGateway? gatewayFilter = null;
+            IProcessExclusiveGateway? gatewayFilter;
             if (outgoingFlows.Any(a => a.ConditionExpression != null))
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway("AltinnExpressionsExclusiveGateway");
