@@ -247,19 +247,20 @@ class ConditionalRendering extends React.Component<
           {`${name} (${id})`}
         </option>,
       );
-    }
-    this.props.order[id].forEach((key) => {
-      if (this.props.formLayoutComponents[key]) {
-        const option = this.renderConditionalRenderingTargetComponentOption(key);
-        options.push(option);
-      } else {
-        // A container can have components and sub-containers
-        const containerOptions = this.renderConditionalRenderingTargetContainerOptions(key);
-        containerOptions.forEach((option) => {
+    } else {
+      this.props.order[id].forEach((key) => {
+        if (this.props.formLayoutComponents[key]) {
+          const option = this.renderConditionalRenderingTargetComponentOption(key);
           options.push(option);
-        });
-      }
-    });
+        } else {
+          // A container can have components and sub-containers
+          const containerOptions = this.renderConditionalRenderingTargetContainerOptions(key);
+          containerOptions.forEach((option) => {
+            options.push(option);
+          });
+        }
+      });
+    }
     return options;
   };
 
@@ -333,7 +334,7 @@ class ConditionalRendering extends React.Component<
                   (key: any) => {
                     const paramName = key;
                     return (
-                      <>
+                      <Fragment key={key}>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
                             'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper',
@@ -361,7 +362,7 @@ class ConditionalRendering extends React.Component<
                             />
                           </div>
                         </div>
-                      </>
+                      </Fragment>
                     );
                   },
                 )}
@@ -405,6 +406,7 @@ class ConditionalRendering extends React.Component<
                     <div className={classes.chooseComponentContainer} key={key}>
                       <select
                         name={key}
+                        data-testid='output_field'
                         onChange={this.handleFieldMappingChange.bind(null, key)}
                         value={this.state.conditionalRendering.selectedFields[key]}
                         className={classes.customSelect}
