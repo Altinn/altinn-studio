@@ -18,18 +18,27 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
   const handleClick = () => {
     setSelectedTypePointer(uiSchemaNode.schemaPointer);
   };
+
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
+    if (selected) {
+      event.preventDefault();
+      alert(t('schema_editor.reference_type_in_use_title'));
+    }
+  };
+
   const name = extractNameFromPointer(uiSchemaNode.schemaPointer);
   const { t } = useTranslation();
 
   return (
-    <DragAndDropTree.NewItem payload={name} notDraggable={selected}>
+    <DragAndDropTree.NewItem payload={name}>
       <div
         className={classNames(classes.item, {
           [classes.itemSelected]: selected,
         })}
         onClick={handleClick}
         data-testid={typeItemId(uiSchemaNode.schemaPointer)}
-        title={selected ? t('schema_editor.reference_type_in_use_title') : undefined}
+        draggable={true}
+        onDragStart={handleDragStart}
       >
         <div>
           <FileJsonIcon className={classes.typeIcon} />
