@@ -65,7 +65,13 @@ jest.mock('react-i18next', () => ({
       exists: () => true,
     },
   }),
-  withTranslation: () => (Component: ReactNode) => Component,
+  withTranslation: () => (Component) => {
+    Component.defaultProps = {
+      ...Component.defaultProps,
+      t: (key, variables?) => textMock(key, variables),
+    };
+    return Component;
+  },
 }));
 
 // SignalR PreviewHub mock to simulate setup of websockets.
