@@ -6,7 +6,6 @@ import '@testing-library/jest-dom';
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
-import type { ReactNode } from 'react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { app, org } from './testids';
 
