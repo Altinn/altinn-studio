@@ -84,7 +84,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<RepoStatus> PullRemoteChanges(string org, string repository)
         {
-            RepoStatus status = new();
+            RepoStatus status = new()
+            {
+                ContentStatus = []
+            };
             using (var repo = new LibGit2Sharp.Repository(FindLocalRepoLocation(org, repository)))
             {
                 PullOptions pullOptions = new()
@@ -99,10 +102,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 try
                 {
+                    Tree head = repo.Head.Tip.Tree;
                     MergeResult mergeResult = Commands.Pull(
                         repo,
                         new LibGit2Sharp.Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
                         pullOptions);
+
+                    TreeChanges treeChanges = repo.Diff.Compare<TreeChanges>(head, mergeResult.Commit?.Tree);
+                    foreach (TreeEntryChanges change in treeChanges.Modified)
+                    {
+                        status.ContentStatus.Add(new RepositoryContent { FilePath = change.Path, FileStatus = Enums.FileStatus.ModifiedInWorkdir });
+                    }
 
                     if (mergeResult.Status == MergeStatus.Conflicts)
                     {

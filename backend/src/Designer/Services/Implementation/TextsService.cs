@@ -19,16 +19,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IApplicationMetadataService _applicationMetadataService;
+        private readonly IOptionsService _optionsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
         /// <param name="applicationMetadataService">IApplicationMetadataService</param>
-        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService)
+        /// <param name="optionsService">IOptionsService</param>
+        public TextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IApplicationMetadataService applicationMetadataService, IOptionsService optionsService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationMetadataService = applicationMetadataService;
+            _optionsService = optionsService;
         }
 
         public async Task CreateLanguageResources(string org, string repo, string developer)
@@ -132,6 +135,21 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return allKeys;
+        }
+
+        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
+        {
+            foreach (string key in keysToMerge)
+            {
+                if (currentSetOfKeys.Contains(key))
+                {
+                    continue;
+                }
+
+                currentSetOfKeys.Add(key);
+            }
+
+            return currentSetOfKeys;
         }
 
         /// <inheritdoc />
@@ -287,23 +305,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        public async Task<List<string>> UpdateRelatedFiles(string org, string app, string developer, List<TextIdMutation> keyMutations)
         {
             // handle if no layout exists
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+            List<string> updatedFiles = [];
 
             if (altinnAppGitRepository.AppUsesLayoutSets())
             {
                 foreach (string layoutSetName in layoutSetNames)
                 {
-                    await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations);
+                    updatedFiles.AddRange(await UpdateKeysInLayoutsInLayoutSet(org, app, developer, layoutSetName, keyMutations));
                 }
-
-                return;
+            }
+            else
+            {
+                updatedFiles.AddRange(await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations));
             }
 
-            await UpdateKeysInLayoutsInLayoutSet(org, app, developer, null, keyMutations);
+            updatedFiles.AddRange(await UpdateKeysInOptionLists(org, app, developer, keyMutations));
+            return updatedFiles;
         }
 
         /// <summary>
@@ -314,10 +336,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="developer">Username of developer</param>
         /// <param name="layoutSetName">Name of the layoutset</param>
         /// <param name="keyMutations">A list of the keys that are updated</param>
-        private async Task UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
+        private async Task<List<string>> UpdateKeysInLayoutsInLayoutSet(string org, string app, string developer, string layoutSetName, List<TextIdMutation> keyMutations)
         {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
             string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+            List<string> updatedFiles = [];
             foreach (string layoutName in layoutNames)
             {
                 JsonNode layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName);
@@ -325,58 +348,151 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     continue;
                 }
-                foreach (var layoutObject in layoutArray)
+
+                // Track if any mutations occur
+                bool hasMutated = false;
+                foreach (JsonNode layoutObject in layoutArray)
                 {
-                    foreach (TextIdMutation mutation in keyMutations.Where(_ => layoutObject["textResourceBindings"] is not null))
+                    foreach (TextIdMutation mutation in keyMutations)
                     {
-                        layoutObject["textResourceBindings"] = UpdateKey(layoutObject["textResourceBindings"], mutation);
+                        hasMutated |= UpdateKeyInLayoutObject(layoutObject, mutation);
                     }
                 }
-                await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
+
+                if (hasMutated)
+                {
+                    await altinnAppGitRepository.SaveLayout(layoutSetName, layoutName, layout);
+                    updatedFiles.Add($"App/ui/{layoutSetName}/{layoutName}");
+                }
             }
+            return updatedFiles.Count > 0 ? ["App/ui/layouts"] : [];
         }
 
-        private static JsonNode UpdateKey(JsonNode textResourceBindings, TextIdMutation keyMutation)
+        private static bool UpdateKeyInLayoutObject(JsonNode layoutObject, TextIdMutation mutation)
         {
-            JsonNode updatedTextResourceBindings = JsonNode.Parse(textResourceBindings.ToJsonString());
-            foreach ((string key, JsonNode value) in (textResourceBindings as JsonObject)!)
+            bool mutated = false;
+
+            if (layoutObject["textResourceBindings"] is JsonObject)
+            {
+                mutated |= UpdateTextResourceKeys(layoutObject["textResourceBindings"], mutation);
+            }
+
+            if (layoutObject["options"] is JsonArray optionsArray)
+            {
+                List<Option> options = optionsArray.Deserialize<List<Option>>();
+                if (options != null && UpdateOptionListKeys(options, mutation))
+                {
+                    layoutObject["options"] = JsonSerializer.SerializeToNode(options);
+                    mutated = true;
+                }
+            }
+
+            if (layoutObject["source"] is JsonObject)
+            {
+                mutated |= UpdateSourceKeys(layoutObject["source"], mutation);
+            }
+
+            return mutated;
+        }
+
+        private static bool UpdateSourceKeys(JsonNode source, TextIdMutation mutation)
+        {
+            JsonElement jsonElement = source["label"].AsValue().GetValue<JsonElement>();
+            if (jsonElement.ValueKind == JsonValueKind.String && jsonElement.GetString() == mutation.OldId && mutation.NewId.HasValue)
+            {
+                source["label"] = mutation.NewId.Value;
+                return true;
+            }
+            return false;
+        }
+
+        private async Task<List<string>> UpdateKeysInOptionLists(string org, string app, string developer, List<TextIdMutation> keyMutations)
+        {
+            string[] optionListIds = _optionsService.GetOptionsListIds(org, app, developer);
+            List<string> updatedFiles = [];
+            foreach (string optionListId in optionListIds)
+            {
+                List<Option> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
+                bool hasMutated = false;
+                foreach (TextIdMutation mutation in keyMutations)
+                {
+                    hasMutated |= UpdateOptionListKeys(options, mutation);
+                }
+
+                if (hasMutated)
+                {
+                    await _optionsService.CreateOrOverwriteOptionsList(org, app, developer, optionListId, options);
+                    updatedFiles.Add($"App/options/{optionListId}.json");
+                }
+            }
+            return updatedFiles;
+        }
+
+        private static bool UpdateOptionListKeys(List<Option> options, TextIdMutation keyMutation)
+        {
+            if (!keyMutation.NewId.HasValue)
+            {
+                return false;
+            }
+
+            bool mutated = false;
+            foreach (Option option in options)
+            {
+                if (option.Label == keyMutation.OldId)
+                {
+                    option.Label = keyMutation.NewId.Value;
+                    mutated = true;
+                }
+                if (option.Description == keyMutation.OldId)
+                {
+                    option.Description = keyMutation.NewId.Value;
+                    mutated = true;
+                }
+                if (option.HelpText == keyMutation.OldId)
+                {
+                    option.HelpText = keyMutation.NewId.Value;
+                    mutated = true;
+                }
+            }
+
+            return mutated;
+        }
+
+        private static bool UpdateTextResourceKeys(JsonNode textResourceBindings, TextIdMutation keyMutation)
+        {
+            if (textResourceBindings is not JsonObject textBindings)
+            {
+                throw new ArgumentException("Expected textResourceBindings to be a JsonObject.");
+            }
+
+            List<string> keysToUpdate = [];
+            foreach ((string key, JsonNode value) in textBindings)
             {
                 if (value is null or JsonArray)
                 {
                     continue;
                 }
-                var valueElement = value.AsValue().GetValue<JsonElement>();
-                // Only update if the value is a string and the value is the same as the old key
-                if (valueElement.ValueKind != JsonValueKind.String || valueElement.GetString() != keyMutation.OldId)
-                {
-                    continue;
-                }
 
+                JsonElement valueElement = value.AsValue().GetValue<JsonElement>();
+                if (valueElement.ValueKind == JsonValueKind.String && valueElement.GetString() == keyMutation.OldId)
+                {
+                    keysToUpdate.Add(key);
+                }
+            }
+
+            foreach (string key in keysToUpdate)
+            {
                 if (keyMutation.NewId.HasValue)
                 {
-                    updatedTextResourceBindings![key] = keyMutation.NewId.Value;
+                    textBindings[key] = keyMutation.NewId.Value;
                 }
                 else
                 {
-                    (updatedTextResourceBindings as JsonObject)!.Remove(key);
+                    textBindings.Remove(key);
                 }
             }
-            return updatedTextResourceBindings;
-        }
 
-        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
-        {
-            foreach (string key in keysToMerge)
-            {
-                if (currentSetOfKeys.Contains(key))
-                {
-                    continue;
-                }
-
-                currentSetOfKeys.Add(key);
-            }
-
-            return currentSetOfKeys;
+            return keysToUpdate.Count > 0;
         }
 
         /// <summary>

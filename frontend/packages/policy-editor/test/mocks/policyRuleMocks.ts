@@ -1,6 +1,10 @@
 import type { PolicyRule, PolicyRuleCard } from '../../src/types';
 import { mockAction1, mockAction2, mockAction4 } from './policyActionMocks';
-import { mockPolicyResources, mockPolicyRuleResources } from './policySubResourceMocks';
+import {
+  mockPolicyResources,
+  mockPolicyRuleResources,
+  mockPolicyRuleResourcesWithSingleNarrowingPolicy,
+} from './policySubResourceMocks';
 import {
   mockSubjectBackendString1,
   mockSubjectBackendString3,
@@ -10,6 +14,7 @@ import {
 
 export const mockRuleId1: string = 'r1';
 export const mockRuleId2: string = 'r2';
+export const mockRuleId3: string = 'r3';
 
 export const mockPolicyRuleCard1: PolicyRuleCard = {
   ruleId: mockRuleId1,
@@ -24,6 +29,13 @@ export const mockPolicyRuleCard2: PolicyRuleCard = {
   subject: [],
   actions: [],
   resources: [[]],
+};
+export const mockPolicyRuleCardWithSingleNarrowingPolicy: PolicyRuleCard = {
+  ruleId: mockRuleId3,
+  description: '',
+  subject: [mockSubjectId1, mockSubjectId3],
+  actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
+  resources: mockPolicyRuleResourcesWithSingleNarrowingPolicy,
 };
 export const mockPolicyRuleCards: PolicyRuleCard[] = [mockPolicyRuleCard1, mockPolicyRuleCard2];
 

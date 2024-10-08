@@ -23,6 +23,10 @@ const mockResource2: PolicyRuleResource[] = [mockResource21];
 export const mockResource3: PolicyRuleResource[] = [mockResource31, mockResource32];
 
 export const mockPolicyRuleResources: PolicyRuleResource[][] = [mockResource1, mockResource2];
+export const mockPolicyRuleResourcesWithSingleNarrowingPolicy: PolicyRuleResource[][] = [
+  mockResource2,
+  mockResource2,
+];
 
 export const mockPolicyResourceBackendString1: string = `${mockResourceType1}:${mockResourecId1}`;
 export const mockPolicyResourceBackendString2: string = `${mockResourceType2}:${mockResourecId2}`;

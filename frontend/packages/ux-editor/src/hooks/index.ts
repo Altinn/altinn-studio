@@ -1,5 +1,6 @@
 export type { UseText } from './useText';
 export { useComponentErrorMessage } from './useComponentErrorMessage';
+export { useComponentTypeName } from './useComponentTypeName';
 export { useFormLayouts } from './useFormLayouts';
 export { useFormLayout } from './useFormLayout';
 export { useSelectedFormLayout } from './useSelectedFormLayout';
