@@ -45,7 +45,7 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
             }
             catch (FileNotFoundException)
             {
-                return;
+                continue;
             }
 
             foreach (string layoutName in layoutNames)
