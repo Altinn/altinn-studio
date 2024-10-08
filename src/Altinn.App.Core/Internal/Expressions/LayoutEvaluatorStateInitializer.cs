@@ -91,7 +91,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
             var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
             if (dataType is null)
             {
-                throw new InvalidOperationException($"Data type {dataElement.DataType} not found in applicationmetadata.json");
+                throw new InvalidOperationException(
+                    $"Data type {dataElement.DataType} not found in applicationmetadata.json"
+                );
             }
 
             return dataType;
