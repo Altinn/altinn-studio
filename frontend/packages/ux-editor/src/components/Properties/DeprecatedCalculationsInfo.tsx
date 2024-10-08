@@ -6,7 +6,6 @@ import { useAppContext } from '../../hooks';
 import classes from './Calculations.module.css';
 import { altinnDocsUrl, giteaEditLink } from 'app-shared/ext-urls';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { WindowWithRuleModel } from '@altinn/ux-editor/hooks/queries/useRuleModelQuery';
 import { useTranslation } from 'react-i18next';
 
 export const DeprecatedCalculationsInfo = () => {
@@ -14,8 +13,6 @@ export const DeprecatedCalculationsInfo = () => {
   const { app, org } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const calculationsLocation = `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`;
-
-  const ruleHandlerExist = (window as WindowWithRuleModel).ruleHandlerObject !== undefined;
 
   return (
     <div className={classes.calculations}>
@@ -33,16 +30,10 @@ export const DeprecatedCalculationsInfo = () => {
         </Link>
       </Alert>
       <div>
-        {ruleHandlerExist && (
-          <Link
-            href={giteaEditLink(org, app, calculationsLocation)}
-            target='_blank'
-            rel='noreferrer'
-          >
-            {t('right_menu.rules_calculations_edit_in_gitea')}
-            <ExternalLinkIcon />
-          </Link>
-        )}
+        <Link href={giteaEditLink(org, app, calculationsLocation)} target='_blank' rel='noreferrer'>
+          {t('right_menu.rules_calculations_edit_in_gitea')}
+          <ExternalLinkIcon />
+        </Link>
       </div>
     </div>
   );
