@@ -72,7 +72,7 @@ export const ConfigContent = (): React.ReactElement => {
               <Accordion.Content className={classes.accordion}>
                 <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
                 <EditDataTypes
-                  connectedTaskId={layoutSet?.tasks[0]}
+                  connectedTaskId={layoutSet.tasks[0]}
                   dataModelIds={availableDataModelIds}
                   existingDataTypeForTask={existingDataTypeForTask}
                 />
