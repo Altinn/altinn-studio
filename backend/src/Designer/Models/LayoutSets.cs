@@ -1,6 +1,5 @@
 #nullable enable
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 
@@ -21,7 +20,6 @@ public class LayoutSets : Altinn.App.Core.Models.LayoutSets
 public class LayoutSetConfig
 {
     [JsonPropertyName("id")]
-    [Required]
     public string Id { get; set; }
 
     [JsonPropertyName("dataType")]
