@@ -21,14 +21,17 @@ export const Summary2OverrideDisplaytype = ({
 
   useEffect(() => {
     if (!override.displayType) {
-      const updatedCustomType = { ...override, displayType: 'string' as SummaryCustomTargetType };
+      const updatedCustomType = {
+        displayType: 'string' as SummaryCustomTargetType,
+        componentId: override.componentId,
+      };
       onChange(updatedCustomType);
     }
   }, [override, onChange]);
 
   const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = event.target.value as SummaryCustomTargetType;
-    const updatedCustomType = { ...override, displayType: newType };
+    const updatedCustomType = { displayType: newType, componentId: override.componentId };
     onChange(updatedCustomType);
   };
 
