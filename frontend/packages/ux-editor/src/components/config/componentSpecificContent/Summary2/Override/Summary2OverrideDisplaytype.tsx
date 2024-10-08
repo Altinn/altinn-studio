@@ -21,11 +21,7 @@ export const Summary2OverrideDisplaytype = ({
 
   useEffect(() => {
     if (!override.displayType) {
-      const updatedCustomType = {
-        displayType: 'string' as SummaryCustomTargetType,
-        componentId: override.componentId,
-      };
-      onChange(updatedCustomType);
+      onChange({ ...override, displayType: 'string' });
     }
   }, [override, onChange]);
 

@@ -288,6 +288,22 @@ describe('Summary2Override', () => {
     );
   });
 
+  it('should handle custom type change', async () => {
+    const user = userEvent.setup();
+    render({ overrides: [{ componentId: 'Checkboxes' }] });
+    await user.click(addNewOverrideButton());
+
+    const select = screen.getByRole('combobox', {
+      name: textMock('ux_editor.component_properties.overrides_type'),
+    });
+    await user.selectOptions(select, 'list');
+    await waitFor(() =>
+      expect(defaultProps.onChange).toHaveBeenCalledWith(
+        expect.arrayContaining([{ componentId: 'Checkboxes', displayType: 'list' }]),
+      ),
+    );
+  });
+
   it('should be able to change override emptyFieldText', async () => {
     const user = userEvent.setup();
     render({
