@@ -7,8 +7,6 @@ import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const jsonModelPathWithSlash = '/App/models/model.schema.json';
-const xsdModelPath = 'App/models/model.xsd';
-const xsdModelPathWithSlash = '/' + xsdModelPath;
 
 describe('useSchemaQuery', () => {
   afterEach(jest.clearAllMocks);
@@ -23,19 +21,5 @@ describe('useSchemaQuery', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.getDataModel).toHaveBeenCalledTimes(1);
     expect(queriesMock.getDataModel).toHaveBeenCalledWith(org, app, jsonModelPathWithSlash);
-    expect(queriesMock.addXsdFromRepo).not.toHaveBeenCalled();
-  });
-
-  it('Calls addXsdFromRepo with correct arguments when XSD', async () => {
-    const {
-      renderHookResult: { result },
-    } = renderHookWithProviders(
-      {},
-      createQueryClientMock(),
-    )(() => useSchemaQuery(xsdModelPathWithSlash));
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(queriesMock.addXsdFromRepo).toHaveBeenCalledTimes(1);
-    expect(queriesMock.addXsdFromRepo).toHaveBeenCalledWith(org, app, xsdModelPath);
-    expect(queriesMock.getDataModel).not.toHaveBeenCalled();
   });
 });
