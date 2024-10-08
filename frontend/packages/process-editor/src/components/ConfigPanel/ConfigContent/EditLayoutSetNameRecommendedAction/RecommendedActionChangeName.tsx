@@ -25,6 +25,7 @@ export const RecommendedActionChangeName = (): React.ReactElement => {
     if (newNameError || newName === '') {
       return false;
     }
+
     mutateLayoutSetId({ layoutSetIdToUpdate: bpmnDetails.element.id, newLayoutSetId: newName });
     removeAction(bpmnDetails.element.id);
   };

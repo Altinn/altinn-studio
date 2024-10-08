@@ -20,11 +20,13 @@ export const ConfigContent = (): React.ReactElement => {
   const { t } = useTranslation();
   const { bpmnDetails } = useBpmnContext();
   const { layoutSets, availableDataModelIds } = useBpmnApiContext();
-  const layoutSet = layoutSets?.sets.find((set) => set.tasks.includes(bpmnDetails.id));
+  const layoutSet = layoutSets?.sets.find((set) => set.tasks?.includes(bpmnDetails.id));
   const existingDataTypeForTask = layoutSet?.dataType;
   const isSigningTask = bpmnDetails.taskType === 'signing';
 
-  const taskHasConnectedLayoutSet = layoutSets?.sets?.some((set) => set.tasks[0] == bpmnDetails.id);
+  const taskHasConnectedLayoutSet = layoutSets?.sets?.some(
+    (set) => set.tasks && set.tasks[0] == bpmnDetails.id,
+  );
   const { shouldDisplayAction } = useStudioRecommendedNextActionContext();
 
   const studioModeler = new StudioModeler();
@@ -70,7 +72,7 @@ export const ConfigContent = (): React.ReactElement => {
               <Accordion.Content className={classes.accordion}>
                 <EditLayoutSetName existingLayoutSetName={layoutSet.id} />
                 <EditDataTypes
-                  connectedTaskId={layoutSet.tasks[0]}
+                  connectedTaskId={layoutSet?.tasks[0]}
                   dataModelIds={availableDataModelIds}
                   existingDataTypeForTask={existingDataTypeForTask}
                 />
