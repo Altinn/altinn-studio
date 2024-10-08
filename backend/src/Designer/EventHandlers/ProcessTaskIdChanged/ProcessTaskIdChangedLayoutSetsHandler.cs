@@ -1,12 +1,8 @@
-using System.IO;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
@@ -37,14 +33,6 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
             return;
         }
 
-        await ProcessLayoutSets(notification, repository, cancellationToken);
-    }
-
-    private async Task ProcessLayoutSets(ProcessTaskIdChangedEvent notification,
-        AltinnAppGitRepository repository, CancellationToken cancellationToken)
-    {
-        var layoutSetsFile = await repository.GetLayoutSetsFile(cancellationToken);
-
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.LayoutSetsTaskIdSyncError,
@@ -62,93 +50,18 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
 
                 return hasChanged;
             });
-
-        foreach (string layoutSetName in layoutSetsFile.Sets.Select(layoutSet => layoutSet.Id))
-        {
-            await ProcessLayouts(layoutSetName, notification, repository, cancellationToken);
-        }
-    }
-
-    private async Task ProcessLayouts(string layoutSetName, ProcessTaskIdChangedEvent notification,
-        AltinnAppGitRepository repository, CancellationToken cancellationToken)
-    {
-        string[] layoutNames;
-        try
-        {
-            layoutNames = repository.GetLayoutNames(layoutSetName);
-        }
-        catch (FileNotFoundException)
-        {
-            return;
-        }
-
-        foreach (string layoutName in layoutNames)
-        {
-            string layoutPath = $"App/ui/{layoutSetName}/{layoutName}.json";
-
-            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
-                notification.EditingContext,
-                SyncErrorCodes.LayoutTaskIdSyncError,
-                layoutPath,
-                async () =>
-                {
-                    bool hasChanged = false;
-                    var layout = await repository.GetLayout(layoutSetName, layoutName, cancellationToken);
-
-                    if (TryChangeLayoutTaskIds(layout, notification.OldId, notification.NewId))
-                    {
-                        await repository.SaveLayout(layoutSetName, layoutName, layout, cancellationToken);
-                        hasChanged = true;
-                    }
-
-                    return hasChanged;
-                });
-        }
     }
 
     private static bool TryChangeLayoutSetTaskIds(LayoutSets layoutSets, string oldId, string newId)
     {
-        string originalLayoutSet = JsonSerializer.Serialize(layoutSets);
-        UpdateLayoutSetTaskIds(layoutSets, oldId, newId);
-        return !JsonSerializer.Serialize(layoutSets).Equals(originalLayoutSet);
-    }
-
-    private static bool TryChangeLayoutTaskIds(JsonNode layout, string oldId, string newId)
-    {
-        JsonNode originalLayout = layout.DeepClone();
-        UpdateLayoutTaskIds(layout, oldId, newId);
-        return !layout.ToJsonString().Equals(originalLayout.ToJsonString());
-    }
-
-    private static void UpdateLayoutSetTaskIds(LayoutSets layoutSets, string oldId, string newId)
-    {
+        bool hasChanged = false;
         foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks.Contains(oldId)))
         {
             layoutSet.Tasks.Remove(oldId);
             layoutSet.Tasks.Add(newId);
+            hasChanged = true;
         }
-    }
 
-    private static void UpdateLayoutTaskIds(JsonNode node, string oldId, string newId)
-    {
-        if (node is JsonObject jsonObject)
-        {
-            foreach (var property in jsonObject.ToList())
-            {
-                if (property.Key == "taskId" && property.Value?.ToString() == oldId)
-                {
-                    jsonObject["taskId"] = newId;
-                }
-
-                UpdateLayoutTaskIds(property.Value, oldId, newId);
-            }
-        }
-        else if (node is JsonArray jsonArray)
-        {
-            foreach (var item in jsonArray)
-            {
-                UpdateLayoutTaskIds(item, oldId, newId);
-            }
-        }
+        return hasChanged;
     }
 }
