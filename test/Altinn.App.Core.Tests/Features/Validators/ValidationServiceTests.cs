@@ -322,6 +322,107 @@ public class ValidationServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task FormDataValidator_DataTypeNoAppLogic_IsNotCalled()
+    {
+        // Form DataValidators are connected to DataType,
+        // and should only run for instances with that data type
+        // on the task that has that data type
+
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType" };
+
+        var formDataValidatorNoAppLogicMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
+        {
+            Name = "FormDataValidatorNoAppLogic"
+        };
+        formDataValidatorNoAppLogicMock
+            .SetupGet(v => v.DataType)
+            .Returns("dataTypeNoAppLogic")
+            .Verifiable(Times.AtLeastOnce);
+        formDataValidatorNoAppLogicMock
+            .SetupGet(v => v.ValidationSource)
+            .Returns("FormDataValidatorNoAppLogic")
+            .Verifiable(Times.AtLeastOnce);
+        _services.AddSingleton(formDataValidatorNoAppLogicMock.Object);
+        _appMetadata.DataTypes.Add(new DataType { Id = "dataTypeNoAppLogic", TaskId = TaskId });
+
+        var formDataValidatorWrongTaskMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
+        {
+            Name = "FormDataValidatorWrongTask"
+        };
+        formDataValidatorWrongTaskMock
+            .SetupGet(v => v.DataType)
+            .Returns("dataTypeWrongTask")
+            .Verifiable(Times.AtLeastOnce);
+        formDataValidatorWrongTaskMock
+            .SetupGet(v => v.ValidationSource)
+            .Returns("FormDataValidatorWrongTask")
+            .Verifiable(Times.AtLeastOnce);
+        _services.AddSingleton(formDataValidatorWrongTaskMock.Object);
+        _appMetadata.DataTypes.Add(
+            new DataType
+            {
+                Id = "dataTypeWrongTask",
+                TaskId = "wrongTask",
+                AppLogic = new() { ClassRef = "System.String" }
+            }
+        );
+
+        var formDataValidatorMock = new Mock<IFormDataValidator>(MockBehavior.Strict) { Name = "FormDataValidator" };
+        formDataValidatorMock.SetupGet(v => v.DataType).Returns("dataType").Verifiable(Times.AtLeastOnce);
+        formDataValidatorMock
+            .SetupGet(v => v.ValidationSource)
+            .Returns("FormDataValidator")
+            .Verifiable(Times.AtLeastOnce);
+        formDataValidatorMock
+            .Setup(v => v.ValidateFormData(_instance, dataElement, "valueToValidate", null))
+            .ReturnsAsync(
+                new List<ValidationIssue>()
+                {
+                    new ValidationIssue()
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = "Test error",
+                        Code = "TestCode543"
+                    }
+                }
+            );
+        _services.AddSingleton(formDataValidatorMock.Object);
+        _appMetadata.DataTypes.Add(
+            new DataType
+            {
+                Id = "dataType",
+                AppLogic = new() { ClassRef = "System.String" },
+                TaskId = TaskId,
+            }
+        );
+
+        // Ensure that we have data elements for all types
+        _instanceDataAccessor.Add(dataElement, "valueToValidate");
+        _instanceDataAccessor.Add(
+            new DataElement() { Id = Guid.NewGuid().ToString(), DataType = "dataTypeNoAppLogic" },
+            "valueToValidate"
+        );
+        _instanceDataAccessor.Add(
+            new DataElement() { Id = Guid.NewGuid().ToString(), DataType = "dataTypeWrongTask" },
+            "valueToValidate"
+        );
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var issues = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            null,
+            null,
+            null
+        );
+        issues.Should().ContainSingle(i => i.Code == "TestCode543");
+
+        formDataValidatorNoAppLogicMock.Verify();
+        formDataValidatorMock.Verify();
+    }
+
+    [Fact]
     public async Task GenericFormDataValidator_serviceModelIsString_CallsValidatorFunctionForIncremental()
     {
         var valueToValidate = "valueToValidate";
