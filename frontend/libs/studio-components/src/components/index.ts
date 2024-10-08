@@ -20,6 +20,7 @@ export * from './StudioFileUploader';
 export * from './StudioGridSelector';
 export * from './StudioHeading';
 export * from './StudioIconTextfield';
+export * from './StudioInputTable';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
 export * from './StudioModal';
