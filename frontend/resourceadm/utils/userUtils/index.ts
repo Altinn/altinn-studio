@@ -1,1 +1,1 @@
-export { userHasAccessToOrganization } from './userUtils';
+export { userHasAccessToOrganization, getOrgNameByUsername } from './userUtils';

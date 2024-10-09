@@ -4,4 +4,5 @@ export {
   isSePrefix,
   stringNumberToAriaLabel,
   isOrgNrString,
+  getAppName,
 } from './stringUtils';

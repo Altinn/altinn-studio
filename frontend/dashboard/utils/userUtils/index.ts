@@ -1,1 +1,5 @@
-export { userHasAccessToSelectedContext } from './userUtils';
+export {
+  userHasAccessToSelectedContext,
+  getOrgNameByUsername,
+  getOrgUsernameByUsername,
+} from './userUtils';
