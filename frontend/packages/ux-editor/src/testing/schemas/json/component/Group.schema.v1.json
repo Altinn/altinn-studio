@@ -100,7 +100,7 @@
       "title": "Heading level",
       "description": "The heading level of the group title.",
       "enum": [2, 3, 4, 5, 6],
-      "type": "string"
+      "type": "number"
     }
   },
   "required": ["id", "type", "children"],
