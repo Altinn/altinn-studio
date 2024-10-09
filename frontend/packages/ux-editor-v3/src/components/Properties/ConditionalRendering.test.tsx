@@ -94,6 +94,5 @@ const renderComponent = () => {
   const queries = {
     getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   };
-  console.log('renderComponent');
   return renderWithProviders(<ConditionalRendering />, { queries, queryClient });
 };
