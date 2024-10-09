@@ -67,7 +67,7 @@ describe('SyncSuccessQueriesInvalidator', () => {
 
     await waitFor(() =>
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: [QueryKey.FormLayouts, org, app, selectedLayoutSet],
+        queryKey: [QueryKey.FormLayouts, org, app],
       }),
     );
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
