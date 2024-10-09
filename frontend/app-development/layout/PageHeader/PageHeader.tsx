@@ -66,18 +66,17 @@ const RightContent = (): ReactElement => {
 
   const isSmallScreen = useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const userNameAndOrg = useUserNameAndOrg(user, org, repository);
-  const shouldDisplayText = !isSmallScreen;
 
   if (isSmallScreen) {
     return <SmallHeaderMenu />;
   }
   return (
     <StudioPageHeader.ProfileMenu
-      triggerButtonText={shouldDisplayText ? userNameAndOrg : undefined}
+      triggerButtonText={userNameAndOrg}
       ariaLabelTriggerButton={userNameAndOrg}
       profileImage={
         <StudioAvatar
-          src={user?.avatar_url ? user.avatar_url : undefined}
+          src={user?.avatar_url}
           alt={t('general.profile_icon')}
           title={t('shared.header_profile_icon_text')}
         />

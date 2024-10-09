@@ -72,7 +72,7 @@ const DropdownContentProfile = ({ profileText }: DropdownContentProfileProps): R
   return (
     <div className={classes.profileWrapper}>
       <StudioAvatar
-        src={user?.avatar_url ? user.avatar_url : undefined}
+        src={user?.avatar_url}
         alt={t('general.profile_icon')}
         title={t('shared.header_profile_icon_text')}
       />
@@ -94,9 +94,6 @@ const DropdownMenuGroups = ({
   const { t } = useTranslation();
   const { menuItems, profileMenuItems } = usePageHeaderContext();
 
-  const menuGroupHeader = (menuGroup: NavigationMenuSmallGroup): string =>
-    menuGroup.showName ? t(menuGroup.name) : '';
-
   const groupedMenuItems: HeaderMenuGroup[] = groupMenuItemsByGroup(menuItems);
 
   const profileMenuGroup: NavigationMenuSmallGroup = {
@@ -113,9 +110,9 @@ const DropdownMenuGroups = ({
     profileMenuGroup,
   ];
 
-  return menuGroups.map((menuGroup: NavigationMenuSmallGroup, index: number) => (
+  return menuGroups.map((menuGroup: NavigationMenuSmallGroup) => (
     <DropdownMenu.Group
-      heading={menuGroupHeader(menuGroup)}
+      heading={menuGroup.showName && t(menuGroup.name)}
       className={classes.dropDownMenuGroup}
       key={menuGroup.name}
     >

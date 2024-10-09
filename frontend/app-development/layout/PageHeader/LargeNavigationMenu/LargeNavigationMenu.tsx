@@ -3,7 +3,7 @@ import classes from './LargeNavigationMenu.module.css';
 import cn from 'classnames';
 import { NavLink, useLocation } from 'react-router-dom';
 import { StudioBetaTag, StudioPageHeader } from '@studio/components';
-import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { extractLastRouterParam } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuItem } from 'app-development/types/HeaderMenu/NavigationMenuItem';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
 
@@ -29,7 +29,7 @@ type HeaderButtonListItemProps = {
 const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactElement => {
   const { variant } = usePageHeaderContext();
   const location = useLocation();
-  const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
+  const currentRoutePath: string = extractLastRouterParam(location.pathname);
 
   return (
     <li key={menuItem.name}>
@@ -37,7 +37,7 @@ const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactEle
         <NavLink to={menuItem.link}>
           <span
             className={cn({
-              [classes.active]: getRouterRouteByPathname(menuItem.link) === currentRoutePath,
+              [classes.active]: extractLastRouterParam(menuItem.link) === currentRoutePath,
             })}
           >
             {menuItem.name}

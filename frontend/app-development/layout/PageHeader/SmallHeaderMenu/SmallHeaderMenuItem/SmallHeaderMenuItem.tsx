@@ -3,7 +3,7 @@ import classes from './SmallHeaderMenuItem.module.css';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { DropdownMenu } from '@digdir/designsystemet-react';
-import { getRouterRouteByPathname } from 'app-development/utils/headerMenu/headerMenuUtils';
+import { extractLastRouterParam } from 'app-development/utils/headerMenu/headerMenuUtils';
 import { type NavigationMenuSmallItem } from 'app-development/types/HeaderMenu/NavigationMenuSmallItem';
 import { StudioBetaTag } from '@studio/components';
 
@@ -19,7 +19,7 @@ export const SmallHeaderMenuItem = ({
   const { t } = useTranslation();
 
   const location = useLocation();
-  const currentRoutePath: string = getRouterRouteByPathname(location.pathname);
+  const currentRoutePath: string = extractLastRouterParam(location.pathname);
 
   if (menuItem.action.type === 'button') {
     return (
@@ -30,7 +30,7 @@ export const SmallHeaderMenuItem = ({
   }
 
   const linkItemClassName: string =
-    getRouterRouteByPathname(menuItem.action.href) === currentRoutePath ? classes.active : '';
+    extractLastRouterParam(menuItem.action.href) === currentRoutePath ? classes.active : '';
 
   return (
     <DropdownMenu.Item key={menuItem.name} asChild className={linkItemClassName}>

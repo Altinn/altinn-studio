@@ -146,7 +146,10 @@ export class GiteaPage extends BasePage {
         "autoCreate": true,
         "classRef": "Altinn.App.Models.${dataModel}.${dataModel}",
         "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
       },
       "taskId": "${id}",
       "maxCount": 1,

@@ -19,7 +19,8 @@ export const PreviewButton = (): ReactElement => {
   const layout = searchParams?.get('layout');
 
   const packagesRouter = new PackagesRouter({ org, app });
-  const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${layout ? `?layout=${layout}` : ''}`;
+  const previewLinkQueryParams = layout ? `?layout=${layout}` : '';
+  const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${previewLinkQueryParams}`;
 
   return (
     <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>

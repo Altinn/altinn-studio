@@ -1,5 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
 import {
+  extractLastRouterParam,
   filterRoutesByFeatureFlag,
   getFilteredMenuListForOverviewPage,
   getFilteredTopBarMenu,
@@ -78,6 +79,26 @@ describe('headerMenuUtils', () => {
           expect(item.group).toBe(group.groupName);
         });
       });
+    });
+  });
+
+  describe('extractLastRouterParam', () => {
+    it('should return the last part of the pathname', () => {
+      const pathname = '/home/user/profile';
+      const result = extractLastRouterParam(pathname);
+      expect(result).toBe('profile');
+    });
+
+    it('should handle a single segment pathname', () => {
+      const pathname = '/profile';
+      const result = extractLastRouterParam(pathname);
+      expect(result).toBe('profile');
+    });
+
+    it('should return an empty string for an empty pathname', () => {
+      const pathname = '';
+      const result = extractLastRouterParam(pathname);
+      expect(result).toBe('');
     });
   });
 

@@ -1,7 +1,7 @@
+import type React from 'react';
+import type { RefAttributes, SVGProps } from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
-import type { RefAttributes, SVGProps } from 'react';
-import type React from 'react';
 import {
   AccordionIcon,
   CalendarIcon,
@@ -38,6 +38,7 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -482,7 +483,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
   shouldDisplayFeature('subForm') && formItemConfigs[ComponentType.SubForm],
-].filter(Boolean); // When removing the featureFlag, also remove the filter
+].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Input],
@@ -508,7 +509,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.InstanceInformation],
   formItemConfigs[ComponentType.Summary],
   shouldDisplayFeature('summary2') && formItemConfigs[ComponentType.Summary2],
-].filter(Boolean); // When removing the featureFlag, also remove the filter
+].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
@@ -528,3 +529,9 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Payment],
   ...confOnScreenComponents,
 ];
+
+export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
+  ...schemaComponents,
+  ...textComponents,
+  ...advancedItems,
+].filter(FilterUtils.filterUnsupportedSubformComponents);
