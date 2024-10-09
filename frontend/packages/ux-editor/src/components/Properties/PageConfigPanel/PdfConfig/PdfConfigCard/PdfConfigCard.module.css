@@ -7,7 +7,8 @@
 
 .headerWrapper {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-2);
 }

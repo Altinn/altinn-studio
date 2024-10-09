@@ -30,7 +30,7 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
 
   return (
     <StudioCard color='neutral' className={classes.card}>
-      <div className={classes.headerWrapper}>
+      <StudioCard.Header className={classes.headerWrapper}>
         <StudioHeading level={2} size='2xs'>
           {t('ux_editor.page_config_pdf_card_heading')}
         </StudioHeading>
@@ -40,8 +40,10 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
           size='sm'
           aria-label={switchAriaLabel}
         />
-      </div>
-      <StudioParagraph size='sm'>{t('ux_editor.page_config_pdf_card_text')}</StudioParagraph>
+      </StudioCard.Header>
+      <StudioCard.Content>
+        <StudioParagraph size='sm'>{t('ux_editor.page_config_pdf_card_text')}</StudioParagraph>
+      </StudioCard.Content>
     </StudioCard>
   );
 };
