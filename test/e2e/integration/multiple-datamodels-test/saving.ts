@@ -90,7 +90,8 @@ describe('saving multiple data models', () => {
       'Per Hansen er født dato og er dermed alder år gammel',
     );
 
-    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}${m}${y1}`);
+    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}.${m}.${y1}`);
+    cy.findByRole('textbox', { name: /fødselsdato/i }).blur();
 
     cy.get(appFrontend.multipleDatamodelsTest.repeatingParagraph).should(
       'contain.text',
@@ -104,7 +105,8 @@ describe('saving multiple data models', () => {
 
     cy.findByRole('textbox', { name: /fornavn/i }).type('Hanne');
     cy.findByRole('textbox', { name: /etternavn/i }).type('Persen');
-    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}${m}${y2}`);
+    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}.${m}.${y2}`);
+    cy.findByRole('textbox', { name: /fødselsdato/i }).blur();
 
     cy.get(appFrontend.multipleDatamodelsTest.repeatingParagraph).should(
       'contain.text',

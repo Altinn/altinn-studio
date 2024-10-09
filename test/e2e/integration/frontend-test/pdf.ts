@@ -49,7 +49,7 @@ describe('PDF', () => {
     cy.findByRole('textbox', { name: /nytt etternavn/i }).type('Nordmann');
     cy.findByRole('checkbox', { name: /ja, jeg bekrefter/i }).check();
     cy.findByRole('radio', { name: /adoptivforelders/i }).check();
-    cy.findByRole('textbox', { name: /når vil du at/i }).type('01012020');
+    cy.findByRole('textbox', { name: /når vil du at/i }).type('01/01/2020');
     cy.findByRole('textbox', { name: /mobil nummer/i }).type('98765432');
     cy.dsSelect(appFrontend.changeOfName.sources, 'Digitaliseringsdirektoratet');
     cy.get(appFrontend.changeOfName.reference).should('have.value', '');

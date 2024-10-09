@@ -1,0 +1,114 @@
+.datepickerLabelWrapper span[id*='description-'] {
+  margin-bottom: 0;
+}
+.calendarGrid {
+  gap: var(--fds-spacing-2);
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.formatText {
+  word-break: break-word;
+  line-height: 1.5rem;
+  display: inline-block;
+  font-weight: normal;
+}
+
+.calendarButton {
+  background-color: white;
+}
+
+.selectedDate {
+  background-color: var(--fds-colors-blue-900);
+  color: white;
+  font-weight: normal;
+  border-radius: var(--fds-border_radius-medium);
+}
+.disabledDate {
+  border-radius: var(--fds-border_radius-medium);
+  background: var(--fds-colors-grey-100);
+
+  cursor: not-allowed;
+}
+.disabledDate button {
+  text-decoration: line-through;
+}
+.focusedDate {
+  border-radius: var(--fds-border_radius-medium);
+  background: var(--fds-colors-blue-200);
+}
+.today {
+  border-radius: var(--fds-border_radius-medium);
+  border: var(--fds-border_width-default) solid var(--fds-colors-blue-200);
+}
+.disabledDate:hover button {
+  cursor: not-allowed;
+}
+
+.calendarWrapper {
+  max-width: 363px;
+}
+.calendar {
+  width: 350px;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+.calendarWeekday {
+  width: 48px;
+  height: 48px;
+  text-align: center;
+  opacity: 0.75;
+  padding: 0.5rem 0;
+  font: inherit;
+  font-weight: 500;
+}
+.calendarDay {
+  width: 48px;
+  height: 48px;
+  text-align: center;
+}
+.calendarDayButton {
+  height: 46px;
+  width: 46px;
+}
+.monthWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+.dropdownCaption {
+  display: flex;
+  margin-bottom: 10px;
+  gap: 4px;
+}
+
+.calendarInputWrapper {
+  display: flex;
+  border-radius: 4px;
+  border: var(--fds-border_width-default, 1px) solid var(--fds-semantic-border-neutral-default);
+  gap: var(--fds-spacing-1);
+  background: white;
+}
+.calendarInputWrapper:hover {
+  box-shadow: inset 0 0 0 1px var(--fds-semantic-border-input-hover);
+}
+.calendarInput {
+  padding: 1px;
+}
+.calendarInput,
+.calendarInput * {
+  height: 36px;
+}
+.calendarInputWrapper button {
+  min-height: 38px;
+  min-width: 38px;
+}
+.calendarInput input:not(:focus-visible),
+.calendarInput button {
+  border: none;
+  background: white;
+}
+.calendarInput input:not(:focus-visible):hover {
+  box-shadow: none;
+}

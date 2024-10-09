@@ -115,8 +115,8 @@ describe('Auto save behavior', () => {
         .check();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
-      cy.get(appFrontend.changeOfName.dateOfEffect).siblings().findByRole('button').click();
-      cy.get(mui.selectedDate).click();
+      cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+      cy.get('button[aria-label*="Today"]').click();
 
       cy.get(appFrontend.nextButton).click();
       cy.wait('@saveFormData').then(() => {
@@ -186,8 +186,8 @@ describe('Auto save behavior', () => {
       cy.get(appFrontend.changeOfName.confirmChangeName).find('input').dsCheck();
       cy.get(appFrontend.changeOfName.reasonRelationship).click();
       cy.get(appFrontend.changeOfName.reasonRelationship).type('hello world');
-      cy.get(appFrontend.changeOfName.dateOfEffect).siblings().findByRole('button').click();
-      cy.get(mui.selectedDate).click();
+      cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+      cy.get('button[aria-label*="Today"]').click();
 
       cy.get(appFrontend.nextButton).click();
       cy.wait('@saveFormData').then(() => {

@@ -49,6 +49,9 @@ export function nn(): FixedLanguageList {
       aria_label_icon: 'Opne datoveljar',
       aria_label_left_arrow: 'Førre månad.',
       aria_label_right_arrow: 'Neste månad.',
+      aria_label_year_dropdown: 'Vel år',
+      aria_label_month_dropdown: 'Vel månad',
+      format_text: 'Til dømes {0}',
     },
     feedback: {
       title: '## Du blir snart vidaresendt',

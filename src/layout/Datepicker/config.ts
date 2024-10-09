@@ -56,7 +56,7 @@ export const Config = new CG.component({
         .setTitle('Include time')
         .setDescription(
           'Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true. ' +
-            "If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
+            "If true: 'yyyy-MM-ddThh:mm:ss.sssZ', if false 'yyyy-MM-dd';",
         ),
     ),
   )
@@ -64,13 +64,13 @@ export const Config = new CG.component({
     new CG.prop(
       'format',
       new CG.str()
-        .optional({ default: 'DD.MM.YYYY' })
+        .optional({ default: 'dd.MM.yyyy' })
         .setTitle('Date format')
         .setDescription(
           'Date format used when displaying the date to the user. The user date format from the locale ' +
             'will be prioritized over this setting.',
         )
-        .addExample('DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'),
+        .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd'),
     ),
   )
   .extends(CG.common('LabeledComponentProps'))

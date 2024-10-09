@@ -103,8 +103,8 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains(texts.dateOfEffect).should('have.css', 'color', 'rgb(213, 32, 59)');
         cy.wrap(summaryDate).contains(mui.gridContainer, texts.requiredFieldDateFrom).should('be.visible');
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).click();
-        cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children('button').click();
-        cy.get(mui.selectedDate).parent().click();
+        cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+        cy.get('button[aria-label*="Today"]').click();
         cy.get(appFrontend.backToSummaryButton).click();
       });
 

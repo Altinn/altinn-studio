@@ -29,7 +29,7 @@ describe('readonly data models', () => {
     cy.findByRole('button', { name: /legg til ny/i }).click();
     cy.findByRole('textbox', { name: /fornavn/i }).type('Per');
     cy.findByRole('textbox', { name: /etternavn/i }).type('Hansen');
-    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}${m}${y1}`);
+    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}.${m}.${y1}`);
     cy.findAllByRole('button', { name: /lagre og lukk/i })
       .first()
       .click();
@@ -37,7 +37,7 @@ describe('readonly data models', () => {
     cy.findByRole('button', { name: /legg til ny/i }).click();
     cy.findByRole('textbox', { name: /fornavn/i }).type('Hanne');
     cy.findByRole('textbox', { name: /etternavn/i }).type('Persen');
-    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}${m}${y2}`);
+    cy.findByRole('textbox', { name: /fødselsdato/i }).type(`${d}.${m}.${y2}`);
     cy.findAllByRole('button', { name: /lagre og lukk/i })
       .first()
       .click();

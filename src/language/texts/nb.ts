@@ -49,6 +49,9 @@ export function nb(): FixedLanguageList {
       aria_label_icon: 'Åpne datovelger',
       aria_label_left_arrow: 'Forrige måned.',
       aria_label_right_arrow: 'Neste måned.',
+      aria_label_year_dropdown: 'Velg år',
+      aria_label_month_dropdown: 'Velg måned',
+      format_text: 'For eksempel {0}',
     },
     feedback: {
       title: '## Du blir snart videresendt',

@@ -49,6 +49,9 @@ export function en() {
       aria_label_icon: 'Open date picker',
       aria_label_left_arrow: 'Last month.',
       aria_label_right_arrow: 'Next month.',
+      aria_label_year_dropdown: 'Select year',
+      aria_label_month_dropdown: 'Select month',
+      format_text: 'For example {0}',
     },
     feedback: {
       title: '## You will soon be forwarded',

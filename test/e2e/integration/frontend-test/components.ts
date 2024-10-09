@@ -201,6 +201,7 @@ describe('UI Components', () => {
       cy.get(shouldExist).should('not.exist');
     }
   });
+
   it('minNumberOfAttachments should validate like required', () => {
     cy.interceptLayout('changename', (component) => {
       if (component.type === 'FileUpload' || component.type === 'FileUploadWithTag') {

@@ -1,10 +1,8 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { Common } from 'test/e2e/pageobjects/common';
 import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 import type { FillableFrontendTasks } from 'test/e2e/support/global';
 
-const mui = new Common();
 const appFrontend = new AppFrontend();
 const dataListPage = new Datalist();
 
@@ -51,8 +49,8 @@ function fillOutChangeName() {
       .check();
     cy.get(appFrontend.changeOfName.reasonRelationship).click();
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
-    cy.get(appFrontend.changeOfName.dateOfEffect).siblings().children(mui.buttonIcon).click();
-    cy.get(mui.selectedDate).click();
+    cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
+    cy.get('button[aria-label*="Today"]').click();
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
     cy.navPage('grid').click();

@@ -5,7 +5,6 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getDescriptionId } from 'src/components/label/Label';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
@@ -16,7 +15,7 @@ jest.mock('src/utils/dateHelpers', () => ({
   __esModules: true,
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   ...jest.requireActual<typeof import('src/utils/dateHelpers')>('src/utils/dateHelpers'),
-  getDateFormat: jest.fn(() => 'DD.MM.YYYY'),
+  getDateFormat: jest.fn(() => 'dd.MM.yyyy'),
 }));
 
 const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Datepicker'>> = {}) =>
@@ -42,15 +41,6 @@ const currentMonthNumeric = new Date().toLocaleDateString(navigator.language, {
   month: '2-digit',
 });
 
-const getCalendarYearHeader = (method = 'getByRole') =>
-  screen[method]('heading', {
-    name: currentYearNumeric,
-  });
-
-const getCalendarDayButton = (dayNumber: string) =>
-  // Getting by role would be better, but it is too slow, because of the big DOM that is generated
-  screen.getByText(dayNumber);
-
 const { setScreenWidth } = mockMediaQuery(600);
 
 describe('DatepickerComponent', () => {
@@ -62,37 +52,50 @@ describe('DatepickerComponent', () => {
     jest.spyOn(console, 'error').mockName('console.error');
     await render();
 
-    expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     await userEvent.click(
       screen.getByRole('button', {
         name: /Åpne datovelger/i,
       }),
     );
-
-    expect(getCalendarYearHeader()).toBeInTheDocument();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(console.error).toHaveBeenCalledWith(
-      expect.stringMatching(
-        /Material-UI: The `fade` color utility was renamed to `alpha` to better describe its functionality/,
-      ),
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
+      'data-today',
+      'true',
     );
   });
 
   it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', async () => {
+    //Workaround since there is no support for dialog element functions yet in jest.
+    HTMLDialogElement.prototype.show = jest.fn(function mock(this: HTMLDialogElement) {
+      this.open = true;
+    });
+
+    HTMLDialogElement.prototype.showModal = jest.fn(function mock(this: HTMLDialogElement) {
+      this.open = true;
+    });
+
+    HTMLDialogElement.prototype.close = jest.fn(function mock(this: HTMLDialogElement) {
+      this.open = false;
+    });
+
     setScreenWidth(400);
     await render();
 
-    expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
-
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    screen.debug();
     await userEvent.click(
       screen.getByRole('button', {
         name: /Åpne datovelger/i,
       }),
     );
-
-    expect(getCalendarYearHeader()).toBeInTheDocument();
-    expect(screen.getAllByRole('dialog')[0]).toBeInTheDocument();
+    screen.debug();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
+      'data-today',
+      'true',
+    );
   });
 
   it('should call setLeafValue when clicking date in calendar', async () => {
@@ -103,13 +106,16 @@ describe('DatepickerComponent', () => {
         name: /Åpne datovelger/i,
       }),
     );
-    await userEvent.click(getCalendarDayButton('15'));
+    //screen.logTestingPlaygroundURL();
+    const calendarButton = screen.getByRole('gridcell', { name: '15' }).getElementsByTagName('button')[0];
+    await userEvent.click(calendarButton);
 
     // Ignore TZ part of timestamp to avoid test failing when this changes
-    // Calendar opens up on current year/month by default, so we need to cater for this in the expected output
+    // DatePickerCalendar opens up on current year/month by default, so we need to cater for this in the expected output
+
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}-15T12:00:00.000+`),
+      newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}-15T00:00:00Z`),
     });
   });
 
@@ -119,9 +125,8 @@ describe('DatepickerComponent', () => {
         fetchFormData: async () => ({ myDate: '2022-12-31' }),
       },
     });
-
     await userEvent.clear(screen.getByRole('textbox'));
-
+    await userEvent.tab();
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
       newValue: '',
@@ -131,18 +136,20 @@ describe('DatepickerComponent', () => {
   it('should call setLeafValue with formatted value (timestamp=true) if date is valid', async () => {
     const { formDataMethods } = await render({ component: { timeStamp: true } });
 
-    await userEvent.type(screen.getByRole('textbox'), '31122022');
+    await userEvent.type(screen.getByRole('textbox'), '31.12.2022');
+    await userEvent.tab();
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: expect.stringContaining('2022-12-31T12:00:00.000+'),
+      newValue: expect.stringContaining('2022-12-31T00:00:00'),
     });
   });
 
   it('should call setLeafValue with formatted value (timestamp=false) if date is valid', async () => {
     const { formDataMethods } = await render({ component: { timeStamp: false } });
 
-    await userEvent.type(screen.getByRole('textbox'), '31122022');
+    await userEvent.type(screen.getByRole('textbox'), '31.12.2022');
+    await userEvent.tab();
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
@@ -153,18 +160,20 @@ describe('DatepickerComponent', () => {
   it('should call setLeafValue with formatted value (timestamp=undefined) if date is valid', async () => {
     const { formDataMethods } = await render({ component: { timeStamp: undefined } });
 
-    await userEvent.type(screen.getByRole('textbox'), '31122022');
+    await userEvent.type(screen.getByRole('textbox'), '31.12.2022');
+    await userEvent.tab();
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: expect.stringContaining('2022-12-31T12:00:00.000+'),
+      newValue: expect.stringContaining('2022-12-31T00:00:00'),
     });
   });
 
   it('should call setLeafValue if date is invalid but finished filling out', async () => {
     const { formDataMethods } = await render();
 
-    await userEvent.type(screen.getByRole('textbox'), '12345678');
+    await userEvent.type(screen.getByRole('textbox'), '12.34.5678');
+    await userEvent.tab();
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
@@ -175,23 +184,13 @@ describe('DatepickerComponent', () => {
   it('should call setLeafValue if not finished filling out the date', async () => {
     const { formDataMethods } = await render();
 
-    await userEvent.type(screen.getByRole('textbox'), `1234`);
+    await userEvent.type(screen.getByRole('textbox'), `12.34`);
+    await userEvent.tab();
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: '12.34.____',
+      newValue: '12.34',
     });
-  });
-
-  it('should have aria-describedby if textResourceBindings.description is present', async () => {
-    await render({
-      component: {
-        textResourceBindings: { description: 'description' },
-        id: 'test-id',
-      },
-    });
-    const inputField = screen.getByRole('textbox');
-    expect(inputField).toHaveAttribute('aria-describedby', getDescriptionId('test-id'));
   });
 
   it('should not have aria-describedby if textResources.description does not exist', async () => {

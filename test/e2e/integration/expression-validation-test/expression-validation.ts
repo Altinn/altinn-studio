@@ -207,7 +207,9 @@ describe('Expression validation', () => {
       cy.findByRole('button', { name: /legg til ny arbeidserfaring/i }).click();
       cy.findByRole('textbox', { name: /arbeidsgiver/i }).type('Digitaliseringsdirektoratet');
       cy.findByRole('textbox', { name: /fra/i }).type('01.01.2020');
+      cy.findByRole('textbox', { name: /fra/i }).blur();
       cy.findByRole('textbox', { name: /^til/i }).type('31.12.2020');
+      cy.findByRole('textbox', { name: /^til/i }).blur();
       cy.findByRole('textbox', { name: /stilling/i }).type(row.stilling);
       cy.findByRole('textbox', { name: /beskrivelse/i }).type(row.error ? 'flink' : 'Jobbet med Altinn Studio');
 
