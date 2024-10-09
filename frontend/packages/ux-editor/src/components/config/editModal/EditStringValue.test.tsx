@@ -35,12 +35,25 @@ const renderEditStringValue = ({
   );
 
 describe('EditStringValue', () => {
-  it('should render', () => {
-    const handleComponentChange = jest.fn();
-    renderEditStringValue({ handleComponentChange });
+  it('should render component as input field, when not given enum prop', () => {
+    renderEditStringValue();
+
+    expect(
+      screen.getByRole('textbox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it(' Ensure that the onChange handler is called with the correct arguments', async () => {
+  it('should render component as select, when given enum prop', () => {
+    renderEditStringValue({ enumValues: ['one', 'two', 'three'] });
+
+    expect(
+      screen.getByRole('combobox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('should call onChange handler with the correct arguments', async () => {
     const handleComponentChange = jest.fn();
     renderEditStringValue({ handleComponentChange });
     const inputElement = screen.getByLabelText(
@@ -90,7 +103,6 @@ describe('EditStringValue', () => {
     );
 
     await waitFor(() => {
-      //await user.selectOptions(screen.getByRole('listbox'), screen.getByRole('option', { name: "one" }));
       expect(handleComponentChange).toHaveBeenCalledWith({
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
         type: ComponentType.Input,
