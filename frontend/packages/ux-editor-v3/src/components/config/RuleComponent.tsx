@@ -146,14 +146,14 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
               {this.props.t('ux_editor.modal_configure_rules_helper')}
             </label>
             <select
-              name='selectRule'
+              id='selectRule'
               onChange={this.handleSelectedMethodChange}
               value={selectedMethod}
               className={classes.customSelect}
               style={{ fontSize: '16px' }}
             >
               <option value={''}>{this.props.t('general.choose_method')}</option>
-              {this.props.ruleModelElements.map((funcObj: any) => {
+              {this.props.ruleModelElements?.map((funcObj: any) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>
                     {funcObj.name}
