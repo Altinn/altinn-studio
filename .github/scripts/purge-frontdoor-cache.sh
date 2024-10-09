@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 fdSubscription=$FD_SUBSCRIPTION
 fdResourceGroup=$FD_RESOURCEGROUP
 fdProfileName=$FD_PROFILE
