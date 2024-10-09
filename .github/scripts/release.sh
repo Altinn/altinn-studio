@@ -205,7 +205,7 @@ else
       if [[ "$PRE_RELEASE" == "no" ]]; then
         AFD_PATHS+=( --path "$AFD_PATH_PREFIX/$APP_MAJOR/*" --path "$AFD_PATH_PREFIX/$APP_MAJOR_MINOR/*" )
       fi
-      bash ./purge-frontdoor-cache.sh "${AFD_PATHS[@]}"
+      bash "$PATH_TO_FRONTEND/.github/scripts/purge-frontdoor-cache.sh" "${AFD_PATHS[@]}"
       echo "-------------------------------------"
     fi
   fi
