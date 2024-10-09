@@ -80,7 +80,7 @@ describe('StudioInputTable', () => {
     const headerCheckbox = getCheckbox(headerCheckboxLabel);
     await user.tab();
     expect(headerCheckbox).toHaveFocus();
-    await user.keyboard('{ArrowRight}'); // No input elements to the right - keep in same poisition
+    await user.keyboard('{ArrowRight}'); // No input elements to the right - keep in same position
     expect(headerCheckbox).toHaveFocus();
     await user.keyboard('{ArrowDown}'); // Move down to checkbox 1
     expect(getCheckboxInRow(1)).toHaveFocus();
@@ -191,7 +191,7 @@ describe('StudioInputTable', () => {
     () => {
       const arrowKeys: ArrowKey[] = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
 
-      it.each(arrowKeys)('%s', async (arrowKey) => {
+      test.each(arrowKeys)('%s', async (arrowKey) => {
         const user = userEvent.setup();
         render(<TestTable />);
         const textbox = textboxTestCases.textfield();
@@ -253,7 +253,7 @@ describe('StudioInputTable', () => {
       },
     };
 
-    it.each(Object.keys(testCases))('%s', (key) => {
+    test.each(Object.keys(testCases))('%s', (key) => {
       const { render: renderComponent, getElement } = testCases[key];
       testRefForwarding(renderComponent, getElement);
     });
@@ -280,32 +280,27 @@ const getButton = (name: string): HTMLButtonElement =>
 const getButtonInRow = (rowNumber: number): HTMLButtonElement =>
   getButton(buttonLabel(rowNumber)) as HTMLButtonElement;
 
-function expectCaretPosition(
+const expectCaretPosition = (
   element: HTMLInputElement | HTMLTextAreaElement,
   position: number,
-): void {
+): void => {
   expect(element.selectionStart).toBe(position);
   expect(element.selectionEnd).toBe(position);
-}
+};
 
-function selectAllText(element: HTMLInputElement | HTMLTextAreaElement): void {
+const selectAllText = (element: HTMLInputElement | HTMLTextAreaElement): void =>
   element.setSelectionRange(0, element.value.length);
-}
 
-function placeCaretAtStart(element: HTMLInputElement | HTMLTextAreaElement): void {
+const placeCaretAtStart = (element: HTMLInputElement | HTMLTextAreaElement): void =>
   placeCaretAtPosition(element, 0);
-}
 
-function placeCaretAtEnd(element: HTMLInputElement | HTMLTextAreaElement): void {
+const placeCaretAtEnd = (element: HTMLInputElement | HTMLTextAreaElement): void =>
   placeCaretAtPosition(element, element.value.length);
-}
 
-function placeCaretAtPosition(
+const placeCaretAtPosition = (
   element: HTMLInputElement | HTMLTextAreaElement,
   position: number,
-): void {
-  element.setSelectionRange(position, position);
-}
+): void => element.setSelectionRange(position, position);
 
 const expectedNumberOfColumns = 5;
 const expectedNumberOfHeaderRows = 1;
