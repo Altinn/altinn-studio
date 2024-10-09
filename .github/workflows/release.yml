@@ -40,7 +40,7 @@ jobs:
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_CDN_SUBSCRIPTION_ID_FC }}
 
       - name: Run release script
         working-directory: app-frontend
