@@ -1,3 +1,5 @@
+import type { Resource } from 'app-shared/types/ResourceAdm';
+
 export interface PolicyRuleCard {
   ruleId: string;
   description: string;
@@ -31,6 +33,7 @@ export interface PolicyAccessPackage {
     nn: string;
     en: string;
   };
+  services: Resource[];
 }
 
 export interface PolicyAccessPackageCategory {

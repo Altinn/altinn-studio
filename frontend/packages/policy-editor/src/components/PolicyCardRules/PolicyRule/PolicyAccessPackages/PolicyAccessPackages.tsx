@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Label, ErrorMessage, Paragraph, Accordion, Tag } from '@digdir/designsystemet-react';
+import {
+  Label,
+  ErrorMessage,
+  Paragraph,
+  Accordion,
+  Tag,
+  Alert,
+  Heading,
+} from '@digdir/designsystemet-react';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getAccessPackageOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
@@ -60,6 +68,15 @@ export const PolicyAccessPackages = (): React.ReactElement => {
 
   return (
     <div className={classes.accessPackages}>
+      <Alert severity='warning' size='sm'>
+        <Heading level={2} size='2xs' spacing>
+          Tilgangspakker tar over for Altinn-rollene
+        </Heading>
+        <Paragraph size='sm'>
+          Altinn-rollene fases snart ut, og da vil rollene som er lagt til, ikke lenger være gyldig.
+          Du må derfor legge til minst en Tilgangspakke for å unngå at regelen blir ugyldig.
+        </Paragraph>
+      </Alert>
       <Label size='sm'>Tilgangspakker</Label>
       {chosenAccessPackages.length === 0 && <div>Her ser du tilgangspakkene du har lagt til</div>}
       {chosenAccessPackages.length > 0 && (

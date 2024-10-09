@@ -1,4 +1,6 @@
-namespace PolicyAdmin.Models
+using System.Collections.Generic;
+
+namespace Altinn.Studio.Designer.Models
 {
     public class AccessPackage
     {
@@ -7,5 +9,7 @@ namespace PolicyAdmin.Models
         public Dictionary<string, string> Name { get; set; }
 
         public Dictionary<string, string>? Description { get; set; }
+
+        public List<AccessPackageService> Services { get; set; } = [];
     }
 }

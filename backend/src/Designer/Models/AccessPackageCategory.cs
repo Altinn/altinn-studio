@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace PolicyAdmin.Models
+namespace Altinn.Studio.Designer.Models
 {
     public class AccessPackageCategory
     {

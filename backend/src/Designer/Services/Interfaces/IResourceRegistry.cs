@@ -169,5 +169,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 204 No content if remove was successful</returns>
         Task<HttpStatusCode> RemoveResourceAccessList(string org, string resourceId, string listId, string env);
+
+        Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env);
     }
 }

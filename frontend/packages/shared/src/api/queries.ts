@@ -131,7 +131,7 @@ export const getAltinn2LinkServices = (org: string, environment: string) => get<
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
 export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
-export const getAccessPackages = (org: string, repo: string) => get<PolicyAccessPackageCategory[]>(resourceAccessPackagesPath(org, repo));
+export const getAccessPackages = (org: string) => get<PolicyAccessPackageCategory[]>(resourceAccessPackagesPath(org));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));

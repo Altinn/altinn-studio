@@ -628,6 +628,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return removeResourceAccessListResponse.StatusCode;
         }
 
+        public async Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env)
+        {
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(env);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/resource/bysubjects";
+
+            string serializedContent = JsonSerializer.Serialize(subjects, _serializerOptions);
+            using HttpRequestMessage getSubjectResourcesRequest = new HttpRequestMessage()
+            {
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Post,
+                Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
+            };
+            using HttpResponseMessage response = await _httpClient.SendAsync(getSubjectResourcesRequest);
+            response.EnsureSuccessStatusCode();
+
+            SubjectResourcesDto responseContent = await response.Content.ReadAsAsync<SubjectResourcesDto>();
+            return responseContent.Data;
+        }
+
         private async Task<List<BrregParty>> GetBrregParties(string url)
         {
             HttpResponseMessage enheterResponse = await _httpClient.GetAsync(url);
