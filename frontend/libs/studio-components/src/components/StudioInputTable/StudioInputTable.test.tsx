@@ -84,7 +84,7 @@ describe('StudioInputTable', () => {
     expect(headerCheckbox).toHaveFocus();
     await user.keyboard('{ArrowDown}'); // Move down to checkbox 1
     expect(getCheckboxInRow(1)).toHaveFocus();
-    await user.keyboard('{ArrowRight}'); // Move down to textfield 1
+    await user.keyboard('{ArrowRight}'); // Move right to textfield 1
     expect(getTextfieldInRow(1)).toHaveFocus();
     await user.keyboard('{ArrowDown}'); // Move down to textfield 2
     expect(getTextfieldInRow(2)).toHaveFocus();
