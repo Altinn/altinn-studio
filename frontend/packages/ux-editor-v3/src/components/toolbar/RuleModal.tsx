@@ -52,7 +52,6 @@ export function RuleModal() {
     <>
       <RuleComponent
         saveEdit={handleSaveChange}
-        deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
         ruleConnection={ruleConnection}
         ruleModelElements={ruleModelElements}
       />
