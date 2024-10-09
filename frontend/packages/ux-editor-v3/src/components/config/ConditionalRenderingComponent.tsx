@@ -418,6 +418,7 @@ class ConditionalRendering extends React.Component<
 
                       <button
                         type='button'
+                        data-testid='delete_field_button'
                         className={classes.deleteFieldButton}
                         onClick={this.removeFieldMapping.bind(null, key)}
                       >
