@@ -8,6 +8,8 @@ jobs:
     name: Build and deploy
     runs-on: ubuntu-latest
     environment: prod
+    permissions:
+      id-token: write
     steps:
       - name: checkout
         uses: actions/checkout@v4
