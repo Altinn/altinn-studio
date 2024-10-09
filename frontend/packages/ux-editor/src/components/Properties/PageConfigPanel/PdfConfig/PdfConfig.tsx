@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { StudioProperty } from '@studio/components';
+import classes from './PdfConfig.module.css';
+import { StudioCard, StudioHeading, StudioProperty } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { FileIcon } from '@studio/icons';
 import { usePdf } from '../../../../hooks/usePdf/usePdf';
@@ -16,6 +17,7 @@ export const PdfConfig = () => {
 
   const handleClickConvertButton = () => {
     if (!!getPdfLayoutName()) {
+      // if (true) {
       convertChoicesDialogRef.current?.showModal();
     } else {
       convertCurrentPageToPdf();
@@ -36,6 +38,15 @@ export const PdfConfig = () => {
   return (
     <div>
       <ConvertChoicesModal handleModalAction={handleModalAction} ref={convertChoicesDialogRef} />
+      {/* TODO make component */}
+      <StudioCard color='neutral' className={classes.card}>
+        <div className={classes.headerWrapper}>
+          <StudioHeading level={2} size='2xs'>
+            Header
+          </StudioHeading>
+          <StudioSwitch></StudioSwitch>
+        </div>
+      </StudioCard>
       {isCurrentPagePdf() ? (
         <StudioProperty.Button
           onClick={handleConvertExistingPdfToFormLayout}
