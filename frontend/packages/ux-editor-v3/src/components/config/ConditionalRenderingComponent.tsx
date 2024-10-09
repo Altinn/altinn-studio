@@ -288,7 +288,6 @@ class ConditionalRendering extends React.Component<
         {!this.props.connectionId ? (
           <StudioModal.Trigger
             aria-label={this.props.t('right_menu.rules_conditional_rendering_add_alt')}
-            className={classes.addIcon}
             icon={<PlusIcon />}
             variant='tertiary'
           />
