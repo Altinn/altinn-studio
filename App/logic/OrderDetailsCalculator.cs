@@ -39,7 +39,7 @@ public class OrderDetailsCalculator : IOrderDetailsCalculator
                 })
             .ToList() : [];
 
-        return new OrderDetails { PaymentProcessorId = "Nets Easy", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails(), Payer = GetPayerDetails(formData)};
+        return new OrderDetails { PaymentProcessorId = "Fake Payment Processor", Currency = "NOK", OrderLines = paymentOrderLines, Receiver = GetReceiverDetails(), Payer = GetPayerDetails(formData)};
     }
 
     private Payer? GetPayerDetails(Form? formData)
