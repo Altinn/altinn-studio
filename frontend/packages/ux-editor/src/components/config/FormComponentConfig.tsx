@@ -178,6 +178,7 @@ export const FormComponentConfig = ({
             propertyKey={propertyKey}
             key={propertyKey}
             helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.enum}
           />
         );
       })}
