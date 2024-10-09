@@ -66,7 +66,7 @@ describe('featureToggle url', () => {
       'shouldOverrideAppLibCheck',
       'resourceMigration',
     ]);
-    expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeUndefined();
+    expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeNull();
   });
 });
 

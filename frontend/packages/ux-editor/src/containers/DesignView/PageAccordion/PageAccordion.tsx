@@ -47,7 +47,7 @@ export const PageAccordion = ({
 }: PageAccordionProps): ReactNode => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
 
   const { mutate: deleteLayout, isPending } = useDeleteLayoutMutation(
     org,
@@ -59,7 +59,10 @@ export const PageAccordion = ({
     if (confirm(t('ux_editor.page_delete_text'))) {
       deleteLayout(pageName, {
         onSuccess: async ({ layouts }) => {
-          await refetchLayouts(selectedFormLayoutSetName, Object.keys(layouts).length === 1);
+          await updateLayoutsForPreview(
+            selectedFormLayoutSetName,
+            Object.keys(layouts).length === 1,
+          );
         },
       });
     }
