@@ -4,7 +4,7 @@ import type { Repository, User } from 'app-shared/types/Repository';
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './AltinnHeaderProfile.module.css';
-import { useUserNameAndOrg } from './hooks/useUserNameAndOrg';
+import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 
 export interface AltinnHeaderProfileProps {
   user: User;
