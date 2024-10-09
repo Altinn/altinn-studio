@@ -36,6 +36,7 @@ export * from './StudioRecommendedNextAction';
 export * from './StudioResizableLayout';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
+export * from './StudioSwitch';
 export * from './StudioTable';
 export * from './StudioTableLocalPagination';
 export * from './StudioTableRemotePagination';
