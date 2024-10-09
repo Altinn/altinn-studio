@@ -34,6 +34,22 @@ describe('Summary2ComponentTargetSelector', () => {
     expect(componentTargetSelect()).toBeInTheDocument();
   });
 
+  it('should select the task id from the current layout when the task id of the target is not defined', async () => {
+    render();
+
+    const select = targetTaskIdSelect();
+    expect(select).toHaveValue(layoutSetsMock.sets[0].tasks[0]);
+  });
+
+  it('should select the task id from the target when the task id of the target is defined', async () => {
+    render({
+      component: { ...defaultProps.component, target: { taskId: 'Task_2' } },
+    });
+
+    const select = targetTaskIdSelect();
+    expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
+  });
+
   it('should allow selecting a task id', async () => {
     const user = userEvent.setup();
     render();
