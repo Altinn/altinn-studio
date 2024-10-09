@@ -1,33 +1,32 @@
 import React from 'react';
+import { EditLayoutSet } from './EditLayoutSet';
+import { NoSubformLayoutsExist } from './NoSubformLayoutsExist';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
+import { SubFormUtilsImpl } from '../../../../classes/SubFormUtils';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { NoSubformLayoutsExist } from './NoSubformLayoutsExist';
-import { EditLayoutSet } from './EditLayoutSet';
+import type { IGenericEditComponent } from '../../../../components/config/componentConfig';
 
 export const EditLayoutSetForSubform = <T extends ComponentType>({
   handleComponentChange,
   component,
-}: IGenericEditComponent<T>) => {
+}: IGenericEditComponent<T>): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const layoutSetsThatActAsSubforms = layoutSets.sets
-    .filter((set) => set.type === 'subform')
-    ?.map((set) => set.id);
 
-  const noSubformLayoutsExist = layoutSetsThatActAsSubforms.length === 0;
+  const subFormUtils = new SubFormUtilsImpl(layoutSets.sets);
 
-  const handleUpdatedLayoutSet = (layoutSet: string) => {
+  if (!subFormUtils.hasSubforms) {
+    return <NoSubformLayoutsExist />;
+  }
+
+  const handleUpdatedLayoutSet = (layoutSet: string): void => {
     const updatedComponent = { ...component, layoutSet };
     handleComponentChange(updatedComponent);
   };
 
-  return noSubformLayoutsExist ? (
-    <NoSubformLayoutsExist />
-  ) : (
+  return (
     <EditLayoutSet
-      layoutSetsActingAsSubform={layoutSetsThatActAsSubforms}
       existingLayoutSetForSubform={component['layoutSet']}
       onUpdateLayoutSet={handleUpdatedLayoutSet}
     />

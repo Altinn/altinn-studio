@@ -1,20 +1,22 @@
 import React from 'react';
-import { PencilIcon } from '@studio/icons';
-import { RedirectBox } from 'app-shared/components/RedirectBox';
 import { useTranslation } from 'react-i18next';
+import { PencilIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
+import { RedirectBox } from 'app-shared/components/RedirectBox';
 import classes from './RedirectToLayoutSet.module.css';
-import { useAppContext } from '@altinn/ux-editor/hooks';
+import { useAppContext } from '../../../../hooks';
 
 type RedirectToLayoutSetProps = {
   selectedSubform: string;
 };
 
-export const RedirectToLayoutSet = ({ selectedSubform }: RedirectToLayoutSetProps) => {
+export const RedirectToLayoutSet = ({
+  selectedSubform,
+}: RedirectToLayoutSetProps): React.ReactElement => {
   const { setSelectedFormLayoutName, setSelectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation();
 
-  const handleClickRedirect = () => {
+  const handleOnRedirectClick = (): void => {
     setSelectedFormLayoutSetName(selectedSubform);
     setSelectedFormLayoutName(undefined);
   };
@@ -25,7 +27,7 @@ export const RedirectToLayoutSet = ({ selectedSubform }: RedirectToLayoutSetProp
       className={classes.redirectContainer}
     >
       <StudioButton
-        onClick={handleClickRedirect}
+        onClick={handleOnRedirectClick}
         variant='primary'
         color='second'
         icon={<PencilIcon />}

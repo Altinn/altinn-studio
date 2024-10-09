@@ -5,39 +5,41 @@ import { UndefinedLayoutSet } from './UndefinedLayoutSet/UndefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
 
 type EditLayoutSetProps = {
-  layoutSetsActingAsSubform: string[];
   existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
 };
 
 export const EditLayoutSet = ({
-  layoutSetsActingAsSubform,
   existingLayoutSetForSubform,
   onUpdateLayoutSet,
-}: EditLayoutSetProps) => {
-  const [layoutSetSelectVisible, setLayoutSetSelectVisible] = useState<boolean>(false);
+}: EditLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
+  const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
+
+  if (isLayoutSetSelectorVisible) {
+    return (
+      <SelectLayoutSet
+        existingLayoutSetForSubForm={existingLayoutSetForSubform}
+        onUpdateLayoutSet={onUpdateLayoutSet}
+        onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
+      />
+    );
+  }
+
+  const layoutSetIsUndefined = !existingLayoutSetForSubform;
+  if (layoutSetIsUndefined) {
+    return (
+      <UndefinedLayoutSet
+        label={t('ux_editor.component_properties.subform.selected_layout_set_label')}
+        onClick={() => setIsLayoutSetSelectorVisible(true)}
+      />
+    );
+  }
 
   return (
-    <>
-      {!existingLayoutSetForSubform && !layoutSetSelectVisible ? (
-        <UndefinedLayoutSet
-          label={t('ux_editor.component_properties.subform.selected_layout_set_label')}
-          onClick={() => setLayoutSetSelectVisible(true)}
-        />
-      ) : layoutSetSelectVisible ? (
-        <SelectLayoutSet
-          layoutSetsActingAsSubForm={layoutSetsActingAsSubform}
-          existingLayoutSetForSubForm={existingLayoutSetForSubform}
-          onUpdateLayoutSet={onUpdateLayoutSet}
-          onSetLayoutSetSelectVisible={setLayoutSetSelectVisible}
-        />
-      ) : (
-        <DefinedLayoutSet
-          existingLayoutSetForSubForm={existingLayoutSetForSubform}
-          onClick={() => setLayoutSetSelectVisible(true)}
-        />
-      )}
-    </>
+    <DefinedLayoutSet
+      existingLayoutSetForSubForm={existingLayoutSetForSubform}
+      onClick={() => setIsLayoutSetSelectorVisible(true)}
+    />
   );
 };

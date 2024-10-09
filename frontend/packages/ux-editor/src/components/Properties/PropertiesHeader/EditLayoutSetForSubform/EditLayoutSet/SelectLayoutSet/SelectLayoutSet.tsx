@@ -1,56 +1,69 @@
-import React from 'react';
+import React, { type ChangeEvent } from 'react';
 import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import classes from './SelectLayoutSet.module.css';
 import { EditLayoutSetButtons } from './EditLayoutSetButtons/EditLayoutSetButtons';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { SubFormUtilsImpl } from '../../../../../../classes/SubFormUtils';
 
 type SelectLayoutSetProps = {
-  layoutSetsActingAsSubForm: string[];
   existingLayoutSetForSubForm: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
-  onSetLayoutSetSelectVisible: (visible: boolean) => void;
+  onSetLayoutSetSelectorVisible: (visible: boolean) => void;
 };
 
 export const SelectLayoutSet = ({
-  layoutSetsActingAsSubForm,
   existingLayoutSetForSubForm,
   onUpdateLayoutSet,
-  onSetLayoutSetSelectVisible,
+  onSetLayoutSetSelectorVisible,
 }: SelectLayoutSetProps) => {
   const { t } = useTranslation();
-  const emptyOptionText = t('ux_editor.component_properties.subform.choose_layout_set');
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const subFormUtils = new SubFormUtilsImpl(layoutSets.sets);
 
-  const handleSelectChange = (layoutSetId: string) => {
-    if (layoutSetId === emptyOptionText) {
-      handleDeleteConnection();
-    } else onUpdateLayoutSet(layoutSetId);
-    onSetLayoutSetSelectVisible(false);
+  const addLinkToLayoutSet = (layoutSetId: string): void => {
+    onUpdateLayoutSet(layoutSetId);
   };
 
-  const handleDeleteConnection = () => {
+  const deleteLinkToLayoutSet = (): void => {
     onUpdateLayoutSet(undefined);
+    closeLayoutSetSelector();
+  };
+
+  const closeLayoutSetSelector = (): void => {
+    onSetLayoutSetSelectorVisible(false);
+  };
+
+  const handleLayoutSetChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const selectedLayoutSetId = event.target.value;
+
+    if (selectedLayoutSetId === '') {
+      deleteLinkToLayoutSet();
+      return;
+    }
+
+    addLinkToLayoutSet(selectedLayoutSetId);
   };
 
   return (
     <div className={classes.selectLayoutSet}>
       <StudioNativeSelect
         size='small'
-        onChange={({ target }) => handleSelectChange(target.value)}
+        onChange={handleLayoutSetChange}
         label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
         defaultValue={existingLayoutSetForSubForm}
-        onBlur={() => onSetLayoutSetSelectVisible(false)}
+        onBlur={closeLayoutSetSelector}
       >
-        <option>{emptyOptionText}</option>
-        {layoutSetsActingAsSubForm.map((option) => (
+        <option value=''>{t('ux_editor.component_properties.subform.choose_layout_set')}</option>
+        {subFormUtils.subformLayoutSetsIds.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>
         ))}
       </StudioNativeSelect>
-      <EditLayoutSetButtons
-        onClose={() => onSetLayoutSetSelectVisible(false)}
-        onDelete={handleDeleteConnection}
-      />
+      <EditLayoutSetButtons onClose={closeLayoutSetSelector} onDelete={deleteLinkToLayoutSet} />
     </div>
   );
 };
