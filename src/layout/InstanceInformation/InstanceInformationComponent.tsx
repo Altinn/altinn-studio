@@ -1,7 +1,8 @@
 import React from 'react';
 
+import { TZDate } from '@date-fns/tz';
 import { Grid } from '@material-ui/core';
-import moment from 'moment-timezone';
+import { formatDate, formatISO } from 'date-fns';
 
 import type { PropsFromGenericComponent } from '..';
 
@@ -76,8 +77,12 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
     instanceOwner && parties?.find((party: IParty) => party.partyId.toString() === instanceOwner.partyId);
 
   const instanceDateSent =
+    lastChanged &&
     dateSent !== false &&
-    moment(lastChanged).tz('Europe/Oslo').format(getDateFormat(PrettyDateAndTime, selectedLanguage));
+    formatDate(
+      new TZDate(new Date(formatISO(lastChanged)), 'Europe/Oslo'),
+      getDateFormat(PrettyDateAndTime, selectedLanguage),
+    );
 
   const instanceSender =
     sender !== false &&
