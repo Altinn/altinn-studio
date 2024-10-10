@@ -172,7 +172,7 @@ public class ModelSerializationService
         string streamContent = Encoding.UTF8.GetString(data.RemoveBom());
         if (string.IsNullOrWhiteSpace(streamContent))
         {
-            throw new Exception("No XML content read from stream");
+            throw new ArgumentException("No XML content read from stream");
         }
         try
         {
