@@ -16,16 +16,22 @@ node ./setup.js
 These are created by the script and are found at the root in the `.env`-file.
 
 ```dotenv
-CYPRESS_TEST_APP=autodeploy-v3
+CYPRESS_TEST_APP=<cypress-test-app>
 DEVELOP_APP_DEVELOPMENT=0
-DEVELOP_BACKEND=0
+DEVELOP_RESOURCE_ADMIN=0
+DEVELOP_BACKEND=1
 DEVELOP_DASHBOARD=0
 DEVELOP_PREVIEW=0
 DEVELOP_STUDIO_ROOT=0
-GITEA_ADMIN_PASS=a_password
-GITEA_ADMIN_USER=angiteaadminuser
+GITEA_ADMIN_PASS=<gitea-admin-password>
+GITEA_ADMIN_USER=<gitea-admin-user>
+GITEA_CYPRESS_USER=<gitea-cypress-user>
+GITEA_CYPRESS_PASS=<gitea-cypress-user-password>
 GITEA_ORG_USER=ttd
-POSTGRES_PASSWORD=a_password
+POSTGRES_PASSWORD=<postgres-password>
+CLIENT_ID=<client-id>
+CLIENT_SECRET=<client-secret>
+COMMIT=<commit-id>
 ```
 
 ## Some useful commands
