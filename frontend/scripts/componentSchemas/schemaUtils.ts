@@ -13,7 +13,7 @@ export const generateComponentSchema = (
   let newComponentSchema = initializeComponentSchema(componentName, layoutSchema);
 
   newComponentSchema = expandSchema(rawComponentSchema, newComponentSchema, layoutSchema);
-  newComponentSchema = sortSchemaTextResourceBindings(newComponentSchema);
+  sortSchemaTextResourceBindings(newComponentSchema);
   newComponentSchema.title = `${componentName} component schema`;
 
   return newComponentSchema;
@@ -58,17 +58,16 @@ const expandSchema = (rawSchema: any, newSchema: any, layoutSchema: any) => {
   return newSchema;
 };
 
-const getExpectedProperties = (rawSchema: any): string[] => {
+const getExpectedProperties = (rawSchema: any) => {
   return Object.keys(rawSchema.allOf[rawSchema.allOf.length - 1].properties);
 };
 
-const sortSchemaTextResourceBindings = (schema: any): schema => {
+const sortSchemaTextResourceBindings = (schema: any) => {
   if (schema.properties?.textResourceBindings) {
     schema.properties.textResourceBindings.properties = sortTextResourceBindings(
       schema.properties.textResourceBindings.properties,
     );
   }
-  return schema;
 };
 
 /**
@@ -200,7 +199,7 @@ const setTypeFromEnum = (schema: any) => {
   }
 };
 
-const inferTypeFromEnum = (enumValues: any[]): string | undefined => {
+const inferTypeFromEnum = (enumValues: string[] | number[]) => {
   const firstEnumValue = enumValues[0];
   if (typeof firstEnumValue === 'string') {
     return 'string';
