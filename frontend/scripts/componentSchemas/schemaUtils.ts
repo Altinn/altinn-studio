@@ -9,48 +9,66 @@ export const generateComponentSchema = (
   version: string,
 ) => {
   const definitionName = `Comp${componentName}`;
-  const componentSchema = getComponentSchema(definitionName, layoutSchema, version);
+  const rawComponentSchema = getRawComponentSchema(definitionName, layoutSchema, version);
+  let newComponentSchema = initializeComponentSchema(componentName, layoutSchema);
 
-  let schema: any = {
-    $id: `https://altinncdn.no/schemas/json/component/${componentName}.schema.v1.json`,
-    $schema: layoutSchema.$schema,
-  };
+  newComponentSchema = expandSchema(rawComponentSchema, newComponentSchema, layoutSchema);
+  newComponentSchema = sortSchemaTextResourceBindings(newComponentSchema);
+  newComponentSchema.title = `${componentName} component schema`;
 
-  if (componentSchema.allOf) {
-    schema = { ...schema, ...expandAllOf(componentSchema, layoutSchema) };
-    const expectedProperties = Object.keys(
-      componentSchema.allOf[componentSchema.allOf.length - 1].properties,
-    );
-    allPropertyKeys.push(...expectedProperties);
-
-    if (!verifySchema(schema, expectedProperties)) {
-      return null;
-    }
-  } else if (componentSchema.anyOf) {
-    schema.anyOf = expandAnyOf(componentSchema, layoutSchema);
-  }
-
-  // Expand all refs in properties
-  schema.properties = expandRefsInProperties(schema.properties, layoutSchema);
-
-  // Sort text resource binding keys
-  if (schema.properties?.textResourceBindings) {
-    schema.properties.textResourceBindings.properties = sortTextResourceBindings(
-      schema.properties.textResourceBindings.properties,
-    );
-  }
-
-  schema.title = `${componentName} component schema`;
-  return schema;
+  return newComponentSchema;
 };
 
-export const getComponentSchema = (definitionName: string, layoutSchema: any, version: string) => {
+export const getRawComponentSchema = (
+  definitionName: string,
+  layoutSchema: any,
+  version: string,
+) => {
   if (version === 'v4') {
     console.log('definitionName: ', definitionName + 'External');
     return expandRef(layoutSchema.definitions[definitionName].$ref, layoutSchema);
   }
   console.log('definitionName: ', definitionName);
   return layoutSchema.definitions[definitionName];
+};
+
+const initializeComponentSchema = (componentName: string, layoutSchema: any): any => {
+  return {
+    $id: `https://altinncdn.no/schemas/json/component/${componentName}.schema.v1.json`,
+    $schema: layoutSchema.$schema,
+  };
+};
+
+const expandSchema = (rawSchema: any, newSchema: any, layoutSchema: any) => {
+  if (rawSchema.allOf) {
+    newSchema = { ...newSchema, ...expandAllOf(rawSchema, layoutSchema) };
+
+    const expectedProperties = getExpectedProperties(rawSchema);
+    allPropertyKeys.push(...expectedProperties);
+
+    if (!verifySchema(newSchema, expectedProperties)) {
+      return null;
+    }
+  } else if (rawSchema.anyOf) {
+    newSchema.anyOf = expandAnyOf(rawSchema, layoutSchema);
+  }
+
+  newSchema.properties = expandRefsInProperties(newSchema.properties, layoutSchema);
+
+  return newSchema;
+};
+
+const getExpectedProperties = (rawSchema: any): string[] => {
+  return Object.keys(rawSchema.allOf[rawSchema.allOf.length - 1].properties);
+};
+
+const sortSchemaTextResourceBindings = (schema: any): schema => {
+  if (schema.properties?.textResourceBindings) {
+    schema.properties.textResourceBindings.properties = sortTextResourceBindings(
+      schema.properties.textResourceBindings.properties,
+    );
+  }
+  return schema;
 };
 
 /**
@@ -169,18 +187,25 @@ export const verifySchema = (schema: any, expectedProperties: string[]) => {
  */
 export const ensureTypeWithEnums = (schema: any) => {
   if (schema.enum && schema.enum.length > 0) {
-    const firstEnumValue = schema.enum[0];
-    if (typeof firstEnumValue === 'string') {
-      schema.type = 'string';
-    } else if (typeof firstEnumValue === 'number') {
-      schema.type = 'number';
-    }
+    setTypeFromEnum(schema);
   } else if (schema.items?.enum && schema.items.enum.length > 0) {
-    const firstEnumValue = schema.items.enum[0];
-    if (typeof firstEnumValue === 'string') {
-      schema.items.type = 'string';
-    } else if (typeof firstEnumValue === 'number') {
-      schema.items.type = 'number';
-    }
+    setTypeFromEnum(schema.items);
   }
+};
+
+const setTypeFromEnum = (schema: any) => {
+  const inferredType = inferTypeFromEnum(schema.enum);
+  if (inferredType) {
+    schema.type = inferredType;
+  }
+};
+
+const inferTypeFromEnum = (enumValues: any[]): string | undefined => {
+  const firstEnumValue = enumValues[0];
+  if (typeof firstEnumValue === 'string') {
+    return 'string';
+  } else if (typeof firstEnumValue === 'number') {
+    return 'number';
+  }
+  return undefined;
 };
