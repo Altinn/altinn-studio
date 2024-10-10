@@ -297,7 +297,7 @@ class ConditionalRendering extends React.Component<
         <StudioModal.Dialog
           ref={this.state.dialogRef}
           heading={this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
-          closeButtonTitle=''
+          closeButtonTitle={this.props.t('general.close')}
         >
           <div className={classes.formGroup}>
             <label htmlFor='selectConditionalRule' className={classes.label}>

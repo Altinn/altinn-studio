@@ -138,7 +138,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
         )}
         <StudioModal.Dialog
           ref={this.state.dialogRef}
-          closeButtonTitle=''
+          closeButtonTitle={this.props.t('general.close')}
           heading={this.props.t('ux_editor.modal_configure_rules_header')}
         >
           <div className={classes.formGroup}>
