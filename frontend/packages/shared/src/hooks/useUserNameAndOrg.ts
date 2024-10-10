@@ -23,4 +23,4 @@ export const useUserNameAndOrg = (user: User, org: string, repository: Repositor
   return getUsername(user);
 };
 
-const getUsername = (user: User | Repository['owner']) => user?.full_name || user?.login;
+const getUsername = (user: User | Repository['owner']) => user.full_name || user.login;
