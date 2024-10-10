@@ -1,3 +1,4 @@
+export * from './StudioAlert';
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
 export * from './StudioBetaTag';
@@ -23,6 +24,7 @@ export * from './StudioIconTextfield';
 export * from './StudioInputTable';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
+export * from './StudioLink';
 export * from './StudioModal';
 export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';

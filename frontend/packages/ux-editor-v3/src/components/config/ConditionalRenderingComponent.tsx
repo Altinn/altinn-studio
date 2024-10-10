@@ -18,8 +18,12 @@ import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
 import { PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
-import { StudioModal } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
 import { withTranslation } from 'react-i18next';
+import {
+  conditionalRenderingDeleteButtonId,
+  conditionalRenderingOutputFieldId,
+} from '@studio/testing/testids';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;
@@ -405,7 +409,7 @@ class ConditionalRendering extends React.Component<
                     <div className={classes.chooseComponentContainer} key={key}>
                       <select
                         name={key}
-                        data-testid='output_field'
+                        data-testid={conditionalRenderingOutputFieldId}
                         onChange={this.handleFieldMappingChange.bind(null, key)}
                         value={this.state.conditionalRendering.selectedFields[key]}
                         className={classes.customSelect}
@@ -415,48 +419,56 @@ class ConditionalRendering extends React.Component<
                         {this.renderConditionalRenderingTargetOptions()}
                       </select>
 
-                      <button
+                      <StudioButton
                         type='button'
-                        data-testid='delete_field_button'
+                        data-testid={conditionalRenderingDeleteButtonId}
                         className={classes.deleteFieldButton}
                         onClick={this.removeFieldMapping.bind(null, key)}
                       >
                         <XMarkOctagonFillIcon className={classes.exitIcon} />
-                      </button>
+                      </StudioButton>
                     </div>
                   );
                 })}
-                <button type='button' className={classes.addFieldButton} onClick={this.addNewField}>
+                <StudioButton
+                  type='button'
+                  className={classes.addFieldButton}
+                  onClick={this.addNewField}
+                >
                   {this.props.t(
                     'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping',
                   )}
-                </button>
+                </StudioButton>
               </div>
             </>
           ) : null}
           <div className={classes.buttonsContainer}>
             {this.state.conditionalRendering.selectedFunction ? (
-              <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
+              <StudioButton
+                onClick={this.handleSaveEdit}
+                type='submit'
+                className={classes.saveButton}
+              >
                 {this.props.t('general.save')}
-              </button>
+              </StudioButton>
             ) : null}
             {this.props.connectionId ? (
-              <button
+              <StudioButton
                 type='button'
                 className={classes.dangerButton}
                 onClick={this.handleDeleteConnection}
               >
                 {this.props.t('general.delete')}
-              </button>
+              </StudioButton>
             ) : null}
-            <button
+            <StudioButton
               className={classes.cancelButton}
               onClick={() => {
                 this.state.dialogRef?.current?.close();
               }}
             >
               {this.props.t('general.cancel')}
-            </button>
+            </StudioButton>
           </div>
         </StudioModal.Dialog>
       </StudioModal.Root>

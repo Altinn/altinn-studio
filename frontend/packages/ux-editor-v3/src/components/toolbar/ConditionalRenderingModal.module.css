@@ -1,17 +1,7 @@
-.conditionalRendering {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
 .header {
   align-items: center;
   display: flex;
   flex-direction: row;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.dynamicsVersionCheckBox {
-  z-index: 1;
+  gap: var(--fds-spacing-4);
+  margin-bottom: var(--fds-spacing-4);
 }

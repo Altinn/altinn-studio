@@ -5,7 +5,12 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../testing/mocks';
 import { layoutSet1NameMock } from '../../testing/layoutSetsMock';
 import ruleHandlerMock, { condition3Name } from '../../testing/ruleHandlerMock';
-import { app, org } from '@studio/testing/testids';
+import {
+  app,
+  conditionalRenderingDeleteButtonId,
+  conditionalRenderingOutputFieldId,
+  org,
+} from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { IFormLayouts } from '../../types/global';
 import { layout1NameMock, layoutMock } from '../../testing/layoutMock';
@@ -52,7 +57,7 @@ describe('ConditionalRendering', () => {
       'Show',
     );
     await user.selectOptions(
-      screen.getByTestId('output_field'),
+      screen.getByTestId(conditionalRenderingOutputFieldId),
       screen.getByRole('option', { name: /.input\)\] \(component\-1\)/i }),
     );
 
@@ -106,9 +111,9 @@ describe('ConditionalRendering', () => {
         ),
       }),
     );
-    expect(screen.getAllByTestId('output_field')).toHaveLength(2);
-    await user.click(screen.getAllByTestId('delete_field_button')[0]);
-    expect(screen.getAllByTestId('output_field')).toHaveLength(1);
+    expect(screen.getAllByTestId(conditionalRenderingOutputFieldId)).toHaveLength(2);
+    await user.click(screen.getAllByTestId(conditionalRenderingDeleteButtonId)[0]);
+    expect(screen.getAllByTestId(conditionalRenderingOutputFieldId)).toHaveLength(1);
   });
 
   it('should allow closing the modal without saving', async () => {

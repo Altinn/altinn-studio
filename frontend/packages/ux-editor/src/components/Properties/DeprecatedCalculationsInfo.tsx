@@ -1,7 +1,6 @@
 import React from 'react';
-import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { ExternalLinkIcon } from '@studio/icons';
-import { StudioParagraph } from '@studio/components';
+import { StudioAlert, StudioHeading, StudioLink, StudioParagraph } from '@studio/components';
 import { useAppContext } from '../../hooks';
 import classes from './Calculations.module.css';
 import { altinnDocsUrl, giteaEditLink } from 'app-shared/ext-urls';
@@ -16,24 +15,30 @@ export const DeprecatedCalculationsInfo = () => {
 
   return (
     <div className={classes.calculations}>
-      <Alert size='small'>
-        <Heading size='xxsmall'>{t('right_menu.rules_calculations_deprecated_info_title')}</Heading>
-        <StudioParagraph size='small'>
+      <StudioAlert size='sm'>
+        <StudioHeading size='2xs'>
+          {t('right_menu.rules_calculations_deprecated_info_title')}
+        </StudioHeading>
+        <StudioParagraph size='sm'>
           {t('right_menu.rules_calculations_deprecated_info')}
         </StudioParagraph>
-        <Link
+        <StudioLink
           href={altinnDocsUrl('/nb/altinn-studio/reference/logic/dynamic/')}
           rel='noopener noreferrer'
           target='_blank'
         >
           {t('right_menu.dynamics_link')}
-        </Link>
-      </Alert>
+        </StudioLink>
+      </StudioAlert>
       <div>
-        <Link href={giteaEditLink(org, app, calculationsLocation)} target='_blank' rel='noreferrer'>
+        <StudioLink
+          href={giteaEditLink(org, app, calculationsLocation)}
+          target='_blank'
+          rel='noreferrer'
+        >
           {t('right_menu.rules_calculations_edit_in_gitea')}
           <ExternalLinkIcon />
-        </Link>
+        </StudioLink>
       </div>
     </div>
   );
