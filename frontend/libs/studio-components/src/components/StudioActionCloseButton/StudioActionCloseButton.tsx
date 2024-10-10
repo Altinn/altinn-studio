@@ -1,6 +1,6 @@
 import React, { forwardRef, type MouseEvent } from 'react';
 import { CheckmarkIcon } from '@studio/icons';
-import { StudioButton, StudioButtonProps } from '../StudioButton';
+import { StudioButton, type StudioButtonProps } from '../StudioButton';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 
 export type StudioActionCloseButtonProps = StudioButtonProps & {
