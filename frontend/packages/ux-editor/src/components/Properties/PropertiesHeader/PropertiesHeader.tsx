@@ -8,6 +8,8 @@ import { getComponentHelperTextByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -40,6 +42,12 @@ export const PropertiesHeader = ({
       />
       <div className={classes.content}>
         <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
+        {formItem.type === ComponentType.SubForm && (
+          <EditLayoutSetForSubform
+            component={formItem}
+            handleComponentChange={handleComponentUpdate}
+          />
+        )}
       </div>
     </>
   );
