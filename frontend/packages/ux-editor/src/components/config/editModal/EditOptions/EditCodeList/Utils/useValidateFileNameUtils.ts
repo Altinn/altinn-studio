@@ -1,7 +1,7 @@
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import { useTranslation } from 'react-i18next';
 
-export const validateFileNameUtils = (optionListIds: string[]) => {
+export const useValidateFileNameUtils = (optionListIds: string[]) => {
   const { t } = useTranslation();
 
   const fileNameRegEx: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;

@@ -9,8 +9,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { fileSelectorInputId } from '@studio/testing/testids';
 
-const user = userEvent.setup();
-
 const mockComponent: FormComponent<ComponentType.Dropdown> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
   type: ComponentType.Dropdown,
@@ -135,6 +133,7 @@ describe('EditCodeList', () => {
   });
 
   it('should render success toast if file upload is successful', async () => {
+    const user = userEvent.setup();
     const file = new File(['hello'], 'hello.json', { type: 'text/json' });
     await render({
       queries: {
@@ -157,6 +156,7 @@ describe('EditCodeList', () => {
   });
 
   it('should render error toast if file already exists', async () => {
+    const user = userEvent.setup();
     const file = new File([optionListIdsMock[0]], optionListIdsMock[0] + '.json', {
       type: 'text/json',
     });
