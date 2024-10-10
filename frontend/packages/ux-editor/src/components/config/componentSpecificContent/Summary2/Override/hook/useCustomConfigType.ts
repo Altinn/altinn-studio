@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-type CustomConfigType = {
+export type CustomConfigType = {
   value: string;
   label: string;
 };

@@ -142,7 +142,7 @@ export type Summary2OverrideConfig = {
   emptyFieldText?: string;
   hideEmptyFields?: boolean;
   isCompact?: boolean;
-  displayType?: SummaryCustomTargetType | string;
+  displayType?: SummaryCustomTargetType;
 };
 
 export type Summary2TargetConfig = {

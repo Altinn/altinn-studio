@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ChangeEvent } from 'react';
 import { StudioDeleteButton, StudioTextfield } from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,6 @@ import { useAppContext, useComponentTypeName } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
-
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { Summary2OverrideDisplaytype } from './Summary2OverrideDisplaytype';
@@ -109,21 +108,34 @@ export const Summary2OverrideEntry = ({
         <Summary2OverrideDisplaytype override={override} onChange={onChange} />
       )}
       {isComponentInGroup && (
-        <Checkbox
-          size='sm'
-          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-            onChangeOverride(
-              event.target.value as keyof Summary2OverrideConfig,
-              event.target.checked,
-            )
-          }
-          checked={override.isCompact ?? false}
-          value={'isCompact'}
-        >
-          {t('ux_editor.component_properties.overrides_is_compact')}
-        </Checkbox>
+        <ComponentInGroupCheckbox onChangeOverride={onChangeOverride} override={override} />
       )}
       <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
     </>
+  );
+};
+
+type ComponentInGroupCheckboxProps = {
+  onChangeOverride: (label: keyof Summary2OverrideConfig, value: string | boolean) => void;
+  override: Summary2OverrideConfig;
+};
+
+const ComponentInGroupCheckbox = ({
+  onChangeOverride,
+  override,
+}: ComponentInGroupCheckboxProps) => {
+  const { t } = useTranslation();
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
+    onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked);
+
+  return (
+    <Checkbox
+      size='sm'
+      onChange={handleChange}
+      checked={override.isCompact ?? false}
+      value='isCompact'
+    >
+      {t('ux_editor.component_properties.overrides_is_compact')}
+    </Checkbox>
   );
 };
