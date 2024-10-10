@@ -1,7 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "schema.json",
-  "type": "object",
   "@xsdNamespaces": {
     "seres": "http://seres.no/xsd/forvaltningsdata",
     "xsi": "http://www.w3.org/2001/XMLSchema-instance",
@@ -15,6 +14,26 @@
     "FinalDefault": "None"
   },
   "@xsdRootElement": "form",
+  "object": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    {
+      "type": "string"
+    }
+  ],
+  "type": "object",
   "oneOf": [
     {
       "$ref": "#/$defs/Form"
@@ -24,42 +43,45 @@
     "Form": {
       "properties": {
         "ContactInformation": {
-          "$ref": "#/$defs/ContactInformation",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/ContactInformation"
         },
         "AgentPerson": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "AgentCompany": {
-          "$ref": "#/$defs/CompanyProperties",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/CompanyProperties"
         },
         "Company": {
-          "$ref": "#/$defs/Company",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Company"
         },
         "Trademark": {
-          "$ref": "#/$defs/Trademark",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Trademark"
         },
         "GoodsAndServicesProperties": {
-          "$ref": "#/$defs/GoodsAndServicesProperties",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/GoodsAndServicesProperties"
         },
         "PreInvestigation": {
-          "$ref": "#/$defs/PreInvestigation",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/PreInvestigation"
         },
         "SimilarTrademarks": {
-          "$ref": "#/$defs/SimilarTrademarks",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/SimilarTrademarks"
         },
         "HF_HaveReadAndUnderstood": {
           "@xsdType": "boolean",
-          "type": "boolean",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
+        },
+        "ShowFirstPaymentDetails": {
+          "type": "boolean"
         }
       }
     },
@@ -67,36 +89,36 @@
       "properties": {
         "FullName": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "PhoneNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Email": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Reference": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
     "Company": {
       "properties": {
         "CompanyProperties": {
-          "maxItems": 100,
           "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
           "items": {
             "$ref": "#/$defs/CompanyProperties"
-          },
-          "@xsdMinOccurs": 0,
-          "@xsdMaxOccurs": "100"
+          }
         }
       }
     },
@@ -104,48 +126,48 @@
       "properties": {
         "CompanyNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "CompanyName": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "FirstName": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "LastName": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "StreetAddress": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "ZipCode": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "City": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Country": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "ClientNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
@@ -153,44 +175,44 @@
       "properties": {
         "TrademarkType": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "TrademarkText": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "TrademarkDetails": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
     "GoodsAndServicesProperties": {
       "properties": {
         "Inventory": {
-          "$ref": "#/$defs/Inventory",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Inventory"
         },
         "Details": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
     "Inventory": {
       "properties": {
         "InventoryProperties": {
-          "maxItems": 100,
           "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
           "items": {
             "$ref": "#/$defs/InventoryProperties"
-          },
-          "@xsdMinOccurs": 0,
-          "@xsdMaxOccurs": "100"
+          }
         }
       }
     },
@@ -198,14 +220,14 @@
       "properties": {
         "NiceClassification": {
           "@xsdType": "string",
-          "type": "string",
           "@xsdMinOccurs": 0,
-          "@xsdMaxOccurs": "1"
+          "@xsdMaxOccurs": "1",
+          "type": "string"
         },
         "GoodsAndServices": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
@@ -213,27 +235,27 @@
       "properties": {
         "HF_HasPriority": {
           "@xsdType": "boolean",
-          "type": "boolean",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
         },
         "HF_HasEarlierInvestigation": {
           "@xsdType": "boolean",
-          "type": "boolean",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "boolean"
         },
         "Year": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Number": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Priority": {
-          "$ref": "#/$defs/Priority",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "$ref": "#/$defs/Priority"
         }
       }
     },
@@ -241,17 +263,17 @@
       "properties": {
         "PriorityReason": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "PriorityProperties": {
-          "maxItems": 100,
           "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
           "items": {
             "$ref": "#/$defs/PriorityProperties"
-          },
-          "@xsdMinOccurs": 0,
-          "@xsdMaxOccurs": "100"
+          }
         }
       }
     },
@@ -259,66 +281,66 @@
       "properties": {
         "PriorityDate": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "CaseDate": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "CaseName": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "InternationalDischargeDate": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "InternationalRegistrationNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "CountryCode": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "RegistrationNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "NiceClassification": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Reference": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
     "SimilarTrademarks": {
       "properties": {
         "SearchResult": {
-          "maxItems": 100,
           "type": "array",
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
           "items": {
             "$ref": "#/$defs/SearchResult"
-          },
-          "@xsdMinOccurs": 0,
-          "@xsdMaxOccurs": "100"
+          }
         },
         "SearchServiceLink": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     },
@@ -326,23 +348,23 @@
       "properties": {
         "TrademarkText": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "ApplicationNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "GoodsAndServicesClassNumber": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         },
         "Status": {
           "@xsdType": "string",
-          "type": "string",
-          "@xsdMinOccurs": 0
+          "@xsdMinOccurs": 0,
+          "type": "string"
         }
       }
     }
