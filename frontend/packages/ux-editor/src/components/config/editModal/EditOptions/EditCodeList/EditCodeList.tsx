@@ -12,7 +12,7 @@ import { ManualCodelistUploadSteps } from './ManualCodelistUploadSteps';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
-import { useValidateFileName } from './Utils/useValidateFileName';
+import { useValidateFileName } from './useValidateFileName';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
 
