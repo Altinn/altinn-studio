@@ -5,7 +5,7 @@ import { useBpmnApiContext } from '../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { ShieldLockIcon } from '@studio/icons';
 import classes from './EditPolicy.module.css';
-import { RedirectBox } from '@altinn/process-editor/components/RedirectBox';
+import { RedirectBox } from 'app-shared/components/RedirectBox';
 
 export const EditPolicy = () => {
   const { t } = useTranslation();
@@ -25,7 +25,6 @@ export const EditPolicy = () => {
           color='second'
           icon={<ShieldLockIcon />}
           iconPlacement='left'
-          className={classes.policyEditorButton}
         >
           {t('process_editor.configuration_panel.edit_policy_open_policy_editor_button')}
         </StudioButton>

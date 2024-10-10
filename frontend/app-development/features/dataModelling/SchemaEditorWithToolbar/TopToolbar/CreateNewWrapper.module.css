@@ -1,0 +1,4 @@
+.popoverContent {
+  /* This is so that it goes above the header which has an z-index of 2000 */
+  z-index: 2001;
+}

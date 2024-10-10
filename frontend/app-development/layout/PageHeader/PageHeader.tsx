@@ -9,7 +9,7 @@ import { type HeaderMenuItem } from 'app-development/types/HeaderMenu/HeaderMenu
 import { useTranslation } from 'react-i18next';
 import { LargeNavigationMenu } from './LargeNavigationMenu';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { useUserNameAndOrg } from 'app-shared/components/AltinnHeaderProfile/hooks/useUserNameAndOrg';
+import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 
 export type PageHeaderProps = {
   showSubMenu: boolean;
