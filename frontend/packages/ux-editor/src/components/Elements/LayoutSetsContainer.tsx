@@ -58,7 +58,7 @@ export function LayoutSetsContainer() {
         ))}
       </StudioCombobox>
       {shouldDisplayFeature('exportForm') && <ExportForm />}
-      {shouldDisplayFeature('subForm') && (
+      {shouldDisplayFeature('subform') && (
         <SubFormWrapper
           layoutSets={layoutSetsResponse}
           onSubFormCreated={handleLayoutSetChange}
