@@ -2,12 +2,17 @@
   --studio-page-header-height: 80px;
   --studio-page-header-padding: 0 var(--fds-spacing-2);
 
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
+
   color: var(--fds-semantic-background-default);
   height: var(--studio-page-header-height);
   padding: var(--studio-page-header-padding);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr auto;
+  }
 }
 
 .regular {

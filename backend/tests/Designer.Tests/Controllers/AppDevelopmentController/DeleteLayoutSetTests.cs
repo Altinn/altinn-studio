@@ -1,7 +1,8 @@
-using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Factories;
@@ -133,6 +134,32 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
+        [Theory]
+        [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet3",
+                "layoutSet2", "layoutFile1InSet2", "subform-component-id")]
+        public async Task DeleteLayoutSet_RemovesComponentsReferencingLayoutSet(string org, string app, string developer, string layoutSetToDeleteId,
+                string layoutSetWithRef, string layoutSetFile, string deletedComponentId)
+        {
+            string targetRepository = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, app, developer, targetRepository);
+
+            string url = $"{VersionPrefix(org, targetRepository)}/layout-set/{layoutSetToDeleteId}";
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
+
+            JsonNode formLayout = (await GetFormLayouts(org, targetRepository, developer, layoutSetWithRef))[layoutSetFile];
+            JsonArray layout = formLayout["data"]?["layout"] as JsonArray;
+
+            layout.Should().NotBeNull();
+            layout
+                .Where(jsonNode => jsonNode["layoutSet"] != null)
+                .Should()
+                .NotContain(jsonNode => jsonNode["layoutSet"].GetValue<string>() == deletedComponentId,
+                        $"No components should reference the deleted layout set {deletedComponentId}");
+        }
+
         private async Task<LayoutSets> GetLayoutSetsFile(string org, string app, string developer)
         {
             AltinnGitRepositoryFactory altinnGitRepositoryFactory =
@@ -141,6 +168,16 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
 
             return await altinnAppGitRepository.GetLayoutSetsFile();
+        }
+
+        private async Task<Dictionary<string, JsonNode>> GetFormLayouts(string org, string app, string developer, string layoutSetName)
+        {
+            AltinnGitRepositoryFactory altinnGitRepositoryFactory =
+            new(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            AltinnAppGitRepository altinnAppGitRepository =
+            altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName);
+            return formLayouts;
         }
 
         private async Task<Application> GetApplicationMetadataFile(string org, string app, string developer)
