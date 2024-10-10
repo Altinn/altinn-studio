@@ -35,8 +35,8 @@ describe('StudioActionCloseButton', () => {
     );
   });
 
-  it('should pass the native event to the onClick handler when the button is clicked', () => {
-    testOnClickCallbackReceivesNativeEvent(
+  it('should pass the native event to the onClick handler when the button is clicked', async () => {
+    await testOnClickCallbackReceivesNativeEvent(
       (onClick) => renderStudioActionCloseButton({ onClick }),
       getActionButton,
     );

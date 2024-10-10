@@ -7,7 +7,7 @@ export type StudioActionCloseButtonProps = StudioButtonProps & {
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 };
 
-const StudioActionCloseButton: OverridableComponent<
+export const StudioActionCloseButton: OverridableComponent<
   StudioActionCloseButtonProps,
   HTMLButtonElement
 > = forwardRef<HTMLButtonElement, StudioActionCloseButtonProps>(
@@ -30,5 +30,3 @@ const StudioActionCloseButton: OverridableComponent<
 );
 
 StudioActionCloseButton.displayName = 'StudioActionCloseButton';
-
-export { StudioActionCloseButton };
