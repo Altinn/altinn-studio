@@ -13,10 +13,10 @@ const defaultStudioActionCloseButtonProps: StudioActionCloseButtonProps = {
   onClick: jest.fn(),
 };
 
+const getActionButton = () => screen.getByRole('button') as HTMLButtonElement;
+
 describe('StudioActionCloseButton', () => {
   it('should support custom attributes', () => {
-    const getActionButton = (): HTMLButtonElement =>
-      screen.getByRole('button') as HTMLButtonElement;
     testCustomAttributes(renderStudioActionCloseButton, getActionButton);
   });
 
@@ -36,7 +36,6 @@ describe('StudioActionCloseButton', () => {
   });
 
   it('should pass the native event to the onClick handler when the button is clicked', () => {
-    const getActionButton = () => screen.getByRole('button') as HTMLButtonElement;
     testOnClickCallbackReceivesNativeEvent(
       (onClick) => renderStudioActionCloseButton({ onClick }),
       getActionButton,
