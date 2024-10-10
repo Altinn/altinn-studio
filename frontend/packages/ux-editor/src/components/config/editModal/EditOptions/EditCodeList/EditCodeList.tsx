@@ -13,8 +13,6 @@ import type { SelectionComponentType } from '../../../../../types/FormComponent'
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import { validateFileNameUtils } from './Utils/validateFileNameUtils';
-import type { ApiError } from 'app-shared/types/api/ApiError';
-import type { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
 
