@@ -7,5 +7,7 @@ namespace Altinn.Studio.Designer.Models
         public string Identifier { get; set; }
 
         public Dictionary<string, string> Title { get; set; }
+
+        public CompetentAuthority HasCompetentAuthority { get; set; }
     }
 }

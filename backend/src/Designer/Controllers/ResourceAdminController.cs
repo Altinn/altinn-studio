@@ -585,7 +585,8 @@ namespace Altinn.Studio.Designer.Controllers
                     accessPackage.Services.Add(new AccessPackageService() 
                     {
                         Identifier = resourceMatch.Value,
-                        Title = fullResource?.Title
+                        Title = fullResource?.Title,
+                        HasCompetentAuthority = fullResource.HasCompetentAuthority
                     });
                 });
             });

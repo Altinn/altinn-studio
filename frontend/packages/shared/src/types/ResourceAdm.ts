@@ -24,6 +24,11 @@ export interface Resource {
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
   accessListMode?: ResourceAccessListMode;
+  hasCompetentAuthority?: {
+    name: SupportedLanguage;
+    organization: string;
+    orgcode: string;
+  };
 }
 
 export type ResourceAccessListMode = 'Disabled' | 'Enabled';

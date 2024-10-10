@@ -18,3 +18,10 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.serviceContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+}

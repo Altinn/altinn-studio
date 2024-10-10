@@ -1,7 +1,14 @@
 import React from 'react';
 import classes from './PolicyAccessPackageCard.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
-import { Checkbox, CheckboxGroup, Heading, List, Paragraph } from '@digdir/designsystemet-react';
+import {
+  Checkbox,
+  CheckboxGroup,
+  Heading,
+  Label,
+  Paragraph,
+  Tag,
+} from '@digdir/designsystemet-react';
 
 const CHECKED_VALUE = 'on';
 
@@ -38,14 +45,19 @@ export const PolicyAccessPackageCard = ({
           {accessPackage.description[selectedLanguage]}
         </Paragraph>
         {accessPackage.services.length > 0 && (
-          <List.Root size='sm'>
-            <List.Heading size='2xs'>Inneholder disse tjenestene:</List.Heading>
-            <List.Unordered>
-              {accessPackage.services.map((resource) => {
-                return <List.Item key={resource.identifier}>{resource.title.nb}</List.Item>;
-              })}
-            </List.Unordered>
-          </List.Root>
+          <div>
+            <Label>Inneholder disse tjenestene:</Label>
+            {accessPackage.services.map((resource) => {
+              return (
+                <div key={resource.identifier} className={classes.serviceContainer}>
+                  <span>{resource.title[selectedLanguage]}</span>
+                  <Tag size='sm' color='info'>
+                    {resource.hasCompetentAuthority.name[selectedLanguage]}
+                  </Tag>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
