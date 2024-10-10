@@ -250,7 +250,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
     );
   }
 
-  private renderTrigger(): React.ReactNode {
+  private renderTrigger(): React.ReactElement {
     return !this.props.connectionId ? (
       <>
         <span>{this.props.t('right_menu.rules_calculations')}</span>
@@ -258,7 +258,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
           aria-label={this.props.t('right_menu.rules_calculations_add_alt')}
           icon={<PlusIcon />}
           variant='tertiary'
-        ></StudioModal.Trigger>
+        />
       </>
     ) : (
       <StudioModal.Trigger variant='tertiary' icon={<CogIcon />}>
