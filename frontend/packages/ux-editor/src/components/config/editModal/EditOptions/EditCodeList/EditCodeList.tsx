@@ -12,7 +12,7 @@ import { ManualCodelistUploadSteps } from './ManualCodelistUploadSteps';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { fileSelectorInputId } from '@studio/testing/testids';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
-import { useValidateFileName } from './useValidateFileName';
+import { validateFileNameUtils } from './Utils/validateFileNameUtils';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import type { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
@@ -38,7 +38,7 @@ export function EditCodeList<T extends SelectionComponentType>({
     });
   };
 
-  const { validateFileName, getDuplicatedOptionIds } = useValidateFileName(optionListIds);
+  const { validateFileName, getDuplicatedOptionIds } = validateFileNameUtils(optionListIds);
 
   const handleInvalidFileName = (file?: FormData, fileName?: string) => {
     const fileNameWithoutExtension = removeExtension(fileName);
