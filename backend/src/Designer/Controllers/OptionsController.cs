@@ -129,6 +129,26 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
+    /// Create new options list.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="file">File being uploaded.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPost]
+    [Route("upload")]
+    public async Task<IActionResult> UploadFile(string org, string repo, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string fileName = file.FileName.Replace(".json", "");
+
+        var newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+
+        return Ok(newOptionsList);
+    }
+
+    /// <summary>
     /// Deletes an option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
