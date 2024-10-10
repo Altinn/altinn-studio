@@ -34,6 +34,7 @@ export interface PolicyAccessPackage {
     en: string;
   };
   services: Resource[];
+  category: string;
 }
 
 export interface PolicyAccessPackageCategory {
@@ -48,6 +49,10 @@ export interface PolicyAccessPackageCategory {
     nn: string;
     en: string;
   };
+}
+
+export interface AccessPackagesDto {
+  categories: PolicyAccessPackageCategory[];
   accessPackages: PolicyAccessPackage[];
 }
 

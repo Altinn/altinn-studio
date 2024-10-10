@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
@@ -438,9 +439,9 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetAccessPackages(string org, CancellationToken cancellationToken)
         {
             // 1. GET accesspackages (mocked for now)
-            var categories = new List<AccessPackageCategory>
-            {
-                new AccessPackageCategory()
+            List<AccessPackageCategory> categories = 
+            [
+                new()
                 {
                     Id = "category_economy",
                     Name = new Dictionary<string, string>()
@@ -455,59 +456,8 @@ namespace Altinn.Studio.Designer.Controllers
                          { "nb", "Underkatagori for tilgangspakker til tjenester som angår skatt og merverdiavgift." },
                          { "en", "Grants access to economical services" }
                     },
-                    AccessPackages = new List<AccessPackage>
-                    {
-                        new AccessPackage()
-                        {
-                            Urn = "urn:altinn:accesspackage:foretaksskatt",
-                            Name = new Dictionary<string, string>()
-                            {
-                                { "nn", "Foretaksskatt" },
-                                { "nb", "Foretaksskatt" },
-                                { "en", "Foretaksskatt" }
-                            },
-                            Description = new Dictionary<string, string>()
-                            {
-                                { "nn", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
-                                { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
-                                { "en", "Lets you submit tax info" }
-                            }
-                        },
-                        new AccessPackage()
-                        {
-                            Urn = "urn:altinn:accesspackage:skattegrunnlag",
-                            Name = new Dictionary<string, string>()
-                            {
-                                { "nn", "Skattegrunnlag" },
-                                { "nb", "Skattegrunnlag" },
-                                { "en", "Skattegrunnlag" }
-                            },
-                            Description = new Dictionary<string, string>()
-                            {
-                                { "nn", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
-                                { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
-                                { "en", "Lets you submit tax info" }
-                            }
-                        },
-                        new AccessPackage()
-                        {
-                            Urn = "urn:altinn:accesspackage:merverdiavgift",
-                            Name = new Dictionary<string, string>()
-                            {
-                                { "nn", "Merverdiavgift" },
-                                { "nb", "Merverdiavgift" },
-                                { "en", "Merverdiavgift" }
-                            },
-                            Description = new Dictionary<string, string>()
-                            {
-                                {"nn" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
-                                {"nb" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
-                                {"en" , "Lets you submit tax info"}
-                            }
-                        }
-                    }
                 },
-                new AccessPackageCategory()
+                new()
                 {
                     Id = "category_transport",
                     Name = new Dictionary<string, string>()
@@ -522,72 +472,130 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb","Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
                         {"en" , "Grants access to economical services"}
                     },
-                    AccessPackages = new List<AccessPackage>()
-                    {
-                        new AccessPackage()
-                        {
-                            Urn = "urn:altinn:accesspackage:sjofart",
-                            Name = new Dictionary<string, string>()
-                            {
-                                {"nn" , "Sjøfart"},
-                                {"nb", "Sjøfart"},
-                                {"en" , "Sjøfart"}
-                            },
-                            Description = new Dictionary<string, string>()
-                            {
-                                {"nn" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
-                                {"nb" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
-                                {"en" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." }
-                            }
-                        },
-                        new AccessPackage()
-                        {
-                            Urn = "urn:altinn:accesspackage:lufttransport",
-                            Name = new Dictionary<string, string>()
-                            {
-                                { "nn", "Lufttransport" },
-                                { "nb", "Lufttransport" },
-                                { "en", "Lufttransport" }
-                            },
-                            Description = new Dictionary<string, string>()
-                            {
-                                {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                                {"nb", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                                {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
-                            }
-                        }
-                    }
+
                 }
-            };
+            ];
+
+            List<AccessPackage> accessPackages =
+            [
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:foretaksskatt",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Foretaksskatt" },
+                        { "nb", "Foretaksskatt" },
+                        { "en", "Foretaksskatt" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        { "nn", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
+                        { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
+                        { "en", "Lets you submit tax info" }
+                    },
+                    Category = "category_economy"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:skattegrunnlag",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Skattegrunnlag" },
+                        { "nb", "Skattegrunnlag" },
+                        { "en", "Skattegrunnlag" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        { "nn", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
+                        { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
+                        { "en", "Lets you submit tax info" }
+                    },
+                    Category = "category_economy"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:merverdiavgift",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Merverdiavgift" },
+                        { "nb", "Merverdiavgift" },
+                        { "en", "Merverdiavgift" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
+                        {"nb" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
+                        {"en" , "Lets you submit tax info"}
+                    },
+                    Category = "category_economy"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:sjofart",
+                    Name = new Dictionary<string, string>()
+                    {
+                        {"nn" , "Sjøfart"},
+                        {"nb", "Sjøfart"},
+                        {"en" , "Sjøfart"}
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
+                        {"nb" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
+                        {"en" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." }
+                    },
+                    Category = "category_transport"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:lufttransport",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Lufttransport" },
+                        { "nb", "Lufttransport" },
+                        { "en", "Lufttransport" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
+                        {"nb", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
+                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
+                    },
+                    Category = "category_transport"
+                }
+            ];
 
             string env = "at23";
-            List<string> subjects = ["urn:altinn:accesspackage:foretaksskatt", "urn:altinn:accesspackage:skattegrunnlag", "urn:altinn:accesspackage:merverdiavgift", "urn:altinn:accesspackage:sjofart", "urn:altinn:accesspackage:lufttransport"];
+            IEnumerable<string> subjects = accessPackages.Select(accessPackage => accessPackage.Urn);
+                        
             // 2. POST to get all resources per access package
-            List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(subjects, env);
+            List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(subjects.ToList(), env);
 
             // 3. GET full list of resources
             List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false);
 
             // 4. map resource to access package based on data from step 2.
-            categories.ForEach(category => 
+            accessPackages.ForEach(accessPackage => 
             {
-                category.AccessPackages.ForEach(accessPackage => 
-                {
-                    List<AttributeMatchV2>? resources = subjectResources.Find(x => x.Subject.Urn == accessPackage.Urn)?.Resources;
+                List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accessPackage.Urn)?.Resources;
 
-                    resources?.ForEach(resourceMatch =>
+                resources?.ForEach(resourceMatch =>
+                {
+                    ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
+                    accessPackage.Services.Add(new AccessPackageService() 
                     {
-                        ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
-                        accessPackage.Services.Add(new AccessPackageService() 
-                        {
-                            Identifier = resourceMatch.Value,
-                            Title = fullResource?.Title
-                        });
+                        Identifier = resourceMatch.Value,
+                        Title = fullResource?.Title
                     });
                 });
             });
 
-            return Ok(categories);
+
+            return Ok(new AccessPackagesDto()
+            {
+                Categories = categories,
+                AccessPackages = accessPackages
+            });
         }
 
         [HttpGet]

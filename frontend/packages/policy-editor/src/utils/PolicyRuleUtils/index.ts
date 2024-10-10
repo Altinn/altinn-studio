@@ -1,9 +1,4 @@
-import type {
-  PolicyAccessPackageCategory,
-  PolicyAction,
-  PolicyRuleCard,
-  PolicySubject,
-} from '../../types';
+import type { PolicyAccessPackage, PolicyAction, PolicyRuleCard, PolicySubject } from '../../types';
 
 /**
  * Function to update the fields inside the rule object in the rule array.
@@ -56,12 +51,12 @@ export const getSubjectOptions = (subjects: PolicySubject[], policyRule: PolicyR
  * @returns a list of access packages
  */
 export const getAccessPackageOptions = (
-  allPackages: PolicyAccessPackageCategory[],
+  allPackages: PolicyAccessPackage[],
   policyRule: PolicyRuleCard,
 ) => {
-  return allPackages
-    .flatMap((category) => category.accessPackages)
-    .filter((accessPackage) => policyRule.accessPackages.indexOf(accessPackage.urn) > -1);
+  return allPackages.filter(
+    (accessPackage) => policyRule.accessPackages.indexOf(accessPackage.urn) > -1,
+  );
 };
 
 /**

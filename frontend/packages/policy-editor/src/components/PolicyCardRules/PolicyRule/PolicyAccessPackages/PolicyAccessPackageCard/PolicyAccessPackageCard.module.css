@@ -1,4 +1,6 @@
 .accessPackageCardWrapper {
+  display: flex;
+  margin: var(--fds-spacing-4) 0;
   background-color: #fff;
   box-shadow:
     0px 1px 2px 0px #0000001f,

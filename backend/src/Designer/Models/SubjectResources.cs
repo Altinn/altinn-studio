@@ -1,6 +1,5 @@
 #nullable enable
 using System.Collections.Generic;
-using Altinn.Studio.PolicyAdmin.Models;
 
 namespace Altinn.Studio.Designer.Models
 {
