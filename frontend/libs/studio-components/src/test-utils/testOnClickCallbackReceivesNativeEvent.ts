@@ -15,13 +15,13 @@ async function testNativeClickEvent<Element extends HTMLElement>(
   ...[renderComponent, getTargetElement]: Parameters<
     typeof testOnClickCallbackReceivesNativeEvent<Element>
   >
-): void {
+): Promise<void> {
   const user = userEvent.setup();
   const onClickMock = jest.fn();
   const { container, unmount } = renderComponent(onClickMock);
 
   const targetElement = getTargetElement(container);
-  await userEvent.click(targetElement);
+  await user.click(targetElement);
 
   const clickEvent = onClickMock.mock.calls[0][0];
   expect(clickEvent.nativeEvent).toBeInstanceOf(MouseEvent);
