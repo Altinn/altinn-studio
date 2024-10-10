@@ -10,9 +10,10 @@ export const PdfConfig = () => {
   const savableLayoutSettings = useSavableFormLayoutSettings();
   const convertChoicesDialogRef = useRef<HTMLDialogElement>(null);
 
+  const shouldShowModal: boolean = Boolean(getPdfLayoutName());
+
   const handleClickConvertButton = () => {
-    if (!!getPdfLayoutName()) {
-      // if (true) {
+    if (shouldShowModal) {
       convertChoicesDialogRef.current?.showModal();
     } else {
       convertCurrentPageToPdf();
