@@ -16,7 +16,7 @@ import type {
 } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
-import { PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
+import { CogIcon, PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
 import { StudioButton, StudioModal } from '@studio/components';
 import { withTranslation } from 'react-i18next';
@@ -296,7 +296,9 @@ class ConditionalRendering extends React.Component<
             variant='tertiary'
           />
         ) : (
-          <StudioModal.Trigger>{selectedMethod}</StudioModal.Trigger>
+          <StudioModal.Trigger variant='tertiary' icon={<CogIcon />}>
+            {selectedMethod}
+          </StudioModal.Trigger>
         )}
         <StudioModal.Dialog
           ref={this.state.dialogRef}
