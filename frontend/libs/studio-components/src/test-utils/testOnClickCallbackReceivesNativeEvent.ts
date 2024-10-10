@@ -1,5 +1,5 @@
 import type React from 'react';
-import { fireEvent, type RenderResult } from '@testing-library/react';
+import { type RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 export async function testOnClickCallbackReceivesNativeEvent<
