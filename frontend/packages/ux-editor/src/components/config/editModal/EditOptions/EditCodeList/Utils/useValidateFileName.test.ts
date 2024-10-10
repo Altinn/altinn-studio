@@ -1,10 +1,10 @@
-import { useValidateFileNameUtils } from './useValidateFileNameUtils';
+import { useValidateFileName } from './useValidateFileName';
 
 const optionIdOne = 'one';
 const optionIdTwo = 'two';
 const options: string[] = [optionIdOne];
 
-const { validateFileName, getDuplicatedOptionIds } = useValidateFileNameUtils(options);
+const { validateFileName, getDuplicatedOptionIds } = useValidateFileName(options);
 describe('validateFileNameUtils', () => {
   it('should return true for valid filename', () => {
     expect(validateFileName(optionIdTwo + '.json')).toBe(true);
