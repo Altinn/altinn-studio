@@ -7,6 +7,9 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
+import { fileSelectorInputId } from '@studio/testing/testids';
+
+const user = userEvent.setup();
 
 const mockComponent: FormComponent<ComponentType.Dropdown> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
@@ -129,6 +132,56 @@ describe('EditCodeList', () => {
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
     ).toBeInTheDocument();
+  });
+
+  it('should render success toast if file upload is successful', async () => {
+    const file = new File(['hello'], 'hello.json', { type: 'text/json' });
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    const btn = screen.getByRole('button', {
+      text: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
+    await user.click(btn);
+
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.modal_properties_code_list_upload_success'),
+    );
+  });
+
+  it('should render error toast if file already exists', async () => {
+    const file = new File([optionListIdsMock[0]], optionListIdsMock[0] + '.json', {
+      type: 'text/json',
+    });
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    const btn = screen.getByRole('button', {
+      text: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
+    await user.click(btn);
+
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
+    );
   });
 });
 
