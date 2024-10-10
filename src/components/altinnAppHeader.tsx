@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
-import { Buldings3Icon, PersonIcon } from '@navikt/aksel-icons';
+import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 
 import classes from 'src/components/AltinnAppHeader.module.css';
 import { CircleIcon } from 'src/components/CircleIcon';
@@ -78,7 +78,7 @@ export const AltinnAppHeader = ({ profile }: IHeaderProps) => {
               title={renderParty(profile) || ''}
             >
               {party.orgNumber ? (
-                <Buldings3Icon
+                <Buildings3Icon
                   color='white'
                   aria-hidden='true'
                 />

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
-import { Buldings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
+import { Buildings3Icon, ChevronRightCircleFillIcon, PersonIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
 import { AltinnCollapsableList } from 'src/components/AltinnCollapsableList';
@@ -222,7 +222,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
         tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
       >
         {isOrg ? (
-          <Buldings3Icon
+          <Buildings3Icon
             data-testid='org-icon'
             style={{ fontSize: '2rem' }}
             aria-hidden

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
-import { Buldings3Icon, PersonIcon } from '@navikt/aksel-icons';
+import { Buildings3Icon, PersonIcon } from '@navikt/aksel-icons';
 
 import { CircleIcon } from 'src/components/CircleIcon';
 import { Lang } from 'src/features/language/Lang';
@@ -68,7 +68,7 @@ export function AltinnAppHeaderMenu({ party, logoColor }: IAltinnAppHeaderMenuPr
           color={logoColor}
         >
           {party.orgNumber ? (
-            <Buldings3Icon
+            <Buildings3Icon
               color='white'
               aria-hidden='true'
             />
