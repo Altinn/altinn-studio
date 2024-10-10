@@ -29,26 +29,22 @@ function getParentCellCoords(element: HTMLElement): CellCoords {
 
 function getParentRowIndex(element: HTMLElement): number {
   const row = element.closest('tr');
-  if (!row) return -1;
   return getRowIndex(row);
 }
 
 function getRowIndex(row: HTMLTableRowElement): number {
   const table = row.closest('table');
-  if (!table) return -1;
   const rows = Array.from(table.querySelectorAll('tr'));
   return rows.indexOf(row);
 }
 
 function getParentColumnIndex(element: HTMLElement): number {
   const cell: HTMLTableCellElement = element.closest('td, th');
-  if (!cell) return -1;
   return getColumnIndex(cell);
 }
 
 function getColumnIndex(cell: HTMLTableCellElement): number {
   const row = cell.closest('tr');
-  if (!row) return -1;
   const cells = Array.from(row.cells);
   return cells.indexOf(cell);
 }
@@ -112,14 +108,12 @@ function getInputElementByCoords(
   coords: CellCoords,
 ): HTMLCellInputElement | null {
   const cell = getCellByCoords(table, coords);
-  if (!cell) return null;
   return cell.querySelector(inputElementSelector) || null;
 }
 
 const inputElementSelector = 'input, textarea, button';
 
-function getCellByCoords(table: HTMLTableElement, coords: CellCoords): HTMLTableCellElement | null {
+function getCellByCoords(table: HTMLTableElement, coords: CellCoords): HTMLTableCellElement {
   const row = table.rows[coords.row];
-  if (!row) return null;
-  return row.cells[coords.column] || null;
+  return row.cells[coords.column];
 }
