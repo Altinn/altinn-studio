@@ -69,8 +69,7 @@ public class OptionsService : IOptionsService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
-            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true});
+        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(), new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true});
 
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
