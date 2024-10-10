@@ -143,7 +143,7 @@ public class OptionsController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string fileName = file.FileName.Replace(".json", "");
 
-        var newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+        List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
 
         return Ok(newOptionsList);
     }

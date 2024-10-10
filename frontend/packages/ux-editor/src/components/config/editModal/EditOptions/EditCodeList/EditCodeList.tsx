@@ -49,8 +49,8 @@ export function EditCodeList<T extends SelectionComponentType>({
 
   const handleUpload = (file: FormData) => {
     uploadOption(file, {
-      onError: (error: AxiosError<ApiError>) => {
-        if (!error.response?.data?.errorCode)
+      onError: (axiosError: AxiosError<ApiError>) => {
+        if (!axiosError.response?.data?.errorCode)
           toast.error(t('ux_editor.modal_properties_code_list_upload_error'));
       },
       onSuccess: () => {
