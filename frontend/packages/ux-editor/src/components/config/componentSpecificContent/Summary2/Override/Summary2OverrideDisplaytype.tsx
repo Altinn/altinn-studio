@@ -6,6 +6,7 @@ import type {
 } from 'app-shared/types/ComponentSpecificConfig';
 import { type CustomConfigType, useCustomConfigType } from './hook/useCustomConfigType';
 import { useTranslation } from 'react-i18next';
+import { mapSelectedTypeToConfig } from './Utils';
 
 export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;
@@ -21,10 +22,10 @@ export const Summary2OverrideDisplayType = ({
   const displayType = override.displayType || 'string';
   if (!override.displayType) onChange({ ...override, displayType: displayType });
 
-  const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const newType = event.target.value as SummaryCustomTargetType;
-    const updatedCustomType = { displayType: newType, componentId: override.componentId };
-    onChange(updatedCustomType);
+  const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    const newSelectedType = event.target.value as SummaryCustomTargetType;
+    const summary2OverrideConfig = mapSelectedTypeToConfig(newSelectedType, override.componentId);
+    onChange(summary2OverrideConfig);
   };
 
   return (
