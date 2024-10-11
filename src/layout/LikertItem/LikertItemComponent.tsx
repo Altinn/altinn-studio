@@ -63,9 +63,9 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
         >
           <span>
             <Lang id={textResourceBindings?.title} />
+            <RequiredIndicator required={required} />
           </span>
         </Label>
-        <RequiredIndicator required={required} />
         <ComponentValidations validations={validations} />
       </Table.Cell>
       {calculatedOptions?.map((option, index) => {
