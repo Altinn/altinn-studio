@@ -47,23 +47,49 @@
       },
       "additionalProperties": false
     },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
+    },
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
     "type": { "const": "Accordion" },
     "textResourceBindings": {
-      "type": "object",
       "properties": {
         "title": {
           "title": "Title",
           "description": "The title of the accordion",
           "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
         }
-      },
-      "additionalProperties": false
+      }
     },
     "children": {
       "title": "Children",
       "description": "List of child component IDs to show inside the Accordion (limited to a few component types)",
       "type": "array",
       "items": { "type": "string" }
+    },
+    "openByDefault": {
+      "title": "Open by default",
+      "description": "Boolean value indicating if the accordion should be open by default",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
     "headingLevel": { "title": "HeadingLevel", "enum": [2, 3, 4, 5, 6], "type": "string" }
   },

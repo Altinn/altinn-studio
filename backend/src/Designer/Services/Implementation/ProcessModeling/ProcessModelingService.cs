@@ -114,7 +114,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
                 XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
                 Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
                 LayoutSetConfig layoutSet = await _appDevelopmentService.GetLayoutSetConfig(altinnRepoEditingContext, layoutSetId);
-                string taskId = layoutSet.Tasks.First();
+                string taskId = layoutSet.Tasks?.First();
                 ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
                 return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
             }

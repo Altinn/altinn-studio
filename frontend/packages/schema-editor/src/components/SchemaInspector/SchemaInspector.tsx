@@ -12,10 +12,10 @@ import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 
 export const SchemaInspector = () => {
   const { t } = useTranslation();
-  const { selectedNodePointer } = useSchemaEditorAppContext();
+  const { selectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
 
-  if (!selectedNodePointer) {
+  if (!selectedUniquePointer) {
     return (
       <div>
         <p className={classes.noItem}>{t('schema_editor.no_item_selected')}</p>
@@ -24,7 +24,7 @@ export const SchemaInspector = () => {
     );
   }
 
-  const selectedItem: UiSchemaNode = savableModel.getNode(selectedNodePointer);
+  const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
   const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
 
   return (

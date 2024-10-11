@@ -35,7 +35,7 @@ Run to generate separate component schemas from the layout schemas on CDN.
 Currently supports 2 versions of app-frontend:
 
 - v3: https://altinncdn.no/schemas/json/layout/layout.schema.v1.json
-- v4: https://altinncdn.no/toolkits/altinn-app-frontend/4.0.0-rc2/schemas/json/layout/layout.schema.v1.json
+- v4: https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json
 
 Provide the desired version as an argument when running the script.
 

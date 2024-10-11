@@ -5,10 +5,12 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { fileSelectorInputId } from '@studio/testing/testids';
+import { app, fileSelectorInputId, org } from '@studio/testing/testids';
 import { renderWithProviders } from '../../../../test/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 
@@ -98,6 +100,79 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(textMock(`api_errors.${errorCode}`));
+  });
+
+  it('does not allow uploading with duplicate datatypes', async () => {
+    const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'hello' }],
+    });
+    renderXsdUpload({
+      queryClient: queryClient,
+    });
+
+    await clickUploadButton();
+
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('schema_editor.error_data_type_name_exists'),
+    );
+  });
+
+  it('shows confirm dialog when uploading a model with colliding id with another model', async () => {
+    window.confirm = jest.fn();
+    const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'hello', appLogic: { classRef: 'someClassRef' } }],
+    });
+    renderXsdUpload({
+      queryClient: queryClient,
+    });
+    await clickUploadButton();
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+    await user.upload(fileInput, file);
+    expect(window.confirm).toHaveBeenCalled();
+  });
+
+  it('overrides data model if confirm dialog is accepted', async () => {
+    window.confirm = jest.fn().mockReturnValue(true);
+    const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
+    const queryClient = createQueryClientMock();
+    queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+      dataTypes: [{ id: 'hello', appLogic: { classRef: 'someClassRef' } }],
+    });
+    renderXsdUpload({
+      queryClient: queryClient,
+    });
+    await clickUploadButton();
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+    await user.upload(fileInput, file);
+
+    const formDataMock = new FormData();
+    formDataMock.append('file', file);
+    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, formDataMock);
+  });
+
+  it('does not allow uploading with invalid name', async () => {
+    window.alert = jest.fn();
+    const file = new File(['$-_123'], '$-_123.xsd', { type: 'text/xml' });
+    renderXsdUpload();
+
+    await clickUploadButton();
+
+    const fileInput = screen.getByTestId(fileSelectorInputId);
+
+    await user.upload(fileInput, file);
+
+    expect(window.alert).toHaveBeenCalledWith(
+      textMock('app_data_modelling.upload_xsd_invalid_name_error'),
+    );
+    expect(window.alert).toHaveBeenCalledTimes(1);
   });
 
   it('shows a custom generic error message', async () => {

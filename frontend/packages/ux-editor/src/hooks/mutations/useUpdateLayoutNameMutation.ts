@@ -25,7 +25,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         oldName,
         newName,
       })),
-    onSuccess: async ({ oldName, newName }) => {
+    onSuccess: ({ oldName, newName }) => {
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
@@ -36,8 +36,9 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         },
       );
       const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
-      const { order } = layoutSettings?.pages;
+      const { order, pdfLayoutName } = layoutSettings?.pages;
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
+      if (pdfLayoutName === oldName) layoutSettings.pages.pdfLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
 
       setSelectedFormLayoutName(newName);

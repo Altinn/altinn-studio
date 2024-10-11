@@ -24,18 +24,18 @@ const rootItem = {
 };
 const selectedItem: FieldNode = {
   ...nodeMockBase,
-  pointer: selectedItemPointer,
+  schemaPointer: selectedItemPointer,
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
   children: [childNode1Pointer, childNode2Pointer],
 };
 const childNode1: FieldNode = {
   ...nodeMockBase,
-  pointer: childNode1Pointer,
+  schemaPointer: childNode1Pointer,
 };
 const childNode2: FieldNode = {
   ...nodeMockBase,
-  pointer: childNode2Pointer,
+  schemaPointer: childNode2Pointer,
 };
 const childNodes = [childNode1, childNode2];
 const numberOfFields = selectedItem.children.length; // eslint-disable-line testing-library/no-node-access
@@ -95,6 +95,59 @@ describe('ItemFieldsTab', () => {
     expect(await screen.findByText(textAdd)).toBeDefined();
   });
 
+  test('Should save the model when user clicks the dropdown menu items', async () => {
+    renderItemFieldsTab();
+    const selectMenuItem = async (item: string) => {
+      await user.click(screen.getByText(textAdd));
+      await user.click(screen.getByRole('menuitem', { name: item }));
+    };
+    await selectMenuItem(textMock('schema_editor.add_number'));
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    await selectMenuItem(textMock('schema_editor.add_string'));
+    expect(saveDataModel).toHaveBeenCalledTimes(2);
+    await selectMenuItem(textMock('schema_editor.add_integer'));
+    expect(saveDataModel).toHaveBeenCalledTimes(3);
+    await selectMenuItem(textMock('schema_editor.add_boolean'));
+    expect(saveDataModel).toHaveBeenCalledTimes(4);
+    await selectMenuItem(textMock('schema_editor.add_object'));
+    expect(saveDataModel).toHaveBeenCalledTimes(5);
+  });
+
+  test('Should show dropdown menu items when the "Add field" button is clicked', async () => {
+    renderItemFieldsTab();
+    await user.click(screen.getByText(textAdd));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_number') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_string') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_integer') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_boolean') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_object') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_combination') }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: textMock('schema_editor.add_reference') }),
+    ).toBeInTheDocument();
+  });
+
+  test('Should close the dropdown menu when user clicks outside the menu', async () => {
+    renderItemFieldsTab();
+    await user.click(screen.getByText(textAdd));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.click(document.body);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   test('Model is saved with correct payload when a name is changed', async () => {
     renderItemFieldsTab();
     const suffix = 'Duck';
@@ -105,48 +158,15 @@ describe('ItemFieldsTab', () => {
     expect(saveDataModel).toHaveBeenCalledTimes(numberOfFields);
   });
 
-  test('Should show dropdown menu items when the "Add field" button is clicked', async () => {
-    renderItemFieldsTab();
-    await user.click(screen.getByText(textAdd));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.number') }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole('menuitem', { name: textMock('schema_editor.string') }))
-      .toBeInTheDocument;
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.integer') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.boolean') }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('menuitem', { name: textMock('schema_editor.object') }),
-    ).toBeInTheDocument();
-  });
-
-  test('should save the model when user clicks the dropdown menu items', async () => {
-    renderItemFieldsTab();
-    await user.click(screen.getByText(textAdd));
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.number') }));
-    expect(saveDataModel).toHaveBeenCalledTimes(1);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.string') }));
-    expect(saveDataModel).toHaveBeenCalledTimes(2);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.integer') }));
-    expect(saveDataModel).toHaveBeenCalledTimes(3);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.boolean') }));
-    expect(saveDataModel).toHaveBeenCalledTimes(4);
-    await user.click(screen.getByRole('menuitem', { name: textMock('schema_editor.object') }));
-    expect(saveDataModel).toHaveBeenCalledTimes(5);
-  });
-
   test('Model is saved correctly when a field is focused and the Enter key is clicked', async () => {
     renderItemFieldsTab();
     await user.click(screen.getAllByRole('textbox')[0]);
     await user.keyboard('{Enter}');
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
+    const updatedNode = updatedModel.getNodeBySchemaPointer(
+      selectedItem.schemaPointer,
+    ) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields + 1); // eslint-disable-line testing-library/no-node-access
   });
 
@@ -166,7 +186,9 @@ describe('ItemFieldsTab', () => {
 
     expect(saveDataModel).toHaveBeenCalledTimes(1);
     const updatedModel = getSavedModel(saveDataModel);
-    const updatedNode = updatedModel.getNode(selectedItem.pointer) as FieldNode;
+    const updatedNode = updatedModel.getNodeBySchemaPointer(
+      selectedItem.schemaPointer,
+    ) as FieldNode;
     expect(updatedNode.children).toHaveLength(numberOfFields - 1); // eslint-disable-line testing-library/no-node-access
   });
 
@@ -176,7 +198,7 @@ describe('ItemFieldsTab', () => {
     const newChildNodePointer = `${selectedItemPointer}/properties/${newChildNodeName}`;
     const newChildNode: FieldNode = {
       ...nodeMockBase,
-      pointer: newChildNodePointer,
+      schemaPointer: newChildNodePointer,
     };
     const newSelectedItem = {
       ...selectedItem,

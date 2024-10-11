@@ -29,7 +29,7 @@ describe('utils', () => {
     expect(nodeBase.isRequired).toBeFalsy();
     expect(nodeBase.isNillable).toBeFalsy();
     expect(nodeBase.implicitType).toBeTruthy();
-    expect(nodeBase.pointer.split('/')).toHaveLength(3);
+    expect(nodeBase.schemaPointer.split('/')).toHaveLength(3);
   });
 
   test('combinationIsNullable', () => {

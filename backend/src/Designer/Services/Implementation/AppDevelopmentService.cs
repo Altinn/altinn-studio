@@ -305,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
             }
-            if (layoutSets.Sets.Exists(set => set.Tasks[0] == newLayoutSet.Tasks[0]))
+            if (newLayoutSet.Tasks != null && layoutSets.Sets.Exists(set => set.Tasks?[0] == newLayoutSet.Tasks[0]))
             {
                 throw new NonUniqueTaskForLayoutSetException($"Layout set with task, {newLayoutSet.Tasks[0]}, already exists.");
             }
@@ -399,7 +399,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 var defaultComponent = new JsonObject
                 {
                     ["id"] = "PaymentComponentId",
-                    ["type"] = TaskType.Payment,
+                    ["type"] = "Payment",
                     ["renderAsSummary"] = true
                 };
                 layoutArray.Add(defaultComponent);

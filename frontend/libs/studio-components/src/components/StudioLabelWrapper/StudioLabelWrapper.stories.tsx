@@ -5,7 +5,7 @@ import { StudioLabelWrapper } from './StudioLabelWrapper';
 type Story = StoryFn<typeof StudioLabelWrapper>;
 
 const meta: Meta = {
-  title: 'StudioLabelWrapper',
+  title: 'Components/StudioLabelWrapper',
   component: StudioLabelWrapper,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioLabelWrapper {...args} />;

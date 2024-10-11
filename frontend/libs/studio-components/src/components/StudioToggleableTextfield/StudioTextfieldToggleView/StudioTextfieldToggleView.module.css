@@ -13,6 +13,24 @@
   align-items: center;
   color: var(--fds-semantic-text-neutral-default);
   width: 100%;
+  gap: var(--fds-spacing-1);
+}
+
+.textContainer,
+.label,
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
 }
 
 .editIconWrapper {

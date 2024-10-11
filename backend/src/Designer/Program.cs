@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
+using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -212,6 +213,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.RegisterTypedHttpClients(configuration);
     services.ConfigureAuthentication(configuration, env);
+    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components';
 import { DownloadIcon } from '@studio/icons';
 import classes from './FetchChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { GiteaFetchCompleted } from '../GiteaFetchCompleted';
 import { useVersionControlButtonsContext } from '../../context';
 import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const FetchChangesPopover = (): React.ReactElement => {
   const {
@@ -22,13 +23,18 @@ export const FetchChangesPopover = (): React.ReactElement => {
   } = useVersionControlButtonsContext();
 
   const { t } = useTranslation();
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: fetchPullData } = useRepoPullQuery(org, app, true);
   const queryClient = useQueryClient();
 
   const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const displayNotification: boolean = (repoStatus?.behindBy > 0 ?? false) && !hasMergeConflict;
+  const displayNotification: boolean =
+    repoStatus?.behindBy !== undefined &&
+    repoStatus?.behindBy !== null &&
+    repoStatus.behindBy > 0 &&
+    !hasMergeConflict;
 
   const handleClosePopover = () => setPopoverOpen(false);
 
@@ -52,16 +58,17 @@ export const FetchChangesPopover = (): React.ReactElement => {
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger asChild>
-        <StudioButton
-          color='inverted'
-          variant='tertiary'
+        <StudioPageHeader.HeaderButton
           onClick={handleOpenPopover}
           disabled={hasMergeConflict}
           icon={<DownloadIcon />}
+          color='light'
+          variant='regular'
+          aria-label={t('sync_header.fetch_changes')}
         >
-          {t('sync_header.fetch_changes')}
+          {shouldDisplayText && t('sync_header.fetch_changes')}
           {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
-        </StudioButton>
+        </StudioPageHeader.HeaderButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popoverContent}>
         {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}

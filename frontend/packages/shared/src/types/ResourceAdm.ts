@@ -23,8 +23,10 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
-  limitedByRRR?: boolean;
+  accessListMode?: ResourceAccessListMode;
 }
+
+export type ResourceAccessListMode = 'Disabled' | 'Enabled';
 
 export interface ResourceContactPoint {
   category: string;
@@ -189,4 +191,10 @@ export interface ResourceFormError {
 export interface DelegationCountOverview {
   numberOfDelegations: number;
   numberOfRelations: number;
+}
+
+export interface MigrateDelegationsRequest {
+  serviceCode: string;
+  serviceEditionCode: number;
+  resourceId: string;
 }

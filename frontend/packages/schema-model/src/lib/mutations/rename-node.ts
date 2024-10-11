@@ -27,8 +27,8 @@ export const renameNodePointer = (
   const mutatedNodeArray: UiSchemaNodes = [];
   uiSchemaNodes.forEach((uiNode) => {
     const nodeCopy = ObjectUtils.deepCopy(uiNode);
-    if (pointerIsInBranch(uiNode.pointer, oldPointer)) {
-      nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
+    if (pointerIsInBranch(uiNode.schemaPointer, oldPointer)) {
+      nodeCopy.schemaPointer = nodeCopy.schemaPointer.replace(oldPointer, newPointer);
     }
     if (isReference(nodeCopy) && nodeCopy.reference === oldPointer) {
       nodeCopy.reference = nodeCopy.reference.replace(oldPointer, newPointer);
@@ -46,5 +46,5 @@ export const renameNodePointer = (
   return mutatedNodeArray;
 };
 
-const pointerIsInBranch = (pointer: string, pointer2: string) =>
-  pointer === pointer2 || pointer.startsWith(`${pointer2}/`);
+const pointerIsInBranch = (schemaPointer: string, pointer2: string) =>
+  schemaPointer === pointer2 || schemaPointer.startsWith(`${pointer2}/`);

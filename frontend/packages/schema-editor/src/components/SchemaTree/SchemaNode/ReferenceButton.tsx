@@ -16,7 +16,7 @@ export const ReferenceButton = ({ node }: ReferenceButtonProps) => {
 
   const referredNode = savableModel.getReferredNode(node);
   const { reference } = node;
-  const name = extractNameFromPointer(referredNode.pointer);
+  const name = extractNameFromPointer(referredNode.schemaPointer);
   const handleClick = () => setSelectedTypePointer(reference);
 
   return (

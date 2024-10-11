@@ -25,6 +25,8 @@ export const PolicyResourceFields = ({
   const { savePolicy, setPolicyRules, policyRules } = usePolicyEditorContext();
   const { policyRule } = usePolicyRuleContext();
 
+  const isMultipleNarrowingResources = policyRule.resources[resourceIndex].length > 1;
+
   const handleInputChange = (field: 'id' | 'type', value: string) => {
     const updatedResources = [...policyRule.resources];
     updatedResources[resourceIndex][resourceNarrowingIndex] = {
@@ -95,7 +97,7 @@ export const PolicyResourceFields = ({
         </div>
       </div>
       <div className={classes.buttonWrapper}>
-        {canEditTypeAndId && (
+        {canEditTypeAndId && isMultipleNarrowingResources && (
           <StudioButton
             aria-disabled={!canEditTypeAndId}
             color='danger'

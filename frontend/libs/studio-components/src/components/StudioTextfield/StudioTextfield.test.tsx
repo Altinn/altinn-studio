@@ -4,7 +4,8 @@ import type { StudioTextfieldProps } from './StudioTextfield';
 import { StudioTextfield } from './StudioTextfield';
 import { StudioTextarea } from '../StudioTextarea';
 import userEvent from '@testing-library/user-event';
-import type { RefObject } from 'react';
+import type { ForwardedRef } from 'react';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioTextfield', () => {
   it('Renders a text field', () => {
@@ -144,13 +145,13 @@ describe('StudioTextfield', () => {
   });
 
   it('Forwards the ref object to the textarea element if given', () => {
-    const ref = React.createRef<HTMLInputElement>();
-    renderTextfield({}, ref);
-    expect(ref.current).toBe(screen.getByRole('textbox'));
+    testRefForwarding<HTMLInputElement>((ref) => renderTextfield({}, ref), getTextfield);
   });
 });
 
 const renderTextfield = (
   props: Partial<StudioTextfieldProps> = {},
-  ref?: RefObject<HTMLInputElement>,
+  ref?: ForwardedRef<HTMLInputElement>,
 ) => render(<StudioTextfield {...props} ref={ref} />);
+
+const getTextfield = (): HTMLInputElement => screen.getByRole('textbox');

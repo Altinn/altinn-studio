@@ -11,12 +11,12 @@ import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface FormLayoutProps {
   layout: IInternalLayout;
-  isValid: boolean;
+  isInvalid: boolean;
   duplicateComponents?: string[];
 }
 
-export const FormLayout = ({ layout, isValid, duplicateComponents }: FormLayoutProps) => {
-  if (!isValid) {
+export const FormLayout = ({ layout, isInvalid, duplicateComponents }: FormLayoutProps) => {
+  if (isInvalid) {
     return <FormLayoutWarning layout={layout} />;
   }
   return (

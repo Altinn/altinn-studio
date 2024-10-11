@@ -1,12 +1,13 @@
+import type React from 'react';
+import type { RefAttributes, SVGProps } from 'react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
-import type { RefAttributes, SVGProps } from 'react';
-import type React from 'react';
 import {
   AccordionIcon,
   CalendarIcon,
   CheckboxIcon,
   ChevronDownDoubleIcon,
+  ClipboardIcon,
   ElementIcon,
   ExclamationmarkTriangleIcon,
   FileTextIcon,
@@ -37,6 +38,8 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType = ComponentType> = {
   name: T;
@@ -164,7 +167,7 @@ export const formItemConfigs: FormItemConfigs = {
       },
       minDate: '1900-01-01T12:00:00.000Z',
       maxDate: '2100-01-01T12:00:00.000Z',
-      timeStamp: false,
+      timeStamp: true,
     },
     propertyPath: 'definitions/datepickerComponent',
     icon: CalendarIcon,
@@ -424,6 +427,13 @@ export const formItemConfigs: FormItemConfigs = {
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
+  [ComponentType.SubForm]: {
+    name: ComponentType.SubForm,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {},
+    propertyPath: 'definitions/subForm',
+    icon: ClipboardIcon,
+  },
   [ComponentType.Summary]: {
     name: ComponentType.Summary,
     itemType: LayoutItemType.Component,
@@ -431,6 +441,19 @@ export const formItemConfigs: FormItemConfigs = {
       componentRef: '',
     },
     propertyPath: 'definitions/summaryComponent',
+    icon: FileTextIcon,
+  },
+  [ComponentType.Summary2]: {
+    name: ComponentType.Summary2,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      target: {
+        type: 'component',
+        id: '',
+        taskId: '',
+      },
+    },
+    propertyPath: 'definitions/summary2Component',
     icon: FileTextIcon,
   },
   [ComponentType.TextArea]: {
@@ -460,7 +483,8 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-];
+  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.SubForm],
+].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Input],
@@ -485,7 +509,8 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
   formItemConfigs[ComponentType.Summary],
-];
+  shouldDisplayFeature('summary2') && formItemConfigs[ComponentType.Summary2],
+].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const textComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Header],
@@ -556,3 +581,8 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
   ],
   advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom],
 };
+export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
+  ...schemaComponents,
+  ...textComponents,
+  ...advancedItems,
+].filter(FilterUtils.filterUnsupportedSubformComponents);

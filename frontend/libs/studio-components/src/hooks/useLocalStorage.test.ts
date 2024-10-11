@@ -35,7 +35,7 @@ describe('useLocalStorage', () => {
     typedLocalStorage.setItem(key, value);
     const { result } = renderHook(() => useLocalStorage(key));
     await waitFor(() => result.current[2]());
-    expect(typedLocalStorage.getItem(key)).toBeUndefined();
+    expect(typedLocalStorage.getItem(key)).toBeNull();
     expect(result.current[0]).toBeUndefined();
   });
 });

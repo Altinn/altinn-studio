@@ -15,8 +15,8 @@ export const calculatePositionInFullList = (
   const rootProperties = schemaModel.getRootProperties();
   const openInterval: Interval = { min: -1, max: rootProperties.length };
   if (!NumberUtils.isWithinOpenInterval(positionInPropertyList.index, openInterval)) return -1;
-  const propertyAtGivenIndexPointer = rootProperties[positionInPropertyList.index].pointer;
+  const propertyAtGivenIndexPointer = rootProperties[positionInPropertyList.index].schemaPointer;
   const isPropertyAtGivenIndex = (node: UiSchemaNode) =>
-    node.pointer === propertyAtGivenIndexPointer;
+    node.schemaPointer === propertyAtGivenIndexPointer;
   return allRootNodes.findIndex(isPropertyAtGivenIndex);
 };

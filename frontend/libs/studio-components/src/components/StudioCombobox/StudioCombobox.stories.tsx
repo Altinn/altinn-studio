@@ -5,7 +5,7 @@ import { StudioCombobox } from './index';
 type Story = StoryFn<typeof StudioCombobox>;
 
 const meta: Meta = {
-  title: 'StudioCombobox',
+  title: 'Components/StudioCombobox',
   component: StudioCombobox,
   argTypes: {
     size: {

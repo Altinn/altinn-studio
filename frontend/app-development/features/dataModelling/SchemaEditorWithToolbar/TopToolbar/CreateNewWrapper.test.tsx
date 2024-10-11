@@ -1,5 +1,5 @@
 import React from 'react';
-import { render as renderRtl, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
@@ -8,8 +8,11 @@ import {
   dataModel1NameMock,
   jsonMetadata1Mock,
 } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
-
-const user = userEvent.setup();
+import { renderWithProviders } from '../../../../test/testUtils';
+import { app, org } from '@studio/testing/testids';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
 const handleCreateSchema = jest.fn();
@@ -26,6 +29,7 @@ describe('CreateNewWrapper', () => {
   afterEach(jest.clearAllMocks);
 
   it('should open the popup when clicking "new" button', async () => {
+    const user = userEvent.setup();
     render();
 
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
@@ -45,13 +49,10 @@ describe('CreateNewWrapper', () => {
   });
 
   it('should close the popup when clicking "new" button', async () => {
+    const user = userEvent.setup();
     render({ createNewOpen: true });
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      }),
-    ).toBeInTheDocument();
+    expect(okButton()).toBeInTheDocument();
 
     const newButton = screen.getByRole('button', {
       name: textMock('general.create_new'),
@@ -64,14 +65,12 @@ describe('CreateNewWrapper', () => {
 
   describe('createAction', () => {
     it('should call handleCreateSchema callback when ok button is clicked', async () => {
+      const user = userEvent.setup();
       render({ createNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
       await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await user.click(okButton());
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -79,6 +78,7 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should call handleCreateSchema callback when input is focused and Enter key is pressed', async () => {
+      const user = userEvent.setup();
       render({ createNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
@@ -92,14 +92,12 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should call handleCreateSchema callback with relativePath when createPathOption is set and ok button is clicked', async () => {
+      const user = userEvent.setup();
       render({ createNewOpen: true, createPathOption: true });
 
       const textInput = screen.getByRole('textbox');
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
       await user.type(textInput, 'new-model');
-      await user.click(okButton);
+      await user.click(okButton());
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -107,20 +105,17 @@ describe('CreateNewWrapper', () => {
     });
 
     it('should not call handleCreateSchema callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
+      const user = userEvent.setup();
       const newModelName = dataModel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const textInput = screen.getByRole('textbox');
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
 
-      await user.type(textInput, newModelName);
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
+      await user.type(textInput, newModelName);
 
-      await user.click(okButton);
-
+      expect(okButton()).toBeDisabled();
       expect(handleCreateSchema).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
     });
@@ -131,16 +126,43 @@ describe('CreateNewWrapper', () => {
       });
       render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
-      const okButton = screen.getByRole('button', {
-        name: textMock('schema_editor.create_model_confirm_button'),
-      });
-
-      await userWithNoPointerEventCheck.click(okButton);
+      await userWithNoPointerEventCheck.click(okButton());
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
+    });
+
+    it('should not allow a name already in use in applicationmetadata json file', async () => {
+      const user = userEvent.setup();
+
+      const dataTypeName = 'testmodel';
+      const queryClient = createQueryClientMock();
+      queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+        dataTypes: [{ id: dataTypeName }],
+      });
+      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] }, queryClient);
+
+      await user.type(screen.getByRole('textbox'), dataTypeName);
+      expect(
+        screen.getByText(textMock('schema_editor.error_data_type_name_exists')),
+      ).toBeInTheDocument();
+
+      expect(okButton()).toBeDisabled();
     });
   });
 });
 
-const render = (props: Partial<CreateNewWrapperProps> = {}) =>
-  renderRtl(<CreateNewWrapper {...defaultProps} {...props} />);
+const okButton = () => {
+  return screen.getByRole('button', {
+    name: textMock('schema_editor.create_model_confirm_button'),
+  });
+};
+
+const render = (
+  props: Partial<CreateNewWrapperProps> = {},
+  queryClient = createQueryClientMock(),
+) => {
+  renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ui-editor`,
+    queryClient,
+  });
+};

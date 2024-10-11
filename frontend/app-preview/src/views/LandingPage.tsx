@@ -2,34 +2,29 @@ import React from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
-import { AltinnHeader } from 'app-shared/components/altinnHeader';
-import type { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
-import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-import {
-  useSelectedFormLayoutName,
-  useSelectedFormLayoutSetName,
-  useSelectedTaskId,
-} from '@altinn/ux-editor/hooks';
-
-export interface LandingPageProps {
-  variant?: AltinnHeaderVariant;
-}
+import { StudioPageHeader, StudioPageSpinner, useMediaQuery } from '@studio/components';
+import { UserProfileMenu } from '../components/UserProfileMenu';
+import { PreviewControlHeader } from '../components/PreviewControlHeader';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
-export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
+export const LandingPage = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
-  const { data: user } = useUserQuery();
+  const { data: user, isPending: isPendingUser } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName();
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
@@ -60,29 +55,28 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     });
   }
 
+  if (isPendingUser) return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
+
   return (
     <>
-      <div className={classes.header}>
-        <AltinnHeader
-          heading={t('preview.title')}
-          showSubMenu={true}
-          org={org}
-          app={app}
-          user={user}
-          repository={repository}
-          buttonActions={appPreviewButtonActions(org, app, instanceId)}
-          variant={variant}
-          subMenuContent={
-            <AppPreviewSubMenu
-              setViewSize={setPreviewViewSize}
-              viewSize={previewViewSize}
-              selectedLayoutSet={selectedFormLayoutSetName}
-              handleChangeLayoutSet={handleChangeLayoutSet}
-            />
-          }
-        />
-      </div>
+      <StudioPageHeader variant='preview'>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
+          <StudioPageHeader.Right>
+            <UserProfileMenu user={user} repository={repository} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        <StudioPageHeader.Sub>
+          <AppPreviewSubMenu />
+        </StudioPageHeader.Sub>
+      </StudioPageHeader>
       <div className={classes.previewArea}>
+        <PreviewControlHeader
+          setViewSize={setPreviewViewSize}
+          viewSize={previewViewSize}
+          selectedLayoutSet={selectedFormLayoutSetName}
+          handleChangeLayoutSet={handleChangeLayoutSet}
+        />
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>
           <iframe

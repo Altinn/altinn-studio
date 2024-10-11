@@ -6,4 +6,5 @@ import { mapByKey } from 'app-shared/utils/arrayUtils';
  * @param uiSchema The schema nodes of interest.
  * @returns An array of pointers.
  */
-export const getPointers = (uiSchema: UiSchemaNodes): string[] => mapByKey(uiSchema, 'pointer');
+export const getPointers = (uiSchema: UiSchemaNodes): string[] =>
+  mapByKey(uiSchema, 'schemaPointer');

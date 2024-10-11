@@ -37,13 +37,13 @@ export type ItemRestrictionsProps = {
 
 export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const { t } = useTranslation();
-  const { pointer, isRequired, isArray, restrictions } = schemaNode;
+  const { schemaPointer, isRequired, isArray, restrictions } = schemaNode;
   const { schemaModel, save } = useSchemaEditorAppContext();
 
   const handleRequiredChanged = (event: ChangeEvent<HTMLInputElement>) => {
     const { checked } = event.target;
     if (checked !== isRequired) {
-      save(setRequired(schemaModel, { path: pointer, required: checked }));
+      save(setRequired(schemaModel, { path: schemaPointer, required: checked }));
     }
   };
 
@@ -56,13 +56,13 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
     readonly: isReference(schemaNode),
-    path: pointer ?? '',
+    path: schemaPointer ?? '',
     onChangeRestrictionValue,
     onChangeRestrictions,
   };
   return (
     <>
-      {!pointerIsDefinition(pointer) && (
+      {!pointerIsDefinition(schemaPointer) && (
         <Switch
           className={classes.switch}
           size='small'

@@ -11,7 +11,7 @@ import { makePointerFromArray } from './pointerUtils';
 export const createNodeBase = (...args: string[]): FieldNode => ({
   objectKind: ObjectKind.Field,
   fieldType: FieldType.Object,
-  pointer: makePointerFromArray(args),
+  schemaPointer: makePointerFromArray(args),
   isRequired: false,
   isNillable: false,
   isArray: false,
@@ -44,21 +44,24 @@ export const schemaTypeIncludes = (schemaNodeType: string | string[], type: Fiel
 export const schemaTypeIsNillable = (schemaNodeType: string | string[]): boolean =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
-export const splitPointerInBaseAndName = (pointer: string) => {
-  const parts = pointer.split('/');
+export const splitPointerInBaseAndName = (schemaPointer: string) => {
+  const parts = schemaPointer.split('/');
   return {
     name: parts.pop(),
     base: parts.join('/'),
   };
 };
-export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
-  const { base } = splitPointerInBaseAndName(pointer);
+export const replaceLastPointerSegment = (
+  schemaPointer: string,
+  newLastSegment: string,
+): string => {
+  const { base } = splitPointerInBaseAndName(schemaPointer);
   return [base, newLastSegment].join('/');
 };
 
-export const pointerIsDefinition = (pointer: string) =>
-  pointer.startsWith(makePointerFromArray([Keyword.Definitions])) &&
-  !pointer.includes(Keyword.Properties);
+export const pointerIsDefinition = (schemaPointer: string) =>
+  schemaPointer.startsWith(makePointerFromArray([Keyword.Definitions])) &&
+  !schemaPointer.includes(Keyword.Properties);
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some(
@@ -91,16 +94,17 @@ export const isReference = (node: UiSchemaNode): node is ReferenceNode =>
 export const isFieldOrCombination = (node: UiSchemaNode): node is FieldNode | CombinationNode =>
   isField(node) || isCombination(node);
 
-export const isDefinition = (node: UiSchemaNode): boolean => isDefinitionPointer(node.pointer);
+export const isDefinition = (node: UiSchemaNode): boolean =>
+  isDefinitionPointer(node.schemaPointer);
 
-export const isDefinitionPointer = (pointer: string): boolean =>
-  pointer.startsWith(makePointerFromArray([Keyword.Definitions]));
+export const isDefinitionPointer = (schemaPointer: string): boolean =>
+  schemaPointer.startsWith(makePointerFromArray([Keyword.Definitions]));
 
 export const isProperty = (node: UiSchemaNode): boolean => !isDefinition(node);
 
 export const isNodeValidParent = (node: UiSchemaNode): boolean =>
   isCombination(node) || (isField(node) && isObject(node));
 
-export const isTheRootNode = (node: UiSchemaNode): boolean => node.pointer === ROOT_POINTER;
+export const isTheRootNode = (node: UiSchemaNode): boolean => node.schemaPointer === ROOT_POINTER;
 
 export const isNotTheRootNode = (node: UiSchemaNode): boolean => !isTheRootNode(node);

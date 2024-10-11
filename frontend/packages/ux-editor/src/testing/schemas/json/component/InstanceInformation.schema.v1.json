@@ -60,6 +60,18 @@
       "additionalProperties": false
     },
     "type": { "const": "InstanceInformation" },
+    "elements": {
+      "title": "Elements",
+      "description": "Which elements to show in the instance information",
+      "type": "object",
+      "properties": {
+        "dateSent": { "type": "boolean" },
+        "sender": { "type": "boolean" },
+        "receiver": { "type": "boolean" },
+        "referenceNumber": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "textResourceBindings": {
       "title": "TRBLabel",
       "type": "object",
@@ -80,18 +92,6 @@
           "$ref": "expression.schema.v1.json#/definitions/string"
         }
       }
-    },
-    "elements": {
-      "title": "Elements",
-      "description": "Which elements to show in the instance information",
-      "type": "object",
-      "properties": {
-        "dateSent": { "type": "boolean" },
-        "sender": { "type": "boolean" },
-        "receiver": { "type": "boolean" },
-        "referenceNumber": { "type": "boolean" }
-      },
-      "additionalProperties": false
     }
   },
   "required": ["id", "type"],

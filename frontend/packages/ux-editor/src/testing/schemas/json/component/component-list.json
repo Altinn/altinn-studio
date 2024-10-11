@@ -30,6 +30,7 @@
   "Paragraph",
   "PrintButton",
   "RadioButtons",
+  "SubForm",
   "Summary",
   "TextArea"
 ]

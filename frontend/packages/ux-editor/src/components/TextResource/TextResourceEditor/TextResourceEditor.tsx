@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs } from '@digdir/designsystemet-react';
 import { TextResourceValueEditor } from './TextResourceValueEditor';
 import { TextResourcePicker } from './TextResourcePicker';
@@ -21,11 +21,10 @@ export const TextResourceEditor = ({
   onReferenceChange,
   onSetCurrentValue,
 }: TextResourceProps) => {
-  const [tab, setTab] = useState<string>(TextResourceTab.Type);
   const { t } = useTranslation();
 
   return (
-    <Tabs size='small' value={tab} onChange={setTab} className={classes.root}>
+    <Tabs size='small' defaultValue={TextResourceTab.Type} className={classes.root}>
       <Tabs.List>
         <Tabs.Tab value={TextResourceTab.Type}>
           {t('ux_editor.text_resource_binding_write')}

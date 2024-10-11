@@ -23,10 +23,17 @@ public class LayoutSetConfig
     public string Id { get; set; }
 
     [JsonPropertyName("dataType")]
-    [CanBeNull] public string DataType { get; set; }
+    [CanBeNull]
+    public string DataType { get; set; }
 
     [JsonPropertyName("tasks")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [CanBeNull]
     public List<string> Tasks { get; set; }
+
+    [JsonPropertyName("type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string Type { get; set; }
 
     [JsonExtensionData]
     public IDictionary<string, object?> UnknownProperties { get; set; }

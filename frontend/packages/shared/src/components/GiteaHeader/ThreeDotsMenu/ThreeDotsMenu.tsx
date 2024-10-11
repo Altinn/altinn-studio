@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { MonitorIcon, TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
+import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
 import { Link } from '@digdir/designsystemet-react';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -16,23 +16,20 @@ export type ThreeDotsMenuProps = {
 export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
   const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
 
   const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
-  const openLocalChangesModal = () => setLocalChangesModalIsOpen(true);
 
   return (
     <StudioPopover>
       <StudioPopover.Trigger asChild>
-        <StudioButton
-          color='inverted'
+        <StudioPageHeader.HeaderButton
           icon={<MenuElipsisVerticalIcon />}
           title={t('sync_header.gitea_menu')}
-          variant='tertiary'
+          color='light'
+          variant='regular'
         />
       </StudioPopover.Trigger>
-
       <StudioPopover.Content className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (
@@ -73,22 +70,8 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
             </StudioButton>
           </li>
           <li>
-            <StudioButton
-              onClick={openLocalChangesModal}
-              size='small'
-              className={classes.menuButton}
-              variant='tertiary'
-            >
-              <MonitorIcon />
-              {t('sync_header.local_changes')}
-            </StudioButton>
+            <LocalChangesModal triggerClassName={classes.menuButton} />
           </li>
-          {localChangesModalIsOpen && (
-            <LocalChangesModal
-              isOpen={localChangesModalIsOpen}
-              onClose={() => setLocalChangesModalIsOpen(false)}
-            />
-          )}
         </ul>
       </StudioPopover.Content>
     </StudioPopover>

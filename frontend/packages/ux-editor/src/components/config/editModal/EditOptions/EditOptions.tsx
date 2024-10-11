@@ -52,7 +52,6 @@ export function EditOptions<T extends SelectionComponentType>({
     setInitialSelectedOptionType(
       getSelectedOptionsType(component.optionsId, component.options, optionListIds),
     );
-    console.log('optionListIds: ', optionListIds);
   }, [optionListIds, component.optionsId, component.options, setInitialSelectedOptionType]);
 
   return (

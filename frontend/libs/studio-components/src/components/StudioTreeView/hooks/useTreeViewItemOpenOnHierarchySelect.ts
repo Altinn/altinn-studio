@@ -14,5 +14,5 @@ export const useTreeViewItemOpenOnHierarchySelect = (
     } else if (isDirectChildOfNode(selectedId, rootId, nodeId)) {
       setOpen(true);
     }
-  }, [nodeId, rootId, selectedId, setOpen]);
+  }, [rootId, setOpen, selectedId, nodeId]);
 };

@@ -5,7 +5,7 @@ import { StudioDeleteButton } from './StudioDeleteButton';
 type Story = StoryFn<typeof StudioDeleteButton>;
 
 const meta: Meta = {
-  title: 'StudioDeleteButton',
+  title: 'Components/StudioDeleteButton',
   component: StudioDeleteButton,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioDeleteButton {...args} />;

@@ -22,17 +22,17 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
   const rootNode = getRootNode(nodes);
   Object.assign(out, rootNode.custom);
   JSONPointer.set(out, `/${Keyword.Type}`, rootNode.implicitType ? undefined : rootNode.fieldType);
-  JSONPointer.set(out, `/${Keyword.Required}`, findRequiredProps(nodes, rootNode.pointer));
+  JSONPointer.set(out, `/${Keyword.Required}`, findRequiredProps(nodes, rootNode.schemaPointer));
   JSONPointer.set(out, `/${Keyword.Description}`, rootNode.description);
   JSONPointer.set(out, `/${Keyword.Title}`, rootNode.title);
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
   sortedUiSchemaNodes
-    .filter((node) => node.pointer !== ROOT_POINTER)
+    .filter((node) => node.schemaPointer !== ROOT_POINTER)
     .forEach((node: UiSchemaNode) => {
       // Arrays need to be dealt with
-      const nodePointer = node.pointer.replace(ROOT_POINTER, '');
-      const itemsPointer = makePointerFromArray([node.pointer, Keyword.Items]).replace(
+      const nodePointer = node.schemaPointer.replace(ROOT_POINTER, '');
+      const itemsPointer = makePointerFromArray([node.schemaPointer, Keyword.Items]).replace(
         ROOT_POINTER,
         '',
       );
@@ -99,7 +99,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchema => {
         JSONPointer.set(
           out,
           [jsonPointer, Keyword.Required].join('/'),
-          findRequiredProps(nodes, node.pointer),
+          findRequiredProps(nodes, node.schemaPointer),
         );
       }
       const currentJsonNode = JSONPointer.get(out, jsonPointer);
