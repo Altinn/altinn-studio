@@ -5,17 +5,16 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useBranchStatusQuery } from 'app-development/hooks/queries';
 import { useTranslation } from 'react-i18next';
 
-export const LatestCommit = (): React.ReactElement => {
+export const NavigateToLatestCommitInGitea = (): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: newMasterBranchStatus } = useBranchStatusQuery(org, app, 'master');
-  const latestCommitId = newMasterBranchStatus?.commit?.id;
+  const { data: masterBranchStatus } = useBranchStatusQuery(org, app, 'master');
+  const latestCommitId = masterBranchStatus?.commit?.id;
 
   useEffect(() => {
     if (latestCommitId) {
-      const commitPath = gitCommitPath(org, app, latestCommitId);
-      window.location.href = commitPath;
+      window.location.href = gitCommitPath(org, app, latestCommitId);
     }
   }, [app, latestCommitId, org]);
-  return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
+  return <StudioPageSpinner spinnerTitle={t('general.loading')} />;
 };
