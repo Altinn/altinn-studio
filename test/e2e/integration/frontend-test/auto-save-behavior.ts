@@ -1,11 +1,9 @@
 import texts from 'test/e2e/fixtures/texts.json';
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { Common } from 'test/e2e/pageobjects/common';
 
 import type { CompInputExternal } from 'src/layout/Input/config.generated';
 
 const appFrontend = new AppFrontend();
-const mui = new Common();
 
 describe('Auto save behavior', () => {
   it('onChangeFormData: Should save form data when interacting with form element(checkbox) but not on navigation', () => {

@@ -22,6 +22,7 @@ const compat = new FlatCompat({
   allConfig: js.configs.all,
 });
 
+// eslint-disable-next-line import/no-default-export
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,

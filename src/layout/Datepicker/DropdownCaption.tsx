@@ -115,5 +115,3 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
     </>
   );
 };
-
-export default DropdownCaption;

@@ -12,7 +12,7 @@ import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import styles from 'src/layout/Datepicker/Calendar.module.css';
 import { DatePickerCalendar } from 'src/layout/Datepicker/DatePickerCalendar';
-import DatePickerInput from 'src/layout/Datepicker/DatePickerInput';
+import { DatePickerInput } from 'src/layout/Datepicker/DatePickerInput';
 import { getDateConstraint, getDateFormat, getLocale, getSaveFormattedDateString } from 'src/utils/dateHelpers';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';

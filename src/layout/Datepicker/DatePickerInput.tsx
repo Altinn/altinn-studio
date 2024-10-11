@@ -19,7 +19,7 @@ export interface DatePickerInputProps {
   readOnly?: boolean;
 }
 
-const DatePickerInput = forwardRef(
+export const DatePickerInput = forwardRef(
   (
     { id, value, formatString, onBlur, isDialogOpen, readOnly, onClick }: DatePickerInputProps,
     ref: RefObject<HTMLButtonElement>,
@@ -82,5 +82,3 @@ const DatePickerInput = forwardRef(
 );
 
 DatePickerInput.displayName = 'DatePickerInput';
-
-export default DatePickerInput;

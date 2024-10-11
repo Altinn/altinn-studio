@@ -60,10 +60,7 @@ describe('DatepickerComponent', () => {
       }),
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
-      'data-today',
-      'true',
-    );
+    expect(screen.getByRole('cell', { name: new Date().getDate().toString() })).toHaveAttribute('data-today', 'true');
   });
 
   it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', async () => {
@@ -92,10 +89,7 @@ describe('DatepickerComponent', () => {
     );
     screen.debug();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
-      'data-today',
-      'true',
-    );
+    expect(screen.getByRole('cell', { name: new Date().getDate().toString() })).toHaveAttribute('data-today', 'true');
   });
 
   it('should call setLeafValue when clicking date in calendar', async () => {
@@ -107,7 +101,7 @@ describe('DatepickerComponent', () => {
       }),
     );
     //screen.logTestingPlaygroundURL();
-    const calendarButton = screen.getByRole('gridcell', { name: '15' }).getElementsByTagName('button')[0];
+    const calendarButton = screen.getByRole('cell', { name: '15' }).getElementsByTagName('button')[0];
     await userEvent.click(calendarButton);
 
     // Ignore TZ part of timestamp to avoid test failing when this changes
