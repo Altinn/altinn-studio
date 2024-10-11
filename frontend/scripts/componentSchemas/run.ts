@@ -1,5 +1,5 @@
 import { allPropertyKeys, generateComponentSchema } from './schemaUtils';
-import type { AppFrontendVersion } from './version';
+import type { AppFrontendVersion, ComponentName } from './types';
 import { isValidVersion } from './version';
 import { getLayoutSchema } from './api';
 import {
@@ -19,15 +19,19 @@ const run = async () => {
     version = 'v4';
   }
 
-  const layoutSchema: any = await getLayoutSchema(version as AppFrontendVersion);
+  const layoutSchema = await getLayoutSchema(version as AppFrontendVersion);
   const allComponents = layoutSchema.definitions.AnyComponent.properties.type.enum;
 
   allComponents.forEach((componentName: string) => {
     componentName = componentName === 'AddressComponent' ? 'Address' : componentName;
 
-    const schema = generateComponentSchema(componentName, layoutSchema, version);
+    const schema = generateComponentSchema(
+      componentName as ComponentName,
+      layoutSchema,
+      version as AppFrontendVersion,
+    );
     pushTextResourceBindingKeys(schema);
-    writeToFile(componentName, schema, version as AppFrontendVersion);
+    writeToFile(componentName as ComponentName, schema, version as AppFrontendVersion);
   });
 
   const uniqueTextResourceBindingKeys = [...new Set(allTextResourceBindingKeys)];

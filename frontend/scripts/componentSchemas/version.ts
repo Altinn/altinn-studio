@@ -1,3 +1,5 @@
+import type { AppFrontendVersion } from './types';
+
 export const versionSettings = {
   v3: {
     layoutSchemaUrl: 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json',
@@ -15,4 +17,3 @@ export const versionSettings = {
 export const isValidVersion = (version: string) =>
   validVersions.includes(version as AppFrontendVersion);
 export const validVersions = ['v3', 'v4'] as const;
-export type AppFrontendVersion = (typeof validVersions)[number];

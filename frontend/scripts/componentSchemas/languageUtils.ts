@@ -1,17 +1,19 @@
 import nb from '../../language/src/nb.json';
+import type { ExpandedComponentSchema } from './types';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export const allTextResourceBindingKeys = [];
 
-export const pushTextResourceBindingKeys = (schema: any) => {
+export const pushTextResourceBindingKeys = (schema: ExpandedComponentSchema) => {
   if (schema.properties?.textResourceBindings) {
     const textResourceBindingKeys = Object.keys(schema.properties.textResourceBindings.properties);
     allTextResourceBindingKeys.push(...textResourceBindingKeys);
   }
 };
 
-export const sortTextResourceBindings = (textResourceBindings: any) => {
+export const sortTextResourceBindings = (textResourceBindings: KeyValuePairs): KeyValuePairs => {
   const { title, description, help, ...rest } = textResourceBindings;
-  const sorted: any = {};
+  const sorted: KeyValuePairs = {};
   if (title) {
     sorted.title = title;
   }
