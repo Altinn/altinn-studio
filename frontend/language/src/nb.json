@@ -1306,6 +1306,7 @@
   "ux_editor.component_properties.target": "Mål",
   "ux_editor.component_properties.target_description": "Mål for oppsummeringskomponenten",
   "ux_editor.component_properties.target_invalid": "Ugyldig mål",
+  "ux_editor.component_properties.target_taskId": "Oppgave-ID",
   "ux_editor.component_properties.target_type": "Type",
   "ux_editor.component_properties.taskId": "Oppgave-ID",
   "ux_editor.component_properties.timeStamp": "Inkluder tidsstempel i dato (på som standard)",
