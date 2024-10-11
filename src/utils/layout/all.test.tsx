@@ -21,7 +21,6 @@ const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' 
 const MODE: 'critical' | 'all' = env.parsed?.ALTINN_ALL_APPS_MODE === 'critical' ? 'critical' : 'all';
 
 const ignoreLogAndErrors = [
-  'DEPRECATED: option jsPropertySyntax',
   'Warning: findDOMNode is deprecated and will be removed in the next major release',
   'The above error occurred in the',
   'Layout quirk(s) applied',

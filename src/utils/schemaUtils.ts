@@ -61,12 +61,3 @@ export function getSchemaPartOldGenerator(schemaPath: string, mainSchema: object
   // all other in sub schema
   return getSchemaPart(schemaPath, getSchemaPart(`${rootElementPath}/#`, mainSchema));
 }
-
-export function processInstancePath(path: string): string {
-  let result = path.startsWith('.') ? path.slice(1) : path;
-  result = result
-    .replace(/"]\["|']\['/g, '.')
-    .replace(/\["|\['/g, '')
-    .replace(/"]|']/g, '');
-  return result;
-}

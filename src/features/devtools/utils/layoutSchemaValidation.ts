@@ -1,7 +1,9 @@
 /* eslint-disable no-case-declarations */
 import Ajv from 'ajv';
-import type { DefinedError, ErrorObject } from 'ajv';
+import type { DefinedError } from 'ajv';
 import type { JSONSchema7 } from 'json-schema';
+
+import { pointerToDotNotation } from 'src/features/datamodel/notations';
 
 export const LAYOUT_SCHEMA_NAME = 'layout.schema.v1.json';
 export const EMPTY_SCHEMA_NAME = '__empty__';
@@ -60,26 +62,6 @@ function removeExpressionRefsRecursive(schema: object) {
 }
 
 /**
- * Get the property path for the error. Empty means it is in the root of the component.
- */
-function getProperty(error: ErrorObject): string | undefined {
-  const instancePaths = error.instancePath.split('/').slice(1);
-
-  if (instancePaths.length === 0) {
-    return undefined;
-  }
-
-  return instancePaths
-    .map((path, i) => {
-      if (!isNaN(parseInt(path))) {
-        return `[${path}]`;
-      }
-      return `${i != 0 ? '.' : ''}${path}`;
-    })
-    .join('');
-}
-
-/**
  * Format an AJV validation error into a human readable string.
  * @param error the AJV validation error object
  * @returns a human readable string describing the error
@@ -91,7 +73,7 @@ export function formatLayoutSchemaValidationError(error: DefinedError): string |
 
   const canBeExpression = error.parentSchema?.comment === 'expression';
 
-  const property = getProperty(error);
+  const property = pointerToDotNotation(error.instancePath);
   const propertyString = property?.length ? `\`${property}\`` : '';
   const propertyReference = property?.length ? ` i \`${property}\`` : '';
 

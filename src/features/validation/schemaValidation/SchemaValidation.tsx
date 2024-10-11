@@ -4,6 +4,7 @@ import { FrontendValidationSource } from '..';
 import type { FieldValidations } from '..';
 
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
+import { pointerToDotNotation } from 'src/features/datamodel/notations';
 import { useDataModelType } from 'src/features/datamodel/useBindingSchema';
 import { FD } from 'src/features/formData/FormDataWrite';
 import {
@@ -13,12 +14,7 @@ import {
   getErrorTextKey,
 } from 'src/features/validation/schemaValidation/schemaValidationUtils';
 import { Validation } from 'src/features/validation/validationContext';
-import {
-  getRootElementPath,
-  getSchemaPart,
-  getSchemaPartOldGenerator,
-  processInstancePath,
-} from 'src/utils/schemaUtils';
+import { getRootElementPath, getSchemaPart, getSchemaPartOldGenerator } from 'src/utils/schemaUtils';
 import type { TextReference } from 'src/features/language/useLanguage';
 
 export function SchemaValidation({ dataType }: { dataType: string }) {
@@ -99,7 +95,7 @@ export function SchemaValidation({ dataType }: { dataType: string }) {
           /**
            * Extract data model field from the error's instancePath
            */
-          const field = processInstancePath(error.instancePath);
+          const field = pointerToDotNotation(error.instancePath);
 
           if (!validations[field]) {
             validations[field] = [];
