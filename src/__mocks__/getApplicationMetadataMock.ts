@@ -78,7 +78,7 @@ export const getIncomingApplicationMetadataMock = (
       bankruptcyEstate: false,
       organisation: false,
       person: true,
-      subUnit: false,
+      subUnit: true,
     },
     onEntry: { show: 'new-instance' },
     ...overrides,

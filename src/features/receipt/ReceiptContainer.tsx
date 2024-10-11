@@ -19,6 +19,7 @@ import {
   filterDisplayPdfAttachments,
   getAttachmentGroupings,
 } from 'src/utils/attachmentsUtils';
+import { getInstanceOwnerParty } from 'src/utils/party';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
@@ -117,7 +118,7 @@ export const ReceiptContainer = () => {
 
   const instanceMetaObject = useMemo(() => {
     if (instanceOrg && instanceOwner && parties && instanceGuid && lastChangedDateTime) {
-      const instanceOwnerParty = parties.find((party: IParty) => party.partyId.toString() === instanceOwner.partyId);
+      const instanceOwnerParty = getInstanceOwnerParty(instanceOwner, parties);
 
       return getSummaryDataObject({
         langTools,

@@ -16,18 +16,15 @@ import type { IInstance, IParty } from 'src/types/shared';
 
 export interface IConfirmPageProps {
   instance: IInstance | undefined;
-  parties: IParty[] | undefined;
+  instanceOwnerParty?: IParty;
   appName?: string;
   applicationMetadata: ApplicationMetadata | null;
 }
 
-export const ConfirmPage = ({ instance, parties, appName, applicationMetadata }: IConfirmPageProps) => {
+export const ConfirmPage = ({ instance, instanceOwnerParty, appName, applicationMetadata }: IConfirmPageProps) => {
   const langTools = useLanguage();
   const getInstanceMetaObject = () => {
     if (instance?.org && applicationMetadata) {
-      const instanceOwnerParty = parties?.find(
-        (party: IParty) => party.partyId.toString() === instance.instanceOwner.partyId,
-      );
       return returnConfirmSummaryObject({
         instanceOwnerParty,
         langTools,

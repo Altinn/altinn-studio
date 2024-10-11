@@ -1,4 +1,4 @@
-import type { IParty, IProfile } from 'src/types/shared';
+import type { IInstance, IInstanceOwner, IParty, IProfile } from 'src/types/shared';
 
 export function renderPartyName(party: IParty) {
   if (!party) {
@@ -18,4 +18,16 @@ export function renderParty(profile: IProfile) {
     return user.toUpperCase();
   }
   return null;
+}
+
+export function getInstanceOwnerParty(instance?: IInstance | IInstanceOwner, parties?: IParty[]): IParty | undefined {
+  if (!instance || !parties) {
+    return undefined;
+  }
+
+  // This logic assumes that the current logged in user has "access" to the party of the instance owner,
+  // as the parties array comes from the current users party list.
+  const allParties = [...parties, ...parties.flatMap((party) => party.childParties ?? [])];
+  const instanceOwner = 'instanceOwner' in instance ? instance.instanceOwner : instance;
+  return allParties.find((party) => party.partyId.toString() === instanceOwner.partyId);
 }

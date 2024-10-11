@@ -2,11 +2,17 @@ import type { IInstance } from 'src/types/shared';
 
 export const defaultMockDataElementId = '4f2610c9-911a-46a3-bc2d-5191602193f4';
 
-export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstance {
+export function getInstanceDataMock(
+  mutate?: (data: IInstance) => void,
+  partyId: string = '12345',
+  ssn: string | undefined = '01017512345',
+  orgNr?: string | null,
+): IInstance {
   const out: IInstance = {
     instanceOwner: {
-      partyId: '12345',
-      personNumber: '01017512345',
+      partyId,
+      personNumber: ssn,
+      organisationNumber: orgNr,
     },
     appId: 'mockOrg/mockApp',
     created: new Date('2020-01-01').toISOString(),
@@ -23,9 +29,9 @@ export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstan
         refs: [],
         isRead: true,
         created: new Date('2021-06-04T13:26:43.9100666Z').toISOString(),
-        createdBy: '12345',
+        createdBy: partyId,
         lastChanged: new Date('2021-06-04T13:30:48.4307222Z').toISOString(),
-        lastChangedBy: '12345',
+        lastChangedBy: partyId,
       },
       {
         id: '917e7e06-2665-4307-8c05-b0accd8964c6',
@@ -46,12 +52,12 @@ export function getInstanceDataMock(mutate?: (data: IInstance) => void): IInstan
         isRead: true,
         tags: [],
         created: new Date('2022-02-22T14:07:07.490511Z').toISOString(),
-        createdBy: '12345',
+        createdBy: partyId,
         lastChanged: new Date('2022-02-22T14:07:07.490511Z').toISOString(),
-        lastChangedBy: '12345',
+        lastChangedBy: partyId,
       },
     ],
-    id: '12345/91cefc5e-c47b-40ff-a8a4-05971205f783',
+    id: `${partyId}/91cefc5e-c47b-40ff-a8a4-05971205f783`,
     instanceState: undefined,
     lastChanged: new Date('2020-01-01').toISOString(),
     org: 'mockOrg',

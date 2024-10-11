@@ -15,10 +15,10 @@ import { useParties } from 'src/features/party/PartiesProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { getDateFormat, PrettyDateAndTime } from 'src/utils/dateHelpers';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
+import { getInstanceOwnerParty } from 'src/utils/party';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { CompInternal } from 'src/layout/layout';
-import type { IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (
   langTools: IUseLanguage,
@@ -73,8 +73,7 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   const parties = useParties();
   const appReceiver = useAppReceiver();
 
-  const instanceOwnerParty =
-    instanceOwner && parties?.find((party: IParty) => party.partyId.toString() === instanceOwner.partyId);
+  const instanceOwnerParty = getInstanceOwnerParty(instanceOwner, parties);
 
   const instanceDateSent =
     lastChanged &&
