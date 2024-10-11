@@ -21,4 +21,6 @@ export class CellButton extends BaseInputCell<HTMLButtonElement, CellButtonProps
       </StudioTable.Cell>
     );
   }
+
+  shouldMoveFocusOnArrowKey = () => true;
 }
