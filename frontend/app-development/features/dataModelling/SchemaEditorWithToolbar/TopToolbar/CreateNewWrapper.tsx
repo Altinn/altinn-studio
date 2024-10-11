@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import classes from './CreateNewWrapper.module.css';
 import { ErrorMessage, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
@@ -91,7 +92,7 @@ export function CreateNewWrapper({
         {<PlusIcon />}
         {t('general.create_new')}
       </StudioPopover.Trigger>
-      <StudioPopover.Content>
+      <StudioPopover.Content className={classes.popoverContent}>
         <Textfield
           id='newModelInput'
           label={t('schema_editor.create_model_description')}
