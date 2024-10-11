@@ -1,8 +1,0 @@
-.inverted {
-  color: var(--fds-semantic-text-neutral-on_inverted);
-  border-color: var(--fds-semantic-text-neutral-on_inverted);
-}
-
-.inverted:hover {
-  background: var(--fds-semantic-surface-on_inverted-no_fill-hover);
-}

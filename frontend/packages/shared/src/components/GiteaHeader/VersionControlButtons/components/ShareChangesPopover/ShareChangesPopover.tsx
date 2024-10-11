@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioPageHeader, StudioPopover, useMediaQuery } from '@studio/components';
 import { UploadIcon } from '@studio/icons';
 import classes from './ShareChangesPopover.module.css';
 import { useTranslation } from 'react-i18next';
@@ -12,12 +12,15 @@ import { SyncLoadingIndicator } from '../SyncLoadingIndicator';
 import type { IContentStatus, IGitStatus } from 'app-shared/types/global';
 import { CommitAndPushContent } from './CommitAndPushContent';
 import type { RepoContentStatus } from 'app-shared/types/RepoStatus';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 
 export const ShareChangesPopover = () => {
   const { isLoading, setIsLoading, hasPushRights, hasMergeConflict, repoStatus } =
     useVersionControlButtonsContext();
 
   const { t } = useTranslation();
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
+
   const { org, app } = useStudioEnvironmentParams();
   const { refetch: refetchRepoStatus } = useRepoStatusQuery(org, app);
 
@@ -58,17 +61,18 @@ export const ShareChangesPopover = () => {
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
       <StudioPopover.Trigger asChild>
-        <StudioButton
-          color='inverted'
-          variant='tertiary'
+        <StudioPageHeader.HeaderButton
           onClick={handleOpenPopover}
           disabled={!hasPushRights || hasMergeConflict}
           title={renderCorrectTitle()}
           icon={<UploadIcon />}
+          color='light'
+          variant='regular'
+          aria-label={t('sync_header.changes_to_share')}
         >
-          {t('sync_header.changes_to_share')}
+          {shouldDisplayText && t('sync_header.changes_to_share')}
           {displayNotification && <Notification />}
-        </StudioButton>
+        </StudioPageHeader.HeaderButton>
       </StudioPopover.Trigger>
       <StudioPopover.Content
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
