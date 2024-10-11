@@ -135,6 +135,22 @@
         "layout": "column"
       },
       {
+        "id": "hidePaymentDetails",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Hide Payment Details component during filling out order-lines"
+        },
+        "options": [
+          {
+            "value": true,
+            "label": "Hide Payment Details component during filling out order-lines"
+          }
+        ],
+        "dataModelBindings": {
+          "simpleBinding": "HideFirstPaymentDetails"
+        }
+      },
+      {
         "id": "navButtons1",
         "type": "NavigationButtons",
         "textResourceBindings": {

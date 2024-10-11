@@ -209,12 +209,19 @@
           "GoodsAndServicesProperties.Inventory.InventoryProperties": "paymentDetails"
         },
         "hidden": [
-          "equals",
+          "or",
+          ["equals",
           [
             "dataModel",
             "HF_HaveReadAndUnderstood"
           ],
-          null
+          null],
+          ["equals",
+          [
+            "dataModel",
+            "HideFirstPaymentDetails"
+          ],
+          true]
         ]
       },
       {

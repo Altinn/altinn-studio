@@ -51,7 +51,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("SimilarTrademarks")]
     public SimilarTrademarks SimilarTrademarks { get; set; }
 
-    [XmlElement("HF_HaveReadAndUnderstood", Order = 9)]
+    [XmlElement("HideFirstPaymentDetails", Order = 9)]
+    [JsonProperty("HideFirstPaymentDetails")]
+    [JsonPropertyName("HideFirstPaymentDetails")]
+    public bool? HideFirstPaymentDetails { get; set; }
+
+    [XmlElement("HF_HaveReadAndUnderstood", Order = 10)]
     [JsonProperty("HF_HaveReadAndUnderstood")]
     [JsonPropertyName("HF_HaveReadAndUnderstood")]
     public bool? HF_HaveReadAndUnderstood { get; set; }

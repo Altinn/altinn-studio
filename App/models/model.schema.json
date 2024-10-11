@@ -80,7 +80,9 @@
           "@xsdMinOccurs": 0,
           "type": "boolean"
         },
-        "ShowFirstPaymentDetails": {
+        "HideFirstPaymentDetails": {
+          "@xsdType": "boolean",
+          "@xsdMinOccurs": 0,
           "type": "boolean"
         }
       }

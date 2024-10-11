@@ -12,6 +12,7 @@
       <xs:element minOccurs="0" name="PreInvestigation" type="PreInvestigation" />
       <xs:element minOccurs="0" name="SimilarTrademarks" type="SimilarTrademarks" />
       <xs:element minOccurs="0" name="HF_HaveReadAndUnderstood" type="xs:boolean" />
+      <xs:element minOccurs="0" name="HideFirstPaymentDetails" type="xs:boolean" />
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="ContactInformation">
