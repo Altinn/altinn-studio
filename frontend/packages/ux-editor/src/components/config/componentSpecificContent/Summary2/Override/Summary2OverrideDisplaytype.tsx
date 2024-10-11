@@ -7,15 +7,15 @@ import type {
 import { type CustomConfigType, useCustomConfigType } from './hook/useCustomConfigType';
 import { useTranslation } from 'react-i18next';
 
-export type Summary2OverrideDisplaytypeProps = {
+export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;
   onChange: (override: Summary2OverrideConfig) => void;
 };
 
-export const Summary2OverrideDisplaytype = ({
+export const Summary2OverrideDisplayType = ({
   override,
   onChange,
-}: Summary2OverrideDisplaytypeProps) => {
+}: Summary2OverrideDisplayTypeProps) => {
   const { t } = useTranslation();
 
   const displayType = override.displayType || 'string';

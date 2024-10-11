@@ -10,7 +10,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { Summary2OverrideDisplaytype } from './Summary2OverrideDisplaytype';
+import { Summary2OverrideDisplayType } from './Summary2OverrideDisplayType';
+import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 
 type Summary2OverrideEntryProps = {
   override: Summary2OverrideConfig;
@@ -33,15 +34,7 @@ export const Summary2OverrideEntry = ({
     getAllLayoutComponents(layout),
   );
 
-  const getComponentsInAGroup = () => {
-    return Object.values(formLayoutsData).flatMap((item) =>
-      Object.keys(item.order)
-        .filter((key) => key !== BASE_CONTAINER_ID)
-        .flatMap((key) => item.order[key]),
-    );
-  };
-
-  const componentsInGroup = getComponentsInAGroup();
+  const componentsInGroup = getComponentsInGroup(formLayoutsData);
   const isComponentInGroup = componentsInGroup.includes(override.componentId);
 
   const componentOptions = components.map((e) => ({
@@ -105,7 +98,7 @@ export const Summary2OverrideEntry = ({
         }
       ></StudioTextfield>
       {override.componentId && checkboxOrMultipleselect && (
-        <Summary2OverrideDisplaytype override={override} onChange={onChange} />
+        <Summary2OverrideDisplayType override={override} onChange={onChange} />
       )}
       {isComponentInGroup && (
         <ComponentInGroupCheckbox onChangeOverride={onChangeOverride} override={override} />
@@ -137,5 +130,13 @@ const ComponentInGroupCheckbox = ({
     >
       {t('ux_editor.component_properties.overrides_is_compact')}
     </Checkbox>
+  );
+};
+
+const getComponentsInGroup = (formLayoutsData: IFormLayouts) => {
+  return Object.values(formLayoutsData).flatMap((item) =>
+    Object.keys(item.order)
+      .filter((key) => key !== BASE_CONTAINER_ID)
+      .flatMap((key) => item.order[key]),
   );
 };
