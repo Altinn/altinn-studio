@@ -59,8 +59,11 @@ export const propertyTypeMatcher = (property: KeyValuePairs, propertyType: Prope
 
   switch (propertyType) {
     case PropertyTypes.string:
-      // Not all schemas with enum value explicitly specifies type as string
-      return baseMatch || !!property.enum;
+      // Not all schemas with enum value explicitly specify type as string
+      return baseMatch || (!!property.enum && typeof property.enum[0] === 'string');
+    case PropertyTypes.number:
+      // Not all schemas with enum value explicitly specify type as number
+      return baseMatch || (!!property.enum && typeof property.enum[0] === 'number');
     case PropertyTypes.array:
       // Currently only supporting array of strings with specified enum values
       return baseMatch && !!property.items?.enum;

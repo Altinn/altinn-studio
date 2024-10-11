@@ -85,12 +85,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             var createdEntity = await _deploymentRepository.Create(deploymentEntity);
-            await PublishAppDeployedEvent(deploymentEntity);
+            await PublishAppDeployedEvent(deploymentEntity, cancellationToken);
             return createdEntity;
         }
 
         // Publish app deployed event
-        private async Task PublishAppDeployedEvent(DeploymentEntity deploymentEntity)
+        private async Task PublishAppDeployedEvent(DeploymentEntity deploymentEntity, CancellationToken cancellationToken)
         {
             try
             {
@@ -104,7 +104,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     EditingContext = AltinnRepoContext.FromOrgRepo(deploymentEntity.Org, deploymentEntity.App),
                     AppsEnvironment = deploymentEntity.EnvName,
                     DeployType = newApp ? DeployType.NewApp : DeployType.ExistingApp
-                });
+                }, cancellationToken);
             }
             catch (Exception e)
             {

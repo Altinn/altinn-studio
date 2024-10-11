@@ -14,7 +14,9 @@ export const useResetRepositoryMutation = (owner: string, app: string) => {
         q.invalidateQueries({ queryKey: [QueryKey.FormLayouts, owner, app] }),
         q.invalidateQueries({ queryKey: [QueryKey.FormLayoutSettings, owner, app] }),
         q.invalidateQueries({ queryKey: [QueryKey.TextResources, owner, app] }),
-        q.invalidateQueries({ queryKey: [QueryKey.JsonSchema, owner, app] }),
+        q.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, owner, app] }),
+        q.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, owner, app] }),
+        q.removeQueries({ queryKey: [QueryKey.JsonSchema, owner, app] }),
       ]),
   });
 };

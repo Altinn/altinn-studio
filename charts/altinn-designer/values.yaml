@@ -54,6 +54,8 @@ environmentVariables:
       value: 59
     - name: FeatureManagement__AnsattPorten
       value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -87,6 +89,8 @@ environmentVariables:
       value: 59
     - name: FeatureManagement__AnsattPorten
       value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
   prod:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -118,6 +122,8 @@ environmentVariables:
       value: 59
     - name: FeatureManagement__AnsattPorten
       value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 

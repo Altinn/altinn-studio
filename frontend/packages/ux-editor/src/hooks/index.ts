@@ -11,3 +11,4 @@ export type { ComponentValidationResult, ErrorCode } from './useValidateComponen
 export { useValidateComponent } from './useValidateComponent';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
 export { useAppContext } from './useAppContext';
+export { useGetLayoutSetByName } from './useGetLayoutSetByName';
