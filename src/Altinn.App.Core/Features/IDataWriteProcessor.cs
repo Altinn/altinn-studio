@@ -20,5 +20,5 @@ public interface IDataWriteProcessor
         string taskId,
         List<DataElementChange> changes,
         string? language
-    ) => Task.CompletedTask;
+    );
 }
