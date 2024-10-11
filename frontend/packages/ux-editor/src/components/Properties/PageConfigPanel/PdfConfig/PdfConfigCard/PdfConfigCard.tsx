@@ -42,7 +42,12 @@ export const PdfConfigCard = ({ onClickConvert }: PdfConfigCardProps): ReactElem
         />
       </StudioCard.Header>
       <StudioCard.Content>
-        <StudioParagraph size='sm'>{t('ux_editor.page_config_pdf_card_text')}</StudioParagraph>
+        <StudioParagraph size='sm' spacing>
+          {t('ux_editor.page_config_pdf_card_text_top')}
+        </StudioParagraph>
+        <StudioParagraph size='sm'>
+          {t('ux_editor.page_config_pdf_card_text_bottom')}
+        </StudioParagraph>
       </StudioCard.Content>
     </StudioCard>
   );
