@@ -16,6 +16,7 @@ export type FileValidation = {
 };
 
 export type StudioFileUploaderProps = {
+  className?: string;
   onUploadFile: (file: FormData, fileName: string) => void;
   accept?: string;
   size?: StudioButtonProps['size'];
@@ -33,6 +34,7 @@ export type StudioFileUploaderProps = {
 export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProps>(
   (
     {
+      className,
       onUploadFile,
       accept,
       size,
@@ -60,7 +62,7 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
     };
 
     return (
-      <form onSubmit={handleSubmit}>
+      <form className={className} onSubmit={handleSubmit}>
         <input
           data-testid={dataTestId}
           type='file'

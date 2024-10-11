@@ -143,7 +143,9 @@ describe('EditCodeList', () => {
       },
     });
 
-    const btn = screen.getByText(textMock('ux_editor.modal_properties_code_list_upload'));
+    const btn = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
     await user.click(btn);
 
     const fileInput = screen.getByTestId(fileSelectorInputId);
@@ -168,7 +170,9 @@ describe('EditCodeList', () => {
       },
     });
 
-    const btn = screen.getByText(textMock('ux_editor.modal_properties_code_list_upload'));
+    const btn = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
     await user.click(btn);
 
     const fileInput = screen.getByTestId(fileSelectorInputId);

@@ -16,15 +16,7 @@ export const useValidateFileName = (optionListIds: string[]) => {
     return !Boolean(optionListIds.find((option) => option === fileNameWithoutExtension));
   };
 
-  const getDuplicatedOptionIds = (
-    optionListIds: string[],
-    fileNameWithoutExtension: string,
-  ): boolean => {
-    return Boolean(optionListIds.find((option) => option === fileNameWithoutExtension));
-  };
-
   return {
     validateFileName,
-    getDuplicatedOptionIds,
   };
 };

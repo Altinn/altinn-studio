@@ -1,14 +1,14 @@
 import { useValidateFileName } from './useValidateFileName';
 import { renderHook } from '@testing-library/react';
 
-const optionIdOne = 'one';
-const optionIdTwo = 'two';
-const options: string[] = [optionIdOne];
-const result = renderHook(() => useValidateFileName(options)).result.current;
+const optionListIdOne = 'one';
+const optionListIdTwo = 'two';
+const optionLists: string[] = [optionListIdOne];
+const result = renderHook(() => useValidateFileName(optionLists)).result.current;
 
 describe('validateFileNameUtils', () => {
   it('should return true for valid filename', () => {
-    expect(result.validateFileName(optionIdTwo + '.json')).toBe(true);
+    expect(result.validateFileName(optionListIdTwo + '.json')).toBe(true);
   });
 
   it('should return false for invalid filename', () => {
@@ -18,10 +18,10 @@ describe('validateFileNameUtils', () => {
   });
 
   it('should return true for duplicate found', () => {
-    expect(result.getDuplicatedOptionIds(options, optionIdOne)).toBe(true);
+    expect(result.getDuplicatedOptionIds(optionLists, optionListIdOne)).toBe(true);
   });
 
   it('should return false for new value', () => {
-    expect(result.getDuplicatedOptionIds(options, optionIdTwo)).toBe(false);
+    expect(result.getDuplicatedOptionIds(optionLists, optionListIdTwo)).toBe(false);
   });
 });
