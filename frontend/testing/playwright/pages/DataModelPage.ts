@@ -3,7 +3,6 @@ import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
 import { expect } from '@playwright/test';
-import { DataTestId } from '../enum/DataTestId';
 
 export class DataModelPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -150,7 +149,7 @@ export class DataModelPage extends BasePage {
   public async selectFileToUpload(fileName: string): Promise<void> {
     await this.page
       .getByRole('toolbar')
-      .getByTestId(DataTestId.FileSelectorInput)
+      .getByLabel(this.textMock('app_data_modelling.upload_xsd'))
       .setInputFiles(path.join(__dirname, fileName));
   }
 
