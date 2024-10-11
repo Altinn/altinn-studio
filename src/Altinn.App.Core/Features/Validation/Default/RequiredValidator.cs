@@ -8,56 +8,64 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Validator that runs the required rules in the layout
 /// </summary>
-public class RequiredLayoutValidator : IFormDataValidator
+public class RequiredLayoutValidator : IValidator
 {
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
-    private readonly IAppResources _appResourcesService;
-    private readonly IAppMetadata _appMetadata;
+    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly IAppResources _appResources;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiredLayoutValidator"/> class.
     /// </summary>
     public RequiredLayoutValidator(
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
-        IAppResources appResourcesService,
-        IAppMetadata appMetadata
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        IAppResources appResources
     )
     {
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
-        _appResourcesService = appResourcesService;
-        _appMetadata = appMetadata;
+        _appResources = appResources;
     }
 
     /// <summary>
-    /// Run for all data types
+    /// We implement <see cref="ShouldRunForTask"/> instead
     /// </summary>
-    public string DataType => "*";
+    public string TaskId => "*";
+
+    /// <summary>
+    /// Only run for tasks that specifies a layout set
+    /// </summary>
+    public bool ShouldRunForTask(string taskId) =>
+        _appResources.GetLayoutSet()?.Sets.SelectMany(s => s.Tasks ?? []).Any(t => t == taskId) ?? false;
 
     /// <summary>
     /// This validator has the code "Required" and this is known by the frontend, who may request this validator to not run for incremental validation.
     /// </summary>
-    public string ValidationSource => "Required";
+    public string ValidationSource => ValidationIssueSources.Required;
 
-    /// <summary>
-    /// Always run for incremental validation
-    /// </summary>
-    public bool HasRelevantChanges(object current, object previous) => true;
-
-    /// <summary>
-    /// Validate the form data against the required rules in the layout
-    /// </summary>
-    public async Task<List<ValidationIssue>> ValidateFormData(
+    /// <inheritdoc />
+    public async Task<List<ValidationIssue>> Validate(
         Instance instance,
-        DataElement dataElement,
-        object data,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
         string? language
     )
     {
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourcesService.GetLayoutSetForTask(
-            appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId
+        var evaluationState = await _layoutEvaluatorStateInitializer.Init(
+            instanceDataAccessor,
+            taskId,
+            gatewayAction: null,
+            language
         );
-        var evaluationState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-        return LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState, dataElement.Id);
+
+        return await LayoutEvaluator.RunLayoutValidationsForRequired(evaluationState);
     }
+
+    /// <summary>
+    /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
+    /// </summary>
+    public Task<bool> HasRelevantChanges(
+        Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
+        List<DataElementChange> changes
+    ) => Task.FromResult(true);
 }

@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Default validations that run on all data elements to validate metadata and file scan results.
 /// </summary>
-public class DefaultDataElementValidator : IDataElementValidator
+public class DefaultDataElementValidator : IDataElementValidator //TODO: This should implemnt IValidator
 {
     /// <summary>
     /// Run validations on all data elements
@@ -53,7 +53,8 @@ public class DefaultDataElementValidator : IDataElementValidator
                         DataElementId = dataElement.Id,
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                        Description =
+                            $"ContentType {contentTypeWithoutEncoding} not allowed for {string.Join(",", dataType.AllowedContentTypes)}",
                         Field = dataType.Id
                     }
                 );

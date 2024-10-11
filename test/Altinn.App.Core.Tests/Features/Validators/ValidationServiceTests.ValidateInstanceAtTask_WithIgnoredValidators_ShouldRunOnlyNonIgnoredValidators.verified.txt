@@ -1,0 +1,26 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: Validation.RunValidator,
+      Tags: [
+        {
+          validator.source: Validator
+        },
+        {
+          validator.type: IValidatorProxy
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.ValidateInstanceAtTask,
+      Tags: [
+        {
+          task.id: Task_1
+        }
+      ],
+      IdFormat: W3C
+    }
+  ],
+  Metrics: []
+}

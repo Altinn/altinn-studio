@@ -14,7 +14,7 @@ using Moq;
 
 namespace Altinn.App.Core.Tests.Features.Action;
 
-public class UniqueSignatureAuthorizerTests : IDisposable
+public sealed class UniqueSignatureAuthorizerTests : IDisposable
 {
     private readonly Mock<IProcessReader> _processReaderMock;
     private readonly Mock<IInstanceClient> _instanceClientMock;

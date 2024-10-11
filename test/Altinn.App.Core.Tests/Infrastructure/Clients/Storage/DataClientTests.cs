@@ -1,11 +1,14 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Text;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Tests.Infrastructure.Clients.Storage.TestData;
@@ -24,6 +27,7 @@ public class DataClientTests
 {
     private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
     private readonly Mock<IUserTokenProvider> userTokenProvide;
+    private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly ILogger<DataClient> logger;
     private readonly string apiStorageEndpoint = "https://local.platform.altinn.no/api/storage/";
 
@@ -646,7 +650,12 @@ public class DataClientTests
     [Fact]
     public async Task UpdateData_throws_error_if_serilization_fails()
     {
-        object exampleModel = new ExampleModel() { Name = "Test", Age = 22 };
+        object exampleModel = new ExampleModel()
+        {
+            Name = "Test",
+            Age = 22,
+            ShouldError = true
+        };
         var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
         var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
         int invocations = 0;
@@ -658,7 +667,7 @@ public class DataClientTests
                 return new HttpResponseMessage() { StatusCode = HttpStatusCode.OK };
             }
         );
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<TargetInvocationException>(
             async () =>
                 await dataClient.UpdateData(
                     exampleModel,
@@ -843,6 +852,8 @@ public class DataClientTests
             logger,
             new HttpClient(delegatingHandlerStub),
             userTokenProvide.Object,
+            null!,
+            new ModelSerializationService(_appModelMock.Object),
             telemetrySink?.Object
         );
     }

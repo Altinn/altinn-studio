@@ -1,6 +1,5 @@
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.App.Core.Features;
 
@@ -11,8 +10,7 @@ namespace Altinn.App.Core.Features;
 public interface IFormDataValidator
 {
     /// <summary>
-    /// The data type this validator is for. Typically either hard coded by implementation or
-    /// or set by constructor using a <see cref="ServiceKeyAttribute" /> and a keyed service.
+    /// The data type this validator is for.
     ///
     /// To validate all types with form data, just use a "*" as value
     /// </summary>

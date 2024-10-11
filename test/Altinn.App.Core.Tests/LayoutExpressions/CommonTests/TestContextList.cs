@@ -1,15 +1,15 @@
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestContextList
 {
@@ -25,24 +25,24 @@ public class TestContextList
 
     [Theory]
     [SharedTestContextList("simple")]
-    public void Simple_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Simple_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("groups")]
-    public void Group_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Group_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("nonRepeatingGroups")]
-    public void NonRepeatingGroup_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task NonRepeatingGroup_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTestContextList("recursiveGroups")]
-    public void RecursiveGroup_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task RecursiveGroup_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
-    private static ContextListRoot LoadTestData(string testName, string folder)
+    private static async Task<ContextListRoot> LoadTestData(string testName, string folder)
     {
         ContextListRoot testCase = new();
-        var data = File.ReadAllText(Path.Join(folder, testName));
+        var data = await File.ReadAllTextAsync(Path.Join(folder, testName));
         try
         {
             testCase = JsonSerializer.Deserialize<ContextListRoot>(data, _jsonSerializerOptions)!;
@@ -59,17 +59,33 @@ public class TestContextList
         return testCase;
     }
 
-    private void RunTestCase(string filename, string folder)
+    private async Task RunTestCase(string filename, string folder)
     {
-        var test = LoadTestData(filename, folder);
+        var test = await LoadTestData(filename, folder);
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
-        var state = new LayoutEvaluatorState(new JsonDataModel(test.DataModel), test.ComponentModel, new(), new());
+
+        var instance = new Instance() { Data = [] };
+        var dataType = new DataType() { Id = "default" };
+        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType], };
+        var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
+        var componentModel = new LayoutModel([layout], null);
+        var state = new LayoutEvaluatorState(
+            DynamicClassBuilder.DataAccessorFromJsonDocument(
+                instance,
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement
+            ),
+            componentModel,
+            new(),
+            appMetadata
+        );
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        var results = state.GetComponentContexts().Select(c => ComponentContextForTestSpec.FromContext(c)).ToList();
+        var results = (await state.GetComponentContexts())
+            .Select(c => ComponentContextForTestSpec.FromContext(c))
+            .ToList();
         _output.WriteLine(JsonSerializer.Serialize(new { resultContexts = results }, _jsonSerializerOptions));
 
         foreach (var (result, expected, index) in results.Zip(test.Expected, Enumerable.Range(0, int.MaxValue)))

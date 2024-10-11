@@ -1,0 +1,17 @@
+﻿{
+  Activities: [
+    {
+      ActivityName: Validation.ValidateInstanceAtTask,
+      Tags: [
+        {
+          task.id: Task_1
+        },
+        {
+          validation.total_issue_count: 0
+        }
+      ],
+      IdFormat: W3C
+    }
+  ],
+  Metrics: []
+}

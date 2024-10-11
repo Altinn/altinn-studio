@@ -1,5 +1,6 @@
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 using Altinn.App.Core.Models.Validation;
 
@@ -13,17 +14,17 @@ public static class LayoutEvaluator
     /// <summary>
     /// Get a list of fields that are only referenced in hidden components in <see cref="LayoutEvaluatorState" />
     /// </summary>
-    public static List<string> GetHiddenFieldsForRemoval(
+    public static async Task<List<DataReference>> GetHiddenFieldsForRemoval(
         LayoutEvaluatorState state,
         bool includeHiddenRowChildren = false
     )
     {
-        var hiddenModelBindings = new HashSet<string>();
-        var nonHiddenModelBindings = new HashSet<string>();
+        var hiddenModelBindings = new HashSet<DataReference>();
+        var nonHiddenModelBindings = new HashSet<DataReference>();
 
-        foreach (var context in state.GetComponentContexts())
+        foreach (var context in await state.GetComponentContexts())
         {
-            HiddenFieldsForRemovalRecurs(
+            await HiddenFieldsForRemovalRecurs(
                 state,
                 includeHiddenRowChildren,
                 hiddenModelBindings,
@@ -33,15 +34,14 @@ public static class LayoutEvaluator
         }
 
         var forRemoval = hiddenModelBindings.Except(nonHiddenModelBindings);
-        var existsForRemoval = forRemoval.Where(key => state.GetModelData(key) is not null);
-        return existsForRemoval.ToList();
+        return forRemoval.ToList();
     }
 
-    private static void HiddenFieldsForRemovalRecurs(
+    private static async Task HiddenFieldsForRemovalRecurs(
         LayoutEvaluatorState state,
         bool includeHiddenRowChildren,
-        HashSet<string> hiddenModelBindings,
-        HashSet<string> nonHiddenModelBindings,
+        HashSet<DataReference> hiddenModelBindings,
+        HashSet<DataReference> nonHiddenModelBindings,
         ComponentContext context
     )
     {
@@ -49,17 +49,18 @@ public static class LayoutEvaluator
         foreach (var childContext in context.ChildContexts)
         {
             // Ignore children of hidden rows if includeHiddenRowChildren is false
-            if (!includeHiddenRowChildren && context.HiddenRows is not null)
+            if (!includeHiddenRowChildren && childContext.Component is RepeatingGroupComponent)
             {
-                var currentRow = childContext.RowIndices?.Last();
-                var rowIsHidden = currentRow is not null && context.HiddenRows.Contains(currentRow.Value);
+                var hiddenRows = await childContext.GetHiddenRows(state);
+                var currentRow = childContext.RowIndices?[^1];
+                var rowIsHidden = currentRow is not null && hiddenRows[currentRow.Value];
                 if (rowIsHidden)
                 {
                     continue;
                 }
             }
 
-            HiddenFieldsForRemovalRecurs(
+            await HiddenFieldsForRemovalRecurs(
                 state,
                 includeHiddenRowChildren,
                 hiddenModelBindings,
@@ -68,18 +69,21 @@ public static class LayoutEvaluator
             );
         }
 
-        // Remove data for hidden rows
-        if (
-            context.Component is RepeatingGroupComponent repGroup
-            && context.RowLength is not null
-            && context.HiddenRows is not null
-        )
+        // Get dataReference for hidden rows
+        if (context is { Component: RepeatingGroupComponent repGroup })
         {
-            foreach (var index in Enumerable.Range(0, context.RowLength.Value).Reverse())
+            var hiddenRows = await context.GetHiddenRows(state);
+            // Reverse order to get the last hidden row first so that the index is correct when removing from the data object
+            foreach (var index in Enumerable.Range(0, hiddenRows.Length).Reverse())
             {
                 var rowIndices = context.RowIndices?.Append(index).ToArray() ?? [index];
-                var indexedBinding = state.AddInidicies(repGroup.DataModelBindings["group"], rowIndices);
-                if (context.HiddenRows.Contains(index))
+                var indexedBinding = await state.AddInidicies(
+                    repGroup.DataModelBindings["group"],
+                    context.DataElementIdentifier,
+                    rowIndices
+                );
+
+                if (hiddenRows[index])
                 {
                     hiddenModelBindings.Add(indexedBinding);
                 }
@@ -100,81 +104,81 @@ public static class LayoutEvaluator
                     continue;
                 }
 
-                var indexed_binding = state.AddInidicies(binding, context);
+                var indexedBinding = await state.AddInidicies(binding, context);
+                var isHidden = await context.IsHidden(state);
 
-                if (context.IsHidden == true)
+                if (isHidden)
                 {
-                    hiddenModelBindings.Add(indexed_binding);
+                    hiddenModelBindings.Add(indexedBinding);
                 }
                 else
                 {
-                    nonHiddenModelBindings.Add(indexed_binding);
+                    nonHiddenModelBindings.Add(indexedBinding);
                 }
             }
         }
     }
 
     /// <summary>
-    /// Remove fields that are only refrenced from hidden fields from the data object in the state.
+    /// Remove fields that are only referenced from hidden fields from the data object in the state.
     /// </summary>
-    public static void RemoveHiddenData(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
+    public static async Task RemoveHiddenData(LayoutEvaluatorState state, RowRemovalOption rowRemovalOption)
     {
-        var fields = GetHiddenFieldsForRemoval(state);
-        foreach (var field in fields)
+        var fields = await GetHiddenFieldsForRemoval(state);
+        foreach (var dataReference in fields)
         {
-            state.RemoveDataField(field, rowRemovalOption);
+            await state.RemoveDataField(dataReference, rowRemovalOption);
         }
     }
 
     /// <summary>
     /// Return a list of <see cref="ValidationIssue" /> for the given state and dataElementId
     /// </summary>
-    public static List<ValidationIssue> RunLayoutValidationsForRequired(
-        LayoutEvaluatorState state,
-        string dataElementId
-    )
+    public static async Task<List<ValidationIssue>> RunLayoutValidationsForRequired(LayoutEvaluatorState state)
     {
         var validationIssues = new List<ValidationIssue>();
 
-        foreach (var context in state.GetComponentContexts())
+        foreach (var context in await state.GetComponentContexts())
         {
-            RunLayoutValidationsForRequiredRecurs(validationIssues, state, dataElementId, context);
+            await RunLayoutValidationsForRequiredRecurs(validationIssues, state, context);
         }
 
         return validationIssues;
     }
 
-    private static void RunLayoutValidationsForRequiredRecurs(
+    private static async Task RunLayoutValidationsForRequiredRecurs(
         List<ValidationIssue> validationIssues,
         LayoutEvaluatorState state,
-        string dataElementId,
         ComponentContext context
     )
     {
-        if (context.IsHidden == false)
+        ArgumentNullException.ThrowIfNull(context.Component);
+        var hidden = await context.IsHidden(state);
+        if (!hidden)
         {
             foreach (var childContext in context.ChildContexts)
             {
-                RunLayoutValidationsForRequiredRecurs(validationIssues, state, dataElementId, childContext);
+                await RunLayoutValidationsForRequiredRecurs(validationIssues, state, childContext);
             }
 
-            var required = ExpressionEvaluator.EvaluateBooleanExpression(state, context, "required", false);
-            if (required && context.Component is not null)
+            var required = await ExpressionEvaluator.EvaluateBooleanExpression(state, context, "required", false);
+            if (required)
             {
                 foreach (var (bindingName, binding) in context.Component.DataModelBindings)
                 {
-                    if (state.GetModelData(binding, context) is null)
+                    var value = await state.GetModelData(binding, context.DataElementIdentifier, context.RowIndices);
+                    if (value is null)
                     {
-                        var field = state.AddInidicies(binding, context);
+                        var field = await state.AddInidicies(binding, context);
                         validationIssues.Add(
                             new ValidationIssue()
                             {
                                 Severity = ValidationIssueSeverity.Error,
-                                DataElementId = dataElementId,
-                                Field = field,
-                                Description = $"{field} is required in component with id {context.Component.Id}",
+                                DataElementId = field.DataElementIdentifier.ToString(),
+                                Field = field.Field,
+                                Description =
+                                    $"{field.Field} is required in component with id {context.Component.LayoutId}.{context.Component.PageId}.{context.Component.Id} for binding {bindingName}",
                                 Code = "required",
-                                Source = ValidationIssueSources.Required
                             }
                         );
                     }

@@ -1,4 +1,8 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Models.Process;
@@ -15,22 +19,31 @@ public class ProcessNavigator : IProcessNavigator
     private readonly IProcessReader _processReader;
     private readonly ExclusiveGatewayFactory _gatewayFactory;
     private readonly ILogger<ProcessNavigator> _logger;
+    private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _instanceClient;
+    private readonly IAppMetadata _appMetadata;
+    private readonly ModelSerializationService _modelSerialization;
 
     /// <summary>
     /// Initialize a new instance of <see cref="ProcessNavigator"/>
     /// </summary>
-    /// <param name="processReader">The process reader</param>
-    /// <param name="gatewayFactory">Service to fetch wanted gateway filter implementation</param>
-    /// <param name="logger">The logger</param>
     public ProcessNavigator(
         IProcessReader processReader,
         ExclusiveGatewayFactory gatewayFactory,
-        ILogger<ProcessNavigator> logger
+        ILogger<ProcessNavigator> logger,
+        IDataClient dataClient,
+        IInstanceClient instanceClient,
+        IAppMetadata appMetadata,
+        ModelSerializationService modelSerialization
     )
     {
         _processReader = processReader;
         _gatewayFactory = gatewayFactory;
         _logger = logger;
+        _dataClient = dataClient;
+        _appMetadata = appMetadata;
+        _modelSerialization = modelSerialization;
+        _instanceClient = instanceClient;
     }
 
     /// <inheritdoc/>
@@ -79,7 +92,7 @@ public class ProcessNavigator : IProcessNavigator
 
             var gateway = (ExclusiveGateway)directFlowTarget;
             List<SequenceFlow> outgoingFlows = _processReader.GetOutgoingSequenceFlows(directFlowTarget);
-            IProcessExclusiveGateway? gatewayFilter = null;
+            IProcessExclusiveGateway? gatewayFilter;
             if (outgoingFlows.Any(a => a.ConditionExpression != null))
             {
                 gatewayFilter = _gatewayFactory.GetProcessExclusiveGateway("AltinnExpressionsExclusiveGateway");
@@ -101,8 +114,20 @@ public class ProcessNavigator : IProcessNavigator
                         Action = action,
                         DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
                     };
+                IInstanceDataAccessor dataAccessor = new CachedInstanceDataAccessor(
+                    instance,
+                    _dataClient,
+                    _instanceClient,
+                    _appMetadata,
+                    _modelSerialization
+                );
+                filteredList = await gatewayFilter.FilterAsync(
+                    outgoingFlows,
+                    instance,
+                    dataAccessor,
+                    gatewayInformation
+                );
 
-                filteredList = await gatewayFilter.FilterAsync(outgoingFlows, instance, gatewayInformation);
                 if (filteredList.Count != 1)
                 {
                     throw new ProcessException(

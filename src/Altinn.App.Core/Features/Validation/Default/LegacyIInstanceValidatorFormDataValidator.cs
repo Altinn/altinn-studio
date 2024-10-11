@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Validation.Helpers;
+using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -12,9 +13,10 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// This validator is used to run the legacy IInstanceValidator.ValidateData method
 /// </summary>
-public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
+public class LegacyIInstanceValidatorFormDataValidator : IValidator
 {
-    private readonly IInstanceValidator? _instanceValidator;
+    private readonly IInstanceValidator _instanceValidator;
+    private readonly IAppMetadata _appMetadata;
     private readonly GeneralSettings _generalSettings;
 
     /// <summary>
@@ -22,17 +24,19 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
     /// </summary>
     public LegacyIInstanceValidatorFormDataValidator(
         IOptions<GeneralSettings> generalSettings,
-        IInstanceValidator? instanceValidator = null
+        IInstanceValidator instanceValidator,
+        IAppMetadata appMetadata
     )
     {
         _instanceValidator = instanceValidator;
+        _appMetadata = appMetadata;
         _generalSettings = generalSettings.Value;
     }
 
     /// <summary>
-    /// The legacy validator should run for all data types
+    /// The legacy validator should run for all tasks, because there is no way to specify task for the legacy validator
     /// </summary>
-    public string DataType => _instanceValidator is null ? "" : "*";
+    public string TaskId => "*";
 
     /// <inheritdoc />>
     public string ValidationSource
@@ -45,33 +49,49 @@ public class LegacyIInstanceValidatorFormDataValidator : IFormDataValidator
         }
     }
 
-    /// <summary>
-    /// Always run for incremental validation (if it exists)
-    /// </summary>
-    public bool HasRelevantChanges(object current, object previous) => _instanceValidator is not null;
-
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(
+    public async Task<List<ValidationIssue>> Validate(
         Instance instance,
-        DataElement dataElement,
-        object data,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
         string? language
     )
     {
-        if (_instanceValidator is null)
+        var issues = new List<ValidationIssue>();
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+        var dataTypes = appMetadata
+            .DataTypes.Where(d => d.TaskId == taskId && d.AppLogic?.ClassRef != null)
+            .Select(d => d.Id)
+            .ToList();
+        foreach (var dataElement in instance.Data.Where(d => dataTypes.Contains(d.DataType)))
         {
-            return new List<ValidationIssue>();
+            var data = await instanceDataAccessor.GetFormData(dataElement);
+            var modelState = new ModelStateDictionary();
+            await _instanceValidator.ValidateData(data, modelState);
+            issues.AddRange(
+                ModelStateHelpers.ModelStateToIssueList(
+                    modelState,
+                    instance,
+                    dataElement,
+                    _generalSettings,
+                    data.GetType()
+                )
+            );
         }
 
-        var modelState = new ModelStateDictionary();
-        await _instanceValidator.ValidateData(data, modelState);
-        return ModelStateHelpers.ModelStateToIssueList(
-            modelState,
-            instance,
-            dataElement,
-            _generalSettings,
-            data.GetType(),
-            ValidationIssueSources.Custom
-        );
+        return issues;
+    }
+
+    /// <summary>
+    /// Always run for incremental validation, because the legacy validator don't have a way to know when changes are relevant
+    /// </summary>
+    public Task<bool> HasRelevantChanges(
+        Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
+        List<DataElementChange> changes
+    )
+    {
+        return Task.FromResult(true);
     }
 }

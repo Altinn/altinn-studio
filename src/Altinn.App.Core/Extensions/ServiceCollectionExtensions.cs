@@ -16,6 +16,7 @@ using Altinn.App.Core.Features.Payment.Services;
 using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Features.Validation.Default;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Authentication;
 using Altinn.App.Core.Infrastructure.Clients.Authorization;
@@ -170,6 +171,7 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<DataListsFactory>();
         services.TryAddTransient<InstanceDataListsFactory>();
         services.TryAddTransient<IDataListsService, DataListsService>();
+        services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<IPatchService, PatchService>();
         services.AddTransient<IDataService, DataService>();
@@ -178,6 +180,7 @@ public static class ServiceCollectionExtensions
         services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
+        services.AddSingleton<ModelSerializationService>();
 
         AddAppOptions(services);
         AddExternalApis(services);
@@ -205,20 +208,18 @@ public static class ServiceCollectionExtensions
     private static void AddValidationServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddTransient<IValidatorFactory, ValidatorFactory>();
-        services.TryAddTransient<IValidationService, ValidationService>();
+        services.AddTransient<IValidationService, ValidationService>();
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
         {
-            services.AddTransient<IFormDataValidator, RequiredLayoutValidator>();
+            services.AddTransient<IValidator, RequiredLayoutValidator>();
         }
 
         if (configuration.GetSection("AppSettings").Get<AppSettings>()?.ExpressionValidation == true)
         {
-            services.AddTransient<IFormDataValidator, ExpressionValidator>();
+            services.AddTransient<IValidator, ExpressionValidator>();
         }
         services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
-        services.AddTransient<IFormDataValidator, LegacyIInstanceValidatorFormDataValidator>();
         services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();
-        services.AddTransient<ITaskValidator, LegacyIInstanceValidatorTaskValidator>();
         services.AddTransient<ITaskValidator, DefaultTaskValidator>();
     }
 

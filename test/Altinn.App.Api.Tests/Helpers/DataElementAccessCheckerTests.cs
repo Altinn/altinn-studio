@@ -4,7 +4,7 @@ using FluentAssertions;
 
 namespace Altinn.App.Api.Tests.Helpers;
 
-public class ValidContributorHelperTests
+public class DataElementAccessCheckerTests
 {
     [Theory]
     [InlineData(null, null, null, true)] // No allowed contributors, should be true
@@ -32,7 +32,7 @@ public class ValidContributorHelperTests
         };
 
         // Act
-        bool result = ValidContributorHelper.IsValidContributor(dataType, org, orgNr);
+        bool result = DataElementAccessChecker.IsValidContributor(dataType, org, orgNr);
 
         // Assert
         result.Should().Be(expectedResult);

@@ -1,11 +1,16 @@
 using System.Text.Json;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestFunctions
 {
@@ -21,108 +26,116 @@ public class TestFunctions
 
     [Theory]
     [SharedTest("and")]
-    public void And_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task And_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("frontendSettings")]
-    public void FrontendSettings_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task FrontendSettings_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("component")]
-    public void Component_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Component_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("commaContains")]
-    public void CommaContains_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task CommaContains_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("concat")]
-    public void Concat_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Concat_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("language")]
+    public async Task Language_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("contains")]
-    public void Contains_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Contains_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("dataModel")]
-    public void DataModel_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task DataModel_Theory(string testName, string folder) => await RunTestCase(testName, folder);
+
+    [Theory]
+    [SharedTest("dataModelMultiple")]
+    public async Task DataModelMultiple_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("endsWith")]
-    public void EndsWith_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task EndsWith_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("equals")]
-    public void Equals_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Equals_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("greaterThan")]
-    public void GreaterThan_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task GreaterThan_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("greaterThanEq")]
-    public void GreaterThanEq_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task GreaterThanEq_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("if")]
-    public void If_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task If_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("not")]
-    public void Not_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Not_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("notContains")]
-    public void NotContains_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task NotContains_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("instanceContext")]
-    public void InstanceContext_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task InstanceContext_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("lessThan")]
-    public void LessThan_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task LessThan_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("lessThanEq")]
-    public void LessThanEq_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task LessThanEq_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("notEquals")]
-    public void NotEquals_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task NotEquals_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("or")]
-    public void Or_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Or_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("unknown")]
-    public void Unknown_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Unknown_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("upperCase")]
-    public void UpperCase_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task UpperCase_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("lowerCase")]
-    public void LowerCase_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task LowerCase_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("startsWith")]
-    public void StartsWith_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task StartsWith_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("stringLength")]
-    public void StringLength_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task StringLength_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
     [Theory]
     [SharedTest("round")]
-    public void Round_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task Round_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
-    private static ExpressionTestCaseRoot LoadTestCase(string file, string folder)
+    private static async Task<ExpressionTestCaseRoot> LoadTestCase(string file, string folder)
     {
         ExpressionTestCaseRoot testCase = new();
-        var data = File.ReadAllText(Path.Join(folder, file));
+        var data = await File.ReadAllTextAsync(Path.Join(folder, file));
         try
         {
             testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
@@ -142,20 +155,57 @@ public class TestFunctions
         testCase.FullPath = file;
         testCase.Folder = folder;
         testCase.RawJson = data;
+        testCase.Instance ??= new Instance();
         return testCase;
     }
 
-    private void RunTestCase(string testName, string folder)
+    private async Task RunTestCase(string testName, string folder)
     {
-        var test = LoadTestCase(testName, folder);
+        var test = await LoadTestCase(testName, folder);
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
+
+        IInstanceDataAccessor dataAccessor;
+        List<DataType> dataTypes = new();
+        if (test.DataModels is null)
+        {
+            dataTypes.Add(new DataType() { Id = "default" });
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement
+            );
+        }
+        else
+        {
+            dataTypes.AddRange(
+                test.DataModels.Select(d => d.DataElement.DataType)
+                    .Distinct()
+                    .Select(dt => new DataType()
+                    {
+                        Id = dt,
+                        MaxCount = 1,
+                        AppLogic = new() { ClassRef = "not-in-user" }
+                    })
+            );
+            dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
+        }
+
+        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = dataTypes, };
+
+        LayoutModel? componentModel = null;
+        if (test.Layouts is not null)
+        {
+            var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataTypes[0]);
+            componentModel = new LayoutModel([layout], null);
+        }
         var state = new LayoutEvaluatorState(
-            new JsonDataModel(test.DataModel),
-            test.ComponentModel,
-            test.FrontEndSettings ?? new(),
-            test.Instance ?? new()
+            dataAccessor,
+            componentModel,
+            test.FrontEndSettings ?? new FrontEndSettings(),
+            appMedatada,
+            test.GatewayAction,
+            test.ProfileSettings?.Language
         );
 
         if (test.ExpectsFailure is not null)
@@ -166,15 +216,15 @@ public class TestFunctions
             }
             else
             {
-                Action act = () =>
+                Func<Task> act = async () =>
                 {
-                    ExpressionEvaluator.EvaluateExpression(
+                    await ExpressionEvaluator.EvaluateExpression(
                         state,
                         test.Expression,
-                        test.Context?.ToContext(test.ComponentModel)!
+                        test.Context?.ToContext(componentModel, state)!
                     );
                 };
-                act.Should().Throw<Exception>().WithMessage(test.ExpectsFailure);
+                (await act.Should().ThrowAsync<Exception>()).WithMessage($"*{test.ExpectsFailure}*");
             }
 
             return;
@@ -182,10 +232,10 @@ public class TestFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        var result = ExpressionEvaluator.EvaluateExpression(
+        var result = await ExpressionEvaluator.EvaluateExpression(
             state,
             test.Expression,
-            test.Context?.ToContext(test.ComponentModel)!
+            test.Context?.ToContext(componentModel, state)!
         );
 
         switch (test.Expects.ValueKind)
@@ -220,6 +270,7 @@ public class TestFunctions
         // This is just a way to ensure that all folders have test methods associcated.
         var jsonTestFolders = Directory
             .GetDirectories(Path.Join("LayoutExpressions", "CommonTests", "shared-tests", "functions"))
+            .Where(d => Directory.GetFiles(d).Length > 0)
             .Select(d => Path.GetFileName(d))
             .OrderBy(s => s)
             .ToArray();
@@ -232,10 +283,9 @@ public class TestFunctions
             )
             .OrderBy(s => s)
             .OfType<string>()
+            .OrderBy(d => d)
             .ToArray();
-        testMethods
-            .Should()
-            .BeEquivalentTo(jsonTestFolders, "Shared test folders should have a corresponding test method");
+        testMethods.Should().Equal(jsonTestFolders, "Shared test folders should have a corresponding test method");
     }
 }
 

@@ -114,7 +114,10 @@ public class ApiTestBase
 
         var factory = _factory.WithWebHostBuilder(builder =>
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile(appSettingsPath).Build();
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(appSettingsPath)
+                .AddInMemoryCollection(_configOverrides)
+                .Build();
 
             configuration.GetSection("AppSettings:AppBasePath").Value = appRootPath;
             IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
@@ -135,6 +138,16 @@ public class ApiTestBase
 
         return client;
     }
+
+    /// <summary>
+    /// Overrides the app settings for the test application.
+    /// </summary>
+    public void OverrideAppSetting(string key, string? value)
+    {
+        _configOverrides[key] = value;
+    }
+
+    private readonly Dictionary<string, string?> _configOverrides = new();
 
     private sealed class DiagnosticHandler : DelegatingHandler
     {
@@ -173,28 +186,8 @@ public class ApiTestBase
                         LogLevel.Critical
                     };
                 }
-                options.OutputFormatter = log =>
-                    $"""
-                    [{ShortLogLevel(log.Level)}] {log.Category}:
-                    {log.Message}{(log.Exception is not null ? "\n" : "")}{log.Exception}
-                    
-                    """;
+                options.OutputFormatter = FakeLoggerXunit.OutputFormatter;
             });
-    }
-
-    private static string ShortLogLevel(LogLevel logLevel)
-    {
-        return logLevel switch
-        {
-            LogLevel.Trace => "trac",
-            LogLevel.Debug => "debu",
-            LogLevel.Information => "info",
-            LogLevel.Warning => "warn",
-            LogLevel.Error => "erro",
-            LogLevel.Critical => "crit",
-            LogLevel.None => "none",
-            _ => "????",
-        };
     }
 
     private void ConfigureFakeHttpClientHandler(IServiceCollection services)

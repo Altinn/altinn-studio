@@ -1,8 +1,10 @@
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Enums;
@@ -14,34 +16,24 @@ namespace Altinn.App.Core.Tests.Internal.Process.ProcessTasks.Common;
 
 public class ProcessTaskFinalizerTests
 {
-    private readonly Mock<IAppMetadata> _appMetadataMock;
-    private readonly Mock<IDataClient> _dataClientMock;
-    private readonly Mock<IAppModel> _appModelMock;
-    private readonly Mock<IAppResources> _appResourcesMock;
-    private readonly Mock<LayoutEvaluatorStateInitializer> _layoutEvaluatorStateInitializerMock;
-    private readonly IOptions<AppSettings> _appSettingsMock;
+    private readonly Mock<IAppMetadata> _appMetadataMock = new();
+    private readonly Mock<IDataClient> _dataClientMock = new();
+    private readonly Mock<IInstanceClient> _instanceClientMock = new(MockBehavior.Strict);
+    private readonly Mock<IAppModel> _appModelMock = new();
+    private readonly Mock<ILayoutEvaluatorStateInitializer> _layoutEvaluatorStateInitializerMock = new();
+    private readonly IOptions<AppSettings> _appSettings = Options.Create(new AppSettings());
     private readonly ProcessTaskFinalizer _processTaskFinalizer;
 
     public ProcessTaskFinalizerTests()
     {
-        _appMetadataMock = new Mock<IAppMetadata>();
-        _dataClientMock = new Mock<IDataClient>();
-        _appModelMock = new Mock<IAppModel>();
-        _appResourcesMock = new Mock<IAppResources>();
-        var frontendSettingsMock = new Mock<IOptions<FrontEndSettings>>();
-        _layoutEvaluatorStateInitializerMock = new Mock<LayoutEvaluatorStateInitializer>(
-            MockBehavior.Strict,
-            [_appResourcesMock.Object, frontendSettingsMock.Object]
-        );
-        _appSettingsMock = Options.Create(new AppSettings());
-
         _processTaskFinalizer = new ProcessTaskFinalizer(
             _appMetadataMock.Object,
             _dataClientMock.Object,
+            _instanceClientMock.Object,
             _appModelMock.Object,
-            _appResourcesMock.Object,
+            new ModelSerializationService(_appModelMock.Object),
             _layoutEvaluatorStateInitializerMock.Object,
-            _appSettingsMock
+            _appSettings
         );
     }
 
@@ -49,19 +41,23 @@ public class ProcessTaskFinalizerTests
     public async Task Finalize_WithValidInputs_ShouldCallCorrectMethods()
     {
         // Arrange
-        Instance instance = CreateInstance();
-
-        instance.Data =
-        [
-            new DataElement
+        Instance instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
+            AppId = "ttd/test",
+            Process = new ProcessState
             {
-                Id = Guid.NewGuid().ToString(),
-                References =
-                [
-                    new Reference { ValueType = ReferenceType.Task, Value = instance.Process.CurrentTask.ElementId }
-                ]
-            }
-        ];
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "EndEvent", },
+            },
+            Data =
+            [
+                new DataElement
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    References = [new Reference { ValueType = ReferenceType.Task, Value = "EndEvent" }]
+                }
+            ]
+        };
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
         {
@@ -75,18 +71,5 @@ public class ProcessTaskFinalizerTests
 
         // Assert
         _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Once);
-    }
-
-    private static Instance CreateInstance()
-    {
-        return new Instance()
-        {
-            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d",
-            AppId = "ttd/test",
-            Process = new ProcessState
-            {
-                CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "EndEvent", },
-            },
-        };
     }
 }

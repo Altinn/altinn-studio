@@ -66,34 +66,42 @@
       }
     }
   },
-  "dataModel": {
-    "Bedrifter": [
-      {
-        "Navn": "Hell og lykke AS",
-        "Ansatte": [
-          {
-            "Navn": "Kaare",
-            "Alder": 55
-          },
-          {
-            "Navn": "Per",
-            "Alder": 24
-          }
-        ]
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
       },
-      {
-        "Navn": "Nedtur og motgang AS",
-        "Ansatte": [
+      "data": {
+        "Bedrifter": [
           {
-            "Navn": "Arne",
-            "Alder": 24
+            "Navn": "Hell og lykke AS",
+            "Ansatte": [
+              {
+                "Navn": "Kaare",
+                "Alder": 55
+              },
+              {
+                "Navn": "Per",
+                "Alder": 24
+              }
+            ]
           },
           {
-            "Navn": "Vidar",
-            "Alder": 14
+            "Navn": "Nedtur og motgang AS",
+            "Ansatte": [
+              {
+                "Navn": "Arne",
+                "Alder": 24
+              },
+              {
+                "Navn": "Vidar",
+                "Alder": 14
+              }
+            ]
           }
         ]
       }
-    ]
-  }
+    }
+  ]
 }

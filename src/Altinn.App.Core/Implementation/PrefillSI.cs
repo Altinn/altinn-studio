@@ -313,7 +313,7 @@ public class PrefillSI : IPrefill
         }
     }
 
-    private Dictionary<string, string> SwapKeyValuesForPrefill(Dictionary<string, string> externalPrefil)
+    private static Dictionary<string, string> SwapKeyValuesForPrefill(Dictionary<string, string> externalPrefil)
     {
         return externalPrefil.ToDictionary(x => x.Value, x => x.Key);
     }

@@ -1,11 +1,14 @@
 using System.Text.Json;
 using Altinn.App.Core.Internal.Expressions;
-using Altinn.App.Core.Tests.Helpers;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.App.Core.Tests.TestUtils;
+using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestBackendExclusiveFunctions
 {
@@ -21,14 +24,14 @@ public class TestBackendExclusiveFunctions
 
     [Theory]
     [ExclusiveTest("gatewayAction")]
-    public void GatewayAction_Theory(string testName, string folder) => RunTestCase(testName, folder);
+    public async Task GatewayAction_Theory(string testName, string folder) => await RunTestCase(testName, folder);
 
-    private static ExpressionTestCaseRoot LoadTestCase(string testName, string folder)
+    private static async Task<ExpressionTestCaseRoot> LoadTestCase(string testName, string folder)
     {
         var file = Path.Join(folder, testName);
 
         ExpressionTestCaseRoot testCase = new();
-        var data = File.ReadAllText(file);
+        var data = await File.ReadAllTextAsync(file);
         try
         {
             testCase = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(data, _jsonSerializerOptions)!;
@@ -52,18 +55,26 @@ public class TestBackendExclusiveFunctions
         return testCase;
     }
 
-    private void RunTestCase(string testName, string folder)
+    private async Task RunTestCase(string testName, string folder)
     {
-        var test = LoadTestCase(testName, folder);
+        var test = await LoadTestCase(testName, folder);
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
+        var dataType = new DataType() { Id = "default", };
+        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType], };
+        var layout = new LayoutSetComponent(test.Layouts!.Values.ToList(), "layout", dataType);
+        var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(
-            new JsonDataModel(test.DataModel),
-            test.ComponentModel,
+            DynamicClassBuilder.DataAccessorFromJsonDocument(
+                test.Instance,
+                test.DataModel ?? JsonDocument.Parse("{}").RootElement
+            ),
+            componentModel,
             test.FrontEndSettings ?? new(),
-            test.Instance ?? new(),
-            test.GatewayAction
+            appMetadata,
+            test.GatewayAction,
+            test.ProfileSettings?.Language
         );
 
         if (test.ExpectsFailure is not null)
@@ -74,15 +85,15 @@ public class TestBackendExclusiveFunctions
             }
             else
             {
-                Action act = () =>
+                Func<Task> act = async () =>
                 {
-                    ExpressionEvaluator.EvaluateExpression(
+                    await ExpressionEvaluator.EvaluateExpression(
                         state,
                         test.Expression,
-                        test.Context?.ToContext(test.ComponentModel)!
+                        test.Context?.ToContext(componentModel, state)!
                     );
                 };
-                act.Should().Throw<Exception>().WithMessage(test.ExpectsFailure);
+                (await act.Should().ThrowAsync<Exception>()).WithMessage(test.ExpectsFailure);
             }
 
             return;
@@ -90,10 +101,10 @@ public class TestBackendExclusiveFunctions
 
         test.ParsingException.Should().BeNull("Loading of test failed");
 
-        var result = ExpressionEvaluator.EvaluateExpression(
+        var result = await ExpressionEvaluator.EvaluateExpression(
             state,
             test.Expression,
-            test.Context?.ToContext(test.ComponentModel)!
+            test.Context?.ToContext(componentModel, state)!
         );
 
         switch (test.Expects.ValueKind)

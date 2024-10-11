@@ -54,6 +54,7 @@ public class DataController : ControllerBase
     private readonly IFileValidationService _fileValidationService;
     private readonly IFeatureManager _featureManager;
     private readonly IPatchService _patchService;
+    private readonly ModelSerializationService _modelDeserializer;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -73,6 +74,7 @@ public class DataController : ControllerBase
     /// <param name="fileAnalyserService">Service used to analyse files uploaded.</param>
     /// <param name="fileValidationService">Service used to validate files uploaded.</param>
     /// <param name="patchService">Service for applying a json patch to a json serializable object</param>
+    /// <param name="modelDeserializer">Service for serializing and deserializing models</param>
     public DataController(
         ILogger<DataController> logger,
         IInstanceClient instanceClient,
@@ -86,7 +88,8 @@ public class DataController : ControllerBase
         IFileValidationService fileValidationService,
         IAppMetadata appMetadata,
         IFeatureManager featureManager,
-        IPatchService patchService
+        IPatchService patchService,
+        ModelSerializationService modelDeserializer
     )
     {
         _logger = logger;
@@ -103,6 +106,7 @@ public class DataController : ControllerBase
         _fileValidationService = fileValidationService;
         _featureManager = featureManager;
         _patchService = patchService;
+        _modelDeserializer = modelDeserializer;
     }
 
     /// <summary>
@@ -131,111 +135,87 @@ public class DataController : ControllerBase
 
         try
         {
-            Application application = await _appMetadata.GetApplicationMetadata();
-
-            DataType? dataTypeFromMetadata = application.DataTypes.First(e =>
-                e.Id.Equals(dataType, StringComparison.OrdinalIgnoreCase)
-            );
-
-            if (dataTypeFromMetadata == null)
+            var instanceResult = await GetInstanceDataOrError(org, app, instanceOwnerPartyId, instanceGuid, dataType);
+            if (!instanceResult.Success)
             {
-                return BadRequest(
-                    $"Element type {dataType} not allowed for instance {instanceOwnerPartyId}/{instanceGuid}."
-                );
+                return Problem(instanceResult.Error);
             }
 
-            if (!ValidContributorHelper.IsValidContributor(dataTypeFromMetadata, User.GetOrg(), User.GetOrgNumber()))
+            var (instance, dataTypeFromMetadata) = instanceResult.Ok;
+
+            if (DataElementAccessChecker.GetCreateProblem(instance, dataTypeFromMetadata, User) is { } accessProblem)
             {
-                return Forbid();
+                return Problem(accessProblem);
             }
 
-            bool appLogic = dataTypeFromMetadata.AppLogic?.ClassRef != null;
-
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
-            {
-                return NotFound($"Did not find instance {instance}");
-            }
-
-            if (!InstanceIsActive(instance))
-            {
-                return Conflict(
-                    $"Cannot upload data for archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
-            }
-
-            if (appLogic)
+            if (dataTypeFromMetadata.AppLogic?.ClassRef is not null)
             {
                 return await CreateAppModelData(org, app, instance, dataType);
             }
-            else
+            // else, handle the binary upload
+
+            (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
+                DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
+
+            if (!validationRestrictionSuccess)
             {
-                (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
-                    DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataTypeFromMetadata);
-                if (!validationRestrictionSuccess)
+                return BadRequest(await GetErrorDetails(errors));
+            }
+
+            StreamContent streamContent = Request.CreateContentStream();
+
+            using Stream fileStream = new MemoryStream();
+            await streamContent.CopyToAsync(fileStream);
+            if (fileStream.Length is 0)
+            {
+                const string errorMessage = "Invalid data provided. Error: The file is zero bytes.";
+                var error = new ValidationIssue
                 {
-                    return BadRequest(await GetErrorDetails(errors));
-                }
+                    Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                    Severity = ValidationIssueSeverity.Error,
+                    Description = errorMessage
+                };
+                _logger.LogError(errorMessage);
+                return BadRequest(await GetErrorDetails([error]));
+            }
 
-                StreamContent streamContent = Request.CreateContentStream();
+            bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
+            string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
 
-                using Stream fileStream = new MemoryStream();
-                await streamContent.CopyToAsync(fileStream);
-                if (fileStream.Length == 0)
-                {
-                    const string errorMessage = "Invalid data provided. Error: The file is zero bytes.";
-                    var error = new ValidationIssue
-                    {
-                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                        Severity = ValidationIssueSeverity.Error,
-                        Description = errorMessage
-                    };
-                    _logger.LogError(errorMessage);
-                    return BadRequest(await GetErrorDetails(new List<ValidationIssue> { error }));
-                }
+            IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>();
+            if (FileAnalysisEnabledForDataType(dataTypeFromMetadata))
+            {
+                fileAnalysisResults = await _fileAnalyserService.Analyse(dataTypeFromMetadata, fileStream, filename);
+            }
 
-                bool parseSuccess = Request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues);
-                string? filename = parseSuccess ? DataRestrictionValidation.GetFileNameFromHeader(headerValues) : null;
-
-                IEnumerable<FileAnalysisResult> fileAnalysisResults = new List<FileAnalysisResult>();
-                if (FileAnalysisEnabledForDataType(dataTypeFromMetadata))
-                {
-                    fileAnalysisResults = await _fileAnalyserService.Analyse(
-                        dataTypeFromMetadata,
-                        fileStream,
-                        filename
-                    );
-                }
-
-                bool fileValidationSuccess = true;
-                List<ValidationIssue> validationIssues = new();
-                if (FileValidationEnabledForDataType(dataTypeFromMetadata))
-                {
-                    (fileValidationSuccess, validationIssues) = await _fileValidationService.Validate(
-                        dataTypeFromMetadata,
-                        fileAnalysisResults
-                    );
-                }
-
-                if (!fileValidationSuccess)
-                {
-                    return BadRequest(await GetErrorDetails(validationIssues));
-                }
-
-                if (streamContent.Headers.ContentType is null)
-                {
-                    return StatusCode(500, "Content-Type not defined");
-                }
-
-                fileStream.Seek(0, SeekOrigin.Begin);
-                return await CreateBinaryData(
-                    instance,
-                    dataType,
-                    streamContent.Headers.ContentType.ToString(),
-                    filename,
-                    fileStream
+            var fileValidationSuccess = true;
+            List<ValidationIssue> validationIssues = [];
+            if (FileValidationEnabledForDataType(dataTypeFromMetadata))
+            {
+                (fileValidationSuccess, validationIssues) = await _fileValidationService.Validate(
+                    dataTypeFromMetadata,
+                    fileAnalysisResults
                 );
             }
+
+            if (!fileValidationSuccess)
+            {
+                return BadRequest(await GetErrorDetails(validationIssues));
+            }
+
+            if (streamContent.Headers.ContentType is null)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, "Content-Type not defined");
+            }
+
+            fileStream.Seek(0, SeekOrigin.Begin);
+            return await CreateBinaryData(
+                instance,
+                dataType,
+                streamContent.Headers.ContentType.ToString(),
+                filename,
+                fileStream
+            );
         }
         catch (PlatformHttpException e)
         {
@@ -248,10 +228,10 @@ public class DataController : ControllerBase
 
     /// <summary>
     /// File validation requires json object in response and is introduced in the
-    /// the methods above validating files. In order to be consistent for the return types
+    /// methods above validating files. In order to be consistent for the return types
     /// of this controller, old methods are updated to return json object in response.
     /// Since this is a breaking change, a feature flag is introduced to control the behaviour,
-    /// and the developer need to opt-in to the new behaviour. Json object are by default
+    /// and the developer need to opt in to the new behaviour. Json object are by default
     /// returned as part of file validation which is a new feature.
     /// </summary>
     private async Task<object> GetErrorDetails(List<ValidationIssue> errors)
@@ -263,13 +243,12 @@ public class DataController : ControllerBase
 
     private static bool FileAnalysisEnabledForDataType(DataType dataTypeFromMetadata)
     {
-        return dataTypeFromMetadata.EnabledFileAnalysers != null && dataTypeFromMetadata.EnabledFileAnalysers.Count > 0;
+        return dataTypeFromMetadata.EnabledFileAnalysers is { Count: > 0 };
     }
 
     private static bool FileValidationEnabledForDataType(DataType dataTypeFromMetadata)
     {
-        return dataTypeFromMetadata.EnabledFileValidators != null
-            && dataTypeFromMetadata.EnabledFileValidators.Count > 0;
+        return dataTypeFromMetadata.EnabledFileValidators is { Count: > 0 };
     }
 
     /// <summary>
@@ -297,30 +276,25 @@ public class DataController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
-            {
-                return NotFound($"Did not find instance {instance}");
-            }
-
-            DataElement? dataElement = instance.Data.First(m =>
-                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
+            var instanceResult = await GetInstanceDataOrError(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataElementGuid: dataGuid
             );
-
-            if (dataElement == null)
+            if (!instanceResult.Success)
             {
-                return NotFound("Did not find data element");
+                return Problem(instanceResult.Error);
+            }
+            var (instance, dataType, dataElement) = instanceResult.Ok;
+
+            if (DataElementAccessChecker.GetReaderProblem(instance, dataType, User) is { } accessProblem)
+            {
+                return Problem(accessProblem);
             }
 
-            DataType? dataType = await GetDataType(dataElement);
-
-            if (dataType is null)
-            {
-                string error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
-                _logger.LogError(error);
-                return BadRequest(error);
-            }
-            else if (dataType.AppLogic?.ClassRef is not null)
+            if (dataType.AppLogic?.ClassRef is not null)
             {
                 return await GetFormData(
                     org,
@@ -350,7 +324,7 @@ public class DataController : ControllerBase
     /// <summary>
     ///  Updates an existing data element with new content.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -374,43 +348,26 @@ public class DataController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            if (!InstanceIsActive(instance))
+            var instanceResult = await GetInstanceDataOrError(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+            if (!instanceResult.Success)
             {
-                return Conflict(
-                    $"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
+                return Problem(instanceResult.Error);
+            }
+            var (instance, dataType, dataElement) = instanceResult.Ok;
+
+            if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
+            {
+                return Problem(accessProblem);
             }
 
-            DataElement? dataElement = instance.Data.First(m =>
-                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-            );
-
-            if (dataElement == null)
+            if (dataType.AppLogic?.ClassRef is not null)
             {
-                return NotFound("Did not find data element");
-            }
-
-            DataType? dataType = await GetDataType(dataElement);
-
-            if (dataType is null)
-            {
-                _logger.LogError(
-                    "Could not determine if {dataType} requires app logic for application {org}/{app}",
-                    dataType,
-                    org,
-                    app
-                );
-                return BadRequest($"Could not determine if data type {dataType} requires application logic.");
-            }
-            else if (dataType.AppLogic?.ClassRef is not null)
-            {
-                return await PutFormData(org, app, instance, dataGuid, dataType, language);
+                return await PutFormData(instance, dataElement, dataType, language);
             }
 
             (bool validationRestrictionSuccess, List<ValidationIssue> errors) =
                 DataRestrictionValidation.CompliesWithDataRestrictions(Request, dataType);
+
             if (!validationRestrictionSuccess)
             {
                 return BadRequest(await GetErrorDetails(errors));
@@ -430,7 +387,7 @@ public class DataController : ControllerBase
     /// <summary>
     /// Updates an existing form data element with a patch of changes.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -443,6 +400,7 @@ public class DataController : ControllerBase
     [ProducesResponseType(typeof(DataPatchResponse), 200)]
     [ProducesResponseType(typeof(ProblemDetails), 409)]
     [ProducesResponseType(typeof(ProblemDetails), 422)]
+    [Obsolete("Use PatchFormDataMultiple instead")]
     public async Task<ActionResult<DataPatchResponse>> PatchFormData(
         [FromRoute] string org,
         [FromRoute] string app,
@@ -453,55 +411,99 @@ public class DataController : ControllerBase
         [FromQuery] string? language = null
     )
     {
+        // Validation valid request is performed in the PatchFormDataMultiple method
+        var request = new DataPatchRequestMultiple()
+        {
+            Patches = [new(dataGuid, dataPatchRequest.Patch)],
+            IgnoredValidators = dataPatchRequest.IgnoredValidators
+        };
+        var response = await PatchFormDataMultiple(org, app, instanceOwnerPartyId, instanceGuid, request, language);
+
+        if (response.Result is OkObjectResult { Value: DataPatchResponseMultiple newResponse })
+        {
+            // Map the new response to the old response
+            return Ok(
+                new DataPatchResponse()
+                {
+                    ValidationIssues = newResponse.ValidationIssues.ToDictionary(d => d.Source, d => d.Issues),
+                    NewDataModel = newResponse.NewDataModels.First(m => m.DataElementId == dataGuid).Data,
+                }
+            );
+        }
+
+        // Return the error object unchanged
+        return response.Result ?? throw new InvalidOperationException("Response is null");
+    }
+
+    /// <summary>
+    /// Updates an existing form data element with patches to multiple data elements.
+    /// </summary>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
+    /// <param name="app">application identifier which is unique within an organisation</param>
+    /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="instanceGuid">unique id to identify the instance</param>
+    /// <param name="dataPatchRequest">Container object for the <see cref="JsonPatch" /> and list of ignored validators</param>
+    /// <param name="language">The language selected by the user.</param>
+    /// <returns>A response object with the new full model and validation issues from all the groups that run</returns>
+    [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_WRITE)]
+    [HttpPatch("")]
+    [ProducesResponseType(typeof(DataPatchResponseMultiple), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 409)]
+    [ProducesResponseType(typeof(ProblemDetails), 422)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    public async Task<ActionResult<DataPatchResponseMultiple>> PatchFormDataMultiple(
+        [FromRoute] string org,
+        [FromRoute] string app,
+        [FromRoute] int instanceOwnerPartyId,
+        [FromRoute] Guid instanceGuid,
+        [FromBody] DataPatchRequestMultiple dataPatchRequest,
+        [FromQuery] string? language = null
+    )
+    {
         try
         {
-            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-
-            if (!InstanceIsActive(instance))
+            var instanceResult = await GetInstanceDataOrError(
+                org,
+                app,
+                instanceOwnerPartyId,
+                instanceGuid,
+                dataPatchRequest.Patches.Select(p => p.DataElementId)
+            );
+            if (!instanceResult.Success)
             {
-                return Conflict(
-                    $"Cannot update data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
+                return Problem(instanceResult.Error);
+            }
+            var (instance, dataTypes) = instanceResult.Ok;
+
+            // Verify that the data elements isn't restricted for the user
+            foreach (var dataType in dataTypes)
+            {
+                if (DataElementAccessChecker.GetUpdateProblem(instance, dataType, User) is { } accessProblem)
+                {
+                    return Problem(accessProblem);
+                }
             }
 
-            var dataElement = instance.Data.First(m => m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal));
-
-            if (dataElement == null)
-            {
-                return NotFound("Did not find data element");
-            }
-
-            var dataType = await GetDataType(dataElement);
-
-            if (dataType?.AppLogic?.ClassRef is null)
-            {
-                _logger.LogError(
-                    "Could not determine if {dataType} requires app logic for application {org}/{app}",
-                    dataType,
-                    org,
-                    app
-                );
-                return BadRequest($"Could not determine if data type {dataType?.Id} requires application logic.");
-            }
-
-            ServiceResult<DataPatchResult, DataPatchError> res = await _patchService.ApplyPatch(
+            ServiceResult<DataPatchResult, DataPatchError> res = await _patchService.ApplyPatches(
                 instance,
-                dataType,
-                dataElement,
-                dataPatchRequest.Patch,
+                dataPatchRequest.Patches.ToDictionary(i => i.DataElementId, i => i.Patch),
                 language,
                 dataPatchRequest.IgnoredValidators
             );
 
             if (res.Success)
             {
-                await UpdateDataValuesOnInstance(instance, dataType.Id, res.Ok.NewDataModel);
-                await UpdatePresentationTextsOnInstance(instance, dataType.Id, res.Ok.NewDataModel);
-
                 return Ok(
-                    new DataPatchResponse
+                    new DataPatchResponseMultiple()
                     {
-                        NewDataModel = res.Ok.NewDataModel,
+                        Instance = res.Ok.Instance,
+                        NewDataModels = res
+                            .Ok.UpdatedData.Select(d => new DataPatchResponseMultiple.DataModelPairResponse(
+                                d.Identifier.Guid,
+                                d.Data
+                            ))
+                            .ToList(),
                         ValidationIssues = res.Ok.ValidationIssues
                     }
                 );
@@ -513,7 +515,7 @@ public class DataController : ControllerBase
         {
             return HandlePlatformHttpException(
                 e,
-                $"Unable to update data element {dataGuid} for instance {instanceOwnerPartyId}/{instanceGuid}"
+                $"Unable to update data element {string.Join(", ", dataPatchRequest.Patches.Select(i => i.DataElementId))} for instance {instanceOwnerPartyId}/{instanceGuid}"
             );
         }
     }
@@ -521,7 +523,7 @@ public class DataController : ControllerBase
     /// <summary>
     ///  Delete a data element.
     /// </summary>
-    /// <param name="org">unique identfier of the organisation responsible for the app</param>
+    /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
     /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -539,41 +541,16 @@ public class DataController : ControllerBase
     {
         try
         {
-            Instance instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
-            if (instance == null)
+            var instanceResult = await GetInstanceDataOrError(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
+            if (!instanceResult.Success)
             {
-                return NotFound("Did not find instance");
+                return Problem(instanceResult.Error);
             }
+            var (instance, dataType, _) = instanceResult.Ok;
 
-            if (!InstanceIsActive(instance))
+            if (DataElementAccessChecker.GetDeleteProblem(instance, dataType, dataGuid, User) is { } accessProblem)
             {
-                return Conflict(
-                    $"Cannot delete data element of archived or deleted instance {instanceOwnerPartyId}/{instanceGuid}"
-                );
-            }
-
-            DataElement? dataElement = instance.Data.Find(m =>
-                m.Id.Equals(dataGuid.ToString(), StringComparison.Ordinal)
-            );
-
-            if (dataElement == null)
-            {
-                return NotFound("Did not find data element");
-            }
-
-            DataType? dataType = await GetDataType(dataElement);
-
-            if (dataType == null)
-            {
-                string errorMsg =
-                    $"Could not determine if {dataElement.DataType} requires app logic for application {org}/{app}";
-                _logger.LogError(errorMsg);
-                return BadRequest(errorMsg);
-            }
-            else if (dataType.AppLogic?.ClassRef is not null)
-            {
-                // trying deleting a form element
-                return BadRequest("Deleting form data is not possible at this moment.");
+                return Problem(accessProblem);
             }
 
             return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
@@ -595,12 +572,13 @@ public class DataController : ControllerBase
         {
             return StatusCode((int)phe.Response.StatusCode, phe.Message);
         }
-        else if (exception is ServiceException se)
+
+        if (exception is ServiceException se)
         {
             return StatusCode((int)se.StatusCode, se.Message);
         }
 
-        return StatusCode(500, $"{message}");
+        return StatusCode((int)HttpStatusCode.InternalServerError, $"{message}");
     }
 
     private async Task<ActionResult> CreateBinaryData(
@@ -624,7 +602,10 @@ public class DataController : ControllerBase
 
         if (Guid.Parse(dataElement.Id) == Guid.Empty)
         {
-            return StatusCode(500, $"Cannot store form attachment on instance {instanceOwnerPartyId}/{instanceGuid}");
+            return StatusCode(
+                (int)HttpStatusCode.InternalServerError,
+                $"Cannot store form attachment on instance {instanceOwnerPartyId}/{instanceGuid}"
+            );
         }
 
         SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
@@ -639,7 +620,7 @@ public class DataController : ControllerBase
 
         string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
 
-        if (Request.ContentType == null)
+        if (Request.ContentType is null)
         {
             appModel = _appModel.Create(classRef);
         }
@@ -662,7 +643,7 @@ public class DataController : ControllerBase
         await UpdatePresentationTextsOnInstance(instance, dataType, appModel);
         await UpdateDataValuesOnInstance(instance, dataType, appModel);
 
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        var instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
 
         ObjectUtils.InitializeAltinnRowId(appModel);
         ObjectUtils.PrepareModelForXmlStorage(appModel);
@@ -696,20 +677,18 @@ public class DataController : ControllerBase
     {
         Stream dataStream = await _dataClient.GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
-        if (dataStream != null)
+        if (dataStream is not null)
         {
             string? userOrgClaim = User.GetOrg();
-            if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+            if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
             {
                 await _instanceClient.UpdateReadStatus(instanceOwnerPartyId, instanceGuid, "read");
             }
 
             return File(dataStream, dataElement.ContentType, dataElement.Filename);
         }
-        else
-        {
-            return NotFound();
-        }
+
+        return NotFound();
     }
 
     private async Task<ActionResult> DeleteBinaryData(
@@ -733,24 +712,22 @@ public class DataController : ControllerBase
         {
             return Ok();
         }
-        else
-        {
-            return StatusCode(
-                500,
-                $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}"
-            );
-        }
+
+        return StatusCode(
+            (int)HttpStatusCode.InternalServerError,
+            $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}"
+        );
     }
 
     private async Task<DataType?> GetDataType(DataElement element)
     {
         Application application = await _appMetadata.GetApplicationMetadata();
-        return application?.DataTypes.Find(e => e.Id == element.DataType);
+        return application.DataTypes.Find(e => e.Id == element.DataType);
     }
 
     /// <summary>
     ///  Gets a data element (form data) from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
-    ///  If more there are more data elements of the same dataType only the first one is returned. In that case use the more spesific
+    ///  If more there are more data elements of the same dataType only the first one is returned. In that case use the more specific
     ///  GET method to fetch a particular data element.
     /// </summary>
     /// <returns>data element is returned in response body</returns>
@@ -777,7 +754,7 @@ public class DataController : ControllerBase
             dataGuid
         );
 
-        if (appModel == null)
+        if (appModel is null)
         {
             return BadRequest($"Did not find form data for data element {dataGuid}");
         }
@@ -788,7 +765,7 @@ public class DataController : ControllerBase
         foreach (var dataProcessor in _dataProcessors)
         {
             _logger.LogInformation(
-                "ProcessDataRead for {modelType} using {dataProcesor}",
+                "ProcessDataRead for {ModelType} using {DataProcessor}",
                 appModel.GetType().Name,
                 dataProcessor.GetType().Name
             );
@@ -815,7 +792,7 @@ public class DataController : ControllerBase
                     dataGuid
                 );
             }
-            catch (PlatformHttpException e) when (e.Response.StatusCode == HttpStatusCode.Forbidden)
+            catch (PlatformHttpException e) when (e.Response.StatusCode is HttpStatusCode.Forbidden)
             {
                 _logger.LogInformation("User does not have write access to the data element. Skipping update.");
             }
@@ -829,7 +806,7 @@ public class DataController : ControllerBase
 
         // This is likely not required as the instance is already read
         string? userOrgClaim = User.GetOrg();
-        if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
+        if (userOrgClaim is null || !org.Equals(userOrgClaim, StringComparison.OrdinalIgnoreCase))
         {
             await _instanceClient.UpdateReadStatus(instanceOwnerId, instanceGuid, "read");
         }
@@ -859,68 +836,79 @@ public class DataController : ControllerBase
     }
 
     private async Task<ActionResult> PutFormData(
-        string org,
-        string app,
         Instance instance,
-        Guid dataGuid,
+        DataElement dataElement,
         DataType dataType,
         string? language
     )
     {
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-
-        string classRef = dataType.AppLogic.ClassRef;
-        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-
-        ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
-        object? serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
-
-        if (!string.IsNullOrEmpty(deserializer.Error))
+        var deserializationResult = await _modelDeserializer.DeserializeSingleFromStream(
+            Request.Body,
+            Request.ContentType,
+            dataType
+        );
+        if (!deserializationResult.Success)
         {
-            return BadRequest(deserializer.Error);
+            return Problem(deserializationResult.Error);
         }
 
-        if (serviceModel == null)
-        {
-            return BadRequest("No data found in content");
-        }
+        var serviceModel = deserializationResult.Ok;
 
-        Dictionary<string, object?>? changedFields = await JsonHelper.ProcessDataWriteWithDiff(
+        var dataMutator = new CachedInstanceDataAccessor(
             instance,
-            dataGuid,
-            serviceModel,
-            language,
-            _dataProcessors,
-            _logger
+            _dataClient,
+            _instanceClient,
+            _appMetadata,
+            _modelDeserializer
         );
+        // Get the previous service model for dataProcessing to work
+        var oldServiceModel = await dataMutator.GetFormData(dataElement);
+        // Set the new service model so that dataAccessors see the new state
+        dataMutator.SetFormData(dataElement, serviceModel);
 
-        await UpdatePresentationTextsOnInstance(instance, dataType.Id, serviceModel);
-        await UpdateDataValuesOnInstance(instance, dataType.Id, serviceModel);
+        List<DataElementChange> changesFromRequest =
+        [
+            new()
+            {
+                DataElement = dataElement,
+                PreviousFormData = oldServiceModel,
+                CurrentFormData = serviceModel,
+            }
+        ];
 
-        ObjectUtils.InitializeAltinnRowId(serviceModel);
-        ObjectUtils.PrepareModelForXmlStorage(serviceModel);
-
-        // Save Formdata to database
-        DataElement updatedDataElement = await _dataClient.UpdateData(
-            serviceModel,
-            instanceGuid,
-            _appModel.GetModelType(classRef),
-            org,
-            app,
-            instanceOwnerPartyId,
-            dataGuid
+        // Run data processors keeping track of changes for diff return
+        var jsonBeforeDataProcessors = JsonSerializer.Serialize(serviceModel);
+        await _patchService.RunDataProcessors(
+            dataMutator,
+            changesFromRequest,
+            instance.Process.CurrentTask.ElementId,
+            language
         );
+        var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
 
-        SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
+        // Save changes
+        var changesAfterDataProcessors = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+        await dataMutator.UpdateInstanceData(changesAfterDataProcessors);
+        await dataMutator.SaveChanges(changesAfterDataProcessors);
 
-        string dataUrl = updatedDataElement.SelfLinks.Apps;
-        if (changedFields is not null)
+        //set self links
+        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
+        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+        SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
+        string dataUrl = dataElement.SelfLinks.Apps;
+
+        if (jsonBeforeDataProcessors != jsonAfterDataProcessors)
         {
-            CalculationResult calculationResult = new(updatedDataElement) { ChangedFields = changedFields };
-            return Ok(calculationResult);
+            // Return the changes caused by the data processors
+            var changedFields = JsonHelper.FindChangedFields(jsonBeforeDataProcessors, jsonAfterDataProcessors);
+            if (changedFields.Count > 0)
+            {
+                CalculationResult calculationResult = new(dataElement) { ChangedFields = changedFields };
+                return Ok(calculationResult);
+            }
         }
 
-        return Created(dataUrl, updatedDataElement);
+        return Created(dataUrl, dataElement);
     }
 
     private async Task UpdatePresentationTextsOnInstance(Instance instance, string dataType, object serviceModel)
@@ -963,32 +951,13 @@ public class DataController : ControllerBase
 
     private ActionResult HandlePlatformHttpException(PlatformHttpException e, string defaultMessage)
     {
-        if (e.Response.StatusCode == HttpStatusCode.Forbidden)
+        return e.Response.StatusCode switch
         {
-            return Forbid();
-        }
-        else if (e.Response.StatusCode == HttpStatusCode.NotFound)
-        {
-            return NotFound();
-        }
-        else if (e.Response.StatusCode == HttpStatusCode.Conflict)
-        {
-            return Conflict();
-        }
-        else
-        {
-            return ExceptionResponse(e, defaultMessage);
-        }
-    }
-
-    private static bool InstanceIsActive(Instance i)
-    {
-        if (i?.Status?.Archived != null || i?.Status?.SoftDeleted != null || i?.Status?.HardDeleted != null)
-        {
-            return false;
-        }
-
-        return true;
+            HttpStatusCode.Forbidden => Forbid(),
+            HttpStatusCode.NotFound => NotFound(),
+            HttpStatusCode.Conflict => Conflict(),
+            _ => ExceptionResponse(e, defaultMessage)
+        };
     }
 
     private ObjectResult Problem(DataPatchError error)
@@ -999,6 +968,7 @@ public class DataController : ControllerBase
             DataPatchErrorType.DeserializationFailed => (int)HttpStatusCode.UnprocessableContent,
             _ => (int)HttpStatusCode.InternalServerError
         };
+
         return StatusCode(
             code,
             new ProblemDetails()
@@ -1010,5 +980,183 @@ public class DataController : ControllerBase
                 Extensions = error.Extensions ?? new Dictionary<string, object?>(StringComparer.Ordinal)
             }
         );
+    }
+
+    private ObjectResult Problem(ProblemDetails error)
+    {
+        return StatusCode(error.Status ?? (int)HttpStatusCode.InternalServerError, error);
+    }
+
+    private async Task<
+        ServiceResult<(Instance instance, DataType dataType, DataElement dataElement), ProblemDetails>
+    > GetInstanceDataOrError(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataElementGuid)
+    {
+        try
+        {
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            if (instance is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Instance Not Found",
+                    Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.NotFound
+                };
+            }
+
+            var dataElement = instance.Data.FirstOrDefault(m =>
+                m.Id.Equals(dataElementGuid.ToString(), StringComparison.Ordinal)
+            );
+
+            if (dataElement is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Data Element Not Found",
+                    Detail =
+                        $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.BadRequest
+                };
+            }
+
+            var dataType = await GetDataType(dataElement);
+            if (dataType is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Data Type Not Found",
+                    Detail =
+                        $"""Could not find the specified data type: "{dataElement.DataType}" in applicationmetadata.json""",
+                    Status = (int)HttpStatusCode.BadRequest
+                };
+            }
+
+            return (instance, dataType, dataElement);
+        }
+        catch (PlatformHttpException e)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Instance Not Found",
+                Detail = e.Message,
+                Status = (int)e.Response.StatusCode
+            };
+        }
+    }
+
+    private async Task<ServiceResult<(Instance, IEnumerable<DataType>), ProblemDetails>> GetInstanceDataOrError(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        IEnumerable<Guid> dataElementGuids
+    )
+    {
+        try
+        {
+            var application = await _appMetadata.GetApplicationMetadata();
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            if (instance is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Instance Not Found",
+                    Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.NotFound
+                };
+            }
+
+            HashSet<DataType> dataTypes = [];
+
+            foreach (var dataElementGuid in dataElementGuids)
+            {
+                var dataElement = instance.Data.FirstOrDefault(m =>
+                    m.Id.Equals(dataElementGuid.ToString(), StringComparison.Ordinal)
+                );
+
+                if (dataElement is null)
+                {
+                    return new ProblemDetails()
+                    {
+                        Title = "Data Element Not Found",
+                        Detail =
+                            $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
+                        Status = (int)HttpStatusCode.NotFound
+                    };
+                }
+
+                var dataType = application.DataTypes.Find(e => e.Id == dataElement.DataType);
+                if (dataType is null)
+                {
+                    return new ProblemDetails()
+                    {
+                        Title = "Data Type Not Found",
+                        Detail =
+                            $"""Data element {dataElement.Id} requires data type "{dataElement.DataType}", but it was not found in applicationmetadata.json""",
+                        Status = (int)HttpStatusCode.InternalServerError
+                    };
+                }
+
+                dataTypes.Add(dataType);
+            }
+
+            return (instance, dataTypes);
+        }
+        catch (PlatformHttpException e)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Instance Not Found",
+                Detail = e.Message,
+                Status = (int)e.Response.StatusCode
+            };
+        }
+    }
+
+    private async Task<ServiceResult<(Instance instance, DataType dataType), ProblemDetails>> GetInstanceDataOrError(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        string dataTypeId
+    )
+    {
+        try
+        {
+            var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
+            if (instance is null)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Instance Not Found",
+                    Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
+                    Status = (int)HttpStatusCode.NotFound
+                };
+            }
+
+            var application = await _appMetadata.GetApplicationMetadata();
+            var dataType = application.DataTypes.Find(e => e.Id == dataTypeId);
+
+            if (dataType is null)
+            {
+                return new ProblemDetails
+                {
+                    Title = "Data Type Not Found",
+                    Detail = $"""Could not find the specified data type: "{dataTypeId}" in applicationmetadata.json""",
+                    Status = (int)HttpStatusCode.BadRequest
+                };
+            }
+
+            return (instance, dataType);
+        }
+        catch (PlatformHttpException e)
+        {
+            return new ProblemDetails()
+            {
+                Title = "Instance Not Found",
+                Detail = e.Message,
+                Status = (int)e.Response.StatusCode
+            };
+        }
     }
 }

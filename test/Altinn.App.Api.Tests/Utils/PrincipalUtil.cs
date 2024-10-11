@@ -6,14 +6,19 @@ namespace Altinn.App.Api.Tests.Utils;
 
 public static class PrincipalUtil
 {
-    public static string GetToken(int? userId, int? partyId, int authenticationLevel = 2)
+    public static string GetToken(int? userId, int? partyId, int authenticationLevel = 2, string? org = null)
     {
-        ClaimsPrincipal principal = GetUserPrincipal(userId, partyId, authenticationLevel);
+        ClaimsPrincipal principal = GetUserPrincipal(userId, partyId, authenticationLevel, org);
         string token = JwtTokenMock.GenerateToken(principal, new TimeSpan(1, 1, 1));
         return token;
     }
 
-    public static ClaimsPrincipal GetUserPrincipal(int? userId, int? partyId, int authenticationLevel = 2)
+    public static ClaimsPrincipal GetUserPrincipal(
+        int? userId,
+        int? partyId,
+        int authenticationLevel = 2,
+        string? org = null
+    )
     {
         List<Claim> claims = new List<Claim>();
         string issuer = "www.altinn.no";
@@ -29,6 +34,11 @@ public static class PrincipalUtil
             claims.Add(
                 new Claim(AltinnCoreClaimTypes.PartyID, partyId.Value.ToString(), ClaimValueTypes.Integer32, issuer)
             );
+        }
+
+        if (org is not null)
+        {
+            claims.Add(new Claim(AltinnCoreClaimTypes.Org, org, ClaimValueTypes.String, issuer));
         }
 
         claims.Add(new Claim(AltinnCoreClaimTypes.UserName, $"User{userId}", ClaimValueTypes.String, issuer));

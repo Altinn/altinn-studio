@@ -1,3 +1,4 @@
+using System.Collections;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
@@ -9,6 +10,8 @@ namespace Altinn.App.Core.Models.Expressions;
 /// </summary>
 public sealed class ComponentContext
 {
+    private readonly int? _rowLength;
+
     /// <summary>
     /// Constructor for ComponentContext
     /// </summary>
@@ -16,13 +19,15 @@ public sealed class ComponentContext
         BaseComponent? component,
         int[]? rowIndices,
         int? rowLength,
+        DataElementIdentifier dataElementIdentifier,
         IEnumerable<ComponentContext>? childContexts = null
     )
     {
+        DataElementIdentifier = dataElementIdentifier;
         Component = component;
         RowIndices = rowIndices;
-        RowLength = rowLength;
-        ChildContexts = childContexts ?? Enumerable.Empty<ComponentContext>();
+        _rowLength = rowLength;
+        ChildContexts = childContexts ?? [];
         foreach (var child in ChildContexts)
         {
             child.Parent = this;
@@ -35,24 +40,73 @@ public sealed class ComponentContext
     public BaseComponent? Component { get; }
 
     /// <summary>
-    /// The indicies for this context (in case the component is part of a repeating group)
+    /// The indexes for this context (in case the component is part of a repeating group)
     /// </summary>
     public int[]? RowIndices { get; }
 
-    /// <summary>
-    /// The number of rows in case the component is a repeating group
-    /// </summary>
-    public int? RowLength { get; }
+    private bool? _isHidden;
 
     /// <summary>
-    /// Whether or not the component is hidden
+    /// Memoized way to check if the component is hidden
     /// </summary>
-    public bool? IsHidden { get; set; }
+    public async Task<bool> IsHidden(LayoutEvaluatorState state)
+    {
+        if (_isHidden.HasValue)
+        {
+            return _isHidden.Value;
+        }
+        if (Parent is not null && await Parent.IsHidden(state))
+        {
+            _isHidden = true;
+            return _isHidden.Value;
+        }
+
+        _isHidden = await ExpressionEvaluator.EvaluateBooleanExpression(state, this, "hidden", false);
+        return _isHidden.Value;
+    }
+
+    private BitArray? _hiddenRows;
 
     /// <summary>
     /// Hidden rows for repeating group
     /// </summary>
-    public int[]? HiddenRows { get; set; }
+    public async Task<BitArray> GetHiddenRows(LayoutEvaluatorState state)
+    {
+        if (_hiddenRows is not null)
+        {
+            return _hiddenRows;
+        }
+        if (Component is not RepeatingGroupComponent)
+        {
+            throw new InvalidOperationException("HiddenRows can only be called on a repeating group");
+        }
+        if (_rowLength is null)
+        {
+            throw new InvalidOperationException("RowLength must be set to call HiddenRows on repeating group");
+        }
+
+        var hiddenRows = new BitArray(_rowLength.Value);
+        foreach (var index in Enumerable.Range(0, hiddenRows.Length))
+        {
+            var rowIndices = RowIndices?.Append(index).ToArray() ?? [index];
+            var childContexts = ChildContexts.Where(c => c.RowIndices?[RowIndices?.Length ?? 0] == index);
+            // Row contexts are not in the tree, so we need to create them here
+            var rowContext = new ComponentContext(
+                Component,
+                rowIndices,
+                rowLength: hiddenRows.Length,
+                dataElementIdentifier: DataElementIdentifier,
+                childContexts: childContexts
+            );
+            var rowHidden = await ExpressionEvaluator.EvaluateBooleanExpression(state, rowContext, "hiddenRow", false);
+
+            hiddenRows[index] = rowHidden;
+        }
+
+        // Set the hidden rows so that it does not need to be recomputed
+        _hiddenRows = hiddenRows;
+        return _hiddenRows;
+    }
 
     /// <summary>
     /// Contexts that logically belongs under this context (eg cell => row => group=> page)
@@ -62,12 +116,17 @@ public sealed class ComponentContext
     /// <summary>
     /// Parent context or null, if this is a root context, or a context created without setting parent
     /// </summary>
-    public ComponentContext? Parent { get; set; }
+    public ComponentContext? Parent { get; private set; }
+
+    /// <summary>
+    /// The Id of the default data element in this context
+    /// </summary>
+    public DataElementIdentifier DataElementIdentifier { get; }
 
     /// <summary>
     /// Get all children and children of children of this componentContext (not including this)
     /// </summary>
-    public IEnumerable<ComponentContext> Decendants
+    public IEnumerable<ComponentContext> Descendants
     {
         get
         {
@@ -81,24 +140,4 @@ public sealed class ComponentContext
             }
         }
     }
-
-    // /// <summary>
-    // /// Custom equals that makes sure the component has the same ID and page, and that the shortest RowIndicies match
-    // /// </summary>
-    // public override bool Equals(object? obj)
-    // {
-    //     return obj is ComponentContext context &&
-    //            context.Component.Id == Component.Id &&
-    //            context.Component.PageId == Component.PageId &&
-    //            (context.RowIndices?.Zip(RowIndices??Enumerable.Empty<int>()).All((i)=> i.First == i.Second) ?? true);
-    // }
-
-    // /// <summary>
-    // /// Implement to remove warning when overriding <see cref="Equals" />. It is likely never used as a Dictionary Key.
-    // /// </summary>
-    // public override int GetHashCode()
-    // {
-    //     // Ignore RowIndicies and ChildContexts
-    //     return HashCode.Combine(Component.PageId, Component.Id);
-    // }
 }

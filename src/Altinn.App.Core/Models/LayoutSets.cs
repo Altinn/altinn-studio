@@ -8,5 +8,5 @@ public class LayoutSets
     /// <summary>
     /// Sets
     /// </summary>
-    public List<LayoutSet>? Sets { get; set; }
+    public required List<LayoutSet> Sets { get; set; }
 }

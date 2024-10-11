@@ -1,8 +1,8 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Altinn.App.Api.Tests.Data;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Helpers.Serialization;
-using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models;
@@ -17,6 +17,7 @@ public class DataClientMock : IDataClient
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAppMetadata _appMetadata;
+    private readonly ModelSerializationService _modelSerialization;
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions =
         new() { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
@@ -25,6 +26,7 @@ public class DataClientMock : IDataClient
 
     public DataClientMock(
         IAppMetadata appMetadata,
+        ModelSerializationService modelSerialization,
         IHttpContextAccessor httpContextAccessor,
         ILogger<DataClientMock> logger
     )
@@ -32,6 +34,7 @@ public class DataClientMock : IDataClient
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
         _appMetadata = appMetadata;
+        _modelSerialization = modelSerialization;
     }
 
     public async Task<bool> DeleteBinaryData(
@@ -54,7 +57,6 @@ public class DataClientMock : IDataClient
         bool delay
     )
     {
-        await Task.CompletedTask;
         string dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
         if (delay)
@@ -78,7 +80,7 @@ public class DataClientMock : IDataClient
 
             dataElement.DeleteStatus = new() { IsHardDeleted = true, HardDeleted = DateTime.UtcNow };
 
-            WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+            await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
             return true;
         }
@@ -100,29 +102,38 @@ public class DataClientMock : IDataClient
         }
     }
 
-    public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
+    public async Task<Stream> GetBinaryData(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId
+    )
+    {
+        return new MemoryStream(await GetDataBytes(org, app, instanceOwnerPartyId, instanceGuid, dataId));
+    }
+
+    public async Task<byte[]> GetDataBytes(
+        string org,
+        string app,
+        int instanceOwnerPartyId,
+        Guid instanceGuid,
+        Guid dataId
+    )
     {
         string dataPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
 
-        Stream ms = new MemoryStream();
-        using (FileStream file = new(dataPath, FileMode.Open, FileAccess.Read))
-        {
-            file.CopyTo(ms);
-        }
-
-        return Task.FromResult(ms);
+        return await File.ReadAllBytesAsync(dataPath);
     }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public async Task<List<AttachmentList>> GetBinaryDataList(
         string org,
         string app,
         int instanceOwnerPartyId,
         Guid instanceGuid
     )
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
-        var dataElements = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
+        var dataElements = await GetDataElements(org, app, instanceOwnerPartyId, instanceGuid);
         List<AttachmentList> list = new();
         foreach (DataElement dataElement in dataElements)
         {
@@ -155,68 +166,80 @@ public class DataClientMock : IDataClient
         Guid dataId
     )
     {
+        var dataElementPath = TestData.GetDataElementPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
+        var dataElement = JsonSerializer.Deserialize<DataElement>(
+            await File.ReadAllBytesAsync(dataElementPath),
+            _jsonSerializerOptions
+        );
+        var application = await _appMetadata.GetApplicationMetadata();
+        var dataType =
+            application.DataTypes.Find(d => d.Id == dataElement?.DataType)
+            ?? throw new InvalidOperationException(
+                $"Data type {dataElement?.DataType} not found in applicationmetadata.json"
+            );
+
         string dataPath = TestData.GetDataBlobPath(org, app, instanceOwnerPartyId, instanceGuid, dataId);
-        using var sourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
+        var dataBytes = await File.ReadAllBytesAsync(dataPath);
 
-        ModelDeserializer deserializer = new(_logger, type);
-        var formData = await deserializer.DeserializeAsync(sourceStream, "application/xml");
+        var formData = _modelSerialization.DeserializeFromStorage(dataBytes, dataType);
 
-        // var formData = serializer.Deserialize(sourceStream);
         return formData ?? throw new Exception("Unable to deserialize form data");
     }
 
-    public async Task<DataElement> InsertFormData<T>(Instance instance, string dataType, T dataToSerialize, Type type)
+    public async Task<DataElement> InsertFormData<T>(
+        Instance instance,
+        string dataTypeString,
+        T dataToSerialize,
+        Type type
+    )
+        where T : notnull
     {
         Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
         string app = instance.AppId.Split("/")[1];
         string org = instance.Org;
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
 
-        return await InsertFormData(dataToSerialize, instanceGuid, type, org, app, instanceOwnerId, dataType);
+        return await InsertFormData(dataToSerialize, instanceGuid, type, org, app, instanceOwnerId, dataTypeString);
     }
 
-    public Task<DataElement> InsertFormData<T>(
+    public async Task<DataElement> InsertFormData<T>(
         T dataToSerialize,
         Guid instanceGuid,
         Type type,
         string org,
         string app,
         int instanceOwnerPartyId,
-        string dataType
+        string dataTypeString
     )
+        where T : notnull
     {
+        var application = await _appMetadata.GetApplicationMetadata();
+        var dataType =
+            application.DataTypes.Find(d => d.Id == dataTypeString)
+            ?? throw new InvalidOperationException($"Data type {dataTypeString} not found in applicationmetadata.json");
         Guid dataGuid = Guid.NewGuid();
         string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
+        var (serializedBytes, contentType) = _modelSerialization.SerializeToStorage(dataToSerialize, dataType);
 
         DataElement dataElement =
             new()
             {
                 Id = dataGuid.ToString(),
                 InstanceGuid = instanceGuid.ToString(),
-                DataType = dataType,
-                ContentType = "application/xml",
+                DataType = dataTypeString,
+                ContentType = contentType,
             };
 
-        try
-        {
-            Directory.CreateDirectory(dataPath + @"blob");
+        Directory.CreateDirectory(dataPath + @"blob");
 
-            using (Stream stream = File.Open(dataPath + @"blob/" + dataGuid, FileMode.Create, FileAccess.ReadWrite))
-            {
-                DataClient.Serialize(dataToSerialize, type, stream);
-            }
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, serializedBytes.ToArray());
 
-            WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
-        }
-        catch
-#pragma warning disable S108 // Nested blocks of code should not be left empty
-        { }
-#pragma warning restore S108 // Nested blocks of code should not be left empty
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
-        return Task.FromResult(dataElement);
+        return dataElement;
     }
 
-    public Task<DataElement> UpdateData<T>(
+    public async Task<DataElement> UpdateData<T>(
         T dataToSerialize,
         Guid instanceGuid,
         Type type,
@@ -225,37 +248,36 @@ public class DataClientMock : IDataClient
         int instanceOwnerPartyId,
         Guid dataGuid
     )
+        where T : notnull
     {
         ArgumentNullException.ThrowIfNull(dataToSerialize);
         string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
 
-        DataElement? dataElement = GetDataElements(org, app, instanceOwnerPartyId, instanceGuid)
-            .FirstOrDefault(de => de.Id == dataGuid.ToString());
-
-        if (dataElement == null)
-        {
-            throw new Exception(
+        DataElement dataElement =
+            await GetDataElement(org, app, instanceOwnerPartyId, instanceGuid, dataGuid.ToString())
+            ?? throw new Exception(
                 $"Unable to find data element for org: {org}/{app} party: {instanceOwnerPartyId} instance: {instanceGuid} data: {dataGuid}"
             );
-        }
+        ;
+        var application = await _appMetadata.GetApplicationMetadata();
+        var dataType =
+            application.DataTypes.Find(d => d.Id == dataElement.DataType)
+            ?? throw new InvalidOperationException(
+                $"Data type {dataElement.DataType} not found in applicationmetadata.json"
+            );
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        using (
-            Stream stream = File.Open(
-                dataPath + $@"blob{Path.DirectorySeparatorChar}" + dataGuid,
-                FileMode.Create,
-                FileAccess.ReadWrite
-            )
-        )
-        {
-            DataClient.Serialize(dataToSerialize, type, stream);
-        }
+        var (serializedBytes, contentType) = _modelSerialization.SerializeToStorage(dataToSerialize, dataType);
+
+        Debug.Assert(contentType == dataElement.ContentType, "Content type should not change when updating data");
+        await File.WriteAllBytesAsync(Path.Join(dataPath, "blob", dataGuid.ToString()), serializedBytes.ToArray());
 
         dataElement.LastChanged = DateTime.UtcNow;
-        WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+        dataElement.Size = serializedBytes.Length;
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
-        return Task.FromResult(dataElement);
+        return dataElement;
     }
 
     public async Task<DataElement> InsertBinaryData(
@@ -289,58 +311,38 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        long filesize;
+        using var stream = new MemoryStream();
+        await request.Body.CopyToAsync(stream);
 
-        using (
-            Stream streamToWriteTo = File.Open(
-                dataPath + @"blob/" + dataGuid,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.ReadWrite
-            )
-        )
-        {
-            await request.Body.CopyToAsync(streamToWriteTo);
-            streamToWriteTo.Flush();
-            filesize = streamToWriteTo.Length;
-            streamToWriteTo.Close();
-        }
+        var fileData = stream.ToArray();
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
 
-        dataElement.Size = filesize;
+        dataElement.Size = fileData.Length;
 
-        WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerPartyId);
 
         return dataElement;
     }
 
-    public async Task<DataElement> InsertBinaryData(
-        string instanceId,
-        string dataType,
-        string contentType,
-        string filename,
+    public async Task<DataElement> UpdateBinaryData(
+        InstanceIdentifier instanceIdentifier,
+        string? contentType,
+        string? filename,
+        Guid dataGuid,
         Stream stream
     )
     {
         Application application = await _appMetadata.GetApplicationMetadata();
-        var instanceIdParts = instanceId.Split("/");
-
-        Guid dataGuid = Guid.NewGuid();
 
         string org = application.Org;
         string app = application.Id.Split("/")[1];
-        int instanceOwnerId = int.Parse(instanceIdParts[0]);
-        Guid instanceGuid = Guid.Parse(instanceIdParts[1]);
 
-        string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceGuid);
-
-        DataElement dataElement =
-            new()
-            {
-                Id = dataGuid.ToString(),
-                InstanceGuid = instanceGuid.ToString(),
-                DataType = dataType,
-                ContentType = contentType,
-            };
+        string dataPath = TestData.GetDataDirectory(
+            org,
+            app,
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid
+        );
 
         if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
         {
@@ -351,38 +353,25 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        long filesize;
+        using var memoryStream = new MemoryStream();
+        stream.Seek(0, SeekOrigin.Begin);
+        await stream.CopyToAsync(memoryStream);
 
-        using (
-            Stream streamToWriteTo = File.Open(
-                dataPath + @"blob/" + dataGuid,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.ReadWrite
-            )
-        )
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            await stream.CopyToAsync(streamToWriteTo);
-            streamToWriteTo.Flush();
-            filesize = streamToWriteTo.Length;
-        }
+        var fileData = memoryStream.ToArray();
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
 
-        dataElement.Size = filesize;
-        WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
+        var dataElement = await GetDataElement(
+            org,
+            app,
+            instanceIdentifier.InstanceOwnerPartyId,
+            instanceIdentifier.InstanceGuid,
+            dataGuid.ToString()
+        );
+
+        dataElement.Size = fileData.Length;
+        await WriteDataElementToFile(dataElement, org, app, instanceIdentifier.InstanceOwnerPartyId);
 
         return dataElement;
-    }
-
-    public Task<DataElement> UpdateBinaryData(
-        InstanceIdentifier instanceIdentifier,
-        string? contentType,
-        string filename,
-        Guid dataGuid,
-        Stream stream
-    )
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<DataElement> InsertBinaryData(
@@ -424,25 +413,16 @@ public class DataClientMock : IDataClient
 
         Directory.CreateDirectory(dataPath + @"blob");
 
-        long filesize;
+        using var memoryStream = new MemoryStream();
+        stream.Seek(0, SeekOrigin.Begin);
+        await stream.CopyToAsync(memoryStream);
 
-        using (
-            Stream streamToWriteTo = File.Open(
-                dataPath + @"blob/" + dataGuid,
-                FileMode.OpenOrCreate,
-                FileAccess.ReadWrite,
-                FileShare.ReadWrite
-            )
-        )
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            await stream.CopyToAsync(streamToWriteTo);
-            streamToWriteTo.Flush();
-            filesize = streamToWriteTo.Length;
-        }
+        var fileData = memoryStream.ToArray();
+        await File.WriteAllBytesAsync(dataPath + @"blob/" + dataGuid, fileData);
 
-        dataElement.Size = filesize;
-        WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
+        dataElement.Size = fileData.Length;
+
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
 
         return dataElement;
     }
@@ -459,60 +439,54 @@ public class DataClientMock : IDataClient
         throw new NotImplementedException();
     }
 
-    public Task<DataElement> Update(Instance instance, DataElement dataElement)
+    public async Task<DataElement> Update(Instance instance, DataElement dataElement)
     {
         string org = instance.Org;
         string app = instance.AppId.Split("/")[1];
         int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
 
-        WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
+        await WriteDataElementToFile(dataElement, org, app, instanceOwnerId);
 
-        return Task.FromResult(dataElement);
+        return dataElement;
     }
 
-    public Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public async Task<DataElement> LockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         // 🤬The signature does not take org/app,
         // but our test data is organized by org/app.
         (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
-        List<DataElement> dataElement = GetDataElements(
+        DataElement element = await GetDataElement(
             org,
             app,
             instanceIdentifier.InstanceOwnerPartyId,
-            instanceIdentifier.InstanceGuid
+            instanceIdentifier.InstanceGuid,
+            dataGuid.ToString()
         );
-        DataElement? element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
-        if (element is null)
-        {
-            throw new Exception("Data element not found.");
-        }
         element.Locked = true;
-        WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
-        return Task.FromResult(element);
+        await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
+        return element;
     }
 
-    public Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
+    public async Task<DataElement> UnlockDataElement(InstanceIdentifier instanceIdentifier, Guid dataGuid)
     {
         // 🤬The signature does not take org/app,
         // but our test data is organized by org/app.
         (string org, string app) = TestData.GetInstanceOrgApp(instanceIdentifier);
-        List<DataElement> dataElement = GetDataElements(
+        DataElement element = await GetDataElement(
             org,
             app,
             instanceIdentifier.InstanceOwnerPartyId,
-            instanceIdentifier.InstanceGuid
+            instanceIdentifier.InstanceGuid,
+            dataGuid.ToString()
         );
-        DataElement? element = dataElement.FirstOrDefault(d => d.Id == dataGuid.ToString());
-        if (element is null)
-        {
-            throw new Exception("Data element not found.");
-        }
+        ;
+
         element.Locked = false;
-        WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
-        return Task.FromResult(element);
+        await WriteDataElementToFile(element, org, app, instanceIdentifier.InstanceOwnerPartyId);
+        return element;
     }
 
-    private static void WriteDataElementToFile(
+    private static async Task WriteDataElementToFile(
         DataElement dataElement,
         string org,
         string app,
@@ -527,15 +501,11 @@ public class DataClientMock : IDataClient
             Guid.Parse(dataElement.Id)
         );
 
-        string jsonData = JsonSerializer.Serialize(dataElement, _jsonSerializerOptions);
-
-        using StreamWriter sw = new(dataElementPath);
-
-        sw.Write(jsonData.ToString());
-        sw.Close();
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(dataElement, _jsonSerializerOptions);
+        await File.WriteAllBytesAsync(dataElementPath, jsonBytes);
     }
 
-    private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+    private async Task<List<DataElement>> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
     {
         string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
         List<DataElement> dataElements = new();
@@ -549,7 +519,7 @@ public class DataClientMock : IDataClient
 
         foreach (string file in files)
         {
-            string content = File.ReadAllText(Path.Combine(path, file));
+            string content = await File.ReadAllTextAsync(Path.Combine(path, file));
             DataElement? dataElement = JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions);
 
             if (dataElement != null)
@@ -567,5 +537,19 @@ public class DataClientMock : IDataClient
         }
 
         return dataElements;
+    }
+
+    private async Task<DataElement> GetDataElement(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceId,
+        string dataElementGuid
+    )
+    {
+        string path = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceId);
+        string content = await File.ReadAllTextAsync(Path.Combine(path, dataElementGuid + ".json"));
+        return JsonSerializer.Deserialize<DataElement>(content, _jsonSerializerOptions)
+            ?? throw new JsonException("Returned null when deserializing data element");
     }
 }

@@ -81,7 +81,7 @@ public class PersonClient : IPersonClient
         request.Headers.Add("Authorization", "Bearer " + _userTokenProvider.GetUserToken());
     }
 
-    private async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken ct)
+    private static async Task<Person?> ReadResponse(HttpResponseMessage response, CancellationToken ct)
     {
         if (response.StatusCode == HttpStatusCode.OK)
         {

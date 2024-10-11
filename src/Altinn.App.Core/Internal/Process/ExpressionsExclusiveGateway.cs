@@ -1,10 +1,7 @@
-using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
@@ -25,38 +22,23 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptionsCamelCase =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private readonly ILayoutEvaluatorStateInitializer _layoutStateInit;
 
-    private readonly LayoutEvaluatorStateInitializer _layoutStateInit;
     private readonly IAppResources _resources;
-    private readonly IAppMetadata _appMetadata;
-    private readonly IDataClient _dataClient;
-    private readonly IAppModel _appModel;
 
     /// <summary>
     /// Constructor for <see cref="ExpressionsExclusiveGateway" />
     /// </summary>
-    /// <param name="layoutEvaluatorStateInitializer">Expressions state initalizer used to create context for expression evaluation</param>
-    /// <param name="resources">Service for fetching app resources</param>
-    /// <param name="appModel">Service for fetching app model</param>
-    /// <param name="appMetadata">Service for fetching app metadata</param>
-    /// <param name="dataClient">Service for interacting with Platform Storage</param>
     public ExpressionsExclusiveGateway(
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
-        IAppResources resources,
-        IAppModel appModel,
-        IAppMetadata appMetadata,
-        IDataClient dataClient
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        IAppResources resources
     )
     {
         _layoutStateInit = layoutEvaluatorStateInitializer;
         _resources = resources;
-        _appMetadata = appMetadata;
-        _dataClient = dataClient;
-        _appModel = appModel;
     }
 
     /// <inheritdoc />
@@ -66,65 +48,60 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
     public async Task<List<SequenceFlow>> FilterAsync(
         List<SequenceFlow> outgoingFlows,
         Instance instance,
+        IInstanceDataAccessor dataAccessor,
         ProcessGatewayInformation processGatewayInformation
     )
     {
-        var state = await GetLayoutEvaluatorState(
-            instance,
+        var state = await _layoutStateInit.Init(
+            dataAccessor,
+            taskId: null, // don't load layout for task
             processGatewayInformation.Action,
-            processGatewayInformation.DataTypeId
+            language: null
         );
 
-        return outgoingFlows.Where(outgoingFlow => EvaluateSequenceFlow(state, outgoingFlow)).ToList();
-    }
-
-    private async Task<LayoutEvaluatorState> GetLayoutEvaluatorState(
-        Instance instance,
-        string? action,
-        string? dataTypeId
-    )
-    {
-        var layoutSet = GetLayoutSet(instance);
-        var (checkedDataTypeId, dataType) = await GetDataType(instance, layoutSet, dataTypeId);
-        object data = new object();
-        if (checkedDataTypeId != null && dataType != null)
+        var flows = new List<SequenceFlow>();
+        foreach (var outgoingFlow in outgoingFlows)
         {
-            InstanceIdentifier instanceIdentifier = new InstanceIdentifier(instance);
-            var dataGuid = GetDataId(instance, checkedDataTypeId);
-            Type dataElementType = dataType;
-            if (dataGuid != null)
+            if (await EvaluateSequenceFlow(instance, state, outgoingFlow, processGatewayInformation))
             {
-                data = await _dataClient.GetFormData(
-                    instanceIdentifier.InstanceGuid,
-                    dataElementType,
-                    instance.Org,
-                    instance.AppId.Split("/")[1],
-                    int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture),
-                    dataGuid.Value
-                );
+                flows.Add(outgoingFlow);
             }
         }
 
-        var state = await _layoutStateInit.Init(instance, data, layoutSetId: layoutSet?.Id, gatewayAction: action);
-        return state;
+        return flows;
     }
 
-    private static bool EvaluateSequenceFlow(LayoutEvaluatorState state, SequenceFlow sequenceFlow)
+    private async Task<bool> EvaluateSequenceFlow(
+        Instance instance,
+        LayoutEvaluatorState state,
+        SequenceFlow sequenceFlow,
+        ProcessGatewayInformation processGatewayInformation
+    )
     {
-        if (sequenceFlow.ConditionExpression != null)
+        if (sequenceFlow.ConditionExpression is not null)
         {
-            var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
-            // If there is no component context in the state, evaluate the expression once without a component context
-            var stateComponentContexts = state.GetComponentContexts().Any()
-                ? state.GetComponentContexts().ToList()
-                : [null];
-            foreach (ComponentContext? componentContext in stateComponentContexts)
+            var dataTypeId = processGatewayInformation.DataTypeId;
+            if (dataTypeId is null)
             {
-                var result = ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
-                if (result is bool boolResult && boolResult)
-                {
-                    return true;
-                }
+                // TODO: getting the data type from layout is kind of sketchy, because it depends on the previous task
+                //       and in a future version we should probably require <altinn:connectedDataTypeId>
+                var layoutSet = _resources.GetLayoutSetForTask(instance.Process.CurrentTask.ElementId);
+                dataTypeId = layoutSet?.DataType;
+            }
+            var expression = GetExpressionFromCondition(sequenceFlow.ConditionExpression);
+            DataElementIdentifier dataElement =
+                instance.Data.Find(d => d.DataType == dataTypeId) ?? new DataElementIdentifier();
+
+            var componentContext = new ComponentContext(
+                component: null,
+                rowIndices: null,
+                rowLength: null,
+                dataElement
+            );
+            var result = await ExpressionEvaluator.EvaluateExpression(state, expression, componentContext);
+            if (result is true)
+            {
+                return true;
             }
         }
         else
@@ -139,71 +116,20 @@ public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
     {
         Utf8JsonReader reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(condition));
         reader.Read();
-        var expressionFromCondition = ExpressionConverter.ReadNotNull(ref reader, _jsonSerializerOptions);
+        var expressionFromCondition = ExpressionConverter.ReadStatic(ref reader, _jsonSerializerOptions);
         return expressionFromCondition;
     }
 
-    private LayoutSet? GetLayoutSet(Instance instance)
-    {
-        string taskId = instance.Process.CurrentTask.ElementId;
-
-        string layoutSetsString = _resources.GetLayoutSets();
-        LayoutSet? layoutSet = null;
-        if (!string.IsNullOrEmpty(layoutSetsString))
-        {
-            LayoutSets? layoutSets = JsonSerializer.Deserialize<LayoutSets>(
-                layoutSetsString,
-                _jsonSerializerOptionsCamelCase
-            );
-            layoutSet = layoutSets?.Sets?.Find(t => t.Tasks.Contains(taskId));
-        }
-
-        return layoutSet;
-    }
-
-    //TODO: Find a better home for this method
-    private async Task<(string? DataTypeId, Type? DataTypeClassType)> GetDataType(
+    /// <summary>
+    /// Legacy method kept for backwards compatibility
+    /// </summary>
+    Task<List<SequenceFlow>> IProcessExclusiveGateway.FilterAsync(
+        List<SequenceFlow> outgoingFlows,
         Instance instance,
-        LayoutSet? layoutSet,
-        string? dataTypeId
+        ProcessGatewayInformation processGatewayInformation
     )
     {
-        DataType? dataType;
-        if (dataTypeId != null)
-        {
-            dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.Find(d =>
-                d.Id == dataTypeId && d.AppLogic != null
-            );
-        }
-        else if (layoutSet != null)
-        {
-            dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.Find(d =>
-                d.Id == layoutSet.DataType && d.AppLogic != null
-            );
-        }
-        else
-        {
-            dataType = (await _appMetadata.GetApplicationMetadata()).DataTypes.Find(d =>
-                d.TaskId == instance.Process.CurrentTask.ElementId && d.AppLogic != null
-            );
-        }
-
-        if (dataType != null)
-        {
-            return (dataType.Id, _appModel.GetModelType(dataType.AppLogic.ClassRef));
-        }
-
-        return (null, null);
-    }
-
-    private static Guid? GetDataId(Instance instance, string dataType)
-    {
-        string? dataId = instance.Data.Find(d => d.DataType == dataType)?.Id;
-        if (dataId != null)
-        {
-            return new Guid(dataId);
-        }
-
-        return null;
+        //TODO: Remove when obsolete method is removed from interface in v9
+        throw new NotImplementedException();
     }
 }

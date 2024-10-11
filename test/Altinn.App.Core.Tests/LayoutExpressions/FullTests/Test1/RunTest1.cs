@@ -1,19 +1,21 @@
 #nullable disable
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests.Test1;
 
 public class RunTest1
 {
-    [Fact]
-    public async Task ValidateDataModel()
-    {
-        var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel(), "Test1");
-        var errors = state.GetModelErrors();
-        errors.Should().BeEmpty();
-    }
+    // Functionality for validation data model references has been removed, but might be reintroduced in the future
+    // [Fact]
+    // public async Task ValidateDataModel()
+    // {
+    //     var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel(), "Test1");
+    //     var errors = state.GetModelErrors();
+    //     errors.Should().BeEmpty();
+    // }
 
     [Fact]
     public async Task DoNotRemoveAnyData_WhenPageExpressionIsFalse()
@@ -28,7 +30,7 @@ public class RunTest1
             },
             "Test1"
         );
-        var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
         hidden.Should().BeEmpty();
     }
 
@@ -45,8 +47,23 @@ public class RunTest1
             },
             "Test1"
         );
-        var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
-        hidden.Should().BeEquivalentTo(["some.data.binding2"]);
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                [
+                    new DataReference()
+                    {
+                        Field = "some.data.binding3",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    },
+                    new DataReference()
+                    {
+                        Field = "some.data.binding2",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    }
+                ]
+            );
     }
 
     [Fact]
@@ -62,7 +79,7 @@ public class RunTest1
             },
             "Test1"
         );
-        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state, dataElementId: "dummy");
+        var validationIssues = await LayoutEvaluator.RunLayoutValidationsForRequired(state);
         validationIssues.Should().BeEmpty();
     }
 
@@ -79,7 +96,7 @@ public class RunTest1
             },
             "Test1"
         );
-        var validationIssues = LayoutEvaluator.RunLayoutValidationsForRequired(state, dataElementId: "dummy");
+        var validationIssues = await LayoutEvaluator.RunLayoutValidationsForRequired(state);
         validationIssues
             .Should()
             .BeEquivalentTo(new object[] { new { Code = "required", Field = "some.data.binding3" } });

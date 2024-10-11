@@ -11,7 +11,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// Includes <see cref="DataModelBindings" /> that will be initialized to an empty dictionary
 /// for components that don't have them.
 /// </remarks>
-public class BaseComponent
+public record BaseComponent
 {
     /// <summary>
     /// Constructor for <see cref="BaseComponent" />
@@ -19,16 +19,16 @@ public class BaseComponent
     public BaseComponent(
         string id,
         string type,
-        IReadOnlyDictionary<string, string>? dataModelBindings,
-        Expression? hidden,
-        Expression? required,
-        Expression? readOnly,
+        IReadOnlyDictionary<string, ModelBinding>? dataModelBindings,
+        Expression hidden,
+        Expression required,
+        Expression readOnly,
         IReadOnlyDictionary<string, string>? additionalProperties
     )
     {
         Id = id;
         Type = type;
-        DataModelBindings = dataModelBindings ?? ImmutableDictionary<string, string>.Empty;
+        DataModelBindings = dataModelBindings ?? ImmutableDictionary<string, ModelBinding>.Empty;
         Hidden = hidden;
         Required = required;
         ReadOnly = readOnly;
@@ -43,14 +43,15 @@ public class BaseComponent
     /// <summary>
     /// Get the page for the component
     /// </summary>
-    public string PageId
-    {
-        get
-        {
-            //Get the Id of the first component without a parent.
-            return Parent?.PageId ?? Id;
-        }
-    }
+    public virtual string PageId =>
+        Parent?.PageId ?? throw new InvalidOperationException("Component is not part of a page");
+
+    /// <summary>
+    /// Get the layout
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    public virtual string LayoutId =>
+        Parent?.LayoutId ?? throw new InvalidOperationException("Component is not part of a layout");
 
     /// <summary>
     /// Component type as written in the json file
@@ -60,22 +61,22 @@ public class BaseComponent
     /// <summary>
     /// Layout Expression that can be evaluated to see if component should be hidden
     /// </summary>
-    public Expression? Hidden { get; }
+    public Expression Hidden { get; }
 
     /// <summary>
     /// Layout Expression that can be evaluated to see if component should be required
     /// </summary>
-    public Expression? Required { get; }
+    public Expression Required { get; }
 
     /// <summary>
     /// Layout Expression that can be evaluated to see if component should be read only
     /// </summary>
-    public Expression? ReadOnly { get; }
+    public Expression ReadOnly { get; }
 
     /// <summary>
     /// Data model bindings for the component or group
     /// </summary>
-    public IReadOnlyDictionary<string, string> DataModelBindings { get; }
+    public IReadOnlyDictionary<string, ModelBinding> DataModelBindings { get; }
 
     /// <summary>
     /// The group or page that this component is part of. NULL for page components

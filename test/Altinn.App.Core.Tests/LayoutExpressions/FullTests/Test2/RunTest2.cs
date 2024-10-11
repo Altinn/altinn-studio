@@ -1,20 +1,21 @@
-#nullable disable
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models.Layout;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.LayoutExpressions.FullTests.Test2;
 
 public class RunTest2
 {
-    [Fact]
-    public async Task ValidateDataModel()
-    {
-        var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel(), "Test2");
-        var errors = state.GetModelErrors();
-        errors.Should().BeEmpty();
-    }
+    // Functionality for validation data model references has been removed, but might be reintroduced in the future
+    // [Fact]
+    // public async Task ValidateDataModel()
+    // {
+    //     var state = await LayoutTestUtils.GetLayoutModelTools(new DataModel(), "Test2");
+    //     var errors = state.GetModelErrors();
+    //     errors.Should().BeEmpty();
+    // }
 
     [Fact]
     public async Task RemoveWholeGroup()
@@ -42,13 +43,44 @@ public class RunTest2
             }
         };
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "Test2");
-        var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
         // Should try to remove "some.data[0].binding2", because it is not nullable int and the parent object exists
         hidden
             .Should()
             .BeEquivalentTo(
-                new List<string> { "some.data[0].binding2", "some.data[1].binding", "some.data[1].binding2" }
+                [
+                    new DataReference
+                    {
+                        Field = "some.data[0].binding",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    },
+                    new DataReference()
+                    {
+                        Field = "some.data[0].binding2",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    },
+                    new DataReference
+                    {
+                        Field = "some.data[0].binding3",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    },
+                    new DataReference
+                    {
+                        Field = "some.data[1].binding",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    },
+                    new DataReference
+                    {
+                        Field = "some.data[1].binding2",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    },
+                    new DataReference
+                    {
+                        Field = "some.data[1].binding3",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    }
+                ]
             );
 
         // Verify before removing data
@@ -56,7 +88,7 @@ public class RunTest2
         data.Some.Data[0].Binding2.Should().Be(0); // binding is not nullable, but will be reset to zero
         data.Some.Data[1].Binding.Should().Be("binding");
         data.Some.Data[1].Binding2.Should().Be(2);
-        LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.SetToNull);
+        await LayoutEvaluator.RemoveHiddenData(state, RowRemovalOption.DeleteRow);
 
         // Verify data was removed
         data.Some.Data[0].Binding.Should().BeNull();
@@ -83,35 +115,45 @@ public class RunTest2
             },
             "Test2"
         );
-        var hidden = LayoutEvaluator.GetHiddenFieldsForRemoval(state);
+        var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
 
-        hidden.Should().BeEquivalentTo(new List<string> { "some.data[1].binding2" });
+        hidden
+            .Should()
+            .BeEquivalentTo(
+                [
+                    new DataReference()
+                    {
+                        Field = "some.data[1].binding2",
+                        DataElementIdentifier = state.GetDefaultDataElementId()
+                    }
+                ]
+            );
     }
 }
 
 public class DataModel
 {
     [JsonPropertyName("some")]
-    public Some Some { get; set; }
+    public Some? Some { get; set; }
 }
 
 public class Some
 {
     [JsonPropertyName("notRepeating")]
-    public string NotRepeating { get; set; }
+    public string? NotRepeating { get; set; }
 
     [JsonPropertyName("data")]
-    public List<Data> Data { get; set; }
+    public List<Data>? Data { get; set; }
 }
 
 public class Data
 {
     [JsonPropertyName("binding")]
-    public string Binding { get; set; }
+    public string? Binding { get; set; }
 
     [JsonPropertyName("binding2")]
     public int Binding2 { get; set; }
 
     [JsonPropertyName("binding3")]
-    public string Binding3 { get; set; }
+    public string? Binding3 { get; set; }
 }

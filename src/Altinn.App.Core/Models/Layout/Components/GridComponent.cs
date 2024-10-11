@@ -7,7 +7,7 @@ namespace Altinn.App.Core.Models.Layout.Components;
 /// <summary>
 /// Component specialisation for repeating groups with maxCount > 1
 /// </summary>
-public class GridComponent : GroupComponent
+public record GridComponent : GroupComponent
 {
     /// <summary>
     /// Constructor for RepeatingGroupComponent
@@ -15,12 +15,12 @@ public class GridComponent : GroupComponent
     public GridComponent(
         string id,
         string type,
-        IReadOnlyDictionary<string, string>? dataModelBindings,
-        IEnumerable<BaseComponent> children,
-        IEnumerable<string>? childIDs,
-        Expression? hidden,
-        Expression? required,
-        Expression? readOnly,
+        IReadOnlyDictionary<string, ModelBinding>? dataModelBindings,
+        IReadOnlyCollection<BaseComponent> children,
+        IReadOnlyCollection<string>? childIDs,
+        Expression hidden,
+        Expression required,
+        Expression readOnly,
         IReadOnlyDictionary<string, string>? additionalProperties
     )
         : base(id, type, dataModelBindings, children, childIDs, hidden, required, readOnly, additionalProperties) { }
@@ -29,7 +29,7 @@ public class GridComponent : GroupComponent
 /// <summary>
 /// Class for parsing a Grid component's rows and cells and extracting the child component IDs
 /// </summary>
-public class GridConfig
+public record GridConfig
 {
     /// <summary>
     /// Reads the Grid component's rows and returns the child component IDs
@@ -53,7 +53,7 @@ public class GridConfig
     /// <summary>
     /// Defines a row in a grid
     /// </summary>
-    public class GridRow
+    public record GridRow
     {
         /// <summary>
         /// Cells in the row
@@ -64,7 +64,7 @@ public class GridConfig
         /// <summary>
         /// Defines a cell in a grid
         /// </summary>
-        public class GridCell
+        public record GridCell
         {
             /// <summary>
             /// The component ID of the cell

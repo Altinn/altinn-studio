@@ -62,6 +62,44 @@
             "enabledFileValidators": [
                 "mimeTypeValidator"
             ]
+        },
+        {
+            "id": "userInteractionUnspecified",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
+            },
+            "taskId": "Task_1",
+            "AllowedKeysForUserDefinedMetadata": [
+                "TheKey"
+            ]
+        },
+        {
+            "id": "disallowUserCreate",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
+                "disallowUserCreate": true
+            },
+            "taskId": "Task_1"
+        },
+        {
+            "id": "disallowUserDelete",
+            "allowedContentTypes": [
+                "application/xml"
+            ],
+            "maxCount": 10,
+            "appLogic": {
+                "ClassRef": "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
+                "diallowUserDelete": true
+            },
+            "taskId": "Task_1"
         }
     ]
 }

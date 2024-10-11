@@ -5,24 +5,14 @@
       Tags: [
         {
           instance.guid: Guid_1
-        },
-        {
-          result: success
         }
       ],
       IdFormat: W3C
+    },
+    {
+      ActivityName: Data.ProcessWrite.IDataProcessorProxy,
+      IdFormat: W3C
     }
   ],
-  Metrics: [
-    {
-      altinn_app_lib_data_patched: [
-        {
-          Value: 1,
-          Tags: {
-            result: success
-          }
-        }
-      ]
-    }
-  ]
+  Metrics: []
 }

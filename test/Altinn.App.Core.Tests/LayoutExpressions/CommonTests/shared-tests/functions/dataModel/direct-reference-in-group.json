@@ -51,16 +51,24 @@
       }
     }
   },
-  "dataModel": {
-    "Mennesker": [
-      {
-        "Navn": "Kåre",
-        "Alder": 24
+  "dataModels": [
+    {
+      "dataElement": {
+        "id": "00dd7417-5b4e-402a-bb73-007537071f1d",
+        "dataType": "default"
       },
-      {
-        "Navn": "Arild",
-        "Alder": 14
+      "data": {
+        "Mennesker": [
+          {
+            "Navn": "Kåre",
+            "Alder": 24
+          },
+          {
+            "Navn": "Arild",
+            "Alder": 14
+          }
+        ]
       }
-    ]
-  }
+    }
+  ]
 }

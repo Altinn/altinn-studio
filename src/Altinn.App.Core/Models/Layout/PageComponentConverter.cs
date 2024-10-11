@@ -19,7 +19,7 @@ namespace Altinn.App.Core.Models.Layout;
 /// </remarks>
 public class PageComponentConverter : JsonConverter<PageComponent>
 {
-    private static readonly AsyncLocal<string?> _pageName = new();
+    private static readonly AsyncLocal<(string layoutId, string pageName)?> _asyncLocal = new();
 
     /// <summary>
     /// Store pageName to be used for deserialization
@@ -30,25 +30,32 @@ public class PageComponentConverter : JsonConverter<PageComponent>
     ///
     /// This uses a AsyncLocal to pass the pageName as an additional parameter
     /// </remarks>
-    public static void SetAsyncLocalPageName(string pageName)
+    public static void SetAsyncLocalPageName(string layoutId, string pageName)
     {
-        _pageName.Value = pageName;
+        _asyncLocal.Value = (layoutId, pageName);
     }
 
     /// <inheritdoc />
-    public override PageComponent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override PageComponent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Try to get pagename from metadata in this.AddPageName
-        var pageName = _pageName.Value ?? "UnknownPageName";
-        _pageName.Value = null;
+        var pageName = _asyncLocal.Value?.pageName ?? "UnknownPageName";
+        var layoutId = _asyncLocal.Value?.layoutId ?? "UnknownLayoutSetId";
 
-        return ReadNotNull(ref reader, pageName, options);
+        _asyncLocal.Value = null;
+
+        return ReadNotNull(ref reader, pageName, layoutId, options);
     }
 
     /// <summary>
     /// Similar to read, but not nullable, and no pageName hack.
     /// </summary>
-    public PageComponent ReadNotNull(ref Utf8JsonReader reader, string pageName, JsonSerializerOptions options)
+    public static PageComponent ReadNotNull(
+        ref Utf8JsonReader reader,
+        string pageName,
+        string layoutId,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -72,7 +79,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             reader.Read();
             if (propertyName == "data")
             {
-                page = ReadData(ref reader, pageName, options);
+                page = ReadData(ref reader, pageName, layoutId, options);
             }
             else
             {
@@ -87,7 +94,12 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         return page;
     }
 
-    private PageComponent ReadData(ref Utf8JsonReader reader, string pageName, JsonSerializerOptions options)
+    private static PageComponent ReadData(
+        ref Utf8JsonReader reader,
+        string pageName,
+        string layoutId,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -131,13 +143,13 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     (componentListFlat, componentLookup, childToGroupMapping) = ReadLayout(ref reader, options);
                     break;
                 case "hidden":
-                    hidden = ExpressionConverter.ReadNotNull(ref reader, options);
+                    hidden = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 case "required":
-                    required = ExpressionConverter.ReadNotNull(ref reader, options);
+                    required = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 case "readonly":
-                    readOnly = ExpressionConverter.ReadNotNull(ref reader, options);
+                    readOnly = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 default:
                     // read extra properties
@@ -153,13 +165,23 @@ public class PageComponentConverter : JsonConverter<PageComponent>
 
         var layout = ProcessLayout(componentListFlat, componentLookup, childToGroupMapping);
 
-        return new PageComponent(pageName, layout, componentLookup, hidden, required, readOnly, additionalProperties);
+        return new PageComponent(
+            pageName,
+            layoutId,
+            layout,
+            componentLookup,
+            hidden ?? Expression.False,
+            required ?? Expression.False,
+            readOnly ?? Expression.False,
+            additionalProperties
+        );
     }
 
-    private (List<BaseComponent>, Dictionary<string, BaseComponent>, Dictionary<string, GroupComponent>) ReadLayout(
-        ref Utf8JsonReader reader,
-        JsonSerializerOptions options
-    )
+    private static (
+        List<BaseComponent>,
+        Dictionary<string, BaseComponent>,
+        Dictionary<string, GroupComponent>
+    ) ReadLayout(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartArray)
         {
@@ -248,7 +270,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         }
     }
 
-    private BaseComponent ReadComponent(ref Utf8JsonReader reader, JsonSerializerOptions options)
+    private static BaseComponent ReadComponent(ref Utf8JsonReader reader, JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -258,13 +280,13 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         }
         string? id = null;
         string? type = null;
-        Dictionary<string, string>? dataModelBindings = null;
+        Dictionary<string, ModelBinding>? dataModelBindings = null;
         Expression? hidden = null;
         Expression? hiddenRow = null;
         Expression? required = null;
         Expression? readOnly = null;
         // Custom properities for group
-        List<string>? children = null;
+        List<string>? childIDs = null;
         int maxCount = 1; // > 1 is repeating, but might not be specified for non-repeating groups
         // Custom properties for Summary
         string? componentRef = null;
@@ -273,6 +295,11 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         List<AppOption>? literalOptions = null;
         OptionsSource? optionsSource = null;
         bool secure = false;
+        // Custom properties for subform
+        string? layoutSetId = null;
+        // List<SubFormComponent.TableColumn>? tableColumns = null;
+        // bool showAddButton = true;
+        // bool showDeleteButton = true;
 
         // extra properties that are not stored in a specific class.
         Dictionary<string, string> additionalProperties = new();
@@ -303,34 +330,33 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     type = reader.GetString();
                     break;
                 case "datamodelbindings":
-                    // TODO: deserialize directly to make LineNumber and BytePositionInLine to give better errors
-                    dataModelBindings = JsonSerializer.Deserialize<Dictionary<string, string>>(ref reader, options);
+                    dataModelBindings = DeserializeModelBindings(ref reader, options);
                     break;
                 // case "textresourcebindings":
                 //     break;
                 case "children":
-                    children = JsonSerializer
+                    childIDs = JsonSerializer
                         .Deserialize<List<string>>(ref reader, options)
                         ?.Select(GetIdWithoutMultiPageIndex)
                         .ToList();
                     break;
                 case "rows":
-                    children = GridConfig.ReadGridChildren(ref reader, options);
+                    childIDs = GridConfig.ReadGridChildren(ref reader, options);
                     break;
                 case "maxcount":
                     maxCount = reader.GetInt32();
                     break;
                 case "hidden":
-                    hidden = ExpressionConverter.ReadNotNull(ref reader, options);
+                    hidden = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 case "hiddenrow":
-                    hiddenRow = ExpressionConverter.ReadNotNull(ref reader, options);
+                    hiddenRow = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 case "required":
-                    required = ExpressionConverter.ReadNotNull(ref reader, options);
+                    required = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 case "readonly":
-                    readOnly = ExpressionConverter.ReadNotNull(ref reader, options);
+                    readOnly = ExpressionConverter.ReadStatic(ref reader, options);
                     break;
                 // summary
                 case "componentref":
@@ -349,6 +375,19 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                 case "secure":
                     secure = reader.TokenType == JsonTokenType.True;
                     break;
+                // subform
+                case "layoutset":
+                    layoutSetId = reader.GetString();
+                    break;
+                // case "tablecolumns":
+                //     tableColumns = JsonSerializer.Deserialize<List<SubFormComponent.TableColumn>>(ref reader, options);
+                //     break;
+                // case "showaddbutton":
+                //     showAddButton = reader.TokenType != JsonTokenType.False;
+                //     break;
+                // case "showdeletebutton":
+                //     showDeleteButton = reader.TokenType != JsonTokenType.False;
+                //     break;
                 default:
                     // store extra fields as json
                     additionalProperties[propertyName] = reader.SkipReturnString();
@@ -361,10 +400,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
         switch (type.ToLowerInvariant())
         {
             case "repeatinggroup":
-                ThrowJsonExceptionIfNull(
-                    children,
-                    "Component with \"type\": \"Group\" requires a \"children\" property"
-                );
                 if (!(dataModelBindings?.ContainsKey("group") ?? false))
                 {
                     throw new JsonException(
@@ -377,19 +412,22 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     type,
                     dataModelBindings,
                     new List<BaseComponent>(),
-                    children,
+                    childIDs
+                        ?? throw new JsonException(
+                            "Component with \"type\": \"Group\" requires a \"children\" property"
+                        ),
                     maxCount,
-                    hidden,
-                    hiddenRow,
-                    required,
-                    readOnly,
+                    hidden ?? Expression.False,
+                    hiddenRow ?? Expression.False,
+                    required ?? Expression.False,
+                    readOnly ?? Expression.False,
                     additionalProperties
                 );
                 return directRepComponent;
 
             case "group":
                 ThrowJsonExceptionIfNull(
-                    children,
+                    childIDs,
                     "Component with \"type\": \"Group\" requires a \"children\" property"
                 );
 
@@ -407,12 +445,12 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                         type,
                         dataModelBindings,
                         new List<BaseComponent>(),
-                        children,
+                        childIDs,
                         maxCount,
-                        hidden,
-                        hiddenRow,
-                        required,
-                        readOnly,
+                        hidden ?? Expression.False,
+                        hiddenRow ?? Expression.False,
+                        required ?? Expression.False,
+                        readOnly ?? Expression.False,
                         additionalProperties
                     );
                     return repComponent;
@@ -424,10 +462,10 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                         type,
                         dataModelBindings,
                         new List<BaseComponent>(),
-                        children,
-                        hidden,
-                        required,
-                        readOnly,
+                        childIDs,
+                        hidden ?? Expression.False,
+                        required ?? Expression.False,
+                        readOnly ?? Expression.False,
                         additionalProperties
                     );
                     return groupComponent;
@@ -438,16 +476,24 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     type,
                     dataModelBindings,
                     new List<BaseComponent>(),
-                    children,
-                    hidden,
-                    required,
-                    readOnly,
+                    childIDs,
+                    hidden ?? Expression.False,
+                    required ?? Expression.False,
+                    readOnly ?? Expression.False,
                     additionalProperties
                 );
                 return gridComponent;
             case "summary":
-                ValidateSummary(componentRef);
-                return new SummaryComponent(id, type, hidden, componentRef, additionalProperties);
+                return new SummaryComponent(
+                    id,
+                    type,
+                    hidden ?? Expression.False,
+                    componentRef
+                        ?? throw new JsonException(
+                            "Component with \"type\": \"Summary\" requires the \"componentRef\" property"
+                        ),
+                    additionalProperties
+                );
             case "checkboxes":
             case "radiobuttons":
             case "dropdown":
@@ -456,19 +502,73 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     id,
                     type,
                     dataModelBindings,
-                    hidden,
-                    required,
-                    readOnly,
+                    hidden ?? Expression.False,
+                    required ?? Expression.False,
+                    readOnly ?? Expression.False,
                     optionId,
                     literalOptions,
                     optionsSource,
                     secure,
                     additionalProperties
                 );
+            case "subform":
+                return new SubFormComponent(
+                    id,
+                    type,
+                    dataModelBindings,
+                    layoutSetId ?? throw new JsonException("Subform requires a layoutSetId"),
+                    // tableColumns ?? new(),
+                    // showAddButton,
+                    // showDeleteButton,
+                    hidden ?? Expression.False,
+                    required ?? Expression.False,
+                    readOnly ?? Expression.False,
+                    additionalProperties
+                );
         }
 
-        // Most compoents are handled as BaseComponent
-        return new BaseComponent(id, type, dataModelBindings, hidden, required, readOnly, additionalProperties);
+        // Most components are handled as BaseComponent
+        return new BaseComponent(
+            id,
+            type,
+            dataModelBindings,
+            hidden ?? Expression.False,
+            required ?? Expression.False,
+            readOnly ?? Expression.False,
+            additionalProperties
+        );
+    }
+
+    private static Dictionary<string, ModelBinding> DeserializeModelBindings(
+        ref Utf8JsonReader reader,
+        JsonSerializerOptions options
+    )
+    {
+        var modelBindings = new Dictionary<string, ModelBinding>();
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("Expected StartObject token for \"dataModelBindings\"");
+        }
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new JsonException();
+            }
+
+            // ! Token type is PropertyName so value is a string
+            var propertyName = reader.GetString()!;
+            reader.Read();
+            modelBindings[propertyName] = reader.TokenType switch
+            {
+                JsonTokenType.String => new ModelBinding { Field = reader.GetString() ?? throw new JsonException(), },
+                JsonTokenType.StartObject => JsonSerializer.Deserialize<ModelBinding>(ref reader, options),
+                _ => throw new JsonException()
+            };
+        }
+
+        return modelBindings;
     }
 
     private static void ValidateOptions(
@@ -505,14 +605,6 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             throw new JsonException(
                 "\"secure\": true is invalid for components that reference a repeating group \"source\""
             );
-        }
-    }
-
-    private static void ValidateSummary([NotNull] string? componentRef)
-    {
-        if (componentRef is null)
-        {
-            throw new JsonException("Component with \"type\": \"Summary\" requires the \"componentRef\" property");
         }
     }
 

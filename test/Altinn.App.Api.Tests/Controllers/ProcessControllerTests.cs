@@ -2,15 +2,21 @@ using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
+using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Mocks.Services;
 using FluentAssertions;
+using Json.Patch;
+using Json.Pointer;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -24,10 +30,10 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private const string Org = "tdd";
     private const string App = "contributer-restriction";
     private const int InstanceOwnerPartyId = 500600;
-    private static readonly Guid InstanceGuid = new("5a2fa5ec-f97c-4816-b57a-dc78a981917e");
-    private static readonly string InstanceId = $"{InstanceOwnerPartyId}/{InstanceGuid}";
-    private static readonly Guid DataGuid = new("cd691c32-ae36-4555-8aee-0b7054a413e4");
-    protected static new readonly JsonSerializerOptions JsonSerializerOptions =
+    private static readonly Guid _instanceGuid = new("5a2fa5ec-f97c-4816-b57a-dc78a981917e");
+    private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
+    private static readonly Guid _dataGuid = new("cd691c32-ae36-4555-8aee-0b7054a413e4");
+    private static readonly JsonSerializerOptions _jsonSerializerOptions =
         new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -44,14 +50,15 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     public ProcessControllerTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
     {
-        _formDataValidatorMock.Setup(v => v.DataType).Returns("Not a valid data type");
+        _formDataValidatorMock.Setup(v => v.DataType).Returns("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
+        _formDataValidatorMock.Setup(v => v.ValidationSource).Returns("Not a valid validation source");
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessorMock.Object);
             services.AddSingleton(_formDataValidatorMock.Object);
         };
-        TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, InstanceGuid);
-        TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
+        TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
+        TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
     }
 
     [Fact]
@@ -146,7 +153,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         // both "?lang" and "?language" should work
         var nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{InstanceId}/process/next?lang={language}",
+            $"{Org}/{App}/instances/{_instanceId}/process/next?lang={language}",
             null
         );
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
@@ -179,7 +186,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
         // both "?lang" and "?language" should work
         var nextResponse = await client.PutAsync(
-            $"{Org}/{App}/instances/{InstanceId}/process/next?language={language}",
+            $"{Org}/{App}/instances/{_instanceId}/process/next?language={language}",
             null
         );
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
@@ -199,7 +206,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         };
 
         bool sendAsyncCalled = false;
-        var dataElementPath = TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, InstanceGuid, DataGuid);
+        var dataElementPath = TestData.GetDataElementPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
 
         SendAsync = async message =>
         {
@@ -221,7 +228,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             return new HttpResponseMessage(HttpStatusCode.TooManyRequests);
         };
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
-        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.InternalServerError);
@@ -272,7 +279,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             );
         };
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
-        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Conflict);
@@ -288,11 +295,189 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var telemetry = this.Services.GetRequiredService<TelemetrySink>();
 
         // Verify that the instance is not updated
-        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.Should().NotBeNull();
         instance.Process.CurrentTask!.ElementId.Should().Be("Task_1");
 
         await telemetry.SnapshotActivities();
+    }
+
+    [Fact]
+    public async Task RunProcessNext_DataFromHiddenComponents_GetsRemoved()
+    {
+        // Override config to remove hidden data
+        OverrideAppSetting("AppSettings:RemoveHiddenData", "true");
+
+        // Mock pdf generation so that the test does not fail due to pof service not running.
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddSingleton(pdfMock.Object);
+        };
+        // setup data processor
+        _dataProcessorMock
+            .Setup(dp =>
+                dp.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    _dataGuid,
+                    It.IsAny<Skjema>(),
+                    It.IsAny<Skjema>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        // create client for tests
+        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        var dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+
+        // Update hidden data value
+        var serializedPatch = JsonSerializer.Serialize(
+            new DataPatchRequest()
+            {
+                Patch = new JsonPatch(
+                    PatchOperation.Add(
+                        JsonPointer.Create("melding", "hidden"),
+                        JsonNode.Parse("\"value that is hidden\"")
+                    )
+                ),
+                IgnoredValidators = []
+            },
+            _jsonSerializerOptions
+        );
+        OutputHelper.WriteLine(serializedPatch);
+        using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
+        using var response = await client.PatchAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}",
+            updateDataElementContent
+        );
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // Verify that hidden is stored
+        var dataString = await File.ReadAllTextAsync(dataPath);
+        OutputHelper.WriteLine("Data before process next:");
+        OutputHelper.WriteLine(dataString);
+        dataString.Should().Contain("<hidden>value that is hidden</hidden>");
+
+        // Run process next
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // Verify that the instance is updated to the ended state
+        dataString = await File.ReadAllTextAsync(dataPath);
+        OutputHelper.WriteLine("Data after process next:");
+        OutputHelper.WriteLine(dataString);
+        dataString.Should().NotContain("<hidden>value that is hidden</hidden>");
+
+        _dataProcessorMock.Verify();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("copyDataType")]
+    public async Task RunProcessNext_ShadowFields_GetsRemoved(string? saveToDataType)
+    {
+        // Mock pdf generation so that the test does not fail due to pof service not running.
+        var pdfMock = new Mock<IPdfGeneratorClient>(MockBehavior.Strict);
+        using var pdfReturnStream = new MemoryStream();
+        pdfMock
+            .Setup(p => p.GeneratePdf(It.IsAny<Uri>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pdfReturnStream);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddSingleton(pdfMock.Object);
+            services.AddSingleton(
+                new AppMetadataMutationHook(appMetadata =>
+                {
+                    var defaultDataType = appMetadata.DataTypes.Single(dt => dt.Id == "default");
+                    defaultDataType.AppLogic.ShadowFields = new() { Prefix = "SF_", SaveToDataType = saveToDataType };
+
+                    if (saveToDataType is not null)
+                        appMetadata.DataTypes.Add(
+                            new DataType()
+                            {
+                                Id = saveToDataType,
+                                TaskId = "Task_1",
+                                AppLogic = new() { ClassRef = defaultDataType.AppLogic.ClassRef }
+                            }
+                        );
+                })
+            );
+        };
+        // setup data processor
+        _dataProcessorMock
+            .Setup(dp =>
+                dp.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    _dataGuid,
+                    It.IsAny<Skjema>(),
+                    It.IsAny<Skjema>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Once);
+
+        // create client for tests
+        using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+
+        // Update hidden data value
+        var serializedPatch = JsonSerializer.Serialize(
+            new DataPatchRequest()
+            {
+                Patch = new JsonPatch(
+                    PatchOperation.Add(
+                        JsonPointer.Create("melding", "SF_test"),
+                        JsonNode.Parse("\"value that is in shadow field\"")
+                    )
+                ),
+                IgnoredValidators = []
+            },
+            _jsonSerializerOptions
+        );
+        OutputHelper.WriteLine(serializedPatch);
+        using var updateDataElementContent = new StringContent(serializedPatch, Encoding.UTF8, "application/json");
+        using var response = await client.PatchAsync(
+            $"{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/data/{_dataGuid}",
+            updateDataElementContent
+        );
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // Verify that hidden is stored
+        var dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, _dataGuid);
+        var dataString = await File.ReadAllTextAsync(dataPath);
+        OutputHelper.WriteLine("Data before process next:");
+        OutputHelper.WriteLine(dataString);
+        dataString.Should().Contain("<SF_test>value that is in shadow field</SF_test>");
+
+        // Run process next
+        using var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
+        var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(nextResponseContent);
+        nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
+
+        // Get data path if the data element with shadow fields removed is saved to another data type
+        if (saveToDataType is not null)
+        {
+            var instanceClient = Services.GetRequiredService<IInstanceClient>();
+            var instance = await instanceClient.GetInstance(App, Org, InstanceOwnerPartyId, _instanceGuid);
+            var copyDataGuid = Guid.Parse(instance.Data.Single(de => de.DataType == saveToDataType).Id);
+            dataPath = TestData.GetDataBlobPath(Org, App, InstanceOwnerPartyId, _instanceGuid, copyDataGuid);
+        }
+        // Verify that the instance is updated to the ended state
+        dataString = await File.ReadAllTextAsync(dataPath);
+        OutputHelper.WriteLine("Data after process next:");
+        OutputHelper.WriteLine(dataString);
+        dataString.Should().NotContain("<SF_test>value that is in shadow field</SF_test>");
+
+        _dataProcessorMock.Verify();
     }
 
     [Fact]
@@ -350,7 +535,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(pdfMock.Object);
         };
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
-        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", null);
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
@@ -358,7 +543,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         document.RootElement.EnumerateObject().Should().NotContain(p => p.Name == "validationIssues");
 
         // Verify that the instance is updated to the ended state
-        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.Should().BeNull();
         instance.Process.EndEvent.Should().Be("EndEvent_1");
     }
@@ -376,13 +561,13 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             services.AddSingleton(pdfMock.Object);
         };
         using var client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
-        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/completeProcess", null);
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/completeProcess", null);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.OK);
 
         // Verify that the instance is updated to the ended state
-        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
+        var instance = await TestData.GetInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
         instance.Process.CurrentTask.Should().BeNull();
         instance.Process.EndEvent.Should().Be("EndEvent_1");
     }
@@ -403,7 +588,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
             Encoding.UTF8,
             "application/json"
         );
-        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{InstanceId}/process/next", content);
+        var nextResponse = await client.PutAsync($"{Org}/{App}/instances/{_instanceId}/process/next", content);
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Forbidden);

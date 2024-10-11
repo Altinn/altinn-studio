@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Layout.Components;
 
 namespace Altinn.App.Core.Internal.Expressions;
@@ -14,7 +16,7 @@ public static class ExpressionEvaluator
     /// <summary>
     /// Shortcut for evaluating a boolean expression on a given property on a <see cref="BaseComponent" />
     /// </summary>
-    public static bool EvaluateBooleanExpression(
+    public static async Task<bool> EvaluateBooleanExpression(
         LayoutEvaluatorState state,
         ComponentContext context,
         string property,
@@ -23,20 +25,17 @@ public static class ExpressionEvaluator
     {
         try
         {
+            ArgumentNullException.ThrowIfNull(context.Component);
             var expr = property switch
             {
-                "hidden" => context.Component?.Hidden,
-                "hiddenRow"
-                    => context.Component is RepeatingGroupComponent repeatingGroup ? repeatingGroup.HiddenRow : null,
-                "required" => context.Component?.Required,
+                "hidden" => context.Component.Hidden,
+                "hiddenRow" when context.Component is RepeatingGroupComponent repeatingGroup
+                    => repeatingGroup.HiddenRow,
+                "required" => context.Component.Required,
                 _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
             };
-            if (expr is null)
-            {
-                return defaultReturn;
-            }
 
-            return EvaluateExpression(state, expr, context) switch
+            return await EvaluateExpression(state, expr, context) switch
             {
                 true => true,
                 false => false,
@@ -56,28 +55,27 @@ public static class ExpressionEvaluator
     /// <summary>
     /// Evaluate a <see cref="Expression" /> from a given <see cref="LayoutEvaluatorState" /> in a <see cref="ComponentContext" />
     /// </summary>
-    public static object? EvaluateExpression(
+    public static async Task<object?> EvaluateExpression(
         LayoutEvaluatorState state,
         Expression expr,
-        ComponentContext? context,
+        ComponentContext context,
         object[]? positionalArguments = null
     )
     {
-        if (expr is null)
-        {
-            return null;
-        }
-        if (expr.Function is null || expr.Args is null)
+        if (!expr.IsFunctionExpression)
         {
             return expr.Value;
         }
-
-        var args = expr.Args.Select(a => EvaluateExpression(state, a, context, positionalArguments)).ToArray();
+        var args = new object?[expr.Args.Count];
+        for (var i = 0; i < args.Length; i++)
+        {
+            args[i] = await EvaluateExpression(state, expr.Args[i], context, positionalArguments);
+        }
         // ! TODO: should find better ways to deal with nulls here for the next major version
         var ret = expr.Function switch
         {
-            ExpressionFunction.dataModel => DataModel(args.First()?.ToString(), context, state),
-            ExpressionFunction.component => Component(args, context, state),
+            ExpressionFunction.dataModel => await DataModel(args, context, state),
+            ExpressionFunction.component => await Component(args, context, state),
             ExpressionFunction.instanceContext => state.GetInstanceContext(args.First()?.ToString()!),
             ExpressionFunction.@if => IfImpl(args),
             ExpressionFunction.frontendSettings => state.GetFrontendSetting(args.First()?.ToString()!),
@@ -102,14 +100,45 @@ public static class ExpressionEvaluator
             ExpressionFunction.lowerCase => LowerCase(args),
             ExpressionFunction.argv => Argv(args, positionalArguments),
             ExpressionFunction.gatewayAction => state.GetGatewayAction(),
+            ExpressionFunction.language => state.GetLanguage() ?? "nb",
             _ => throw new ExpressionEvaluatorTypeErrorException($"Function \"{expr.Function}\" not implemented"),
         };
         return ret;
     }
 
-    private static object? DataModel(string? key, ComponentContext? context, LayoutEvaluatorState state)
+    private static async Task<object?> DataModel(object?[] args, ComponentContext context, LayoutEvaluatorState state)
     {
-        var data = state.GetModelData(key, context);
+        if (args is [DataReference dataReference])
+        {
+            return await DataModel(
+                new ModelBinding() { Field = dataReference.Field },
+                dataReference.DataElementIdentifier,
+                context.RowIndices,
+                state
+            );
+        }
+        var key = args switch
+        {
+            [string field] => new ModelBinding { Field = field },
+            [string field, string dataType] => new ModelBinding { Field = field, DataType = dataType },
+            [ModelBinding binding] => binding,
+            [null] => throw new ExpressionEvaluatorTypeErrorException("Cannot lookup dataModel null"),
+            _
+                => throw new ExpressionEvaluatorTypeErrorException(
+                    $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
+                )
+        };
+        return await DataModel(key, context.DataElementIdentifier, context.RowIndices, state);
+    }
+
+    private static async Task<object?> DataModel(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? indexes,
+        LayoutEvaluatorState state
+    )
+    {
+        var data = await state.GetModelData(key, defaultDataElementIdentifier, indexes);
 
         // Only allow IConvertible types to be returned from data model
         // Objects and arrays should return null
@@ -120,7 +149,7 @@ public static class ExpressionEvaluator
         };
     }
 
-    private static object? Component(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
+    private static async Task<object?> Component(object?[] args, ComponentContext? context, LayoutEvaluatorState state)
     {
         var componentId = args.First()?.ToString();
         if (componentId is null)
@@ -133,7 +162,12 @@ public static class ExpressionEvaluator
             throw new ArgumentException("The component expression requires a component context");
         }
 
-        var targetContext = state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
+        var targetContext = await state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
+
+        if (targetContext is null)
+        {
+            return null;
+        }
 
         if (targetContext.Component is GroupComponent)
         {
@@ -144,18 +178,12 @@ public static class ExpressionEvaluator
         {
             throw new ArgumentException("component lookup requires the target component to have a simpleBinding");
         }
-        ComponentContext? parent = targetContext;
-        while (parent is not null)
+        if (await targetContext.IsHidden(state))
         {
-            if (EvaluateBooleanExpression(state, parent, "hidden", false))
-            {
-                // Don't lookup data in hidden components
-                return null;
-            }
-            parent = parent.Parent;
+            return null;
         }
 
-        return DataModel(binding, context, state);
+        return await DataModel(binding, context.DataElementIdentifier, context.RowIndices, state);
     }
 
     private static string? Concat(object?[] args)

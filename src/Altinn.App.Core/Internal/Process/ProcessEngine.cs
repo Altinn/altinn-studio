@@ -4,6 +4,10 @@ using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Features.Action;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Internal.App;
+using Altinn.App.Core.Internal.Data;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
@@ -29,18 +33,14 @@ public class ProcessEngine : IProcessEngine
     private readonly UserActionService _userActionService;
     private readonly Telemetry? _telemetry;
     private readonly IProcessTaskCleaner _processTaskCleaner;
+    private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _instanceClient;
+    private readonly ModelSerializationService _modelSerialization;
+    private readonly IAppMetadata _appMetadata;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessEngine"/> class
     /// </summary>
-    /// <param name="processReader">Process reader service</param>
-    /// <param name="profileClient">The profile service</param>
-    /// <param name="processNavigator">The process navigator</param>
-    /// <param name="processEventsDelegator">The process events delegator</param>
-    /// <param name="processEventDispatcher">The process event dispatcher</param>
-    /// <param name="processTaskCleaner">The process task cleaner</param>
-    /// <param name="userActionService">The action handler factory</param>
-    /// <param name="telemetry">The telemetry service</param>
     public ProcessEngine(
         IProcessReader processReader,
         IProfileClient profileClient,
@@ -49,6 +49,10 @@ public class ProcessEngine : IProcessEngine
         IProcessEventDispatcher processEventDispatcher,
         IProcessTaskCleaner processTaskCleaner,
         UserActionService userActionService,
+        IDataClient dataClient,
+        IInstanceClient instanceClient,
+        ModelSerializationService modelSerialization,
+        IAppMetadata appMetadata,
         Telemetry? telemetry = null
     )
     {
@@ -59,6 +63,10 @@ public class ProcessEngine : IProcessEngine
         _processEventDispatcher = processEventDispatcher;
         _processTaskCleaner = processTaskCleaner;
         _userActionService = userActionService;
+        _dataClient = dataClient;
+        _instanceClient = instanceClient;
+        _modelSerialization = modelSerialization;
+        _appMetadata = appMetadata;
         _telemetry = telemetry;
     }
 
@@ -163,10 +171,17 @@ public class ProcessEngine : IProcessEngine
 
         int? userId = request.User.GetUserIdAsInt();
         IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
+        var cachedDataMutator = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient,
+            _instanceClient,
+            _appMetadata,
+            _modelSerialization
+        );
 
         UserActionResult actionResult = actionHandler is null
             ? UserActionResult.SuccessResult()
-            : await actionHandler.HandleAction(new UserActionContext(request.Instance, userId));
+            : await actionHandler.HandleAction(new UserActionContext(cachedDataMutator, userId));
 
         if (actionResult.ResultType != ResultType.Success)
         {
@@ -179,6 +194,10 @@ public class ProcessEngine : IProcessEngine
             activity?.SetProcessChangeResult(result);
             return result;
         }
+
+        var changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);
+        await cachedDataMutator.UpdateInstanceData(changes);
+        await cachedDataMutator.SaveChanges(changes);
 
         ProcessStateChange? nextResult = await HandleMoveToNext(instance, request.User, request.Action);
 

@@ -1,8 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Layout;
+using Altinn.App.Core.Models.Layout.Components;
 
-namespace Altinn.App.Core.Tests.LayoutExpressions;
+namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 /// <summary>
 /// Custom converter for parsing Layout files in json format to <see cref="LayoutModel" />
@@ -12,10 +13,14 @@ namespace Altinn.App.Core.Tests.LayoutExpressions;
 /// standard json parser to convert to an object graph. Using <see cref="Utf8JsonReader"/>
 /// directly I can convert to a more suitable C# representation directly
 /// </remarks>
-public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
+public class LayoutModelConverterFromObject : JsonConverter<IReadOnlyDictionary<string, PageComponent>>
 {
     /// <inheritdoc />
-    public override LayoutModel? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override IReadOnlyDictionary<string, PageComponent>? Read(
+        ref Utf8JsonReader reader,
+        Type typeToConvert,
+        JsonSerializerOptions options
+    )
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -24,7 +29,7 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
             );
         }
 
-        var componentModel = new LayoutModel();
+        var pages = new Dictionary<string, PageComponent>();
 
         // Read dictionary of pages
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
@@ -44,17 +49,18 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
                 );
             reader.Read();
 
-            PageComponentConverter.SetAsyncLocalPageName(pageName);
-            var converter = new PageComponentConverter();
-
-            componentModel.Pages[pageName] = converter.ReadNotNull(ref reader, pageName, options);
+            pages[pageName] = PageComponentConverter.ReadNotNull(ref reader, pageName, "test-layout", options);
         }
 
-        return componentModel;
+        return pages;
     }
 
     /// <inheritdoc />
-    public override void Write(Utf8JsonWriter writer, LayoutModel value, JsonSerializerOptions options)
+    public override void Write(
+        Utf8JsonWriter writer,
+        IReadOnlyDictionary<string, PageComponent> value,
+        JsonSerializerOptions options
+    )
     {
         throw new NotImplementedException();
     }

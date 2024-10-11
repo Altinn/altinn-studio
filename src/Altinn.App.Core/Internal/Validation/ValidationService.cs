@@ -1,8 +1,4 @@
-using System.Globalization;
 using Altinn.App.Core.Features;
-using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -15,9 +11,6 @@ namespace Altinn.App.Core.Internal.Validation;
 public class ValidationService : IValidationService
 {
     private readonly IValidatorFactory _validatorFactory;
-    private readonly IDataClient _dataClient;
-    private readonly IAppModel _appModel;
-    private readonly IAppMetadata _appMetadata;
     private readonly ILogger<ValidationService> _logger;
     private readonly Telemetry? _telemetry;
 
@@ -26,251 +19,162 @@ public class ValidationService : IValidationService
     /// </summary>
     public ValidationService(
         IValidatorFactory validatorFactory,
-        IDataClient dataClient,
-        IAppModel appModel,
-        IAppMetadata appMetadata,
         ILogger<ValidationService> logger,
         Telemetry? telemetry = null
     )
     {
         _validatorFactory = validatorFactory;
-        _dataClient = dataClient;
-        _appModel = appModel;
-        _appMetadata = appMetadata;
         _logger = logger;
         _telemetry = telemetry;
     }
 
     /// <inheritdoc/>
-    public async Task<List<ValidationIssue>> ValidateInstanceAtTask(Instance instance, string taskId, string? language)
+    public async Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
+        Instance instance,
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        List<string>? ignoredValidators,
+        bool? onlyIncrementalValidators,
+        string? language
+    )
     {
         ArgumentNullException.ThrowIfNull(instance);
         ArgumentNullException.ThrowIfNull(taskId);
 
-        using var activity = _telemetry?.StartValidateInstanceAtTaskActivity(instance, taskId);
+        using var activity = _telemetry?.StartValidateInstanceAtTaskActivity(taskId);
 
-        // Run task validations (but don't await yet)
-        Task<List<ValidationIssue>[]> taskIssuesTask = RunTaskValidators(instance, taskId, language);
-
-        // Get list of data elements for the task
-        var application = await _appMetadata.GetApplicationMetadata();
-        var dataTypesForTask = application.DataTypes.Where(dt => dt.TaskId == taskId).ToList();
-        var dataElementsToValidate = instance
-            .Data.Where(de => dataTypesForTask.Exists(dt => dt.Id == de.DataType))
-            .ToArray();
-        // Run ValidateDataElement for each data element (but don't await yet)
-        var dataIssuesTask = Task.WhenAll(
-            dataElementsToValidate.Select(dataElement =>
-                ValidateDataElement(
-                    instance,
-                    dataElement,
-                    dataTypesForTask.First(dt => dt.Id == dataElement.DataType),
-                    language
-                )
-            )
-        );
-
-        List<ValidationIssue>[][] lists = await Task.WhenAll(taskIssuesTask, dataIssuesTask);
-        // Flatten the list of lists to a single list of issues
-        return lists.SelectMany(x => x.SelectMany(y => y)).ToList();
-    }
-
-    private Task<List<ValidationIssue>[]> RunTaskValidators(Instance instance, string taskId, string? language)
-    {
-        var taskValidators = _validatorFactory.GetTaskValidators(taskId);
-
-        return Task.WhenAll(
-            taskValidators.Select(async v =>
-            {
-                using var activity = _telemetry?.StartRunTaskValidatorActivity(v);
-                try
-                {
-                    _logger.LogDebug(
-                        "Start running validator {validatorName} on task {taskId} in instance {instanceId}",
-                        v.GetType().Name,
-                        taskId,
-                        instance.Id
-                    );
-                    var issues = await v.ValidateTask(instance, taskId, language);
-                    issues.ForEach(i => i.Source = v.ValidationSource); // Ensure that the source is set to the validator source
-                    return issues;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        e,
-                        "Error while running validator {validatorName} on task {taskId} in instance {instanceId}",
-                        v.GetType().Name,
-                        taskId,
-                        instance.Id
-                    );
-                    activity?.Errored(e);
-                    throw;
-                }
-            })
-        );
-    }
-
-    /// <inheritdoc/>
-    public async Task<List<ValidationIssue>> ValidateDataElement(
-        Instance instance,
-        DataElement dataElement,
-        DataType dataType,
-        string? language
-    )
-    {
-        ArgumentNullException.ThrowIfNull(instance);
-        ArgumentNullException.ThrowIfNull(dataElement);
-        ArgumentNullException.ThrowIfNull(dataElement.DataType);
-
-        using var activity = _telemetry?.StartValidateDataElementActivity(instance, dataElement);
-
-        // Get both keyed and non-keyed validators for the data type
-        Task<List<ValidationIssue>[]> dataElementsIssuesTask = RunDataElementValidators(
-            instance,
-            dataElement,
-            dataType,
-            language
-        );
-
-        // Run extra validation on form data elements with app logic
-        if (dataType.AppLogic?.ClassRef is not null)
-        {
-            Type modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            string app = instance.AppId.Split("/")[1];
-            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-            var data = await _dataClient.GetFormData(
-                instanceGuid,
-                modelType,
-                instance.Org,
-                app,
-                instanceOwnerPartyId,
-                Guid.Parse(dataElement.Id)
-            ); // TODO: Add method that accepts instance and dataElement
-            var formDataIssuesDictionary = await ValidateFormData(
-                instance,
-                dataElement,
-                dataType,
-                data,
-                previousData: null,
-                ignoredValidators: null,
-                language
+        var validators = _validatorFactory.GetValidators(taskId);
+        // Filter out validators that should be ignored or not run incrementally
+        if (onlyIncrementalValidators == true)
+            validators = validators.Where(v => !v.NoIncrementalValidation);
+        else if (onlyIncrementalValidators == false)
+            validators = validators.Where(v => v.NoIncrementalValidation);
+        if (ignoredValidators is not null)
+            validators = validators.Where(v =>
+                !ignoredValidators.Contains(v.ValidationSource, StringComparer.InvariantCulture)
             );
 
-            return (await dataElementsIssuesTask)
-                .SelectMany(x => x)
-                .Concat(formDataIssuesDictionary.SelectMany(kv => kv.Value))
-                .ToList();
-        }
-
-        return (await dataElementsIssuesTask).SelectMany(x => x).ToList();
-    }
-
-    private Task<List<ValidationIssue>[]> RunDataElementValidators(
-        Instance instance,
-        DataElement dataElement,
-        DataType dataType,
-        string? language
-    )
-    {
-        var validators = _validatorFactory.GetDataElementValidators(dataType.Id);
-
-        var dataElementsIssuesTask = Task.WhenAll(
-            validators.Select(async v =>
+        // Start the validation tasks (but don't await yet, so that they can run in parallel)
+        var validationTasks = validators.Select(async v =>
+        {
+            using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
+            try
             {
-                using var activity = _telemetry?.StartRunDataElementValidatorActivity(v);
-                try
-                {
-                    _logger.LogDebug(
-                        "Start running validator {validatorName} on {dataType} for data element {dataElementId} in instance {instanceId}",
-                        v.GetType().Name,
-                        dataElement.DataType,
-                        dataElement.Id,
-                        instance.Id
-                    );
-                    var issues = await v.ValidateDataElement(instance, dataElement, dataType, language);
-                    issues.ForEach(i => i.Source = v.ValidationSource); // Ensure that the source is set to the validator source
-                    return issues;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        e,
-                        "Error while running validator {validatorName} on {dataType} for data element {dataElementId} in instance {instanceId}",
-                        v.GetType().Name,
-                        dataElement.DataType,
-                        dataElement.Id,
-                        instance.Id
-                    );
-                    activity?.Errored(e);
-                    throw;
-                }
-            })
-        );
+                var issues = await v.Validate(instance, dataAccessor, taskId, language);
+                validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
+                return KeyValuePair.Create(
+                    v.ValidationSource,
+                    issues.Select(issue =>
+                        ValidationIssueWithSource.FromIssue(issue, v.ValidationSource, v.NoIncrementalValidation)
+                    )
+                );
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    e,
+                    "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
+                    v.ValidationSource,
+                    taskId,
+                    instance.Id
+                );
+                validatorActivity?.Errored(e);
+                throw;
+            }
+        });
 
-        return dataElementsIssuesTask;
+        // Wait for all validation tasks to complete
+        var lists = await Task.WhenAll(validationTasks);
+
+        // Flatten the list of lists to a single list of issues
+        var issues = lists.SelectMany(x => x.Value).ToList();
+        activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, issues.Count);
+        return issues;
     }
 
     /// <inheritdoc/>
-    public async Task<Dictionary<string, List<ValidationIssue>>> ValidateFormData(
+    public async Task<List<ValidationSourcePair>> ValidateIncrementalFormData(
         Instance instance,
-        DataElement dataElement,
-        DataType dataType,
-        object data,
-        object? previousData,
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        List<DataElementChange> changes,
         List<string>? ignoredValidators,
         string? language
     )
     {
         ArgumentNullException.ThrowIfNull(instance);
-        ArgumentNullException.ThrowIfNull(dataElement);
-        ArgumentNullException.ThrowIfNull(dataElement.DataType);
-        ArgumentNullException.ThrowIfNull(data);
+        ArgumentNullException.ThrowIfNull(taskId);
+        ArgumentNullException.ThrowIfNull(changes);
 
-        using var activity = _telemetry?.StartValidateFormDataActivity(instance, dataElement);
+        using var activity = _telemetry?.StartValidateIncrementalActivity(taskId, changes);
 
-        // Locate the relevant data validator services from normal and keyed services
-        var dataValidators = _validatorFactory
-            .GetFormDataValidators(dataType.Id)
-            .Where(dv => ignoredValidators?.Contains(dv.ValidationSource) != true) // Filter out ignored validators
-            .Where(dv => previousData is null || dv.HasRelevantChanges(data, previousData))
+        var validators = _validatorFactory
+            .GetValidators(taskId)
+            .Where(v => !v.NoIncrementalValidation && !(ignoredValidators?.Contains(v.ValidationSource) ?? false))
             .ToArray();
 
-        var issuesLists = await Task.WhenAll(
-            dataValidators.Select(async v =>
-            {
-                using var activity = _telemetry?.StartRunFormDataValidatorActivity(v);
-                try
-                {
-                    _logger.LogDebug(
-                        "Start running validator {validatorName} on {dataType} for data element {dataElementId} in instance {instanceId}",
-                        v.GetType().Name,
-                        dataElement.DataType,
-                        dataElement.Id,
-                        instance.Id
-                    );
-                    var issues = await v.ValidateFormData(instance, dataElement, data, language);
-                    issues.ForEach(i => i.Source = v.ValidationSource); // Ensure that the Source is set to the ValidatorSource
-                    return issues;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(
-                        e,
-                        "Error while running validator {validatorName} on {dataType} for data element {dataElementId} in instance {instanceId}",
-                        v.GetType().Name,
-                        dataElement.DataType,
-                        dataElement.Id,
-                        instance.Id
-                    );
-                    activity?.Errored(e);
-                    throw;
-                }
-            })
-        );
+        ThrowIfDuplicateValidators(validators, taskId);
 
-        return dataValidators.Zip(issuesLists).ToDictionary(kv => kv.First.ValidationSource, kv => kv.Second);
+        // Start the validation tasks (but don't await yet, so that they can run in parallel)
+        var validationTasks = validators.Select(async validator =>
+        {
+            using var validatorActivity = _telemetry?.StartRunValidatorActivity(validator);
+            try
+            {
+                var hasRelevantChanges = await validator.HasRelevantChanges(instance, dataAccessor, taskId, changes);
+                validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorHasRelevantChanges, hasRelevantChanges);
+                if (hasRelevantChanges)
+                {
+                    var issues = await validator.Validate(instance, dataAccessor, taskId, language);
+                    validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
+                    var issuesWithSource = issues
+                        .Select(i =>
+                            ValidationIssueWithSource.FromIssue(
+                                i,
+                                validator.ValidationSource,
+                                validator.NoIncrementalValidation
+                            )
+                        )
+                        .ToList();
+                    return new ValidationSourcePair(validator.ValidationSource, issuesWithSource);
+                }
+
+                return null;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(
+                    e,
+                    "Error while running validator {validatorName} on task {taskId} in instance {instanceId}",
+                    validator.GetType().Name,
+                    taskId,
+                    instance.Id
+                );
+                validatorActivity?.Errored(e);
+                throw;
+            }
+        });
+
+        // Wait for all validation tasks to complete
+
+        var lists = await Task.WhenAll(validationTasks);
+
+        var errorCount = lists.Sum(k => k?.Issues.Count ?? 0);
+        activity?.SetTag(Telemetry.InternalLabels.ValidationTotalIssueCount, errorCount);
+        return lists.OfType<ValidationSourcePair>().ToList();
+    }
+
+    private static void ThrowIfDuplicateValidators(IValidator[] validators, string taskId)
+    {
+        var sourceNames = validators
+            .Select(v => v.ValidationSource)
+            .Distinct(StringComparer.InvariantCultureIgnoreCase);
+        if (sourceNames.Count() != validators.Length)
+        {
+            var sources = string.Join('\n', validators.Select(v => $"{v.ValidationSource} {v.GetType().FullName}"));
+            throw new InvalidOperationException(
+                $"Duplicate validators found for task {taskId}. Ensure that each validator has a unique ValidationSource.\n\n{sources}"
+            );
+        }
     }
 }

@@ -12,60 +12,38 @@ public interface IValidationService
     /// <summary>
     /// Validates the instance with all data elements on the current task and ensures that the instance is ready for process next.
     /// </summary>
-    /// <remarks>
-    /// This method executes validations in the following interfaces
-    /// * <see cref="ITaskValidator"/> for the current task
-    /// * <see cref="IDataElementValidator"/> for all data elements on the current task
-    /// * <see cref="IFormDataValidator"/> for all data elements with app logic on the current task
-    /// </remarks>
     /// <param name="instance">The instance to validate</param>
-    /// <param name="taskId">instance.Process?.CurrentTask?.ElementId</param>
+    /// <param name="dataAccessor">Accessor for instance data to be validated</param>
+    /// <param name="taskId">The task to run validations for (overriding instance.Process?.CurrentTask?.ElementId)</param>
+    /// <param name="ignoredValidators">List of <see cref="IValidator.ValidationSource"/> to ignore</param>
+    /// <param name="onlyIncrementalValidators">only run validators that implements incremental validation</param>
     /// <param name="language">The language to run validations in</param>
     /// <returns>List of validation issues for this data element</returns>
-    Task<List<ValidationIssue>> ValidateInstanceAtTask(Instance instance, string taskId, string? language);
-
-    /// <summary>
-    /// Validate a single data element regardless of whether it has AppLogic (eg. datamodel) or not.
-    /// </summary>
-    /// <remarks>
-    /// This method executes validations in the following interfaces
-    /// * <see cref="IDataElementValidator"/> for all data elements on the current task
-    /// * <see cref="IFormDataValidator"/> for all data elements with app logic on the current task
-    ///
-    /// This method does not run task validations
-    /// </remarks>
-    /// <param name="instance">The instance to validate</param>
-    /// <param name="dataElement">The data element to run validations for</param>
-    /// <param name="dataType">The data type (from applicationmetadata) that the element is an instance of</param>
-    /// <param name="language">The language to run validations in</param>
-    /// <returns>List of validation issues for this data element</returns>
-    Task<List<ValidationIssue>> ValidateDataElement(
+    Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
         Instance instance,
-        DataElement dataElement,
-        DataType dataType,
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        List<string>? ignoredValidators,
+        bool? onlyIncrementalValidators,
         string? language
     );
 
     /// <summary>
-    /// Validates a single data element. Used by frontend to continuously validate form data as it changes.
+    /// Given a list of changes, evaluate <see cref="IValidator.HasRelevantChanges"/> and run the relevant validators to get
+    /// the issues from the validators that might return different results based on the changes.
     /// </summary>
-    /// <remarks>
-    /// This method executes validations for <see cref="IFormDataValidator"/>
-    /// </remarks>
     /// <param name="instance">The instance to validate</param>
-    /// <param name="dataElement">The data element to run validations for</param>
-    /// <param name="dataType">The type of the data element</param>
-    /// <param name="data">The data deserialized to the strongly typed object that represents the form data</param>
-    /// <param name="previousData">The previous data so that validators can know if they need to run again with <see cref="IFormDataValidator.HasRelevantChanges"/></param>
-    /// <param name="ignoredValidators">List validators that should not be run (for incremental validation). Typically known validators that frontend knows how to replicate</param>
+    /// <param name="dataAccessor">Accessor for instance data to be validated</param>
+    /// <param name="taskId">The task to run validations for (overriding instance.Process?.CurrentTask?.ElementId)</param>
+    /// <param name="changes">List of changed data elements and values to forward to <see cref="IValidator.HasRelevantChanges"/></param>
+    /// <param name="ignoredValidators">List of <see cref="IValidator.ValidationSource"/> to ignore</param>
     /// <param name="language">The language to run validations in</param>
-    /// <returns>A dictionary containing lists of validation issues grouped by <see cref="IFormDataValidator.ValidationSource"/> and/or <see cref="ValidationIssue.Source"/></returns>
-    Task<Dictionary<string, List<ValidationIssue>>> ValidateFormData(
+    /// <returns>Dictionary where the key is the <see cref="IValidator.ValidationSource"/> and the value is the list of issues this validator produces</returns>
+    public Task<List<ValidationSourcePair>> ValidateIncrementalFormData(
         Instance instance,
-        DataElement dataElement,
-        DataType dataType,
-        object data,
-        object? previousData,
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        List<DataElementChange> changes,
         List<string>? ignoredValidators,
         string? language
     );

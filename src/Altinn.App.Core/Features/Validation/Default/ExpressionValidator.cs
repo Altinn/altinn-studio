@@ -2,7 +2,9 @@ using System.Text.Json;
 using Altinn.App.Core.Helpers.DataModel;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Expressions;
+using Altinn.App.Core.Models.Layout;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
@@ -12,14 +14,14 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Validates form data against expression validations
 /// </summary>
-public class ExpressionValidator : IFormDataValidator
+public class ExpressionValidator : IValidator
 {
     private static readonly JsonSerializerOptions _jsonSerializerOptions =
         new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IAppMetadata _appMetadata;
 
     /// <summary>
@@ -28,7 +30,7 @@ public class ExpressionValidator : IFormDataValidator
     public ExpressionValidator(
         ILogger<ExpressionValidator> logger,
         IAppResources appResourceService,
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IAppMetadata appMetadata
     )
     {
@@ -38,109 +40,175 @@ public class ExpressionValidator : IFormDataValidator
         _appMetadata = appMetadata;
     }
 
-    /// <inheritdoc />
-    public string DataType => "*";
+    /// <summary>
+    /// We implement <see cref="ShouldRunForTask"/> instead
+    /// </summary>
+    public string TaskId => "*";
+
+    /// <summary>
+    /// Only run for tasks that specifies a layout set
+    /// </summary>
+    public bool ShouldRunForTask(string taskId) => GetDataTypesWithExpressionsForTask(taskId).Any();
 
     /// <summary>
     /// This validator has the code "Expression" and this is known by the frontend, who may request this validator to not run for incremental validation.
     /// </summary>
-    public string ValidationSource => "Expression";
+    public string ValidationSource => ValidationIssueSources.Expression;
 
     /// <summary>
-    /// Expression validations should always run (it is way to complex to figure out if it should run or not)
+    /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
     /// </summary>
-    public bool HasRelevantChanges(object current, object previous) => true;
+    public Task<bool> HasRelevantChanges(
+        Instance instance,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
+        List<DataElementChange> changes
+    ) => Task.FromResult(true);
 
     /// <inheritdoc />
-    public async Task<List<ValidationIssue>> ValidateFormData(
+    public async Task<List<ValidationIssue>> Validate(
         Instance instance,
-        DataElement dataElement,
-        object data,
+        IInstanceDataAccessor instanceDataAccessor,
+        string taskId,
         string? language
     )
     {
-        var rawValidationConfig = _appResourceService.GetValidationConfiguration(dataElement.DataType);
-        if (rawValidationConfig == null)
+        var validationIssues = new List<ValidationIssue>();
+        foreach (var (dataType, validationConfig) in GetDataTypesWithExpressionsForTask(taskId))
         {
-            // No validation configuration exists for this data type
-            return new List<ValidationIssue>();
+            var formDataElementsForTask = instance.Data.Where(d => d.DataType == dataType.Id);
+            foreach (var dataElement in formDataElementsForTask)
+            {
+                var issues = await ValidateFormData(
+                    instance,
+                    dataElement,
+                    instanceDataAccessor,
+                    validationConfig,
+                    taskId,
+                    language
+                );
+                validationIssues.AddRange(issues);
+            }
         }
 
+        return validationIssues;
+    }
+
+    internal async Task<List<ValidationIssue>> ValidateFormData(
+        Instance instance,
+        DataElement dataElement,
+        IInstanceDataAccessor dataAccessor,
+        string rawValidationConfig,
+        string taskId,
+        string? language
+    )
+    {
         using var validationConfig = JsonDocument.Parse(rawValidationConfig);
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var layoutSet = _appResourceService.GetLayoutSetForTask(
-            appMetadata.DataTypes.First(dt => dt.Id == dataElement.DataType).TaskId
+
+        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(
+            dataAccessor,
+            taskId,
+            gatewayAction: null,
+            language
         );
-        var evaluatorState = await _layoutEvaluatorStateInitializer.Init(instance, data, layoutSet?.Id);
-        var hiddenFields = LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState, true);
+        var hiddenFields = await LayoutEvaluator.GetHiddenFieldsForRemoval(evaluatorState);
 
         var validationIssues = new List<ValidationIssue>();
         var expressionValidations = ParseExpressionValidationConfig(validationConfig.RootElement, _logger);
+        DataElementIdentifier dataElementIdentifier = dataElement;
         foreach (var validationObject in expressionValidations)
         {
-            var baseField = validationObject.Key;
-            var resolvedFields = evaluatorState.GetResolvedKeys(baseField);
+            var baseField = new DataReference()
+            {
+                Field = validationObject.Key,
+                DataElementIdentifier = dataElementIdentifier
+            };
+            var resolvedFields = await evaluatorState.GetResolvedKeys(baseField);
             var validations = validationObject.Value;
             foreach (var resolvedField in resolvedFields)
             {
-                if (hiddenFields.Contains(resolvedField))
+                if (
+                    hiddenFields.Exists(d =>
+                        d.DataElementIdentifier == dataElementIdentifier
+                        && resolvedField.Field.StartsWith(d.Field, StringComparison.InvariantCulture)
+                    )
+                )
                 {
                     continue;
                 }
                 var context = new ComponentContext(
                     component: null,
-                    rowIndices: DataModel.GetRowIndices(resolvedField),
-                    rowLength: null
+                    rowIndices: DataModel.GetRowIndices(resolvedField.Field),
+                    rowLength: null,
+                    dataElementIdentifier: resolvedField.DataElementIdentifier
                 );
-                var positionalArguments = new[] { resolvedField };
+                var positionalArguments = new object[] { resolvedField };
                 foreach (var validation in validations)
                 {
-                    try
-                    {
-                        if (validation.Condition == null)
-                        {
-                            continue;
-                        }
-
-                        var isInvalid = ExpressionEvaluator.EvaluateExpression(
-                            evaluatorState,
-                            validation.Condition,
-                            context,
-                            positionalArguments
-                        );
-                        if (isInvalid is not bool)
-                        {
-                            throw new ArgumentException(
-                                $"Validation condition for {resolvedField} did not evaluate to a boolean"
-                            );
-                        }
-                        if ((bool)isInvalid)
-                        {
-                            var validationIssue = new ValidationIssue
-                            {
-                                Field = resolvedField,
-                                Severity = validation.Severity ?? ValidationIssueSeverity.Error,
-                                CustomTextKey = validation.Message,
-                                Code = validation.Message,
-                                Source = ValidationIssueSources.Expression,
-                            };
-                            validationIssues.Add(validationIssue);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(
-                            e,
-                            "Error while evaluating expression validation for {resolvedField}",
-                            resolvedField
-                        );
-                        throw;
-                    }
+                    await RunValidation(
+                        evaluatorState,
+                        validationIssues,
+                        resolvedField,
+                        context,
+                        positionalArguments,
+                        validation
+                    );
                 }
             }
         }
 
         return validationIssues;
+    }
+
+    private async Task RunValidation(
+        LayoutEvaluatorState evaluatorState,
+        List<ValidationIssue> validationIssues,
+        DataReference resolvedField,
+        ComponentContext context,
+        object[] positionalArguments,
+        ExpressionValidation validation
+    )
+    {
+        try
+        {
+            if (validation.Condition == null)
+            {
+                return;
+            }
+
+            var validationResult = await ExpressionEvaluator.EvaluateExpression(
+                evaluatorState,
+                validation.Condition.Value,
+                context,
+                positionalArguments
+            );
+            switch (validationResult)
+            {
+                case true:
+                    var validationIssue = new ValidationIssue
+                    {
+                        Field = resolvedField.Field,
+                        DataElementId = resolvedField.DataElementIdentifier.Id.ToString(),
+                        Severity = validation.Severity ?? ValidationIssueSeverity.Error,
+                        CustomTextKey = validation.Message,
+                        Code = validation.Message,
+                    };
+                    validationIssues.Add(validationIssue);
+
+                    break;
+                case false:
+                    break;
+                default:
+                    throw new ArgumentException(
+                        $"Validation condition for {resolvedField} did not evaluate to a boolean"
+                    );
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while evaluating expression validation for {resolvedField}", resolvedField);
+            throw;
+        }
     }
 
     private static RawExpressionValidation? ResolveValidationDefinition(
@@ -212,7 +280,7 @@ public class ExpressionValidator : IFormDataValidator
         ILogger logger
     )
     {
-        var rawExpressionValidatıon = new RawExpressionValidation();
+        var rawExpressionValidation = new RawExpressionValidation();
 
         if (definition.ValueKind == JsonValueKind.String)
         {
@@ -232,9 +300,9 @@ public class ExpressionValidator : IFormDataValidator
                 );
                 return null;
             }
-            rawExpressionValidatıon.Message = reference.Message;
-            rawExpressionValidatıon.Condition = reference.Condition;
-            rawExpressionValidatıon.Severity = reference.Severity;
+            rawExpressionValidation.Message = reference.Message;
+            rawExpressionValidation.Condition = reference.Condition;
+            rawExpressionValidation.Severity = reference.Severity;
         }
         else
         {
@@ -257,34 +325,34 @@ public class ExpressionValidator : IFormDataValidator
                     );
                     return null;
                 }
-                rawExpressionValidatıon.Message = reference.Message;
-                rawExpressionValidatıon.Condition = reference.Condition;
-                rawExpressionValidatıon.Severity = reference.Severity;
+                rawExpressionValidation.Message = reference.Message;
+                rawExpressionValidation.Condition = reference.Condition;
+                rawExpressionValidation.Severity = reference.Severity;
             }
 
             if (expressionDefinition.Message != null)
             {
-                rawExpressionValidatıon.Message = expressionDefinition.Message;
+                rawExpressionValidation.Message = expressionDefinition.Message;
             }
 
             if (expressionDefinition.Condition != null)
             {
-                rawExpressionValidatıon.Condition = expressionDefinition.Condition;
+                rawExpressionValidation.Condition = expressionDefinition.Condition;
             }
 
             if (expressionDefinition.Severity != null)
             {
-                rawExpressionValidatıon.Severity = expressionDefinition.Severity;
+                rawExpressionValidation.Severity = expressionDefinition.Severity;
             }
         }
 
-        if (rawExpressionValidatıon.Message == null)
+        if (rawExpressionValidation.Message == null)
         {
             logger.LogError("Validation for field {field} is missing message", field);
             return null;
         }
 
-        if (rawExpressionValidatıon.Condition == null)
+        if (rawExpressionValidation.Condition == null)
         {
             logger.LogError("Validation for field {field} is missing condition", field);
             return null;
@@ -292,9 +360,9 @@ public class ExpressionValidator : IFormDataValidator
 
         var expressionValidation = new ExpressionValidation
         {
-            Message = rawExpressionValidatıon.Message,
-            Condition = rawExpressionValidatıon.Condition,
-            Severity = rawExpressionValidatıon.Severity ?? ValidationIssueSeverity.Error,
+            Message = rawExpressionValidation.Message,
+            Condition = rawExpressionValidation.Condition,
+            Severity = rawExpressionValidation.Severity ?? ValidationIssueSeverity.Error,
         };
 
         return expressionValidation;
@@ -306,8 +374,10 @@ public class ExpressionValidator : IFormDataValidator
     )
     {
         var expressionValidationDefinitions = new Dictionary<string, RawExpressionValidation>();
-        JsonElement definitionsObject;
-        var hasDefinitions = expressionValidationConfig.TryGetProperty("definitions", out definitionsObject);
+        var hasDefinitions = expressionValidationConfig.TryGetProperty(
+            "definitions",
+            out JsonElement definitionsObject
+        );
         if (hasDefinitions)
         {
             foreach (var definitionObject in definitionsObject.EnumerateObject())
@@ -329,8 +399,10 @@ public class ExpressionValidator : IFormDataValidator
             }
         }
         var expressionValidations = new Dictionary<string, List<ExpressionValidation>>();
-        JsonElement validationsObject;
-        var hasValidations = expressionValidationConfig.TryGetProperty("validations", out validationsObject);
+        var hasValidations = expressionValidationConfig.TryGetProperty(
+            "validations",
+            out JsonElement validationsObject
+        );
         if (hasValidations)
         {
             foreach (var validationArray in validationsObject.EnumerateObject())
@@ -360,5 +432,20 @@ public class ExpressionValidator : IFormDataValidator
             }
         }
         return expressionValidations;
+    }
+
+    private IEnumerable<KeyValuePair<DataType, string>> GetDataTypesWithExpressionsForTask(string taskId)
+    {
+        var appMetadata = _appMetadata.GetApplicationMetadata().Result;
+        foreach (
+            var dataType in appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null)
+        )
+        {
+            var validationConfig = _appResourceService.GetValidationConfiguration(dataType.Id);
+            if (validationConfig != null)
+            {
+                yield return KeyValuePair.Create(dataType, validationConfig);
+            }
+        }
     }
 }

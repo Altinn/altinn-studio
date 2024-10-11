@@ -30,7 +30,6 @@ public class AppResourcesSI : IAppResources
 
     private readonly AppSettings _settings;
     private readonly IAppMetadata _appMetadata;
-    private readonly IWebHostEnvironment _hostingEnvironment;
     private readonly ILogger _logger;
     private readonly Telemetry? _telemetry;
 
@@ -52,7 +51,6 @@ public class AppResourcesSI : IAppResources
     {
         _settings = settings.Value;
         _appMetadata = appMetadata;
-        _hostingEnvironment = hostingEnvironment;
         _logger = logger;
         _telemetry = telemetry;
     }
@@ -81,17 +79,15 @@ public class AppResourcesSI : IAppResources
             return null;
         }
 
-        using (FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read))
-        {
-            TextResource textResource =
-                await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, _jsonSerializerOptions)
-                ?? throw new System.Text.Json.JsonException("Failed to deserialize text resource");
-            textResource.Id = $"{org}-{app}-{language}";
-            textResource.Org = org;
-            textResource.Language = language;
+        await using FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read);
+        TextResource textResource =
+            await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, _jsonSerializerOptions)
+            ?? throw new System.Text.Json.JsonException("Failed to deserialize text resource");
+        textResource.Id = $"{org}-{app}-{language}";
+        textResource.Org = org;
+        textResource.Language = language;
 
-            return textResource;
-        }
+        return textResource;
     }
 
     /// <inheritdoc />
@@ -286,7 +282,7 @@ public class AppResourcesSI : IAppResources
     {
         using var activity = _telemetry?.StartGetLayoutSetsForTaskActivity();
         var sets = GetLayoutSet();
-        return sets?.Sets?.FirstOrDefault(s => s?.Tasks?.Contains(taskId) ?? false);
+        return sets?.Sets?.Find(s => s?.Tasks?.Contains(taskId) is true);
     }
 
     /// <inheritdoc />
@@ -296,6 +292,9 @@ public class AppResourcesSI : IAppResources
         Dictionary<string, object> layouts = new Dictionary<string, object>();
 
         string layoutsPath = _settings.AppBasePath + _settings.UiFolder + layoutSetId + "/layouts/";
+
+        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), layoutsPath);
+
         if (Directory.Exists(layoutsPath))
         {
             foreach (string file in Directory.GetFiles(layoutsPath))
@@ -311,32 +310,75 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
+    [Obsolete("Use GetLayoutModelForTask instead")]
     public LayoutModel GetLayoutModel(string? layoutSetId = null)
     {
-        using var activity = _telemetry?.StartGetLayoutModelActivity();
-        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId, "layouts");
-        var order = GetLayoutSettingsForSet(layoutSetId)?.Pages?.Order;
-        if (order is null)
+        var sets = GetLayoutSet();
+        if (sets is null)
         {
-            throw new InvalidDataException(
-                "No $Pages.Order field found" + (layoutSetId is null ? "" : $" for layoutSet {layoutSetId}")
-            );
+            throw new InvalidOperationException("No layout set found");
+        }
+        var set = sets.Sets.First(s => s.Id == layoutSetId);
+
+        if (set.Tasks != null)
+        {
+            return GetLayoutModelForTask(set.Tasks.First())
+                ?? throw new InvalidOperationException("No layout model found");
+        }
+        throw new InvalidOperationException("No tasks found in layout set");
+    }
+
+    /// <inheritdoc />
+    public LayoutModel? GetLayoutModelForTask(string taskId)
+    {
+        using var activity = _telemetry?.StartGetLayoutModelActivity();
+        var layoutSets = GetLayoutSet();
+        if (layoutSets is null)
+        {
+            return null;
+        }
+        var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
+
+        var layouts = layoutSets.Sets.Select(set => LoadLayout(set, dataTypes)).ToList();
+
+        var layoutSet = GetLayoutSetForTask(taskId);
+        if (layoutSet is null)
+        {
+            return null;
         }
 
-        var layoutModel = new LayoutModel();
+        return new LayoutModel(layouts, layoutSet);
+    }
+
+    private LayoutSetComponent LoadLayout(LayoutSet layoutSet, List<DataType> dataTypes)
+    {
+        var order =
+            GetLayoutSettingsForSet(layoutSet.Id)?.Pages?.Order
+            ?? throw new InvalidDataException($"No $Pages.Order field found for layoutSet {layoutSet.Id}");
+
+        var pages = new List<PageComponent>();
+        string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSet.Id, "layouts");
         foreach (var page in order)
         {
             var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
             // Set the PageName using AsyncLocal before deserializing.
-            PageComponentConverter.SetAsyncLocalPageName(page);
-            layoutModel.Pages[page] =
+            PageComponentConverter.SetAsyncLocalPageName(layoutSet.Id, page);
+            pages.Add(
                 System.Text.Json.JsonSerializer.Deserialize<PageComponent>(
                     pageBytes.RemoveBom(),
                     _jsonSerializerOptions
-                ) ?? throw new InvalidDataException(page + ".json is \"null\"");
+                ) ?? throw new InvalidDataException(page + ".json is \"null\"")
+            );
         }
 
-        return layoutModel;
+        // First look at the specified data type, but
+        var dataType =
+            dataTypes.Find(d => d.Id == layoutSet.DataType)
+            ?? dataTypes.Find(d => d.AppLogic?.ClassRef is not null)
+            ?? throw new InvalidOperationException(
+                $"LayoutSet {layoutSet.Id} asks for dataType {layoutSet.DataType}, but it does not exist in applicationmetadata.json"
+            );
+        return new LayoutSetComponent(pages, layoutSet.Id, dataType);
     }
 
     /// <inheritdoc />
@@ -349,6 +391,9 @@ public class AppResourcesSI : IAppResources
             layoutSetId,
             _settings.FormLayoutSettingsFileName
         );
+
+        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename);
+
         string? filedata = null;
         if (File.Exists(filename))
         {
@@ -368,11 +413,13 @@ public class AppResourcesSI : IAppResources
             layoutSetId,
             _settings.FormLayoutSettingsFileName
         );
+
+        PathHelper.EnsureLegalPath(Path.Join(_settings.AppBasePath, _settings.UiFolder), filename);
+
         if (File.Exists(filename))
         {
-            string? filedata = null;
-            filedata = File.ReadAllText(filename, Encoding.UTF8);
-            LayoutSettings? layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata);
+            var fileData = File.ReadAllText(filename, Encoding.UTF8);
+            LayoutSettings? layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(fileData);
             return layoutSettings;
         }
 
@@ -403,7 +450,7 @@ public class AppResourcesSI : IAppResources
         return ReadFileByte(filename);
     }
 
-    private byte[] ReadFileByte(string fileName)
+    private static byte[] ReadFileByte(string fileName)
     {
         byte[]? filedata = null;
         if (File.Exists(fileName))
@@ -416,7 +463,7 @@ public class AppResourcesSI : IAppResources
 #nullable restore
     }
 
-    private byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
+    private static byte[] ReadFileContentsFromLegalPath(string legalPath, string filePath)
     {
         var fullFileName = legalPath + filePath;
         if (!PathHelper.ValidateLegalFilePath(legalPath, fullFileName))
@@ -449,11 +496,11 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    public string? GetValidationConfiguration(string modelId)
+    public string? GetValidationConfiguration(string dataTypeId)
     {
         using var activity = _telemetry?.StartGetValidationConfigurationActivity();
         string legalPath = $"{_settings.AppBasePath}{_settings.ModelsFolder}";
-        string filename = $"{legalPath}{modelId}.{_settings.ValidationConfigurationFileName}";
+        string filename = $"{legalPath}{dataTypeId}.{_settings.ValidationConfigurationFileName}";
         PathHelper.EnsureLegalPath(legalPath, filename);
 
         string? filedata = null;

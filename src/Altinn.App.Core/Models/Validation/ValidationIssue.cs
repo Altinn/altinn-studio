@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Altinn.App.Core.Internal.Validation;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Models.Validation;
@@ -54,6 +53,7 @@ public class ValidationIssue
     /// </summary>
     [JsonProperty(PropertyName = "code")]
     [JsonPropertyName("code")]
+    // TODO: Make this required for v9
     public string? Code { get; set; }
 
     /// <summary>
@@ -61,20 +61,16 @@ public class ValidationIssue
     /// </summary>
     [JsonProperty(PropertyName = "description")]
     [JsonPropertyName("description")]
+    // TODO: Make this required for v9
     public string? Description { get; set; }
 
     /// <summary>
     /// The short name of the class that crated the message (set automatically after return of list)
     /// </summary>
-    /// <remarks>
-    /// Intentionally not marked as "required", because it is set in <see cref="ValidationService"/>
-    /// </remarks>
     [JsonProperty(PropertyName = "source")]
     [JsonPropertyName("source")]
-#nullable disable
-    public string Source { get; set; }
-
-#nullable restore
+    [Obsolete("Source is set automatically by the validation service. Setting it explicitly will be an error in v9")]
+    public string? Source { get; set; }
 
     /// <summary>
     /// The custom text key to use for the localized text in the frontend.

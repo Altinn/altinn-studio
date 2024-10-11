@@ -1,449 +1,196 @@
-using System.Globalization;
-using System.Reflection;
 using System.Text.RegularExpressions;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Helpers.DataModel;
 
 /// <summary>
 /// Get data fields from a model, using string keys (like "Bedrifter[1].Ansatte[1].Alder")
 /// </summary>
-public class DataModel : IDataModelAccessor
+public class DataModel
 {
-    private readonly object _serviceModel;
+    private readonly IInstanceDataAccessor _dataAccessor;
+    private readonly Dictionary<string, DataElementIdentifier?> _dataIdsByType = [];
 
     /// <summary>
-    /// Constructor that wraps a PCOC data model, and gives extra tool for working with the data
+    /// Constructor that wraps a POCO data model, and gives extra tool for working with the data
     /// </summary>
-    public DataModel(object serviceModel)
+    public DataModel(IInstanceDataAccessor dataAccessor, ApplicationMetadata appMetadata)
     {
-        _serviceModel = serviceModel;
-    }
-
-    /// <inheritdoc />
-    public object? GetModelData(string key, ReadOnlySpan<int> indicies = default)
-    {
-        return GetModelDataRecursive(key.Split('.'), 0, _serviceModel, indicies);
-    }
-
-    /// <inheritdoc />
-    public int? GetModelDataCount(string key, ReadOnlySpan<int> indicies = default)
-    {
-        if (
-            GetModelDataRecursive(key.Split('.'), 0, _serviceModel, indicies)
-            is System.Collections.IEnumerable childEnum
-        )
+        _dataAccessor = dataAccessor;
+        foreach (var dataElement in dataAccessor.Instance.Data)
         {
-            int retCount = 0;
-            foreach (var _ in childEnum)
+            var dataTypeId = dataElement.DataType;
+            var dataType = appMetadata.DataTypes.Find(d => d.Id == dataTypeId);
+            if (dataType is { MaxCount: 1, AppLogic.ClassRef: not null })
             {
-                retCount++;
+                _dataIdsByType.TryAdd(dataElement.DataType, dataElement);
             }
-            return retCount;
-        }
-
-        return null;
-    }
-
-    private object? GetModelDataRecursive(string[] keys, int index, object currentModel, ReadOnlySpan<int> indicies)
-    {
-        if (index == keys.Length)
-        {
-            return currentModel;
-        }
-
-        var (key, groupIndex) = ParseKeyPart(keys[index]);
-        var prop = currentModel.GetType().GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
-        var childModel = prop?.GetValue(currentModel);
-        if (childModel is null)
-        {
-            return null;
-        }
-
-        // Strings are enumerable in C#
-        // Other enumerable types is treated as an collection
-        if (!(childModel is not string && childModel is System.Collections.IEnumerable childModelList))
-        {
-            return GetModelDataRecursive(keys, index + 1, childModel, indicies);
-        }
-
-        if (groupIndex is null)
-        {
-            if (index == keys.Length - 1)
+            else
             {
-                return childModelList;
+                _dataIdsByType.TryAdd(dataElement.Id, null);
             }
+        }
+    }
 
-            if (indicies.Length == 0)
+    /// <summary>
+    /// Get access to the instance object
+    /// </summary>
+    public Instance Instance => _dataAccessor.Instance;
+
+    private async Task<object> ServiceModel(ModelBinding key, DataElementIdentifier defaultDataElementIdentifier)
+    {
+        return (await ServiceModelAndDataElementId(key, defaultDataElementIdentifier)).model;
+    }
+
+    private async Task<(DataElementIdentifier dataElementId, object model)> ServiceModelAndDataElementId(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier
+    )
+    {
+        if (key.DataType == null)
+        {
+            return (defaultDataElementIdentifier, await _dataAccessor.GetFormData(defaultDataElementIdentifier));
+        }
+
+        if (_dataIdsByType.TryGetValue(key.DataType, out var dataElementId))
+        {
+            if (dataElementId is null)
             {
-                return null; // Error index for collection not specified
+                throw new InvalidOperationException(
+                    $"{key.DataType} has maxCount different from 1 in applicationmetadata.json or don't have a classRef in appLogic"
+                );
             }
-
-            groupIndex = indicies[0];
-        }
-        else
-        {
-            indicies = default; //when you use a literal index, the context indecies are not to be used later.
+            return (dataElementId.Value, await _dataAccessor.GetFormData(dataElementId.Value));
         }
 
-        var elementAt = GetElementAt(childModelList, groupIndex.Value);
-        if (elementAt is null)
-        {
-            return null; // Error condition, no value at index
-        }
-
-        return GetModelDataRecursive(keys, index + 1, elementAt, indicies.Length > 0 ? indicies.Slice(1) : indicies);
+        throw new InvalidOperationException(
+            $"Data model with type {key.DataType} not found in applicationmetadata.json"
+        );
     }
 
-    /// <inheritdoc />
-    public string[] GetResolvedKeys(string key)
+    /// <summary>
+    /// Get model data based on key and optionally indexes
+    /// </summary>
+    /// <remarks>
+    /// Inline indicies in the key "Bedrifter[1].Ansatte[1].Alder" will override
+    /// normal indicies, and if both "Bedrifter" and "Ansatte" is lists,
+    /// "Bedrifter[1].Ansatte.Alder", will fail, because the indicies will be reset
+    /// after an inline index is used
+    /// </remarks>
+    public async Task<object?> GetModelData(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes
+    )
     {
-        if (_serviceModel is null)
-        {
-            return [];
-        }
-
-        var keyParts = key.Split('.');
-        return GetResolvedKeysRecursive(keyParts, _serviceModel);
+        var model = await ServiceModel(key, defaultDataElementIdentifier);
+        var modelWrapper = new DataModelWrapper(model);
+        return modelWrapper.GetModelData(key.Field, rowIndexes);
     }
 
-    internal static string JoinFieldKeyParts(string? currentKey, string? key)
+    /// <summary>
+    /// Get the count of data elements set in a group (enumerable)
+    /// </summary>
+    public async Task<int?> GetModelDataCount(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes
+    )
     {
-        if (String.IsNullOrEmpty(currentKey))
-        {
-            return key ?? "";
-        }
-        if (String.IsNullOrEmpty(key))
-        {
-            return currentKey ?? "";
-        }
-
-        return currentKey + "." + key;
+        var model = await ServiceModel(key, defaultDataElementIdentifier);
+        var modelWrapper = new DataModelWrapper(model);
+        return modelWrapper.GetModelDataCount(key.Field, rowIndexes);
     }
 
-    private static readonly Regex _rowIndexRegex = new Regex(
-        @"^([^[\]]+(\[(\d+)])?)+$",
-        RegexOptions.None,
-        TimeSpan.FromSeconds(1)
-    );
+    /// <summary>
+    /// Get an array of all keys in repeating groups that match this key
+    /// </summary>
+    /// <example>
+    /// GetResolvedKeys("data.bedrifter.styre.medlemmer") =>
+    /// [
+    ///     "data.bedrifter[0].styre.medlemmer",
+    ///     "data.bedrifter[1].styre.medlemmer"
+    /// ]
+    /// </example>
+    public async Task<DataReference[]> GetResolvedKeys(DataReference reference)
+    {
+        var model = await _dataAccessor.GetFormData(reference.DataElementIdentifier);
+        var modelWrapper = new DataModelWrapper(model);
+        return modelWrapper
+            .GetResolvedKeys(reference.Field)
+            .Select(k => new DataReference { Field = k, DataElementIdentifier = reference.DataElementIdentifier })
+            .ToArray();
+    }
+
+    private static readonly Regex _rowIndexRegex =
+        new(@"^([^[\]]+(\[(\d+)])?)+$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(10));
 
     /// <summary>
     /// Get the row indices from a key
     /// </summary>
-    public static int[]? GetRowIndices(string key)
+    public static int[]? GetRowIndices(string field)
     {
-        var match = _rowIndexRegex.Match(key);
+        var match = _rowIndexRegex.Match(field);
         var rowIndices = match.Groups[3].Captures.Select(c => c.Value).Select(int.Parse).ToArray();
         return rowIndices.Length == 0 ? null : rowIndices;
     }
 
-    private string[] GetResolvedKeysRecursive(
-        string[] keyParts,
-        object currentModel,
-        int currentIndex = 0,
-        string currentKey = ""
+    /// <summary>
+    /// Return a full dataModelBiding from a context aware binding by adding indicies
+    /// </summary>
+    /// <example>
+    /// key = "bedrift.ansatte.navn"
+    /// indicies = [1,2]
+    /// => "bedrift[1].ansatte[2].navn"
+    /// </example>
+    public async Task<DataReference> AddIndexes(
+        ModelBinding key,
+        DataElementIdentifier defaultDataElementIdentifier,
+        int[]? rowIndexes
     )
     {
-        if (currentModel is null)
+        var (dataElementId, serviceModel) = await ServiceModelAndDataElementId(key, defaultDataElementIdentifier);
+        if (serviceModel is null)
         {
-            return [];
+            throw new DataModelException($"Could not find service model for dataType {key.DataType}");
         }
 
-        if (currentIndex == keyParts.Length)
-        {
-            return [currentKey];
-        }
-
-        var (key, groupIndex) = ParseKeyPart(keyParts[currentIndex]);
-        var prop = currentModel?.GetType().GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
-        var childModel = prop?.GetValue(currentModel);
-        if (childModel is null)
-        {
-            return [];
-        }
-
-        if (childModel is not string && childModel is System.Collections.IEnumerable childModelList)
-        {
-            // childModel is an array
-            if (groupIndex is null)
-            {
-                // Index not specified, recurse on all elements
-                int i = 0;
-                var resolvedKeys = new List<string>();
-                foreach (var child in childModelList)
-                {
-                    var newResolvedKeys = GetResolvedKeysRecursive(
-                        keyParts,
-                        child,
-                        currentIndex + 1,
-                        JoinFieldKeyParts(currentKey, key + "[" + i + "]")
-                    );
-                    resolvedKeys.AddRange(newResolvedKeys);
-                    i++;
-                }
-                return resolvedKeys.ToArray();
-            }
-            else
-            {
-                // Index specified, recurse on that element
-                return GetResolvedKeysRecursive(
-                    keyParts,
-                    childModel,
-                    currentIndex + 1,
-                    JoinFieldKeyParts(currentKey, key + "[" + groupIndex + "]")
-                );
-            }
-        }
-
-        // Otherwise, just recurse
-        return GetResolvedKeysRecursive(keyParts, childModel, currentIndex + 1, JoinFieldKeyParts(currentKey, key));
+        var modelWrapper = new DataModelWrapper(serviceModel);
+        var field = modelWrapper.AddIndicies(key.Field, rowIndexes);
+        return new DataReference() { Field = field, DataElementIdentifier = dataElementId };
     }
 
-    private static object? GetElementAt(System.Collections.IEnumerable enumerable, int index)
+    /// <summary>
+    /// Set the value of a field in the model to default (null)
+    /// </summary>
+    public async Task RemoveField(DataReference reference, RowRemovalOption rowRemovalOption)
     {
-        // Return the element with index = groupIndex (could not find anohter way to get the n'th element in non generic enumerable)
-        foreach (var arrayElement in enumerable)
+        var serviceModel = await _dataAccessor.GetFormData(reference.DataElementIdentifier);
+        if (serviceModel is null)
         {
-            if (index-- < 1)
-            {
-                return arrayElement;
-            }
+            throw new DataModelException(
+                $"Could not find service model for data element id {reference.DataElementIdentifier} to remove values"
+            );
         }
 
-        return null;
+        var modelWrapper = new DataModelWrapper(serviceModel);
+        modelWrapper.RemoveField(reference.Field, rowRemovalOption);
     }
 
-    private static readonly Regex _keyPartRegex = new Regex(@"^([^\s\[\]\.]+)\[(\d+)\]?$");
-
-    internal static (string key, int? index) ParseKeyPart(string keypart)
-    {
-        if (keypart.Length == 0)
-        {
-            throw new DataModelException("Tried to parse empty part of dataModel key");
-        }
-        if (keypart.Last() != ']')
-        {
-            return (keypart, null);
-        }
-        var match = _keyPartRegex.Match(keypart);
-        return (match.Groups[1].Value, int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture));
-    }
-
-    private static void AddIndiciesRecursive(
-        List<string> ret,
-        Type currentModelType,
-        ReadOnlySpan<string> keys,
-        string fullKey,
-        ReadOnlySpan<int> indicies,
-        ReadOnlySpan<int> originalIndicies
-    )
-    {
-        if (keys.Length == 0)
-        {
-            return;
-        }
-        var (key, groupIndex) = ParseKeyPart(keys[0]);
-        var prop = currentModelType.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
-        if (prop is null)
-        {
-            throw new DataModelException($"Unknown model property {key} in {string.Join(".", ret)}.{key}");
-        }
-
-        var currentIndex = groupIndex ?? (indicies.Length > 0 ? indicies[0] : null);
-
-        var childType = prop.PropertyType;
-        // Strings are enumerable in C#
-        // Other enumerable types is treated as an collection
-        if (
-            childType != typeof(string)
-            && childType.IsAssignableTo(typeof(System.Collections.IEnumerable))
-            && currentIndex is not null
-        )
-        {
-            // Hope the first generic argument is tied to the IEnumerable implementation
-            var childTypeEnumerableParameter = childType.GetGenericArguments().FirstOrDefault();
-
-            if (childTypeEnumerableParameter is null)
-            {
-                throw new DataModelException("DataModels must have generic IEnumerable<> implementation for list");
-            }
-
-            ret.Add($"{key}[{currentIndex}]");
-            if (indicies.Length > 0)
-            {
-                indicies = indicies.Slice(1);
-            }
-
-            AddIndiciesRecursive(ret, childTypeEnumerableParameter, keys.Slice(1), fullKey, indicies, originalIndicies);
-        }
-        else
-        {
-            if (groupIndex is not null)
-            {
-                throw new DataModelException("Index on non indexable property");
-            }
-
-            ret.Add(key);
-            AddIndiciesRecursive(ret, childType, keys.Slice(1), fullKey, indicies, originalIndicies);
-        }
-    }
-
-    /// <inheritdoc />
-    public string AddIndicies(string key, ReadOnlySpan<int> indicies = default)
-    {
-        if (indicies.Length == 0)
-        {
-            return key;
-        }
-
-        var ret = new List<string>();
-        AddIndiciesRecursive(ret, this._serviceModel.GetType(), key.Split('.'), key, indicies, indicies);
-        return string.Join('.', ret);
-    }
-
-    private static bool IsPropertyWithJsonName(PropertyInfo propertyInfo, string key)
-    {
-        var ca = propertyInfo.CustomAttributes;
-
-        // Read [JsonPropertyName("propName")] from System.Text.Json
-        var system_text_json_attribute = (
-            ca.FirstOrDefault(attr =>
-                    attr.AttributeType == typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute)
-                )
-                ?.ConstructorArguments.FirstOrDefault()
-                .Value as string
-        );
-        if (system_text_json_attribute is not null)
-        {
-            return system_text_json_attribute == key;
-        }
-
-        // Read [JsonProperty("propName")] from Newtonsoft.Json
-        var newtonsoft_json_attribute = (
-            ca.FirstOrDefault(attr => attr.AttributeType == typeof(Newtonsoft.Json.JsonPropertyAttribute))
-                ?.ConstructorArguments.FirstOrDefault()
-                .Value as string
-        );
-        // To remove dependency on Newtonsoft, while keeping compatibility
-        // var newtonsoft_json_attribute = (ca.FirstOrDefault(attr => attr.AttributeType.FullName == "Newtonsoft.Json.JsonPropertyAttribute")?.ConstructorArguments.FirstOrDefault().Value as string);
-        if (newtonsoft_json_attribute is not null)
-        {
-            return newtonsoft_json_attribute == key;
-        }
-
-        // Fallback to property name if all attributes could not be found
-        var keyName = propertyInfo.Name;
-        return keyName == key;
-    }
-
-    /// <inheritdoc />
-    public void RemoveField(string key, RowRemovalOption rowRemovalOption)
-    {
-        var keys_split = key.Split('.');
-        var keys = keys_split[0..^1];
-        var (lastKey, lastGroupIndex) = ParseKeyPart(keys_split[^1]);
-
-        var containingObject = GetModelDataRecursive(keys, 0, _serviceModel, default);
-        if (containingObject is null)
-        {
-            // Already empty field
-            return;
-        }
-
-        if (containingObject is System.Collections.IEnumerable)
-        {
-            throw new NotImplementedException($"Tried to remove field {key}, ended in an enumerable");
-        }
-
-        var property = containingObject
-            .GetType()
-            .GetProperties()
-            .FirstOrDefault(p => IsPropertyWithJsonName(p, lastKey));
-        if (property is null)
-        {
-            return;
-        }
-
-        if (lastGroupIndex is not null)
-        {
-            // Remove row from list
-            var propertyValue = property.GetValue(containingObject);
-            if (propertyValue is not System.Collections.IList listValue)
-            {
-                throw new ArgumentException(
-                    $"Tried to remove row {key}, ended in a non-list ({propertyValue?.GetType()})"
-                );
-            }
-
-            switch (rowRemovalOption)
-            {
-                case RowRemovalOption.DeleteRow:
-                    listValue.RemoveAt(lastGroupIndex.Value);
-                    break;
-                case RowRemovalOption.SetToNull:
-                    var genericType = listValue.GetType().GetGenericArguments().FirstOrDefault();
-                    var nullValue = genericType?.IsValueType == true ? Activator.CreateInstance(genericType) : null;
-                    listValue[lastGroupIndex.Value] = nullValue;
-                    break;
-                case RowRemovalOption.Ignore:
-                    return;
-            }
-        }
-        else
-        {
-            // Set property to null
-            var nullValue = property.PropertyType.GetTypeInfo().IsValueType
-                ? Activator.CreateInstance(property.PropertyType)
-                : null;
-            property.SetValue(containingObject, nullValue);
-        }
-    }
-
-    /// <inheritdoc />
-    public bool VerifyKey(string key)
-    {
-        return VerifyKeyRecursive(key.Split('.'), 0, _serviceModel.GetType());
-    }
-
-    private bool VerifyKeyRecursive(string[] keys, int index, Type currentModel)
-    {
-        if (index == keys.Length)
-        {
-            return true;
-        }
-        if (keys[index].Length == 0)
-        {
-            return false; // invalid key part
-        }
-
-        var (key, groupIndex) = ParseKeyPart(keys[index]);
-        var prop = currentModel.GetProperties().FirstOrDefault(p => IsPropertyWithJsonName(p, key));
-        if (prop is null)
-        {
-            return false;
-        }
-
-        var childType = prop.PropertyType;
-
-        // Strings are enumerable in C#
-        // Other enumerable types is treated as an collection
-        if (childType != typeof(string) && childType.IsAssignableTo(typeof(System.Collections.IEnumerable)))
-        {
-            var childTypeEnumerableParameter = childType
-                .GetInterfaces()
-                .Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                .Select(t => t.GetGenericArguments()[0])
-                .FirstOrDefault();
-
-            if (childTypeEnumerableParameter is not null)
-            {
-                return VerifyKeyRecursive(keys, index + 1, childTypeEnumerableParameter);
-            }
-        }
-        else if (groupIndex is not null)
-        {
-            return false; // Key parts with group index must be IEnumerable
-        }
-
-        return VerifyKeyRecursive(keys, index + 1, childType);
-    }
+    // /// <summary>
+    // /// Verify that a key is valid for the model
+    // /// </summary>
+    // public async Task<bool> VerifyKey(ModelBinding key, DataElementId defaultDataElementId)
+    // {
+    //     var serviceModel = await ServiceModel(key, defaultDataElementId);
+    //     if (serviceModel is null)
+    //     {
+    //         return false;
+    //     }
+    //     var modelWrapper = new DataModelWrapper(serviceModel);
+    //     return modelWrapper.VerifyKey(key.Field);
+    // }
 }

@@ -1,3 +1,4 @@
+#pragma warning disable IDE1006 // Naming Styles does not matter in model classes
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using System.Xml.Serialization;
@@ -55,6 +56,16 @@ public class Dummy
     {
         return TagWithAttribute?.value != null;
     }
+
+    [XmlElement("hidden", Order = 8)]
+    [JsonProperty("hidden")]
+    [JsonPropertyName("hidden")]
+    public string? Hidden { get; set; }
+
+    [XmlElement("SF_test", Order = 9)]
+    [JsonProperty("SF_test")]
+    [JsonPropertyName("SF_test")]
+    public string? SF_test { get; set; }
 }
 
 public class TagWithAttribute
@@ -129,3 +140,5 @@ public class Nested
     [JsonPropertyName("values")]
     public List<SimpleKeyvalues>? Values { get; set; }
 }
+
+#pragma warning restore IDE1006 // Naming Styles

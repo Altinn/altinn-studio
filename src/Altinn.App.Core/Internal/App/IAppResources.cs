@@ -126,8 +126,14 @@ public interface IAppResources
     string GetLayoutsForSet(string layoutSetId);
 
     /// <summary>
+    /// Gets the full layout model for the task
+    /// </summary>
+    LayoutModel? GetLayoutModelForTask(string taskId);
+
+    /// <summary>
     /// Gets the full layout model for the optional set
     /// </summary>
+    [Obsolete("Use GetLayoutModelForTask instead", true)]
     LayoutModel GetLayoutModel(string? layoutSetId = null);
 
     /// <summary>
@@ -156,8 +162,7 @@ public interface IAppResources
     byte[] GetRuleHandlerForSet(string id);
 
     /// <summary>
-    /// Gets the the rule handler for a layoutset
+    /// Gets the validation configuration for a given data type
     /// </summary>
-    /// <returns>The layout settings</returns>
-    string? GetValidationConfiguration(string modelId);
+    string? GetValidationConfiguration(string dataTypeId);
 }

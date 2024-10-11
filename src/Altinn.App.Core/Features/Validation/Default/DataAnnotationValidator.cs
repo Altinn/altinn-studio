@@ -14,7 +14,7 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// <summary>
 /// Runs <see cref="System.ComponentModel.DataAnnotations"/> validation on the data object.
 /// </summary>
-public class DataAnnotationValidator : IFormDataValidator
+public class DataAnnotationValidator : IFormDataValidator // TODO: This should be IValidator
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IObjectModelValidator _objectModelValidator;
@@ -42,7 +42,7 @@ public class DataAnnotationValidator : IFormDataValidator
     /// <summary>
     /// This validator has the code "DataAnnotations" and this is known by the frontend, who may request this validator to not run for incremental validation.
     /// </summary>
-    public string ValidationSource => "DataAnnotations";
+    public string ValidationSource => ValidationIssueSources.DataAnnotations;
 
     /// <summary>
     /// We don't know which fields are relevant for data annotation validation, so we always run it.
@@ -83,8 +83,7 @@ public class DataAnnotationValidator : IFormDataValidator
                     instance,
                     dataElement,
                     _generalSettings,
-                    data.GetType(),
-                    ValidationIssueSources.ModelState
+                    data.GetType()
                 )
             );
         }

@@ -1,11 +1,13 @@
-using System.Globalization;
 using System.Text.Json;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.DataModel;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Options;
@@ -17,105 +19,104 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
+    private readonly IInstanceClient _intanceClient;
     private readonly IAppModel _appModel;
-    private readonly IAppResources _appResources;
-    private readonly LayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
+    private readonly ILayoutEvaluatorStateInitializer _layoutEvaluatorStateInitializer;
     private readonly IOptions<AppSettings> _appSettings;
+    private readonly ModelSerializationService _modelSerializer;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessTaskFinalizer"/> class.
     /// </summary>
-    /// <param name="appMetadata"></param>
-    /// <param name="dataClient"></param>
-    /// <param name="appModel"></param>
-    /// <param name="appResources"></param>
-    /// <param name="layoutEvaluatorStateInitializer"></param>
-    /// <param name="appSettings"></param>
     public ProcessTaskFinalizer(
         IAppMetadata appMetadata,
         IDataClient dataClient,
+        IInstanceClient intanceClient,
         IAppModel appModel,
-        IAppResources appResources,
-        LayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
+        ModelSerializationService modelSerializer,
+        ILayoutEvaluatorStateInitializer layoutEvaluatorStateInitializer,
         IOptions<AppSettings> appSettings
     )
     {
         _appMetadata = appMetadata;
         _dataClient = dataClient;
-        _appModel = appModel;
-        _appResources = appResources;
         _layoutEvaluatorStateInitializer = layoutEvaluatorStateInitializer;
         _appSettings = appSettings;
+        _intanceClient = intanceClient;
+        _appModel = appModel;
+        _modelSerializer = modelSerializer;
     }
 
     /// <inheritdoc/>
     public async Task Finalize(string taskId, Instance instance)
     {
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
-        List<DataType> connectedDataTypes = applicationMetadata.DataTypes.FindAll(dt => dt.TaskId == taskId);
-
-        await RunRemoveFieldsInModelOnTaskComplete(instance, connectedDataTypes);
-    }
-
-    private async Task RunRemoveFieldsInModelOnTaskComplete(Instance instance, List<DataType> dataTypesToLock)
-    {
-        ArgumentNullException.ThrowIfNull(instance.Data);
-
-        dataTypesToLock = dataTypesToLock.Where(d => !string.IsNullOrEmpty(d.AppLogic?.ClassRef)).ToList();
-        await Task.WhenAll(
-            instance
-                .Data.Join(dataTypesToLock, de => de.DataType, dt => dt.Id, (de, dt) => (dataElement: de, dataType: dt))
-                .Select(
-                    async (d) =>
-                    {
-                        await RemoveFieldsOnTaskComplete(instance, dataTypesToLock, d.dataElement, d.dataType);
-                    }
-                )
+        var dataAccessor = new CachedInstanceDataAccessor(
+            instance,
+            _dataClient,
+            _intanceClient,
+            _appMetadata,
+            _modelSerializer
         );
+
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+
+        List<Task> tasks = [];
+        foreach (
+            var dataType in applicationMetadata.DataTypes.Where(dt =>
+                dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null
+            )
+        )
+        {
+            foreach (var dataElement in instance.Data.Where(de => de.DataType == dataType.Id))
+            {
+                tasks.Add(RemoveFieldsOnTaskComplete(dataAccessor, taskId, applicationMetadata, dataElement, dataType));
+            }
+        }
+        await Task.WhenAll(tasks);
+
+        var changes = dataAccessor.GetDataElementChanges(initializeAltinnRowId: false);
+        await dataAccessor.UpdateInstanceData(changes);
+        await dataAccessor.SaveChanges(changes);
     }
 
     private async Task RemoveFieldsOnTaskComplete(
-        Instance instance,
-        List<DataType> dataTypesToLock,
+        CachedInstanceDataAccessor dataAccessor,
+        string taskId,
+        ApplicationMetadata applicationMetadata,
         DataElement dataElement,
-        DataType dataType
+        DataType dataType,
+        string? language = null
     )
     {
-        // Download the data
-        Type modelType = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        Guid dataGuid = Guid.Parse(dataElement.Id);
-        string app = instance.AppId.Split("/")[1];
-        int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-        object data = await _dataClient.GetFormData(
-            instanceGuid,
-            modelType,
-            instance.Org,
-            app,
-            instanceOwnerPartyId,
-            dataGuid
-        );
+        var data = await dataAccessor.GetFormData(dataElement);
+
+        // remove AltinnRowIds
+        ObjectUtils.RemoveAltinnRowId(data);
 
         // Remove hidden data before validation, ignore hidden rows.
         if (_appSettings.Value?.RemoveHiddenData == true)
         {
-            LayoutSet? layoutSet = _appResources.GetLayoutSetForTask(dataType.TaskId);
+            // Backend removal of data is deprecated in favor of
+            // implementing frontend removal of hidden data, so
+            //this is not updated to remove from multiple data models at once.
             LayoutEvaluatorState evaluationState = await _layoutEvaluatorStateInitializer.Init(
-                instance,
-                data,
-                layoutSet?.Id
+                dataAccessor,
+                taskId,
+                gatewayAction: null,
+                language
             );
-            LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.Ignore);
+            await LayoutEvaluator.RemoveHiddenData(evaluationState, RowRemovalOption.DeleteRow);
         }
 
         // Remove shadow fields
+        // TODO: Use reflection or code generation instead of JsonSerializer
         if (dataType.AppLogic?.ShadowFields?.Prefix != null)
         {
             string serializedData = JsonSerializerIgnorePrefix.Serialize(data, dataType.AppLogic.ShadowFields.Prefix);
             if (dataType.AppLogic.ShadowFields.SaveToDataType != null)
             {
                 // Save the shadow fields to another data type
-                DataType? saveToDataType = dataTypesToLock.Find(dt =>
+                DataType? saveToDataType = applicationMetadata.DataTypes.Find(dt =>
                     dt.Id == dataType.AppLogic.ShadowFields.SaveToDataType
                 );
                 if (saveToDataType == null)
@@ -124,33 +125,26 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
                         $"SaveToDataType {dataType.AppLogic.ShadowFields.SaveToDataType} not found"
                     );
                 }
-
                 Type saveToModelType = _appModel.GetModelType(saveToDataType.AppLogic.ClassRef);
-                object? updatedData = JsonSerializer.Deserialize(serializedData, saveToModelType);
-                await _dataClient.InsertFormData(
-                    updatedData,
-                    instanceGuid,
-                    saveToModelType ?? modelType,
-                    instance.Org,
-                    app,
-                    instanceOwnerPartyId,
-                    saveToDataType.Id
-                );
-            }
-            else
-            {
-                // Remove the shadow fields from the data
-                data =
-                    JsonSerializer.Deserialize(serializedData, modelType)
+
+                object updatedData =
+                    JsonSerializer.Deserialize(serializedData, saveToModelType)
                     ?? throw new JsonException(
                         "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
                     );
+                // Save a new data element with the cleaned data without shadow fields.
+                dataAccessor.AddFormDataElement(saveToDataType.Id, updatedData);
+            }
+            else
+            {
+                // Remove the shadow fields from the data using JsonSerializer
+                var newData =
+                    JsonSerializer.Deserialize(serializedData, data.GetType())
+                    ?? throw new JsonException(
+                        "Could not deserialize back datamodel after removing shadow fields. Data was \"null\""
+                    );
+                dataAccessor.SetFormData(dataElement, newData);
             }
         }
-        // remove AltinnRowIds
-        ObjectUtils.RemoveAltinnRowId(data);
-
-        // Save the updated data
-        await _dataClient.UpdateData(data, instanceGuid, modelType, instance.Org, app, instanceOwnerPartyId, dataGuid);
     }
 }

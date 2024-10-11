@@ -9,6 +9,22 @@
       IdFormat: W3C
     },
     {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetLayoutSets,
+      IdFormat: W3C
+    },
+    {
       ActivityName: ApplicationMetadata.Service.GetLayoutSets,
       IdFormat: W3C
     },
@@ -18,6 +34,18 @@
     },
     {
       ActivityName: ApplicationMetadata.Service.GetLayoutSettingsForSet,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
       IdFormat: W3C
     },
     {
@@ -102,20 +130,20 @@
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunDataElementValidator,
+      ActivityName: SerializationService.DeserializeXml,
       Tags: [
         {
-          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
-        },
-        {
-          validator.type: DefaultDataElementValidator
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
         }
       ],
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunFormDataValidator,
+      ActivityName: Validation.RunValidator,
       Tags: [
+        {
+          validation.issue_count: 0
+        },
         {
           validator.source: Required
         },
@@ -126,85 +154,76 @@
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.RunFormDataValidator,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
-          validator.source: Expression
+          validation.issue_count: 0
         },
-        {
-          validator.type: ExpressionValidator
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunFormDataValidator,
-      Tags: [
-        {
-          validator.source: DataAnnotations
-        },
-        {
-          validator.type: DataAnnotationValidator
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunFormDataValidator,
-      Tags: [
-        {
-          validator.source: test-source
-        },
-        {
-          validator.type: IFormDataValidatorProxy
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunTaskValidator,
-      Tags: [
-        {
-          validator.source: Altinn.App.Core.Features.Validation.Default.LegacyIInstanceValidatorTaskValidator
-        },
-        {
-          validator.type: LegacyIInstanceValidatorTaskValidator
-        }
-      ],
-      IdFormat: W3C
-    },
-    {
-      ActivityName: Validation.RunTaskValidator,
-      Tags: [
         {
           validator.source: Altinn.App.Core.Features.Validation.Default.DefaultTaskValidator-*
         },
         {
-          validator.type: DefaultTaskValidator
+          validator.type: TaskValidatorWrapper
         }
       ],
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.ValidateDataElement,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
-          data.guid: Guid_3
+          validation.issue_count: 0
         },
         {
-          instance.guid: Guid_1
+          validator.source: Altinn.App.Core.Features.Validation.Default.DefaultDataElementValidator-*
+        },
+        {
+          validator.type: DataElementValidatorWrapper
         }
       ],
       IdFormat: W3C
     },
     {
-      ActivityName: Validation.ValidateFormData,
+      ActivityName: Validation.RunValidator,
       Tags: [
         {
-          data.guid: Guid_3
+          validation.issue_count: 0
         },
         {
-          instance.guid: Guid_1
+          validator.source: DataAnnotations
+        },
+        {
+          validator.type: FormDataValidatorWrapper
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunValidator,
+      Tags: [
+        {
+          validation.issue_count: 0
+        },
+        {
+          validator.source: Not a valid validation source
+        },
+        {
+          validator.type: FormDataValidatorWrapper
+        }
+      ],
+      IdFormat: W3C
+    },
+    {
+      ActivityName: Validation.RunValidator,
+      Tags: [
+        {
+          validation.issue_count: 1
+        },
+        {
+          validator.source: test-source
+        },
+        {
+          validator.type: FormDataValidatorWrapper
         }
       ],
       IdFormat: W3C
@@ -213,10 +232,10 @@
       ActivityName: Validation.ValidateInstanceAtTask,
       Tags: [
         {
-          instance.guid: Guid_1
+          task.id: Task_1
         },
         {
-          task.id: Task_1
+          validation.total_issue_count: 1
         }
       ],
       IdFormat: W3C

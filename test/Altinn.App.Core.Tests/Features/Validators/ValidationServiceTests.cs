@@ -1,556 +1,510 @@
-using System.Text.Json.Serialization;
+using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Internal.App;
-using Altinn.App.Core.Internal.AppModel;
-using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using Moq;
+using Xunit.Abstractions;
+using Exception = System.Exception;
 
 namespace Altinn.App.Core.Tests.Features.Validators;
 
-public class ValidationServiceTests : IDisposable
+public class ValidationServiceTests : IAsyncLifetime
 {
-    private class MyModel
-    {
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
+    private const string Org = "ttd";
+    private const string App = "app";
+    private const string TaskId = "Task_1";
 
-        [JsonPropertyName("age")]
-        public int? Age { get; set; }
-    }
+    private readonly ApplicationMetadata _appMetadata = new($"{Org}/{App}") { DataTypes = [] };
 
-    private const int DefaultPartyId = 234;
-    private static readonly Guid DefaultInstanceId = Guid.NewGuid();
-    private static readonly Guid DefaultDataElementId = Guid.NewGuid();
-    private const string DefaultTaskId = "Task_1";
-    private const string DefaultOrg = "org";
-    private const string DefaultApp = "app";
-    private const string DefaultAppId = $"{DefaultOrg}/{DefaultApp}";
-    private const string DefaultLanguage = "defaultLanguageCode";
-
-    private static readonly DataElement DefaultDataElement =
-        new() { Id = DefaultDataElementId.ToString(), DataType = "MyType", };
-
-    private static readonly DataType DefaultDataType =
+    private readonly Instance _instance =
         new()
         {
-            Id = "MyType",
-            TaskId = DefaultTaskId,
-            AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName }
+            AppId = $"{Org}/{App}",
+            Org = Org,
+            Data = []
         };
 
-    private static readonly Instance DefaultInstance =
-        new()
-        {
-            Id = $"{DefaultPartyId}/{DefaultInstanceId}",
-            InstanceOwner = new InstanceOwner() { PartyId = DefaultPartyId.ToString(), },
-            Org = DefaultOrg,
-            AppId = DefaultAppId,
-            Data = new List<DataElement>() { DefaultDataElement, }
-        };
-
-    private static readonly ApplicationMetadata DefaultAppMetadata =
-        new(DefaultAppId) { DataTypes = new List<DataType> { DefaultDataType, }, };
-
-    private readonly Mock<ILogger<ValidationService>> _loggerMock = new();
-    private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
-
-    private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
+    private readonly InstanceDataAccessorFake _instanceDataAccessor;
+    private readonly IServiceCollection _services = new ServiceCollection();
+    private readonly Lazy<ServiceProvider> _serviceProvider;
 
-    // Specific validators for this task.
-    private readonly Mock<ITaskValidator> _taskValidatorMock =
-        new(MockBehavior.Strict) { Name = "specificTaskValidator" };
-    private readonly Mock<IDataElementValidator> _dataElementValidatorMock =
-        new(MockBehavior.Strict) { Name = "specificDataElementValidator" };
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock =
-        new(MockBehavior.Strict) { Name = "specificFormDataValidator" };
-
-    // Never run validators (to ensure that a validator with a specific task id is not run for other tasks)
-    private readonly Mock<ITaskValidator> _taskValidatorNeverMock =
-        new(MockBehavior.Strict) { Name = "neverTaskValidator" };
-    private readonly Mock<IDataElementValidator> _dataElementValidatorNeverMock =
-        new(MockBehavior.Strict) { Name = "neverDataElementValidator" };
-    private readonly Mock<IFormDataValidator> _formDataValidatorNeverMock =
-        new(MockBehavior.Strict) { Name = "neverFormDataValidator" };
-
-    // Always run validators * for all tasks
-    private readonly Mock<ITaskValidator> _taskValidatorAlwaysMock =
-        new(MockBehavior.Strict) { Name = "alwaysTaskValidator" };
-    private readonly Mock<IDataElementValidator> _dataElementValidatorAlwaysMock =
-        new(MockBehavior.Strict) { Name = "alwaysDataElementValidator" };
-    private readonly Mock<IFormDataValidator> _formDataValidatorAlwaysMock =
-        new(MockBehavior.Strict) { Name = "alwaysFormDataValidator" };
-
-    private readonly ServiceCollection _serviceCollection = new();
-
-    public ValidationServiceTests()
+    public ValidationServiceTests(ITestOutputHelper output)
     {
-        _serviceCollection.AddSingleton(_loggerMock.Object);
-        _serviceCollection.AddSingleton(_dataClientMock.Object);
-        _serviceCollection.AddSingleton<IValidationService, ValidationService>();
-        _serviceCollection.AddSingleton(_appModelMock.Object);
-        _appModelMock.Setup(a => a.GetModelType(typeof(MyModel).FullName!)).Returns(typeof(MyModel));
-        _serviceCollection.AddSingleton(_appMetadataMock.Object);
-        _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(DefaultAppMetadata);
-        _serviceCollection.AddSingleton<IValidatorFactory, ValidatorFactory>();
+        _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _appMetadata, TaskId);
+        _services.AddScoped<IValidationService, ValidationService>();
+        _services.AddTelemetrySink();
+        _services.AddFakeLoggingWithXunit(output);
+        _services.AddScoped<IValidatorFactory, ValidatorFactory>();
+        _services.AddSingleton(_appMetadataMock.Object);
 
-        // NeverUsedValidators
-        _serviceCollection.AddSingleton(_taskValidatorNeverMock.Object);
-        SetupTaskValidatorType(_taskValidatorNeverMock, "never", "neverTask");
-        _serviceCollection.AddSingleton(_dataElementValidatorNeverMock.Object);
-        SetupDataElementValidatorType(_dataElementValidatorNeverMock, "never", "neverDataElementValidator");
-        _serviceCollection.AddSingleton(_formDataValidatorNeverMock.Object);
-        SetupFormDataValidatorType(_formDataValidatorNeverMock, "never", "neverUsedValidator");
-
-        // SpecificValidators
-        _serviceCollection.AddSingleton(_taskValidatorMock.Object);
-        SetupTaskValidatorType(_taskValidatorMock, DefaultTaskId, "specificTaskValidator");
-        _serviceCollection.AddSingleton(_dataElementValidatorMock.Object);
-        SetupDataElementValidatorType(_dataElementValidatorMock, DefaultDataType.Id, "specificDataElementValidator");
-        _serviceCollection.AddSingleton(_formDataValidatorMock.Object);
-        SetupFormDataValidatorType(_formDataValidatorMock, DefaultDataType.Id, "specificValidator");
-
-        // AlwaysUsedValidators
-        _serviceCollection.AddSingleton(_taskValidatorAlwaysMock.Object);
-        SetupTaskValidatorType(_taskValidatorAlwaysMock, "*", "alwaysTaskValidator");
-        _serviceCollection.AddSingleton(_dataElementValidatorAlwaysMock.Object);
-        SetupDataElementValidatorType(_dataElementValidatorAlwaysMock, "*", "alwaysDataElementValidator");
-        _serviceCollection.AddSingleton(_formDataValidatorAlwaysMock.Object);
-        SetupFormDataValidatorType(_formDataValidatorAlwaysMock, "*", "alwaysUsedValidator");
+        _appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_appMetadata);
+        _serviceProvider = new(() => _services.BuildServiceProvider());
     }
 
-    private void SetupTaskValidatorType(Mock<ITaskValidator> taskValidatorMock, string taskId, string validationSource)
+    public Task InitializeAsync()
     {
-        taskValidatorMock.Setup(v => v.TaskId).Returns(taskId);
-        taskValidatorMock.Setup(v => v.ValidationSource).Returns(validationSource);
+        return Task.CompletedTask;
     }
 
-    private void SetupTaskValidatorReturn(
-        Mock<ITaskValidator> taskValidatorMock,
-        List<ValidationIssue> validationIssues,
-        Times? times = default
+    private Mock<IValidator> RegisterValidatorMock(
+        string source,
+        bool? hasRelevantChanges = null,
+        List<DataElementChange>? expectedChanges = null,
+        List<ValidationIssue>? issues = null,
+        string? expectedLanguage = null,
+        bool noIncrementalValidation = false
     )
     {
-        taskValidatorMock
-            .Setup(v => v.ValidateTask(DefaultInstance, DefaultTaskId, DefaultLanguage))
-            .ReturnsAsync(validationIssues)
-            .Verifiable(times ?? Times.Once());
-    }
-
-    private void SetupDataElementValidatorType(
-        Mock<IDataElementValidator> taskValidatorMock,
-        string dataType,
-        string validationSource
-    )
-    {
-        taskValidatorMock.Setup(v => v.DataType).Returns(dataType);
-        taskValidatorMock.Setup(v => v.ValidationSource).Returns(validationSource);
-    }
-
-    private void SetupDataElementValidatorReturn(
-        Mock<IDataElementValidator> dataElementValidatorMock,
-        List<ValidationIssue> validationIssues,
-        Times? times = default
-    )
-    {
-        dataElementValidatorMock
-            .Setup(v => v.ValidateDataElement(DefaultInstance, DefaultDataElement, DefaultDataType, DefaultLanguage))
-            .ReturnsAsync(validationIssues)
-            .Verifiable(times ?? Times.Once());
-    }
-
-    private void SetupFormDataValidatorType(
-        Mock<IFormDataValidator> formDataValidatorMock,
-        string dataType,
-        string validationSource
-    )
-    {
-        // DataType
-        formDataValidatorMock.Setup(v => v.DataType).Returns(dataType);
-
-        // ValidatorName (used for source)
-        formDataValidatorMock.Setup(v => v.ValidationSource).Returns(validationSource);
-    }
-
-    private void SetupFormDataValidatorReturn(
-        Mock<IFormDataValidator> formDataValidatorMock,
-        bool? hasRelevantChanges,
-        Func<MyModel, List<ValidationIssue>> func,
-        Times? times = default
-    )
-    {
-        // ValidateFormData
-        formDataValidatorMock
-            .Setup(v => v.ValidateFormData(DefaultInstance, DefaultDataElement, It.IsAny<MyModel>(), DefaultLanguage))
-            .ReturnsAsync((Instance instance, DataElement dataElement, MyModel data, string? language) => func(data))
-            .Verifiable(hasRelevantChanges is not false ? (times ?? Times.Once()) : Times.Never());
-
-        // HasRelevantChanges
-        formDataValidatorMock
-            .Setup(v => v.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>()))
-            .Returns(hasRelevantChanges ?? false)
-            .Verifiable(hasRelevantChanges is null ? Times.Never : Times.AtLeastOnce);
-    }
-
-    private void SourcePropertyIsSet(Dictionary<string, List<ValidationIssue>> result)
-    {
-        Assert.All(result.Values, SourcePropertyIsSet);
-    }
-
-    private void SourcePropertyIsSet(List<ValidationIssue> result)
-    {
-        Assert.All(
-            result,
-            issue =>
-            {
-                Assert.NotNull(issue.Source);
-                Assert.NotEqual("[]", issue.Source);
-            }
-        );
-    }
-
-    private void SetupDataClient(MyModel data)
-    {
-        _dataClientMock
-            .Setup(d =>
-                d.GetFormData(
-                    DefaultInstanceId,
-                    data.GetType(),
-                    DefaultOrg,
-                    DefaultApp,
-                    DefaultPartyId,
-                    DefaultDataElementId
-                )
-            )
-            .ReturnsAsync(data)
-            .Verifiable(Times.AtLeastOnce);
-    }
-
-    [Fact]
-    public async Task Validate_WithNoValidators_ReturnsNoErrors()
-    {
-        _serviceCollection.RemoveAll(typeof(ITaskValidator));
-        _serviceCollection.RemoveAll(typeof(IDataElementValidator));
-        _serviceCollection.RemoveAll(typeof(IFormDataValidator));
-
-        // Don't call setup as they are removed from the service collection
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
-
-        var validatorService = serviceProvider.GetRequiredService<IValidationService>();
-        var data = new MyModel { Name = "Ola" };
-        SetupDataClient(data);
-
-        var resultTask = await validatorService.ValidateInstanceAtTask(DefaultInstance, DefaultTaskId, DefaultLanguage);
-        resultTask.Should().BeEmpty();
-
-        var resultElement = await validatorService.ValidateDataElement(
-            DefaultInstance,
-            DefaultDataElement,
-            DefaultDataType,
-            DefaultLanguage
-        );
-        resultElement.Should().BeEmpty();
-
-        var resultData = await validatorService.ValidateFormData(
-            DefaultInstance,
-            DefaultDataElement,
-            DefaultDataType,
-            data,
-            null,
-            null,
-            DefaultLanguage
-        );
-        resultData.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task ValidateFormData_WithSpecificValidator()
-    {
-        SetupFormDataValidatorReturn(
-            _formDataValidatorMock,
-            hasRelevantChanges: true,
-            model =>
-            {
-                if (model.Name != "Ola")
-                {
-                    return new List<ValidationIssue>
-                    {
-                        {
-                            new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" }
-                        }
-                    };
-                }
-
-                return new List<ValidationIssue>();
-            }
-        );
-        SetupFormDataValidatorReturn(
-            _formDataValidatorAlwaysMock,
-            hasRelevantChanges: false,
-            model => throw new Exception("Should not be called")
-        );
-
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
-
-        var validatorService = serviceProvider.GetRequiredService<IValidationService>();
-        var data = new MyModel { Name = "Ola" };
-        var previousData = new MyModel() { Name = "Kari" };
-        var result = await validatorService.ValidateFormData(
-            DefaultInstance,
-            DefaultDataElement,
-            DefaultDataType,
-            data,
-            previousData,
-            null,
-            DefaultLanguage
-        );
-
-        result.Should().ContainKey("specificValidator").WhoseValue.Should().HaveCount(0);
-        result.Should().HaveCount(1);
-        SourcePropertyIsSet(result);
-    }
-
-    [Fact]
-    public async Task ValidateFormData_WithMyNameValidator_ReturnsErrorsWhenNameIsKari()
-    {
-        SetupFormDataValidatorReturn(
-            _formDataValidatorMock,
-            hasRelevantChanges: null,
-            model => new List<ValidationIssue>
-            {
-                new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" }
-            }
-        );
-
-        SetupFormDataValidatorReturn(
-            _formDataValidatorAlwaysMock,
-            hasRelevantChanges: null,
-            model => new List<ValidationIssue>
-            {
-                new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "AlwaysNameNotOla" }
-            }
-        );
-
-        await using var serviceProvider = _serviceCollection.BuildServiceProvider();
-
-        var validatorService = serviceProvider.GetRequiredService<IValidationService>();
-        var data = new MyModel { Name = "Kari" };
-        var resultData = await validatorService.ValidateFormData(
-            DefaultInstance,
-            DefaultDataElement,
-            DefaultDataType,
-            data,
-            null,
-            null,
-            DefaultLanguage
-        );
-        resultData
-            .Should()
-            .ContainKey("specificValidator")
-            .WhoseValue.Should()
-            .ContainSingle()
-            .Which.CustomTextKey.Should()
-            .Be("NameNotOla");
-        resultData
-            .Should()
-            .ContainKey("alwaysUsedValidator")
-            .WhoseValue.Should()
-            .ContainSingle()
-            .Which.CustomTextKey.Should()
-            .Be("AlwaysNameNotOla");
-        resultData.Should().HaveCount(2);
-        SourcePropertyIsSet(resultData);
-    }
-
-    [Fact]
-    public async Task ValidateTask_ReturnsAllErrorsFromAllLevels()
-    {
-        List<ValidationIssue> CreateIssues(string code)
+        var mock = new Mock<IValidator>(MockBehavior.Strict);
+        mock.Setup(v => v.ShouldRunForTask(TaskId)).Returns(true);
+        mock.Setup(v => v.ValidationSource).Returns(source);
+        if (hasRelevantChanges.HasValue && expectedChanges is not null)
         {
-            return new List<ValidationIssue>
-            {
-                new() { Code = code, Severity = ValidationIssueSeverity.Error, }
-            };
+            mock.Setup(v => v.HasRelevantChanges(_instance, _instanceDataAccessor, "Task_1", expectedChanges))
+                .ReturnsAsync(hasRelevantChanges.Value);
         }
 
-        // Arrange
-        SetupTaskValidatorReturn(_taskValidatorMock, CreateIssues("task_validator"));
-        SetupTaskValidatorReturn(_taskValidatorAlwaysMock, CreateIssues("task_validator_always"));
+        if (issues is not null)
+        {
+            mock.Setup(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", expectedLanguage))
+                .ReturnsAsync(issues);
+        }
 
-        SetupDataElementValidatorReturn(
-            _dataElementValidatorMock,
-            CreateIssues("data_element_validator"),
-            Times.Exactly(2)
-        );
-        SetupDataElementValidatorReturn(
-            _dataElementValidatorAlwaysMock,
-            CreateIssues("data_element_validator_always"),
-            Times.Exactly(2)
-        );
+        mock.SetupGet(v => v.NoIncrementalValidation).Returns(noIncrementalValidation);
 
-        SetupFormDataValidatorReturn(
-            _formDataValidatorMock,
-            hasRelevantChanges: null, /* should not call HasRelevantChanges */
-            model => CreateIssues("form_data_validator"),
-            Times.Exactly(3)
-        );
-
-        SetupFormDataValidatorReturn(
-            _formDataValidatorAlwaysMock,
-            hasRelevantChanges: null, /* should not call HasRelevantChanges */
-            model => CreateIssues("form_data_validator_always"),
-            Times.Exactly(3)
-        );
-
-        var data = new MyModel();
-        SetupDataClient(data);
-
-        using var serviceProvider = _serviceCollection.BuildServiceProvider();
-        var validationService = serviceProvider.GetRequiredService<IValidationService>();
-
-        var taskResult = await validationService.ValidateInstanceAtTask(
-            DefaultInstance,
-            DefaultTaskId,
-            DefaultLanguage
-        );
-
-        taskResult
-            .Should()
-            .Contain(i => i.Code == "task_validator")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        taskResult
-            .Should()
-            .Contain(i => i.Code == "task_validator_always")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        taskResult
-            .Should()
-            .Contain(i => i.Code == "data_element_validator")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        taskResult
-            .Should()
-            .Contain(i => i.Code == "data_element_validator_always")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        taskResult
-            .Should()
-            .Contain(i => i.Code == "form_data_validator")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        taskResult
-            .Should()
-            .Contain(i => i.Code == "form_data_validator_always")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        taskResult.Should().HaveCount(6);
-        SourcePropertyIsSet(taskResult);
-
-        var elementResult = await validationService.ValidateDataElement(
-            DefaultInstance,
-            DefaultDataElement,
-            DefaultDataType,
-            DefaultLanguage
-        );
-        elementResult
-            .Should()
-            .Contain(i => i.Code == "data_element_validator")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        elementResult
-            .Should()
-            .Contain(i => i.Code == "data_element_validator_always")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        elementResult
-            .Should()
-            .Contain(i => i.Code == "form_data_validator")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        elementResult
-            .Should()
-            .Contain(i => i.Code == "form_data_validator_always")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        elementResult.Should().HaveCount(4);
-        SourcePropertyIsSet(elementResult);
-
-        var dataResult = await validationService.ValidateFormData(
-            DefaultInstance,
-            DefaultDataElement,
-            DefaultDataType,
-            data,
-            null,
-            null,
-            DefaultLanguage
-        );
-        dataResult
-            .Should()
-            .ContainKey("specificValidator")
-            .WhoseValue.Should()
-            .ContainSingle(i => i.Code == "form_data_validator")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        dataResult
-            .Should()
-            .ContainKey("alwaysUsedValidator")
-            .WhoseValue.Should()
-            .ContainSingle(i => i.Code == "form_data_validator_always")
-            .Which.Severity.Should()
-            .Be(ValidationIssueSeverity.Error);
-        dataResult.Should().HaveCount(2);
-        SourcePropertyIsSet(dataResult);
+        _services.AddSingleton(mock.Object);
+        return mock;
     }
 
     [Fact]
-    public async Task ValidateTask_ReturnsNoErrorsFromAllLevels()
+    public async Task ValidateInstanceAtTask_WithNoData_ShouldReturnNoIssues()
     {
-        var noIssues = new List<ValidationIssue>();
-
         // Arrange
-        SetupTaskValidatorReturn(_taskValidatorMock, noIssues);
-        SetupTaskValidatorReturn(_taskValidatorAlwaysMock, noIssues);
 
-        SetupDataElementValidatorReturn(_dataElementValidatorMock, noIssues);
-        SetupDataElementValidatorReturn(_dataElementValidatorAlwaysMock, noIssues);
+        // Act
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var result = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            null,
+            null,
+            null
+        );
 
-        SetupFormDataValidatorReturn(_formDataValidatorMock, hasRelevantChanges: null, model => noIssues);
-        SetupFormDataValidatorReturn(_formDataValidatorAlwaysMock, hasRelevantChanges: null, model => noIssues);
-
-        var data = new MyModel();
-        SetupDataClient(data);
-
-        using var serviceProvider = _serviceCollection.BuildServiceProvider();
-        var validationService = serviceProvider.GetRequiredService<IValidationService>();
-
-        var result = await validationService.ValidateInstanceAtTask(DefaultInstance, DefaultTaskId, DefaultLanguage);
-
-        result.Should().BeEmpty();
+        // Assert
+        Assert.Empty(result);
+        var telemetry = _serviceProvider.Value.GetRequiredService<TelemetrySink>();
+        await Verify(telemetry.GetSnapshot());
     }
 
-    public void Dispose()
+    [Fact]
+    public async Task ValidateIncrementalFormData_WithNoData_ShouldReturnNoIssues()
     {
-        _taskValidatorMock.Verify();
-        _dataElementValidatorMock.Verify();
-        _formDataValidatorMock.Verify();
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
 
-        _taskValidatorNeverMock.Verify();
-        _dataElementValidatorNeverMock.Verify();
-        _formDataValidatorNeverMock.Verify();
+        var changes = new List<DataElementChange>();
+        var result = await validationService.ValidateIncrementalFormData(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            changes,
+            null,
+            null
+        );
 
-        _taskValidatorAlwaysMock.Verify();
-        _dataElementValidatorAlwaysMock.Verify();
-        _formDataValidatorAlwaysMock.Verify();
+        Assert.Empty(result);
+        var telemetry = _serviceProvider.Value.GetRequiredService<TelemetrySink>();
+        await Verify(telemetry.GetSnapshot());
+    }
 
-        _dataClientMock.Verify();
+    [Fact]
+    public async Task ValidateIncrementalFormData_WithIgnoredValidators_ShouldRunOnlyNonIgnoredValidators()
+    {
+        var changes = new List<DataElementChange>();
+        var issues = new List<ValidationIssue>();
+
+        RegisterValidatorMock("IgnoredValidator"); // Throws error if changes or validation is called
+        RegisterValidatorMock("Validator", hasRelevantChanges: true, changes, issues);
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var result = await validationService.ValidateIncrementalFormData(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            changes,
+            new List<string> { "IgnoredValidator" },
+            null
+        );
+        result.Should().ContainSingle(p => p.Source == "Validator").Which.Issues.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateInstanceAtTask_WithIgnoredValidators_ShouldRunOnlyNonIgnoredValidators()
+    {
+        var language = "esperanto";
+        var issue = new ValidationIssue()
+        {
+            Severity = ValidationIssueSeverity.Error,
+            Description = "Test error",
+            Code = "TestCode"
+        };
+
+        RegisterValidatorMock(source: "IgnoredValidator");
+        RegisterValidatorMock(
+            source: "Validator",
+            hasRelevantChanges: true,
+            issues: [issue],
+            expectedLanguage: language
+        );
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var result = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            new List<string> { "IgnoredValidator" },
+            null,
+            language
+        );
+        var issueWithSource = result.Should().ContainSingle().Which;
+        issueWithSource.Source.Should().Be("Validator");
+        issueWithSource.Code.Should().Be(issue.Code);
+        issueWithSource.Description.Should().Be(issue.Description);
+        issueWithSource.Severity.Should().Be(issue.Severity);
+        issueWithSource.DataElementId.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ValidateInstanceAtTask_WithDifferentValidators_ShouldIgnoreNonIncrementalValidatorsWhenSpecified(
+        bool? onlyIncrementalValidators
+    )
+    {
+        var incrementalMock = RegisterValidatorMock(
+            source: "Validator",
+            hasRelevantChanges: null,
+            issues: [],
+            noIncrementalValidation: false
+        );
+        var nonIncrementalMock = RegisterValidatorMock(
+            source: "NonIncrementalValidator",
+            hasRelevantChanges: null,
+            issues: [],
+            noIncrementalValidation: true
+        );
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var issues = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            null,
+            onlyIncrementalValidators,
+            null
+        );
+
+        issues.Should().BeEmpty();
+
+        switch (onlyIncrementalValidators)
+        {
+            case true:
+                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Once);
+                nonIncrementalMock.Verify(
+                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
+                    Times.Never
+                );
+                break;
+            case false:
+                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Never);
+                nonIncrementalMock.Verify(
+                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
+                    Times.Once
+                );
+                break;
+            case null:
+                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Once);
+                nonIncrementalMock.Verify(
+                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
+                    Times.Once
+                );
+                break;
+        }
+    }
+
+    private class GenericValidatorFake : GenericFormDataValidator<string>
+    {
+        private readonly IEnumerable<ValidationIssue> _issues;
+        private readonly bool? _hasRelevantChanges;
+
+        public GenericValidatorFake(
+            string dataType,
+            IEnumerable<ValidationIssue> issues,
+            bool? hasRelevantChanges = null
+        )
+            : base(dataType)
+        {
+            _issues = issues;
+            _hasRelevantChanges = hasRelevantChanges;
+        }
+
+        protected override Task ValidateFormData(
+            Instance instance,
+            DataElement dataElement,
+            string data,
+            string? language
+        )
+        {
+            foreach (var issue in _issues)
+            {
+                AddValidationIssue(issue);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        protected override bool HasRelevantChanges(string current, string previous)
+        {
+            return _hasRelevantChanges ?? throw new Exception("Has relevant changes not set");
+        }
+    }
+
+    [Fact]
+    public async Task GenericFormDataValidator_serviceModelIsString_CallsValidatorFunctionForTask()
+    {
+        var valueToValidate = "valueToValidate";
+        var defaultDataType = "default";
+        var taskId = "Task_1";
+
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = defaultDataType };
+        _instanceDataAccessor.Add(dataElement, valueToValidate);
+
+        List<ValidationIssue> validatorIssues =
+        [
+            new()
+            {
+                Severity = ValidationIssueSeverity.Error,
+                Description = "Test error",
+                Code = "TestCode"
+            }
+        ];
+
+        var genericValidator = new GenericValidatorFake(defaultDataType, validatorIssues);
+        _services.AddSingleton<IFormDataValidator>(genericValidator);
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var issues = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            taskId,
+            null,
+            null,
+            null
+        );
+        var issue = issues.Should().ContainSingle().Which;
+        issue.Source.Should().Be($"{genericValidator.GetType().FullName}-{defaultDataType}");
+        issue.DataElementId.Should().Be(dataElement.Id);
+        issue.Code.Should().Be("TestCode");
+
+        var telemetry = _serviceProvider.Value.GetRequiredService<TelemetrySink>();
+
+        var verifySettings = GetVerifySettings();
+        await Verify(new { telemetry = telemetry.GetSnapshot(), issues = issues }, verifySettings);
+    }
+
+    [Fact]
+    public async Task FormDataValidator_DataTypeNoAppLogic_IsNotCalled()
+    {
+        // Form DataValidators are connected to DataType,
+        // and should only run for instances with that data type
+        // on the task that has that data type
+
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType" };
+
+        var formDataValidatorNoAppLogicMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
+        {
+            Name = "FormDataValidatorNoAppLogic"
+        };
+        formDataValidatorNoAppLogicMock
+            .SetupGet(v => v.DataType)
+            .Returns("dataTypeNoAppLogic")
+            .Verifiable(Times.AtLeastOnce);
+        formDataValidatorNoAppLogicMock
+            .SetupGet(v => v.ValidationSource)
+            .Returns("FormDataValidatorNoAppLogic")
+            .Verifiable(Times.AtLeastOnce);
+        _services.AddSingleton(formDataValidatorNoAppLogicMock.Object);
+        _appMetadata.DataTypes.Add(new DataType { Id = "dataTypeNoAppLogic", TaskId = TaskId });
+
+        var formDataValidatorWrongTaskMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
+        {
+            Name = "FormDataValidatorWrongTask"
+        };
+        formDataValidatorWrongTaskMock
+            .SetupGet(v => v.DataType)
+            .Returns("dataTypeWrongTask")
+            .Verifiable(Times.AtLeastOnce);
+        formDataValidatorWrongTaskMock
+            .SetupGet(v => v.ValidationSource)
+            .Returns("FormDataValidatorWrongTask")
+            .Verifiable(Times.AtLeastOnce);
+        _services.AddSingleton(formDataValidatorWrongTaskMock.Object);
+        _appMetadata.DataTypes.Add(
+            new DataType
+            {
+                Id = "dataTypeWrongTask",
+                TaskId = "wrongTask",
+                AppLogic = new() { ClassRef = "System.String" }
+            }
+        );
+
+        var formDataValidatorMock = new Mock<IFormDataValidator>(MockBehavior.Strict) { Name = "FormDataValidator" };
+        formDataValidatorMock.SetupGet(v => v.DataType).Returns("dataType").Verifiable(Times.AtLeastOnce);
+        formDataValidatorMock
+            .SetupGet(v => v.ValidationSource)
+            .Returns("FormDataValidator")
+            .Verifiable(Times.AtLeastOnce);
+        formDataValidatorMock
+            .Setup(v => v.ValidateFormData(_instance, dataElement, "valueToValidate", null))
+            .ReturnsAsync(
+                new List<ValidationIssue>()
+                {
+                    new ValidationIssue()
+                    {
+                        Severity = ValidationIssueSeverity.Error,
+                        Description = "Test error",
+                        Code = "TestCode543"
+                    }
+                }
+            );
+        _services.AddSingleton(formDataValidatorMock.Object);
+        _appMetadata.DataTypes.Add(
+            new DataType
+            {
+                Id = "dataType",
+                AppLogic = new() { ClassRef = "System.String" },
+                TaskId = TaskId,
+            }
+        );
+
+        // Ensure that we have data elements for all types
+        _instanceDataAccessor.Add(dataElement, "valueToValidate");
+        _instanceDataAccessor.Add(
+            new DataElement() { Id = Guid.NewGuid().ToString(), DataType = "dataTypeNoAppLogic" },
+            "valueToValidate"
+        );
+        _instanceDataAccessor.Add(
+            new DataElement() { Id = Guid.NewGuid().ToString(), DataType = "dataTypeWrongTask" },
+            "valueToValidate"
+        );
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var issues = await validationService.ValidateInstanceAtTask(
+            _instance,
+            _instanceDataAccessor,
+            "Task_1",
+            null,
+            null,
+            null
+        );
+        issues.Should().ContainSingle(i => i.Code == "TestCode543");
+
+        formDataValidatorNoAppLogicMock.Verify();
+        formDataValidatorMock.Verify();
+    }
+
+    [Fact]
+    public async Task GenericFormDataValidator_serviceModelIsString_CallsValidatorFunctionForIncremental()
+    {
+        var valueToValidate = "valueToValidate";
+        var defaultDataType = "default";
+        var dataTypeNoValidation = "dataTypeToNotValidate";
+        var taskId = "Task_1";
+        _appMetadata.DataTypes.Add(
+            new DataType
+            {
+                Id = defaultDataType,
+                TaskId = taskId,
+                AppLogic = new() { ClassRef = valueToValidate.GetType().FullName }
+            }
+        );
+        var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = defaultDataType };
+        _instanceDataAccessor.Add(dataElement, valueToValidate);
+        var dataElementNoValidation = new DataElement()
+        {
+            Id = Guid.NewGuid().ToString(),
+            DataType = dataTypeNoValidation
+        };
+        _instanceDataAccessor.Add(dataElementNoValidation, "valueToNotValidate");
+
+        List<ValidationIssue> validatorIssues =
+        [
+            new()
+            {
+                Severity = ValidationIssueSeverity.Error,
+                Description = "Test error",
+                Code = "TestCode"
+            }
+        ];
+
+        List<DataElementChange> changes =
+            new()
+            {
+                new DataElementChange()
+                {
+                    DataElement = dataElement,
+                    CurrentFormData = "currentValue",
+                    PreviousFormData = "previousValue"
+                },
+                new DataElementChange()
+                {
+                    DataElement = dataElementNoValidation,
+                    CurrentFormData = "currentValue",
+                    PreviousFormData = "previousValue"
+                }
+            };
+
+        var genericValidator = new GenericValidatorFake(defaultDataType, validatorIssues, hasRelevantChanges: true);
+        _services.AddSingleton<IFormDataValidator>(genericValidator);
+
+        var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
+        var issues = await validationService.ValidateIncrementalFormData(
+            _instance,
+            _instanceDataAccessor,
+            taskId,
+            changes,
+            null,
+            null
+        );
+        issues.Should().HaveCount(1);
+
+        var telemetry = _serviceProvider.Value.GetRequiredService<TelemetrySink>();
+
+        var verifySettings = GetVerifySettings();
+        await Verify(new { telemetry = telemetry.GetSnapshot(), issues = issues }, verifySettings);
+    }
+
+    private VerifySettings GetVerifySettings()
+    {
+        var verifySettings = new VerifySettings();
+        int dataElementIndex = 0;
+        _instance.Data.ForEach(
+            (d) => verifySettings.AddNamedGuid(Guid.Parse(d.Id), $"DataElementId_{dataElementIndex++}")
+        );
+        return verifySettings;
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _serviceProvider.Value.DisposeAsync();
     }
 }

@@ -154,6 +154,7 @@ public interface IAppResources
     /// <summary>
     /// Gets the full layout model for the optional set
     /// </summary>
+    [Obsolete("Use GetLayoutModelForTask instead")]
     LayoutModel GetLayoutModel(string? layoutSetId = null);
 
     /// <summary>

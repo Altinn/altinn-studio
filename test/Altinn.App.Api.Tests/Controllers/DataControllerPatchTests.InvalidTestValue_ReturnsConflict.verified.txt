@@ -5,9 +5,6 @@
       Tags: [
         {
           instance.guid: Guid_1
-        },
-        {
-          result: error
         }
       ],
       IdFormat: W3C
@@ -66,6 +63,15 @@
       ],
       IdFormat: W3C,
       Kind: Server
+    },
+    {
+      ActivityName: SerializationService.DeserializeXml,
+      Tags: [
+        {
+          Type: Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema
+        }
+      ],
+      IdFormat: W3C
     }
   ],
   Metrics: []

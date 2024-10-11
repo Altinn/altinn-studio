@@ -14,6 +14,7 @@ public static class JsonHelper
     /// <summary>
     /// Run DataProcessWrite returning the dictionary of the changed fields.
     /// </summary>
+    [Obsolete("Will be removed in v9")]
     public static async Task<Dictionary<string, object?>?> ProcessDataWriteWithDiff(
         Instance instance,
         Guid dataGuid,
