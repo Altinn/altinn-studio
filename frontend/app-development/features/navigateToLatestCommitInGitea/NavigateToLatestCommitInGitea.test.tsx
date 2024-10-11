@@ -6,7 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { branchStatus } from 'app-shared/mocks/mocks';
-import { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import { NavigateToLatestCommitInGitea } from './NavigateToLatestCommitInGitea';
 
 describe('NavigateToLatestCommitInGitea', () => {
@@ -26,10 +26,10 @@ describe('NavigateToLatestCommitInGitea', () => {
   });
 });
 
-const renderLatestCommit = (branchStatus?: BranchStatus) => {
+const renderLatestCommit = (branchStatusMock?: BranchStatus) => {
   const queryClientMock = createQueryClientMock();
-  if (branchStatus) {
-    queryClientMock.setQueryData([QueryKey.BranchStatus, org, app, 'master'], branchStatus);
+  if (branchStatusMock) {
+    queryClientMock.setQueryData([QueryKey.BranchStatus, org, app, 'master'], branchStatusMock);
   }
   renderWithProviders({}, queryClientMock)(<NavigateToLatestCommitInGitea />);
 };
