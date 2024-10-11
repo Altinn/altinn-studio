@@ -1,8 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -14,7 +17,8 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly Mock<IDataProcessor> _dataProcessor = new();
+    private readonly Mock<IDataProcessor> _dataProcessor = new(MockBehavior.Strict);
+    private readonly Mock<IDataWriteProcessor> _dataWriteProcessor = new(MockBehavior.Strict);
 
     public DataController_PutTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
@@ -22,6 +26,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         OverrideServicesForAllTests = (services) =>
         {
             services.AddSingleton(_dataProcessor.Object);
+            services.AddSingleton(_dataWriteProcessor.Object);
         };
     }
 
@@ -35,6 +40,36 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         HttpClient client = GetRootedClient(org, app);
         string token = PrincipalUtil.GetToken(1337, null, org: "abc");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<Instance>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<object>(),
+                    It.IsAny<object>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Exactly(1));
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<string?>())
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Exactly(1));
+        _dataWriteProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<DataElementChange>>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Exactly(1));
 
         // Create instance
         var createResponse = await client.PostAsync(
@@ -115,7 +150,26 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
 
                     return Task.CompletedTask;
                 }
-            );
+            )
+            .Verifiable(Times.Exactly(1));
+
+        _dataProcessor
+            .Setup(p =>
+                p.ProcessDataRead(It.IsAny<Instance>(), It.IsAny<Guid>(), It.IsAny<object>(), It.IsAny<string?>())
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Exactly(2));
+        _dataWriteProcessor
+            .Setup(p =>
+                p.ProcessDataWrite(
+                    It.IsAny<IInstanceDataMutator>(),
+                    It.IsAny<string>(),
+                    It.IsAny<List<DataElementChange>>(),
+                    It.IsAny<string?>()
+                )
+            )
+            .Returns(Task.CompletedTask)
+            .Verifiable(Times.Exactly(1));
 
         // Run previous test with different setup
         // Setup test data
@@ -167,27 +221,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
 
-        _dataProcessor.Verify(
-            p =>
-                p.ProcessDataRead(
-                    It.IsAny<Instance>(),
-                    It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)),
-                    It.IsAny<Skjema>(),
-                    null
-                ),
-            Times.Exactly(2)
-        );
-        _dataProcessor.Verify(
-            p =>
-                p.ProcessDataWrite(
-                    It.IsAny<Instance>(),
-                    It.Is<Guid>(dataId => dataId == Guid.Parse(dataGuid)),
-                    It.IsAny<Skjema>(),
-                    It.IsAny<Skjema?>(),
-                    null
-                ),
-            Times.Exactly(1)
-        ); // TODO: Shouldn't this be 2 because of the first write?
-        _dataProcessor.VerifyNoOtherCalls();
+        _dataProcessor.Verify();
+        _dataWriteProcessor.Verify();
     }
 }

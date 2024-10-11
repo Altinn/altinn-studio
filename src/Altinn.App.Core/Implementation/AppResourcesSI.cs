@@ -310,10 +310,22 @@ public class AppResourcesSI : IAppResources
     }
 
     /// <inheritdoc />
-    [Obsolete("Use GetLayoutModelForTask instead", true)]
+    [Obsolete("Use GetLayoutModelForTask instead")]
     public LayoutModel GetLayoutModel(string? layoutSetId = null)
     {
-        throw new NotImplementedException();
+        var sets = GetLayoutSet();
+        if (sets is null)
+        {
+            throw new InvalidOperationException("No layout set found");
+        }
+        var set = sets.Sets.First(s => s.Id == layoutSetId);
+
+        if (set.Tasks != null)
+        {
+            return GetLayoutModelForTask(set.Tasks.First())
+                ?? throw new InvalidOperationException("No layout model found");
+        }
+        throw new InvalidOperationException("No tasks found in layout set");
     }
 
     /// <inheritdoc />
