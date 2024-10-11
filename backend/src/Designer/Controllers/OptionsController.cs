@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -149,7 +150,7 @@ public class OptionsController : ControllerBase
             List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
             return Ok(newOptionsList);
         }
-        catch (Exception e)
+        catch (JsonException e)
         {
             return BadRequest(e.Message);
         }
