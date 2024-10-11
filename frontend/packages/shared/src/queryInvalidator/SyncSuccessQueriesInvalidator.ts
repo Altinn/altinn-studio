@@ -30,7 +30,7 @@ export class SyncSuccessQueriesInvalidator extends Queue {
 
   // Maps folder names to their cache keys for invalidation upon sync success - can be extended to include more folders
   private readonly folderNameCacheKeyMap: Record<string, Array<QueryKey | string>> = {
-    layouts: [QueryKey.FormLayouts, '[org]', '[app]', '[layoutSetName]'],
+    layouts: [QueryKey.FormLayouts, '[org]', '[app]'],
   };
 
   public set layoutSetName(layoutSetName: string) {
