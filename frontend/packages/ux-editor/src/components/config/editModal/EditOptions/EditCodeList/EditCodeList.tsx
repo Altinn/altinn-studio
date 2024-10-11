@@ -78,7 +78,7 @@ export function EditCodeList<T extends SelectionComponentType>({
         <ErrorMessage>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
-      ) : (
+      ) : optionListIds?.length !== 0 ? (
         <FormField
           key={component.id}
           id={component.id}
@@ -102,6 +102,8 @@ export function EditCodeList<T extends SelectionComponentType>({
             </StudioNativeSelect>
           )}
         />
+      ) : (
+        <> </>
       )}
       <StudioFileUploader
         className={classes.studioFileUploader}

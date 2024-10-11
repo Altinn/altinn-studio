@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
@@ -71,6 +72,14 @@ public class OptionsService : IOptionsService
 
         List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
             new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+
+        foreach (Option option in deserializedOptions)
+        {
+            if (string.IsNullOrEmpty(option.Value) || string.IsNullOrEmpty(option.Label))
+            {
+                throw new Exception("Uploaded file is missing one of the following attributes for a option: value or label.");
+            }
+        }
 
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);

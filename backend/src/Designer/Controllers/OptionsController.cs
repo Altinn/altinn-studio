@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
@@ -149,7 +150,7 @@ public class OptionsController : ControllerBase
             List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
             return Ok(newOptionsList);
         }
-        catch (JsonException e)
+        catch (Exception e)
         {
             return BadRequest(e.Message);
         }
