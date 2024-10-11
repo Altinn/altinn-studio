@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -143,9 +144,15 @@ public class OptionsController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         string fileName = file.FileName.Replace(".json", "");
 
-        List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
-
-        return Ok(newOptionsList);
+        try
+        {
+            List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+            return Ok(newOptionsList);
+        }
+        catch (JsonException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     /// <summary>

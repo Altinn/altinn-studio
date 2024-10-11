@@ -6,14 +6,14 @@ export const validateFileName = (optionListIds: string[], fileName: string): boo
   if (!isFilenameValid(fileNameWithoutExtension)) {
     return false;
   }
-  return !isFileDuplicate(optionListIds, fileNameWithoutExtension);
+  return !isFileNameDuplicate(optionListIds, fileNameWithoutExtension);
 };
 
 export const isFilenameValid = (fileName: string): boolean => {
   return Boolean(fileName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 };
 
-export const isFileDuplicate = (
+export const isFileNameDuplicate = (
   optionListIds: string[],
   fileNameWithoutExtension: string,
 ): boolean => {
