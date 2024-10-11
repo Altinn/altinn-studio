@@ -27,7 +27,7 @@
         "partyTypeName": 2,
         "OrgNumber": "897069651",
         "unitType": "BEDR",
-        "name": "DDG Fitness Bergen",
+        "name": "DDG Fitness Oslo",
         "isDeleted": false,
         "onlyHierarchyElementWithNoAccess": false,
         "person": null,
@@ -39,7 +39,7 @@
         "partyTypeName": 2,
         "OrgNumber": "897069652",
         "unitType": "BEDR",
-        "name": "DDG Fitness Oslo",
+        "name": "DDG Fitness Bergen",
         "isDeleted": false,
         "onlyHierarchyElementWithNoAccess": false,
         "person": null,
@@ -58,7 +58,6 @@
         "organisation": null,
         "childParties": null
       }
-
     ]
   },
   {
