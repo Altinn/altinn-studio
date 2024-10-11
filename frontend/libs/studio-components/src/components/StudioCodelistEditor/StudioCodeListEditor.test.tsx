@@ -2,12 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
-import type { CodeListTexts } from './types/CodeListTexts';
+import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import type { CodeList } from './types/CodeList';
 import userEvent from '@testing-library/user-event';
 
 // Test data:
-const texts: CodeListTexts = {
+const texts: CodeListEditorTexts = {
   add: 'Add',
   codeList: 'Code list',
   delete: 'Delete',

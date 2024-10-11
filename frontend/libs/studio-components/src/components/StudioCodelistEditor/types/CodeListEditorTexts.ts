@@ -1,4 +1,4 @@
-export type CodeListTexts = {
+export type CodeListEditorTexts = {
   add: string;
   codeList: string;
   delete: string;

@@ -1,8 +1,8 @@
-import type { CodeListTexts } from './types/CodeListTexts';
+import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import { createContext, useContext } from 'react';
 
 export type StudioCodeListEditorContextProps = {
-  texts: CodeListTexts;
+  texts: CodeListEditorTexts;
 };
 
 export const StudioCodeListEditorContext = createContext<StudioCodeListEditorContextProps>(null);

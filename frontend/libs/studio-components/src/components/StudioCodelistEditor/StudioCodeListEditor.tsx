@@ -11,7 +11,7 @@ import {
   isCodeListEmpty,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
-import type { CodeListTexts } from './types/CodeListTexts';
+import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import {
   StudioCodeListEditorContext,
   useStudioCodeListEditorContext,
@@ -23,7 +23,7 @@ import { StudioParagraph } from '../StudioParagraph';
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onChange: (codeList: CodeList) => void;
-  texts: CodeListTexts;
+  texts: CodeListEditorTexts;
 };
 
 export function StudioCodeListEditor({
