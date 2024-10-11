@@ -33,7 +33,6 @@ export const Summary2OverrideEntry = ({
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
-
   const componentsInGroup = getComponentsInGroup(formLayoutsData);
   const isComponentInGroup = componentsInGroup.includes(override.componentId);
 
