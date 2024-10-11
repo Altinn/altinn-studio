@@ -1,0 +1,14 @@
+export const headerCheckboxLabel = 'Select all';
+export const textHeader = 'Text';
+export const textfieldHeader = 'Textfield';
+export const textareaHeader = 'Textarea';
+export const buttonHeader = 'Button';
+export const checkboxValue = (rowNumber: number) => `checkboxValue${rowNumber}`;
+export const checkboxName = (rowNumber: number) => `checkboxName${rowNumber}`;
+export const checkboxLabel = (rowNumber: number) => `Checkbox ${rowNumber}`;
+export const cleanText = (rowNumber: number) => `Text ${rowNumber}`;
+export const textfieldName = (rowNumber: number) => `textfield${rowNumber}`;
+export const textfieldLabel = (rowNumber: number) => `Textfield ${rowNumber}`;
+export const textareaName = (rowNumber: number) => `textarea${rowNumber}`;
+export const textareaLabel = (rowNumber: number) => `Textarea ${rowNumber}`;
+export const buttonLabel = (rowNumber: number) => `Button ${rowNumber}`;
