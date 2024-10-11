@@ -10,7 +10,7 @@ import { FormField } from '../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
-import { useValidateFileName } from './useValidateFileName';
+import { validateFileName, isFileDuplicate } from './Utils/validateFileNameUtils';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
 
@@ -34,15 +34,9 @@ export function EditCodeList<T extends SelectionComponentType>({
     });
   };
 
-  const doesFileExist = (optionListIds: string[], fileNameWithoutExtension: string): boolean => {
-    return optionListIds.some((option) => option === fileNameWithoutExtension);
-  };
-
-  const { validateFileName } = useValidateFileName(optionListIds);
-
   const handleInvalidFileName = (file?: FormData, fileName?: string) => {
     const fileNameWithoutExtension = removeExtension(fileName);
-    if (doesFileExist(optionListIds, fileNameWithoutExtension)) {
+    if (isFileDuplicate(optionListIds, fileNameWithoutExtension)) {
       toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
     }
   };
@@ -53,6 +47,14 @@ export function EditCodeList<T extends SelectionComponentType>({
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
     });
+  };
+
+  const handleValidateFileName = (fileName: string) => {
+    const bool = validateFileName(optionListIds, fileName);
+    if (!bool) {
+      alert(t('ux_editor.model_properties_code_list_filename_error'));
+    }
+    return bool;
   };
 
   return (
@@ -99,7 +101,7 @@ export function EditCodeList<T extends SelectionComponentType>({
         uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}
         ref={React.useRef<HTMLInputElement>(null)}
         customFileValidation={{
-          validateFileName: validateFileName,
+          validateFileName: handleValidateFileName,
           onInvalidFileName: handleInvalidFileName,
         }}
       />
