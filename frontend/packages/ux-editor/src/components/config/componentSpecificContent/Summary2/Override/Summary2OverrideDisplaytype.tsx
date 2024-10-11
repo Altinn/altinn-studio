@@ -6,7 +6,7 @@ import type {
 } from 'app-shared/types/ComponentSpecificConfig';
 import { type CustomConfigType, useCustomConfigType } from './hook/useCustomConfigType';
 import { useTranslation } from 'react-i18next';
-import { mapSelectedTypeToConfig } from './Utils';
+import { mapSelectedTypeToConfig } from './utils';
 
 export type Summary2OverrideDisplayTypeProps = {
   override: Summary2OverrideConfig;
