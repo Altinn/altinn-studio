@@ -5,7 +5,6 @@ import { PlusIcon } from '@studio/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypeItem';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
@@ -40,18 +39,19 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
 
   return (
     <div className={classes.root}>
+      <div className={classes.typesHeadingWrapper}>
+        <StudioHeading level={3} className={classes.typesHeading}>
+          {t('schema_editor.types')}
+        </StudioHeading>
+        <StudioButton
+          className={classes.addRowButton}
+          variant='tertiary'
+          icon={<PlusIcon height={40} />}
+          onClick={handleAddDefinition}
+          title={t('schema_editor.add_type')}
+        />
+      </div>
       <div className={classes.types}>
-        <div className={classes.addRow}>
-          <StudioHeading className={classes.addRowText}>{t('schema_editor.types')}</StudioHeading>
-          <StudioButton
-            className={classes.addRowButton}
-            variant='tertiary'
-            icon={<PlusIcon height={40} />}
-            onClick={handleAddDefinition}
-            title={t('schema_editor.add_type')}
-          />
-        </div>
-
         {schemaItems.map((item) => (
           <TypeItem
             uiSchemaNode={item}

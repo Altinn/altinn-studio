@@ -1,5 +1,5 @@
 .top {
-  box-shadow: var(--fds-shadow-small);
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .backButton {
