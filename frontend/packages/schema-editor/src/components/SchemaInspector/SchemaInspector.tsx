@@ -8,14 +8,9 @@ import classes from './SchemaInspector.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
-import { StudioHeading, StudioParagraph } from '@studio/components';
-import cn from 'classnames';
+import { StudioCenter, StudioHeading, StudioParagraph } from '@studio/components';
 
-type SchemaInspectorProps = {
-  isDataModelRoot: boolean;
-};
-
-export const SchemaInspector = ({ isDataModelRoot }: SchemaInspectorProps): ReactElement => {
+export const SchemaInspector = (): ReactElement => {
   const { t } = useTranslation();
   const { selectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
@@ -26,26 +21,23 @@ export const SchemaInspector = ({ isDataModelRoot }: SchemaInspectorProps): Reac
         <div className={classes.noItemHeadingWrapper}>
           <StudioHeading size='2xs'>{t('schema_editor.properties')}</StudioHeading>
         </div>
-        <div className={classes.noItemTextWrapper}>
+        <StudioCenter>
           <StudioParagraph>{t('schema_editor.no_item_selected')}</StudioParagraph>
-        </div>
+        </StudioCenter>
       </>
     );
   }
 
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
   const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
-  const tabClass = isDataModelRoot
-    ? classes.tabHeader
-    : cn(classes.tabHeader, classes.tabHeaderExtraMargin);
 
   return (
-    <Tabs defaultValue={t('schema_editor.properties')} className={classes.root}>
+    <Tabs defaultValue={t('schema_editor.properties')}>
       <Tabs.List>
-        <Tabs.Tab value={t('schema_editor.properties')} className={tabClass}>
+        <Tabs.Tab value={t('schema_editor.properties')} className={classes.tabHeader}>
           {t('schema_editor.properties')}
         </Tabs.Tab>
-        <Tabs.Tab value={t('schema_editor.fields')} className={tabClass}>
+        <Tabs.Tab value={t('schema_editor.fields')} className={classes.tabHeader}>
           {t('schema_editor.fields')}
         </Tabs.Tab>
       </Tabs.List>
@@ -57,7 +49,9 @@ export const SchemaInspector = ({ isDataModelRoot }: SchemaInspectorProps): Reac
           <ItemFieldsTab selectedItem={selectedItem} />
         </Tabs.Content>
       ) : (
-        <Alert severity='info'>{t('app_data_modelling.fields_information')}</Alert>
+        <Tabs.Content value={t('schema_editor.fields')}>
+          <Alert severity='info'>{t('app_data_modelling.fields_information')}</Alert>
+        </Tabs.Content>
       )}
     </Tabs>
   );

@@ -47,7 +47,7 @@ export const SchemaEditor = () => {
         </StudioResizableLayout.Element>
         <StudioResizableLayout.Element minimumSize={300}>
           <aside className={classes.inspector}>
-            <SchemaInspector isDataModelRoot={!selectedType?.schemaPointer} />
+            <SchemaInspector />
           </aside>
         </StudioResizableLayout.Element>
       </StudioResizableLayout.Container>

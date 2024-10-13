@@ -14,15 +14,7 @@
   justify-content: center;
   padding-inline: var(--fds-spacing-4);
   height: var(--subtoolbar-height);
-  border-bottom: 1px solid lightgray;
-}
-
-.noItemTextWrapper {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .tabHeader {
@@ -30,18 +22,7 @@
   font-size: var(--fds-typography-heading-small);
 }
 
-.tabHeaderExtraMargin {
-  margin-top: var(--fds-sizing-6);
-}
-
-.header {
-  font-size: 16px;
-  font-weight: 400;
-  margin-bottom: 6px;
-  margin-top: 24px;
-  padding: 0;
-}
-
+/* Should this be deleted? */
 .header :global(.Mui-focusVisible) {
   background: gray;
 }

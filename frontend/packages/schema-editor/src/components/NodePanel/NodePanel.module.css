@@ -1,3 +1,7 @@
+.top {
+  box-shadow: var(--fds-shadow-small);
+}
+
 .backButton {
   background-color: var(--fds-semantic-surface-action-subtle);
   border: none;

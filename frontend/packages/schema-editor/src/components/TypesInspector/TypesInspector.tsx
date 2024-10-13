@@ -1,6 +1,6 @@
 import type { MouseEvent } from 'react';
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
@@ -38,22 +38,11 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
     save(schemaModel);
   };
 
-  if (!schemaItems) {
-    return (
-      <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {t('schema_editor.no_item_selected')}
-        </p>
-        <Divider />
-      </div>
-    );
-  }
-
   return (
     <div className={classes.root}>
       <div className={classes.types}>
         <div className={classes.addRow}>
-          <span className={classes.addRowText}>{t('schema_editor.types')}</span>
+          <StudioHeading className={classes.addRowText}>{t('schema_editor.types')}</StudioHeading>
           <StudioButton
             className={classes.addRowButton}
             variant='tertiary'
