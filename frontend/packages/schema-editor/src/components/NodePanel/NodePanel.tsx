@@ -21,7 +21,7 @@ export const NodePanel = ({ schemaPointer }: NodePanelProps) => {
 
   return (
     <>
-      <div className={classes.top}>
+      <div>
         {!isDataModelRoot && <BackButton />}
         <HeadingRow schemaPointer={schemaPointer} />
       </div>

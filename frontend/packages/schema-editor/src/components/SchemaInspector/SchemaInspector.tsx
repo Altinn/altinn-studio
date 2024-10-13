@@ -1,37 +1,47 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { Alert, Tabs } from '@digdir/designsystemet-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { isField, isObject } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
+import cn from 'classnames';
 
-export const SchemaInspector = () => {
+type SchemaInspectorProps = {
+  isDataModelRoot: boolean;
+};
+
+export const SchemaInspector = ({ isDataModelRoot }: SchemaInspectorProps): ReactElement => {
   const { t } = useTranslation();
   const { selectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
 
   if (!selectedUniquePointer) {
     return (
-      <div>
-        <p className={classes.noItem}>{t('schema_editor.no_item_selected')}</p>
-        <Divider />
+      <div className={classes.noItem}>
+        <p>{t('schema_editor.no_item_selected')}</p>
       </div>
     );
   }
 
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
   const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
+  const tabClass = isDataModelRoot
+    ? classes.tabHeader
+    : cn(classes.tabHeader, classes.tabHeaderExtraMargin);
 
   return (
     <Tabs defaultValue={t('schema_editor.properties')} className={classes.root}>
       <Tabs.List>
-        <Tabs.Tab value={t('schema_editor.properties')}>{t('schema_editor.properties')}</Tabs.Tab>
-        <Tabs.Tab value={t('schema_editor.fields')}>{t('schema_editor.fields')}</Tabs.Tab>
+        <Tabs.Tab value={t('schema_editor.properties')} className={tabClass}>
+          {t('schema_editor.properties')}
+        </Tabs.Tab>
+        <Tabs.Tab value={t('schema_editor.fields')} className={tabClass}>
+          {t('schema_editor.fields')}
+        </Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={t('schema_editor.properties')}>
         <ItemPropertiesTab selectedItem={selectedItem} />

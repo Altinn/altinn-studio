@@ -35,7 +35,7 @@ export const SchemaEditor = () => {
         orientation='horizontal'
         localStorageContext={`datamodel:${user.id}:${org}`}
       >
-        <StudioResizableLayout.Element minimumSize={100} maximumSize={280}>
+        <StudioResizableLayout.Element minimumSize={200} maximumSize={280}>
           <aside className={classes.inspector}>
             <TypesInspector schemaItems={definitions} />
           </aside>
@@ -51,7 +51,7 @@ export const SchemaEditor = () => {
           collapsedSize={180}
         >
           <aside className={classes.inspector}>
-            <SchemaInspector />
+            <SchemaInspector isDataModelRoot={!selectedType?.schemaPointer} />
           </aside>
         </StudioResizableLayout.Element>
       </StudioResizableLayout.Container>
