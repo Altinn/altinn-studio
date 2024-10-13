@@ -8,9 +8,21 @@
   width: 150px;
 }
 
-.noItem {
-  font-weight: 500;
+.noItemHeadingWrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   padding-inline: var(--fds-spacing-4);
+  height: var(--subtoolbar-height);
+  border-bottom: 1px solid lightgray;
+}
+
+.noItemTextWrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .tabHeader {

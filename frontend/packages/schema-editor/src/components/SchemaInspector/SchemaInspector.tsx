@@ -8,6 +8,7 @@ import classes from './SchemaInspector.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
+import { StudioHeading, StudioParagraph } from '@studio/components';
 import cn from 'classnames';
 
 type SchemaInspectorProps = {
@@ -21,9 +22,14 @@ export const SchemaInspector = ({ isDataModelRoot }: SchemaInspectorProps): Reac
 
   if (!selectedUniquePointer) {
     return (
-      <div className={classes.noItem}>
-        <p>{t('schema_editor.no_item_selected')}</p>
-      </div>
+      <>
+        <div className={classes.noItemHeadingWrapper}>
+          <StudioHeading size='2xs'>{t('schema_editor.properties')}</StudioHeading>
+        </div>
+        <div className={classes.noItemTextWrapper}>
+          <StudioParagraph>{t('schema_editor.no_item_selected')}</StudioParagraph>
+        </div>
+      </>
     );
   }
 
