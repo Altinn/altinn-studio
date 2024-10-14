@@ -7,6 +7,7 @@ import type {
   AppFrontendVersion,
   ComponentName,
   PrefixedComponentName,
+  AllOfDefinition,
 } from './types';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
@@ -63,7 +64,7 @@ const expandSchema = (
   expandedSchema: Partial<ExpandedComponentSchema>,
   layoutSchema: LayoutSchema,
 ): Partial<ExpandedComponentSchema> => {
-  if (condensedSchema.allOf) {
+  if ('allOf' in condensedSchema) {
     expandedSchema = { ...expandedSchema, ...expandAllOf(condensedSchema, layoutSchema) };
 
     const expectedProperties = getExpectedProperties(condensedSchema);
@@ -75,7 +76,7 @@ const expandSchema = (
 
     // This else if does not work in the current configuration. Therefore, the line inside is commented out.
     // It seems to only apply to the Group component in frontend v3, which we may not maintain much longer.
-  } else if (condensedSchema.anyOf) {
+  } else if ('anyOf' in condensedSchema) {
     // newSchema.anyOf = expandAnyOf(condensedSchema, layoutSchema);
   }
 
@@ -84,7 +85,7 @@ const expandSchema = (
   return expandedSchema;
 };
 
-const getExpectedProperties = (schema: CondensedComponentSchema) => {
+const getExpectedProperties = (schema: AllOfDefinition) => {
   return Object.keys(schema.allOf[schema.allOf.length - 1].properties);
 };
 

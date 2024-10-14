@@ -8,29 +8,28 @@ export type ComponentName = keyof typeof ComponentType;
 
 export type PrefixedComponentName = `Comp${ComponentName}`;
 
-export interface LayoutSchema {
+export type LayoutSchema = {
   $schema: string;
   $id: string;
   $ref: string;
   definitions: KeyValuePairs<KeyValuePairs>;
-}
+};
 
-export type CondensedComponentSchema =
-  | {
-      title?: never;
-      anyOf?: never;
-      allOf: KeyValuePairs[];
-    }
-  | {
-      title: string;
-      anyOf: KeyValuePairs[];
-      allOf?: never;
-    };
+export type AllOfDefinition = {
+  allOf: KeyValuePairs[];
+};
 
-export interface ExpandedComponentSchema {
+export type AnyOfDefinition = {
+  title: string;
+  anyOf: KeyValuePairs[];
+};
+
+export type CondensedComponentSchema = AllOfDefinition | AnyOfDefinition;
+
+export type ExpandedComponentSchema = {
   $id: string;
   $schema: string;
   properties: KeyValuePairs<KeyValuePairs>;
   required: string[];
   title: string;
-}
+};
