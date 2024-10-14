@@ -24,7 +24,27 @@ describe('EditSubFormTableColumns', () => {
     jest.clearAllMocks();
   });
 
-  it('should call handleComponentChange when a new column is added', async () => {
+  it('should call handleComponentChange when a new column is added when tableColumns initially are empty ', async () => {
+    const handleComponentChangeMock = jest.fn();
+    const user = userEvent.setup();
+
+    renderEditSubFormTableColumns({
+      component: { ...subFormComponentMock, tableColumns: undefined },
+      handleComponentChange: handleComponentChangeMock,
+    });
+
+    const addColumnButton = screen.getByRole('button', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
+    });
+
+    await user.click(addColumnButton);
+
+    expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+    const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
+    expect(updatedComponent.tableColumns.length).toBe(1);
+  });
+
+  it('should call handleComponentChange when a new column is added when tableColumns has a value', async () => {
     const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
 
