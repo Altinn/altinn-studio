@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
 import { expect } from '@playwright/test';
+import { droppableListId, typeItemId } from '@studio/testing/testids';
 
 export class DataModelPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
