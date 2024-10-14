@@ -10,10 +10,11 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const mockHandleComponentUpdate = jest.fn();
 
@@ -96,6 +97,24 @@ describe('PropertiesHeader', () => {
     expect(containerIdInput).toHaveAttribute('aria-invalid', 'true');
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
+
+  it('should render subform config when component is subform', () => {
+    renderPropertiesHeader({
+      formItem: { id: 'subformComponentId', type: ComponentType.SubForm, itemType: 'COMPONENT' },
+    });
+    const setLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
+    });
+    expect(setLayoutSetButton).toBeInTheDocument();
+  });
+
+  it('should not render subform config when component is not subform', () => {
+    renderPropertiesHeader();
+    const setLayoutSetButton = screen.queryByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
+    });
+    expect(setLayoutSetButton).not.toBeInTheDocument();
+  });
 });
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
@@ -104,6 +123,7 @@ const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
     componentSchemaMocks[componentType],
   );
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <FormItemContext.Provider
       value={{

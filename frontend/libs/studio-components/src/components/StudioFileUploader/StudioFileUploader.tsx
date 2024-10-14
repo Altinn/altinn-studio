@@ -1,9 +1,10 @@
-import type { RefObject } from 'react';
+import type { InputHTMLAttributes, RefObject } from 'react';
 import React, { forwardRef } from 'react';
 import classes from './StudioFileUploader.module.css';
 import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
+import { useForwardedRef } from '@studio/hooks';
 
 const NUMBER_BITS_IN_A_BYTE = 1024;
 export const BITS_IN_A_MEGA_BYTE = NUMBER_BITS_IN_A_BYTE * NUMBER_BITS_IN_A_BYTE;
@@ -16,45 +17,38 @@ export type FileValidation = {
 };
 
 export type StudioFileUploaderProps = {
-  className?: string;
   onUploadFile: (file: FormData, fileName: string) => void;
-  accept?: string;
-  size?: StudioButtonProps['size'];
-  variant?: StudioButtonProps['variant'];
-  disabled?: boolean;
   uploaderButtonText?: string;
   customFileValidation?: FileValidation;
-  dataTestId?: string;
-};
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> &
+  Pick<StudioButtonProps, 'size' | 'variant' | 'color'>;
 
-/**
- * @component
- *    Component for uploading a file from a studio button and show spinner during uploading
- */
-export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProps>(
+export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploaderProps>(
   (
     {
       className,
-      onUploadFile,
-      accept,
-      size,
-      variant = 'tertiary',
-      disabled,
-      uploaderButtonText,
+      color,
       customFileValidation,
-      dataTestId,
+      disabled,
+      onUploadFile,
+      size,
+      uploaderButtonText,
+      variant = 'tertiary',
+      ...rest
     },
-    ref: RefObject<HTMLInputElement>,
+    ref,
   ): React.ReactElement => {
+    const internalRef = useForwardedRef(ref);
+
     const handleInputChange = () => {
-      const file = getFile(ref);
+      const file = getFile(internalRef);
       if (file) handleSubmit();
     };
 
     const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
-      const file = getFile(ref);
-      if (isFileValid(file, ref, customFileValidation)) {
+      const file = getFile(internalRef);
+      if (isFileValid(file, internalRef, customFileValidation)) {
         const formData = new FormData();
         formData.append('file', file);
         onUploadFile(formData, file.name);
@@ -62,21 +56,22 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
     };
 
     return (
-      <form className={className} onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={className}>
         <input
-          data-testid={dataTestId}
-          type='file'
-          accept={accept}
-          ref={ref}
+          aria-label={uploaderButtonText}
+          className={classes.fileInput}
           disabled={disabled}
           onChange={handleInputChange}
-          className={classes.fileInput}
+          ref={internalRef}
+          type='file'
+          {...rest}
         />
         <StudioButton
-          size={size}
-          icon={<UploadIcon />}
-          onClick={() => ref?.current?.click()}
+          color={color}
           disabled={disabled}
+          icon={<UploadIcon />}
+          onClick={() => internalRef?.current?.click()}
+          size={size}
           variant={variant}
         >
           {uploaderButtonText}
