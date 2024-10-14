@@ -1,5 +1,4 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
-import { Datalist } from 'test/e2e/pageobjects/datalist';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
 import { breakpoints } from 'src/hooks/useDeviceWidths';
@@ -7,30 +6,27 @@ import type { IGroupEditProperties } from 'src/layout/RepeatingGroup/config.gene
 
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
-const dataListPage = new Datalist();
 
 type Mode = 'mobile' | 'tablet';
 
-describe('Mobile', () => {
-  it('is possible to submit app instance from mobile', () => {
-    cy.viewport('samsung-s10');
-    testChangeName();
-    cy.get('html.viewport-is-mobile').should('be.visible');
-    testGroup('mobile');
-    testLikert();
-    testList();
-    testConfirm();
-  });
+it('is possible to submit app instance from mobile', () => {
+  cy.viewport('samsung-s10');
+  testChangeName();
+  cy.get('html.viewport-is-mobile').should('be.visible');
+  testGroup('mobile');
+  testLikert();
+  testListMobile();
+  testConfirm();
+});
 
-  it('is possible to submit app instance a tablet', () => {
-    cy.viewport(breakpoints.tablet - 5, 1024);
-    testChangeName();
-    cy.get('html.viewport-is-tablet').should('be.visible');
-    testGroup('tablet');
-    testLikert();
-    testList();
-    testConfirm();
-  });
+it('is possible to submit app instance a tablet', () => {
+  cy.viewport(breakpoints.tablet - 5, 1024);
+  testChangeName();
+  cy.get('html.viewport-is-tablet').should('be.visible');
+  testGroup('tablet');
+  testLikert();
+  testListTablet();
+  testConfirm();
 });
 
 function testChangeName() {
@@ -113,8 +109,20 @@ function testLikert() {
   sendIn();
 }
 
-function testList() {
-  cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
+function testListMobile() {
+  cy.findByRole('radiogroup').within(() => {
+    cy.findByRole('radio', { name: /caroline/i }).check();
+    cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
+  });
+  cy.get(appFrontend.nextButton).click();
+  sendIn();
+}
+
+function testListTablet() {
+  cy.findByRole('table').within(() => {
+    cy.findByRole('row', { name: /caroline/i }).click();
+    cy.findByRole('radio', { name: /caroline/i }).should('be.checked');
+  });
   cy.get(appFrontend.nextButton).click();
   sendIn();
 }

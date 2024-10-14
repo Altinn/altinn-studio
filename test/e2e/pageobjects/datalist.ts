@@ -4,7 +4,6 @@ export class Datalist {
   public tableBody = '#form-content-listComponent table tbody';
   public navigateNextButton = '[data-testid=pagination-next-icon]';
   public navigatePreviousButton = '[data-testid=pagination-previous-icon]';
-  public sortButton = '[data-testid="sort-icon"]';
   public radioButton = '[type=radio]';
   public searchInput = '#searchForList';
 }

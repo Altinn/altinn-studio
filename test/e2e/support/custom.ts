@@ -201,6 +201,12 @@ const knownWcagViolations: KnownViolation[] = [
     id: 'list',
     nodeLength: 1,
   },
+  {
+    spec: 'frontend-test/list-component.ts',
+    test: 'Should expand to 10 rows and take a snapshot',
+    id: 'svg-img-alt', // The image is decorative and the aria-sort is already set correctly, so this would just be noise
+    nodeLength: 1,
+  },
 ];
 
 Cypress.Commands.add('clearSelectionAndWait', (viewport) => {

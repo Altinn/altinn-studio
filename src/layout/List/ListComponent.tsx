@@ -1,30 +1,32 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
+import type { AriaAttributes } from 'react';
 
-import { Pagination } from '@altinn/altinn-design-system';
-import { LegacyResponsiveTable } from '@digdir/design-system-react';
+import { Pagination as AltinnPagination } from '@altinn/altinn-design-system';
+import { Heading, Radio, Table } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
-import type { LegacyResponsiveTableConfig } from '@digdir/design-system-react';
-import type {
-  ChangeProps,
-  SortDirection,
-} from '@digdir/design-system-react/dist/types/components/legacy/LegacyTable/utils';
 
+import { Description } from 'src/components/form/Description';
+import { RadioButton } from 'src/components/form/RadioButton';
+import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
+import { getLabelId } from 'src/components/label/Label';
 import { useDataListQuery } from 'src/features/dataLists/useDataListQuery';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
+import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
+import { useIsMobile } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import classes from 'src/layout/List/ListComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { Filter } from 'src/features/dataLists/useDataListQuery';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForList } from 'src/layout/List/config.generated';
 
 export type IListProps = PropsFromGenericComponent<'List'>;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const defaultDataList: any[] = [];
-const defaultBindings: IDataModelBindingsForList = {};
+type Row = Record<string, string | number | boolean>;
 
 export const ListComponent = ({ node }: IListProps) => {
+  const isMobile = useIsMobile();
   const item = useNodeItem(node);
   const {
     tableHeaders,
@@ -35,108 +37,231 @@ export const ListComponent = ({ node }: IListProps) => {
     queryParameters,
     secure,
     dataListId,
+    required,
   } = item;
-  const { langAsString, language, lang } = useLanguage();
-  const [pageSize, setPageSize] = useState<number>(pagination?.default || 0);
-  const [pageNumber, setPageNumber] = useState<number>(0);
-  const [sortColumn, setSortColumn] = useState<string | undefined>(undefined);
-  const [sortDirection, setSortDirection] = useState<SortDirection>('notActive');
-  const filter = useMemo(
-    () =>
-      ({
-        pageSize,
-        pageNumber,
-        sortColumn,
-        sortDirection,
-      }) as Filter,
-    [pageNumber, pageSize, sortColumn, sortDirection],
-  );
-  const { data } = useDataListQuery(filter, dataListId, secure, mapping, queryParameters);
-  const calculatedDataList = (data && data.listItems) || defaultDataList;
 
-  const bindings = item.dataModelBindings || defaultBindings;
+  const { langAsString, lang } = useLanguage();
+  const [pageSize, setPageSize] = useState<number>(pagination?.default ?? 0);
+  const [pageNumber, setPageNumber] = useState<number>(0);
+  const [sortColumn, setSortColumn] = useState<string | undefined>();
+  const [sortDirection, setSortDirection] = useState<AriaAttributes['aria-sort']>('none');
+
+  const filter: Filter = {
+    pageSize,
+    pageNumber,
+    sortColumn,
+    sortDirection,
+  };
+
+  const { data } = useDataListQuery(filter, dataListId, secure, mapping, queryParameters);
+  const bindings = item.dataModelBindings ?? ({} as IDataModelBindingsForList);
   const { formData, setValues } = useDataModelBindings(bindings);
 
-  const handleChange = ({ selectedValue: selectedValue }: ChangeProps<Record<string, string>>) => {
-    const next: Record<string, string> = {};
+  const filteredHeaders = Object.fromEntries(Object.entries(tableHeaders).filter(([key]) => shouldIncludeColumn(key)));
+  const filteredRows: Row[] =
+    data?.listItems?.map((row) => {
+      const result = Object.fromEntries(Object.entries(row).filter(([key]) => shouldIncludeColumn(key)));
+      return result;
+    }) ?? [];
+
+  const selectedRow =
+    filteredRows.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '';
+
+  function handleRowSelect({ selectedValue }: { selectedValue: Row }) {
+    const next: Row = {};
     for (const binding of Object.keys(bindings)) {
       next[binding] = selectedValue[binding];
     }
     setValues(next);
-  };
-
-  const tableHeadersValues = { ...tableHeaders };
-  for (const key in tableHeaders) {
-    tableHeadersValues[key] = langAsString(tableHeaders[key]);
   }
 
-  const selectedRow: Record<string, string> = React.useMemo(() => {
-    let matchRow: boolean[] = [];
-    if (!formData || Object.keys(formData).length === 0) {
-      return {};
-    }
-    for (const row of calculatedDataList) {
-      for (const key in formData) {
-        matchRow.push(formData[key] === row[key]);
-      }
-      if (!matchRow.includes(false)) {
-        return row;
-      }
-      matchRow = [];
-    }
-    return {};
-  }, [formData, calculatedDataList]);
+  function shouldIncludeColumn(key: string): boolean {
+    return !isMobile || !tableHeadersMobile || tableHeadersMobile.includes(key);
+  }
 
-  const renderPagination = () =>
-    pagination && (
+  function isRowSelected(row: Row): boolean {
+    return JSON.stringify(selectedRow) === JSON.stringify(row);
+  }
+
+  const title = item.textResourceBindings?.title;
+  const description = item.textResourceBindings?.description;
+
+  if (isMobile) {
+    return (
+      <ComponentStructureWrapper node={node}>
+        <Radio.Group
+          role='radiogroup'
+          required={required}
+          legend={
+            <Heading
+              level={2}
+              size='sm'
+            >
+              <Lang id={title} />
+              <RequiredIndicator required={required} />
+            </Heading>
+          }
+          description={langAsString(description)}
+          className={classes.mobileRadioGroup}
+          value={JSON.stringify(selectedRow)}
+        >
+          {filteredRows.map((row) => (
+            <Radio
+              key={JSON.stringify(row)}
+              value={JSON.stringify(row)}
+              className={cn(classes.mobileRadio, { [classes.selectedRow]: isRowSelected(row) })}
+              onClick={() => handleRowSelect({ selectedValue: row })}
+            >
+              {Object.entries(row).map(([key, value]) => (
+                <div key={key}>
+                  <strong>{tableHeaders[key]}</strong>
+                  <span>{typeof value === 'string' ? lang(value) : value}</span>
+                </div>
+              ))}
+            </Radio>
+          ))}
+        </Radio.Group>
+        <Pagination
+          pageSize={pageSize}
+          setPageSize={setPageSize}
+          pageNumber={pageNumber}
+          setPageNumber={setPageNumber}
+          numberOfRows={data?._metaData.totaltItemsCount}
+          rowsPerPageOptions={pagination?.alternatives}
+        />
+      </ComponentStructureWrapper>
+    );
+  }
+
+  return (
+    <ComponentStructureWrapper node={node}>
+      <Table className={classes.listTable}>
+        {title && (
+          <caption id={getLabelId(node.id)}>
+            <Heading
+              level={2}
+              size='sm'
+            >
+              <Lang id={title} />
+              <RequiredIndicator required={required} />
+            </Heading>
+            <Description
+              description={description}
+              componentId={node.id}
+            />
+          </caption>
+        )}
+        <Table.Head>
+          <Table.Row>
+            <Table.HeaderCell />
+            {Object.entries(filteredHeaders).map(([key, value]) => (
+              <Table.HeaderCell
+                key={key}
+                sortable={sortableColumns?.includes(key)}
+                sort={sortColumn === key ? sortDirection : undefined}
+                onSortClick={() => {
+                  if (sortColumn === key) {
+                    setSortDirection(sortDirection === 'ascending' ? 'descending' : 'ascending');
+                  } else {
+                    setSortDirection('descending');
+                    setSortColumn(key);
+                  }
+                }}
+              >
+                {typeof value === 'string' ? langAsString(value) : value}
+              </Table.HeaderCell>
+            ))}
+          </Table.Row>
+        </Table.Head>
+        <Table.Body>
+          {filteredRows.map((row) => (
+            <Table.Row
+              key={JSON.stringify(row)}
+              onClick={() => {
+                handleRowSelect({ selectedValue: row });
+              }}
+            >
+              <Table.Cell
+                className={cn({
+                  [classes.selectedRowCell]: isRowSelected(row),
+                })}
+              >
+                <RadioButton
+                  aria-label={JSON.stringify(row)}
+                  onChange={() => {
+                    handleRowSelect({ selectedValue: row });
+                  }}
+                  value={JSON.stringify(row)}
+                  checked={isRowSelected(row)}
+                  name={node.id}
+                />
+              </Table.Cell>
+              {Object.entries(row).map(([key, value]) => (
+                <Table.Cell
+                  key={key}
+                  className={cn({
+                    [classes.selectedRowCell]: isRowSelected(row),
+                  })}
+                >
+                  {typeof value === 'string' ? lang(value) : value}
+                </Table.Cell>
+              ))}
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table>
       <Pagination
-        numberOfRows={data?._metaData.totaltItemsCount ?? 0}
-        rowsPerPageOptions={pagination?.alternatives ? pagination?.alternatives : []}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        pageNumber={pageNumber}
+        setPageNumber={setPageNumber}
+        numberOfRows={data?._metaData.totaltItemsCount}
+        rowsPerPageOptions={pagination?.alternatives}
+      />
+    </ComponentStructureWrapper>
+  );
+};
+
+type PaginationProps = {
+  pageSize: number;
+  setPageSize: (pageSize: number) => void;
+  pageNumber: number;
+  setPageNumber: (pageNumber: number) => void;
+  numberOfRows: number | undefined;
+  rowsPerPageOptions: number[] | undefined;
+};
+
+function Pagination({
+  pageSize,
+  setPageSize,
+  pageNumber,
+  setPageNumber,
+  numberOfRows = 0,
+  rowsPerPageOptions = [],
+}: PaginationProps) {
+  const { language } = useLanguage();
+  const isMobile = useIsMobile();
+
+  function handlePageSizeChange(newSize: number) {
+    setPageNumber(0);
+    setPageSize(newSize);
+  }
+
+  return (
+    <div className={cn({ [classes.paginationMobile]: isMobile }, classes.pagination, 'fds-table__header__cell')}>
+      <AltinnPagination
+        numberOfRows={numberOfRows ?? 0}
+        rowsPerPageOptions={rowsPerPageOptions}
         rowsPerPage={pageSize}
         onRowsPerPageChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-          setPageSize(parseInt(event.target.value, 10));
+          handlePageSizeChange(parseInt(event.target.value, 10));
         }}
         currentPage={pageNumber}
         setCurrentPage={(newPage: number) => {
           setPageNumber(newPage);
         }}
-        descriptionTexts={((language && language['list_component']) || {}) as unknown as DescriptionText}
+        descriptionTexts={(language?.['list_component'] ?? {}) as unknown as DescriptionText}
       />
-    );
-
-  const config: LegacyResponsiveTableConfig<Record<string, string>> = {
-    rows: calculatedDataList,
-    headers: tableHeadersValues,
-    showColumnsMobile: tableHeadersMobile,
-    columnSort: {
-      onSortChange: ({ column, next }) => {
-        setSortColumn(column);
-        setSortDirection(next);
-      },
-      sortable: sortableColumns ? sortableColumns : [],
-      currentlySortedColumn: sortColumn,
-      currentDirection: sortDirection,
-    },
-    rowSelection: {
-      onSelectionChange: (row) => handleChange({ selectedValue: row }),
-      selectedValue: selectedRow,
-    },
-    renderCell: Object.keys(tableHeaders).reduce(
-      // Add lang as the renderCell function for all inputs that are of type string.
-      (acc, next) => ({ ...acc, [next]: (v) => (typeof v === 'string' ? lang(v) : v) }),
-      {},
-    ),
-    footer: renderPagination(),
-  };
-
-  return (
-    <ComponentStructureWrapper
-      node={node}
-      label={{ node, renderLabelAs: 'legend' }}
-    >
-      <div style={{ overflow: 'auto' }}>
-        <LegacyResponsiveTable config={config} />
-      </div>
-    </ComponentStructureWrapper>
+    </div>
   );
-};
+}
