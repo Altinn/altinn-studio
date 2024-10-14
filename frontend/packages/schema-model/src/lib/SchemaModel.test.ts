@@ -169,7 +169,7 @@ describe('SchemaModel', () => {
   describe('getUniquePointer', () => {
     it('Returns the unique pointer when called on the root node', () => {
       const expectedUniqueRootPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}`;
-      expect(schemaModel.getUniquePointer(rootNodeMock.schemaPointer)).toEqual(
+      expect(SchemaModel.getUniquePointer(rootNodeMock.schemaPointer)).toEqual(
         expectedUniqueRootPointer,
       );
     });
@@ -177,7 +177,7 @@ describe('SchemaModel', () => {
     it('Returns the unique pointer when called on a property node', () => {
       const expectedUniquePointer = `${UNIQUE_POINTER_PREFIX}${referenceToObjectNodeMock.schemaPointer}`;
 
-      expect(schemaModel.getUniquePointer(referenceToObjectNodeMock.schemaPointer)).toEqual(
+      expect(SchemaModel.getUniquePointer(referenceToObjectNodeMock.schemaPointer)).toEqual(
         expectedUniquePointer,
       );
     });
@@ -187,13 +187,13 @@ describe('SchemaModel', () => {
       const expectedUniqueGrandchildPointer = `${UNIQUE_POINTER_PREFIX}${ROOT_POINTER}/properties/referenceToParent/properties/child/properties/grandchild`;
 
       expect(
-        schemaModel.getUniquePointer(
+        SchemaModel.getUniquePointer(
           defNodeWithChildrenChildMock.schemaPointer,
           referenceToObjectNodeMock.schemaPointer,
         ),
       ).toEqual(expectedUniqueChildPointer);
       expect(
-        schemaModel.getUniquePointer(
+        SchemaModel.getUniquePointer(
           defNodeWithChildrenGrandchildMock.schemaPointer,
           expectedUniqueChildPointer,
         ),
@@ -203,7 +203,7 @@ describe('SchemaModel', () => {
     it('Returns a pointer reflecting the path to a given node in a reference to a combination', () => {
       const { schemaPointer } = combinationDefNodeChild1Mock;
       const uniquePointerOfParent = referenceToCombinationDefNodeMock.schemaPointer;
-      const result = schemaModel.getUniquePointer(schemaPointer, uniquePointerOfParent);
+      const result = SchemaModel.getUniquePointer(schemaPointer, uniquePointerOfParent);
       const expectedResult = `${UNIQUE_POINTER_PREFIX}#/properties/referenceToCombinationDef/oneOf/0`;
       expect(result).toEqual(expectedResult);
     });
