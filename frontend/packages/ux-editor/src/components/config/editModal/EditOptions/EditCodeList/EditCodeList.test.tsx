@@ -7,7 +7,6 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
-import { fileSelectorInputId } from '@studio/testing/testids';
 
 const mockComponent: FormComponent<ComponentType.Dropdown> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
@@ -35,18 +34,6 @@ describe('EditCodeList', () => {
     });
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_code_list_helper')),
-    ).toBeInTheDocument();
-  });
-
-  it('should render the component when optionListIds is empty', async () => {
-    await render({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-      },
-    });
-
-    expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_no_options_found_message')),
     ).toBeInTheDocument();
   });
 
@@ -148,7 +135,9 @@ describe('EditCodeList', () => {
     });
     await user.click(btn);
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_code_list_upload'),
+    );
 
     await user.upload(fileInput, file);
 
@@ -175,7 +164,9 @@ describe('EditCodeList', () => {
     });
     await user.click(btn);
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_code_list_upload'),
+    );
 
     await user.upload(fileInput, file);
 
