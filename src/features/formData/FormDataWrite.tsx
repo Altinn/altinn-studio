@@ -235,7 +235,7 @@ function useFormDataSaveMutation() {
           if (!url) {
             throw new Error(`Cannot patch data, url for dataType '${dataType}' could not be determined`);
           }
-          const { newDataModel, validationIssues } = await doPatchFormData(url, {
+          const { newDataModel, validationIssues, instance } = await doPatchFormData(url, {
             patch,
             // Ignore validations that require layout parsing in the backend which will slow down requests significantly
             ignoredValidators: IgnoredValidators,
@@ -243,6 +243,7 @@ function useFormDataSaveMutation() {
           return {
             newDataModels: [{ dataType, data: newDataModel, dataElementId }],
             validationIssues,
+            instance,
             savedData: next,
           };
         }

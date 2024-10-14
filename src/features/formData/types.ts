@@ -33,6 +33,7 @@ export interface IDataModelPatchRequest {
 export interface IDataModelPatchResponse {
   validationIssues: BackendValidationIssueGroups;
   newDataModel: object;
+  instance?: IInstance;
 }
 
 export interface IDataModelMultiPatchRequest {
