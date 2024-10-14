@@ -5719,6 +5719,7 @@
       },
       "DataPatchResponse": {
         "required": [
+          "instance",
           "newDataModel",
           "validationIssues"
         ],
@@ -5736,6 +5737,9 @@
           },
           "newDataModel": {
             "nullable": true
+          },
+          "instance": {
+            "$ref": "#/components/schemas/Instance"
           }
         },
         "additionalProperties": false

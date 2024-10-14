@@ -427,6 +427,7 @@ public class DataController : ControllerBase
                 {
                     ValidationIssues = newResponse.ValidationIssues.ToDictionary(d => d.Source, d => d.Issues),
                     NewDataModel = newResponse.NewDataModels.First(m => m.DataElementId == dataGuid).Data,
+                    Instance = newResponse.Instance,
                 }
             );
         }
