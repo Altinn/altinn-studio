@@ -18,4 +18,6 @@ export class CellCheckbox extends BaseInputCell<HTMLInputElement, CellCheckboxPr
       </StudioTable.Cell>
     );
   }
+
+  shouldMoveFocusOnArrowKey = () => true;
 }
