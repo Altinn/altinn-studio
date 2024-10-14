@@ -48,11 +48,13 @@ export const ColumnElement = ({
         label={t('ux_editor.properties_panel.subform_table_columns.header_content_label')}
         value={tableColumn.headerContent}
         onBlur={handleEditHeaderContent}
+        required={true}
       />
       <TableColumnToggleableTextfield
         label={t('ux_editor.properties_panel.subform_table_columns.cell_content_query_label')}
         value={tableColumn.cellContent.query}
         onBlur={handleEditQuery}
+        required={true}
       />
       <TableColumnToggleableTextfield
         label={t('ux_editor.properties_panel.subform_table_columns.cell_content_default_label')}
