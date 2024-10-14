@@ -7,7 +7,6 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { MetadataOption } from '../../../../types/MetadataOption';
-import { fileSelectorInputId } from '@studio/testing/testids';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useValidateFileName } from './useValidateFileName';
@@ -40,7 +39,6 @@ export const XSDUpload = ({
   } = useValidateFileName(appMetadata);
 
   const uploadButton = React.useRef(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleUpload = (formData: FormData) => {
     uploadDataModel(formData, {
@@ -78,13 +76,11 @@ export const XSDUpload = ({
           onUploadFile={handleUpload}
           accept='.xsd'
           variant={uploaderButtonVariant}
-          ref={fileInputRef}
           uploaderButtonText={uploadButtonText}
           customFileValidation={{
             validateFileName: validateFileName,
             onInvalidFileName: handleInvalidFileName,
           }}
-          dataTestId={fileSelectorInputId}
         />
       )}
     </span>
