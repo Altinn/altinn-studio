@@ -37,6 +37,14 @@
       IdFormat: W3C
     },
     {
+      ActivityName: ApplicationMetadata.Service.GetTexts,
+      IdFormat: W3C
+    },
+    {
+      ActivityName: ApplicationMetadata.Service.GetTexts,
+      IdFormat: W3C
+    },
+    {
       ActivityName: ApplicationMetadata.Service.GetValidationConfiguration,
       IdFormat: W3C
     },
