@@ -55,10 +55,10 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
     private static bool TryChangeLayoutSetTaskIds(LayoutSets layoutSets, string oldId, string newId)
     {
         bool hasChanged = false;
-        foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks.Contains(oldId)))
+        foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks != null && layoutSet.Tasks.Contains(oldId)))
         {
-            layoutSet.Tasks.Remove(oldId);
-            layoutSet.Tasks.Add(newId);
+            layoutSet.Tasks!.Remove(oldId);
+            layoutSet.Tasks!.Add(newId);
             hasChanged = true;
         }
 
