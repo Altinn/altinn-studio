@@ -13,9 +13,11 @@ describe('Group summary test', () => {
 
     cy.get(`input[id="GroupPage-Input"]`).type(groupInputValue);
 
-    cy.get('div[data-testid="summary-group-component"]').within(() => {
-      cy.contains('span', groupInputValue).should('exist');
-    });
+    cy.get('div[data-testid="summary-group-component"]')
+      .first()
+      .within(() => {
+        cy.contains('span', groupInputValue).should('exist');
+      });
   });
 
   it('Fills in an input in the nested group, the text appears in summary', () => {

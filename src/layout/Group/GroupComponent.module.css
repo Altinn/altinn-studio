@@ -1,6 +1,6 @@
 .group {
   width: 100%;
-  padding: 12px;
+  padding: var(--fds-spacing-3);
 }
 
 .summary {
@@ -10,13 +10,13 @@
 .groupContainer {
   display: flex;
   flex-wrap: wrap;
-  padding-bottom: 38px;
-  margin-right: -12px;
-  margin-left: -12px;
+  padding-bottom: var(--fds-spacing-9);
+  margin-right: calc(var(--fds-spacing-3) * -1);
+  margin-left: calc(var(--fds-spacing-3) * -1);
 }
 
 .groupContainer > * {
-  padding: 12px;
+  padding: var(--fds-spacing-3);
 }
 
 .panel {
@@ -27,17 +27,26 @@
 }
 
 .panel > legend {
-  padding-top: 36px;
+  padding-top: var(--fds-spacing-9);
 }
 
 .panelPadding > .panel {
   --panel-x-padding: var(--modal-padding-x);
-  margin-right: 12px;
-  margin-left: 12px;
+  margin-right: var(--fds-spacing-3);
+  margin-left: var(--fds-spacing-3);
+}
+
+.noFieldset.panel {
+  padding-left: calc(var(--panel-x-padding) - var(--fds-spacing-3));
+  padding-right: calc(var(--panel-x-padding) - var(--fds-spacing-3));
 }
 
 .groupingIndicator {
   border-left: 2px solid #949494;
   margin-left: 0;
-  padding: 12px 0 12px 12px;
+  padding: var(--fds-spacing-3) 0 var(--fds-spacing-3) var(--fds-spacing-3);
+}
+
+.noFieldset.groupingIndicator {
+  margin-left: var(--fds-spacing-3);
 }
