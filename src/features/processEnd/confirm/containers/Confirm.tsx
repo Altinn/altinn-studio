@@ -15,9 +15,10 @@ export const Confirm = () => {
 
   const instanceOwnerParty = getInstanceOwnerParty(instance, parties);
   const applicationMetadata = useApplicationMetadata();
-  const appName = useAppName();
 
   const missingRequirement = !instance ? 'instance' : !parties ? 'parties' : undefined;
+
+  const appName = useAppName();
   return (
     <div id='confirmcontainer'>
       {missingRequirement ? (
@@ -34,6 +35,7 @@ export const Confirm = () => {
           instance={instance}
           instanceOwnerParty={instanceOwnerParty}
           appName={appName}
+          parties={parties}
         />
       )}
     </div>

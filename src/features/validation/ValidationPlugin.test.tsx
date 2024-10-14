@@ -13,6 +13,8 @@ import { FD } from 'src/features/formData/FormDataWrite';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { AllowedValidationMasks } from 'src/layout/common.generated';
 
+jest.mock('react-helmet-async');
+
 function FormDataValue() {
   const formDataValue = FD.useDebouncedPick({ dataType: defaultDataTypeMock, field: 'TextField' });
   const [delayedValue, setDelayedValue] = useState(formDataValue);
@@ -80,6 +82,19 @@ describe('ValidationPlugin', () => {
               required: ['TextField'],
             }),
           fetchLayoutSettings: () => Promise.resolve({ pages: { order: ['Form', 'NextPage'] } }),
+          fetchTextResources: async () => ({
+            language: 'nb',
+            resources: [
+              {
+                id: 'Form',
+                value: 'This is a page title',
+              },
+              {
+                id: 'NextPage',
+                value: 'This is the next page title',
+              },
+            ],
+          }),
           fetchLayouts: () =>
             Promise.resolve({
               Form: {

@@ -36,5 +36,9 @@ export function getTextResourcesMock(): IRawTextResource[] {
       id: 'accordion.title',
       value: 'This is a title',
     },
+    {
+      id: 'FormLayout',
+      value: 'This is a page title',
+    },
   ];
 }

@@ -10,6 +10,8 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/processEnd/confirm/containers/ConfirmPage';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
+jest.mock('react-helmet-async');
+
 describe('ConfirmPage', () => {
   const personParty = getPartyMock();
   const props: IConfirmPageProps = {
@@ -17,6 +19,7 @@ describe('ConfirmPage', () => {
     instance: getInstanceDataMock(),
     instanceOwnerParty: getPartyMock(),
     applicationMetadata: getApplicationMetadataMock(),
+    parties: [],
   };
   it('should present confirm information when necessary data is present', async () => {
     await renderWithInstanceAndLayout({

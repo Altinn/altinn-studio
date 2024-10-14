@@ -69,5 +69,15 @@ describe('Render summary of previous task', () => {
     cy.contains(houseNumber);
     cy.get('body').should('not.contain', fileName);
     cy.get('body').should('not.contain', fileType);
+
+    cy.url().then((currentUrl) => {
+      cy.log(currentUrl);
+      const newUrl = currentUrl.replace('PreviousProcessSummary', 'Task_1');
+      cy.visit(newUrl);
+      cy.title().should(
+        'eq',
+        'Denne delen av skjemaet er ikke tilgjengelig. Du kan ikke gjøre endringer her nå. - altinn-apps-all-components - Testdepartementet',
+      );
+    });
   });
 });

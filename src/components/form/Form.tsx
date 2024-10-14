@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
@@ -9,11 +10,13 @@ import { MessageBanner } from 'src/components/form/MessageBanner';
 import { ErrorReport } from 'src/components/message/ErrorReport';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { Loader } from 'src/core/loading/Loader';
+import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useExpandedWidthLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useNavigateToNode, useRegisterNodeNavigationHandler } from 'src/features/form/layout/NavigateToNode';
 import { useUiConfigContext } from 'src/features/form/layout/UiConfigContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
+import { useLanguage } from 'src/features/language/useLanguage';
 import {
   useNavigate,
   useNavigationParam,
@@ -26,6 +29,7 @@ import { useTaskErrors } from 'src/features/validation/selectors/taskErrors';
 import { SearchParams, useCurrentView, useNavigatePage, useStartUrl } from 'src/hooks/useNavigatePage';
 import { GenericComponentById } from 'src/layout/GenericComponent';
 import { extractBottomButtons } from 'src/utils/formLayout';
+import { getPageTitle } from 'src/utils/getPageTitle';
 import { NodesInternal, useGetPage, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { NavigateToNodeOptions } from 'src/features/form/layout/NavigateToNode';
@@ -48,6 +52,9 @@ export function Form() {
 
 export function FormPage({ currentPageId }: { currentPageId: string | undefined }) {
   const { isValidPageId, navigateToPage } = useNavigatePage();
+  const appName = useAppName();
+  const appOwner = useAppOwner();
+  const { langAsString } = useLanguage();
   const [formState, setFormState] = useState<FormState>({
     hasRequired: false,
     mainIds: undefined,
@@ -92,8 +99,25 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
     );
   }
 
+  const hasSetCurrentPageId = langAsString(currentPageId) !== currentPageId;
+
+  if (!hasSetCurrentPageId) {
+    window.logWarnOnce(
+      `You have not set a page title for this page. This is highly recommended for user experience and WCAG compliance and will be required in the future.
+       To add a title to this page, add this to your language resource file (for example language.nb.json):
+
+      {
+        "id": "${currentPageId}",
+         "value": "Your custom title goes here"
+      }`,
+    );
+  }
+
   return (
     <>
+      <Helmet>
+        <title>{`${getPageTitle(appName, hasSetCurrentPageId ? langAsString(currentPageId) : undefined, appOwner)}`}</title>
+      </Helmet>
       <ErrorProcessing setFormState={setFormState} />
       {hasRequired && (
         <MessageBanner

@@ -11,6 +11,8 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 
+jest.mock('react-helmet-async');
+
 describe('Form', () => {
   const mockComponents: ILayout = [
     {
@@ -58,6 +60,7 @@ describe('Form', () => {
 
   it('should render components and groups', async () => {
     await render();
+
     expect(screen.getByText('First title')).toBeInTheDocument();
     expect(screen.getByText('Second title')).toBeInTheDocument();
     expect(screen.getByText('Third title')).toBeInTheDocument();
@@ -130,7 +133,7 @@ describe('Form', () => {
     ];
     await render(layoutWithNavBar);
     expect(screen.getByRole('navigation')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '1. FormLayout' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '1. This is a page title' })).toBeInTheDocument();
   });
 
   it('should not render ErrorReport when there are no validation errors', async () => {
@@ -246,6 +249,15 @@ describe('Form', () => {
           }),
         fetchLayoutSettings: () => Promise.resolve({ pages: { order: ['FormLayout', '2', '3'] } }),
         fetchBackendValidations: () => Promise.resolve(validationIssues),
+        fetchTextResources: async () => ({
+          language: 'nb',
+          resources: [
+            {
+              id: 'FormLayout',
+              value: 'This is a page title',
+            },
+          ],
+        }),
       },
     });
   }

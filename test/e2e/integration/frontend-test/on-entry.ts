@@ -137,6 +137,12 @@ describe('On Entry', () => {
     cy.findByRole('heading', { name: /Appen for test av app frontend/i }).should('exist');
   });
 
+  it('Should show the correct title', () => {
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.get(appFrontend.selectInstance.container).should('be.visible');
+    cy.title().should('eq', 'Fortsett der du slapp - frontend-test - Testdepartementet');
+  });
+
   it('language selector and other page settings still work during instance selection', () => {
     cy.interceptLayoutSetsUiSettings({
       hideCloseButton: true,

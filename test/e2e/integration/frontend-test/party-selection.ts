@@ -167,6 +167,13 @@ describe('Party selection', () => {
     cy.get(appFrontend.reporteeSelection.reportee).should('have.length', 1).contains('DDG');
   });
 
+  it('Should show the correct title', () => {
+    mockResponses({ allowedToInstantiate: [ExampleOrgWithSubUnit, ExampleDeletedOrg] });
+    cy.startAppInstance(appFrontend.apps.frontendTest);
+    cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
+    cy.title().should('eq', 'Hvem vil du sende inn for? - frontend-test - Testdepartementet');
+  });
+
   it('Should skip party selection if you can only represent one person', () => {
     mockResponses({
       preSelectedParty: ExamplePerson1.partyId,

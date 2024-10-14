@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 import { formatDate } from 'date-fns';
 
@@ -7,7 +8,7 @@ import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoade
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
-import { useAppReceiver } from 'src/core/texts/appTexts';
+import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLaxInstanceAllDataElements, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
@@ -19,6 +20,7 @@ import {
   filterDisplayPdfAttachments,
   getAttachmentGroupings,
 } from 'src/utils/attachmentsUtils';
+import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceOwnerParty } from 'src/utils/party';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -90,6 +92,9 @@ export const ReceiptContainer = () => {
 
   const instanceGuid = useNavigationParam('instanceGuid');
 
+  const appName = useAppName();
+  const appOwner = useAppOwner();
+  const { langAsString } = useLanguage();
   const lastChangedDateTime = useMemo(() => {
     if (lastChanged) {
       return formatDate(lastChanged, 'dd.MM.yyyy / HH:mm');
@@ -158,6 +163,10 @@ export const ReceiptContainer = () => {
 
   return (
     <div id='ReceiptContainer'>
+      <Helmet>
+        <title>{`${getPageTitle(appName, langAsString('receipt.title'), appOwner)}`}</title>
+      </Helmet>
+
       {!applicationMetadata.autoDeleteOnProcessEnd && (
         <ReceiptComponent
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, langTools)}

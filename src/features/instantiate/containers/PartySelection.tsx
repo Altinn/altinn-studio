@@ -1,4 +1,5 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useMatch } from 'react-router-dom';
 
 import { LegacyCheckbox } from '@digdir/design-system-react';
@@ -7,6 +8,7 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
 import { AltinnParty } from 'src/components/altinnParty';
+import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { InstantiationContainer } from 'src/features/instantiate/containers/InstantiationContainer';
 import { Lang } from 'src/features/language/Lang';
@@ -20,6 +22,7 @@ import {
 import { useNavigate } from 'src/features/routing/AppRoutingContext';
 import { AltinnAppTheme } from 'src/theme/altinnAppTheme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
+import { getPageTitle } from 'src/utils/getPageTitle';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import { capitalizeName } from 'src/utils/stringHelper';
 import type { IParty } from 'src/types/shared';
@@ -97,6 +100,9 @@ export const PartySelection = () => {
   const [showSubUnits, setShowSubUnits] = React.useState(true);
   const [showDeleted, setShowDeleted] = React.useState(false);
   const navigate = useNavigate();
+
+  const appName = useAppName();
+  const appOwner = useAppOwner();
 
   const onSelectParty = async (party: IParty) => {
     await selectParty(party);
@@ -227,6 +233,9 @@ export const PartySelection = () => {
 
   return (
     <InstantiationContainer>
+      <Helmet>
+        <title>{`${getPageTitle(appName, langAsString('party_selection.header'), appOwner)}`}</title>
+      </Helmet>
       <Grid
         container={true}
         direction='row'

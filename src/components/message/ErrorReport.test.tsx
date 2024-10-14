@@ -10,6 +10,8 @@ import { Form } from 'src/components/form/Form';
 import { type BackendValidationIssue, BackendValidationSeverity } from 'src/features/validation';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
+jest.mock('react-helmet-async');
+
 describe('ErrorReport', () => {
   const render = async (validationIssues: BackendValidationIssue[] = []) =>
     await renderWithInstanceAndLayout({
@@ -49,6 +51,15 @@ describe('ErrorReport', () => {
               ],
             },
           },
+        }),
+        fetchTextResources: async () => ({
+          language: 'nb',
+          resources: [
+            {
+              id: 'submit',
+              value: 'This is a page title',
+            },
+          ],
         }),
       },
     });
