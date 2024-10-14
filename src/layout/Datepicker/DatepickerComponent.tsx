@@ -127,7 +127,7 @@ export function DatepickerComponent({ node }: IDatepickerProps) {
             />,
           )}
         </Grid>
-        <span className={styles.formatText}>
+        <span className={`${styles.formatText} no-visual-testing`}>
           {langAsString('date_picker.format_text', [formatDate(new Date(), dateFormat, { locale: currentLocale })])}
         </span>
       </div>

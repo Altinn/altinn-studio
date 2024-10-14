@@ -71,10 +71,7 @@ export const DatePickerInput = forwardRef(
           color='first'
           size='small'
         >
-          <CalendarIcon
-            //style={{ width: 'px', height: '24px' }}
-            title={langAsString('date_picker.aria_label_icon')}
-          />
+          <CalendarIcon title={langAsString('date_picker.aria_label_icon')} />
         </Button>
       </div>
     );
