@@ -9,11 +9,9 @@ export function testRootClassNameAppending(
   const defaultClasses: string[] = getRootClasses(defaultContainer);
   const { container: containerWithCLass } = renderComponent(className);
   const rootElement: HTMLElement = getRootElementFromContainer(containerWithCLass);
-  defaultClasses
-    .filter(Boolean)
-    .forEach((defaultClass) => {
-      expect(rootElement).toHaveClass(defaultClass);
-    });
+  defaultClasses.filter(Boolean).forEach((defaultClass) => {
+    expect(rootElement).toHaveClass(defaultClass);
+  });
   expect(rootElement).toHaveClass(className);
 }
 
