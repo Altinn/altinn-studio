@@ -6,7 +6,7 @@ import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { app, fileSelectorInputId, org } from '@studio/testing/testids';
+import { app, org } from '@studio/testing/testids';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { MAX_FILE_SIZE_MB } from '@altinn/ux-editor/components/config/editModal/EditImage/constants';
@@ -21,7 +21,7 @@ describe('ImportImage', () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     renderImportImage();
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     expect(onImageChangeMock).toHaveBeenCalledWith(`wwwroot/${imageFileName}`);
@@ -34,7 +34,7 @@ describe('ImportImage', () => {
       .fn()
       .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 1000)));
     renderImportImage({ addImage: addImageMock });
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     const spinnerText = screen.getByText(textMock('general.loading'));
@@ -45,7 +45,7 @@ describe('ImportImage', () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     renderImportImage();
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     const file = new File(
       [new Blob([new Uint8Array(MAX_FILE_SIZE_MB * 1024 * 1024 + 1)])],
       imageFileName,
@@ -67,7 +67,7 @@ describe('ImportImage', () => {
     const queryClientMock = createQueryClientMock();
     queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], [imageFileName]);
     renderImportImage({}, queryClientMock);
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
     expect(window.confirm).toHaveBeenCalled();
@@ -81,7 +81,7 @@ describe('ImportImage', () => {
     queryClientMock.setQueryData([QueryKey.ImageFileNames, org, app], [imageFileName]);
     const addImageMock = jest.fn();
     renderImportImage({ addImage: addImageMock }, queryClientMock);
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(fileInput, file);
 
@@ -104,3 +104,6 @@ const renderImportImage = (
 ) => {
   renderWithProviders(<ImportImage onImageChange={onImageChangeMock} />, { queries, queryClient });
 };
+
+const getFileInputElement = (): HTMLInputElement =>
+  screen.getByLabelText(textMock('ux_editor.properties_panel.images.upload_image'));
