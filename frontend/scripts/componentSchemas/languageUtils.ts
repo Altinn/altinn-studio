@@ -2,7 +2,7 @@ import nb from '../../language/src/nb.json';
 import type { ExpandedComponentSchema } from './types';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export const allTextResourceBindingKeys = [];
+export const allTextResourceBindingKeys: string[] = [];
 
 export const pushTextResourceBindingKeys = (schema: ExpandedComponentSchema) => {
   if (schema.properties?.textResourceBindings) {

@@ -11,7 +11,7 @@ import type {
 } from './types';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export const allPropertyKeys = [];
+export const allPropertyKeys: string[] = [];
 
 export const generateComponentSchema = (
   componentName: ComponentName,
@@ -74,8 +74,9 @@ const expandSchema = (
       return null;
     }
 
-    // This else if does not work in the current configuration. Therefore, the line inside is commented out.
+    // expandAnyOf does not work on top level in the current configuration.
     // It seems to only apply to the Group component in frontend v3, which we may not maintain much longer.
+    // https://github.com/Altinn/altinn-studio/issues/13785
   } else if ('anyOf' in condensedSchema) {
     // newSchema.anyOf = expandAnyOf(condensedSchema, layoutSchema);
   }
