@@ -88,6 +88,7 @@ export function EditCodeList<T extends SelectionComponentType>({
           propertyPath={`${component.propertyPath}/properties/optionsId`}
           renderField={({ fieldProps }) => (
             <StudioNativeSelect
+              size='small'
               onChange={(e) => fieldProps.onChange(e.target.value)}
               value={fieldProps.value}
             >
@@ -111,25 +112,20 @@ export function EditCodeList<T extends SelectionComponentType>({
         accept='.json'
         variant={'tertiary'}
         uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}
-        ref={React.useRef<HTMLInputElement>(null)}
         customFileValidation={{
           validateFileName: onValidateFileName,
           onInvalidFileName: handleInvalidFileName,
         }}
       />
 
-      <p>
-        <Trans
+      <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}>
+        <a
           className={classes.linkStaticCodeLists}
-          i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}
-        >
-          <a
-            href={altinnDocsUrl('altinn-studio/reference/data/options/static-codelists/')}
-            target='_newTab'
-            rel='noopener noreferrer'
-          />
-        </Trans>
-      </p>
+          href={altinnDocsUrl('altinn-studio/reference/data/options/static-codelists/')}
+          target='_newTab'
+          rel='noopener noreferrer'
+        />
+      </Trans>
     </div>
   );
 }
