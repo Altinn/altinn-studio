@@ -44,40 +44,40 @@ describe('LayoutSetsContainer', () => {
     await waitFor(() =>
       expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set-2');
-    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayoutSettings).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set-2');
+    expect(appContextMock.updateLayoutSettingsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutSettingsForPreview).toHaveBeenCalledWith('test-layout-set-2');
     expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 
   it('should render add and delete subform buttons when feature is enabled', () => {
-    addFeatureFlagToLocalStorage('subForm');
+    addFeatureFlagToLocalStorage('subform');
 
     render();
-    const createSubFormButton = screen.getByRole('button', {
+    const createSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    expect(createSubFormButton).toBeInTheDocument();
+    expect(createSubformButton).toBeInTheDocument();
 
-    const deleteSubFormButton = screen.getByRole('button', {
+    const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    expect(deleteSubFormButton).toBeInTheDocument();
-    removeFeatureFlagFromLocalStorage('subForm');
+    expect(deleteSubformButton).toBeInTheDocument();
+    removeFeatureFlagFromLocalStorage('subform');
   });
 
   it('should not render add and delete subform buttons when feature is disabled', () => {
     render();
-    const createSubFormButton = screen.queryByRole('button', {
+    const createSubformButton = screen.queryByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    expect(createSubFormButton).not.toBeInTheDocument();
+    expect(createSubformButton).not.toBeInTheDocument();
 
-    const deleteSubFormButton = screen.queryByRole('button', {
+    const deleteSubformButton = screen.queryByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    expect(deleteSubFormButton).not.toBeInTheDocument();
+    expect(deleteSubformButton).not.toBeInTheDocument();
   });
 });
 

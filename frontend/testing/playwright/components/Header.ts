@@ -4,16 +4,9 @@ import type { Environment } from '../helpers/StudioEnvironment';
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
-type TopMenuName =
-  | 'about'
-  | 'create'
-  | 'dashboard'
-  | 'data_model'
-  | 'deploy'
-  | 'preview'
-  | 'preview_back_to_editing'
-  | 'process_editor'
-  | 'texts';
+type TopMenuName = 'about' | 'create' | 'data_model' | 'deploy' | 'process_editor' | 'texts';
+
+const ALTINN_LOGO_TITLE: string = 'Altinn logo';
 
 const TIMEOUT_FOR_GITEA_TO_DO_THE_PUSH: number = 10000;
 
@@ -24,9 +17,23 @@ export class Header extends BasePage {
 
   public async clickOnNavigateToPageInTopMenuHeader(menuName: TopMenuName): Promise<void> {
     await this.page
-      .getByRole('link', { name: this.textMock(`top_menu.${menuName}`), exact: true })
-      .first()
+      .getByRole('list')
+      .getByRole('link', { name: this.textMock(`top_menu.${menuName}`) })
       .click();
+  }
+
+  public async clickOnPreviewButton(): Promise<void> {
+    await this.page.getByRole('link', { name: this.textMock(`top_menu.preview`) }).click();
+  }
+
+  public async clickOnBackToCreatePage(): Promise<void> {
+    await this.page
+      .getByRole('link', { name: this.textMock(`top_menu.preview_back_to_editing`) })
+      .click();
+  }
+
+  public async clickOnNavigateToDashboard(): Promise<void> {
+    await this.page.getByRole('link', { name: ALTINN_LOGO_TITLE }).click();
   }
 
   public async clickOnThreeDotsMenu(): Promise<void> {
