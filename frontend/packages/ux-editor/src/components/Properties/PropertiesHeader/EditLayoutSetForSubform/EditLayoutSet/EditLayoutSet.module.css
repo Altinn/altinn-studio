@@ -1,0 +1,4 @@
+.paragraph {
+  padding-left: var(--fds-spacing-5);
+  padding-bottom: var(--fds-spacing-5);
+}

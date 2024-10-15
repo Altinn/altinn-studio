@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
-import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
-import { StudioRecommendedNextAction } from '@studio/components';
+import { AddSubformModal } from './AddSubformModal';
+import { useSelectLayoutSet } from './useSelectLayoutSet';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
@@ -13,33 +12,26 @@ export const EditLayoutSet = ({
   existingLayoutSetForSubform,
   onUpdateLayoutSet,
 }: EditLayoutSetProps): React.ReactElement => {
-  const { t } = useTranslation();
-  const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
+  const addSubformDialogRef = React.useRef<HTMLDialogElement>(null);
 
-  const renderSelectLayoutSet = (
-    <SelectLayoutSet
-      existingLayoutSetForSubForm={existingLayoutSetForSubform}
-      onUpdateLayoutSet={onUpdateLayoutSet}
-      onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
-    />
-  );
+  const { isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible, renderSelectLayoutSet } =
+    useSelectLayoutSet(existingLayoutSetForSubform, onUpdateLayoutSet);
+
+  function openAddSubformDialog() {
+    addSubformDialogRef.current?.showModal();
+  }
 
   if (isLayoutSetSelectorVisible) return renderSelectLayoutSet;
 
   const layoutSetIsUndefined = !existingLayoutSetForSubform;
   if (layoutSetIsUndefined) {
+    openAddSubformDialog();
     return (
-      <StudioRecommendedNextAction
-        title={t('ux_editor.component_properties.subform.choose_layout_set_header')}
-        description={t('ux_editor.component_properties.subform.choose_layout_set_description')}
-        saveButtonText={undefined}
-        skipButtonText={undefined}
-        hideSaveButton={true}
-        onSave={undefined}
-        onSkip={undefined}
-      >
-        {isLayoutSetSelectorVisible || renderSelectLayoutSet}
-      </StudioRecommendedNextAction>
+      <AddSubformModal
+        ref={addSubformDialogRef}
+        existingLayoutSetForSubform={existingLayoutSetForSubform}
+        onUpdateLayoutSet={onUpdateLayoutSet}
+      />
     );
   }
 
