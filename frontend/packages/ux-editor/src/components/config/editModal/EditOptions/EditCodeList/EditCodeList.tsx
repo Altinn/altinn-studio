@@ -48,13 +48,12 @@ export function EditCodeList<T extends SelectionComponentType>({
   const handleUpload = (file: FormData) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
-        const entries = file.entries();
-        entries.forEach((entry) => {
+        for (const entry of file.entries()) {
           if (entry[1] instanceof File) {
             handleOptionsIdChange(removeExtension(entry[1].name));
+            toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
           }
-        });
+        }
       },
     });
   };

@@ -174,6 +174,34 @@ describe('EditCodeList', () => {
       textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
     );
   });
+
+  it('should render alert on invalid file name', async () => {
+    const alertMock = jest.spyOn(window, 'alert').mockImplementation();
+    const user = userEvent.setup();
+    const invalidFileName = '_InvalidFileName.json';
+    const file = new File([optionListIdsMock[0]], invalidFileName, {
+      type: 'text/json',
+    });
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    const btn = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
+    await user.click(btn);
+
+    const fileInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_code_list_upload'),
+    );
+    await user.upload(fileInput, file);
+
+    expect(alertMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 const render = async ({
