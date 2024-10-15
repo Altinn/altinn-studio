@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { LoggerContextProvider, LoggerContextProviderProps } from './LoggerContext';
+import { LoggerContextProvider, type LoggerContextProviderProps } from './LoggerContext';
 import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 jest.mock('@microsoft/applicationinsights-web', () => {
