@@ -16,7 +16,9 @@ const defaultProps: AddSubformModalProps = {
 };
 
 describe('AddSubformModal', () => {
-  it('Should render the AddSubformModal', () => {
+  afterEach(jest.clearAllMocks);
+
+  it('Should render the AddSubformModal', async () => {
     renderAddSubformModal();
     expect(screen.getByRole('dialog')).toBeVisible();
   });

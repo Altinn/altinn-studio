@@ -5,7 +5,7 @@ export type useSelectLayoutSetProps = {
   existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
 };
-export const useSelectLayoutSet = ({
+export const LayoutSetSelector = ({
   existingLayoutSetForSubform,
   onUpdateLayoutSet,
 }: useSelectLayoutSetProps) => {
