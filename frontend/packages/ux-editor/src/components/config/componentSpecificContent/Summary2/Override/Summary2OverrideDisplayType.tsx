@@ -19,9 +19,6 @@ export const Summary2OverrideDisplayType = ({
 }: Summary2OverrideDisplayTypeProps) => {
   const { t } = useTranslation();
 
-  const displayType = override.displayType || 'string';
-  if (!override.displayType) onChange({ ...override, displayType: displayType });
-
   const handleCustomTypeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const newSelectedType = event.target.value as SummaryCustomTargetType;
     const summary2OverrideConfig = mapSelectedTypeToConfig(newSelectedType, override.componentId);
@@ -34,7 +31,7 @@ export const Summary2OverrideDisplayType = ({
         size='sm'
         label={t('ux_editor.component_properties.overrides_type')}
         onChange={handleCustomTypeChange}
-        value={displayType}
+        value={override.displayType || 'string'}
       >
         <CustomConfigTypeOptions />
       </StudioNativeSelect>
