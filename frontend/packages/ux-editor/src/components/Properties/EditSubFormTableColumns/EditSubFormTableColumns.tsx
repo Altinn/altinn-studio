@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import React, { type ReactElement, type ReactNode } from 'react';
 import classes from './EditSubFormTableColumns.module.css';
 import { StudioButton, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,8 @@ import { type TableColumn } from './types/TableColumn';
 import { filterOutTableColumn, updateComponentWithSubform } from './utils';
 import { useUniqueKeys } from '@studio/hooks';
 import { ColumnElement } from './ColumnElement';
+import { useSubFormLayoutValidation } from './hooks/useSubFormLayoutValidation';
+import { SubFormMissingContentWarning } from './SubFormMissingContentWarning/SubFormMissingContentWarning';
 
 export type EditSubFormTableColumnsProps = IGenericEditComponent<ComponentType.SubForm>;
 
@@ -16,6 +18,7 @@ export const EditSubFormTableColumns = ({
   handleComponentChange,
 }: EditSubFormTableColumnsProps): ReactElement => {
   const { t } = useTranslation();
+  var subFormLayoutIsConfigured = useSubFormLayoutValidation(component.layoutSet);
 
   const tableColumns: TableColumn[] = component?.tableColumns ?? [];
   const { getUniqueKey, addUniqueKey, removeUniqueKey } = useUniqueKeys({
@@ -42,11 +45,16 @@ export const EditSubFormTableColumns = ({
     handleComponentChange({ ...component, tableColumns: updatedColumns });
   };
 
+  if (subFormLayoutIsConfigured === false) {
+    return (
+      <EditSubFormTableColumnsWrapper>
+        <SubFormMissingContentWarning subFormLayoutSetName={component.layoutSet} />
+      </EditSubFormTableColumnsWrapper>
+    );
+  }
+
   return (
-    <div className={classes.wrapper}>
-      <StudioHeading size='2xs' level={2}>
-        {t('ux_editor.properties_panel.subform_table_columns.heading')}
-      </StudioHeading>
+    <EditSubFormTableColumnsWrapper>
       {tableColumns.length > 0 &&
         tableColumns.map((tableColum: TableColumn, index: number) => (
           <ColumnElement
@@ -60,6 +68,22 @@ export const EditSubFormTableColumns = ({
       <StudioButton color='second' className={classes.addColumnButton} onClick={handleAddColumn}>
         {t('ux_editor.properties_panel.subform_table_columns.add_column')}
       </StudioButton>
+    </EditSubFormTableColumnsWrapper>
+  );
+};
+
+type EditSubFormTableColumnsWrapperProps = {
+  children: ReactNode;
+};
+
+const EditSubFormTableColumnsWrapper = ({ children }: EditSubFormTableColumnsWrapperProps) => {
+  const { t } = useTranslation();
+  return (
+    <div className={classes.wrapper}>
+      <StudioHeading size='2xs' level={2}>
+        {t('ux_editor.properties_panel.subform_table_columns.heading')}
+      </StudioHeading>
+      {children}
     </div>
   );
 };
