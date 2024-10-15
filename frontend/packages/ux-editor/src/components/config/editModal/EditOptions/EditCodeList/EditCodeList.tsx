@@ -17,6 +17,8 @@ import {
 } from './Utils/validateFileNameUtils';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
+import { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
+import { FormItem } from '@altinn/ux-editor/types/FormItem';
 
 export function EditCodeList<T extends SelectionComponentType>({
   component,
@@ -24,7 +26,7 @@ export function EditCodeList<T extends SelectionComponentType>({
 }: IGenericEditComponent<T>) {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -36,16 +38,6 @@ export function EditCodeList<T extends SelectionComponentType>({
       ...component,
       optionsId,
     });
-  };
-
-  const handleInvalidFileName = (formData?: FormData) => {
-    const file = formData.get('file');
-    if (file instanceof File) {
-      const fileNameWithoutExtension = removeExtension(file.name);
-      if (isFileNameDuplicate(optionListIds, fileNameWithoutExtension)) {
-        toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
-      }
-    }
   };
 
   const handleUpload = (file: FormData) => {
@@ -61,53 +53,23 @@ export function EditCodeList<T extends SelectionComponentType>({
     });
   };
 
-  const onValidateFileName = (fileName: string) => {
-    if (!isFilenameValid(fileName)) {
-      alert(t('ux_editor.model_properties_code_list_filename_error'));
-    }
+  const handleInvalidFileName = (formData?: FormData) => {
+    const file = formData.get('file');
+    if (file instanceof File) {
+      if (!isFilenameValid(file.name)) {
+        alert(t('ux_editor.model_properties_code_list_filename_error'));
+      }
 
-    return validateFileName(optionListIds, fileName);
+      const fileNameWithoutExtension = removeExtension(file.name);
+      if (isFileNameDuplicate(optionListIds, fileNameWithoutExtension)) {
+        toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+      }
+    }
   };
 
   return (
-    <div>
-      {isPending ? (
-        <StudioSpinner
-          showSpinnerTitle={false}
-          spinnerTitle={t('ux_editor.modal_properties_loading')}
-        />
-      ) : isError ? (
-        <ErrorMessage>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
-        </ErrorMessage>
-      ) : optionListIds?.length !== 0 ? (
-        <FormField
-          key={component.id}
-          id={component.id}
-          label={t('ux_editor.modal_properties_code_list_id')}
-          onChange={handleOptionsIdChange}
-          value={component.optionsId}
-          propertyPath={`${component.propertyPath}/properties/optionsId`}
-          renderField={({ fieldProps }) => (
-            <StudioNativeSelect
-              size='small'
-              onChange={(e) => fieldProps.onChange(e.target.value)}
-              value={fieldProps.value}
-            >
-              <option hidden value=''>
-                {t('ux_editor.modal_properties_code_list_helper')}
-              </option>
-              {optionListIds.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </StudioNativeSelect>
-          )}
-        />
-      ) : (
-        <> </>
-      )}
+    <>
+      <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
       <StudioFileUploader
         className={classes.studioFileUploader}
         onUploadFile={handleUpload}
@@ -115,11 +77,10 @@ export function EditCodeList<T extends SelectionComponentType>({
         variant={'tertiary'}
         uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}
         customFileValidation={{
-          validateFileName: onValidateFileName,
+          validateFileName: (fileName: string) => validateFileName(optionListIds, fileName),
           onInvalidFileName: handleInvalidFileName,
         }}
       />
-
       <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}>
         <a
           className={classes.linkStaticCodeLists}
@@ -128,6 +89,86 @@ export function EditCodeList<T extends SelectionComponentType>({
           rel='noopener noreferrer'
         />
       </Trans>
-    </div>
+    </>
+  );
+}
+
+type CodeListSelectorProps = {
+  component: FormItem;
+  handleOptionsIdChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
+};
+
+function CodeListSelector({
+  component,
+  handleOptionsIdChange,
+}: CodeListSelectorProps): React.ReactNode {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
+
+  switch (status) {
+    case 'pending':
+      return (
+        <StudioSpinner
+          showSpinnerTitle={false}
+          spinnerTitle={t('ux_editor.modal_properties_loading')}
+        />
+      );
+    case 'error':
+      return (
+        <ErrorMessage>
+          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
+        </ErrorMessage>
+      );
+    case 'success':
+      return (
+        <CodeListSelectorWithData
+          optionListIds={optionListIds}
+          component={component}
+          handleOptionsIdChange={handleOptionsIdChange}
+        />
+      );
+  }
+}
+
+type CodeListSelectorWithDataProps = {
+  optionListIds: string[];
+  component: FormItem;
+  handleOptionsIdChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
+};
+
+function CodeListSelectorWithData({
+  optionListIds,
+  component,
+  handleOptionsIdChange,
+}: CodeListSelectorWithDataProps): React.ReactNode {
+  const { t } = useTranslation();
+
+  if (!optionListIds.length) return null;
+  return (
+    <FormField
+      key={component.id}
+      id={component.id}
+      label={t('ux_editor.modal_properties_code_list_id')}
+      onChange={handleOptionsIdChange}
+      value={component.optionsId}
+      propertyPath={`${component.propertyPath}/properties/optionsId`}
+      renderField={({ fieldProps }) => (
+        <StudioNativeSelect
+          size='small'
+          onChange={(e) => fieldProps.onChange(e.target.value)}
+          value={fieldProps.value}
+        >
+          <option hidden value=''>
+            {t('ux_editor.modal_properties_code_list_helper')}
+          </option>
+          {optionListIds.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </StudioNativeSelect>
+      )}
+    />
   );
 }
