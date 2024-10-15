@@ -48,28 +48,26 @@ public class ProcessTaskIdChangedLayoutsHandler : INotificationHandler<ProcessTa
                 continue;
             }
 
-            foreach (string layoutName in layoutNames)
-            {
-                string layoutPath = $"App/ui/{layoutSetName}/{layoutName}.json";
+            await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
+                notification.EditingContext,
+                SyncErrorCodes.LayoutTaskIdSyncError,
+                $"App/ui/{layoutSetName}/layouts",
+                async () =>
+                {
+                    bool hasChanged = false;
 
-                await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
-                    notification.EditingContext,
-                    SyncErrorCodes.LayoutTaskIdSyncError,
-                    layoutPath,
-                    async () =>
+                    foreach (string layoutName in layoutNames)
                     {
-                        bool hasChanged = false;
                         var layout = await repository.GetLayout(layoutSetName, layoutName, cancellationToken);
-
                         if (TryChangeLayoutTaskIds(layout, notification.OldId, notification.NewId))
                         {
                             await repository.SaveLayout(layoutSetName, layoutName, layout, cancellationToken);
                             hasChanged = true;
                         }
+                    }
 
-                        return hasChanged;
-                    });
-            }
+                    return hasChanged;
+                });
         }
     }
 

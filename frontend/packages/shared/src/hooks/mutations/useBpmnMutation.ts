@@ -13,7 +13,6 @@ export const useBpmnMutation = (org: string, app: string) => {
     mutationFn: ({ form }: UseBpmnMutationPayload) => updateBpmnXml(org, app, form),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: [QueryKey.FetchBpmn, org, app] });
-      await queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
     },
   });
 };
