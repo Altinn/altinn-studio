@@ -38,10 +38,13 @@ export function EditCodeList<T extends SelectionComponentType>({
     });
   };
 
-  const handleInvalidFileName = (file?: FormData, fileName?: string) => {
-    const fileNameWithoutExtension = removeExtension(fileName);
-    if (isFileNameDuplicate(optionListIds, fileNameWithoutExtension)) {
-      toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+  const handleInvalidFileName = (formData?: FormData) => {
+    const file = formData.get('file');
+    if (file instanceof File) {
+      const fileNameWithoutExtension = removeExtension(file.name);
+      if (isFileNameDuplicate(optionListIds, fileNameWithoutExtension)) {
+        toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+      }
     }
   };
 
