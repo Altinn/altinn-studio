@@ -30,7 +30,7 @@ export const PreviewLimitationsInfo = () => {
   if (!showPreviewLimitationsInfo) return null;
 
   return (
-    <Alert severity='info' className={classes.alertWrapper}>
+    <Alert severity='info'>
       <div className={classes.alert}>
         {t('preview.limitations_info')}
         <StudioPopover open={openSaveChoiceInSession}>
