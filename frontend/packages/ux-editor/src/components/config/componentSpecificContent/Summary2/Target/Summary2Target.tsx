@@ -19,6 +19,7 @@ import { useAppContext, useComponentTypeName } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { useTargetTypes } from './useTargetTypes';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
@@ -29,7 +30,23 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
+
+  const tasks = [
+    ...new Set(
+      layoutSets.sets.reduce((acc, set) => {
+        return set.tasks ? acc.concat(set.tasks) : acc;
+      }, []),
+    ),
+  ];
+  const currentTaskId = layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName)
+    .tasks?.[0];
+  const selectedLayoutSetName = target.taskId
+    ? layoutSets?.sets?.find((set) => set.tasks?.[0] === target.taskId).id
+    : selectedFormLayoutSetName;
+
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
+
   const targetTypes = useTargetTypes();
   const componentTypeName = useComponentTypeName();
 
@@ -38,25 +55,39 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
     ComponentType.NavigationButtons,
     ComponentType.NavigationBar,
   ];
-  const components = Object.values(formLayoutsData).flatMap((layout) =>
-    getAllLayoutComponents(layout, excludedComponents),
-  );
+  const components = formLayoutsData
+    ? Object.values(formLayoutsData).flatMap((layout) =>
+        getAllLayoutComponents(layout, excludedComponents),
+      )
+    : [];
   const componentOptions = components.map((formComponent: FormComponent) => ({
     id: formComponent.id,
     description: componentTypeName(formComponent.type),
   }));
 
-  const pageOptions = Object.keys(formLayoutsData).map((page) => ({
-    id: page,
-    description: undefined,
-  }));
+  const pageOptions = formLayoutsData
+    ? Object.keys(formLayoutsData).map((page) => ({
+        id: page,
+        description: undefined,
+      }))
+    : [];
 
   const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = event.target.value as SummaryTargetType;
-    const updatedTarget = { type: newType, id: '' };
+    const updatedTarget = { ...target, type: newType, id: '' };
     // set default value for page
     if (newType === 'page' && pageOptions.some((page) => page.id === selectedFormLayoutName)) {
       updatedTarget.id = selectedFormLayoutName;
+    }
+    onChange(updatedTarget);
+  };
+
+  const handleTaskIdChange = (taskId: string) => {
+    const updatedTarget = { ...target, id: '' };
+    if (taskId === currentTaskId) {
+      delete updatedTarget.taskId;
+    } else {
+      updatedTarget.taskId = taskId;
     }
     onChange(updatedTarget);
   };
@@ -78,6 +109,18 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
       <StudioCard.Content>
         <StudioNativeSelect
           size='sm'
+          label={t('ux_editor.component_properties.target_taskId')}
+          value={target.taskId || currentTaskId}
+          onChange={(e) => handleTaskIdChange(e.target.value)}
+        >
+          {tasks.map((taskId) => (
+            <option key={taskId} value={taskId}>
+              {taskId}
+            </option>
+          ))}
+        </StudioNativeSelect>
+        <StudioNativeSelect
+          size='sm'
           label={t('ux_editor.component_properties.target_type')}
           value={target.type}
           onChange={handleTypeChange}
@@ -90,6 +133,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         </StudioNativeSelect>
         {target.type === 'page' && (
           <Summmary2ComponentReferenceSelector
+            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             label={t('general.page')}
             value={target.id}
             options={pageOptions}
@@ -98,6 +142,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         )}
         {target.type === 'component' && (
           <Summmary2ComponentReferenceSelector
+            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             label={t('general.component')}
             value={target.id}
             options={componentOptions}
@@ -106,9 +151,10 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         )}
         {target.type === 'layoutSet' && (
           <StudioTextfield
+            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             size='sm'
             label={t('general.layout_set')}
-            value={selectedFormLayoutSetName}
+            value={selectedLayoutSetName}
             disabled={true}
           />
         )}
