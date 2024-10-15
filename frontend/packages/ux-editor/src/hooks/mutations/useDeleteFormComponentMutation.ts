@@ -16,6 +16,7 @@ export const useDeleteFormComponentMutation = (org: string, app: string, layoutS
   return useMutation({
     mutationFn: async (id: string) => {
       const component = layout.components[id];
+      console.log(layout);
       const updatedLayout = removeComponent(layout, id);
       if (
         component?.type === ComponentType.FileUpload ||

@@ -55,6 +55,8 @@ describe('useDeleteFormComponentMutation', () => {
   });
 
   describe('Testing deletion of FileUpload and FileUploadWithTag', () => {
+    afterEach(jest.clearAllMocks);
+
     const componentTypes = [ComponentType.FileUpload, ComponentType.FileUploadWithTag];
 
     componentTypes.forEach((componentType) => {
