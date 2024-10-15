@@ -1,7 +1,7 @@
 import React from 'react';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { AddSubformModal } from './AddSubformModal';
-import { useSelectLayoutSet } from './useSelectLayoutSet';
+import { useSelectLayoutSet } from './RenderSelectLayoutSet';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
@@ -15,7 +15,10 @@ export const EditLayoutSet = ({
   const addSubformDialogRef = React.useRef<HTMLDialogElement>(null);
 
   const { isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible, renderSelectLayoutSet } =
-    useSelectLayoutSet(existingLayoutSetForSubform, onUpdateLayoutSet);
+    useSelectLayoutSet({
+      existingLayoutSetForSubform,
+      onUpdateLayoutSet,
+    });
 
   function openAddSubformDialog() {
     addSubformDialogRef.current?.showModal();

@@ -5,7 +5,7 @@ import { useForwardedRef } from '@studio/hooks';
 import { ClipboardIcon } from '@studio/icons';
 import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './EditLayoutSet.module.css';
-import { useSelectLayoutSet } from './useSelectLayoutSet';
+import { useSelectLayoutSet } from './RenderSelectLayoutSet';
 
 export type AddSubformModalProps = {
   existingLayoutSetForSubform: string;
@@ -17,10 +17,10 @@ export const AddSubformModal = forwardRef<HTMLDialogElement, AddSubformModalProp
     const { t } = useTranslation();
     const dialogRef = useForwardedRef<HTMLDialogElement>(ref);
 
-    const { isLayoutSetSelectorVisible, renderSelectLayoutSet } = useSelectLayoutSet(
+    const { isLayoutSetSelectorVisible, renderSelectLayoutSet } = useSelectLayoutSet({
       existingLayoutSetForSubform,
       onUpdateLayoutSet,
-    );
+    });
 
     if (isLayoutSetSelectorVisible) return renderSelectLayoutSet;
 
