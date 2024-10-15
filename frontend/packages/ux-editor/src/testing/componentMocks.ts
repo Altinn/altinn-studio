@@ -67,6 +67,15 @@ const textareaComponent: FormComponent<ComponentType.TextArea> = {
 };
 const subFormComponent: FormComponent<ComponentType.SubForm> = {
   ...commonProps(ComponentType.SubForm),
+  tableColumns: [
+    {
+      headerContent: 'header content',
+      cellContent: {
+        query: 'query',
+        default: 'default',
+      },
+    },
+  ],
 };
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
