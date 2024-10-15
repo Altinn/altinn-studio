@@ -9,7 +9,7 @@ export interface CalendarDialogProps {
   id: string;
   isOpen?: boolean;
   selectedDate: Date | undefined;
-  onSelect?: (value: Date) => void;
+  onSelect: (value: Date) => void;
   maxDate: Date;
   minDate: Date;
   locale?: string;
@@ -28,7 +28,6 @@ export const DatePickerCalendar = ({
   autoFocus,
 }: CalendarDialogProps) => {
   const currentLocale = getLocale(locale ?? 'nb');
-
   return (
     <DayPicker
       classNames={{
@@ -52,7 +51,13 @@ export const DatePickerCalendar = ({
       selected={selectedDate}
       required={required}
       captionLayout='label'
-      onSelect={onSelect}
+      onSelect={(date: Date | undefined) => {
+        if (date) {
+          onSelect(date);
+        } else if (selectedDate) {
+          onSelect(selectedDate);
+        }
+      }}
       components={{ MonthCaption: DropdownCaption }}
       autoFocus={autoFocus}
       style={{ minHeight: '405px', maxWidth: '100%' }}

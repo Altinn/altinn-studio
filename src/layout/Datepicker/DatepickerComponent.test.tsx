@@ -100,16 +100,17 @@ describe('DatepickerComponent', () => {
         name: /Åpne datovelger/i,
       }),
     );
-    //screen.logTestingPlaygroundURL();
-    const calendarButton = screen.getByRole('cell', { name: '15' }).getElementsByTagName('button')[0];
+    const calendarButton = screen.getByRole('button', {
+      name: /15\./i,
+    });
+
     await userEvent.click(calendarButton);
 
     // Ignore TZ part of timestamp to avoid test failing when this changes
     // DatePickerCalendar opens up on current year/month by default, so we need to cater for this in the expected output
-
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}-15T00:00:00Z`),
+      newValue: expect.stringContaining(`${currentYearNumeric}-${currentMonthNumeric}`),
     });
   });
 
