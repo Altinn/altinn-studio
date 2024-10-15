@@ -1,18 +1,22 @@
 import { RouterRouteMapperImpl } from './RouterRouteMapper';
-import { Root } from '../../pages/Root';
-import { CodeList } from '../../pages/CodeList';
-import type { PageConfig } from '../../types/PagesProps';
+import { LandingPage } from '../../ContentLibrary/pages/LandingPage';
+import { CodeList } from '../../ContentLibrary/pages/CodeList';
+import type { PagesConfig } from '../../types/PagesProps';
 
-const mockPageConfig: PageConfig = {
-  root: {
-    props: {
-      title: 'Hello',
-      children: '<h2>Welcome</h2>',
-    },
-  },
+const mockPageConfig: PagesConfig = {
   codeList: {
     props: {
-      title: 'CodeList',
+      codeLists: [
+        { title: 'CodeList1', codeList: {} },
+        { title: 'CodeList2', codeList: {} },
+      ],
+      onUpdateCodeList: () => {},
+    },
+  },
+  images: {
+    props: {
+      images: [{ title: 'image', imageSrc: 'www.external-image-url.com' }],
+      onUpdateImage: () => {},
     },
   },
 };
@@ -22,15 +26,15 @@ describe('RouterRouteMapperImpl', () => {
     const routerMapper = new RouterRouteMapperImpl(mockPageConfig);
     const routes = routerMapper.configuredRoutes;
 
-    expect(routes.has('root')).toBeTruthy();
+    expect(routes.has('landingPage')).toBeTruthy();
     expect(routes.has('codeList')).toBeTruthy();
-    expect(routes.get('root')).toBe(Root);
-    expect(routes.get('codeList')).toBe(CodeList);
+    expect(routes.get('landingPage').implementation).toBe(LandingPage);
+    expect(routes.get('codeList').implementation).toBe(CodeList);
   });
 
   it('should include configured routes only', () => {
     const routerMapper = new RouterRouteMapperImpl({
-      root: {
+      landingPage: {
         props: {
           title: 'Hello',
           children: '<h2>Welcome</h2>',
@@ -38,7 +42,7 @@ describe('RouterRouteMapperImpl', () => {
       },
     });
     const routes = routerMapper.configuredRoutes;
-    expect(routes.has('root')).toBeTruthy();
+    expect(routes.has('landingPage')).toBeTruthy();
     expect(routes.get('codeList')).toBeUndefined();
   });
 

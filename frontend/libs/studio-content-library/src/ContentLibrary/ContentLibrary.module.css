@@ -1,0 +1,31 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+.libraryBackground {
+  display: flex;
+  background-color: var(--fds-semantic-surface-info-subtle);
+  --padding-library: var(--fds-spacing-5);
+  padding: var(--padding-library);
+  height: calc(100% - 2 * var(--padding-library));
+}
+
+.libraryContainer {
+  background-color: var(--fds-semantic-background-default);
+  border-radius: var(--fds-border_radius-xlarge);
+  overflow: hidden;
+  min-height: 80%;
+  max-height: 100%;
+}
+
+.component {
+  padding: var(--fds-spacing-10);
+}
+
+.libraryContent {
+  display: grid;
+  grid-template-columns: 0.7fr 3.3fr minmax(0, 1fr);
+  height: 100%;
+}
