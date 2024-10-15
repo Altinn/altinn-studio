@@ -13,7 +13,6 @@ type StudioFileUploaderWrapperProps = Exclude<StudioFileUploaderProps, 'customFi
 export const StudioFileUploadWrapper = (
   props: StudioFileUploaderWrapperProps,
 ): React.ReactElement => {
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [showFileNameError, setShowFileNameError] = useState<boolean>(false);
   const [showFileSizeError, setShowFileSizError] = useState<boolean>(false);
 
@@ -41,7 +40,6 @@ export const StudioFileUploadWrapper = (
           fileSizeLimitMb: props.fileSizeLimitMb,
           onInvalidFileSize: handleFileSizeValidation,
         }}
-        ref={fileInputRef}
       />
       {showFileNameError && (
         <Alert size='small' severity='danger'>

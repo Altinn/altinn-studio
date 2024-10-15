@@ -33,13 +33,3 @@
   align-items: stretch;
   gap: var(--fds-spacing-3);
 }
-
-/* Should this be deleted? */
-.root :global(.MuiAutocomplete-input) {
-  width: 150px;
-}
-
-/* Should this be deleted? */
-.header :global(.Mui-focusVisible) {
-  background: gray;
-}

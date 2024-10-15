@@ -4,10 +4,6 @@
   height: 100%;
 }
 
-.root :global(.MuiAutocomplete-input) {
-  width: 150px;
-}
-
 .noItemHeadingWrapper {
   display: flex;
   flex-direction: column;
@@ -20,9 +16,4 @@
 .tabHeader {
   height: var(--subtoolbar-height);
   font-size: var(--fds-typography-heading-small);
-}
-
-/* Should this be deleted? */
-.header :global(.Mui-focusVisible) {
-  background: gray;
 }
