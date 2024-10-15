@@ -121,3 +121,29 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
 });
+
+test('Adding a type and dragging it into an object', async ({ page, testAppName }) => {
+  // Load the data model page
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
+  await dataModelPage.loadDataModelPage();
+  await dataModelPage.verifyDataModelPage();
+
+  // Add a new type
+  await dataModelPage.addType();
+  await dataModelPage.clickOnBackToDataModelButton();
+  const expectedTypeName = 'name0';
+  await dataModelPage.verifyThatTypeIsVisible(expectedTypeName);
+
+  // Add an object
+  await dataModelPage.clickOnAddPropertyButton();
+  await dataModelPage.clickOnAddObjectPropertyMenuItem();
+  const expectedObjectName = 'name1';
+  await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(expectedObjectName);
+
+  // Drag the type into the object
+  const typeItem = dataModelPage.getTypeItem(expectedTypeName);
+  const objectDropArea = dataModelPage.getDroppableList(expectedObjectName);
+  await dataModelPage.dragAndDropManually(typeItem, objectDropArea);
+  const expectedReferenceName = 'ref0';
+  await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(expectedReferenceName);
+});

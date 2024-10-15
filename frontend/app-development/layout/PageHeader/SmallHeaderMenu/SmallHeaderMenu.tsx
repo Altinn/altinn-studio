@@ -15,7 +15,7 @@ import { SmallHeaderMenuItem } from './SmallHeaderMenuItem';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useRepoMetadataQuery } from 'app-shared/hooks/queries';
 import { usePageHeaderContext } from 'app-development/contexts/PageHeaderContext';
-import { useUserNameAndOrg } from 'app-shared/components/AltinnHeaderProfile/hooks/useUserNameAndOrg';
+import { useUserNameAndOrg } from 'app-shared/hooks/useUserNameAndOrg';
 import { type HeaderMenuGroup } from 'app-development/types/HeaderMenu/HeaderMenuGroup';
 import {
   groupMenuItemsByGroup,

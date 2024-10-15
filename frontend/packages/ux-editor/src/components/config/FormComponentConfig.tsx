@@ -15,6 +15,7 @@ import type { FormItem } from '../../types/FormItem';
 import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
+import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -41,13 +42,14 @@ export const FormComponentConfig = ({
   if (!schema?.properties) return null;
 
   const { properties } = schema;
-  const { hasCustomFileEndings, validFileEndings, grid } = properties;
+  const { hasCustomFileEndings, validFileEndings, grid, layoutSet } = properties;
 
   // Add any properties that have a custom implementation to this list so they are not duplicated in the generic view
   const customProperties = [
     'hasCustomFileEndings',
     'validFileEndings',
     'grid',
+    'layoutSet',
     'children',
     'dataTypeIds',
     'target',
@@ -93,8 +95,11 @@ export const FormComponentConfig = ({
 
   return (
     <>
+      {layoutSet && component['layoutSet'] && (
+        <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
+      )}
       {grid && (
-        <div>
+        <>
           <Heading level={3} size='xxsmall'>
             {t('ux_editor.component_properties.grid')}
           </Heading>
@@ -103,7 +108,7 @@ export const FormComponentConfig = ({
             component={component}
             handleComponentChange={handleComponentUpdate}
           />
-        </div>
+        </>
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
@@ -178,6 +183,7 @@ export const FormComponentConfig = ({
             propertyKey={propertyKey}
             key={propertyKey}
             helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.enum}
           />
         );
       })}
