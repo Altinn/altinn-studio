@@ -11,7 +11,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, fileSelectorInputId, org } from '@studio/testing/testids';
+import { app, org } from '@studio/testing/testids';
 import type { QueryClient } from '@tanstack/react-query';
 
 const handleComponentChangeMock = jest.fn();
@@ -48,7 +48,8 @@ describe('EditImage', () => {
     const user = userEvent.setup();
     const imageFileName = 'image.png';
     renderEditImage();
-    const uploadImageButton = screen.getByTestId(fileSelectorInputId);
+    const uploadImageLabel = textMock('ux_editor.properties_panel.images.upload_image');
+    const uploadImageButton = screen.getByLabelText(uploadImageLabel);
     const file = new File(['test'], imageFileName, { type: 'image/png' });
     await user.upload(uploadImageButton, file);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
