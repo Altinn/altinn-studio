@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioFileUploader, StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { MAX_FILE_SIZE_MB, WWWROOT_FILE_PATH } from '../../../../EditImage/constants';
 import classes from './UploadImage.module.css';
 import { toast } from 'react-toastify';
+import { FileUploaderWithValidation } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/ImportImage/UploadImage/FileUploaderWithValidation';
 
 // This list should be fetched from backend to ensure we use equal validation
 // ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
@@ -55,7 +56,7 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
     <StudioSpinner spinnerTitle={t('general.loading')} />
   ) : (
     <div>
-      <StudioFileUploader
+      <FileUploaderWithValidation
         onUploadFile={handleUpload}
         accept={LIST_OF_ACCEPTABLE_EXTENSIONS_IN_BACKEND}
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
