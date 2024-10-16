@@ -3,7 +3,7 @@ import { StudioHeading, StudioParagraph } from '@studio/components';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 
-export const LandingPage = () => {
+export function LandingPage(): React.ReactElement {
   const { t } = useTranslation();
   return (
     <div className={classes.landingPage}>
@@ -12,4 +12,4 @@ export const LandingPage = () => {
       <img className={classes.image} src={'/designer/img/Altinn-studio-3-blue.svg'} alt='' />
     </div>
   );
-};
+}

@@ -1,38 +1,48 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import type { CodeListProps } from './CodeList';
 import { CodeList } from './CodeList';
-import { useRouterContext } from '../../contexts/RouterContext';
 import userEvent from '@testing-library/user-event';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
-jest.mock('../../contexts/RouterContext', () => ({
-  useRouterContext: jest.fn(),
-}));
+const onUpdateCodeListMock = jest.fn();
+const codeListMock: CodeList = {
+  title: 'codeList',
+  codeList: {},
+};
 
-describe('CodeList Component', () => {
-  const mockNavigate = jest.fn();
-
-  beforeEach(() => {
-    (useRouterContext as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
+describe('CodeList', () => {
+  it('renders the codeList heading', () => {
+    renderCodeList();
+    const codeListHeading = screen.getByRole('heading', {
+      name: textMock('app_content_library.code_lists.page_name'),
     });
+    expect(codeListHeading).toBeInTheDocument();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('renders an alert when no codeLists are passed', () => {
+    renderCodeList({ codeLists: [], onUpdateCodeList: onUpdateCodeListMock });
+    const noCodeListsExistAlert = screen.getByText(
+      textMock('app_content_library.code_lists.no_content'),
+    );
+    expect(noCodeListsExistAlert).toBeInTheDocument();
   });
 
-  it('renders the title correctly', () => {
-    render(<CodeList title='Test Title' />);
-    expect(screen.getByText('Test Title')).toBeInTheDocument();
-  });
-
-  it('navigates to root when the button is clicked', async () => {
+  it('calls onUpdateCodeListMock when clicking the button to update', async () => {
     const user = userEvent.setup();
-    render(<CodeList title='Test Title' />);
-
-    const button = screen.getByRole('button', { name: /lenke/i });
-    await user.click(button);
-
-    expect(mockNavigate).toHaveBeenCalledWith('root');
+    renderCodeList();
+    const updateCodeListButton = screen.getByRole('button', { name: 'Oppdater kodeliste' });
+    await user.click(updateCodeListButton);
+    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
+    expect(onUpdateCodeListMock).toHaveBeenCalledWith(codeListMock);
   });
 });
+
+const defaultCodeListProps: CodeListProps = {
+  codeLists: [codeListMock],
+  onUpdateCodeList: onUpdateCodeListMock,
+};
+
+const renderCodeList = (codeListProps: CodeListProps = defaultCodeListProps) => {
+  render(<CodeList {...codeListProps} />);
+};

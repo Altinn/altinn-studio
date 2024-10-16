@@ -8,8 +8,6 @@ export type PagePropsMap = {
   images?: ImagesProps;
 };
 
-export type PageProps = CodeListProps | ImagesProps;
-
 type GlobalPageConfig<T> = {
   props: T;
 };

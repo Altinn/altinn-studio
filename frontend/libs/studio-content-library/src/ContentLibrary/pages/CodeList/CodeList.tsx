@@ -10,9 +10,9 @@ export type CodeList = {
 
 export type CodeListProps = {
   codeLists: CodeList[];
-  onUpdateCodeList: (codeListId: string, updatedCodeList: CodeList) => void;
+  onUpdateCodeList: (updatedCodeList: CodeList) => void;
 };
-export const CodeList = ({ codeLists, onUpdateCodeList }: CodeListProps) => {
+export function CodeList({ codeLists, onUpdateCodeList }: CodeListProps): React.ReactElement {
   const { t } = useTranslation();
 
   const noExistingCodeLists = codeLists.length === 0;
@@ -24,14 +24,12 @@ export const CodeList = ({ codeLists, onUpdateCodeList }: CodeListProps) => {
         <Alert size='small'>{t('app_content_library.code_lists.no_content')}</Alert>
       ) : (
         codeLists.map((codeList) => (
-          <>
+          <div key={codeList.title}>
             {codeList.title}
-            <button onClick={() => onUpdateCodeList(codeList.title, codeList.codeList)}>
-              Oppdater kodeliste
-            </button>
-          </>
+            <button onClick={() => onUpdateCodeList(codeList)}>Oppdater kodeliste</button>
+          </div>
         ))
       )}
     </div>
   );
-};
+}

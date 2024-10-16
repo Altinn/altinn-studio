@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react';
 import { LandingPage } from './LandingPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
-describe('LandingPage Component', () => {
+describe('LandingPage', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the title, description and image', () => {
-    render(<LandingPage />);
+    renderLandingPage();
     expect(
       screen.getByRole('heading', {
         name: textMock('app_content_library.landing_page.title'),
@@ -20,3 +20,7 @@ describe('LandingPage Component', () => {
     expect(screen.getByRole('presentation')).toBeInTheDocument();
   });
 });
+
+const renderLandingPage = () => {
+  render(<LandingPage />);
+};

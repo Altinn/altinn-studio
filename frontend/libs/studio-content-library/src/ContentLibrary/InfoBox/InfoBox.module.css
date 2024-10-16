@@ -10,13 +10,14 @@
 .infoBoxContainer img {
   max-width: 100%;
   height: auto;
-  object-fit: contain;
+  object-fit: fill;
 }
 
 .description {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-2);
-  padding: var(--fds-spacing-2);
+  gap: var(--fds-spacing-6);
+  padding: var(--fds-spacing-6);
   background-color: var(--fds-semantic-surface-first-light);
+  padding-bottom: var(--fds-spacing-8);
 }

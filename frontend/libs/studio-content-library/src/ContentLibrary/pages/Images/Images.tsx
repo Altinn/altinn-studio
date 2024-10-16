@@ -13,7 +13,7 @@ export type ImagesProps = {
   onUpdateImage: (updatedImage: Image) => void;
 };
 
-export const Images = ({ images, onUpdateImage }: ImagesProps) => {
+export function Images({ images, onUpdateImage }: ImagesProps): React.ReactElement {
   const { t } = useTranslation();
 
   const noExistingImages = images.length === 0;
@@ -25,13 +25,13 @@ export const Images = ({ images, onUpdateImage }: ImagesProps) => {
         <Alert size='small'>{t('app_content_library.images.no_content')}</Alert>
       ) : (
         images.map((image) => (
-          <>
+          <div key={image.title}>
             <img src={image.imageSrc} alt={image.title} />
             {image.title}
             <button onClick={() => onUpdateImage(image)}>Oppdater bilde</button>
-          </>
+          </div>
         ))
       )}
     </div>
   );
-};
+}

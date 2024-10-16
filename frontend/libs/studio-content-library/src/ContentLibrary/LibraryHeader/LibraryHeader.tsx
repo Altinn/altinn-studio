@@ -1,12 +1,12 @@
 import React from 'react';
 import classes from './LibraryHeader.module.css';
-import { pagesRouterConfigs } from '../pagesRouter/PagesRouterConfigs';
+import { pagesRouterConfigs } from '../PagesRouter';
 import type { PageName } from '../../types/PageName';
 import { useRouterContext } from '../../contexts/RouterContext';
 import { StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
-export const LibraryHeader = () => {
+export function LibraryHeader(): React.ReactElement {
   const { navigate } = useRouterContext();
   const { t } = useTranslation();
 
@@ -24,4 +24,4 @@ export const LibraryHeader = () => {
       </div>
     </div>
   );
-};
+}
