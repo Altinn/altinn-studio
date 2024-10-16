@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import type { MetadataOption } from '../../../../../types/MetadataOption';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
-import { useValidationAlert } from './useValidateFileName';
+import { useValidationAlert } from './useValidationAlert';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import {
   doesFileExistInMetadataWithClassRef,
