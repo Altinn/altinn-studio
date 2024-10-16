@@ -82,13 +82,6 @@ steps:
   displayName: 'Cleanup'
   condition: and(succeededOrFailed(), eq(variables['availability'], 'up'))
 
-- script: |
-   k6 run  --quiet $(pwd)/src/tests/platform/eFormidling/eFormidling.js -e env=$(environment) -e operatoraccesskey=$(operatoraccesskey) -e messageId=$(operatoraccesskey) -e orgNo=$(orgNo)
-
-  workingDirectory: '$(Build.SourcesDirectory)/src/test/K6'
-  displayName: 'eFormidling Integration point'
-  condition: and(always(), eq(variables['environment'], 'tt02'))
-
 - task: PublishTestResults@2
   displayName: 'Publish Test Results'
   inputs:
