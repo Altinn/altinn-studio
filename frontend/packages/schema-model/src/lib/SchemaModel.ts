@@ -85,7 +85,7 @@ export class SchemaModel {
   }
 
   public getSchemaPointerByUniquePointer(uniquePointer: string): string {
-    const pointer = this.removeUniquePointerPrefix(uniquePointer);
+    const pointer = SchemaModel.removeUniquePointerPrefix(uniquePointer);
     if (this.hasNode(pointer)) return pointer;
 
     const parentSchemaPointer = this.getParentSchemaPointerByUniquePointer(pointer);
@@ -108,15 +108,15 @@ export class SchemaModel {
     return this.getNodeByUniquePointer(parentUniquePointer);
   }
 
-  private removeUniquePointerPrefix(uniquePointer: string): string {
+  private static removeUniquePointerPrefix(uniquePointer: string): string {
     return StringUtils.removeStart(uniquePointer, UNIQUE_POINTER_PREFIX);
   }
 
-  public getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
+  public static getUniquePointer(schemaPointer: string, uniqueParentPointer?: string): string {
     if (!uniqueParentPointer || !isDefinitionPointer(schemaPointer))
       return `${UNIQUE_POINTER_PREFIX}${schemaPointer}`;
     const category = extractCategoryFromPointer(schemaPointer);
-    const parentPointer = this.removeUniquePointerPrefix(uniqueParentPointer);
+    const parentPointer = SchemaModel.removeUniquePointerPrefix(uniqueParentPointer);
     return `${UNIQUE_POINTER_PREFIX}${parentPointer}/${category}/${extractNameFromPointer(schemaPointer)}`;
   }
 

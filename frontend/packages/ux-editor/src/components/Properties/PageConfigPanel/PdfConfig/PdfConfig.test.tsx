@@ -17,53 +17,34 @@ const selectedLayoutSet = layoutSet1NameMock;
 
 describe('PdfConfig', () => {
   afterEach(() => jest.clearAllMocks());
-  it('renders convertToPdf button when current page is not pdf', () => {
-    renderPdfConfig();
-    const convertFormLayoutToPdfButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
-    });
-    expect(convertFormLayoutToPdfButton).toBeInTheDocument();
-  });
 
-  it('renders convertToFormLayout button when current page is pdf', () => {
-    const pdfLayoutNameMock = 'pdfLayoutNameMock';
-    renderPdfConfig(
-      { pages: { order: [], pdfLayoutName: pdfLayoutNameMock } },
-      { selectedFormLayoutName: pdfLayoutNameMock },
-    );
-    const convertPdfToFormLayoutButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_convert_existing_pdf'),
-    });
-    expect(convertPdfToFormLayoutButton).toBeInTheDocument();
-  });
-
-  it('calls save on FormLayoutSettings when convertToPdf button is clicked', async () => {
+  it('calls save on FormLayoutSettings when convertToPdf switch is clicked', async () => {
     const user = userEvent.setup();
     const mutateLayoutSettings = jest.fn();
-    renderPdfConfig({}, {}, { saveFormLayoutSettings: mutateLayoutSettings });
-    const convertFormLayoutToPdfButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
-    });
-    await user.click(convertFormLayoutToPdfButton);
+    renderPdfConfig({ queries: { saveFormLayoutSettings: mutateLayoutSettings } });
+    const convertFormLayoutToPdfSwitch = screen.getByLabelText(
+      textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
+    );
+    await user.click(convertFormLayoutToPdfSwitch);
     expect(mutateLayoutSettings).toHaveBeenCalledTimes(1);
     expect(mutateLayoutSettings).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
       pages: { order: [layout2NameMock], pdfLayoutName: layout1NameMock },
     });
   });
 
-  it('calls save on FormLayoutSettings when convertToFormLayout button is clicked', async () => {
+  it('calls save on FormLayoutSettings when convertToFormLayout switch is clicked', async () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
     const mutateLayoutSettings = jest.fn();
-    renderPdfConfig(
-      { pages: { order: [], pdfLayoutName: pdfLayoutNameMock } },
-      { selectedFormLayoutName: pdfLayoutNameMock },
-      { saveFormLayoutSettings: mutateLayoutSettings },
-    );
-    const convertPdfToFormLayoutButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_convert_existing_pdf'),
+    renderPdfConfig({
+      layoutSettings: { pages: { order: [], pdfLayoutName: pdfLayoutNameMock } },
+      appContextProps: { selectedFormLayoutName: pdfLayoutNameMock },
+      queries: { saveFormLayoutSettings: mutateLayoutSettings },
     });
-    await user.click(convertPdfToFormLayoutButton);
+    const convertPdfToFormLayoutSwitch = screen.getByLabelText(
+      textMock('ux_editor.page_config_pdf_convert_existing_pdf'),
+    );
+    await user.click(convertPdfToFormLayoutSwitch);
     expect(mutateLayoutSettings).toHaveBeenCalledTimes(1);
     expect(mutateLayoutSettings).toHaveBeenCalledWith(org, app, layoutSet1NameMock, {
       pages: { order: [pdfLayoutNameMock] },
@@ -73,11 +54,13 @@ describe('PdfConfig', () => {
   it('shows conversion choices modal when converting a layout to pdf when there exists a pdfLayout from before', async () => {
     const user = userEvent.setup();
     const pdfLayoutNameMock = 'pdfLayoutNameMock';
-    renderPdfConfig({ pages: { order: [], pdfLayoutName: pdfLayoutNameMock } });
-    const convertFormLayoutToPdfButton = screen.getByRole('button', {
-      name: textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
+    renderPdfConfig({
+      layoutSettings: { pages: { order: [], pdfLayoutName: pdfLayoutNameMock } },
     });
-    await user.click(convertFormLayoutToPdfButton);
+    const convertFormLayoutToPdfSwitch = screen.getByLabelText(
+      textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
+    );
+    await user.click(convertFormLayoutToPdfSwitch);
     const conversionChoicesModalHeading = screen.getByRole('heading', {
       name: textMock('ux_editor.page_config_pdf_convert_page_to_pdf'),
     });
@@ -85,11 +68,15 @@ describe('PdfConfig', () => {
   });
 });
 
-const renderPdfConfig = (
-  layoutSettings: Partial<ILayoutSettings> = {},
-  appContextProps: Partial<AppContextProps> = {},
-  queries: Partial<ServicesContextProps> = {},
-) => {
+type Props = {
+  layoutSettings: Partial<ILayoutSettings>;
+  appContextProps: Partial<AppContextProps>;
+  queries: Partial<ServicesContextProps>;
+};
+
+const renderPdfConfig = (props: Partial<Props> = {}) => {
+  const { layoutSettings, appContextProps, queries } = props;
+
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayoutSettings, org, app, selectedLayoutSet], {
     ...formLayoutSettingsMock,
