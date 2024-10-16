@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { v1 as uuidv1 } from 'uuid';
-import Modal from 'react-modal';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
@@ -10,7 +9,6 @@ import type {
   IRuleModelFieldElement,
 } from '../../types/global';
 import classes from './ConditionalRenderingComponent.module.css';
-import { withTranslation } from 'react-i18next';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import type {
   ConditionalRenderingConnection,
@@ -18,12 +16,17 @@ import type {
 } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
 import type { FormComponent } from '../../types/FormComponent';
-import { Buldings2Icon, XMarkOctagonFillIcon } from '@studio/icons';
+import { CogIcon, PlusIcon, XMarkOctagonFillIcon } from '@studio/icons';
 import type { FormContainer } from '../../types/FormContainer';
+import { StudioButton, StudioModal } from '@studio/components';
+import { withTranslation } from 'react-i18next';
+import {
+  conditionalRenderingDeleteButtonId,
+  conditionalRenderingOutputFieldId,
+} from '@studio/testing/testids';
 
 export interface IConditionalRenderingComponentProps {
   connectionId?: string;
-  cancelEdit: () => void;
   saveEdit: (id: string, connection: ConditionalRenderingConnection) => void;
   ruleModelElements: IRuleModelFieldElement[];
   conditionalRendering: ConditionalRenderingConnections;
@@ -39,6 +42,7 @@ interface IConditionalRenderingComponentState {
   connectionId: string | null;
   selectableActions: string[];
   conditionalRendering: ConditionalRenderingConnection;
+  dialogRef: React.RefObject<HTMLDialogElement>;
 }
 
 class ConditionalRendering extends React.Component<
@@ -60,6 +64,7 @@ class ConditionalRendering extends React.Component<
           [id]: '',
         },
       },
+      dialogRef: React.createRef(),
     };
   }
 
@@ -97,6 +102,23 @@ class ConditionalRendering extends React.Component<
    */
   public handleSaveEdit = (): void => {
     this.props.saveEdit(this.state.connectionId, this.state.conditionalRendering);
+    if (!this.props.connectionId) {
+      const id = uuidv1();
+      this.setState({
+        selectedFunctionNr: null,
+        connectionId: uuidv1(),
+        selectableActions: ['Show', 'Hide'],
+        conditionalRendering: {
+          selectedFunction: '',
+          inputParams: {},
+          selectedAction: '',
+          selectedFields: {
+            [id]: '',
+          },
+        },
+      });
+    }
+    this.state.dialogRef?.current?.close();
   };
 
   /**
@@ -229,19 +251,20 @@ class ConditionalRendering extends React.Component<
           {`${name} (${id})`}
         </option>,
       );
-    }
-    this.props.order[id].forEach((key) => {
-      if (this.props.formLayoutComponents[key]) {
-        const option = this.renderConditionalRenderingTargetComponentOption(key);
-        options.push(option);
-      } else {
-        // A container can have components and sub-containers
-        const containerOptions = this.renderConditionalRenderingTargetContainerOptions(key);
-        containerOptions.forEach((option) => {
+    } else {
+      this.props.order[id].forEach((key) => {
+        if (this.props.formLayoutComponents[key]) {
+          const option = this.renderConditionalRenderingTargetComponentOption(key);
           options.push(option);
-        });
-      }
-    });
+        } else {
+          // A container can have components and sub-containers
+          const containerOptions = this.renderConditionalRenderingTargetContainerOptions(key);
+          containerOptions.forEach((option) => {
+            options.push(option);
+          });
+        }
+      });
+    }
     return options;
   };
 
@@ -265,21 +288,23 @@ class ConditionalRendering extends React.Component<
     const selectedMethod = this.state.conditionalRendering.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <Modal
-        isOpen={true}
-        onRequestClose={() => {}}
-        className={classes.modalBody}
-        ariaHideApp={false}
-        overlayClassName={classes.reactModalOverlay}
-      >
-        <div className={classes.modalHeader}>
-          <Buldings2Icon className={classes.configConditionalIcon} />
-          <h1 className={classes.modalHeaderTitle}>
-            {this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
-          </h1>
-        </div>
-
-        <div className={classes.modalBodyContent}>
+      <StudioModal.Root>
+        {!this.props.connectionId ? (
+          <StudioModal.Trigger
+            aria-label={this.props.t('right_menu.rules_conditional_rendering_add_alt')}
+            icon={<PlusIcon />}
+            variant='tertiary'
+          />
+        ) : (
+          <StudioModal.Trigger variant='tertiary' icon={<CogIcon />}>
+            {selectedMethod}
+          </StudioModal.Trigger>
+        )}
+        <StudioModal.Dialog
+          ref={this.state.dialogRef}
+          heading={this.props.t('ux_editor.modal_configure_conditional_rendering_header')}
+          closeButtonTitle={this.props.t('general.close')}
+        >
           <div className={classes.formGroup}>
             <label htmlFor='selectConditionalRule' className={classes.label}>
               {this.props.t('ux_editor.modal_configure_conditional_rendering_helper')}
@@ -293,7 +318,7 @@ class ConditionalRendering extends React.Component<
               style={{ fontSize: '16px' }}
             >
               <option value=''>{this.props.t('general.choose_method')}</option>
-              {this.props.ruleModelElements.map((funcObj: any) => {
+              {this.props.ruleModelElements?.map((funcObj: any) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>
                     {funcObj.name}
@@ -314,7 +339,7 @@ class ConditionalRendering extends React.Component<
                   (key: any) => {
                     const paramName = key;
                     return (
-                      <>
+                      <Fragment key={key}>
                         <label className={classes.label} htmlFor={paramName}>
                           {this.props.t(
                             'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper',
@@ -342,7 +367,7 @@ class ConditionalRendering extends React.Component<
                             />
                           </div>
                         </div>
-                      </>
+                      </Fragment>
                     );
                   },
                 )}
@@ -386,6 +411,7 @@ class ConditionalRendering extends React.Component<
                     <div className={classes.chooseComponentContainer} key={key}>
                       <select
                         name={key}
+                        data-testid={conditionalRenderingOutputFieldId}
                         onChange={this.handleFieldMappingChange.bind(null, key)}
                         value={this.state.conditionalRendering.selectedFields[key]}
                         className={classes.customSelect}
@@ -395,45 +421,59 @@ class ConditionalRendering extends React.Component<
                         {this.renderConditionalRenderingTargetOptions()}
                       </select>
 
-                      <button
+                      <StudioButton
                         type='button'
+                        data-testid={conditionalRenderingDeleteButtonId}
                         className={classes.deleteFieldButton}
                         onClick={this.removeFieldMapping.bind(null, key)}
                       >
                         <XMarkOctagonFillIcon className={classes.exitIcon} />
-                      </button>
+                      </StudioButton>
                     </div>
                   );
                 })}
-                <button type='button' className={classes.addFieldButton} onClick={this.addNewField}>
+                <StudioButton
+                  type='button'
+                  className={classes.addFieldButton}
+                  onClick={this.addNewField}
+                >
                   {this.props.t(
                     'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping',
                   )}
-                </button>
+                </StudioButton>
               </div>
             </>
           ) : null}
           <div className={classes.buttonsContainer}>
             {this.state.conditionalRendering.selectedFunction ? (
-              <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
+              <StudioButton
+                onClick={this.handleSaveEdit}
+                type='submit'
+                className={classes.saveButton}
+              >
                 {this.props.t('general.save')}
-              </button>
+              </StudioButton>
             ) : null}
             {this.props.connectionId ? (
-              <button
+              <StudioButton
                 type='button'
                 className={classes.dangerButton}
                 onClick={this.handleDeleteConnection}
               >
                 {this.props.t('general.delete')}
-              </button>
+              </StudioButton>
             ) : null}
-            <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
+            <StudioButton
+              className={classes.cancelButton}
+              onClick={() => {
+                this.state.dialogRef?.current?.close();
+              }}
+            >
               {this.props.t('general.cancel')}
-            </button>
+            </StudioButton>
           </div>
-        </div>
-      </Modal>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
     );
   }
 }
