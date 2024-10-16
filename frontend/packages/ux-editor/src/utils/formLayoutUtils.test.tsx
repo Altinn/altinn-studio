@@ -628,14 +628,26 @@ describe('formLayoutUtils', () => {
       const layouts: Record<string, IInternalLayout> = {
         page1: {
           order: { section1: ['component1'] },
-          components: {},
+          components: {
+            component1: {
+              id: 'component1',
+              type: ComponentType.Paragraph,
+              itemType: 'COMPONENT',
+            },
+          },
           containers: {},
           customRootProperties: {},
           customDataProperties: {},
         },
         page2: {
           order: { section1: ['component2'] },
-          components: {},
+          components: {
+            component2: {
+              id: 'component2',
+              type: ComponentType.Paragraph,
+              itemType: 'COMPONENT',
+            },
+          },
           containers: {},
           customRootProperties: {},
           customDataProperties: {},
@@ -686,13 +698,17 @@ describe('formLayoutUtils', () => {
     it('Returns all components in the given layout, excluding types in the exclude list', () => {
       const layout = { ...mockInternal };
       expect(getAllLayoutComponents(layout, [ComponentType.Paragraph])).toEqual([
+        ...Object.values(mockInternal.containers),
         mockInternal.components[headerId],
       ]);
     });
 
     it('Returns all components in the given layout', () => {
       const layout = { ...mockInternal };
-      expect(getAllLayoutComponents(layout)).toEqual(Object.values(mockInternal.components));
+      expect(getAllLayoutComponents(layout)).toEqual([
+        ...Object.values(mockInternal.containers),
+        ...Object.values(mockInternal.components),
+      ]);
     });
   });
 });
