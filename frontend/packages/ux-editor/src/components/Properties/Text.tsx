@@ -7,7 +7,7 @@ import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQ
 import { StudioSpinner } from '@studio/components';
 import { EditOptions } from '../config/editModal/EditOptions';
 import type { FormComponent, FormComponentBase } from '../../types/FormComponent';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useAppContext } from '../../hooks';
 import { EditImage } from '../config/editModal/EditImage';
@@ -71,7 +71,7 @@ export const Text = () => {
           }}
         />
       )}
-      {form.type === 'Image' && (
+      {form.type === ComponentType.Image && (
         <>
           <Heading level={2} size='2xs' className={classes.heading}>
             {t('ux_editor.properties_panel.texts.sub_title_images')}
@@ -79,7 +79,7 @@ export const Text = () => {
           <EditImage component={form} handleComponentChange={handleComponentChange} />
         </>
       )}
-      {form.type === 'SubForm' && (
+      {form.type === ComponentType.SubForm && (
         <EditSubFormTableColumns component={form} handleComponentChange={handleComponentChange} />
       )}
     </>
