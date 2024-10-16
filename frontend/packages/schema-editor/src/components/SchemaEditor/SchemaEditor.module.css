@@ -1,8 +1,8 @@
 .editor {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   background-color: white;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  flex: 1;
   min-height: 200px;
   overflow-y: auto;
 }
@@ -11,17 +11,5 @@
   background-color: #f7f7f7;
   overflow-x: clip;
   overflow-y: auto;
-  width: 100%;
-}
-
-.typeInfo {
-  display: flex;
-  flex-direction: row;
-  background-color: #022f51;
-  color: #ffffff;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-  margin-right: auto;
   width: 100%;
 }
