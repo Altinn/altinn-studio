@@ -10,11 +10,8 @@ import { FormField } from '../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
-import {
-  validateFileName,
-  isFileNameDuplicate,
-  isFilenameValid,
-} from './Utils/validateFileNameUtils';
+import { findFileNameError } from './findFileNameError';
+import type { FileNameError } from './findFileNameError';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
 
@@ -38,30 +35,31 @@ export function EditCodeList<T extends SelectionComponentType>({
     });
   };
 
-  const handleUpload = (file: FormData) => {
+  const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        for (const entry of file.entries()) {
-          if (entry[1] instanceof File) {
-            handleOptionsIdChange(removeExtension(entry[1].name));
-            toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
-          }
-        }
+        handleOptionsIdChange(removeExtension(file.name));
+        toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
     });
   };
 
-  const handleInvalidFileName = (formData?: FormData) => {
-    const file = formData.get('file');
-    if (file instanceof File) {
-      if (!isFilenameValid(file.name)) {
-        alert(t('ux_editor.model_properties_code_list_filename_error'));
-      }
+  const onSubmit = (file: File) => {
+    const fileNameError = findFileNameError(optionListIds, file.name);
+    if (fileNameError) {
+      handleInvalidFileName(file, fileNameError);
+    } else {
+      handleUpload(file);
+    }
+  };
 
-      const fileNameWithoutExtension = removeExtension(file.name);
-      if (isFileNameDuplicate(optionListIds, fileNameWithoutExtension)) {
-        toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
-      }
+  const handleInvalidFileName = (file: File, fileNameError: FileNameError) => {
+    if (fileNameError == 'invalidFileName') {
+      alert(t('ux_editor.model_properties_code_list_filename_error'));
+    }
+
+    if (fileNameError == 'fileExists') {
+      toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
     }
   };
 
@@ -70,14 +68,10 @@ export function EditCodeList<T extends SelectionComponentType>({
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
       <StudioFileUploader
         className={classes.studioFileUploader}
-        onUploadFile={handleUpload}
         accept='.json'
         variant={'tertiary'}
         uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}
-        customFileValidation={{
-          validateFileName: (fileName: string) => validateFileName(optionListIds, fileName),
-          onInvalidFileName: handleInvalidFileName,
-        }}
+        onSubmit={onSubmit}
       />
       <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}>
         <a

@@ -6,8 +6,13 @@ export const useAddOptionListMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
   const { uploadOptionList } = useServicesContext();
 
+  const mutationFn = (file: File) => {
+    const formData = createFormDataWithFile(file);
+    return uploadOptionList(org, app, formData);
+  };
+
   return useMutation({
-    mutationFn: (payload: FormData) => uploadOptionList(org, app, payload),
+    mutationFn,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] }),
@@ -15,4 +20,10 @@ export const useAddOptionListMutation = (org: string, app: string) => {
       ]);
     },
   });
+};
+
+const createFormDataWithFile = (file: File): FormData => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return formData;
 };

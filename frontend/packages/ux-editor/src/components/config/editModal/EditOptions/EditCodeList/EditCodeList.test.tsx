@@ -24,6 +24,7 @@ describe('EditCodeList', () => {
   afterEach(() => {
     queryClientMock.clear();
   });
+
   it('should render the component', async () => {
     await render({
       queries: {
@@ -211,11 +212,11 @@ const render = async ({
 } = {}) => {
   renderWithProviders(
     <EditCodeList
-      handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,
         ...componentProps,
       }}
+      handleComponentChange={handleComponentChange}
     />,
     {
       queries,
