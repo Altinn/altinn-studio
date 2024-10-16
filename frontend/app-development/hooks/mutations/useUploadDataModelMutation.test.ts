@@ -6,6 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
+import Mock = jest.Mock;
 
 // Test data:
 const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
@@ -30,7 +31,12 @@ describe('useUploadDataModelMutation', () => {
     await renderHook();
 
     expect(queriesMock.uploadDataModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, file);
+    const parameters = (queriesMock.uploadDataModel as Mock).mock.calls[0];
+    const [orgParam, appParam, formDataParam] = parameters;
+    expect(orgParam).toBe(org);
+    expect(appParam).toBe(app);
+    expect(formDataParam).toBeInstanceOf(FormData);
+    expect(formDataParam.get('file')).toBe(file);
   });
 
   it('invalidates metadata queries when upload is successful', async () => {
