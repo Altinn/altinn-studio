@@ -37,7 +37,6 @@ const isFileValid = (
   fileRef: RefObject<HTMLInputElement>,
   customFileValidation: FileValidation,
 ): boolean => {
-  if (!file) return false;
   if (!customFileValidation) return true;
   if (customFileValidation.validateFileName && !customFileValidation.validateFileName(file.name)) {
     const formData = new FormData();
