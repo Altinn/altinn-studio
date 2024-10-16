@@ -1,5 +1,6 @@
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
+import type { FileNameError } from './FileNameError';
 
 export const doesFileExistInMetadataWithClassRef = (
   appMetadata: ApplicationMetadata,
@@ -22,8 +23,6 @@ export const doesFileExistInMetadataWithoutClassRef = (
       .find((dataType) => dataType.id.toLowerCase() === fileNameWithoutExtension.toLowerCase()),
   );
 };
-
-type FileNameError = 'invalidFileName' | 'fileExists';
 
 export const findFileNameError = (
   fileName: string,
