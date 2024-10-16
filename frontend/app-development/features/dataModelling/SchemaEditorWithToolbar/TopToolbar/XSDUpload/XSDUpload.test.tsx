@@ -5,8 +5,8 @@ import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, fileSelectorInputId, org } from '@studio/testing/testids';
-import { renderWithProviders } from '../../../../test/mocks';
+import { app, org } from '@studio/testing/testids';
+import { renderWithProviders } from '../../../../../test/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -14,13 +14,13 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 
-jest.mock('../../../../hooks/mutations/useUploadDataModelMutation', () => ({
+jest.mock('../../../../../hooks/mutations/useUploadDataModelMutation', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../../hooks/mutations/useUploadDataModelMutation'),
+  ...jest.requireActual('../../../../../hooks/mutations/useUploadDataModelMutation'),
 }));
 
 const useUploadDataModelMutationSpy = jest.spyOn(
-  require('../../../../hooks/mutations/useUploadDataModelMutation'),
+  require('../../../../../hooks/mutations/useUploadDataModelMutation'),
   'useUploadDataModelMutation',
 );
 
@@ -56,7 +56,7 @@ describe('XSDUpload', () => {
     const button = screen.getByRole('button', { name: uploadButtonTextMock });
     expect(button).toBeInTheDocument();
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     expect(fileInput).toBeInTheDocument();
   });
 
@@ -74,7 +74,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
 
     await user.upload(fileInput, file);
 
@@ -95,7 +95,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
 
     await user.upload(fileInput, file);
 
@@ -114,7 +114,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
 
     await user.upload(fileInput, file);
 
@@ -134,7 +134,7 @@ describe('XSDUpload', () => {
       queryClient: queryClient,
     });
     await clickUploadButton();
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     await user.upload(fileInput, file);
     expect(window.confirm).toHaveBeenCalled();
   });
@@ -150,7 +150,7 @@ describe('XSDUpload', () => {
       queryClient: queryClient,
     });
     await clickUploadButton();
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
     await user.upload(fileInput, file);
 
     const formDataMock = new FormData();
@@ -165,7 +165,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
 
     await user.upload(fileInput, file);
 
@@ -188,7 +188,7 @@ describe('XSDUpload', () => {
 
     await clickUploadButton();
 
-    const fileInput = screen.getByTestId(fileSelectorInputId);
+    const fileInput = getFileInputElement();
 
     await user.upload(fileInput, file);
 
@@ -197,3 +197,7 @@ describe('XSDUpload', () => {
     );
   });
 });
+
+function getFileInputElement(): HTMLInputElement {
+  return screen.getByLabelText(uploadButtonTextMock);
+}
