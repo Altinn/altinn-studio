@@ -9,9 +9,7 @@ import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayouts
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { Summary2OverrideDisplayType } from './Summary2OverrideDisplayType';
-import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 
 type Summary2OverrideEntryProps = {
   override: Summary2OverrideConfig;
@@ -33,8 +31,8 @@ export const Summary2OverrideEntry = ({
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
-  const componentsInGroup = getComponentsInGroup(formLayoutsData);
-  const isComponentInGroup = componentsInGroup.includes(override.componentId);
+  const component = components.find((comp) => comp.id === override.componentId);
+  const isGroupComponent = component?.type === (ComponentType.Group as ComponentType);
 
   const componentOptions = components.map((e) => ({
     id: e.id,
@@ -99,7 +97,7 @@ export const Summary2OverrideEntry = ({
       {override.componentId && checkboxOrMultipleselect && (
         <Summary2OverrideDisplayType override={override} onChange={onChange} />
       )}
-      {isComponentInGroup && (
+      {isGroupComponent && (
         <ComponentInGroupCheckbox onChangeOverride={onChangeOverride} override={override} />
       )}
       <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
@@ -129,13 +127,5 @@ const ComponentInGroupCheckbox = ({
     >
       {t('ux_editor.component_properties.overrides_is_compact')}
     </Checkbox>
-  );
-};
-
-const getComponentsInGroup = (formLayoutsData: IFormLayouts) => {
-  return Object.values(formLayoutsData).flatMap((item) =>
-    Object.keys(item.order)
-      .filter((key) => key !== BASE_CONTAINER_ID)
-      .flatMap((key) => item.order[key]),
   );
 };

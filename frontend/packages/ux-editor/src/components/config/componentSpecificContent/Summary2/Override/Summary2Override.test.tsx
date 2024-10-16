@@ -5,7 +5,12 @@ import { Summary2Override, type Summary2OverrideProps } from './Summary2Override
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
-import { component1IdMock, layout1NameMock, layoutMock } from '../../../../../testing/layoutMock';
+import {
+  component1IdMock,
+  container1IdMock,
+  layout1NameMock,
+  layoutMock,
+} from '../../../../../testing/layoutMock';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../../testing/mocks';
@@ -126,7 +131,7 @@ describe('Summary2Override', () => {
 
   it('"isCompact" checkbox should not be checked when isCompact is false', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: component1IdMock, isCompact: false }] });
+    render({ overrides: [{ componentId: container1IdMock, isCompact: false }] });
     const compactCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.overrides_is_compact'),
     });
@@ -135,14 +140,14 @@ describe('Summary2Override', () => {
     await user.click(compactCheckbox);
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: component1IdMock, isCompact: true }]),
+        expect.arrayContaining([{ componentId: container1IdMock, isCompact: true }]),
       ),
     );
   });
 
   it('"isCompact" checkbox Should be checked when isCompact is true', async () => {
     const user = userEvent.setup();
-    render({ overrides: [{ componentId: component1IdMock, isCompact: true }] });
+    render({ overrides: [{ componentId: container1IdMock, isCompact: true }] });
     const compactCheckbox = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.overrides_is_compact'),
     });
@@ -151,7 +156,7 @@ describe('Summary2Override', () => {
     await user.click(compactCheckbox);
     await waitFor(() =>
       expect(defaultProps.onChange).toHaveBeenCalledWith(
-        expect.arrayContaining([{ componentId: component1IdMock, isCompact: false }]),
+        expect.arrayContaining([{ componentId: container1IdMock, isCompact: false }]),
       ),
     );
   });
