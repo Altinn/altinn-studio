@@ -1,7 +1,12 @@
 import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
-import type { SchemaModel, UiSchemaNode } from '@altinn/schema-model';
-import { extractNameFromPointer, isNodeValidParent, isReference } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import {
+  SchemaModel,
+  extractNameFromPointer,
+  isNodeValidParent,
+  isReference,
+} from '@altinn/schema-model';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { renderSchemaNodeList } from '../renderSchemaNodeList';
 import { renderIcon } from './renderIcon';
@@ -28,7 +33,7 @@ export const SchemaNode = ({
     ? ''
     : extractNameFromPointer(schemaPointer);
   const index = savableModel.getIndexOfChildNode(schemaPointer);
-  const uniquePointer = savableModel.getUniquePointer(schemaPointer, uniqueParentPointer);
+  const uniquePointer = SchemaModel.getUniquePointer(schemaPointer, uniqueParentPointer);
 
   const title = label || t('schema_editor.tree.combination_child_title', { index });
   const labelWrapper = (labelComponent: ReactNode) => (

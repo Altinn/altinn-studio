@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
 import { expect } from '@playwright/test';
-import { DataTestId } from '../enum/DataTestId';
+import { droppableListId, typeItemId } from '@studio/testing/testids';
 
 export class DataModelPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -38,13 +38,13 @@ export class DataModelPage extends BasePage {
 
   public async clickOnAddPropertyButton(): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.add') })
+      .getByRole('button', { name: this.textMock('schema_editor.add_node_of_type') })
       .first()
       .click();
   }
 
   public async clickOnObjectAddPropertyButton(): Promise<void> {
-    await this.page.getByTitle(this.textMock('schema_editor.add')).click();
+    await this.page.getByTitle(this.textMock('schema_editor.add_node_of_type')).click();
   }
 
   public async clickOnAddObjectPropertyMenuItem(): Promise<void> {
@@ -58,7 +58,12 @@ export class DataModelPage extends BasePage {
   }
 
   public async checkThatTreeItemPropertyExistsOnScreen(name: string): Promise<void> {
-    await this.page.getByRole('treeitem', { name }).isVisible();
+    const treeItem = this.getTreeItemProperty(name);
+    await expect(treeItem).toBeVisible();
+  }
+
+  private getTreeItemProperty(name: string): Locator {
+    return this.page.getByRole('treeitem', { name });
   }
 
   public async clearNameField(): Promise<void> {
@@ -150,7 +155,7 @@ export class DataModelPage extends BasePage {
   public async selectFileToUpload(fileName: string): Promise<void> {
     await this.page
       .getByRole('toolbar')
-      .getByTestId(DataTestId.FileSelectorInput)
+      .getByLabel(this.textMock('app_data_modelling.upload_xsd'))
       .setInputFiles(path.join(__dirname, fileName));
   }
 
@@ -183,5 +188,36 @@ export class DataModelPage extends BasePage {
   // Helper function to get the type combobox
   private getTypeCombobox(): Locator {
     return this.page.getByRole('combobox', { name: this.textMock('schema_editor.type') });
+  }
+
+  public async addType(): Promise<void> {
+    await this.getAddTypeButton().click();
+  }
+
+  private getAddTypeButton(): Locator {
+    return this.page.getByRole('button', { name: this.textMock('schema_editor.add_type') });
+  }
+
+  public async verifyThatTypeIsVisible(typeName: string): Promise<void> {
+    const typeItem = this.getTypeItem(typeName);
+    await expect(typeItem).toBeVisible();
+  }
+
+  public getTypeItem(name: string): Locator {
+    const pointer = '#/$defs/' + name;
+    return this.page.getByTestId(typeItemId(pointer));
+  }
+
+  public getDroppableList(parentName: string): Locator {
+    return this.page.getByTitle(parentName).getByTestId(droppableListId);
+  }
+
+  public async clickOnBackToDataModelButton(): Promise<void> {
+    await this.getBackToDataModelButton().click();
+  }
+
+  private getBackToDataModelButton(): Locator {
+    const name = this.textMock('schema_editor.back_to_data_model');
+    return this.page.getByRole('button', { name });
   }
 }
