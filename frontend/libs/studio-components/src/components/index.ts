@@ -9,6 +9,7 @@ export * from './StudioCard';
 export * from './StudioCenter';
 export * from './StudioCheckbox';
 export * from './StudioCodeFragment';
+export * from './StudioCodelistEditor';
 export * from './StudioCombobox';
 export * from './StudioDecimalInput';
 export * from './StudioDeleteButton';
