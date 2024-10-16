@@ -21,6 +21,6 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - var(--header-height));
-  gap: var(--fds-spacing-8);
+  gap: var(--fds-spacing-4);
   margin-inline: var(--fds-spacing-18);
 }
