@@ -17,6 +17,7 @@
       "GridPage",
       "RepeatingGroupPage",
       "TabsPage",
+      "DatepickerPage",
       "SummaryPage"
     ]
   }

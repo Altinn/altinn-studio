@@ -117,6 +117,11 @@ namespace Altinn.App.Models.model
     [JsonProperty("mapComponent")]
     [JsonPropertyName("mapComponent")]
     public string mapComponent { get; set; }
+    
+    [XmlElement("DatepickerExample", Order = 22)]
+    [JsonProperty("DatepickerExample")]
+    [JsonPropertyName("DatepickerExample")]
+    public string DatepickerExample { get; set; }
 
   }
 

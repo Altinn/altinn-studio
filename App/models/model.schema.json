@@ -203,6 +203,9 @@
         "$ref": "#/$defs/LikertQuestion"
       }
     },
+    "DatepickerExample": {
+      "type": "string"
+    },
     "mapComponent": {
       "type": "string"
     }
