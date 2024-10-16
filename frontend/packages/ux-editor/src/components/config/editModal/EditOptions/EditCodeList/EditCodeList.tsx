@@ -17,8 +17,6 @@ import {
 } from './Utils/validateFileNameUtils';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
-import { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
-import { FormItem } from '@altinn/ux-editor/types/FormItem';
 
 export function EditCodeList<T extends SelectionComponentType>({
   component,
@@ -93,15 +91,14 @@ export function EditCodeList<T extends SelectionComponentType>({
   );
 }
 
-type CodeListSelectorProps = {
-  component: FormItem;
-  handleOptionsIdChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
-};
+type CodeListSelectorProps<T extends SelectionComponentType> = {
+  handleOptionsIdChange: (optionsId: string) => void;
+} & Pick<IGenericEditComponent<T>, 'component'>;
 
-function CodeListSelector({
+function CodeListSelector<T extends SelectionComponentType>({
   component,
   handleOptionsIdChange,
-}: CodeListSelectorProps): React.ReactNode {
+}: CodeListSelectorProps<T>): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
@@ -131,17 +128,16 @@ function CodeListSelector({
   }
 }
 
-type CodeListSelectorWithDataProps = {
+type CodeListSelectorWithDataProps<T extends SelectionComponentType> = {
   optionListIds: string[];
-  component: FormItem;
-  handleOptionsIdChange: (component: FormItem, mutateOptions?: UpdateFormMutateOptions) => void;
-};
+  handleOptionsIdChange: (optionsId: string) => void;
+} & Pick<IGenericEditComponent<T>, 'component'>;
 
-function CodeListSelectorWithData({
+function CodeListSelectorWithData<T extends SelectionComponentType>({
   optionListIds,
   component,
   handleOptionsIdChange,
-}: CodeListSelectorWithDataProps): React.ReactNode {
+}: CodeListSelectorWithDataProps<T>): React.ReactNode {
   const { t } = useTranslation();
 
   if (!optionListIds.length) return null;
