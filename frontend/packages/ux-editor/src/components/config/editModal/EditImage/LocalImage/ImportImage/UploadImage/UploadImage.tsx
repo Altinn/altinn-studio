@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { MAX_FILE_SIZE_MB, WWWROOT_FILE_PATH } from '../../../../EditImage/constants';
 import classes from './UploadImage.module.css';
 import { toast } from 'react-toastify';
-import { FileUploaderWithValidation } from '@altinn/ux-editor/components/config/editModal/EditImage/LocalImage/ImportImage/UploadImage/FileUploaderWithValidation';
+import { FileUploaderWithValidation } from './FileUploaderWithValidation';
 
 // This list should be fetched from backend to ensure we use equal validation
 // ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
