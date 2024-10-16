@@ -42,6 +42,12 @@ describe('ContentLibrary', () => {
     expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith('images');
   });
+
+  it('renders 404 not found page when pageName without supported implementation is passed', () => {
+    renderContentLibrary('PageNameWithoutImpl' as PageName);
+    const notFoundPageTitle = screen.getByRole('heading', { name: '404 Page Not Found' });
+    expect(notFoundPageTitle).toBeInTheDocument();
+  });
 });
 
 const renderContentLibrary = (currentPage: PageName = undefined) => {
