@@ -39,19 +39,19 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.typesHeadingWrapper}>
-        <StudioHeading level={3} className={classes.typesHeading}>
+      <div className={classes.headingContainer}>
+        <StudioHeading level={3} size='2xs'>
           {t('schema_editor.types')}
         </StudioHeading>
         <StudioButton
-          className={classes.addRowButton}
+          className={classes.addTypeButton}
           variant='tertiary'
           icon={<PlusIcon height={40} />}
           onClick={handleAddDefinition}
           title={t('schema_editor.add_type')}
         />
       </div>
-      <div className={classes.types}>
+      <div className={classes.typesList}>
         {schemaItems.map((item) => (
           <TypeItem
             uiSchemaNode={item}

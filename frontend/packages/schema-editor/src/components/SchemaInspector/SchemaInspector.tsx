@@ -1,4 +1,5 @@
-import React, { ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import React from 'react';
 import { Alert, Tabs } from '@digdir/designsystemet-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { isField, isObject } from '@altinn/schema-model';
@@ -14,22 +15,23 @@ export const SchemaInspector = (): ReactElement => {
   const { t } = useTranslation();
   const { selectedUniquePointer } = useSchemaEditorAppContext();
   const savableModel = useSavableSchemaModel();
+  const selectedItem: UiSchemaNode = selectedUniquePointer
+    ? savableModel.getNodeByUniquePointer(selectedUniquePointer)
+    : undefined;
+  const shouldDisplayFieldsTab = selectedItem && isField(selectedItem) && isObject(selectedItem);
 
-  if (!selectedUniquePointer) {
+  if (!selectedItem) {
     return (
       <>
-        <div className={classes.noItemHeadingWrapper}>
+        <div className={classes.noItemHeadingContainer}>
           <StudioHeading size='2xs'>{t('schema_editor.properties')}</StudioHeading>
         </div>
         <StudioCenter>
-          <StudioParagraph>{t('schema_editor.no_item_selected')}</StudioParagraph>
+          <StudioParagraph size='sm'>{t('schema_editor.no_item_selected')}</StudioParagraph>
         </StudioCenter>
       </>
     );
   }
-
-  const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
-  const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
 
   return (
     <Tabs defaultValue={t('schema_editor.properties')}>

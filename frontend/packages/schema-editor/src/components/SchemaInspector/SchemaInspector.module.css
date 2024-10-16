@@ -4,7 +4,7 @@
   height: 100%;
 }
 
-.noItemHeadingWrapper {
+.noItemHeadingContainer {
   display: flex;
   flex-direction: column;
   justify-content: center;

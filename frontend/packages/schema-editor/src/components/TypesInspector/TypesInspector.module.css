@@ -1,35 +1,20 @@
-.root {
-  box-sizing: border-box;
-  min-height: 100%;
-  background: rgba(224, 224, 224, 0.3);
-}
-
-.typesHeadingWrapper {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.headingContainer {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   height: var(--subtoolbar-height);
   padding-inline: var(--fds-spacing-6);
   border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.typesHeading {
-  grid-column: 1 / 3;
-  font-size: var(--fds-font-size-f0);
+.addTypeButton {
+  color: var(--fds-semantic-surface-neutral-inverted);
 }
 
-.addRowButton {
-  grid-column: 3;
-  margin-left: auto;
-  margin-right: 0;
-  color: #000000;
-}
-
-.types {
-  padding-inline: var(--fds-spacing-6);
-  padding-block: var(--fds-spacing-4);
+.typesList {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  padding-block: var(--fds-spacing-5);
+  padding-inline: var(--fds-spacing-6);
   gap: var(--fds-spacing-3);
 }

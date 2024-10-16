@@ -1,25 +1,14 @@
 .root {
-  --gap: var(--fds-spacing-1);
-  height: var(--subtoolbar-height);
-  box-sizing: border-box;
-  align-items: center;
   display: flex;
-  padding: var(--gap) 0;
-  gap: var(--gap);
-}
-
-.heading {
-  display: contents;
+  align-items: center;
+  height: var(--subtoolbar-height);
+  gap: var(--fds-spacing-3);
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
 .heading .headingButton {
-  border-bottom-left-radius: 0;
-  border-left-color: transparent;
-  border-left-style: solid;
-  border-left-width: var(--studio-treeitem-vertical-line-width);
-  border-top-left-radius: 0;
+  display: flex;
   font: var(--fds-typography-paragraph-short-large);
-  min-height: var(--fds-sizing-12);
 }
 
 .root.selected .headingButton {
