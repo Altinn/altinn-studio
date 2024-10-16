@@ -2,9 +2,6 @@ import type { IInternalLayout } from '../../types/global';
 import { useFormLayout } from '../';
 import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
-import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
-import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
-import { useRuleConfigMutation } from './useRuleConfigMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import { updateContainer } from '../../utils/formLayoutUtils';
 
@@ -20,9 +17,7 @@ export const useUpdateFormContainerMutation = (
   layoutSetName: string,
 ) => {
   const layout = useFormLayout(layoutName);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
-  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
 
   return useMutation({
     mutationFn: ({ updatedContainer, id }: UpdateFormContainerMutationArgs) => {
@@ -33,9 +28,6 @@ export const useUpdateFormContainerMutation = (
 
       // Save:
       return saveLayout({ internalLayout: newLayout }).then(() => ({ currentId, newId }));
-    },
-    onSuccess: async ({ currentId, newId }) => {
-      await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
     },
   });
 };
