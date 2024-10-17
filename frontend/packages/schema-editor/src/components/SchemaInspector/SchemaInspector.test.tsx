@@ -42,7 +42,19 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 describe('SchemaInspector', () => {
   afterEach(jest.clearAllMocks);
 
-  it('Saves data model when entering text in textboxes', async () => {
+  it('displays a message when no node is selected', () => {
+    renderSchemaInspector(mockUiSchema);
+
+    const noSelectionHeader = screen.getByRole('heading', {
+      name: textMock('schema_editor.properties'),
+    });
+    const noSelectionParagraph = screen.getByText(textMock('schema_editor.no_item_selected'));
+
+    expect(noSelectionHeader).toBeInTheDocument();
+    expect(noSelectionParagraph).toBeInTheDocument();
+  });
+
+  it('saves data model when entering text in textboxes', async () => {
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeDefined();
@@ -59,13 +71,13 @@ describe('SchemaInspector', () => {
     expect(saveDataModel).toHaveBeenCalled();
   });
 
-  test('renders no item if nothing is selected', () => {
+  it('renders no item if nothing is selected', () => {
     renderSchemaInspector(mockUiSchema);
     const textboxes = screen.queryAllByRole('textbox');
     expect(textboxes).toHaveLength(0);
   });
 
-  it('Saves data model correctly when changing restriction value', async () => {
+  it('saves data model correctly when changing restriction value', async () => {
     const schemaPointer = '#/$defs/Kommentar2000Restriksjon';
 
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath(schemaPointer));
@@ -93,7 +105,7 @@ describe('SchemaInspector', () => {
     expect(updatedNode.restrictions.minLength).toEqual(parseInt(minLength));
   });
 
-  test('Adds new object field when pressing the enter key', async () => {
+  it('adds new object field when pressing the enter key', async () => {
     const parentNodePointer = '#/properties/test';
     const childNodePointer = '#/properties/test/properties/abc';
     const rootNode: FieldNode = {
@@ -125,7 +137,7 @@ describe('SchemaInspector', () => {
     });
   });
 
-  test('Adds new valid value field when pressing the enter key', async () => {
+  it('adds new valid value field when pressing the enter key', async () => {
     const itemPointer = '#/properties/test';
     const enumValue = 'valid value';
     const rootNode: FieldNode = {
@@ -155,7 +167,7 @@ describe('SchemaInspector', () => {
     expect(saveDataModel).not.toHaveBeenCalled();
   });
 
-  it('Does not display the fields tab when the selected item is a combination', async () => {
+  it('does not display the fields tab when the selected item is a combination', async () => {
     const itemPointer = '#/properties/testcombination';
     const rootNode: FieldNode = {
       ...rootNodeMock,

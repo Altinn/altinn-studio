@@ -1,5 +1,4 @@
 import classes from './HeadingRow.module.css';
-import { Heading } from '@digdir/designsystemet-react';
 import { NodeIcon } from '../../NodeIcon';
 import type { ReactNode } from 'react';
 import React from 'react';
@@ -13,7 +12,12 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components';
+import {
+  StudioButton,
+  StudioDeleteButton,
+  StudioDropdownMenu,
+  StudioHeading,
+} from '@studio/components';
 import {
   BooleanIcon,
   CombinationIcon,
@@ -44,7 +48,7 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
 
   return (
     <div className={cn(classes.root, isSelected && classes.selected)}>
-      <Heading level={1} className={classes.heading}>
+      <StudioHeading level={1} className={classes.heading}>
         <StudioButton
           className={classes.headingButton}
           color='second'
@@ -54,7 +58,7 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
         >
           {title}
         </StudioButton>
-      </Heading>
+      </StudioHeading>
       {isValidParent && <AddNodeMenu schemaPointer={schemaPointer} />}
       {!isDataModelRoot && <DeleteButton schemaPointer={schemaPointer} />}
     </div>
