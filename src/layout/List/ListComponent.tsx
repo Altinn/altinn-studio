@@ -57,15 +57,12 @@ export const ListComponent = ({ node }: IListProps) => {
   const bindings = item.dataModelBindings ?? ({} as IDataModelBindingsForList);
   const { formData, setValues } = useDataModelBindings(bindings);
 
-  const filteredHeaders = Object.fromEntries(Object.entries(tableHeaders).filter(([key]) => shouldIncludeColumn(key)));
-  const filteredRows: Row[] =
-    data?.listItems?.map((row) => {
-      const result = Object.fromEntries(Object.entries(row).filter(([key]) => shouldIncludeColumn(key)));
-      return result;
-    }) ?? [];
+  const tableHeadersToShowInMobile = Object.keys(tableHeaders).filter(
+    (key) => !tableHeadersMobile || tableHeadersMobile.includes(key),
+  );
 
   const selectedRow =
-    filteredRows.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '';
+    data?.listItems.find((row) => Object.keys(formData).every((key) => row[key] === formData[key])) ?? '';
 
   function handleRowSelect({ selectedValue }: { selectedValue: Row }) {
     const next: Row = {};
@@ -73,10 +70,6 @@ export const ListComponent = ({ node }: IListProps) => {
       next[binding] = selectedValue[binding];
     }
     setValues(next);
-  }
-
-  function shouldIncludeColumn(key: string): boolean {
-    return !isMobile || !tableHeadersMobile || tableHeadersMobile.includes(key);
   }
 
   function isRowSelected(row: Row): boolean {
@@ -105,17 +98,17 @@ export const ListComponent = ({ node }: IListProps) => {
           className={classes.mobileRadioGroup}
           value={JSON.stringify(selectedRow)}
         >
-          {filteredRows.map((row) => (
+          {data?.listItems.map((row) => (
             <Radio
               key={JSON.stringify(row)}
               value={JSON.stringify(row)}
               className={cn(classes.mobileRadio, { [classes.selectedRow]: isRowSelected(row) })}
               onClick={() => handleRowSelect({ selectedValue: row })}
             >
-              {Object.entries(row).map(([key, value]) => (
+              {tableHeadersToShowInMobile.map((key) => (
                 <div key={key}>
                   <strong>{tableHeaders[key]}</strong>
-                  <span>{typeof value === 'string' ? lang(value) : value}</span>
+                  <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
                 </div>
               ))}
             </Radio>
@@ -154,7 +147,7 @@ export const ListComponent = ({ node }: IListProps) => {
         <Table.Head>
           <Table.Row>
             <Table.HeaderCell />
-            {Object.entries(filteredHeaders).map(([key, value]) => (
+            {Object.entries(tableHeaders).map(([key, value]) => (
               <Table.HeaderCell
                 key={key}
                 sortable={sortableColumns?.includes(key)}
@@ -174,7 +167,7 @@ export const ListComponent = ({ node }: IListProps) => {
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {filteredRows.map((row) => (
+          {data?.listItems.map((row) => (
             <Table.Row
               key={JSON.stringify(row)}
               onClick={() => {
@@ -196,14 +189,14 @@ export const ListComponent = ({ node }: IListProps) => {
                   name={node.id}
                 />
               </Table.Cell>
-              {Object.entries(row).map(([key, value]) => (
+              {Object.keys(tableHeaders).map((key) => (
                 <Table.Cell
                   key={key}
                   className={cn({
                     [classes.selectedRowCell]: isRowSelected(row),
                   })}
                 >
-                  {typeof value === 'string' ? lang(value) : value}
+                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
                 </Table.Cell>
               ))}
             </Table.Row>

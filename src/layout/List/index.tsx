@@ -111,23 +111,16 @@ export class List extends ListDef {
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'List'>): string[] {
-    const possibleBindings = Object.keys(ctx.item.tableHeaders ?? {});
-
     const errors: string[] = [];
+
     for (const binding of Object.keys(ctx.item.dataModelBindings ?? {})) {
-      if (possibleBindings.includes(binding)) {
-        const [newErrors] = this.validateDataModelBindingsAny(
-          ctx,
-          binding,
-          ['string', 'number', 'integer', 'boolean'],
-          false,
-        );
-        errors.push(...(newErrors || []));
-      } else {
-        errors.push(
-          `Bindingen ${binding} er ikke gyldig for denne komponenten. Gyldige bindinger er definert i 'tableHeaders'`,
-        );
-      }
+      const [newErrors] = this.validateDataModelBindingsAny(
+        ctx,
+        binding,
+        ['string', 'number', 'integer', 'boolean'],
+        false,
+      );
+      errors.push(...(newErrors || []));
     }
 
     return errors;
