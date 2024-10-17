@@ -4,6 +4,7 @@ import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
+import { SchemaModel } from '@altinn/schema-model/lib/SchemaModel';
 
 export interface SchemaTreeProps {
   schemaPointer?: string;
@@ -11,7 +12,7 @@ export interface SchemaTreeProps {
 
 export const SchemaTree = ({ schemaPointer }: SchemaTreeProps) => {
   const savableModel = useSavableSchemaModel();
-  const uniquePointer = savableModel.getUniquePointer(schemaPointer);
+  const uniquePointer = SchemaModel.getUniquePointer(schemaPointer);
   const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 

@@ -1,7 +1,7 @@
 import type { HandleMove, ItemPosition } from 'app-shared/types/dndTypes';
 import { useCallback } from 'react';
 import type { NodePosition } from '@altinn/schema-model';
-import { extractNameFromPointer, isCombination } from '@altinn/schema-model';
+import { SchemaModel, extractNameFromPointer, isCombination } from '@altinn/schema-model';
 import { calculatePositionInFullList } from '../utils';
 import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import { useTranslation } from 'react-i18next';
@@ -38,7 +38,7 @@ export const useMoveProperty = (): HandleMove => {
       } else {
         const movedNode = savableModel.moveNode(schemaPointer, target);
         if (selectedUniquePointer === uniquePointer) {
-          const movedUniquePointer = savableModel.getUniquePointer(
+          const movedUniquePointer = SchemaModel.getUniquePointer(
             movedNode.schemaPointer,
             position.parentId,
           );

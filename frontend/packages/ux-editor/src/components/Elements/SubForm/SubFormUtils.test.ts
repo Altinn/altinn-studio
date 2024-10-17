@@ -3,11 +3,7 @@ import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 
 describe('SubFormUtils', () => {
   describe('findSubFormById', () => {
-    const layoutSets: Array<LayoutSet> = [
-      { id: '1', type: 'form' },
-      { id: '2', type: 'subform' },
-      { id: '3', type: 'custom' },
-    ];
+    const layoutSets: Array<LayoutSet> = [{ id: '1' }, { id: '2', type: 'subform' }, { id: '3' }];
 
     it('should return the layout set when it is a subform', () => {
       const result = SubFormUtils.findSubFormById(layoutSets, '2');

@@ -10,7 +10,7 @@ export type SupportedFeatureFlags =
   | 'resourceMigration'
   | 'multipleDataModelsPerTask'
   | 'exportForm'
-  | 'subForm'
+  | 'subform'
   | 'summary2';
 
 /*
