@@ -18,6 +18,7 @@ import {
   objectChildMock,
   objectNodeMock,
   referenceNodeMock,
+  referredNodeMock,
   rootNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
@@ -228,5 +229,16 @@ describe('useMoveProperty', () => {
     move(uniquePointerOfNodeToMove, target);
     expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
     expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(expectedFinalUniquePointer);
+  });
+
+  it('Does not move the node when it would result in circular references', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = referenceNodeMock.schemaPointer;
+    const pointerOfNewParent = referredNodeMock.schemaPointer;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    move(pointerOfNodeToMove, target);
+    expect(save).not.toHaveBeenCalled();
   });
 });

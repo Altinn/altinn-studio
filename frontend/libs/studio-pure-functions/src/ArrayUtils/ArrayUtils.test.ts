@@ -117,4 +117,22 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
     });
   });
+
+  describe('hasIntersection', () => {
+    it('Returns true when arrays have one common element', () => {
+      expect(ArrayUtils.hasIntersection([1, 2, 3], [3, 4, 5])).toBe(true);
+    });
+
+    it('Returns true when arrays have multiple common elements', () => {
+      expect(ArrayUtils.hasIntersection([1, 2, 3], [3, 2, 5])).toBe(true);
+    });
+
+    it('Returns false when arrays have no common elements', () => {
+      expect(ArrayUtils.hasIntersection([1, 2, 3], [4, 5, 6])).toBe(false);
+    });
+
+    it('Returns false when the arrays are empty', () => {
+      expect(ArrayUtils.hasIntersection([], [])).toBe(false);
+    });
+  });
 });
