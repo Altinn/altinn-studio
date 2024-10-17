@@ -15,9 +15,4 @@ export class SavableFormLayoutSettings extends FormLayoutSettings {
     this.saveFormLayoutSettings(this.getLayoutSettings());
     return this;
   }
-
-  public setPdfLayoutName(layoutName: string): SavableFormLayoutSettings {
-    super.setPdfLayoutName(layoutName);
-    return this.save();
-  }
 }

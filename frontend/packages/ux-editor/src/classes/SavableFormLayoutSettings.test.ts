@@ -6,14 +6,11 @@ const saveFormLayoutSettings = jest.fn();
 
 describe('SavableFormLayoutSettings', () => {
   afterEach(() => jest.clearAllMocks());
-  it('saves layoutSettings when pdfLayoutName is updated', () => {
+  it('saves layoutSettings when save function is called', () => {
     const savableLayoutSettings = setupLayoutSettings();
-    const newPdfLayoutName = 'newPdfLayoutName';
-    savableLayoutSettings.setPdfLayoutName(newPdfLayoutName);
+    savableLayoutSettings.save();
     expect(saveFormLayoutSettings).toHaveBeenCalledTimes(1);
     expect(saveFormLayoutSettings).toHaveBeenCalledWith(savableLayoutSettings.getLayoutSettings());
-    const actualNewPdfLayoutSetName = savableLayoutSettings.getPdfLayoutName();
-    expect(actualNewPdfLayoutSetName).toBe(newPdfLayoutName);
   });
 });
 

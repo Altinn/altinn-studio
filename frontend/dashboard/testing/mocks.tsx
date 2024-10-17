@@ -30,6 +30,7 @@ const wrapper =
 export interface ProviderData {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
+  externalWrapper?: (children: ReactNode) => ReactNode;
 }
 
 export function renderWithProviders(
@@ -48,14 +49,20 @@ export function renderWithProviders(
 
 export function renderHookWithProviders<HookResult, Props>(
   hook: (props: Props) => HookResult,
-  { queries = {}, queryClient = queryClientMock }: ProviderData = {},
+  {
+    queries = {},
+    queryClient = queryClientMock,
+    externalWrapper = (children) => children,
+  }: ProviderData = {},
 ) {
   const renderHookOptions: RenderHookOptions<Props, Queries> = {
     wrapper: ({ children }) =>
-      wrapper({
-        queries,
-        queryClient,
-      })(children),
+      externalWrapper(
+        wrapper({
+          queries,
+          queryClient,
+        })(children),
+      ),
   };
   return renderHook<HookResult, Props, Queries>(hook, renderHookOptions);
 }

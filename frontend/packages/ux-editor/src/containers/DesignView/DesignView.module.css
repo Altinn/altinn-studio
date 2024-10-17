@@ -7,6 +7,7 @@
 
 .root > *:last-child {
   flex: 1;
+  align-content: flex-end;
 }
 
 .pageHeader {

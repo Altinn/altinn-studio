@@ -14,3 +14,5 @@ export const profileButtonId = 'profileButton';
 export const org = 'testOrg';
 export const app = 'testApp';
 export const selectedLayoutSet = 'layout-set-test';
+export const conditionalRenderingOutputFieldId = 'conditional-rendering-output-field';
+export const conditionalRenderingDeleteButtonId = 'delete_field_button';

@@ -1,9 +1,14 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ConfPageToolbar } from './ConfPageToolbar';
-import { confOnScreenComponents, paymentLayoutComponents } from '../../data/formItemConfig';
+import {
+  confOnScreenComponents,
+  paymentLayoutComponents,
+  subformLayoutComponents,
+} from '../../data/formItemConfig';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { ConfPageType } from './types/ConfigPageType';
 
 describe('ConfPageToolbar', () => {
   it('should render', () => {
@@ -34,9 +39,17 @@ describe('ConfPageToolbar', () => {
       expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
     });
   });
+
+  it('should render subform component list when confPageType is subform', () => {
+    renderConfPageToolbar('subform');
+    subformLayoutComponents.forEach((component) => {
+      const componentTitle = `ux_editor.component_title.${component.name}`;
+      expect(screen.getByText(textMock(componentTitle))).toBeInTheDocument();
+    });
+  });
 });
 
-const renderConfPageToolbar = (confPageType: 'receipt' | 'payment') => {
+const renderConfPageToolbar = (confPageType: ConfPageType) => {
   return render(
     <DragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
       <ConfPageToolbar confPageType={confPageType} />

@@ -139,7 +139,7 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         foreach ((string pointer, string errorCode) in expectedValidationIssues)
         {
             var pointerObject = JsonPointer.Parse(pointer);
-            Assert.Single(errorResponse.Errors.Keys.Where(p => JsonPointer.Parse(p) == pointerObject));
+            Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
             errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)].Contains(errorCode).Should().BeTrue();
         }
     }

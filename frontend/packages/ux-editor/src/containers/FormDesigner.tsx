@@ -7,7 +7,6 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import {
   StudioPageError,
   StudioPageSpinner,
@@ -37,7 +36,8 @@ export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: user } = useUserQuery();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
+    useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -48,7 +48,6 @@ export const FormDesigner = (): JSX.Element => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
     org,
     app,
@@ -83,7 +82,6 @@ export const FormDesigner = (): JSX.Element => {
     instanceId &&
     formLayouts &&
     formLayoutSettings &&
-    ruleModel &&
     isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
@@ -126,7 +124,7 @@ export const FormDesigner = (): JSX.Element => {
         { componentType: type, newId, parentId, index },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
           },
         },
       );
@@ -147,7 +145,7 @@ export const FormDesigner = (): JSX.Element => {
         { internalLayout: updatedLayout },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
           },
         },
       );
