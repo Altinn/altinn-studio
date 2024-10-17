@@ -177,7 +177,6 @@ describe('EditCodeList', () => {
   });
 
   it('should render alert on invalid file name', async () => {
-    const alertMock = jest.spyOn(window, 'alert').mockImplementation();
     const user = userEvent.setup();
     const invalidFileName = '_InvalidFileName.json';
     const file = new File([optionListIdsMock[0]], invalidFileName, {
@@ -201,7 +200,9 @@ describe('EditCodeList', () => {
     );
     await user.upload(fileInput, file);
 
-    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.model_properties_code_list_filename_error'),
+    );
   });
 });
 
