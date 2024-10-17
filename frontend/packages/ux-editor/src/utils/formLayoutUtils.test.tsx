@@ -686,13 +686,17 @@ describe('formLayoutUtils', () => {
     it('Returns all components in the given layout, excluding types in the exclude list', () => {
       const layout = { ...mockInternal };
       expect(getAllLayoutComponents(layout, [ComponentType.Paragraph])).toEqual([
+        ...Object.values(mockInternal.containers),
         mockInternal.components[headerId],
       ]);
     });
 
     it('Returns all components in the given layout', () => {
       const layout = { ...mockInternal };
-      expect(getAllLayoutComponents(layout)).toEqual(Object.values(mockInternal.components));
+      expect(getAllLayoutComponents(layout)).toEqual([
+        ...Object.values(mockInternal.containers),
+        ...Object.values(mockInternal.components),
+      ]);
     });
   });
 });
