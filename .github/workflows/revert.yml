@@ -41,8 +41,6 @@ jobs:
            --actor "${{ github.actor }}" \
            --actor_id "${{ github.actor_id }}" \
            --cdn ./cdn \
-           --commit \
-           --azure-sync-cdn \
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
            --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
 
