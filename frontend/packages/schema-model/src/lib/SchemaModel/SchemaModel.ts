@@ -405,11 +405,6 @@ export class SchemaModel extends SchemaModelBase {
     return this.hasReferringNodes(schemaPointer) || this.areDefinitionParentsInUse(schemaPointer);
   }
 
-  public hasReferringNodes(schemaPointer: string): boolean {
-    const referringNodes = this.getReferringNodes(schemaPointer);
-    return !!referringNodes.length;
-  }
-
   public areDefinitionParentsInUse(schemaPointer: string): boolean {
     const parent = this.getParentNode(schemaPointer);
     return this.isDefinitionInUse(parent.schemaPointer);
