@@ -67,7 +67,7 @@ jobs:
     needs: [get-short-sha, determine-tag]
     uses: ./.github/workflows/template-helm-push.yaml
     with:
-      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid sematic version
+      tag: 0.1.0+${{ needs.determine-tag.outputs.tag }} # Helm version needs to be valid semantic version
       chart-name: altinn-repositories
       registry-name: altinntjenestercontainerregistry.azurecr.io
       environment: dev # dev environment has push access and doesn't require review
