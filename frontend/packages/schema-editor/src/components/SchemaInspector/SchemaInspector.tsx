@@ -23,8 +23,10 @@ export const SchemaInspector = (): ReactElement => {
   if (!selectedItem) {
     return (
       <>
-        <div className={classes.noItemHeadingContainer}>
-          <StudioHeading size='2xs'>{t('schema_editor.properties')}</StudioHeading>
+        <div className={classes.noSelectionHeadingContainer}>
+          <StudioHeading level={2} size='2xs'>
+            {t('schema_editor.properties')}
+          </StudioHeading>
         </div>
         <StudioCenter>
           <StudioParagraph size='sm'>{t('schema_editor.no_item_selected')}</StudioParagraph>

@@ -40,7 +40,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   return (
     <div className={classes.root}>
       <div className={classes.headingContainer}>
-        <StudioHeading level={3} size='2xs'>
+        <StudioHeading level={2} size='2xs'>
           {t('schema_editor.types')}
         </StudioHeading>
         <StudioButton

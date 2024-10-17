@@ -4,7 +4,7 @@
   height: 100%;
 }
 
-.noItemHeadingContainer {
+.noSelectionHeadingContainer {
   display: flex;
   flex-direction: column;
   justify-content: center;
