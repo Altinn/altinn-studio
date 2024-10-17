@@ -1,9 +1,7 @@
 import React, { forwardRef } from 'react';
 import { Alert, type AlertProps } from '@digdir/designsystemet-react';
 
-type StudioAlertProps = Omit<AlertProps, 'size'> & {
-  size?: 'sm' | 'md' | 'lg';
-};
+export type StudioAlertProps = AlertProps;
 
 const StudioAlert = forwardRef<HTMLDivElement, StudioAlertProps>(
   ({ size = 'sm', ...rest }, ref) => {
