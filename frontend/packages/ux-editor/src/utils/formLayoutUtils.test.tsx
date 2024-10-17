@@ -628,26 +628,14 @@ describe('formLayoutUtils', () => {
       const layouts: Record<string, IInternalLayout> = {
         page1: {
           order: { section1: ['component1'] },
-          components: {
-            component1: {
-              id: 'component1',
-              type: ComponentType.Paragraph,
-              itemType: 'COMPONENT',
-            },
-          },
+          components: {},
           containers: {},
           customRootProperties: {},
           customDataProperties: {},
         },
         page2: {
           order: { section1: ['component2'] },
-          components: {
-            component2: {
-              id: 'component2',
-              type: ComponentType.Paragraph,
-              itemType: 'COMPONENT',
-            },
-          },
+          components: {},
           containers: {},
           customRootProperties: {},
           customDataProperties: {},
