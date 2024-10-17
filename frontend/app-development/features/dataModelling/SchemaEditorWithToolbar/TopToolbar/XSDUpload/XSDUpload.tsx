@@ -2,15 +2,21 @@ import React from 'react';
 import type { StudioButtonProps } from '@studio/components';
 import { StudioFileUploader, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useUploadDataModelMutation } from '../../../../hooks/mutations/useUploadDataModelMutation';
+import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
-import type { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../../types/MetadataOption';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
-import { useValidateFileName } from './useValidateFileName';
+import { useValidationAlert } from './useValidationAlert';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
+import {
+  doesFileExistInMetadataWithClassRef,
+  doesFileExistInMetadataWithoutClassRef,
+  findFileNameError,
+} from './validationUtils';
+import type { FileNameError } from './FileNameError';
 
 export interface XSDUploadProps {
   selectedOption?: MetadataOption;
@@ -32,16 +38,22 @@ export const XSDUpload = ({
       hideDefaultError: (error: AxiosError<ApiError>) => !error.response?.data?.errorCode,
     },
   );
-  const {
-    validateFileName,
-    getDuplicatedDataTypeIdNotBeingDataModelInAppMetadata,
-    getDuplicatedDataModelIdsInAppMetadata,
-  } = useValidateFileName(appMetadata);
+  const validationAlert = useValidationAlert();
 
   const uploadButton = React.useRef(null);
 
-  const handleUpload = (formData: FormData) => {
-    uploadDataModel(formData, {
+  const handleSubmit = (file: File): void => {
+    const fileNameError = findFileNameError(file.name, appMetadata);
+    if (fileNameError) {
+      handleInvalidFileName(file, fileNameError);
+      uploadButton.current.value = '';
+    } else {
+      handleUpload(file);
+    }
+  };
+
+  const handleUpload = (file: File): void => {
+    uploadDataModel(file, {
       onError: (error: AxiosError<ApiError>) => {
         if (!error.response?.data?.errorCode)
           toast.error(t('form_filler.file_uploader_validation_error_upload'));
@@ -49,9 +61,12 @@ export const XSDUpload = ({
     });
   };
 
-  const handleInvalidFileName = (file?: FormData, fileName?: string) => {
-    const fileNameWithoutExtension = removeExtension(fileName);
-    if (getDuplicatedDataModelIdsInAppMetadata(appMetadata, fileNameWithoutExtension)) {
+  const handleInvalidFileName = (file: File, fileNameError: FileNameError): void => {
+    if (fileNameError) {
+      validationAlert(fileNameError);
+    }
+    const fileNameWithoutExtension = removeExtension(file.name);
+    if (doesFileExistInMetadataWithClassRef(appMetadata, fileNameWithoutExtension)) {
       const userConfirmed = window.confirm(
         t('schema_editor.error_upload_data_model_id_exists_override_option'),
       );
@@ -59,9 +74,7 @@ export const XSDUpload = ({
         uploadDataModel(file);
       }
     }
-    if (
-      getDuplicatedDataTypeIdNotBeingDataModelInAppMetadata(appMetadata, fileNameWithoutExtension)
-    ) {
+    if (doesFileExistInMetadataWithoutClassRef(appMetadata, fileNameWithoutExtension)) {
       // Only show error if there are duplicates that does not have AppLogic.classRef
       toast.error(t('schema_editor.error_data_type_name_exists'));
     }
@@ -73,14 +86,10 @@ export const XSDUpload = ({
         <StudioSpinner spinnerTitle={t('app_data_modelling.uploading_xsd')} showSpinnerTitle />
       ) : (
         <StudioFileUploader
-          onUploadFile={handleUpload}
+          onSubmit={handleSubmit}
           accept='.xsd'
           variant={uploaderButtonVariant}
           uploaderButtonText={uploadButtonText}
-          customFileValidation={{
-            validateFileName: validateFileName,
-            onInvalidFileName: handleInvalidFileName,
-          }}
         />
       )}
     </span>
