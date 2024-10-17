@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
+using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
 
@@ -57,11 +59,30 @@ public class OptionsService : IOptionsService
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-        string payloadString = JsonSerializer.Serialize(payload, new JsonSerializerOptions() { WriteIndented = true });
-        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payloadString, cancellationToken);
+        string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
         var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
 
         return updatedOptions;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<Option>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
+            new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
+
+        IEnumerable<Option> result = deserializedOptions.Where(option => string.IsNullOrEmpty(option.Value) || string.IsNullOrEmpty(option.Label));
+        if (result.Any())
+        {
+            throw new JsonException("Uploaded file is missing one of the following attributes for an option: value or label.");
+        }
+
+        var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+        await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
+
+        return deserializedOptions;
     }
 
     /// <inheritdoc />

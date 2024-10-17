@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
 
@@ -41,6 +42,18 @@ public interface IOptionsService
     /// <param name="payload">The options list contents</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public Task<List<Option>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a new option to the option list.
+    /// If the file already exists, it will be overwritten.
+    /// </summary>
+    /// <param name="org">Orginisation</param>
+    /// <param name="repo">Repository</param>
+    /// <param name="developer">Username of developer</param>
+    /// <param name="optionsListId">Name of the new options list</param>
+    /// <param name="payload">The options list contents</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    public Task<List<Option>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes an options list from the app repository.
