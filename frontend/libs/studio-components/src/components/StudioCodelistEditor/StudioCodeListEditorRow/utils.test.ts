@@ -1,6 +1,6 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
-import { changeDescription, changeLabel, changeValue } from './utils';
+import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 
 // Test data:
 const testItem: CodeListItem = {
@@ -52,6 +52,21 @@ describe('StudioCodeListEditorRow utils', () => {
     it('Returns a new instance', () => {
       const item = createTestItem();
       const updatedItem = changeValue(item, 'updatedValue');
+      expect(updatedItem).not.toBe(item);
+    });
+  });
+
+  describe('changeHelpText', () => {
+    it('Changes the help text of the code list item', () => {
+      const item = createTestItem();
+      const newHelpText = 'Updated help text';
+      const updatedItem = changeHelpText(item, newHelpText);
+      expect(updatedItem.helpText).toBe(newHelpText);
+    });
+
+    it('Returns a new instance', () => {
+      const item = createTestItem();
+      const updatedItem = changeHelpText(item, 'Updated help text');
       expect(updatedItem).not.toBe(item);
     });
   });
