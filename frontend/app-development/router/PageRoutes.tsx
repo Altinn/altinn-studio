@@ -43,7 +43,7 @@ const router = createBrowserRouter(
         <Route
           path={GiteaRoutePaths.LatestCommit}
           element={<NavigateToLatestCommitInGitea />}
-          errorElement={<NotFoundRouteErrorBoundary />}
+          errorElement={<RouteErrorBoundary />}
         />
         <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
