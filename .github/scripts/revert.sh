@@ -108,7 +108,7 @@ echo "$COMMIT_MESSAGE"
 echo "-------------------------------------"
 echo "Files to be copied:"
 echo
-ls -1 "$TARGET/$APP_FULL/"
+ls -1 "$TARGET/$APP_FULL/*"
 echo "-------------------------------------"
 echo "Log:"
 echo
