@@ -1,1 +1,1 @@
-export type PageName = 'root' | 'codeList';
+export type PageName = 'landingPage' | 'codeList' | 'images';

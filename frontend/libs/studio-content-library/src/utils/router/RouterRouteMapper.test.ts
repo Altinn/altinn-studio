@@ -1,49 +1,42 @@
 import { RouterRouteMapperImpl } from './RouterRouteMapper';
-import { Root } from '../../pages/Root';
-import { CodeList } from '../../pages/CodeList';
-import type { PageConfig } from '../../types/PagesProps';
-
-const mockPageConfig: PageConfig = {
-  root: {
-    props: {
-      title: 'Hello',
-      children: '<h2>Welcome</h2>',
-    },
-  },
-  codeList: {
-    props: {
-      title: 'CodeList',
-    },
-  },
-};
+import { LandingPage } from '../../ContentLibrary/pages/LandingPage';
+import { CodeList } from '../../ContentLibrary/pages/CodeList';
+import { mockPagesConfig } from '../../../mocks/mockPagesConfig';
 
 describe('RouterRouteMapperImpl', () => {
   it('should create configured routes correctly', () => {
-    const routerMapper = new RouterRouteMapperImpl(mockPageConfig);
+    const routerMapper = new RouterRouteMapperImpl(mockPagesConfig);
     const routes = routerMapper.configuredRoutes;
 
-    expect(routes.has('root')).toBeTruthy();
+    expect(routes.has('landingPage')).toBeTruthy();
     expect(routes.has('codeList')).toBeTruthy();
-    expect(routes.get('root')).toBe(Root);
+    expect(routes.get('landingPage')).toBe(LandingPage);
     expect(routes.get('codeList')).toBe(CodeList);
+  });
+
+  it('should always include landingPage even when noe pages are passed', () => {
+    const routerMapper = new RouterRouteMapperImpl({});
+    const routes = routerMapper.configuredRoutes;
+    expect(routes.has('landingPage')).toBeTruthy();
+    expect(routes.get('landingPage')).toBe(LandingPage);
   });
 
   it('should include configured routes only', () => {
     const routerMapper = new RouterRouteMapperImpl({
-      root: {
+      codeList: {
         props: {
-          title: 'Hello',
-          children: '<h2>Welcome</h2>',
+          codeLists: [],
+          onUpdateCodeList: () => {},
         },
       },
     });
     const routes = routerMapper.configuredRoutes;
-    expect(routes.has('root')).toBeTruthy();
-    expect(routes.get('codeList')).toBeUndefined();
+    expect(routes.has('codeList')).toBeTruthy();
+    expect(routes.get('images')).toBeUndefined();
   });
 
   it('should not include unsupported routes', () => {
-    const routerMapper = new RouterRouteMapperImpl(mockPageConfig);
+    const routerMapper = new RouterRouteMapperImpl(mockPagesConfig);
     const routes = routerMapper.configuredRoutes;
     expect(routes.has('nonExistentPage')).toBeFalsy();
   });
