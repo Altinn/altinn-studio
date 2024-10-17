@@ -11,6 +11,7 @@ export function getNextInputElement(
     case 'ArrowUp':
       return getInputElementAboveCoords(table, currentCoords);
     case 'ArrowDown':
+    case 'Enter':
       return getInputElementBelowCoords(table, currentCoords);
     case 'ArrowLeft':
       return getInputElementLeftToCoords(table, currentCoords);
