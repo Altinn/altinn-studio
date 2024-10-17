@@ -1,1 +1,1 @@
-export { Alert as StudioAlert } from '@digdir/designsystemet-react';
+export { StudioAlert } from './StudioAlert';

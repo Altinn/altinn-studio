@@ -1,0 +1,9 @@
+.wrapper {
+  border-top: 1px solid var(--fds-semantic-border-divider-default);
+  margin-inline: var(--fds-spacing-2);
+  padding: var(--fds-spacing-3);
+}
+
+.addColumnButton {
+  margin-top: var(--fds-spacing-3);
+}
