@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
@@ -6,6 +6,8 @@ import { Combobox, Textfield } from '@digdir/designsystemet-react';
 import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 import { useComponentPropertyEnumValue } from '@altinn/ux-editor/hooks/useComponentPropertyEnumValue';
 import { StudioNativeSelect } from '@studio/components';
+
+const NO_VALUE_SELECTED_IN_NATIVE_SELECT: string = 'NO_VALUE';
 
 export interface EditStringValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -21,7 +23,7 @@ export const EditStringValue = ({
   helpText,
   enumValues,
   multiple,
-}: EditStringValueProps) => {
+}: EditStringValueProps): ReactElement => {
   const { t } = useTranslation();
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentEnumValue = useComponentPropertyEnumValue();
@@ -66,16 +68,18 @@ export const EditStringValue = ({
           ) : (
             <StudioNativeSelect
               label={fieldProps.label}
-              value={fieldProps.value}
-              onChange={(e) => fieldProps.onChange(e.target.value)}
+              value={fieldProps?.value}
+              onChange={(e) => {
+                const newVal = e.target.value;
+                fieldProps.onChange(
+                  newVal === NO_VALUE_SELECTED_IN_NATIVE_SELECT ? undefined : newVal,
+                );
+              }}
               id={`component-${propertyKey}-select${component.id}`}
               size='sm'
             >
-              {enumValues.map((value) => (
-                <option key={value} value={value}>
-                  {componentEnumValue(value)}
-                </option>
-              ))}
+              <NoValueSelectOption />
+              <SelectOptions enumOptionsList={enumValues} componentEnumValue={componentEnumValue} />
             </StudioNativeSelect>
           )
         ) : (
@@ -88,4 +92,29 @@ export const EditStringValue = ({
       }
     />
   );
+};
+
+const NoValueSelectOption = (): ReactElement => {
+  const { t } = useTranslation();
+
+  return (
+    <option value={NO_VALUE_SELECTED_IN_NATIVE_SELECT}>
+      {t('ux_editor.edit_component.no_value_selected_for_select')}
+    </option>
+  );
+};
+
+type SelectOptionsProps = {
+  enumOptionsList: string[];
+  componentEnumValue: (value: string) => string;
+};
+const SelectOptions = ({
+  enumOptionsList,
+  componentEnumValue,
+}: SelectOptionsProps): ReactElement[] => {
+  return enumOptionsList.map((value) => (
+    <option key={value} value={value}>
+      {componentEnumValue(value)}
+    </option>
+  ));
 };
