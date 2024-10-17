@@ -1,0 +1,1 @@
+export { NavigateToLatestCommitInGitea } from './NavigateToLatestCommitInGitea';

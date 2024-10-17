@@ -16,19 +16,21 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from '@digdir/designsystemet-react';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export function ReleaseContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
+  const packagesRouter = new PackagesRouter({ app, org });
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
-  const {
-    data: masterBranchStatus,
-    isPending: masterBranchStatusIsPending,
-    refetch: getMasterBranchStatus,
-  } = useBranchStatusQuery(org, app, 'master');
+  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
+    org,
+    app,
+    'master',
+  );
 
   const latestRelease: AppReleaseType = releases && releases[0] ? releases[0] : null;
 
@@ -146,17 +148,6 @@ export function ReleaseContainer() {
   }
 
   function renderCreateReleaseTitle() {
-    const handleLinkClick = async (event) => {
-      event.preventDefault(); // Prevent default link behavior
-      const url = await getLatestCommitOnMaster();
-      window.open(url, '#', 'noopener,noreferrer');
-    };
-
-    const getLatestCommitOnMaster = async () => {
-      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
-      return gitCommitPath(org, app, newMasterBranchStatus.commit.id);
-    };
-
     if (!masterBranchStatus || !repoStatus?.contentStatus) {
       return null;
     }
@@ -169,7 +160,11 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_title')}
-          <a href='#' onClick={handleLinkClick}>
+          <a
+            href={packagesRouter.getPackageNavigationUrl('latestCommit')}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
             {t('app_release.release_title_link')}
           </a>
         </>
