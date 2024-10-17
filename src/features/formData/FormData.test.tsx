@@ -543,32 +543,31 @@ describe('FormData', () => {
       const { mutations, queries } = await render();
 
       await user.type(screen.getByTestId('obj2.prop1'), 'a');
-      await user.tab();
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('true');
 
       expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
-
-      // Pretending to handle the save operation
-      await waitFor(() => expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1));
-      mutations.doPostStatelessFormData.resolve({ obj2: { prop1: 'a' } });
-
-      await waitFor(() => expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false'));
-
       await user.click(screen.getByRole('button', { name: 'Navigate to a different page' }));
       await screen.findByText('something different');
+
+      // We have to resolve the save operation, as otherwise 'hasUnsavedChanges' will be 'true' when we navigate back
+      // as otherwise it would still be working on saving the form data (and form data is marked as unsaved until the
+      // save operation is finished).
+      expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
+      mutations.doPostStatelessFormData.resolve();
 
       await user.click(screen.getByRole('button', { name: 'Navigate back' }));
       await screen.findByTestId('obj2.prop1');
 
-      // No need to re-fetch anymore, as the query cache is updated with the saved form data. This used to expect 2
-      // calls to fetchFormData, but now it's only 1.
-      expect(queries.fetchFormData).toHaveBeenCalledTimes(1);
+      // We tried to cache the form data, however that broke back button functionality for some apps.
+      // See this issue: https://github.com/Altinn/app-frontend-react/issues/2564
+      // Also see src/features/formData/useFormDataQuery.tsx where we prevent caching for statless apps
+      expect(queries.fetchFormData).toHaveBeenCalledTimes(2);
 
-      // No need to save the form data again, as it was already saved and nothing has changed since then.
-      expect(screen.getByTestId('obj2.prop1')).toHaveValue('a');
+      // Our mock fetchFormData returns an empty object, so the form data should be reset. Realistically, the form data
+      // would be restored when fetching it from the server, as we asserted that it was saved before navigating away.
+      expect(screen.getByTestId('obj2.prop1')).toHaveValue('');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false');
-      expect(mutations.doPostStatelessFormData.mock).toHaveBeenCalledTimes(1);
     });
   });
 });

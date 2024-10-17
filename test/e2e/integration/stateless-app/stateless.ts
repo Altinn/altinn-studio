@@ -55,9 +55,8 @@ describe('Stateless', () => {
     cy.get(appFrontend.stateless.number).clear();
     cy.get(appFrontend.stateless.number).type('6789');
     cy.get(appFrontend.instantiationButton).click();
-    cy.findByRole('textbox', { name: /id/i }).should('have.value', '1364'); // Make sure we are on the correct page
+    cy.get('#sendInButton').should('exist');
     cy.window().then((win) => win.history.back());
-    cy.get(appFrontend.stateless.name).should('have.value', 'hello world');
-    cy.get(appFrontend.stateless.number).should('have.value', '6789');
+    cy.get(appFrontend.instantiationButton).should('exist');
   });
 });
