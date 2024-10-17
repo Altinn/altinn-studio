@@ -23,7 +23,7 @@ export const DeprecatedCalculationsInfo = () => {
           {t('right_menu.rules_calculations_deprecated_info')}
         </StudioParagraph>
         <StudioLink
-          href={altinnDocsUrl('/nb/altinn-studio/reference/logic/dynamic/')}
+          href={altinnDocsUrl({ relativeUrl: '/app/development/logic/dynamic/' })}
           rel='noopener noreferrer'
           target='_blank'
         >

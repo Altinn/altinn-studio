@@ -81,12 +81,12 @@ export var platformEvents = {
 
 //sblBridge
 export var sblBridge = {
-  enterpriseUser: 'https://' + baseUrl + '/sblbridge/authentication/api/enterpriseuser'
+  enterpriseUser: 'https://' + baseUrl + '/sblbridge/authentication/api/enterpriseuser',
 };
 
 export var sbl = {
-  altinnBuildVersion: `https://${baseUrl}/pages/logout/AltinnBuildVersion.txt` 
-}
+  altinnBuildVersion: `https://${baseUrl}/pages/logout/AltinnBuildVersion.txt`,
+};
 
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint

@@ -17,7 +17,9 @@ export const ConditionalRendering = () => {
             <span>
               <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
                 <a
-                  href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+                  href={altinnDocsUrl({
+                    relativeUrl: 'altinn-studio/designer/build-app/expressions',
+                  })}
                   target='_newTab'
                   rel='noopener noreferrer'
                 />

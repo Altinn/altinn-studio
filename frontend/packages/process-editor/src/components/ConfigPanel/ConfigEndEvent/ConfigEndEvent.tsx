@@ -35,9 +35,10 @@ export const ConfigEndEvent = () => {
                   {t('process_editor.configuration_panel_custom_receipt_default_receipt_info')}
                 </Paragraph>
                 <Link
-                  href={altinnDocsUrl(
-                    'nb/altinn-studio/reference/configuration/process/customize/#kvittering-receipt',
-                  )}
+                  href={altinnDocsUrl({
+                    relativeUrl:
+                      'altinn-studio/reference/configuration/process/customize/#kvittering-receipt',
+                  })}
                   rel='noopener noreferrer'
                   target='_newTab'
                 >

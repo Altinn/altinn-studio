@@ -40,7 +40,7 @@ export function EditCodeListReference<T extends SelectionComponentType>({
       <p style={{ marginBottom: 0 }}>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
-            href={altinnDocsUrl('altinn-studio/guides/options/dynamic-codelists/')}
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/guides/options/dynamic-codelists/' })}
             target='_newTab'
             rel='noopener noreferrer'
           />
