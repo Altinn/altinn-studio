@@ -1,6 +1,6 @@
 .selectLayoutSet {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-4);
+  gap: var(--fds-spacing-2);
   padding: 0 var(--fds-spacing-5);
 }

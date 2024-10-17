@@ -22,7 +22,6 @@ export const EditLayoutSetButtons = ({
         onClick={onClose}
         title={t('general.close')}
         variant='secondary'
-        color='success'
       />
       <StudioDeleteButton onDelete={onDelete} size='small' title={t('general.delete')} />
     </div>

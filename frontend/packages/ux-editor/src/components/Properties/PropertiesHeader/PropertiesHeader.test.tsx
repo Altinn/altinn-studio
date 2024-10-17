@@ -98,12 +98,12 @@ describe('PropertiesHeader', () => {
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
 
-  it('should render recommendedNextAction when component is subform', () => {
+  it('should render subform config when component is subform', () => {
     renderPropertiesHeader({
       formItem: { id: 'subformComponentId', type: ComponentType.SubForm, itemType: 'COMPONENT' },
     });
-    const setLayoutSetButton = screen.getByRole('heading', {
-      name: textMock('ux_editor.component_properties.subform.choose_layout_set_header'),
+    const setLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
     });
     expect(setLayoutSetButton).toBeInTheDocument();
   });

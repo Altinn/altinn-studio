@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
-import { AddSubformModal } from './AddSubformModal';
-import { LayoutSetSelector } from './LayoutSetSelector';
+import { UndefinedLayoutSet } from './UndefinedLayoutSet/UndefinedLayoutSet';
+import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
@@ -12,28 +13,25 @@ export const EditLayoutSet = ({
   existingLayoutSetForSubform,
   onUpdateLayoutSet,
 }: EditLayoutSetProps): React.ReactElement => {
-  const addSubformDialogRef = React.useRef<HTMLDialogElement>(null);
+  const { t } = useTranslation();
+  const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
 
-  const { isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible, renderSelectLayoutSet } =
-    LayoutSetSelector({
-      existingLayoutSetForSubform,
-      onUpdateLayoutSet,
-    });
-
-  function openAddSubformDialog() {
-    addSubformDialogRef.current?.showModal();
+  if (isLayoutSetSelectorVisible) {
+    return (
+      <SelectLayoutSet
+        existingLayoutSetForSubForm={existingLayoutSetForSubform}
+        onUpdateLayoutSet={onUpdateLayoutSet}
+        onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
+      />
+    );
   }
-
-  if (isLayoutSetSelectorVisible) return renderSelectLayoutSet;
 
   const layoutSetIsUndefined = !existingLayoutSetForSubform;
   if (layoutSetIsUndefined) {
-    openAddSubformDialog();
     return (
-      <AddSubformModal
-        ref={addSubformDialogRef}
-        existingLayoutSetForSubform={existingLayoutSetForSubform}
-        onUpdateLayoutSet={onUpdateLayoutSet}
+      <UndefinedLayoutSet
+        label={t('ux_editor.component_properties.subform.selected_layout_set_label')}
+        onClick={() => setIsLayoutSetSelectorVisible(true)}
       />
     );
   }
