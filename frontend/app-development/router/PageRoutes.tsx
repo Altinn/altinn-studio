@@ -25,23 +25,21 @@ const BASE_PATH = '/:org/:app';
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />} errorElement={<AppRouteErrorBoundary />}>
-      <Route path={BASE_PATH} errorElement={<RouteErrorBoundary />}>
-        <Route element={<PageLayout />}>
-          {/* Redirects from /:org/:app to child route /overview */}
+      <Route path={BASE_PATH} element={<PageLayout />} errorElement={<RouteErrorBoundary />}>
+        {/* Redirects from /:org/:app to child route /overview */}
+        <Route
+          path={RoutePaths.Root}
+          element={<Navigate to={RoutePaths.Overview} />}
+          errorElement={<RouteErrorBoundary />}
+        />
+        {routerRoutes.map((route) => (
           <Route
-            path={RoutePaths.Root}
-            element={<Navigate to={RoutePaths.Overview} />}
+            key={route.path}
+            path={route.path}
+            element={<route.subapp {...route.props} />}
             errorElement={<RouteErrorBoundary />}
           />
-          {routerRoutes.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              element={<route.subapp {...route.props} />}
-              errorElement={<RouteErrorBoundary />}
-            />
-          ))}
-        </Route>
+        ))}
         <Route
           path={GiteaRoutePaths.LatestCommit}
           element={<NavigateToLatestCommitInGitea />}
