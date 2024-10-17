@@ -108,7 +108,7 @@ echo "$COMMIT_MESSAGE"
 echo "-------------------------------------"
 echo "Files to be copied:"
 echo
-ls -1 "$TARGET/$APP_FULL/"
+ls -1 "$TARGET/$APP_FULL"
 echo "-------------------------------------"
 echo "Log:"
 echo
@@ -119,11 +119,11 @@ cd "$TARGET"
 echo " * Copying Major version"
 test -e "$TARGET/$APP_MAJOR" && git rm -r "$TARGET/$APP_MAJOR"
 mkdir -p "$TARGET/$APP_MAJOR"
-cp -fr "$TARGET/$APP_FULL/*" "$TARGET/$APP_MAJOR/"
+cp -fr "$TARGET/$APP_FULL/." "$TARGET/$APP_MAJOR"
 echo " * Copying Minor version"
 test -e "$TARGET/$APP_MAJOR_MINOR" && git rm -r "$TARGET/$APP_MAJOR_MINOR"
 mkdir -p "$TARGET/$APP_MAJOR_MINOR"
-cp -fr "$TARGET/$APP_FULL/*" "$TARGET/$APP_MAJOR_MINOR/"
+cp -fr "$TARGET/$APP_FULL/." "$TARGET/$APP_MAJOR_MINOR"
 
 cd ../..
 
@@ -146,11 +146,7 @@ else
     echo
     echo "azure-sa-name seems to be a local directory. Simulating azcopy sync with rsync to folder"
     echo
-    toolkits_rsync_opts=( -am --include='*/' --include="${APP_FULL}/*" --include="index.json" )
-    if [[ "$PRE_RELEASE" == "no" ]]; then
-      toolkits_rsync_opts+=( --include="${APP_MAJOR}/*" --include="${APP_MAJOR_MINOR}/*" )
-    fi
-    toolkits_rsync_opts+=( --exclude='*' )
+    toolkits_rsync_opts=( -am --include='*/' --include="${APP_MAJOR}/*" --include="${APP_MAJOR_MINOR}/*" --exclude='*' )
     set -x
     rsync "${toolkits_rsync_opts[@]}" $TARGET $AZURE_STORAGE_ACCOUNT_NAME
     set +x
