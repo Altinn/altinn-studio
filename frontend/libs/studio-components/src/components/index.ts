@@ -19,6 +19,7 @@ export * from './StudioDivider';
 export * from './StudioDropdownMenu';
 export * from './StudioError';
 export * from './StudioExpression';
+export * from './StudioFieldset';
 export * from './StudioFileUploader';
 export * from './StudioGridSelector';
 export * from './StudioHeading';
