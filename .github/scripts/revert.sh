@@ -161,6 +161,10 @@ else
     else
       echo "Publishing files to azure cdn"
     fi
+    echo $TARGET
+    echo $APP_MAJOR
+    echo $APP_MAJOR_MINOR
+    echo
     azcopy sync "$TARGET" "$AZURE_TARGET_URI/toolkits${AZURE_STORAGE_ACCOUNT_TOKEN}" "${AZCOPY_TOOLKITS_OPTS[@]}" "${AZCOPY_ADDITIONAL_OPTS[@]}"
     echo "-------------------------------------"
     if [[ "$SYNC_AZURE_CDN" != "no" ]]; then
