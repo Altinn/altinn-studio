@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -20,7 +21,9 @@ using Json.Pointer;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Newtonsoft.Json;
 using Xunit.Abstractions;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.App.Api.Tests.Controllers;
 
@@ -592,6 +595,42 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var nextResponseContent = await nextResponse.Content.ReadAsStringAsync();
         OutputHelper.WriteLine(nextResponseContent);
         nextResponse.Should().HaveStatusCode(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ProcessHistory_ShouldReturnProcessHistory()
+    {
+        var start = "2024-10-16T10:33:54.935732Z";
+        var processList = new ProcessHistoryList()
+        {
+            ProcessHistory = [new() { ElementId = "Task_1", Started = DateTime.Parse(start).ToUniversalTime(), }],
+        };
+        SendAsync = message =>
+        {
+            ArgumentNullException.ThrowIfNull(message.RequestUri);
+            message
+                .RequestUri.PathAndQuery.Should()
+                .Be($"/storage/api/v1/instances/{InstanceOwnerPartyId}/{_instanceGuid}/process/history");
+            return Task.FromResult(
+                new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(processList)), // Api uses Newtonsoft.Json
+                }
+            );
+        };
+        HttpClient client = GetRootedClient(Org, App, 1337, InstanceOwnerPartyId);
+        string url = $"/{Org}/{App}/instances/{InstanceOwnerPartyId}/{_instanceGuid}/process/history";
+
+        HttpResponseMessage response = await client.GetAsync(url);
+
+        var content = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(content);
+        response.Should().HaveStatusCode(HttpStatusCode.OK);
+        content
+            .Should()
+            .Be(
+                $$"""{"processHistory":[{"eventType":null,"elementId":"Task_1","occured":null,"started":"{{start}}","ended":null,"performedBy":null}]}"""
+            );
     }
 
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205

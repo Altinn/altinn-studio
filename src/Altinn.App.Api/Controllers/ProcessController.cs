@@ -584,7 +584,7 @@ public class ProcessController : ControllerBase
     [HttpGet("history")]
     [Authorize(Policy = AuthzConstants.POLICY_INSTANCE_READ)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> GetProcessHistory(
+    public async Task<ActionResult<ProcessHistoryList>> GetProcessHistory(
         [FromRoute] int instanceOwnerPartyId,
         [FromRoute] Guid instanceGuid
     )
