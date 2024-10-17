@@ -119,11 +119,11 @@ cd "$TARGET"
 echo " * Copying Major version"
 test -e "$TARGET/$APP_MAJOR" && git rm -r "$TARGET/$APP_MAJOR"
 mkdir -p "$TARGET/$APP_MAJOR"
-cp -fr "$TARGET/$APP_FULL/" "$TARGET/$APP_MAJOR/"
+cp -fr "$TARGET/$APP_FULL/*" "$TARGET/$APP_MAJOR/"
 echo " * Copying Minor version"
 test -e "$TARGET/$APP_MAJOR_MINOR" && git rm -r "$TARGET/$APP_MAJOR_MINOR"
 mkdir -p "$TARGET/$APP_MAJOR_MINOR"
-cp -fr "$TARGET/$APP_FULL/" "$TARGET/$APP_MAJOR_MINOR/"
+cp -fr "$TARGET/$APP_FULL/*" "$TARGET/$APP_MAJOR_MINOR/"
 
 cd ../..
 
@@ -156,7 +156,7 @@ else
     set +x
     echo "-------------------------------------"
   else
-    AZCOPY_INCLUDE_REGEX="|^$APP_MAJOR/.*|^$APP_MAJOR_MINOR/.*"
+    AZCOPY_INCLUDE_REGEX="^$APP_MAJOR/.*|^$APP_MAJOR_MINOR/.*"
     AZCOPY_TOOLKITS_OPTS=( --include-regex="${AZCOPY_INCLUDE_REGEX}" )
     AZCOPY_ADDITIONAL_OPTS=( --put-md5 --compare-hash=MD5 --delete-destination=true )
     if [[ "$SYNC_AZURE_CDN" == "no" ]]; then
