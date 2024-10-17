@@ -47,19 +47,18 @@ export function EditCodeList<T extends SelectionComponentType>({
   const onSubmit = (file: File) => {
     const fileNameError = findFileNameError(optionListIds, file.name);
     if (fileNameError) {
-      handleInvalidFileName(file, fileNameError);
+      handleInvalidFileName(fileNameError);
     } else {
       handleUpload(file);
     }
   };
 
-  const handleInvalidFileName = (file: File, fileNameError: FileNameError) => {
-    if (fileNameError == 'invalidFileName') {
-      alert(t('ux_editor.model_properties_code_list_filename_error'));
-    }
-
-    if (fileNameError == 'fileExists') {
-      toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+  const handleInvalidFileName = (fileNameError: FileNameError) => {
+    switch (fileNameError) {
+      case 'invalidFileName':
+        return toast.error(t('ux_editor.model_properties_code_list_filename_error'));
+      case 'fileExists':
+        return toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
     }
   };
 
@@ -152,9 +151,9 @@ function CodeListSelectorWithData<T extends SelectionComponentType>({
           <option hidden value=''>
             {t('ux_editor.modal_properties_code_list_helper')}
           </option>
-          {optionListIds.map((option) => (
-            <option key={option} value={option}>
-              {option}
+          {optionListIds.map((optionListId) => (
+            <option key={optionListId} value={optionListId}>
+              {optionListId}
             </option>
           ))}
         </StudioNativeSelect>

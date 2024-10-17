@@ -76,7 +76,7 @@ public class OptionsService : IOptionsService
         IEnumerable<Option> result = deserializedOptions.Where(option => string.IsNullOrEmpty(option.Value) || string.IsNullOrEmpty(option.Label));
         if (result.Any())
         {
-            throw new JsonException("Uploaded file is missing one of the following attributes for a option: value or label.");
+            throw new JsonException("Uploaded file is missing one of the following attributes for an option: value or label.");
         }
 
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
