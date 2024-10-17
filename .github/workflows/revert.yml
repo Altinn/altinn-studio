@@ -15,6 +15,13 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: app-frontend
+          sparse-checkout: |
+            .github
+
       - name: Checkout Altinn-CDN repository
         uses: actions/checkout@v4
         with:
@@ -40,6 +47,7 @@ jobs:
            --tag "${{ inputs.tag }}" \
            --actor "${{ github.actor }}" \
            --actor_id "${{ github.actor_id }}" \
+           --frontend ./app-frontend \
            --cdn ./cdn \
            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
            --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
