@@ -41,22 +41,21 @@ export const SelectDataTypes = ({
     ? [...new Set([...dataModelIds, existingDataType])]
     : dataModelIds;
 
+  const descriptionText = existingDataType
+    ? t('process_editor.configuration_panel_data_model_selection_description_existing_model')
+    : t('process_editor.configuration_panel_data_model_selection_description');
+
+  const value =
+    existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
+      ? currentValue
+      : undefined;
+
   return (
     <div className={classes.dataTypeSelectAndButtons}>
       <StudioCombobox
         label={t('process_editor.configuration_panel_set_data_model_label')}
-        value={
-          existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
-            ? currentValue
-            : undefined
-        }
-        description={
-          existingDataType
-            ? t(
-                'process_editor.configuration_panel_data_model_selection_description_existing_model',
-              )
-            : t('process_editor.configuration_panel_data_model_selection_description')
-        }
+        value={value}
+        description={descriptionText}
         size='small'
         className={classes.dataTypeSelect}
       >
