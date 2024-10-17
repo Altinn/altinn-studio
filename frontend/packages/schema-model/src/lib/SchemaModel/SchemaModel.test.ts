@@ -2,25 +2,18 @@ import { SchemaModel } from './SchemaModel';
 import {
   allOfNodeChildMock,
   allOfNodeMock,
-  arrayNodeMock,
   combinationDefNodeChild1Mock,
-  combinationDefNodeMock,
   combinationNodeWithMultipleChildrenMock,
   defNodeMock,
   defNodeWithChildrenChildMock,
   defNodeWithChildrenGrandchildMock,
   defNodeWithChildrenMock,
-  enumNodeMock,
   nodeMockBase,
   nodeWithSameNameAsStringNodeMock,
-  numberNodeMock,
-  optionalNodeMock,
   parentNodeMock,
-  referenceDefinitionMock,
   referenceNodeMock,
   referenceToCombinationDefNodeMock,
   referenceToObjectNodeMock,
-  requiredNodeMock,
   rootNodeMock,
   simpleArrayMock,
   simpleChildNodeMock,
@@ -30,18 +23,17 @@ import {
   subSubNodeMock,
   uiSchemaMock,
   unusedDefinitionMock,
-  unusedDefinitionWithSameNameAsExistingObjectMock,
-} from '../../test/uiSchemaMock';
+} from '../../../test/uiSchemaMock';
 import { expect } from '@jest/globals';
-import { validateTestUiSchema } from '../../test/validateTestUiSchema';
-import type { NodePosition, UiSchemaNodes } from '../types';
-import { CombinationKind, FieldType, ObjectKind } from '../types';
-import type { FieldNode } from '../types/FieldNode';
-import type { ReferenceNode } from '../types/ReferenceNode';
-import { extractNameFromPointer } from './pointerUtils';
-import { isArray, isDefinition } from './utils';
-import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from './constants';
-import type { CombinationNode } from '../types/CombinationNode';
+import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
+import type { NodePosition, UiSchemaNodes } from '../../types';
+import { CombinationKind, FieldType, ObjectKind } from '../../types';
+import type { FieldNode } from '../../types/FieldNode';
+import type { ReferenceNode } from '../../types/ReferenceNode';
+import { extractNameFromPointer } from '../pointerUtils';
+import { isArray, isDefinition } from '../utils';
+import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
+import type { CombinationNode } from '../../types/CombinationNode';
 import { ArrayUtils } from '@studio/pure-functions';
 
 // Test data:
@@ -85,33 +77,6 @@ describe('SchemaModel', () => {
   describe('asArray', () => {
     it('Returns the nodes as an array', () => {
       expect(schemaModel.asArray()).toEqual(uiSchemaMock);
-    });
-  });
-
-  describe('getRootNode', () => {
-    it('Returns the root node', () => {
-      expect(schemaModel.getRootNode()).toEqual(rootNodeMock);
-    });
-
-    it('Throws an error if the root node is not a field nor a combination node', () => {
-      const invalidRootNode = { ...referenceNodeMock, schemaPointer: ROOT_POINTER };
-      const model = SchemaModel.fromArray([invalidRootNode]);
-      expect(() => model.getRootNode()).toThrowError();
-    });
-  });
-
-  describe('getNodeBySchemaPointer', () => {
-    it('Returns the node with the given pointer', () => {
-      expect(schemaModel.getNodeBySchemaPointer(parentNodeMock.schemaPointer)).toEqual(
-        parentNodeMock,
-      );
-      expect(schemaModel.getNodeBySchemaPointer(defNodeMock.schemaPointer)).toEqual(defNodeMock);
-      expect(schemaModel.getNodeBySchemaPointer(allOfNodeMock.schemaPointer)).toEqual(
-        allOfNodeMock,
-      );
-      expect(schemaModel.getNodeBySchemaPointer(stringNodeMock.schemaPointer)).toEqual(
-        stringNodeMock,
-      );
     });
   });
 
@@ -209,114 +174,6 @@ describe('SchemaModel', () => {
     });
   });
 
-  describe('hasNode', () => {
-    it('Returns true if the node with the given pointer exists', () => {
-      expect(schemaModel.hasNode(parentNodeMock.schemaPointer)).toBe(true);
-      expect(schemaModel.hasNode(defNodeMock.schemaPointer)).toBe(true);
-      expect(schemaModel.hasNode(allOfNodeMock.schemaPointer)).toBe(true);
-      expect(schemaModel.hasNode(stringNodeMock.schemaPointer)).toBe(true);
-    });
-
-    it('Returns false if the node with the given pointer does not exist', () => {
-      expect(schemaModel.hasNode('badPointer')).toBe(false);
-    });
-  });
-
-  describe('hasDefinition', () => {
-    it('Returns true if the definition with the given name exists', () => {
-      expect(schemaModel.hasDefinition(extractNameFromPointer(defNodeMock.schemaPointer))).toBe(
-        true,
-      );
-      expect(
-        schemaModel.hasDefinition(extractNameFromPointer(defNodeWithChildrenMock.schemaPointer)),
-      ).toBe(true);
-    });
-
-    it('Returns false if the definition with the given name does not exist', () => {
-      expect(schemaModel.hasDefinition('badName')).toBe(false);
-    });
-  });
-
-  describe('getDefinitions', () => {
-    it('Returns all definition nodes', () => {
-      const result = schemaModel.getDefinitions();
-      expect(result).toEqual([
-        defNodeMock,
-        defNodeWithChildrenMock,
-        unusedDefinitionMock,
-        unusedDefinitionWithSameNameAsExistingObjectMock,
-        referenceDefinitionMock,
-        combinationDefNodeMock,
-      ]);
-    });
-  });
-
-  describe('getRootProperties', () => {
-    it('Returns all root properties', () => {
-      const result = schemaModel.getRootProperties();
-      expect(result).toEqual([
-        parentNodeMock,
-        allOfNodeMock,
-        simpleParentNodeMock,
-        simpleArrayMock,
-        referenceToObjectNodeMock,
-        nodeWithSameNameAsStringNodeMock,
-        combinationNodeWithMultipleChildrenMock,
-        referenceToCombinationDefNodeMock,
-      ]);
-    });
-  });
-
-  describe('getRootNodes', () => {
-    it('Returns all root nodes', () => {
-      const result = schemaModel.getRootChildren();
-      expect(result).toEqual([
-        parentNodeMock,
-        defNodeMock,
-        allOfNodeMock,
-        simpleParentNodeMock,
-        simpleArrayMock,
-        defNodeWithChildrenMock,
-        referenceToObjectNodeMock,
-        unusedDefinitionMock,
-        unusedDefinitionWithSameNameAsExistingObjectMock,
-        referenceDefinitionMock,
-        nodeWithSameNameAsStringNodeMock,
-        combinationNodeWithMultipleChildrenMock,
-        referenceToCombinationDefNodeMock,
-        combinationDefNodeMock,
-      ]);
-    });
-  });
-
-  describe('getChildNodes', () => {
-    it('Returns all child nodes when the given node is an object', () => {
-      const result = schemaModel.getChildNodes(parentNodeMock.schemaPointer);
-      expect(result).toEqual([
-        stringNodeMock,
-        numberNodeMock,
-        enumNodeMock,
-        arrayNodeMock,
-        optionalNodeMock,
-        requiredNodeMock,
-        referenceNodeMock,
-        subParentNodeMock,
-      ]);
-    });
-
-    it("Returns the referenced object's child nodes when the given node is a reference", () => {
-      const result = schemaModel.getChildNodes(referenceToObjectNodeMock.schemaPointer);
-      expect(result).toEqual([defNodeWithChildrenChildMock]);
-    });
-  });
-
-  describe('getReferredNode', () => {
-    it('Returns the referred node', () => {
-      const result = schemaModel.getReferredNode(referenceNodeMock);
-      expect(result).toEqual(defNodeMock);
-    });
-  });
-
   describe('areDefinitionParentsInUse', () => {
     it('Returns false if definition parent not in use', () => {
       const result = schemaModel.areDefinitionParentsInUse(unusedDefinitionMock.schemaPointer);
@@ -328,54 +185,6 @@ describe('SchemaModel', () => {
         defNodeWithChildrenChildMock.schemaPointer,
       );
       expect(result).toBeTruthy();
-    });
-  });
-
-  describe('getFinalNode', () => {
-    it('Returns the node itself when it is not a reference', () => {
-      const result = schemaModel.getFinalNode(parentNodeMock.schemaPointer);
-      expect(result).toEqual(parentNodeMock);
-    });
-
-    it('Returns the referred node when the given node is a reference to a field node', () => {
-      const result = schemaModel.getFinalNode(referenceNodeMock.schemaPointer);
-      expect(result).toEqual(defNodeMock);
-    });
-
-    it('Returns the node referred by the referred node when the given node is a reference to a reference to a field node', () => {
-      const result = schemaModel.getFinalNode(referenceDefinitionMock.schemaPointer);
-      expect(result).toEqual(defNodeMock);
-    });
-  });
-
-  describe('doesNodeHaveChildWithName', () => {
-    it('Returns true when the given node has a child with the given name', () => {
-      const result = schemaModel.doesNodeHaveChildWithName(
-        parentNodeMock.schemaPointer,
-        'stringNode',
-      );
-      expect(result).toBe(true);
-    });
-
-    it('Returns true when the node referred by the given node has a child with the given name', () => {
-      const result = schemaModel.doesNodeHaveChildWithName(
-        referenceToObjectNodeMock.schemaPointer,
-        'child',
-      );
-      expect(result).toBe(true);
-    });
-
-    it('Returns false when the given node does not have a child with the given name', () => {
-      const result = schemaModel.doesNodeHaveChildWithName(parentNodeMock.schemaPointer, 'badName');
-      expect(result).toBe(false);
-    });
-
-    it('Returns false when the node referred by the given node does not have a child with the given name', () => {
-      const result = schemaModel.doesNodeHaveChildWithName(
-        referenceToObjectNodeMock.schemaPointer,
-        'badName',
-      );
-      expect(result).toBe(false);
     });
   });
 
