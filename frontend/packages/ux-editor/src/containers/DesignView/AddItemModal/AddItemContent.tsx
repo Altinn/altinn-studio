@@ -8,6 +8,7 @@ import type { AddedItem } from './types';
 import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
+import { StudioParagraph } from '@studio/components';
 
 export type AddItemContentProps = {
   item: AddedItem | null;
@@ -27,6 +28,9 @@ export const AddItemContent = ({
   return (
     <div className={classes.root}>
       <div className={classes.allComponentsWrapper}>
+        <StudioParagraph spacing size='small' style={{ width: '100%' }}>
+          Klikk på en komponent for å se mer informasjon om den.
+        </StudioParagraph>
         {Object.keys(availableComponents).map((key) => {
           return (
             <ItemCategory

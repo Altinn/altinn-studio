@@ -1,18 +1,20 @@
 .componentButton {
-  height: 50px;
-  width: 180px;
   margin: 8px;
-}
-
-.componentsInfoWrapper {
-  flex: 1;
-  background-color: var(--fds-semantic-surface-info-subtle);
-  padding: 20px;
+  justify-content: start;
+  width: 230px;
 }
 
 .componentsWrapper {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   height: 100%;
   flex-wrap: wrap;
+  justify-content: start;
+  align-items: start;
+}
+
+.itemCategory {
+  margin-bottom: 12px;
+  margin-right: 12px;
+  max-width: calc(50% - 12px);
 }

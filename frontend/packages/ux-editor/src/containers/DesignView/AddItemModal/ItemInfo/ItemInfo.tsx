@@ -24,18 +24,14 @@ export type ItemInfoProps = {
 export const ItemInfo = ({ item, onAddItem, setItem, generateComponentId }: ItemInfoProps) => {
   const { t } = useTranslation();
   return (
-    <>
+    <div className={classes.root}>
       <StudioHeading level={2} size='medium' spacing>
-        {t('ux_editor.component_add_item.info_heading')}
+        {!item && t('ux_editor.component_add_item.info_heading')}
+        {item && getComponentTitleByComponentType(item.componentType, t)}
       </StudioHeading>
       {!item && <p>{t('ux_editor.component_add_item.info_no_component_selected')}</p>}
       {item && (
         <div>
-          <p>
-            {t('ux_editor.component_add_item.info_component_selected', {
-              componentName: getComponentTitleByComponentType(item.componentType, t),
-            })}
-          </p>
           <StudioParagraph className={classes.componentHelpText} spacing size='small'>
             {getComponentHelperTextByComponentType(item.componentType, t)}
           </StudioParagraph>
@@ -69,6 +65,6 @@ export const ItemInfo = ({ item, onAddItem, setItem, generateComponentId }: Item
           />
         </StudioRecommendedNextAction>
       )}
-    </>
+    </div>
   );
 };

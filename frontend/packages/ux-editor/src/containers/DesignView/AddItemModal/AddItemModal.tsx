@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   addItemOfType,
   getAvailableChildComponentsForContainer,
@@ -10,10 +10,11 @@ import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IInternalLayout } from '../../../types/global';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { StudioButton, StudioHeading, StudioModal } from '@studio/components';
-import type { AddedItemProps } from '../ComponentModal/ComponentModal';
+import { StudioButton, StudioModal } from '@studio/components';
+import type { AddedItem } from './types';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItemContent } from './AddItemContent';
+import { PlusCircleIcon } from '@studio/icons';
 
 export type AddItemProps = {
   containerId: string;
@@ -22,16 +23,17 @@ export type AddItemProps = {
 
 export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
   const [isComponentModalOpen, setIsComponentModalOpen] = React.useState(false);
-  const [selectedItem, setSelectedItem] = React.useState<AddedItemProps | null>(null);
+  const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
 
   const handleCloseModal = () => {
     setSelectedItem(null);
     setIsComponentModalOpen(false);
+    modalRef.current?.close();
   };
   const { handleEdit } = useFormItemContext();
 
   const { org, app } = useStudioEnvironmentParams();
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName } = useAppContext();
 
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
     org,
@@ -39,48 +41,56 @@ export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
     selectedFormLayoutSetName,
   );
 
+  const modalRef = useRef<HTMLDialogElement>(null);
+
   const addItem = (type: ComponentType, parentId: string, index: number, newId: string) => {
     const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
-    addItemToLayout(
-      { componentType: type, newId, parentId, index },
-      {
-        onSuccess: async () => {
-          await refetchLayouts(selectedFormLayoutSetName);
-        },
-      },
-    );
+    addItemToLayout({ componentType: type, newId, parentId, index });
     handleEdit(getItem(updatedLayout, newId));
   };
 
-  const onAddComponent = (addedItem: AddedItemProps) => {
+  const onAddComponent = (addedItem: AddedItem) => {
     addItem(
       addedItem.componentType,
       containerId,
       layout.order[containerId].length,
       addedItem.componentId,
     );
-    setIsComponentModalOpen(false);
+    handleCloseModal();
   };
 
+  const handleOpenModal = useCallback(() => {
+    setIsComponentModalOpen(true);
+    modalRef.current?.showModal();
+  }, []);
+
   return (
-    <>
-      <StudioButton variant='secondary' fullWidth onClick={() => setIsComponentModalOpen(true)}>
-        Add component!
-      </StudioButton>
-      <StudioModal
-        isOpen={isComponentModalOpen}
-        onClose={handleCloseModal}
-        title={<StudioHeading level={1}>Velg komponent</StudioHeading>}
-        closeButtonLabel='Lukk'
-      >
-        <AddItemContent
-          item={selectedItem}
-          setItem={setSelectedItem}
-          onAddItem={onAddComponent}
-          availableComponents={getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID)}
-        />
-      </StudioModal>
-    </>
+    <div style={{ display: 'flex', justifyContent: 'center', marginLeft: 12, marginRight: 12 }}>
+      <StudioModal.Root>
+        <StudioButton
+          icon={<PlusCircleIcon />}
+          onClick={handleOpenModal}
+          variant='tertiary'
+          fullWidth
+        >
+          Legg til komponent
+        </StudioButton>
+        <StudioModal.Dialog
+          onClose={handleCloseModal}
+          heading={'Velg komponent'}
+          closeButtonTitle='Lukk'
+          style={{ minWidth: '80vw', overflowY: 'hidden' }}
+          ref={modalRef}
+        >
+          <AddItemContent
+            item={selectedItem}
+            setItem={setSelectedItem}
+            onAddItem={onAddComponent}
+            availableComponents={getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID)}
+          />
+        </StudioModal.Dialog>
+      </StudioModal.Root>
+    </div>
   );
 };

@@ -34,7 +34,5 @@
 }
 
 .root {
-  display: flex;
-  flex-direction: row;
-  min-width: 70vw;
+  min-width: 360px;
 }

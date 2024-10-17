@@ -1,9 +1,9 @@
 import React from 'react';
-import { StudioButton, StudioHeading } from '@studio/components';
+import { StudioButton, StudioCard, StudioHeading } from '@studio/components';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';
-import type { AddedItemProps } from '../../ComponentModal/ComponentModal';
+import type { AddedItem } from '../types';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { getComponentTitleByComponentType } from '../../../../utils/language';
 
@@ -11,7 +11,7 @@ export type ItemCategoryProps = {
   items: IToolbarElement[];
   category: string;
   selectedItemType: ComponentType;
-  setAddedItem(addedItem: AddedItemProps): void;
+  setAddedItem(addedItem: AddedItem): void;
   generateComponentId: (type: string) => string;
 };
 
@@ -23,30 +23,50 @@ export const ItemCategory = ({
   generateComponentId,
 }: ItemCategoryProps) => {
   const { t } = useTranslation();
+
   return (
-    <div className={classes.ItemCategory}>
-      <StudioHeading level={2} size='small' spacing>
+    <StudioCard color='subtle' className={classes.itemCategory}>
+      <StudioHeading level={2} size='small'>
         {t(`ux_editor.component_category.${category}`)}
       </StudioHeading>
       <div className={classes.componentsWrapper}>
         {items.map((item: IToolbarElement) => (
-          <StudioButton
-            className={classes.componentButton}
+          <ComponentButton
+            tooltipContent={getComponentTitleByComponentType(item.type, t) || item.label}
+            selected={selectedItemType === item.type}
             key={item.type}
-            icon={React.createElement(item.icon)}
-            onClick={() =>
+            icon={item.icon}
+            onClick={() => {
               setAddedItem({
                 componentType: item.type,
                 componentId: generateComponentId(item.type),
-              })
-            }
-            variant={selectedItemType === item.type ? 'primary' : 'secondary'}
-            size='small'
-          >
-            {getComponentTitleByComponentType(item.type, t) || item.label}
-          </StudioButton>
+              });
+            }}
+          />
         ))}
       </div>
-    </div>
+    </StudioCard>
   );
 };
+
+type ComponentButtonProps = {
+  tooltipContent: string;
+  selected: boolean;
+  icon: React.ComponentType;
+  onClick: () => void;
+};
+function ComponentButton({ tooltipContent, selected, icon, onClick }: ComponentButtonProps) {
+  return (
+    <StudioButton
+      variant={selected ? 'primary' : 'tertiary'}
+      onClick={onClick}
+      size='sm'
+      aria-label={tooltipContent}
+      className={classes.componentButton}
+      title={tooltipContent}
+      icon={React.createElement(icon, { fontSize: '1.5rem' } as any)}
+    >
+      {tooltipContent}
+    </StudioButton>
+  );
+}
