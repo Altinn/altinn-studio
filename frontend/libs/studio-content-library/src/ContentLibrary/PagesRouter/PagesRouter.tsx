@@ -37,12 +37,14 @@ type PageNavigationTileProps = {
   onClick: (newPage: PageName) => void;
 };
 
-export function PageNavigationTile({
+function PageNavigationTile({
   currentPage,
   pageName,
   onClick,
 }: PageNavigationTileProps): React.ReactElement {
   const { t } = useTranslation();
+
+  if (!pagesRouterConfigs[pageName]) return null;
 
   return (
     <div

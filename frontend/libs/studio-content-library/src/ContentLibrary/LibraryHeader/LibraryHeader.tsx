@@ -15,8 +15,11 @@ export function LibraryHeader(): React.ReactElement {
   };
 
   return (
-    <div className={classes.libraryHeading} onClick={() => handleNavigation('landingPage')}>
-      <div className={classes.libraryLandingPageNavigation}>
+    <div className={classes.libraryHeading}>
+      <div
+        className={classes.libraryLandingPageNavigation}
+        onClick={() => handleNavigation('landingPage')}
+      >
         {pagesRouterConfigs['landingPage'].icon}
         <StudioHeading size='small'>
           {t(pagesRouterConfigs['landingPage'].pageTitleTextKey)}

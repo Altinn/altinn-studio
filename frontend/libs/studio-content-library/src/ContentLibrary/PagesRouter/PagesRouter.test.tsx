@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { PagesRouter } from './PagesRouter';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../../contexts/RouterContext';
+import type { PageName } from '../../types/PageName';
 
 const navigateMock = jest.fn();
 
@@ -16,8 +17,6 @@ describe('PagesRouter', () => {
     expect(imagesNavTitle).toBeInTheDocument();
   });
 
-  it('renders currentPage as selected in the pageRouter list', () => {});
-
   it('calls navigate from RouterContext when clicking on a page that is not selected', async () => {
     const user = userEvent.setup();
     renderPagesRouter();
@@ -26,13 +25,19 @@ describe('PagesRouter', () => {
     expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith('images');
   });
+
+  it('returns null if trying to render an unknown pageName', () => {
+    const pageName: string = 'unknownPageName';
+    renderPagesRouter([pageName as PageName]);
+    const navTitle = screen.queryByText(pageName);
+    expect(navTitle).not.toBeInTheDocument();
+  });
 });
 
-const renderPagesRouter = () => {
-  //render(<PagesRouter pageNames={['landingPage', 'codeList', 'images']}/>)
+const renderPagesRouter = (pageNames: PageName[] = ['codeList', 'images']) => {
   render(
     <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
-      <PagesRouter pageNames={['codeList', 'images']} />
+      <PagesRouter pageNames={pageNames} />
     </RouterContext.Provider>,
   );
 };

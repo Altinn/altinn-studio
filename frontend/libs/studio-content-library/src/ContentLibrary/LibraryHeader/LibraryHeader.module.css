@@ -1,6 +1,6 @@
 .libraryHeading {
   padding: var(--fds-spacing-4);
-  border-bottom: solid 1px var(--fds-semantic-surface-action-second-subtle);
+  border-bottom: solid 1px var(--fds-semantic-border-neutral-subtle);
 }
 
 .libraryLandingPageNavigation {

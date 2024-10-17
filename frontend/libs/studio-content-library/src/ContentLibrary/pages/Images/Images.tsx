@@ -20,7 +20,9 @@ export function Images({ images, onUpdateImage }: ImagesProps): React.ReactEleme
 
   return (
     <div>
-      <StudioHeading size='small'>{t('app_content_library.images.page_name')}</StudioHeading>
+      <StudioHeading size='small' spacing>
+        {t('app_content_library.images.page_name')}
+      </StudioHeading>
       {noExistingImages ? (
         <Alert size='small'>{t('app_content_library.images.no_content')}</Alert>
       ) : (

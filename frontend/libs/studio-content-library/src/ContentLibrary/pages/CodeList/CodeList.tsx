@@ -19,7 +19,9 @@ export function CodeList({ codeLists, onUpdateCodeList }: CodeListProps): React.
 
   return (
     <div>
-      <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
+      <StudioHeading size='small' spacing>
+        {t('app_content_library.code_lists.page_name')}
+      </StudioHeading>
       {noExistingCodeLists ? (
         <Alert size='small'>{t('app_content_library.code_lists.no_content')}</Alert>
       ) : (
