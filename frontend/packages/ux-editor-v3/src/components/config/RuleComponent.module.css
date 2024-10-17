@@ -39,22 +39,6 @@
   padding: 30px;
 }
 
-.reactModalOverlay {
-  display: flex;
-  justify-content: center;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: var(--overlay-gradient);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow-y: auto;
-  z-index: 1000;
-}
-
 .subTitle {
   font-size: 18px;
 }
