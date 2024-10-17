@@ -40,12 +40,15 @@ const router = createBrowserRouter(
             errorElement={<RouteErrorBoundary />}
           />
         ))}
+        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
+      </Route>
+      <Route path={BASE_PATH}>
+        {/* Additional BasePath route to avoid using PageLayout around NavigateToLatestCommitInGitea */}
         <Route
           path={GiteaRoutePaths.LatestCommit}
           element={<NavigateToLatestCommitInGitea />}
           errorElement={<RouteErrorBoundary />}
         />
-        <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
       </Route>
       <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
