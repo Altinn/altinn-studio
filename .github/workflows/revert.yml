@@ -43,7 +43,7 @@ jobs:
           FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
           FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
         run: |
-          bash .github/scripts/revert.sh \
+          bash app-frontend/.github/scripts/revert.sh \
            --tag "${{ inputs.tag }}" \
            --actor "${{ github.actor }}" \
            --actor_id "${{ github.actor_id }}" \
