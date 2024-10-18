@@ -67,4 +67,14 @@ export class ArrayUtils {
   public static prepend<T>(array: T[], item: T): T[] {
     return [item, ...array];
   }
+
+  public static removeEmptyStrings(array: string[]): string[] {
+    return ArrayUtils.removeItemByValue(array, '');
+  }
+
+  public static areThereNonEmptyStringDuplicates(values: string[]): boolean {
+    const nonEmptyValues = ArrayUtils.removeEmptyStrings(values);
+    const uniqueValues = ArrayUtils.removeDuplicates(nonEmptyValues);
+    return nonEmptyValues.length !== uniqueValues.length;
+  }
 }
