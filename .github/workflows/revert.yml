@@ -1,4 +1,5 @@
 name: Roll back release
+run-name: Roll back to ${{ inputs.tag }}
 on:
   workflow_dispatch:
     inputs:
