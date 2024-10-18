@@ -35,6 +35,10 @@ export const Preview: Story = {
       deleteItem: (number) => `Delete item number ${number}`,
       description: 'Description',
       emptyCodeList: 'The code list is empty.',
+      errors: {
+        duplicateValues: 'There are duplicated values.',
+        emptyValues: 'There is at least one empty value.',
+      },
       itemDescription: (number) => `Description for item number ${number}`,
       itemLabel: (number) => `Label for item number ${number}`,
       itemValue: (number) => `Value for item number ${number}`,

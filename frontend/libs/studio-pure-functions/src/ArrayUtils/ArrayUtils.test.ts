@@ -117,4 +117,25 @@ describe('ArrayUtils', () => {
       expect(ArrayUtils.prepend(['a', 'b', 'c'], 'd')).toEqual(['d', 'a', 'b', 'c']);
     });
   });
+
+  describe('removeEmptyStrings', () => {
+    it('Removes empty strings from an array', () => {
+      const array = ['0', '1', '', '2', ''];
+      expect(ArrayUtils.removeEmptyStrings(array)).toEqual(['0', '1', '2']);
+    });
+  });
+
+  describe('areThereNonEmptyStringDuplicates', () => {
+    it('Returns true when there are non-empty duplicates', () => {
+      expect(ArrayUtils.areThereNonEmptyStringDuplicates(['a', 'b', 'c', 'b'])).toBe(true);
+    });
+
+    it('Returns false when there are no duplicates', () => {
+      expect(ArrayUtils.areThereNonEmptyStringDuplicates(['a', 'b', 'c'])).toBe(false);
+    });
+
+    it('Returns false when there are only empty duplicates', () => {
+      expect(ArrayUtils.areThereNonEmptyStringDuplicates(['', '', '', 'a'])).toBe(false);
+    });
+  });
 });

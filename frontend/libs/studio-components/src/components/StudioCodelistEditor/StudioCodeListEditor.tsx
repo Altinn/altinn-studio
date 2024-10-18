@@ -1,5 +1,5 @@
 import type { CodeList } from './types/CodeList';
-import type { ReactElement } from 'react';
+import { ReactElement, useMemo } from 'react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
@@ -19,6 +19,9 @@ import {
 import classes from './StudioCodeListEditor.module.css';
 import { PlusIcon } from '@studio/icons';
 import { StudioParagraph } from '../StudioParagraph';
+import { findCodeListErrors } from './validation/findCodeListErrors';
+import { StudioError } from '../StudioError';
+import { List } from '@digdir/designsystemet-react';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -53,7 +56,8 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      onChange(newCodeList);
+      const newCodeListErrors = findCodeListErrors(newCodeList);
+      if (!newCodeListErrors.length) onChange(newCodeList);
     },
     [onChange],
   );
@@ -67,6 +71,8 @@ function ControlledCodeListEditor({
 }: InternalCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
 
+  const errors = useMemo(() => findCodeListErrors(codeList), [codeList]);
+
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addEmptyCodeListItem(codeList);
     onChange(updatedCodeList);
@@ -76,6 +82,7 @@ function ControlledCodeListEditor({
     <fieldset className={classes.codeListEditor}>
       <legend>{texts.codeList}</legend>
       <CodeListTable codeList={codeList} onChange={onChange} />
+      {!!errors.length && <Errors errors={errors} />}
       <AddButton onClick={handleAddButtonClick} />
     </fieldset>
   );
@@ -147,6 +154,21 @@ function CodeLists({ codeList, onChange }: InternalCodeListEditorProps): ReactEl
         />
       ))}
     </StudioInputTable.Body>
+  );
+}
+
+type ErrorsProps = {
+  errors: string[];
+};
+
+function Errors({ errors }: ErrorsProps): ReactElement {
+  const { texts } = useStudioCodeListEditorContext();
+  return (
+    <StudioError>
+      {errors.map((error) => (
+        <StudioParagraph size='sm'>{texts.errors[error]}</StudioParagraph>
+      ))}
+    </StudioError>
   );
 }
 
