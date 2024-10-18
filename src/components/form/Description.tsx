@@ -5,10 +5,9 @@ import cn from 'classnames';
 
 import classes from 'src/components/form/Description.module.css';
 import { getDescriptionId } from 'src/components/label/Label';
-import { Lang } from 'src/features/language/Lang';
 
 export type DescriptionProps = {
-  description: React.ReactNode | string | undefined;
+  description: React.ReactNode;
   componentId?: string;
 } & HTMLAttributes<HTMLSpanElement>;
 
@@ -24,7 +23,7 @@ export function Description({ description, className, componentId, ...rest }: De
       id={getDescriptionId(componentId)}
       data-testid={getDescriptionId(componentId)}
     >
-      {typeof description === 'string' ? <Lang id={description} /> : description}
+      {description}
     </span>
   );
 }

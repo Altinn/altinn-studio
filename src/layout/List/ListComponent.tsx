@@ -40,7 +40,6 @@ export const ListComponent = ({ node }: IListProps) => {
     required,
   } = item;
 
-  const { langAsString, lang } = useLanguage();
   const [pageSize, setPageSize] = useState<number>(pagination?.default ?? 0);
   const [pageNumber, setPageNumber] = useState<number>(0);
   const [sortColumn, setSortColumn] = useState<string | undefined>();
@@ -94,7 +93,7 @@ export const ListComponent = ({ node }: IListProps) => {
               <RequiredIndicator required={required} />
             </Heading>
           }
-          description={langAsString(description)}
+          description={description && <Lang id={description} />}
           className={classes.mobileRadioGroup}
           value={JSON.stringify(selectedRow)}
         >
@@ -107,8 +106,10 @@ export const ListComponent = ({ node }: IListProps) => {
             >
               {tableHeadersToShowInMobile.map((key) => (
                 <div key={key}>
-                  <strong>{tableHeaders[key]}</strong>
-                  <span>{typeof row[key] === 'string' ? lang(row[key]) : row[key]}</span>
+                  <strong>
+                    <Lang id={tableHeaders[key]} />
+                  </strong>
+                  <span>{typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}</span>
                 </div>
               ))}
             </Radio>
@@ -139,7 +140,7 @@ export const ListComponent = ({ node }: IListProps) => {
               <RequiredIndicator required={required} />
             </Heading>
             <Description
-              description={description}
+              description={description && <Lang id={description} />}
               componentId={node.id}
             />
           </caption>
@@ -161,7 +162,7 @@ export const ListComponent = ({ node }: IListProps) => {
                   }
                 }}
               >
-                {typeof value === 'string' ? langAsString(value) : value}
+                <Lang id={value} />
               </Table.HeaderCell>
             ))}
           </Table.Row>
@@ -180,6 +181,7 @@ export const ListComponent = ({ node }: IListProps) => {
                 })}
               >
                 <RadioButton
+                  className={classes.radio}
                   aria-label={JSON.stringify(row)}
                   onChange={() => {
                     handleRowSelect({ selectedValue: row });
@@ -196,7 +198,7 @@ export const ListComponent = ({ node }: IListProps) => {
                     [classes.selectedRowCell]: isRowSelected(row),
                   })}
                 >
-                  {typeof row[key] === 'string' ? lang(row[key]) : row[key]}
+                  {typeof row[key] === 'string' ? <Lang id={row[key]} /> : row[key]}
                 </Table.Cell>
               ))}
             </Table.Row>

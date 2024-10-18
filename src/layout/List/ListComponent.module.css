@@ -21,9 +21,8 @@
   height: 60px;
 }
 
-.listTable tr td:first-of-type {
-  display: flex;
-  align-items: center;
+.radio {
+  align-content: center;
   justify-content: center;
 }
 

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 
 import { HelpText, Radio } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 import type { RadioProps } from '@digdir/designsystemet-react';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
@@ -29,6 +30,7 @@ export const RadioButton = ({
   alertOnChange,
   alertText,
   confirmChangeText,
+  className,
   ...rest
 }: IRadioButtonProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +44,7 @@ export const RadioButton = ({
   const radioButton = (
     <Radio
       {...rest}
-      className={classes.radioButton}
+      className={cn(classes.radioButton, className)}
       onChange={handleChange}
       ref={showAsCard ? inputRef : undefined}
     >

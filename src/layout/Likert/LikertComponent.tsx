@@ -9,7 +9,6 @@ import { AltinnSpinner } from 'src/components/AltinnSpinner';
 import { Description } from 'src/components/form/Description';
 import { getDescriptionId, getLabelId } from 'src/components/label/Label';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
@@ -26,7 +25,6 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
   const { textResourceBindings, rows } = useNodeItem(node);
   const mobileView = useIsMobileOrTablet();
   const { options: calculatedOptions, isFetching } = useNodeOptions(rows.find((row) => !!row)?.itemNode);
-  const { lang } = useLanguage();
   const rowNodes = rows.map((row) => row?.itemNode).filter(typedBoolean);
 
   const id = node.id;
@@ -50,10 +48,10 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
               level={2}
               size='sm'
             >
-              {title}
+              <Lang id={title} />
             </Heading>
             <Description
-              description={description}
+              description={description && <Lang id={description} />}
               componentId={node.id}
             />
           </div>
@@ -98,10 +96,10 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                 level={2}
                 size='sm'
               >
-                {title}
+                <Lang id={title} />
               </Heading>
               <Description
-                description={description}
+                description={description && <Lang id={description} />}
                 componentId={node.id}
               />
             </caption>
@@ -123,7 +121,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                   scope='col'
                   id={`${id}-likert-columnheader-${index}`}
                 >
-                  {lang(option.label)}
+                  <Lang id={option.label} />
                 </Table.HeaderCell>
               ))}
             </Table.Row>
