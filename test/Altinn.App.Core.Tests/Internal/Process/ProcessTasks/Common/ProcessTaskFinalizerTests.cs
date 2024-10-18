@@ -70,6 +70,7 @@ public class ProcessTaskFinalizerTests
         await _processTaskFinalizer.Finalize(instance.Process.CurrentTask.ElementId, instance);
 
         // Assert
-        _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Once);
+        // Called once in Finalize and once in CachedInstanceDataAccessor.UpdateInstanceData
+        _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Exactly(2));
     }
 }

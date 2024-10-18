@@ -18,8 +18,6 @@ namespace Altinn.App.Core.Internal.Data;
 internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
 {
     // DataClient needs a few arguments to fetch data
-    private readonly string _org;
-    private readonly string _app;
     private readonly Guid _instanceGuid;
     private readonly int _instanceOwnerPartyId;
 
@@ -60,12 +58,13 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
         ModelSerializationService modelSerializationService
     )
     {
-        var splitApp = instance.AppId.Split("/");
-        _org = splitApp[0];
-        _app = splitApp[1];
-        var splitId = instance.Id.Split("/");
-        _instanceOwnerPartyId = int.Parse(splitId[0], CultureInfo.InvariantCulture);
-        _instanceGuid = Guid.Parse(splitId[1]);
+        if (instance.Id is not null)
+        {
+            var splitId = instance.Id.Split("/");
+            _instanceOwnerPartyId = int.Parse(splitId[0], CultureInfo.InvariantCulture);
+            _instanceGuid = Guid.Parse(splitId[1]);
+        }
+
         Instance = instance;
         _dataClient = dataClient;
         _appMetadata = appMetadata;
@@ -93,18 +92,27 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
     }
 
     /// <inheritdoc />
-    public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier) =>
-        await _binaryCache.GetOrCreate(
+    public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
+    {
+        if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
+        {
+            throw new InvalidOperationException("Cannot access instance data before it has been created");
+        }
+
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+
+        return await _binaryCache.GetOrCreate(
             dataElementIdentifier,
             async () =>
                 await _dataClient.GetDataBytes(
-                    _org,
-                    _app,
+                    appMetadata.AppIdentifier.Org,
+                    appMetadata.AppIdentifier.App,
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     dataElementIdentifier.Guid
                 )
         );
+    }
 
     /// <inheritdoc />
     public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
@@ -230,6 +238,11 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
 
     internal async Task UpdateInstanceData(List<DataElementChange> changes)
     {
+        if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
+        {
+            throw new InvalidOperationException("Cannot access instance data before it has been created");
+        }
+
         var tasks = new List<Task>();
         ConcurrentBag<DataElement> createdDataElements = new();
         // We need to create data elements here, so that we can set them correctly on the instance
@@ -258,14 +271,16 @@ internal sealed class CachedInstanceDataAccessor : IInstanceDataMutator
             tasks.Add(InsertBinaryData());
         }
 
+        var appMetadata = await _appMetadata.GetApplicationMetadata();
+
         // Delete data elements
         foreach (var dataElementId in _dataElementsToDelete)
         {
             async Task DeleteData()
             {
                 await _dataClient.DeleteData(
-                    _org,
-                    _app,
+                    appMetadata.AppIdentifier.Org,
+                    appMetadata.AppIdentifier.App,
                     _instanceOwnerPartyId,
                     _instanceGuid,
                     dataElementId.Guid,

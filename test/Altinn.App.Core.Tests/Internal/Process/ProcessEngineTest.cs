@@ -13,6 +13,7 @@ using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.ProcessTasks;
 using Altinn.App.Core.Internal.Profile;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using Altinn.Platform.Profile.Models;
@@ -457,6 +458,7 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_moves_instance_to_next_task_and_produces_instanceevents()
     {
+        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
@@ -604,6 +606,7 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_moves_instance_to_next_task_and_produces_abandon_instanceevent_when_action_reject()
     {
+        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
@@ -752,6 +755,7 @@ public sealed class ProcessEngineTest : IDisposable
     [Fact]
     public async Task Next_moves_instance_to_end_event_and_ends_proces()
     {
+        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         var expectedInstance = new Instance()
         {
             Id = _instanceId,
