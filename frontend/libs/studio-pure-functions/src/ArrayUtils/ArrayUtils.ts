@@ -68,6 +68,10 @@ export class ArrayUtils {
     return [item, ...array];
   }
 
+  public static isDuplicate<T>(value: T, valueList: T[]): boolean {
+    return valueList.filter((item) => item === value).length > 1;
+  }
+
   /**
    * Replaces the last item in an array.
    * @param array The array of interest.
