@@ -40,8 +40,8 @@ export class CellTextfield extends BaseInputCell<HTMLInputElement, CellTextfield
         return isCaretAtStart(currentTarget);
       case 'ArrowRight':
         return isCaretAtEnd(currentTarget);
-      default:
-        return false;
     }
   }
+
+  shouldMoveFocusOnEnterKey = () => true;
 }
