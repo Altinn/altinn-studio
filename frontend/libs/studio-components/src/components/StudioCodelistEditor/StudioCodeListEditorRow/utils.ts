@@ -11,3 +11,7 @@ export function changeDescription(item: CodeListItem, description: string): Code
 export function changeValue(item: CodeListItem, value: string): CodeListItem {
   return { ...item, value };
 }
+
+export function changeHelpText(item: CodeListItem, helpText: string): CodeListItem {
+  return { ...item, helpText };
+}
