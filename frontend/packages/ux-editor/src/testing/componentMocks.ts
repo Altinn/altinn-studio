@@ -65,6 +65,18 @@ const textareaComponent: FormComponent<ComponentType.TextArea> = {
   ...commonProps(ComponentType.TextArea),
   dataModelBindings: { simpleBinding: '' },
 };
+const subFormComponent: FormComponent<ComponentType.SubForm> = {
+  ...commonProps(ComponentType.SubForm),
+  tableColumns: [
+    {
+      headerContent: 'header content',
+      cellContent: {
+        query: 'query',
+        default: 'default',
+      },
+    },
+  ],
+};
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
   dataModelBindings: { simpleBinding: '' },
@@ -176,6 +188,7 @@ export const componentMocks = {
   [ComponentType.Paragraph]: paragraphComponent,
   [ComponentType.RadioButtons]: radiosComponent,
   [ComponentType.RepeatingGroup]: repeatingGroupContainer,
+  [ComponentType.SubForm]: subFormComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
   [ComponentType.Summary2]: summary2Component,

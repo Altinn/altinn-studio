@@ -1,0 +1,14 @@
+.card  {
+  --card-margin-inline: var(--fds-spacing-4);
+
+  margin-inline: var(--card-margin-inline);
+  width: calc(auto - var(--card-margin-inline));
+}
+
+.headerWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--fds-spacing-2);
+}

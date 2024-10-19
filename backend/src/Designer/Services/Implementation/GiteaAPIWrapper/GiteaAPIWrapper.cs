@@ -158,7 +158,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var starredRepos = new List<RepositoryClient.Model.Repository>();
 
-            HttpResponseMessage response = await _httpClient.GetAsync("user/starred");
+            HttpResponseMessage response = await _httpClient.GetAsync("user/starred?limit=100");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
