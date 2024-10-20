@@ -245,6 +245,17 @@ describe('Properties', () => {
   });
 });
 
+describe('SubForm handling', () => {
+  it('renders properties when formItem is not a SubForm', () => {
+    renderProperties({ formItem: componentMocks[ComponentType.Input] });
+    expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+  });
+});
+
 const getComponent = (
   formItemContextProps: Partial<FormItemContext> = {
     formItem: componentMocks[ComponentType.Input],
