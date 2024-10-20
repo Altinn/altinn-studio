@@ -13,6 +13,7 @@ export type StudioRecommendedNextActionProps = {
   title: string;
   description: string;
   hideSaveButton?: boolean;
+  hideSkipButton?: boolean;
   children: React.ReactNode;
 };
 
@@ -24,6 +25,7 @@ export const StudioRecommendedNextAction = ({
   title,
   description,
   hideSaveButton = false,
+  hideSkipButton,
   children,
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   const formName = useId();
@@ -44,9 +46,11 @@ export const StudioRecommendedNextAction = ({
                 {saveButtonText}
               </StudioButton>
             )}
-            <StudioButton onClick={onSkip} variant='tertiary'>
-              {skipButtonText}
-            </StudioButton>
+            {!hideSkipButton && (
+              <StudioButton onClick={onSkip} variant='tertiary'>
+                {skipButtonText}
+              </StudioButton>
+            )}
           </div>
         </StudioCard.Content>
       </StudioCard>
