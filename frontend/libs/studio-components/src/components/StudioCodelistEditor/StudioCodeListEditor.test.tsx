@@ -14,7 +14,9 @@ const texts: CodeListEditorTexts = {
   deleteItem: (number) => `Delete item number ${number}`,
   description: 'Description',
   emptyCodeList: 'The code list is empty.',
+  helpText: 'Help text',
   itemDescription: (number) => `Description for item number ${number}`,
+  itemHelpText: (number) => `Help text for item number ${number}`,
   itemLabel: (number) => `Label for item number ${number}`,
   itemValue: (number) => `Value for item number ${number}`,
   label: 'Label',
@@ -25,16 +27,19 @@ const codeList: CodeList = [
     label: 'Test 1',
     value: 'test1',
     description: 'Test 1 description',
+    helpText: 'Test 1 help text',
   },
   {
     label: 'Test 2',
     value: 'test2',
     description: 'Test 2 description',
+    helpText: 'Test 2 help text',
   },
   {
     label: 'Test 3',
     value: 'test3',
     description: 'Test 3 description',
+    helpText: 'Test 3 help text',
   },
 ];
 const onChange = jest.fn();
@@ -63,9 +68,11 @@ describe('StudioCodeListEditor', () => {
 
   it('Renders the given column headers', () => {
     renderCodeListEditor();
-    expect(screen.getByRole('columnheader', { name: texts.label })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: texts.value })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: texts.label })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: texts.description })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: texts.helpText })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: texts.delete })).toBeInTheDocument();
   });
 
   it('Renders a button to add a new code list item', () => {
@@ -115,6 +122,20 @@ describe('StudioCodeListEditor', () => {
     expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], description: newValue },
+      codeList[1],
+      codeList[2],
+    ]);
+  });
+
+  it('Calls the onChange callback with the new code list when a help text is changed', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const helpTextInput = screen.getByRole('textbox', { name: texts.itemHelpText(1) });
+    const newValue = 'new text';
+    await user.type(helpTextInput, newValue);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    expect(onChange).toHaveBeenLastCalledWith([
+      { ...codeList[0], helpText: newValue },
       codeList[1],
       codeList[2],
     ]);
