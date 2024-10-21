@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
-import { UndefinedLayoutSet } from './UndefinedLayoutSet/UndefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
+import { StudioRecommendedNextAction } from '@studio/components';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
@@ -22,6 +22,7 @@ export const EditLayoutSet = ({
         existingLayoutSetForSubForm={existingLayoutSetForSubform}
         onUpdateLayoutSet={onUpdateLayoutSet}
         onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
+        showButtons={true}
       />
     );
   }
@@ -29,10 +30,23 @@ export const EditLayoutSet = ({
   const layoutSetIsUndefined = !existingLayoutSetForSubform;
   if (layoutSetIsUndefined) {
     return (
-      <UndefinedLayoutSet
-        label={t('ux_editor.component_properties.subform.selected_layout_set_label')}
-        onClick={() => setIsLayoutSetSelectorVisible(true)}
-      />
+      <StudioRecommendedNextAction
+        onSave={undefined}
+        saveButtonText={null}
+        onSkip={undefined}
+        skipButtonText={null}
+        title={t('ux_editor.component_properties.subform.choose_layout_set_header')}
+        description={t('ux_editor.component_properties.subform.choose_layout_set_description')}
+        hideSaveButton={true}
+        hideSkipButton={true}
+      >
+        <SelectLayoutSet
+          existingLayoutSetForSubForm={existingLayoutSetForSubform}
+          onUpdateLayoutSet={onUpdateLayoutSet}
+          onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
+          showButtons={false}
+        />
+      </StudioRecommendedNextAction>
     );
   }
 

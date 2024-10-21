@@ -2,5 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-2);
+}
+
+.selectLayoutSetwithPadding {
   padding: 0 var(--fds-spacing-5);
 }
