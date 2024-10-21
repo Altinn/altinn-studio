@@ -24,7 +24,8 @@
     "Moq",
     "Altinn.App.Core",
     "Microsoft.CodeAnalysis.CSharp",
-    "Microsoft.CodeAnalysis.Common"
+    "Microsoft.CodeAnalysis.Common",
+    "Basic.Reference.Assemblies"
   ],
   "schedule": ["before 07:00 on Monday"]
 }
