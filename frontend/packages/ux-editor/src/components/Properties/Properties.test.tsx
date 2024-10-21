@@ -285,14 +285,14 @@ const getComponent = (
 
 const renderProperties = (
   formItemContextProps: Partial<FormItemContext> = {
-    formItem: { ...componentMocks[ComponentType.Input], layoutSet: layoutSetName },
+    formItem: componentMocks[ComponentType.Input],
     formItemId: componentMocks[ComponentType.Input].id,
   },
 ) => {
   const queryClientMock = createQueryClientMock();
-  const layoutSetsMock = [{ name: layoutSet1NameMock, type: 'subform' }];
+
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSet1NameMock);
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,
