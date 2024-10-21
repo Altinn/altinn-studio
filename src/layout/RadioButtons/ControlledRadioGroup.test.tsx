@@ -9,6 +9,7 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGroup';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IRawOption } from 'src/layout/common.generated';
+import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const threeOptions: IRawOption[] = [
@@ -31,9 +32,16 @@ interface Props extends Partial<RenderGenericComponentTestProps<'RadioButtons'>>
   formData?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   groupData?: any;
+  queries?: Partial<AppQueries>;
 }
 
-const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup() }: Props = {}) =>
+const render = async ({
+  component,
+  options,
+  formData,
+  groupData = getFormDataMockForRepGroup(),
+  queries,
+}: Props = {}) =>
   await renderGenericComponentTest({
     type: 'RadioButtons',
     renderer: (props) => <ControlledRadioGroup {...props} />,
@@ -41,6 +49,9 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
       optionsId: 'countries',
       preselectedOptionIndex: undefined,
       dataModelBindings: { simpleBinding: { dataType: defaultDataTypeMock, field: 'myRadio' } },
+      textResourceBindings: {
+        title: 'Land',
+      },
       ...component,
     },
     queries: {
@@ -50,6 +61,7 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
             Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
       fetchFormData: async () => (formData ? { myRadio: formData, ...groupData } : { ...groupData }),
+      ...queries,
     },
   });
 
@@ -237,5 +249,26 @@ describe('RadioButtonsContainerComponent', () => {
     expect(options[0].getAttribute('value')).toBe('sweden');
     expect(options[1].getAttribute('value')).toBe('norway');
     expect(options[2].getAttribute('value')).toBe('denmark');
+  });
+
+  it('required validation should only show for simpleBinding', async () => {
+    await render({
+      component: {
+        showValidations: ['Required'],
+        required: true,
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+          metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
+        },
+      },
+      options: [],
+      queries: {
+        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
+      },
+    });
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut land');
   });
 });

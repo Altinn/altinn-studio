@@ -59,6 +59,9 @@ const render = async ({ component, options, ...rest }: Props = {}) => {
     component: {
       optionsId: 'countries',
       readOnly: false,
+      textResourceBindings: {
+        title: 'Land',
+      },
       dataModelBindings: {
         simpleBinding: { dataType: defaultDataTypeMock, field: 'myDropdown' },
       },
@@ -310,5 +313,26 @@ describe('DropdownComponent', () => {
     );
 
     jest.useRealTimers();
+  });
+
+  it('required validation should only show for simpleBinding', async () => {
+    await render({
+      component: {
+        showValidations: ['Required'],
+        required: true,
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+          metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
+        },
+      },
+      options: countries,
+      queries: {
+        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
+      },
+    });
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut land');
   });
 });

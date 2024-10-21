@@ -10,6 +10,7 @@ import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesCont
 import { LayoutStyle } from 'src/layout/common.generated';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { IRawOption } from 'src/layout/common.generated';
+import type { AppQueries } from 'src/queries/types';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
 
 const twoOptions: IRawOption[] = [
@@ -35,9 +36,16 @@ interface Props extends Partial<RenderGenericComponentTestProps<'Checkboxes'>> {
   options?: IRawOption[];
   formData?: string;
   groupData?: object;
+  queries?: Partial<AppQueries>;
 }
 
-const render = async ({ component, options, formData, groupData = getFormDataMockForRepGroup() }: Props = {}) =>
+const render = async ({
+  component,
+  options,
+  formData,
+  groupData = getFormDataMockForRepGroup(),
+  queries,
+}: Props = {}) =>
   await renderGenericComponentTest({
     type: 'Checkboxes',
     renderer: (props) => <CheckboxContainerComponent {...props} />,
@@ -45,6 +53,9 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
       optionsId: 'countries',
       dataModelBindings: {
         simpleBinding: { dataType: defaultDataTypeMock, field: 'selectedValues' },
+      },
+      textResourceBindings: {
+        title: 'Land',
       },
       ...component,
     },
@@ -55,6 +66,7 @@ const render = async ({ component, options, formData, groupData = getFormDataMoc
             Promise.resolve({ data: options, headers: {} } as AxiosResponse<IRawOption[], any>)
           : Promise.reject(new Error('No options provided to render()')),
       fetchFormData: async () => (formData ? { selectedValues: formData, ...groupData } : { ...groupData }),
+      ...queries,
     },
   });
 
@@ -285,5 +297,26 @@ describe('CheckboxesContainerComponent', () => {
         newValue: 'Value for second',
       });
     });
+  });
+
+  it('required validation should only show for simpleBinding', async () => {
+    await render({
+      component: {
+        showValidations: ['Required'],
+        required: true,
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+          metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
+        },
+      },
+      options: [],
+      queries: {
+        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
+      },
+    });
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut land');
   });
 });

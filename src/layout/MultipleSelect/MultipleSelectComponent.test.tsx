@@ -28,7 +28,9 @@ const render = async ({ component, ...rest }: Partial<RenderGenericComponentTest
       ],
       readOnly: false,
       required: false,
-      textResourceBindings: {},
+      textResourceBindings: {
+        title: 'Velg',
+      },
       ...component,
     },
     ...rest,
@@ -61,5 +63,25 @@ describe('MultipleSelect', () => {
         newValue: 'value1,value3',
       }),
     );
+  });
+
+  it('required validation should only show for simpleBinding', async () => {
+    await render({
+      component: {
+        showValidations: ['Required'],
+        required: true,
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+          metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
+        },
+      },
+      queries: {
+        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
+      },
+    });
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut velg');
   });
 });

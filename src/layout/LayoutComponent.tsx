@@ -7,11 +7,10 @@ import type { JSONSchema7 } from 'json-schema';
 import { lookupErrorAsText } from 'src/features/datamodel/lookupErrorAsText';
 import { DefaultNodeInspector } from 'src/features/devtools/components/NodeInspector/DefaultNodeInspector';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
-import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
+import { runEmptyFieldValidationAllBindings } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { CompCategory } from 'src/layout/common';
 import { getComponentCapabilities } from 'src/layout/index';
 import { SummaryItemCompact } from 'src/layout/Summary/SummaryItemCompact';
-import { getFieldNameKey } from 'src/utils/formComponentUtils';
 import { NodeGenerator } from 'src/utils/layout/generator/NodeGenerator';
 import type { CompCapabilities } from 'src/codegen/Config';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
@@ -412,47 +411,8 @@ export abstract class FormComponent<Type extends CompTypes>
 {
   readonly category = CompCategory.Form;
 
-  runEmptyFieldValidation(
-    node: LayoutNode<Type>,
-    { formDataSelector, invalidDataSelector, nodeDataSelector }: ValidationDataSources,
-  ): ComponentValidation[] {
-    const required = nodeDataSelector(
-      (picker) => {
-        const item = picker(node)?.item;
-        return item && 'required' in item ? item.required : false;
-      },
-      [node],
-    );
-    const dataModelBindings = nodeDataSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);
-    if (!required || !dataModelBindings) {
-      return [];
-    }
-
-    const validations: ComponentValidation[] = [];
-
-    for (const [bindingKey, reference] of Object.entries(dataModelBindings as Record<string, IDataModelReference>)) {
-      const data = formDataSelector(reference) ?? invalidDataSelector(reference);
-      const asString =
-        typeof data === 'string' || typeof data === 'number' || typeof data === 'boolean' ? String(data) : '';
-      const trb = nodeDataSelector((picker) => picker(node)?.item?.textResourceBindings, [node]);
-
-      if (asString.length === 0) {
-        const key =
-          trb && 'requiredValidation' in trb && trb.requiredValidation
-            ? trb.requiredValidation
-            : 'form_filler.error_required';
-        const fieldReference = { key: getFieldNameKey(trb, bindingKey), makeLowerCase: true };
-
-        validations.push({
-          source: FrontendValidationSource.EmptyField,
-          bindingKey,
-          message: { key, params: [fieldReference] },
-          severity: 'error',
-          category: ValidationMask.Required,
-        });
-      }
-    }
-    return validations;
+  runEmptyFieldValidation(node: LayoutNode<Type>, ValidationDataSources: ValidationDataSources): ComponentValidation[] {
+    return runEmptyFieldValidationAllBindings(node, ValidationDataSources);
   }
 }
 

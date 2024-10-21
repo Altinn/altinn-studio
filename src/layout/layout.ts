@@ -2,7 +2,7 @@ import type { $Keys, PickByValue } from 'utility-types';
 
 import type { CompBehaviors, CompCapabilities } from 'src/codegen/Config';
 import type { CompCategory } from 'src/layout/common';
-import type { ILayoutFile } from 'src/layout/common.generated';
+import type { IDataModelReference, ILayoutFile } from 'src/layout/common.generated';
 import type { ComponentTypeConfigs, getComponentConfigs } from 'src/layout/components.generated';
 import type { CompClassMapCategories } from 'src/layout/index';
 import type {
@@ -158,6 +158,14 @@ export type CompWithCap<Capability extends keyof CompCapabilities> = {
 
 export type CompWithBehavior<Behavior extends keyof CompBehaviors> = {
   [Type in CompTypes]: ComponentConfigs[Type]['behaviors'][Behavior] extends true ? Type : never;
+}[CompTypes];
+
+export type CompWithBinding<BindingKey extends string> = {
+  [Type in CompTypes]: ComponentTypeConfigs[Type]['layout']['dataModelBindings'] extends {
+    [key in BindingKey]?: IDataModelReference;
+  }
+    ? Type
+    : never;
 }[CompTypes];
 
 export interface NodeValidationProps<T extends CompTypes> {

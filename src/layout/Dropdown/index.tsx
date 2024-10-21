@@ -2,16 +2,18 @@ import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
 import { getSelectedValueToText } from 'src/features/options/getSelectedValueToText';
+import { runEmptyFieldValidationOnlySimpleBinding } from 'src/features/validation/nodeValidation/emptyFieldValidation';
 import { DropdownDef } from 'src/layout/Dropdown/config.def.generated';
 import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
 import { DropdownSummary } from 'src/layout/Dropdown/DropdownSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
+import type { ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { BaseLayoutNode, LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Dropdown extends DropdownDef {
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Dropdown'>>(
@@ -46,6 +48,13 @@ export class Dropdown extends DropdownDef {
         emptyFieldText={props.override?.emptyFieldText}
       />
     );
+  }
+
+  runEmptyFieldValidation(
+    node: BaseLayoutNode<'Dropdown'>,
+    validationDataSources: ValidationDataSources,
+  ): ComponentValidation[] {
+    return runEmptyFieldValidationOnlySimpleBinding(node, validationDataSources);
   }
 
   validateDataModelBindings(ctx: LayoutValidationCtx<'Dropdown'>): string[] {
