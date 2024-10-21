@@ -48,15 +48,13 @@ export const SchemaInspector = (): ReactElement => {
       <Tabs.Content value={t('schema_editor.properties')}>
         <ItemPropertiesTab selectedItem={selectedItem} />
       </Tabs.Content>
-      {shouldDisplayFieldsTab ? (
-        <Tabs.Content value={t('schema_editor.fields')}>
+      <Tabs.Content value={t('schema_editor.fields')}>
+        {shouldDisplayFieldsTab ? (
           <ItemFieldsTab selectedItem={selectedItem} />
-        </Tabs.Content>
-      ) : (
-        <Tabs.Content value={t('schema_editor.fields')}>
+        ) : (
           <Alert severity='info'>{t('app_data_modelling.fields_information')}</Alert>
-        </Tabs.Content>
-      )}
+        )}
+      </Tabs.Content>
     </Tabs>
   );
 };

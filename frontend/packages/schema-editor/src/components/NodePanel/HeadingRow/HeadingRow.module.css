@@ -6,12 +6,19 @@
   border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.heading .headingButton {
+.headingButton {
   display: flex;
   font: var(--fds-typography-paragraph-short-large);
+  border-left: var(--studio-treeitem-vertical-line-width) solid transparent;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
 }
 
-.root.selected .headingButton {
+.headingButton:hover {
+  background-color: var(--fds-colors-blue-100);
+}
+
+.selected .headingButton {
   background-color: var(--studio-treeitem-selected-background-colour);
   border-left-color: var(--studio-treeitem-vertical-line-colour-root);
 }

@@ -48,7 +48,7 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
 
   return (
     <div className={cn(classes.root, isSelected && classes.selected)}>
-      <StudioHeading level={1} className={classes.heading}>
+      <StudioHeading level={1}>
         <StudioButton
           className={classes.headingButton}
           color='second'

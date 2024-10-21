@@ -45,12 +45,12 @@ describe('SchemaInspector', () => {
   it('displays a message when no node is selected', () => {
     renderSchemaInspector(mockUiSchema);
 
-    const noSelectionHeader = screen.getByRole('heading', {
+    const propertiesHeader = screen.getByRole('heading', {
       name: textMock('schema_editor.properties'),
     });
     const noSelectionParagraph = screen.getByText(textMock('schema_editor.no_item_selected'));
 
-    expect(noSelectionHeader).toBeInTheDocument();
+    expect(propertiesHeader).toBeInTheDocument();
     expect(noSelectionParagraph).toBeInTheDocument();
   });
 
