@@ -314,6 +314,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 giteaSearchUriString += $"&q={searchOption.Keyword}";
             }
 
+            // Search in description. To prevent DataModelsRepoList from displaying repos with '-datamodels' only in the description,
+            // we exclude description searches containing this keyword.
+            if (searchOption.Keyword != null && !searchOption.Keyword.Contains("-datamodels"))
+            {
+                giteaSearchUriString += "&includeDesc=true";
+            }
+
             if (searchOption.UId != 0)
             {
                 giteaSearchUriString += $"&uid={searchOption.UId}&exclusive=true";
