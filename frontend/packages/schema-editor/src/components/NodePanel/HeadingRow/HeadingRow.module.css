@@ -9,9 +9,9 @@
 .headingButton {
   display: flex;
   font: var(--fds-typography-paragraph-short-large);
-  border-left: var(--studio-treeitem-vertical-line-width) solid transparent;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
+  border: 0;
 }
 
 .headingButton:hover {
@@ -19,6 +19,12 @@
 }
 
 .selected .headingButton {
-  background-color: var(--studio-treeitem-selected-background-colour);
-  border-left-color: var(--studio-treeitem-vertical-line-colour-root);
+  /*background-color: var(--studio-treeitem-selected-background-colour);*/
+  background: linear-gradient(
+    to right,
+    var(--studio-treeitem-vertical-line-colour-root) 0 var(--studio-treeitem-vertical-line-width),
+    var(--studio-treeitem-selected-background-colour) var(--studio-treeitem-vertical-line-width)
+      100%
+  );
+  /*border-left-color: var(--studio-treeitem-vertical-line-colour-root);*/
 }

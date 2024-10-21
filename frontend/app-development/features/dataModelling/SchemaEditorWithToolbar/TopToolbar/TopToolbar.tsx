@@ -49,6 +49,12 @@ export function TopToolbar({
 
   return (
     <section className={classes.toolbar} role='toolbar'>
+      <SchemaSelect
+        dataModels={dataModels}
+        disabled={false}
+        selectedOption={selectedOption}
+        setSelectedOption={setSelectedOption}
+      />
       <CreateNewWrapper
         dataModels={dataModels}
         disabled={false}
@@ -61,25 +67,27 @@ export function TopToolbar({
         selectedOption={selectedOption}
         uploadButtonText={t('app_data_modelling.upload_xsd')}
       />
-      <SchemaSelect
-        dataModels={dataModels}
-        disabled={false}
-        selectedOption={selectedOption}
-        setSelectedOption={setSelectedOption}
-      />
+      <VerticalDivider />
       <DeleteWrapper selectedOption={selectedOption} />
-      <div className={classes.right}>
-        <div className={classes.generateButtonWrapper}>
-          {modelPath && (
-            <GenerateModelsButton
-              modelPath={modelPath}
-              onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
-                onSetSchemaGenerationErrorMessages(errorMessages)
-              }
-            />
-          )}
-        </div>
-      </div>
+      {modelPath && (
+        <GenerateModelsButton
+          modelPath={modelPath}
+          onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+            onSetSchemaGenerationErrorMessages(errorMessages)
+          }
+        />
+      )}
     </section>
   );
 }
+
+const VerticalDivider = () => {
+  return (
+    <div
+      style={{
+        borderLeft: '1px solid lightgray',
+        height: '66.6%',
+      }}
+    />
+  );
+};
