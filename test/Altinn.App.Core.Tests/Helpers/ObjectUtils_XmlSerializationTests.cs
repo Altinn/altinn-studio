@@ -118,7 +118,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
             { "\n\n", null },
             { "\n\na", "\n\na" },
             { "a\n\n", "a\n\n" },
-            { "a\nb", "a\nb" }
+            { "a\nb", "a\nb" },
         };
 
     [Theory]
@@ -130,6 +130,19 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         ObjectUtils.PrepareModelForXmlStorage(test);
 
         AssertObject(test, value, storedValue);
+    }
+
+    [Fact]
+    public void TestInvalidXmlCharsAreHandled()
+    {
+        var input = "'\u0002'"; // Represents start of text (␂)
+        var output = "'\uFFFD'"; // Represents replacement character (�)
+
+        var test = new YttersteObjekt { NormalString = input, };
+
+        ObjectUtils.PrepareModelForXmlStorage(test);
+
+        test.NormalString.Should().Be(output);
     }
 
     [Theory]
