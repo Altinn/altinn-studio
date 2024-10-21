@@ -7,12 +7,11 @@ import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPrevie
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useIsLocalOrStaging } from 'src/hooks/useIsDev';
 import { ProcessTaskType } from 'src/types';
 import { getPdfPreviewUrl } from 'src/utils/urls/appUrlHelper';
 
-export function PDFGeneratorPreview({ buttonTitle }: { buttonTitle?: string }) {
+export function PDFGeneratorPreview() {
   const modalRef = React.useRef<HTMLDialogElement>(null);
   const abortRef = React.useRef<AbortController | null>(null);
 
@@ -25,8 +24,6 @@ export function PDFGeneratorPreview({ buttonTitle }: { buttonTitle?: string }) {
   const isLocalOrStaging = useIsLocalOrStaging();
 
   const disabled = taskType !== ProcessTaskType.Data || !instanceId || !isLocalOrStaging;
-
-  const { langAsString } = useLanguage();
 
   async function generatePDF() {
     if (disabled) {
@@ -72,7 +69,7 @@ export function PDFGeneratorPreview({ buttonTitle }: { buttonTitle?: string }) {
             aria-hidden
           />
         }
-        {buttonTitle ? langAsString(buttonTitle) : 'Generer PDF'}
+        Generer PDF
       </Button>
       <Modal
         ref={modalRef}

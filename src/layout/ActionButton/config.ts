@@ -26,7 +26,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'action',
-      new CG.enum('instantiate', 'confirm', 'sign', 'reject', 'printPreview')
+      new CG.enum('instantiate', 'confirm', 'sign', 'reject')
         .setTitle('Action')
         .setDescription('The action to perform when the button is clicked.'),
     ),
