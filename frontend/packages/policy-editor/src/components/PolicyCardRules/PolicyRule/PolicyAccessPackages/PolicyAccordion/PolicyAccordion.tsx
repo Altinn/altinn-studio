@@ -28,7 +28,12 @@ export const PolicyAccordion = ({
 
   return (
     <div className={classes.accordion}>
-      <div className={classes.accordionHeader}>
+      <div
+        className={cn(
+          classes.accordionHeader,
+          selectedCount > 0 ? classes.selectedAccordionHeader : '',
+        )}
+      >
         <StudioButton
           fullWidth
           variant='tertiary'
@@ -41,7 +46,7 @@ export const PolicyAccordion = ({
             )}
             <div className={classes.accordionTitle}>
               <Label size='sm'>{title}</Label>
-              <div>{subTitle}</div>
+              <div className={classes.accordionSubTitle}>{subTitle}</div>
             </div>
             {selectedCount > 0 && (
               <Tag size='sm' color='neutral'>

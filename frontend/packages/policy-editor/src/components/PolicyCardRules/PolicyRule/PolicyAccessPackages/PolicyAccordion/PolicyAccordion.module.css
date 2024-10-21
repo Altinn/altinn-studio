@@ -7,6 +7,12 @@
 .accordionHeader {
   display: flex;
   align-items: center;
+  --iconColor: #d3eafd;
+}
+
+.selectedAccordionHeader {
+  background-color: #d3eafd;
+  --iconColor: #fff;
 }
 
 .accordionButton {
@@ -31,12 +37,15 @@
   align-items: flex-start;
   text-align: left;
   flex: 1;
+}
+
+.accordionSubTitle {
   color: #5d6470;
   font-size: 12px;
 }
 
 .iconContainer {
-  background-color: #d3eafd;
+  background-color: var(--iconColor);
   border-radius: 3px;
   padding: 6px;
 }

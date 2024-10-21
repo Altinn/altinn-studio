@@ -27,7 +27,7 @@ export const PolicyAccessPackageAccordion = ({
         extraHeaderContent={
           <CheckboxGroup
             hideLegend
-            legend='Bruk tilgangspakke'
+            legend={`${isChecked ? 'fjern' : 'legg til'} tilgangspakke ${accessPackage.name[selectedLanguage]}`}
             className={classes.accordionCheckbox}
             value={isChecked ? [CHECKED_VALUE] : []}
             onChange={() => onChange(accessPackage)}

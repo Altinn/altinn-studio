@@ -486,7 +486,29 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb","Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
                         {"en" , "Grants access to economical services"}
                     },
-
+                },
+                new()
+                {
+                    Id = "category_regnskapsforer",
+                    Icon = "ReceiptIcon",
+                    ShortDescription = new Dictionary<string, string>()
+                    {
+                        { "nn", "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder" },
+                        { "nb", "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder" },
+                        { "en", "Short transport" }
+                    },
+                    Name = new Dictionary<string, string>()
+                    {
+                        {"nn" , "Regnskapsførere"},
+                        {"nb" , "Regnskapsførere"},
+                        {"en" , "Regnskapsførere"}
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder"},
+                        {"nb", "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder"},
+                        {"en" , "Grants access to regnskapsfører services"}
+                    },
                 }
             ];
 
@@ -576,6 +598,57 @@ namespace Altinn.Studio.Designer.Controllers
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
                     Category = "category_transport"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:regnskapsforermedsigneringsrettighet",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Regnskapsfører med signeringsrettighet" },
+                        { "nb", "Regnskapsfører med signeringsrettighet" },
+                        { "en", "Regnskapsfører med signeringsrettighet" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
+                        {"nb", "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
+                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
+                    },
+                    Category = "category_regnskapsforer"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:regnskapsforerutensigneringsrettighet",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Lufttransport" },
+                        { "nb", "Regnskapsfører uten signeringsrettighet" },
+                        { "en", "Lufttransport" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
+                        {"nb", "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
+                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
+                    },
+                    Category = "category_regnskapsforer"
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:regnskapsførerlonn",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "Lufttransport" },
+                        { "nb", "Regnskapsfører lønn" },
+                        { "en", "Lufttransport" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
+                        {"nb", "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
+                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
+                    },
+                    Category = "category_regnskapsforer"
                 }
             ];
 
