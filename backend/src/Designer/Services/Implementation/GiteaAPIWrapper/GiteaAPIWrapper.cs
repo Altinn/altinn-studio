@@ -203,11 +203,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
-            ListviewServiceResource listviewResource = new ListviewServiceResource
-            {
-                Identifier = serviceResource.Identifier,
-                Title = serviceResource.Title,
-            };
+            ListviewServiceResource listviewResource = new ListviewServiceResource { Identifier = serviceResource.Identifier, Title = serviceResource.Title, };
 
             string resourceFolder = serviceResource.Identifier;
 
@@ -312,6 +308,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (!string.IsNullOrEmpty(searchOption.Keyword))
             {
                 giteaSearchUriString += $"&q={searchOption.Keyword}";
+            }
+
+            // Search in description. To prevent DataModelsRepoList from displaying repos with '-datamodels' only in the description,
+            // we exclude description searches containing this keyword.
+            if (searchOption.Keyword != null && !searchOption.Keyword.Contains("-datamodels"))
+            {
+                giteaSearchUriString += "&includeDesc=true";
             }
 
             if (searchOption.UId != 0)
@@ -533,24 +536,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
                 catch
                 {
-                    organisation = new Organization
-                    {
-                        Id = -1
-                    };
+                    organisation = new Organization { Id = -1 };
                 }
 
                 // Null value is not cached. so set id property to -1
                 if (organisation == null)
                 {
-                    organisation = new Organization
-                    {
-                        Id = -1
-                    };
+                    organisation = new Organization { Id = -1 };
                 }
 
                 // Keep in cache for this time, reset time if accessed.
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
-                .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
+                    .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
                 // Save data in cache.
                 _cache.Set(cachekey, organisation, cacheEntryOptions);
