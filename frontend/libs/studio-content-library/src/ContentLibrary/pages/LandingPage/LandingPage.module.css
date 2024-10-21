@@ -1,0 +1,9 @@
+.landingPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+}
+
+.image {
+  width: 40%;
+}

@@ -4368,7 +4368,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/content-library@workspace:frontend/libs/studio-content-library":
+"@studio/content-library@workspace:^, @studio/content-library@workspace:frontend/libs/studio-content-library":
   version: 0.0.0-use.local
   resolution: "@studio/content-library@workspace:frontend/libs/studio-content-library"
   dependencies:
@@ -6562,6 +6562,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
+    "@studio/content-library": "workspace:^"
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"
