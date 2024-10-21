@@ -444,6 +444,13 @@ namespace Altinn.Studio.Designer.Controllers
                 new()
                 {
                     Id = "category_economy",
+                    Icon = "banknote",
+                    ShortDescription = new Dictionary<string, string>()
+                    {
+                        { "nn", "Tjenester som angår skatt, avgift, regnskap og toll" },
+                        { "nb", "Tjenester som angår skatt, avgift, regnskap og toll" },
+                        { "en", "Short economy" }
+                    },
                     Name = new Dictionary<string, string>()
                     {
                         { "nn", "Skatt og Merverdiavgift" },
@@ -452,14 +459,21 @@ namespace Altinn.Studio.Designer.Controllers
                     },
                     Description = new Dictionary<string, string>()
                     {
-                         { "nn", "Underkatagori for tilgangspakker til tjenester som angår skatt og merverdiavgift." },
-                         { "nb", "Underkatagori for tilgangspakker til tjenester som angår skatt og merverdiavgift." },
+                         { "nn", "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll" },
+                         { "nb", "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll" },
                          { "en", "Grants access to economical services" }
                     },
                 },
                 new()
                 {
                     Id = "category_transport",
+                    Icon = "truck",
+                    ShortDescription = new Dictionary<string, string>()
+                    {
+                        { "nn", "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring" },
+                        { "nb", "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring" },
+                        { "en", "Short transport" }
+                    },
                     Name = new Dictionary<string, string>()
                     {
                         {"nn" , "Transport og lagring"},

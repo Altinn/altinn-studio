@@ -8,5 +8,16 @@
 .accordionHeader {
   display: flex;
   gap: var(--fds-spacing-4);
+  justify-content: space-between;
   align-items: center;
+  flex: 1;
+}
+
+.categoryAccordionHeading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  color: #5d6470;
+  font-size: 12px;
 }

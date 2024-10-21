@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Label,
-  ErrorMessage,
-  Paragraph,
-  Accordion,
-  Tag,
-  Alert,
-  Heading,
-} from '@digdir/designsystemet-react';
+import { Label, ErrorMessage, Paragraph, Tag, Alert, Heading } from '@digdir/designsystemet-react';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getAccessPackageOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +7,7 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import { PolicyAccessPackageCard } from './PolicyAccessPackageCard';
-import { Divider } from 'app-shared/primitives';
+import { PolicyAccordion } from './PolicyAccordion/PolicyAccordion';
 
 const selectedLanguage = 'nb';
 
@@ -72,78 +64,58 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         </Paragraph>
       </Alert>
       <Label size='sm'>Tilgangspakker</Label>
-      {chosenAccessPackages.length === 0 && <div>Her ser du tilgangspakkene du har lagt til</div>}
-      {chosenAccessPackages.length > 0 && (
-        <Accordion color='second'>
-          <Accordion.Item>
-            <Accordion.Header>
-              <div>Tilgangspakkene du har valgt ({chosenAccessPackages.length} tilgangspakker)</div>
-            </Accordion.Header>
-            <Accordion.Content>
-              {chosenAccessPackages.map((accessPackage) => {
+      {accessPackages.categories.map((category) => {
+        // find chosen packages in current category
+        const accessPackagesInCategory = accessPackages.accessPackages
+          .filter((accessPackage) => accessPackage.category === category.id)
+          .map((accessPackage) => {
+            return {
+              accessPackage: accessPackage,
+              isChecked: chosenUrns.indexOf(accessPackage.urn) > -1,
+            };
+          });
+        const numberChosenInCategory = accessPackagesInCategory.filter((x) => x.isChecked).length;
+        return (
+          <PolicyAccordion
+            key={category.id}
+            icon={category.icon}
+            title={
+              <div className={classes.accordionHeader}>
+                <div className={classes.categoryAccordionHeading}>
+                  <Label size='sm'>{category.name[selectedLanguage]}</Label>
+                  <div>{category.shortDescription[selectedLanguage]}</div>
+                </div>
+                {numberChosenInCategory > 0 && (
+                  <Tag size='sm' color='neutral'>
+                    {numberChosenInCategory}
+                  </Tag>
+                )}
+              </div>
+            }
+          >
+            <>
+              <Paragraph size='sm'>{category.description[selectedLanguage]}</Paragraph>
+              {accessPackagesInCategory.map((categoryPackage) => {
                 return (
                   <PolicyAccessPackageCard
-                    key={accessPackage.urn}
-                    accessPackage={accessPackage}
+                    key={categoryPackage.accessPackage.urn}
+                    accessPackage={categoryPackage.accessPackage}
+                    isChecked={categoryPackage.isChecked}
                     selectedLanguage={selectedLanguage}
-                    isChecked={true}
-                    onChange={() => handleRemoveAccessPackage(accessPackage)}
+                    onChange={() => {
+                      if (categoryPackage.isChecked) {
+                        handleRemoveAccessPackage(categoryPackage.accessPackage);
+                      } else {
+                        handleAddAccessPackage(categoryPackage.accessPackage);
+                      }
+                    }}
                   />
                 );
               })}
-            </Accordion.Content>
-          </Accordion.Item>
-        </Accordion>
-      )}
-      <Divider marginless />
-      <Label size='sm'>Kategorier</Label>
-      <Accordion color='first'>
-        {accessPackages.categories.map((category) => {
-          // find chosen packages in current category
-          const accessPackagesInCategory = accessPackages.accessPackages
-            .filter((accessPackage) => accessPackage.category === category.id)
-            .map((accessPackage) => {
-              return {
-                accessPackage: accessPackage,
-                isChecked: chosenUrns.indexOf(accessPackage.urn) > -1,
-              };
-            });
-          const numberChosenInCategory = accessPackagesInCategory.filter((x) => x.isChecked).length;
-          return (
-            <Accordion.Item key={category.id}>
-              <Accordion.Header>
-                <div className={classes.accordionHeader}>
-                  <span>{category.name[selectedLanguage]}</span>
-                  <Tag size='sm'>
-                    {numberChosenInCategory > 0 ? `${numberChosenInCategory} av ` : ''}
-                    {accessPackagesInCategory.length}
-                  </Tag>
-                </div>
-              </Accordion.Header>
-              <Accordion.Content>
-                <Paragraph size='sm'>{category.description[selectedLanguage]}</Paragraph>
-                {accessPackagesInCategory.map((categoryPackage) => {
-                  return (
-                    <PolicyAccessPackageCard
-                      key={categoryPackage.accessPackage.urn}
-                      accessPackage={categoryPackage.accessPackage}
-                      isChecked={categoryPackage.isChecked}
-                      selectedLanguage={selectedLanguage}
-                      onChange={() => {
-                        if (categoryPackage.isChecked) {
-                          handleRemoveAccessPackage(categoryPackage.accessPackage);
-                        } else {
-                          handleAddAccessPackage(categoryPackage.accessPackage);
-                        }
-                      }}
-                    />
-                  );
-                })}
-              </Accordion.Content>
-            </Accordion.Item>
-          );
-        })}
-      </Accordion>
+            </>
+          </PolicyAccordion>
+        );
+      })}
       {showAllErrors && policyError.subjectsError && (
         <ErrorMessage size='sm'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
       )}

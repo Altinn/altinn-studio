@@ -49,6 +49,12 @@ export interface PolicyAccessPackageCategory {
     nn: string;
     en: string;
   };
+  icon: string;
+  shortDescription: {
+    nb: string;
+    nn: string;
+    en: string;
+  };
 }
 
 export interface AccessPackagesDto {

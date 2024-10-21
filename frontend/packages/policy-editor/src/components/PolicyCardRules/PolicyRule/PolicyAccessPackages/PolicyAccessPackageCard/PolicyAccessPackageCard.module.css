@@ -11,6 +11,7 @@
   margin: var(--fds-spacing-4);
   padding: 0 var(--fds-spacing-4);
   border-left: 4px solid #3885c9;
+  flex: 1;
 }
 
 .accessPackageHeading {

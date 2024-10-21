@@ -1,0 +1,19 @@
+.accordion {
+  background-color: #e9f5ff;
+}
+
+.accordionButton {
+  width: 100%;
+  display: flex;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+}
+
+.accordionIcon {
+  font-size: 2rem;
+  color: #111d46;
+}
+
+.accordionContent {
+  padding: var(--fds-spacing-4);
+}
