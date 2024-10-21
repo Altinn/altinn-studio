@@ -41,7 +41,7 @@ export const PageHeaderContextProvider = ({
   const menuItems = getTopBarMenuItems(repoType, repoOwnerIsOrg);
 
   const docsMenuItem: StudioProfileMenuItem = {
-    action: { type: 'link', href: altinnDocsUrl('', 'nb'), openInNewTab: true },
+    action: { type: 'link', href: altinnDocsUrl(), openInNewTab: true },
     itemName: t('sync_header.documentation'),
   };
 

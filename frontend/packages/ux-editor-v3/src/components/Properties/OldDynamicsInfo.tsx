@@ -23,7 +23,7 @@ export const OldDynamicsInfo = () => {
           <br />
           <Link
             className={classes.externalLink}
-            href={altinnDocsUrl('/nb/app/development/logic/dynamic/')}
+            href={altinnDocsUrl({ relativeUrl: '/app/development/logic/dynamic/' })}
             rel='noopener noreferrer'
             target='_blank'
           >
