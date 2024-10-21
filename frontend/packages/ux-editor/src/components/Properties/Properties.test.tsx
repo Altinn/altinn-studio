@@ -243,11 +243,22 @@ describe('Properties', () => {
       screen.getByText(textMock('right_menu.rules_calculations_deprecated_info_title')),
     ).toBeInTheDocument();
   });
-});
 
-describe('SubForm handling', () => {
   it('renders properties when formItem is not a SubForm', () => {
     renderProperties({ formItem: componentMocks[ComponentType.Input] });
+    expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+  });
+
+  it('render properties accordions when formItem type is subform and has layoutSet', () => {
+    editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
+    renderProperties({
+      formItem: { ...componentMocks[ComponentType.SubForm], layoutSet: layoutSetName },
+      formItemId: componentMocks[ComponentType.SubForm].id,
+    });
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
@@ -274,12 +285,14 @@ const getComponent = (
 
 const renderProperties = (
   formItemContextProps: Partial<FormItemContext> = {
-    formItem: componentMocks[ComponentType.Input],
+    formItem: { ...componentMocks[ComponentType.Input], layoutSet: layoutSetName },
     formItemId: componentMocks[ComponentType.Input].id,
   },
 ) => {
   const queryClientMock = createQueryClientMock();
+  const layoutSetsMock = [{ name: layoutSet1NameMock, type: 'subform' }];
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,
