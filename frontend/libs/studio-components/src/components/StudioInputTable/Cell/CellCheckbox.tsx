@@ -20,4 +20,6 @@ export class CellCheckbox extends BaseInputCell<HTMLInputElement, CellCheckboxPr
   }
 
   shouldMoveFocusOnArrowKey = () => true;
+
+  shouldMoveFocusOnEnterKey = () => true;
 }
