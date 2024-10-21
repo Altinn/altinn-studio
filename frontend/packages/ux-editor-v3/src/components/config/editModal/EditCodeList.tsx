@@ -82,7 +82,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
       <p style={{ marginBottom: 0 }}>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
-            href={altinnDocsUrl('app/development/data/options/')}
+            href={altinnDocsUrl({ relativeUrl: 'app/development/data/options/' })}
             target='_newTab'
             rel='noopener noreferrer'
           />
