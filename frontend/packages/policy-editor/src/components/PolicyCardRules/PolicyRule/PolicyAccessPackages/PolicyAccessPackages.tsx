@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Label, ErrorMessage, Paragraph, Tag, Alert, Heading } from '@digdir/designsystemet-react';
+import { Label, ErrorMessage, Paragraph, Alert, Heading } from '@digdir/designsystemet-react';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getAccessPackageOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
-import { PolicyAccessPackageCard } from './PolicyAccessPackageCard';
+import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
 import { PolicyAccordion } from './PolicyAccordion/PolicyAccordion';
 
 const selectedLanguage = 'nb';
@@ -79,25 +79,15 @@ export const PolicyAccessPackages = (): React.ReactElement => {
           <PolicyAccordion
             key={category.id}
             icon={category.icon}
-            title={
-              <div className={classes.accordionHeader}>
-                <div className={classes.categoryAccordionHeading}>
-                  <Label size='sm'>{category.name[selectedLanguage]}</Label>
-                  <div>{category.shortDescription[selectedLanguage]}</div>
-                </div>
-                {numberChosenInCategory > 0 && (
-                  <Tag size='sm' color='neutral'>
-                    {numberChosenInCategory}
-                  </Tag>
-                )}
-              </div>
-            }
+            title={category.name[selectedLanguage]}
+            subTitle={category.shortDescription[selectedLanguage]}
+            selectedCount={numberChosenInCategory}
           >
-            <>
-              <Paragraph size='sm'>{category.description[selectedLanguage]}</Paragraph>
+            <div className={classes.accordionContent}>
+              <Paragraph size='xs'>{category.description[selectedLanguage]}</Paragraph>
               {accessPackagesInCategory.map((categoryPackage) => {
                 return (
-                  <PolicyAccessPackageCard
+                  <PolicyAccessPackageAccordion
                     key={categoryPackage.accessPackage.urn}
                     accessPackage={categoryPackage.accessPackage}
                     isChecked={categoryPackage.isChecked}
@@ -112,7 +102,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
                   />
                 );
               })}
-            </>
+            </div>
           </PolicyAccordion>
         );
       })}

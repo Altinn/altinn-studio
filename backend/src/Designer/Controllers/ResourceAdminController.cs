@@ -444,7 +444,7 @@ namespace Altinn.Studio.Designer.Controllers
                 new()
                 {
                     Id = "category_economy",
-                    Icon = "banknote",
+                    Icon = "BankNoteIcon",
                     ShortDescription = new Dictionary<string, string>()
                     {
                         { "nn", "Tjenester som angår skatt, avgift, regnskap og toll" },
@@ -467,7 +467,7 @@ namespace Altinn.Studio.Designer.Controllers
                 new()
                 {
                     Id = "category_transport",
-                    Icon = "truck",
+                    Icon = "TruckIcon",
                     ShortDescription = new Dictionary<string, string>()
                     {
                         { "nn", "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring" },
