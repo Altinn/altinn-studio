@@ -1,0 +1,21 @@
+name: "Label Check"
+on:
+  pull_request:
+    types: [opened, edited, labeled, unlabeled, synchronize]
+
+jobs:
+  check-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check labels
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels;
+            const hasIgnoreLabel = labels.some(label => label.name === 'ignore-for-release');
+            if (!hasIgnoreLabel) {
+              const hasMatchingLabel = labels.some(label => /^kind\/.*/.test(label.name));
+              if (!hasMatchingLabel) {
+                core.setFailed('The PR must have at least one label matching the pattern "kind/*", unless it has the "ignore-for-release" label.');
+              }
+            }
