@@ -56,7 +56,7 @@ export const Expressions = () => {
     <div className={classes.root}>
       <Trans i18nKey={'right_menu.read_more_about_expressions'}>
         <a
-          href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+          href={altinnDocsUrl({ relativeUrl: 'altinn-studio/designer/build-app/expressions' })}
           target='_newTab'
           rel='noopener noreferrer'
         />

@@ -106,6 +106,8 @@ type SummarizableComponentProps = {
 
 export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
+export type SummaryCustomTargetType = 'list' | 'string' | 'notSet';
+
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -139,6 +141,8 @@ export type Summary2OverrideConfig = {
   forceShow?: boolean;
   emptyFieldText?: string;
   hideEmptyFields?: boolean;
+  isCompact?: boolean;
+  displayType?: SummaryCustomTargetType;
 };
 
 export type Summary2TargetConfig = {

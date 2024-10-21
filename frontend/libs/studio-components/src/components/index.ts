@@ -27,6 +27,7 @@ export * from './StudioInputTable';
 export * from './StudioLabelAsParagraph';
 export * from './StudioLabelWrapper';
 export * from './StudioLink';
+export * from './StudioList';
 export * from './StudioModal';
 export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';
