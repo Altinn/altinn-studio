@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Dropzone from 'react-dropzone';
 
-import { Button, Fieldset } from '@digdir/designsystemet-react';
+import { Button, Combobox, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
+import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useIsInFormContext } from 'src/features/form/FormContext';
+import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { getStatefulDataModelUrl } from 'src/utils/urls/appUrlHelper';
 
 export function DownloadXMLButton() {
   const isInForm = useIsInFormContext();
-  if (!isInForm) {
+  const isStateless = useApplicationMetadata().isStatelessApp;
+  if (!isInForm || isStateless) {
     return null;
   }
 
@@ -19,10 +24,16 @@ export function DownloadXMLButton() {
 
 const InnerDownloadXMLButton = () => {
   const instanceId = useLaxInstanceId();
-  // TODO(Datamodels): How should this work with multiple data models?
-  const dataUrl = ''; //useCurrentDataModelUrl(false);
+  const writableDataTypes = DataModels.useWritableDataTypes();
+  const getDataElementIdForDataType = DataModels.useGetDataElementIdForDataType();
+  const [selectedDataType, setSelectedDataType] = useState(writableDataTypes?.at(0));
+  const disabled = !selectedDataType;
+
+  const { lock, unlock } = FD.useLocking('__dev_tools__');
 
   const downloadXML = async () => {
+    const dataElementId = selectedDataType ? getDataElementIdForDataType(selectedDataType) : undefined;
+    const dataUrl = dataElementId && instanceId ? getStatefulDataModelUrl(instanceId, dataElementId, true) : undefined;
     if (dataUrl) {
       const response = await axios.get(dataUrl, { headers: { Accept: 'application/xml' } });
 
@@ -30,34 +41,58 @@ const InnerDownloadXMLButton = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.setAttribute('href', url);
-      a.setAttribute('download', `${window.org}-${window.app}-${instanceId ?? 'stateless'}.xml`);
+      a.setAttribute('download', `${window.org}-${window.app}-${instanceId ?? 'stateless'}-${selectedDataType}.xml`);
       a.click();
     }
   };
 
   const uploadXML = async (acceptedFiles: File[]) => {
+    const dataElementId = selectedDataType ? getDataElementIdForDataType(selectedDataType) : undefined;
+    const dataUrl = dataElementId && instanceId ? getStatefulDataModelUrl(instanceId, dataElementId, true) : undefined;
     if (dataUrl && acceptedFiles.length) {
-      const data = await acceptedFiles[0].text();
-      await axios.put(dataUrl, data, { headers: { 'Content-Type': 'application/xml' } }).catch((error) => {
-        // 303 is expected when using ProcessDataWrite and can be ignored
-        if (error.response?.status !== 303) {
-          throw error;
-        }
-      });
-      window.location.reload();
-      // TODO(DevTools): Find a better way to reload the form data from server
-      // The following will cause a fetch, but the data is not updated ↙
-      // await window.queryClient.invalidateQueries(['fetchFormData']);
+      try {
+        lock();
+        const dataToUpload = await acceptedFiles[0].text();
+        await axios.put(dataUrl, dataToUpload, { headers: { 'Content-Type': 'application/xml' } }).catch((error) => {
+          // 303 is expected when using ProcessDataWrite and can be ignored
+          if (error.response?.status !== 303) {
+            throw error;
+          }
+        });
+        const { data: updatedDataModel } = await axios.get(dataUrl, {
+          headers: { Accept: 'application/json' },
+        });
+        unlock({ updatedDataModels: { [dataElementId!]: updatedDataModel }, updatedValidationIssues: {} });
+      } catch {
+        unlock();
+      }
     }
   };
   return (
     <Fieldset legend='Skjemadata'>
+      {writableDataTypes?.length > 1 && (
+        <Combobox
+          size='sm'
+          value={selectedDataType ? [selectedDataType] : []}
+          onValueChange={(values) => setSelectedDataType(values.at(0))}
+        >
+          {writableDataTypes.map((dataType) => (
+            <Combobox.Option
+              key={dataType}
+              value={dataType}
+              displayValue={dataType}
+            >
+              {dataType}
+            </Combobox.Option>
+          ))}
+        </Combobox>
+      )}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Button
           variant='secondary'
           size='small'
           onClick={downloadXML}
-          disabled={true}
+          disabled={disabled}
         >
           {
             <DownloadIcon
@@ -79,7 +114,7 @@ const InnerDownloadXMLButton = () => {
               })}
               variant='secondary'
               size='small'
-              disabled={true}
+              disabled={disabled}
             >
               {
                 <UploadIcon
