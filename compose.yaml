@@ -103,6 +103,25 @@ services:
       interval: 5s
       timeout: 10s
       retries: 5
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
 
   studio_repositories:
     container_name: studio-repositories
@@ -135,7 +154,7 @@ services:
       - USER_GID=1000
       - USER_UID=1000
     ports:
-      - '3000:3000'
+      - '3001:3001'
       - '222:22'
     build:
       context: ./gitea/

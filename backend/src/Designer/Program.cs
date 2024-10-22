@@ -37,6 +37,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 
 ILogger logger;
 
@@ -50,6 +51,9 @@ var builder = WebApplication.CreateBuilder(args);
     ConfigureLogging(builder.Logging);
     ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
 }
+
+// Move the line below into ConfigureServices
+builder.Services.UseHttpClientMetrics();
 
 var app = builder.Build();
 {
@@ -327,12 +331,16 @@ void Configure(IConfiguration configuration)
 
     app.UseResponseCompression();
     app.UseRequestLocalization();
+    app.UseMetricServer("/metrics");
+    app.UseHttpMetrics();
 
     app.MapControllers();
 
     app.MapHealthChecks("/health");
     app.MapHub<PreviewHub>("/previewHub");
     app.MapHub<SyncHub>("/sync-hub");
+
+
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }

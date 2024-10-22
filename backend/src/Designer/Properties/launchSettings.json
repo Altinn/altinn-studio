@@ -32,6 +32,16 @@
         "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/",
         "DOTNET_ROLL_FORWARD": "Major"
       }
-    }
+    },
+      "Container (Dockerfile)": {
+          "commandName": "Docker",
+          "launchBrowser": true,
+          "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+          "environmentVariables": {
+              "ASPNETCORE_HTTP_PORTS": "8080"
+          },
+          "publishAllPorts": true,
+          "useSSL": true
+      }
   }
 }

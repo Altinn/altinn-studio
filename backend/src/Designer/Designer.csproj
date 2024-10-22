@@ -55,6 +55,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.2.1" />
     <PackageReference Include="Scrutor" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(CodeAnalisysCompatibleVersion)" />

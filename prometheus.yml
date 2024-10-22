@@ -1,0 +1,6 @@
+global:
+  scrape_interval: 10s
+scrape_configs:
+  - job_name: 'my-api-read-prometheus'
+    static_configs:
+      - targets: ['host.docker.internal:6000']
