@@ -1,8 +1,9 @@
+import type { MutationMeta } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
-export const useAddOptionListMutation = (org: string, app: string) => {
+export const useAddOptionListMutation = (org: string, app: string, meta?: MutationMeta) => {
   const queryClient = useQueryClient();
   const { uploadOptionList } = useServicesContext();
 
@@ -19,6 +20,7 @@ export const useAddOptionListMutation = (org: string, app: string) => {
         queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org, app] }),
       ]);
     },
+    meta,
   });
 };
 

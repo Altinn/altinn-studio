@@ -12,8 +12,10 @@ import type { SelectionComponentType } from '../../../../../types/FormComponent'
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import { findFileNameError } from './findFileNameError';
 import type { FileNameError } from './findFileNameError';
+import type { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
+import type { ApiError } from 'app-shared/types/api/ApiError';
 
 export function EditCodeList<T extends SelectionComponentType>({
   component,
@@ -22,7 +24,9 @@ export function EditCodeList<T extends SelectionComponentType>({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
-  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
+  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
+    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
+  });
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -40,6 +44,11 @@ export function EditCodeList<T extends SelectionComponentType>({
       onSuccess: () => {
         handleOptionsIdChange(removeExtension(file.name));
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
+      },
+      onError: (error: AxiosError<ApiError>) => {
+        if (!error.response?.data?.errorCode) {
+          toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);
+        }
       },
     });
   };

@@ -1457,6 +1457,7 @@
   "ux_editor.modal_properties_code_list_read_more_static": "<0 href=\"{{optionsDocs}}\" >Les mer om statiske kodelister</0>",
   "ux_editor.modal_properties_code_list_upload": "Last opp din egen kodeliste",
   "ux_editor.modal_properties_code_list_upload_duplicate_error": "Opplastning feilet. Du prøvde å laste opp en fil som finnes fra før.",
+  "ux_editor.modal_properties_code_list_upload_generic_error": "Opplastning feilet. Filen du lastet opp er ikke satt opp riktig.",
   "ux_editor.modal_properties_code_list_upload_success": "Filen ble lastet opp.",
   "ux_editor.modal_properties_component_change_id": "Komponent-ID",
   "ux_editor.modal_properties_component_change_id_information": "Ved redigering av komponent ID vil Studio automatisk oppdatere IDen der den er brukt som referanse, men det er ikke garantert at alle eksemplarer er oppdatert.",
