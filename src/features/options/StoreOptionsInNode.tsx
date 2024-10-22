@@ -50,12 +50,20 @@ function StoreOptionsInNodeWorker({ valueType }: GeneratorOptionProps) {
     return false;
   }
 
+  // Quickfix to fix simpleBinding being cleared as stale in FileUploadWithTag,
+  // we don't store option values here so it makes no sense to do this,
+  // consider solving this more elegantly in the future.
+  // AFAIK, stale values are not removed from attachment tags, maybe they should?
+  const shouldRemoveStaleValues = !node.isType('FileUploadWithTag');
+
   return (
     <>
-      <EffectRemoveStaleValues
-        valueType={valueType}
-        options={options}
-      />
+      {shouldRemoveStaleValues && (
+        <EffectRemoveStaleValues
+          valueType={valueType}
+          options={options}
+        />
+      )}
       {preselectedOption !== undefined && (
         <EffectPreselectedOptionIndex
           preselectedOption={preselectedOption}
