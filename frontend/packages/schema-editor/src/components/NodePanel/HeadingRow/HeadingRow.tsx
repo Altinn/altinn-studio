@@ -30,6 +30,7 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useAddProperty } from '../../../hooks/useAddProperty';
 import cn from 'classnames';
+import { ArrowLeftIcon } from '@studio/icons';
 
 export interface HeadingRowProps {
   schemaPointer?: string;
@@ -60,7 +61,8 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
         </StudioButton>
       </StudioHeading>
       {isValidParent && <AddNodeMenu schemaPointer={schemaPointer} />}
-      {!isDataModelRoot && <DeleteButton schemaPointer={schemaPointer} />}
+      <DeleteButton schemaPointer={schemaPointer} />
+      {/*{!isDataModelRoot && <BackButton />}*/}
     </div>
   );
 };
@@ -175,3 +177,13 @@ const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
     </StudioDeleteButton>
   );
 };
+
+const BackButton = () => (
+  <div
+    style={{
+      marginInline: 'auto 16px',
+    }}
+  >
+    <StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>
+  </div>
+);

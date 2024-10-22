@@ -22,7 +22,7 @@ export const NodePanel = ({ schemaPointer }: NodePanelProps) => {
   return (
     <>
       <HeadingRow schemaPointer={schemaPointer} />
-      {!isDataModelRoot && <BackButton />}
+      {/*{!isDataModelRoot && <BackButton />}*/}
       <div className={classes.content}>
         {isNodeValidParent(node) && <SchemaTree schemaPointer={schemaPointer} />}
       </div>

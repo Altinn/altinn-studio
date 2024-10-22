@@ -9,9 +9,12 @@ import type { CreateDataModelMutationArgs } from '../../../../hooks/mutations/us
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
-import { usePrevious } from '@studio/components';
+import { StudioButton, StudioParagraph, usePrevious } from '@studio/components';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
+import { Label, Link } from '@digdir/designsystemet-react';
+import { ArrowLeftIcon, ChevronRightIcon } from '@studio/icons';
+import cn from 'classnames';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
@@ -47,35 +50,46 @@ export function TopToolbar({
     setCreateNewOpen(false);
   };
 
+  const showTypeToolbar = false;
+
   return (
-    <section className={classes.toolbar} role='toolbar'>
-      <SchemaSelect
-        dataModels={dataModels}
-        disabled={false}
-        selectedOption={selectedOption}
-        setSelectedOption={setSelectedOption}
-      />
-      <CreateNewWrapper
-        dataModels={dataModels}
-        disabled={false}
-        createNewOpen={createNewOpen}
-        setCreateNewOpen={setCreateNewOpen}
-        handleCreateSchema={handleCreateSchema}
-        createPathOption={createPathOption}
-      />
-      <XSDUpload
-        selectedOption={selectedOption}
-        uploadButtonText={t('app_data_modelling.upload_xsd')}
-      />
-      <VerticalDivider />
-      <DeleteWrapper selectedOption={selectedOption} />
-      {modelPath && (
-        <GenerateModelsButton
-          modelPath={modelPath}
-          onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
-            onSetSchemaGenerationErrorMessages(errorMessages)
-          }
-        />
+    <section
+      className={cn(classes.toolbar, showTypeToolbar && classes.blueBackground)}
+      role='toolbar'
+    >
+      {showTypeToolbar ? (
+        <TypeControls />
+      ) : (
+        <>
+          <SchemaSelect
+            dataModels={dataModels}
+            disabled={false}
+            selectedOption={selectedOption}
+            setSelectedOption={setSelectedOption}
+          />
+          <CreateNewWrapper
+            dataModels={dataModels}
+            disabled={false}
+            createNewOpen={createNewOpen}
+            setCreateNewOpen={setCreateNewOpen}
+            handleCreateSchema={handleCreateSchema}
+            createPathOption={createPathOption}
+          />
+          <XSDUpload
+            selectedOption={selectedOption}
+            uploadButtonText={t('app_data_modelling.upload_xsd')}
+          />
+          <VerticalDivider />
+          {/*<DeleteWrapper selectedOption={selectedOption} />*/}
+          {modelPath && (
+            <GenerateModelsButton
+              modelPath={modelPath}
+              onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+                onSetSchemaGenerationErrorMessages(errorMessages)
+              }
+            />
+          )}
+        </>
       )}
     </section>
   );
@@ -89,5 +103,53 @@ const VerticalDivider = () => {
         height: '66.6%',
       }}
     />
+  );
+};
+
+const TypeControls = () => {
+  const showBreadcrumbs = true;
+
+  return (
+    <div
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
+      {showBreadcrumbs ? (
+        <>
+          <div
+            style={{
+              width: 'fit-content',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--fds-spacing-4)',
+            }}
+          >
+            <Link>
+              Datamodell: <b>model</b>
+            </Link>
+            <ChevronRightIcon />
+            <StudioParagraph size='sm'>
+              Type: <b>name0</b>
+            </StudioParagraph>
+          </div>
+          {/*<StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>*/}
+        </>
+      ) : (
+        <>
+          <div>
+            <Label>
+              Viser type: <b>name0</b>
+            </Label>
+          </div>
+          <StudioButton icon={<ArrowLeftIcon />}>
+            Tilbake til datamodell <b>model</b>
+          </StudioButton>
+        </>
+      )}
+    </div>
   );
 };

@@ -8,6 +8,14 @@
   gap: var(--fds-spacing-2);
 }
 
+.blueBackground {
+  background: var(--fds-colors-blue-100);
+}
+
+.modelName {
+  /*font-weight: 400;*/
+}
+
 @keyframes fadeOut {
   0% {
     opacity: 1;

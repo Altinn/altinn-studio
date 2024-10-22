@@ -38,7 +38,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   };
 
   return (
-    <div className={classes.root}>
+    <>
       <div className={classes.headingContainer}>
         <StudioHeading level={2} size='2xs'>
           {t('schema_editor.types')}
@@ -61,6 +61,6 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
           />
         ))}
       </div>
-    </div>
+    </>
   );
 };
