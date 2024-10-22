@@ -84,7 +84,9 @@ export function EditCodeList<T extends SelectionComponentType>({
       <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}>
         <a
           className={classes.linkStaticCodeLists}
-          href={altinnDocsUrl('altinn-studio/reference/data/options/static-codelists/')}
+          href={altinnDocsUrl({
+            relativeUrl: 'altinn-studio/reference/data/options/static-codelists/',
+          })}
           target='_newTab'
           rel='noopener noreferrer'
         />
