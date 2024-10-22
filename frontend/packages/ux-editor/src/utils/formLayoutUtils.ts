@@ -521,8 +521,13 @@ export const getAvailableChildComponentsForContainer = (
 export const getAllLayoutComponents = (
   layout: IInternalLayout,
   excludeTypes?: ComponentType[],
-): FormComponent[] => {
-  return Object.values(layout.components).filter(
+): (FormComponent | FormContainer)[] => {
+  const components = Object.values(layout.components).filter(
     (component) => !excludeTypes || !excludeTypes.includes(component.type),
   );
+  const containers = Object.values(layout.containers).filter(
+    (container) =>
+      container.type !== undefined && (!excludeTypes || !excludeTypes.includes(container.type)),
+  );
+  return [...containers, ...components];
 };

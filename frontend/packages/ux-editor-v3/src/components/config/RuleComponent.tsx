@@ -4,14 +4,13 @@ import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type { IRuleModelFieldElement } from '../../types/global';
 import { withTranslation } from 'react-i18next';
 import classes from './RuleComponent.module.css';
-import Modal from 'react-modal';
 import type { RuleConnection, RuleConnections } from 'app-shared/types/RuleConfig';
 import type i18next from 'i18next';
-import { Buldings2Icon } from '@studio/icons';
+import { StudioButton, StudioModal } from '@studio/components';
+import { CogIcon, PlusIcon } from '@studio/icons';
 
 export interface IRuleComponentProps {
   connectionId?: string;
-  cancelEdit: () => void;
   saveEdit: (id: string, connection: RuleConnection) => void;
   ruleModelElements: IRuleModelFieldElement[];
   ruleConnection: RuleConnections;
@@ -23,6 +22,7 @@ interface IRuleComponentState {
   selectedFunctionNr: number | null;
   connectionId: string | null;
   ruleConnection: RuleConnection;
+  dialogRef: React.RefObject<HTMLDialogElement>;
 }
 
 class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
@@ -36,6 +36,7 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
         inputParams: {},
         outParams: {},
       },
+      dialogRef: React.createRef(),
     };
   }
 
@@ -66,6 +67,13 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
 
   public handleSaveEdit = (): void => {
     this.props.saveEdit(this.state.connectionId, this.state.ruleConnection);
+    if (!this.props.connectionId) {
+      this.setState({
+        connectionId: uuidv1(),
+        ruleConnection: { selectedFunction: '', inputParams: {}, outParams: {} },
+      });
+    }
+    this.state.dialogRef.current?.close();
   };
 
   public handleSelectedMethodChange = (e: any): void => {
@@ -113,35 +121,26 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
     const selectedMethod = this.state.ruleConnection.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <Modal
-        isOpen={true}
-        onRequestClose={() => {
-          this.props.cancelEdit;
-        }}
-        className={classes.modalBody}
-        ariaHideApp={false}
-        overlayClassName={classes.reactModalOverlay}
-      >
-        <div className={classes.modalHeader}>
-          <Buldings2Icon className={classes.configRulesIcon} />
-          <h1 className={classes.modalHeaderTitle}>
-            <span>{this.props.t('ux_editor.modal_configure_rules_header')}</span>
-          </h1>
-        </div>
-        <div className={classes.modalBodyContent}>
+      <StudioModal.Root>
+        {this.renderTrigger()}
+        <StudioModal.Dialog
+          ref={this.state.dialogRef}
+          closeButtonTitle={this.props.t('general.close')}
+          heading={this.props.t('ux_editor.modal_configure_rules_header')}
+        >
           <div className={classes.formGroup}>
             <label htmlFor='selectRule' className={classes.label}>
               {this.props.t('ux_editor.modal_configure_rules_helper')}
             </label>
             <select
-              name='selectRule'
+              id='selectRule'
               onChange={this.handleSelectedMethodChange}
               value={selectedMethod}
               className={classes.customSelect}
               style={{ fontSize: '16px' }}
             >
               <option value={''}>{this.props.t('general.choose_method')}</option>
-              {this.props.ruleModelElements.map((funcObj: any) => {
+              {this.props.ruleModelElements?.map((funcObj: IRuleModelFieldElement) => {
                 return (
                   <option key={funcObj.name} value={funcObj.name}>
                     {funcObj.name}
@@ -220,25 +219,51 @@ class Rule extends React.Component<IRuleComponentProps, IRuleComponentState> {
           ) : null}
           <div className={classes.buttonsContainer}>
             {this.state.ruleConnection.selectedFunction ? (
-              <button onClick={this.handleSaveEdit} type='submit' className={classes.saveButton}>
+              <StudioButton
+                onClick={this.handleSaveEdit}
+                type='submit'
+                className={classes.saveButton}
+              >
                 {this.props.t('general.save')}
-              </button>
+              </StudioButton>
             ) : null}
             {this.props.connectionId ? (
-              <button
+              <StudioButton
                 type='button'
                 className={classes.dangerButton}
                 onClick={this.handleDeleteConnection}
               >
                 {this.props.t('general.delete')}
-              </button>
+              </StudioButton>
             ) : null}
-            <button className={classes.cancelButton} onClick={this.props.cancelEdit}>
+            <StudioButton
+              className={classes.cancelButton}
+              onClick={() => {
+                this.state.dialogRef.current?.close();
+              }}
+            >
               {this.props.t('general.cancel')}
-            </button>
+            </StudioButton>
           </div>
-        </div>
-      </Modal>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
+    );
+  }
+
+  private renderTrigger(): React.ReactElement {
+    return !this.props.connectionId ? (
+      <>
+        <span>{this.props.t('right_menu.rules_calculations')}</span>
+        <StudioModal.Trigger
+          aria-label={this.props.t('right_menu.rules_calculations_add_alt')}
+          icon={<PlusIcon />}
+          variant='tertiary'
+        />
+      </>
+    ) : (
+      <StudioModal.Trigger variant='tertiary' icon={<CogIcon />}>
+        {this.state.ruleConnection?.selectedFunction?.toString()}
+      </StudioModal.Trigger>
     );
   }
 }

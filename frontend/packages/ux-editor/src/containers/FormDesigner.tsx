@@ -7,7 +7,6 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import {
   StudioPageError,
   StudioPageSpinner,
@@ -50,7 +49,6 @@ export const FormDesigner = (): JSX.Element => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
     org,
     app,
@@ -85,7 +83,6 @@ export const FormDesigner = (): JSX.Element => {
     instanceId &&
     formLayouts &&
     formLayoutSettings &&
-    ruleModel &&
     isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {

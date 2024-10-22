@@ -60,7 +60,7 @@ export const Expressions = () => {
 const ReadMoreLink = () => {
   const t = useText();
   return (
-    <Link href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}>
+    <Link href={altinnDocsUrl({ relativeUrl: 'altinn-studio/designer/build-app/expressions' })}>
       {t('right_menu.read_more_about_expressions')}
     </Link>
   );

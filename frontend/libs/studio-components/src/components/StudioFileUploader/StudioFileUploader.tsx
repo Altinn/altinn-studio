@@ -1,80 +1,63 @@
-import type { RefObject } from 'react';
+import type { InputHTMLAttributes, RefObject } from 'react';
 import React, { forwardRef } from 'react';
 import classes from './StudioFileUploader.module.css';
 import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
-
-const NUMBER_BITS_IN_A_BYTE = 1024;
-export const BITS_IN_A_MEGA_BYTE = NUMBER_BITS_IN_A_BYTE * NUMBER_BITS_IN_A_BYTE;
-
-export type FileValidation = {
-  validateFileName?: (fileName: string) => boolean;
-  fileSizeLimitMb?: number;
-  onInvalidFileName?: (file?: FormData, fileName?: string) => void;
-  onInvalidFileSize?: () => void;
-};
+import { useForwardedRef } from '@studio/hooks';
 
 export type StudioFileUploaderProps = {
-  onUploadFile: (file: FormData, fileName: string) => void;
-  accept?: string;
-  size?: StudioButtonProps['size'];
-  variant?: StudioButtonProps['variant'];
-  disabled?: boolean;
   uploaderButtonText?: string;
-  customFileValidation?: FileValidation;
-  dataTestId?: string;
-};
+  onSubmit?: (file: File) => void;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size' | 'onSubmit'> &
+  Pick<StudioButtonProps, 'size' | 'variant' | 'color'>;
 
-/**
- * @component
- *    Component for uploading a file from a studio button and show spinner during uploading
- */
-export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProps>(
+export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploaderProps>(
   (
     {
-      onUploadFile,
-      accept,
-      size,
-      variant = 'tertiary',
+      className,
+      color,
       disabled,
+      onSubmit,
+      size,
       uploaderButtonText,
-      customFileValidation,
-      dataTestId,
+      variant = 'tertiary',
+      ...rest
     },
-    ref: RefObject<HTMLInputElement>,
+    ref,
   ): React.ReactElement => {
+    const internalRef = useForwardedRef(ref);
+
     const handleInputChange = () => {
-      const file = getFile(ref);
+      const file = getFile(internalRef);
       if (file) handleSubmit();
     };
 
     const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
-      const file = getFile(ref);
-      if (isFileValid(file, ref, customFileValidation)) {
-        const formData = new FormData();
-        formData.append('file', file);
-        onUploadFile(formData, file.name);
+      const file = getFile(internalRef);
+      if (file) {
+        onSubmit?.(file);
       }
     };
 
     return (
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={className}>
         <input
-          data-testid={dataTestId}
-          type='file'
-          accept={accept}
-          ref={ref}
+          aria-label={uploaderButtonText}
+          className={classes.fileInput}
           disabled={disabled}
           onChange={handleInputChange}
-          className={classes.fileInput}
+          ref={internalRef}
+          type='file'
+          {...rest}
         />
         <StudioButton
-          size={size}
-          icon={<UploadIcon />}
-          onClick={() => ref?.current?.click()}
+          color={color}
           disabled={disabled}
+          icon={<UploadIcon />}
+          onClick={() => internalRef?.current?.click()}
+          size={size}
           variant={variant}
         >
           {uploaderButtonText}
@@ -87,28 +70,3 @@ export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProp
 StudioFileUploader.displayName = 'StudioFileUploader';
 
 const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current?.files?.item(0);
-
-const isFileValid = (
-  file: File,
-  fileRef: RefObject<HTMLInputElement>,
-  customFileValidation: FileValidation,
-): boolean => {
-  if (!file) return false;
-  if (!customFileValidation) return true;
-  if (customFileValidation.validateFileName && !customFileValidation.validateFileName(file.name)) {
-    const formData = new FormData();
-    formData.append('file', file);
-    customFileValidation.onInvalidFileName(formData, file.name);
-    fileRef.current.value = '';
-    return false;
-  }
-  if (
-    customFileValidation.fileSizeLimitMb &&
-    file.size > customFileValidation.fileSizeLimitMb * BITS_IN_A_MEGA_BYTE
-  ) {
-    customFileValidation.onInvalidFileSize();
-    fileRef.current.value = '';
-    return false;
-  }
-  return true;
-};
