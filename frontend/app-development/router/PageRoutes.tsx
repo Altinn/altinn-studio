@@ -17,6 +17,8 @@ import {
   NotFoundRouteErrorBoundary,
   RouteErrorBoundary,
 } from './PageRouterErrorBoundry';
+import { GiteaRoutePaths } from '../enums/GiteaRoutePaths';
+import { NavigateToLatestCommitInGitea } from '../features/navigateToLatestCommitInGitea';
 
 const BASE_PATH = '/:org/:app';
 
@@ -39,6 +41,14 @@ const router = createBrowserRouter(
           />
         ))}
         <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
+      </Route>
+      <Route path={BASE_PATH}>
+        {/* Additional BasePath route to avoid using PageLayout around NavigateToLatestCommitInGitea */}
+        <Route
+          path={GiteaRoutePaths.LatestCommit}
+          element={<NavigateToLatestCommitInGitea />}
+          errorElement={<RouteErrorBoundary />}
+        />
       </Route>
       <Route path='*' element={<NotFoundPage />} errorElement={<NotFoundRouteErrorBoundary />} />
     </Route>,
