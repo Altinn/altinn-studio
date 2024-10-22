@@ -5,6 +5,7 @@ import { Grid } from '@material-ui/core';
 
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
+import { useIsSaving } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage, useNextPageKey, usePreviousPageKey } from 'src/hooks/useNavigatePage';
@@ -22,7 +23,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
   const previous = usePreviousPageKey();
   const returnToView = useReturnToView();
   const summaryItem = useNodeItem(useSummaryNodeOfOrigin());
-
+  const isSaving = useIsSaving();
   const parentIsPage = node.parent instanceof LayoutPage;
 
   const refPrev = React.useRef<HTMLButtonElement>(null);
@@ -117,6 +118,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         {showBackToSummaryButton && (
           <Grid item>
             <Button
+              disabled={isSaving}
               ref={refNext}
               size='small'
               onClick={onClickBackToSummary}
@@ -128,6 +130,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         {showNextButton && (
           <Grid item>
             <Button
+              disabled={isSaving}
               ref={refNext}
               size='small'
               onClick={onClickNext}
@@ -141,6 +144,7 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
         {!disablePrevious && showBackButton && (
           <Grid item>
             <Button
+              disabled={isSaving}
               ref={refPrev}
               size='small'
               variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
