@@ -16,8 +16,13 @@
   margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
 }
 
+.manualTabModal[open] {
+  max-width: unset;
+  width: min(80vw, 64rem);
+}
+
 .manualTabContent {
-  padding: var(--fds-spacing-5) 0;
+  padding: var(--fds-spacing-5);
 }
 
 .optionsHeading {
