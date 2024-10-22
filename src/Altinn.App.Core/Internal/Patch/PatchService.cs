@@ -197,7 +197,6 @@ internal class PatchService : IPatchService
         return new DataPatchResult
         {
             Instance = instance,
-            ChangedDataElements = changes,
             UpdatedData = updatedData,
             ValidationIssues = validationIssues,
         };
