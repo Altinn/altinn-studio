@@ -1,0 +1,33 @@
+:root {
+  --selected-border-marking: 3px;
+}
+
+.tabIsSelected,
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  border: solid 1px var(--fds-semantic-border-action-second-subtle);
+  padding: var(--fds-spacing-3);
+  cursor: pointer;
+}
+
+.icon {
+  font-size: var(--fds-spacing-8);
+}
+
+.tabTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabIsSelected {
+  border-left: var(--selected-border-marking) solid var(--semantic-surface-action-default);
+  background-color: white;
+}
+
+.tab:hover,
+.tabIsSelected:hover {
+  border-left: var(--selected-border-marking) solid var(--semantic-surface-action-default);
+  background-color: var(--fds-semantic-surface-action-first-subtle-hover);
+}

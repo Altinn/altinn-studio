@@ -11,7 +11,7 @@ import {
 import { StudioModal } from '@studio/components';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
+import type { SettingsModalTabId } from 'app-development/types/SettingsModalTab';
 import { createNavigationTab } from './utils';
 import { useTranslation } from 'react-i18next';
 import { PolicyTab } from './components/Tabs/PolicyTab';
@@ -19,11 +19,12 @@ import { AboutTab } from './components/Tabs/AboutTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 import { type SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
+import { StudioContentMenu } from '@studio/components';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
 
-  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const [currentTab, setCurrentTab] = useState<SettingsModalTabId>('about');
   const dialogRef = useRef<HTMLDialogElement>();
 
   const openSettings = useCallback(
@@ -38,50 +39,46 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
     openSettings,
   ]);
 
-  const aboutTabId: SettingsModalTab = 'about';
-  const setupTabId: SettingsModalTab = 'setup';
-  const policyTabId: SettingsModalTab = 'policy';
-  const accessControlTabId: SettingsModalTab = 'access_control';
+  const aboutTabId: SettingsModalTabId = 'about';
+  const setupTabId: SettingsModalTabId = 'setup';
+  const policyTabId: SettingsModalTabId = 'policy';
+  const accessControlTabId: SettingsModalTabId = 'access_control';
 
   const leftNavigationTabs: LeftNavigationTab[] = [
     createNavigationTab(
       <InformationSquareIcon className={classes.icon} />,
+      t(`settings_modal.left_nav_tab_${aboutTabId}`),
       aboutTabId,
-      () => setCurrentTab(aboutTabId),
-      currentTab,
     ),
     createNavigationTab(
       <SidebarBothIcon className={classes.icon} />,
+      t(`settings_modal.left_nav_tab_${setupTabId}`),
       setupTabId,
-      () => setCurrentTab(setupTabId),
-      currentTab,
     ),
     createNavigationTab(
       <ShieldLockIcon className={classes.icon} />,
+      t(`settings_modal.left_nav_tab_${policyTabId}`),
       policyTabId,
-      () => setCurrentTab(policyTabId),
-      currentTab,
     ),
     createNavigationTab(
       <TimerStartIcon className={classes.icon} />,
+      t(`settings_modal.left_nav_tab_${accessControlTabId}`),
       accessControlTabId,
-      () => setCurrentTab(accessControlTabId),
-      currentTab,
     ),
   ];
 
   const displayTabs = () => {
     switch (currentTab) {
-      case 'about': {
+      case aboutTabId: {
         return <AboutTab />;
       }
-      case 'setup': {
+      case setupTabId: {
         return <SetupTab />;
       }
-      case 'policy': {
+      case policyTabId: {
         return <PolicyTab />;
       }
-      case 'access_control': {
+      case accessControlTabId: {
         return <AccessControlTab />;
       }
     }
@@ -98,7 +95,11 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
       contentClassName={classes.modalContent}
     >
       <div className={classes.leftNavWrapper}>
-        <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
+        <StudioContentMenu
+          contentTabs={leftNavigationTabs}
+          selectedTabId={currentTab}
+          onChangeTab={setCurrentTab}
+        />
       </div>
       <div className={classes.contentWrapper}>{displayTabs()}</div>
     </StudioModal.Dialog>

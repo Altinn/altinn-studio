@@ -239,11 +239,12 @@ export const ResourcePage = (): React.JSX.Element => {
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
+        <GoBackButton
+          to={getResourceDashboardURL(org, app)}
+          text={t('resourceadm.left_nav_bar_back')}
+        />
         <LeftNavigationBar
-          upperTab='backButton'
           tabs={getTabs()}
-          backLink={getResourceDashboardURL(org, app)}
-          backLinkText={t('resourceadm.left_nav_bar_back')}
           selectedTab={
             currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
           }
