@@ -16,7 +16,7 @@ schedules:
   displayName: Bruksmønster
   branches:
     include:
-    - production
+    - main
   always: true
 
 steps:

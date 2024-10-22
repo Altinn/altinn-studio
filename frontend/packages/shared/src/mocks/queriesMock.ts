@@ -213,6 +213,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
+  uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   upsertTextResources: jest
     .fn()
     .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
