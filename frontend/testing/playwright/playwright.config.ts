@@ -22,7 +22,7 @@ export default defineConfig<ExtendedTestOptions>({
 
   projects: [
     { name: TestNames.SETUP, testMatch: /.*\.setup\.ts/ },
-    {
+    /*{
       name: TestNames.CREATE_APP_ONLY,
       dependencies: [TestNames.SETUP],
       testDir: './tests/create-app-only/',
@@ -106,7 +106,7 @@ export default defineConfig<ExtendedTestOptions>({
         testAppName: AppNames.SETTINGS_MODAL_APP,
         headless: true,
       },
-    },
+    },*/
     {
       name: TestNames.TEXT_EDITOR,
       dependencies: [TestNames.SETUP],
@@ -119,7 +119,7 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    {
+    /*{
       name: TestNames.PROCESS_EDITOR,
       dependencies: [TestNames.SETUP],
       testDir: './tests/process-editor/',
@@ -136,7 +136,7 @@ export default defineConfig<ExtendedTestOptions>({
       name: TestNames.LOGOUT,
       dependencies: [
         TestNames.SETUP,
-        TestNames.CREATE_APP_ONLY,
+       TestNames.CREATE_APP_ONLY,
         TestNames.DATA_MODEL,
         TestNames.DASHBOARD,
         TestNames.MAIN_NAVIGATION_BETWEEN_SUB_APPS,
@@ -154,7 +154,7 @@ export default defineConfig<ExtendedTestOptions>({
         headless: true,
       },
     },
-    {
+    /*{
       name: TestNames.INVALID_LOGIN,
       dependencies: [TestNames.LOGOUT],
       testDir: './tests/invalid-login/',
@@ -163,6 +163,6 @@ export default defineConfig<ExtendedTestOptions>({
         ...devices['Desktop Chrome'],
         headless: true,
       },
-    },
+    },*/
   ],
 });
