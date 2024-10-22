@@ -8,7 +8,7 @@ export const Config = new CG.component({
     renderInButtonGroup: false,
     renderInAccordion: false,
     renderInAccordionGroup: false,
-    renderInCards: false,
+    renderInCards: true,
     renderInCardsMedia: false,
     renderInTabs: true,
   },
