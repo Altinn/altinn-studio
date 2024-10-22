@@ -2,6 +2,11 @@
   margin-top: var(--fds-spacing-4);
 }
 
+.wrapper:hover {
+  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
+  cursor: pointer;
+}
+
 .headerWrapper {
   display: flex;
   justify-content: space-between;

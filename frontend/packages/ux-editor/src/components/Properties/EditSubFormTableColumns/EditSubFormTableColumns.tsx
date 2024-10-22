@@ -16,7 +16,6 @@ export const EditSubFormTableColumns = ({
   handleComponentChange,
 }: EditSubFormTableColumnsProps): ReactElement => {
   const { t } = useTranslation();
-
   const tableColumns: TableColumn[] = component?.tableColumns ?? [];
   const { getUniqueKey, addUniqueKey, removeUniqueKey } = useUniqueKeys({
     numberOfKeys: tableColumns.length,
@@ -47,19 +46,22 @@ export const EditSubFormTableColumns = ({
       <StudioHeading size='2xs' level={2}>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>
-      {tableColumns.length > 0 &&
-        tableColumns.map((tableColum: TableColumn, index: number) => (
-          <ColumnElement
-            key={getUniqueKey(index)}
-            tableColumn={tableColum}
-            columnNumber={index + 1}
-            onDeleteColumn={() => deleteColumn(tableColum, index)}
-            onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
-          />
-        ))}
-      <StudioButton color='second' className={classes.addColumnButton} onClick={handleAddColumn}>
-        {t('ux_editor.properties_panel.subform_table_columns.add_column')}
-      </StudioButton>
+      <div className={classes.columnsWrapper}>
+        {tableColumns.length > 0 &&
+          tableColumns.map((tableColumn: TableColumn, index: number) => (
+            <ColumnElement
+              component={component}
+              key={getUniqueKey(index)}
+              tableColumn={tableColumn}
+              columnNumber={index + 1}
+              onDeleteColumn={() => deleteColumn(tableColumn, index)}
+              onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
+            />
+          ))}
+        <StudioButton color='second' className={classes.addColumnButton} onClick={handleAddColumn}>
+          {t('ux_editor.properties_panel.subform_table_columns.add_column')}
+        </StudioButton>
+      </div>
     </div>
   );
 };

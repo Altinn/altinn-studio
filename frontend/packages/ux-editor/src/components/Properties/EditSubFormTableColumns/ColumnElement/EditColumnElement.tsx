@@ -1,0 +1,148 @@
+import React, { useState, type ReactElement } from 'react';
+import classes from './EditColumnElement.module.css';
+import { type TableColumn } from '../types/TableColumn';
+import { useTranslation } from 'react-i18next';
+import {
+  StudioActionCloseButton,
+  StudioCard,
+  StudioCombobox,
+  StudioDeleteButton,
+  StudioDivider,
+  StudioLabelAsParagraph,
+  StudioParagraph,
+  StudioTextfield,
+} from '@studio/components';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
+import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
+import type { FormItem } from '../../../../types/FormItem';
+import { PadlockLockedFillIcon } from '@studio/icons';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import type { ITextResource } from 'app-shared/types/global';
+
+export type ColumnElementProps = {
+  sourceColumn: TableColumn;
+  columnNumber: number;
+  onDeleteColumn: () => void;
+  onEdit: (tableColumn: TableColumn) => void;
+  component: FormItem<ComponentType.SubForm>;
+};
+
+export const EditColumnElement = ({
+  sourceColumn,
+  columnNumber,
+  onDeleteColumn,
+  onEdit,
+  component,
+}: ColumnElementProps): ReactElement => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const subFormLayout = component.layoutSet;
+  const [tableColumn, setTableColumn] = useState(sourceColumn);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, subFormLayout);
+  const { data: textResources } = useTextResourcesQuery(org, app);
+
+  const textKeyValue =
+    textResources.nb.find(
+      (textResource: ITextResource) => textResource.id === tableColumn.headerContent,
+    )?.value ?? tableColumn.headerContent;
+  const components = formLayouts
+    ? Object.values(formLayouts).flatMap((layout) => {
+        return getAllLayoutComponents(layout);
+      })
+    : [];
+
+  const selectComponent = (values: string[]) => {
+    const selectedComponentId = values[0];
+    const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
+
+    let updatedTableColumn = sourceColumn;
+    if (selectedComponent.textResourceBindings?.title) {
+      updatedTableColumn = {
+        ...sourceColumn,
+        headerContent: selectedComponent.textResourceBindings.title,
+      };
+    }
+    if (selectedComponent.dataModelBindings?.simpleBinding) {
+      updatedTableColumn = {
+        ...sourceColumn,
+        cellContent: { query: selectedComponent.dataModelBindings.simpleBinding },
+      };
+    }
+    setTableColumn(updatedTableColumn);
+  };
+
+  return (
+    <StudioCard className={classes.wrapper}>
+      <EditColumnElementHeader columnNumber={columnNumber} />
+      <StudioCard.Content className={classes.content}>
+        <EditColumnElementComponentSelect
+          components={components}
+          onSelectComponent={selectComponent}
+        />
+
+        <StudioTextfield
+          label={
+            <>
+              <PadlockLockedFillIcon /> {t('ux_editor.modal_properties_textResourceBindings_title')}
+            </>
+          }
+          disabled={true}
+          size='sm'
+          value={textKeyValue}
+        />
+
+        <div className={classes.buttons}>
+          <StudioActionCloseButton
+            variant='secondary'
+            onClick={() => onEdit(tableColumn)}
+          ></StudioActionCloseButton>
+          <StudioDeleteButton onDelete={onDeleteColumn} />
+        </div>
+      </StudioCard.Content>
+    </StudioCard>
+  );
+};
+
+type EditColumnElementHeaderProps = {
+  columnNumber: number;
+};
+const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <StudioCard.Header className={classes.header}>
+        <StudioParagraph size='md'>
+          {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
+        </StudioParagraph>
+      </StudioCard.Header>
+      <StudioDivider className={classes.divider} color='subtle' />
+    </>
+  );
+};
+
+type EditColumnElementComponentSelectProps = {
+  components: FormItem[];
+  onSelectComponent: (values: string[]) => void;
+};
+const EditColumnElementComponentSelect = ({
+  components,
+  onSelectComponent,
+}: EditColumnElementComponentSelectProps) => {
+  const { t } = useTranslation();
+  return (
+    <>
+      <StudioLabelAsParagraph size='sm' htmlFor='columncomponentselect'>
+        {t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+      </StudioLabelAsParagraph>
+      <StudioCombobox size='sm' onValueChange={onSelectComponent} id='columncomponentselect'>
+        {components.map((comp: FormItem) => (
+          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+            {comp.id}
+          </StudioCombobox.Option>
+        ))}
+      </StudioCombobox>
+    </>
+  );
+};
