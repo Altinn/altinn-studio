@@ -5,7 +5,6 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { EditCodeList, EditCodeListReference } from './EditCodeList';
 import { getSelectedOptionsType } from '../../../../utils/optionsUtils';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
-
 import { StudioSpinner, StudioTabs } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
@@ -35,11 +34,13 @@ export function EditOptions<T extends SelectionComponentType>({
   const previousEditFormId = useRef(editFormId);
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
-  const [initialSelectedOptionType, setInitialSelectedOptionType] =
-    React.useState<SelectedOptionsType>(
-      getSelectedOptionsType(component.optionsId, component.options, optionListIds || []),
-    );
   const { t } = useTranslation();
+  const initialSelectedOptionsType = getSelectedOptionsType(
+    component.optionsId,
+    component.options,
+    optionListIds || [],
+  );
+  const [selectedOptionsType, setSelectedOptionsType] = React.useState(initialSelectedOptionsType);
 
   useEffect(() => {
     if (editFormId !== previousEditFormId.current) {
@@ -49,10 +50,13 @@ export function EditOptions<T extends SelectionComponentType>({
 
   useEffect(() => {
     if (!optionListIds) return;
-    setInitialSelectedOptionType(
-      getSelectedOptionsType(component.optionsId, component.options, optionListIds),
+    const updatedSelectedOptionsType = getSelectedOptionsType(
+      component.optionsId,
+      component.options,
+      optionListIds,
     );
-  }, [optionListIds, component.optionsId, component.options, setInitialSelectedOptionType]);
+    setSelectedOptionsType(updatedSelectedOptionsType);
+  }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
     <div className={classes.root}>
@@ -70,10 +74,10 @@ export function EditOptions<T extends SelectionComponentType>({
         </ErrorMessage>
       ) : (
         <StudioTabs
-          value={initialSelectedOptionType}
+          value={selectedOptionsType}
           size='small'
           onChange={(value) => {
-            setInitialSelectedOptionType(value as SelectedOptionsType);
+            setSelectedOptionsType(value as SelectedOptionsType);
           }}
         >
           <StudioTabs.List>
