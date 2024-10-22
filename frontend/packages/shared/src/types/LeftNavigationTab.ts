@@ -17,6 +17,4 @@ export interface LeftNavigationTab {
   icon: ReactNode;
   tabName: string;
   tabId: string;
-  action: TabAction;
-  isActiveTab: boolean;
 }

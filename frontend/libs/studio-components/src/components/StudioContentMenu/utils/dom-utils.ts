@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 export function moveFocus(event: React.KeyboardEvent<HTMLTab>) {
   const nextTab = getNextTab(event);

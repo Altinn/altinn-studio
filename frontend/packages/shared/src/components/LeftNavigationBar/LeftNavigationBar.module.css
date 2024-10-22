@@ -1,5 +1,5 @@
 .navigationBar {
-  background-color: var(--fds-semantic-background-subtle);
+  background-color: var(--color-accent-surface-default);
   width: 250px;
   height: 100%;
   left: 0;

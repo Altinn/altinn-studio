@@ -1,6 +1,6 @@
 import React from 'react';
 import { StudioContentMenu } from './StudioContentMenu';
-import { MenuTab } from './StudioMenuTab/StudioMenuTab';
+import type { MenuTab } from './StudioMenuTab/StudioMenuTab';
 import classes from './StudioContentMenuWrapper.module.css';
 
 export type StudioContentMenuWrapperProps = {

@@ -13,6 +13,8 @@
 }
 
 .icon {
+  display: flex;
+  align-items: center;
   font-size: var(--fds-spacing-8);
 }
 
@@ -28,6 +30,5 @@
 
 .tab:hover,
 .tabIsSelected:hover {
-  border-left: var(--selected-border-marking) solid var(--semantic-surface-action-default);
-  background-color: var(--fds-semantic-surface-action-first-subtle-hover);
+  background-color: var(--fds-semantic-surface-action-no_fill-hover);
 }

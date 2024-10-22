@@ -24,7 +24,6 @@ import {
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
 import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
@@ -32,6 +31,8 @@ import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { GoBackButton } from 'app-shared/components/LeftNavigationBar/GoBackButton';
+import { StudioContentMenu } from '@studio/components';
 
 /**
  * @component
@@ -114,7 +115,7 @@ export const ResourcePage = (): React.JSX.Element => {
           resourceErrorModalRef.current.showModal();
         }
       }
-      // Validate Ppolicy and display errors + modal
+      // Validate Policy and display errors + modal
       else if (currentPage === 'policy') {
         const data = await refetchValidatePolicy();
         const validationStatus = data?.data?.status ?? null;
@@ -149,7 +150,7 @@ export const ResourcePage = (): React.JSX.Element => {
   };
 
   /**
-   * Handles the navigation to a page that has erros. This is used from the deploy
+   * Handles the navigation to a page that has errors. This is used from the deploy
    * page when information is displayed about errors on the policy or the resource page.
    *
    * @param page the page to navigate to
@@ -216,6 +217,10 @@ export const ResourcePage = (): React.JSX.Element => {
     getResourcePageURL(org, app, resourceId, 'migration'),
   );
 
+  const handleTabChange = async (tabId: NavigationBarPage) => {
+    await navigateToPage(tabId);
+  };
+
   /**
    * Gets the tabs to display. If showMigrate is true, the migration tab
    * is added, otherwise it displays the three initial tabs.
@@ -243,11 +248,12 @@ export const ResourcePage = (): React.JSX.Element => {
           to={getResourceDashboardURL(org, app)}
           text={t('resourceadm.left_nav_bar_back')}
         />
-        <LeftNavigationBar
-          tabs={getTabs()}
-          selectedTab={
+        <StudioContentMenu
+          contentTabs={getTabs()}
+          selectedTabId={
             currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
           }
+          onChangeTab={handleTabChange}
         />
       </div>
       {resourcePending || !resourceData ? (
