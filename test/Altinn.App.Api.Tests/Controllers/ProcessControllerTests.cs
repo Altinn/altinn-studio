@@ -74,12 +74,12 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
 
         HttpClient client = GetRootedClient(org, app, 1337, partyId, 3);
 
-        TestData.DeleteInstance(org, app, partyId, instanceId);
+        TestData.DeleteInstanceAndData(org, app, partyId, instanceId);
         TestData.PrepareInstance(org, app, partyId, instanceId);
 
         string url = $"/{org}/{app}/instances/{partyId}/{instanceId}/process";
         HttpResponseMessage response = await client.GetAsync(url);
-        TestData.DeleteInstance(org, app, partyId, instanceId);
+        TestData.DeleteInstanceAndData(org, app, partyId, instanceId);
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var content = await response.Content.ReadAsStringAsync();

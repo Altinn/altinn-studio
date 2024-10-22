@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
@@ -48,6 +49,8 @@ public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebAppl
 
         // Assert
         response.Should().HaveStatusCode(expectedStatusCode);
+
+        TestData.DeleteInstanceAndData(OrgId, AppId, instance.Id);
     }
 
     [Theory]
@@ -86,6 +89,8 @@ public class DataController_UserAccessTests : ApiTestBase, IClassFixture<WebAppl
 
         // Assert
         response.Should().HaveStatusCode(expectedStatusCode);
+
+        TestData.DeleteInstanceAndData(OrgId, AppId, instance.Id);
     }
 
     private async Task<AppInstance> CreateAppInstance(string? tokenOrgClaim)

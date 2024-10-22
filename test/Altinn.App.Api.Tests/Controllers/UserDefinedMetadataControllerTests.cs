@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using Altinn.App.Api.Models;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -56,6 +57,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
                     new() { Key = "TheKey", Value = "TheValue" }
                 }
             );
+        TestData.DeleteInstanceAndData(Org, App, instanceId);
     }
 
     [Fact]
@@ -80,6 +82,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
 
         string responseMessage = await response.Content.ReadAsStringAsync();
         responseMessage.Should().Contain("The following keys are duplicated: DuplicatedKey");
+        TestData.DeleteInstanceAndData(Org, App, instanceId);
     }
 
     [Fact]
@@ -104,6 +107,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
 
         string responseMessage = await response.Content.ReadAsStringAsync();
         responseMessage.Should().Contain("The following keys are not allowed: SomeKeyThatIsNotAllowed");
+        TestData.DeleteInstanceAndData(Org, App, instanceId);
     }
 
     [Fact]

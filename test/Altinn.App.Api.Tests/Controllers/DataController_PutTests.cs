@@ -101,6 +101,8 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         );
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
 
+        TestData.DeleteInstanceAndData(org, app, instanceId);
+
         _dataProcessor.Verify(
             p =>
                 p.ProcessDataRead(
@@ -220,6 +222,8 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
         )!;
         readDataElementResponseParsed.Melding!.Name.Should().Be("Ola Olsen");
         readDataElementResponseParsed.Melding.Toggle.Should().BeTrue();
+
+        TestData.DeleteInstanceAndData(org, app, instanceId);
 
         _dataProcessor.Verify();
         _dataWriteProcessor.Verify();

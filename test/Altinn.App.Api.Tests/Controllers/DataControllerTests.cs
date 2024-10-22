@@ -30,7 +30,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         string token = PrincipalUtil.GetOrgToken("nav", "160694123");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        TestData.DeleteInstance(org, app, instanceOwnerPartyId, guid);
+        TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, guid);
         TestData.PrepareInstance(org, app, instanceOwnerPartyId, guid);
 
         using var content = new StringContent("{}", System.Text.Encoding.UTF8, "application/json"); // empty valid json
@@ -55,7 +55,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         HttpClient client = GetRootedClient(org, app);
 
         Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
 
         // Setup the request
@@ -89,7 +89,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         HttpClient client = GetRootedClient(org, app);
 
         Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
 
         // Setup the request
@@ -125,7 +125,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         HttpClient client = GetRootedClient(org, app);
 
         Guid guid = new Guid("1fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
 
         // Setup the request

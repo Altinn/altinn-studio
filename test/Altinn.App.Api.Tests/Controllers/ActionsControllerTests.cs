@@ -35,7 +35,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -61,7 +61,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         using var content = new StringContent(
             "{\"action\":\"lookup_unauthorized\"}",
@@ -85,7 +85,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(null, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -111,7 +111,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -133,7 +133,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef43");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -155,7 +155,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef42");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -181,7 +181,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -234,7 +234,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(400, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -260,7 +260,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(401, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -286,7 +286,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(409, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -312,7 +312,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(500, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -338,7 +338,7 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstance(org, app, 1337, guid);
+        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1001, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);

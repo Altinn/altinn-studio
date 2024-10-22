@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Altinn.App.Api.Models;
+using Altinn.App.Api.Tests.Data;
 using Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
@@ -80,6 +81,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         readDataElementResponseParsed.Melding!.Name.Should().Be(testName);
+        TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
     private async Task<Instance> CreateInstanceSimplified(
@@ -140,6 +142,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         readDataElementResponseParsed.Melding.Should().BeNull(); // No content yet
+        TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
     [Fact]
@@ -172,6 +175,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         Assert.NotNull(readDataElementResponseParsed.Melding);
         readDataElementResponseParsed.Melding.Name.Should().Be("TestName");
+        TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 
     [Fact]
@@ -353,6 +357,14 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var createResponse = await client.PostAsync($"{org}/{app}/instances/create", content);
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.Created, createResponseContent);
+
+        TestData.DeleteInstanceAndData(org, app, sourceInstance.Id);
+
+        var createResponseParsed = JsonSerializer.Deserialize<Instance>(createResponseContent, JsonSerializerOptions);
+        if (createResponseParsed is not null)
+        {
+            TestData.DeleteInstanceAndData(org, app, createResponseParsed.Id);
+        }
     }
 
     private async Task UpdateInstanceData(

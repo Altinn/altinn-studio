@@ -134,15 +134,6 @@ public static class TestData
         return Path.Combine(testDataDirectory, "Profile", "User");
     }
 
-    public static void DeleteInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
-    {
-        string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
-        if (File.Exists(instancePath))
-        {
-            File.Delete(instancePath);
-        }
-    }
-
     public static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
         string instancesDirectory = GetInstancesDirectory();
@@ -175,6 +166,12 @@ public static class TestData
                 }
             }
         }
+    }
+
+    public static void DeleteInstanceAndData(string org, string app, string instanceId)
+    {
+        string[] instanceIdParts = instanceId.Split('/');
+        DeleteInstanceAndData(org, app, int.Parse(instanceIdParts[0]), Guid.Parse(instanceIdParts[1]));
     }
 
     public static void DeleteInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
