@@ -84,7 +84,8 @@ describe('ReleaseContainer', () => {
       name: textMock('app_release.release_title_link'),
     });
     await user.click(latestCommitLink);
-    expect(mockGetBranchStatus).toHaveBeenCalledTimes(2);
+    expect(mockGetRepoStatus).toHaveBeenCalledTimes(1);
+    expect(latestCommitLink).toBeInTheDocument();
   });
 
   it('renders status that latest commit fetched from master is the same as commit for latest release', async () => {
