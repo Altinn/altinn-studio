@@ -194,6 +194,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>layoutsets file, or an OK response if app does not use layoutsets</returns>
         [HttpGet]
+        [UseSystemTextJson]
         [Route("api/layoutsets")]
         public async Task<ActionResult<LayoutSets>> LayoutSets(string org, string app, CancellationToken cancellationToken)
         {
