@@ -32,7 +32,7 @@ export const ClonePopoverContent = ({ onClose }: ClonePopoverContentProps) => {
       <Paragraph asChild size='small'>
         <Link
           className={classes.link}
-          href={altinnDocsUrl('/nb')}
+          href={altinnDocsUrl({ language: 'nb' })}
           target='_blank'
           rel='noopener noreferrer'
         >

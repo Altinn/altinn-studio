@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ChangeEvent } from 'react';
 import { StudioDeleteButton, StudioTextfield } from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +8,8 @@ import { useAppContext, useComponentTypeName } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
+import { ComponentType } from 'app-shared/types/ComponentType';
+import { Summary2OverrideDisplayType } from './Summary2OverrideDisplayType';
 
 type Summary2OverrideEntryProps = {
   override: Summary2OverrideConfig;
@@ -29,6 +31,9 @@ export const Summary2OverrideEntry = ({
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
+  const component = components.find((comp) => comp.id === override.componentId);
+  const isGroupComponent = component?.type === (ComponentType.Group as ComponentType);
+
   const componentOptions = components.map((e) => ({
     id: e.id,
     description: componentTypeName(e.type),
@@ -38,6 +43,10 @@ export const Summary2OverrideEntry = ({
     const newOverride: Summary2OverrideConfig = { ...override, [label]: value };
     onChange(newOverride);
   };
+
+  const checkboxOrMultipleselect =
+    override.componentId.includes(ComponentType.MultipleSelect) ||
+    override.componentId.includes(ComponentType.Checkboxes);
 
   return (
     <>
@@ -85,7 +94,38 @@ export const Summary2OverrideEntry = ({
           onChangeOverride('emptyFieldText', event.target.value)
         }
       ></StudioTextfield>
+      {override.componentId && checkboxOrMultipleselect && (
+        <Summary2OverrideDisplayType override={override} onChange={onChange} />
+      )}
+      {isGroupComponent && (
+        <ComponentInGroupCheckbox onChangeOverride={onChangeOverride} override={override} />
+      )}
       <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
     </>
+  );
+};
+
+type ComponentInGroupCheckboxProps = {
+  onChangeOverride: (label: keyof Summary2OverrideConfig, value: string | boolean) => void;
+  override: Summary2OverrideConfig;
+};
+
+const ComponentInGroupCheckbox = ({
+  onChangeOverride,
+  override,
+}: ComponentInGroupCheckboxProps) => {
+  const { t } = useTranslation();
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
+    onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked);
+
+  return (
+    <Checkbox
+      size='sm'
+      onChange={handleChange}
+      checked={override.isCompact ?? false}
+      value='isCompact'
+    >
+      {t('ux_editor.component_properties.overrides_is_compact')}
+    </Checkbox>
   );
 };
