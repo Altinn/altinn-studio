@@ -138,9 +138,9 @@ test('That it is possible to add a new language', async ({ page, testAppName }) 
   );
 
   // API call to save the newly written text is done when the focus is removed from the textfield - There is no component to check that has been updated, therefore we wait 2 seconds to ensure the call is made.
-  const twoSeconds: number = 2000;
+  //const twoSeconds: number = 2000;
   await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
-  await textEditorPage.waitForXAmountOfMilliseconds(twoSeconds);
+  // await textEditorPage.waitForXAmountOfMilliseconds(twoSeconds);
   // Can the two above be removed?
 });
 
@@ -203,94 +203,6 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, ''); // This is never set in the test
   await giteaPage.verifyTextIdAndValue('appName', testAppName);
 });
-
-// Add the english text
-
-// Check that UI editor has english text
-
-// Go to Gitea and verify it
-
-// comment
-/*test('That it is possible to add a new text, edit the id, and add a new language, and that changes are visible in Gitea', async ({
-  page,
-  testAppName,
-}) => {
-  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
-  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
-
-  // await textEditorPage.clickOnAddNewTextButton();
-  // await textEditorPage.waitForNewTextareaToAppear();
-
-  // await updateTextKey(textEditorPage, 'id_', TEXT_KEY_FIELD_2);
-  // await textEditorPage.writeNewTextInTextarea(
-  //   LanguageCode.Nb,
-  //   TEXT_KEY_FIELD_2,
-  //   TEXT_VALUE_IN_TEXTAREA,
-  // );
-
-  // await textEditorPage.selectLanguageFromCombobox(LanguageCode.En);
-  // await textEditorPage.clickOnAddLanguageButton();
-  // await textEditorPage.waitForLanguageCheckboxToAppear(LanguageCode.En);
-
-  // await textEditorPage.verifyThatTextareaIsHidden(LanguageCode.En, TEXT_KEY_FIELD_2);
-  // await textEditorPage.clickOnLanguageCheckbox(LanguageCode.En);
-  // await textEditorPage.waitForTextareaToUpdateTheLabel(LanguageCode.En, TEXT_KEY_FIELD_2);
-
-  // await textEditorPage.writeNewTextInTextarea(
-  //   LanguageCode.En,
-  //   TEXT_KEY_FIELD_2,
-  //   TEXT_VALUE_IN_TEXTAREA,
-  // );
-
-  // API call to save the newly written text is done when the focus is removed from the textfield - There is no component to check that has been updated, therefore we wait 2 seconds to ensure the call is made.
-  // const twoSeconds: number = 2000;
-  // await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
-  // await textEditorPage.waitForXAmountOfMilliseconds(twoSeconds);
-
-  // await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
-  // await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
-  // await uiEditorPage.clickOnComponentTextConfigAccordion();
-  // await uiEditorPage.clickOnTitleTextButton();
-  // await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
-
-  await header.clickOnUploadLocalChangesButton();
-  await header.clickOnValidateChanges();
-  await header.waitForPushToGiteaSpinnerToDisappear();
-  await header.checkThatUploadSuccessMessageIsVisible();
-  await header.clickOnThreeDotsMenu();
-  await header.clickOnGoToGiteaRepository();
-
-  await giteaPage.verifyGiteaPage();
-  await giteaPage.clickOnAppFilesButton();
-  await giteaPage.clickOnUiFilesButton();
-  await giteaPage.clickOnLayoutSetsFolder();
-  await giteaPage.clickOnLayoutsFilesFolder();
-  await giteaPage.clickOnLayoutJsonFile(PAGE_1);
-
-  await giteaPage.verifyThatComponentIdIsVisible(COMPONENT_ID);
-  await giteaPage.verifyThatTextResourceBindingsTitleIsVisible(UPDATED_TEXT_KEY);
-
-  await giteaPage.goBackNPages(4); // ui -> layoutSet -> layouts -> page1.json
-  await giteaPage.clickOnConfigFilesButton();
-  await giteaPage.clickOnTextFilesButton();
-  await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.Nb);
-  await giteaPage.verifyThatResourceJsonFileIsVisible(LanguageCode.En);
-
-  await giteaPage.clickOnResourceJsonFile(LanguageCode.Nb);
-  await giteaPage.verifyLanguageFile(LanguageCode.Nb);
-  await giteaPage.verifyTextIdAndValue(TEXT_KEY_FIELD_2, TEXT_VALUE_IN_TEXTAREA);
-  await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, INPUT_COMPONENT_LABEL);
-  await giteaPage.verifyTextIdAndValue('appName', testAppName);
-
-  await giteaPage.goBackNPages(1); // Back to texts overview
-  await giteaPage.clickOnResourceJsonFile(LanguageCode.En);
-  await giteaPage.verifyLanguageFile(LanguageCode.En);
-  await giteaPage.verifyTextIdAndValue(TEXT_KEY_FIELD_2, TEXT_VALUE_IN_TEXTAREA);
-  await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, ''); // This is never set in the test
-  await giteaPage.verifyTextIdAndValue('appName', testAppName);
-});*/
 
 const updateTextKey = async (
   textEditorPage: TextEditorPage,
