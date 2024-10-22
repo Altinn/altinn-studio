@@ -20,3 +20,25 @@
   color: var(--fds-semantic-text-neutral-default);
   font-size: 1.8rem;
 }
+
+.backButton {
+  box-sizing: border-box;
+  border-bottom: 2px solid var(--fds-semantic-border-divider-default);
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 15px;
+  padding-block: 20px;
+  background-color: var(--fds-semantic-background-subtle);
+  border-right: 1px solid var(--fds-semantic-border-divider-default);
+}
+
+.backButton:focus-visible {
+  background-color: var(--fds-semantic-background-default);
+  outline: 0;
+}
+
+.backButton:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle-hover);
+}

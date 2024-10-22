@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -12,13 +12,14 @@ import {
 } from '../../hooks/queries';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
-import { Spinner } from '@digdir/designsystemet-react';
+import { Paragraph, Spinner } from '@digdir/designsystemet-react';
 import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import {
+  ArrowLeftIcon,
   GavelSoundBlockIcon,
   InformationSquareIcon,
   MigrationIcon,
@@ -239,6 +240,12 @@ export const ResourcePage = (): React.JSX.Element => {
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
+        <Link to={getResourceDashboardURL(org, app)} className={classes.backButton}>
+          <ArrowLeftIcon className={classes.icon} />
+          <Paragraph size='small' variant='short'>
+            {t('resourceadm.left_nav_bar_back')}
+          </Paragraph>
+        </Link>
         <LeftNavigationBar
           upperTab='backButton'
           tabs={getTabs()}
