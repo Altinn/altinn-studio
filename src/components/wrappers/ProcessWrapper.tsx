@@ -55,16 +55,19 @@ function NavigationError({ label }: NavigationErrorProps) {
         <div>
           <Lang id={label} />
         </div>
-        <div className={classes.navigationError}>
-          <Button
-            variant='secondary'
-            onClick={() => {
-              navigateToTask(currentTaskId);
-            }}
-          >
-            <Lang id='general.navigate_to_current_process' />
-          </Button>
-        </div>
+
+        {currentTaskId && (
+          <div className={classes.navigationError}>
+            <Button
+              variant='secondary'
+              onClick={() => {
+                navigateToTask(currentTaskId);
+              }}
+            >
+              <Lang id='general.navigate_to_current_process' />
+            </Button>
+          </div>
+        )}
       </Grid>
     </>
   );
