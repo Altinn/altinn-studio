@@ -21,7 +21,14 @@ export const DropdownSummary = ({ componentNode, isCompact, emptyFieldText }: Dr
 
   return (
     <SingleValueSummary
-      title={title && <Lang id={title} />}
+      title={
+        title && (
+          <Lang
+            id={title}
+            node={componentNode}
+          />
+        )
+      }
       displayData={displayData}
       errors={errors}
       componentNode={componentNode}

@@ -37,7 +37,12 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
   if (markerBinding && !markerLocationIsValid) {
     return (
       <SingleValueSummary
-        title={title}
+        title={
+          <Lang
+            id={title}
+            node={componentNode}
+          />
+        }
         componentNode={componentNode}
         errors={errors}
         hideEditButton={readOnly}

@@ -20,7 +20,14 @@ export const RadioButtonsSummary = ({ componentNode, isCompact, emptyFieldText }
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);
   return (
     <SingleValueSummary
-      title={title && <Lang id={title} />}
+      title={
+        title && (
+          <Lang
+            id={title}
+            node={componentNode}
+          />
+        )
+      }
       displayData={displayData}
       errors={errors}
       componentNode={componentNode}

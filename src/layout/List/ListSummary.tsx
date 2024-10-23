@@ -21,7 +21,14 @@ export const ListSummary = ({ componentNode, isCompact, emptyFieldText }: ListCo
 
   return (
     <SingleValueSummary
-      title={title && <Lang id={title} />}
+      title={
+        title && (
+          <Lang
+            id={title}
+            node={componentNode}
+          />
+        )
+      }
       displayData={displayData}
       errors={errors}
       componentNode={componentNode}

@@ -31,16 +31,27 @@ export function ParagraphComponent({ node }: IParagraphProps) {
           <Paragraph asChild={!hasInlineContent}>
             {!hasInlineContent ? (
               <div>
-                <Lang id={textResourceBindings?.title} />
+                <Lang
+                  id={textResourceBindings?.title}
+                  node={node}
+                />
               </div>
             ) : (
-              <Lang id={textResourceBindings?.title} />
+              <Lang
+                id={textResourceBindings?.title}
+                node={node}
+              />
             )}
           </Paragraph>
         </div>
         {textResourceBindings?.help && (
           <HelpTextContainer
-            helpText={<Lang id={textResourceBindings?.help} />}
+            helpText={
+              <Lang
+                id={textResourceBindings?.help}
+                node={node}
+              />
+            }
             title={elementAsString(text)}
           />
         )}

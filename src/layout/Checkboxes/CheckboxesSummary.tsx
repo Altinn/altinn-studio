@@ -26,7 +26,12 @@ export function CheckboxesSummary({
 
   return (
     <MultipleValueSummary
-      title={<Lang id={title} />}
+      title={
+        <Lang
+          id={title}
+          node={componentNode}
+        />
+      }
       componentNode={componentNode}
       isCompact={isCompact}
       showAsList={showAsList}

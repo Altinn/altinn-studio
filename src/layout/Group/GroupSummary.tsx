@@ -80,7 +80,10 @@ export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverrid
         size={isNestedGroup ? 'xsmall' : 'small'}
         level={headingLevel}
       >
-        <Lang id={summaryTitle ?? title} />
+        <Lang
+          id={summaryTitle ?? title}
+          node={componentNode}
+        />
       </Heading>
       <Grid
         container

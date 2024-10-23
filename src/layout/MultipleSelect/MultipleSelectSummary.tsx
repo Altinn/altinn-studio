@@ -28,7 +28,12 @@ export function MultipleSelectSummary({
 
   return (
     <MultipleValueSummary
-      title={<Lang id={title} />}
+      title={
+        <Lang
+          id={title}
+          node={componentNode}
+        />
+      }
       componentNode={componentNode}
       showAsList={showAsList}
       isCompact={isCompact}

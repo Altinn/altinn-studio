@@ -59,13 +59,21 @@ export const HeaderComponent = ({ node }: IHeaderProps) => {
             id={id}
             {...getHeaderProps(size)}
           >
-            <Lang id={textResourceBindings?.title} />
+            <Lang
+              id={textResourceBindings?.title}
+              node={node}
+            />
           </Heading>
         </Grid>
         {textResourceBindings?.help && (
           <Grid item={true}>
             <HelpTextContainer
-              helpText={<Lang id={textResourceBindings.help} />}
+              helpText={
+                <Lang
+                  id={textResourceBindings.help}
+                  node={node}
+                />
+              }
               title={langAsString(textResourceBindings?.title)}
             />
           </Grid>

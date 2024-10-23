@@ -115,7 +115,10 @@ export const GridSummary = ({ componentNode }: GridSummaryProps) => {
             size='xs'
             level={4}
           >
-            <Lang id={title} />
+            <Lang
+              id={title}
+              node={componentNode}
+            />
           </Heading>
         </caption>
       )}
