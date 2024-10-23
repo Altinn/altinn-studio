@@ -19,7 +19,7 @@ interface ComponentSummaryProps {
 interface ResolveComponentProps {
   targetId: string;
 }
-export function ComponentSummary({ componentNode, isCompact }: ComponentSummaryProps) {
+export function ComponentSummary({ componentNode }: ComponentSummaryProps) {
   const summaryNodeItem = useSummary2Store((state) => state.summaryItem);
   const componentNodeItem = useNodeItem(componentNode);
 
@@ -37,7 +37,7 @@ export function ComponentSummary({ componentNode, isCompact }: ComponentSummaryP
     ? componentNode.def.renderSummary2({
         target: componentNode as LayoutNode<never>,
         override,
-        isCompact,
+        isCompact: summaryNodeItem.isCompact,
       })
     : null;
 

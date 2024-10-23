@@ -56,6 +56,7 @@ export const Config = new CG.component({
     ),
   )
   .addProperty(new CG.prop('showPageInAccordion', new CG.bool().optional()))
+  .addProperty(new CG.prop('isCompact', new CG.bool().optional()))
   .addProperty(
     new CG.prop(
       'hideEmptyFields',
