@@ -47,6 +47,7 @@ public class AppScopesService : IAppScopesService
             Org = context.Org,
             App = context.Repo,
             CreatedBy = context.Developer,
+            Created = _timeProvider.GetUtcNow(),
             LastModifiedBy = context.Developer,
             Scopes = new HashSet<MaskinPortenScopeEntity>()
         };

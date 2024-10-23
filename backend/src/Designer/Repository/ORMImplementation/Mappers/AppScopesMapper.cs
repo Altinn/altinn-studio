@@ -21,7 +21,7 @@ public class AppScopesMapper
             Id = appScopes.Id,
             App = appScopes.App,
             Org = appScopes.Org,
-            Created = appScopes.Created.ToUniversalTime(),
+            Created = appScopes.Created,
             Scopes = JsonSerializer.Serialize(appScopes.Scopes, s_jsonOptions),
             CreatedBy = appScopes.CreatedBy,
             LastModifiedBy = appScopes.LastModifiedBy
@@ -35,7 +35,7 @@ public class AppScopesMapper
             Id = appScopesDbObject.Id,
             App = appScopesDbObject.App,
             Org = appScopesDbObject.Org,
-            Created = appScopesDbObject.Created.ToLocalTime(),
+            Created = appScopesDbObject.Created,
             Scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(appScopesDbObject.Scopes, s_jsonOptions),
             CreatedBy = appScopesDbObject.CreatedBy,
             LastModifiedBy = appScopesDbObject.LastModifiedBy
