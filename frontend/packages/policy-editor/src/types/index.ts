@@ -1,5 +1,3 @@
-import type { Resource } from 'app-shared/types/ResourceAdm';
-
 export interface PolicyRuleCard {
   ruleId: string;
   description: string;
@@ -33,7 +31,7 @@ export interface PolicyAccessPackage {
     nn: string;
     en: string;
   };
-  services: Resource[];
+  services: AccessPackageResource[];
   category: string;
 }
 
@@ -55,6 +53,25 @@ export interface PolicyAccessPackageCategory {
     nn: string;
     en: string;
   };
+}
+
+export interface AccessPackageResource {
+  identifier: string;
+  title: {
+    nb: string;
+    nn: string;
+    en: string;
+  };
+  hasCompetentAuthority?: {
+    name: {
+      nb: string;
+      nn: string;
+      en: string;
+    };
+    organization: string;
+    orgcode: string;
+  };
+  iconUrl: string;
 }
 
 export interface AccessPackagesDto {

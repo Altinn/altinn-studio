@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
-import { Checkbox, CheckboxGroup, Label, Tag } from '@digdir/designsystemet-react';
+import { Checkbox, CheckboxGroup, Label, Paragraph } from '@digdir/designsystemet-react';
 import { PolicyAccordion } from '../PolicyAccordion/PolicyAccordion';
 
 const CHECKED_VALUE = 'on';
@@ -40,15 +40,27 @@ export const PolicyAccessPackageAccordion = ({
           accessPackage.services.map((resource) => {
             return (
               <div key={resource.identifier} className={classes.serviceContainer}>
-                <Label size='sm'>{resource.title[selectedLanguage]}</Label>
-                <Tag size='sm' color='info'>
+                {resource.iconUrl ? (
+                  <img
+                    className={classes.logo}
+                    src={resource.iconUrl}
+                    alt={resource.hasCompetentAuthority.name[selectedLanguage]}
+                    title={resource.hasCompetentAuthority.name[selectedLanguage]}
+                  />
+                ) : (
+                  <div className={classes.emptyLogo} />
+                )}
+                <Label size='sm' className={classes.serviceLabel}>
+                  {resource.title[selectedLanguage]}
+                </Label>
+                <Paragraph size='xs'>
                   {resource.hasCompetentAuthority.name[selectedLanguage]}
-                </Tag>
+                </Paragraph>
               </div>
             );
           })
         ) : (
-          <div>Denne tilgangspakken inneholder ingen tjenester enda</div>
+          <Paragraph size='sm'>Denne tilgangspakken inneholder ingen tjenester enda</Paragraph>
         )}
       </PolicyAccordion>
     </div>
