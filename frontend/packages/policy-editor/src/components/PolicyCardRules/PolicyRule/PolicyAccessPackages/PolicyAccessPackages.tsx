@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Label, ErrorMessage, Paragraph, Alert, Heading } from '@digdir/designsystemet-react';
 import type { PolicyAccessPackage } from '../../../../types';
-import { getAccessPackageOptions, getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
+import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
@@ -16,24 +16,24 @@ export const PolicyAccessPackages = (): React.ReactElement => {
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
   const { policyRule, showAllErrors, policyError } = usePolicyRuleContext();
 
-  const [chosenAccessPackages, setChosenAccessPackages] = useState<PolicyAccessPackage[]>(
-    getAccessPackageOptions(accessPackages.accessPackages, policyRule),
+  const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
+    policyRule.accessPackages,
   );
 
   const handleRemoveAccessPackage = (accessPackageToRemove: PolicyAccessPackage): void => {
-    setChosenAccessPackages((old) => old.filter((y) => y.urn !== accessPackageToRemove.urn));
-    const accessPackagesToSave = policyRule.accessPackages.filter(
-      (x) => x !== accessPackageToRemove.urn,
+    setChosenAccessPackages((oldUrns) =>
+      oldUrns.filter((urn) => urn !== accessPackageToRemove.urn),
     );
+    const urnsToSave = policyRule.accessPackages.filter((x) => x !== accessPackageToRemove.urn);
 
-    handleAccessPackageChange(accessPackagesToSave);
+    handleAccessPackageChange(urnsToSave);
   };
 
   const handleAddAccessPackage = (accessPackageToAdd: PolicyAccessPackage): void => {
-    setChosenAccessPackages((old) => [...old, accessPackageToAdd]);
-    const accessPackagesToSave = [...policyRule.accessPackages, accessPackageToAdd.urn];
+    setChosenAccessPackages((oldUrns) => [...oldUrns, accessPackageToAdd.urn]);
+    const urnsToSave = [...policyRule.accessPackages, accessPackageToAdd.urn];
 
-    handleAccessPackageChange(accessPackagesToSave);
+    handleAccessPackageChange(urnsToSave);
   };
 
   const handleAccessPackageChange = (newSelectedAccessPackageUrns: string[]): void => {
@@ -50,8 +50,6 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     savePolicy(updatedRules);
   };
 
-  const chosenUrns = chosenAccessPackages.map((x) => x.urn);
-
   return (
     <div className={classes.accessPackages}>
       <Alert severity='warning' size='sm'>
@@ -66,15 +64,13 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <Label size='sm'>Tilgangspakker</Label>
       {accessPackages.categories.map((category) => {
         // find chosen packages in current category
-        const accessPackagesInCategory = accessPackages.accessPackages
-          .filter((accessPackage) => accessPackage.category === category.id)
-          .map((accessPackage) => {
-            return {
-              accessPackage: accessPackage,
-              isChecked: chosenUrns.indexOf(accessPackage.urn) > -1,
-            };
-          });
-        const numberChosenInCategory = accessPackagesInCategory.filter((x) => x.isChecked).length;
+        const accessPackagesInCategory = accessPackages.accessPackages.filter(
+          (accessPackage) => accessPackage.category === category.id,
+        );
+        const numberChosenInCategory = accessPackagesInCategory.filter((pack) =>
+          chosenAccessPackages.includes(pack.urn),
+        ).length;
+
         return (
           <PolicyAccordion
             key={category.id}
@@ -86,17 +82,18 @@ export const PolicyAccessPackages = (): React.ReactElement => {
             <div className={classes.accordionContent}>
               <Paragraph size='xs'>{category.description[selectedLanguage]}</Paragraph>
               {accessPackagesInCategory.map((categoryPackage) => {
+                const isChecked = chosenAccessPackages.includes(categoryPackage.urn);
                 return (
                   <PolicyAccessPackageAccordion
-                    key={categoryPackage.accessPackage.urn}
-                    accessPackage={categoryPackage.accessPackage}
-                    isChecked={categoryPackage.isChecked}
+                    key={categoryPackage.urn}
+                    accessPackage={categoryPackage}
+                    isChecked={isChecked}
                     selectedLanguage={selectedLanguage}
                     onChange={() => {
-                      if (categoryPackage.isChecked) {
-                        handleRemoveAccessPackage(categoryPackage.accessPackage);
+                      if (isChecked) {
+                        handleRemoveAccessPackage(categoryPackage);
                       } else {
-                        handleAddAccessPackage(categoryPackage.accessPackage);
+                        handleAddAccessPackage(categoryPackage);
                       }
                     }}
                   />
