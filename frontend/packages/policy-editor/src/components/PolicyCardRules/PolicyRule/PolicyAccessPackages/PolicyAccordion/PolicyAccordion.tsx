@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import cn from 'classnames';
-import { Label, Tag } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { Tag } from '@digdir/designsystemet-react';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import * as StudioIcons from '@studio/icons';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
@@ -45,7 +45,7 @@ export const PolicyAccordion = ({
               <IconComponent className={cn(classes.accordionIcon, classes.iconContainer)} />
             )}
             <div className={classes.accordionTitle}>
-              <Label size='sm'>{title}</Label>
+              <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
               <div className={classes.accordionSubTitle}>{subTitle}</div>
             </div>
             {selectedCount > 0 && (

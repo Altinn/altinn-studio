@@ -1,7 +1,8 @@
 import React from 'react';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
-import { Checkbox, CheckboxGroup, Label, Paragraph } from '@digdir/designsystemet-react';
+import { Checkbox, CheckboxGroup, Paragraph } from '@digdir/designsystemet-react';
+import { StudioLabelAsParagraph } from '@studio/components';
 import { PolicyAccordion } from '../PolicyAccordion/PolicyAccordion';
 
 const CHECKED_VALUE = 'on';
@@ -50,9 +51,9 @@ export const PolicyAccessPackageAccordion = ({
                 ) : (
                   <div className={classes.emptyLogo} />
                 )}
-                <Label size='sm' className={classes.serviceLabel}>
+                <StudioLabelAsParagraph size='sm' className={classes.serviceLabel}>
                   {resource.title[selectedLanguage]}
-                </Label>
+                </StudioLabelAsParagraph>
                 <Paragraph size='xs'>
                   {resource.hasCompetentAuthority.name[selectedLanguage]}
                 </Paragraph>

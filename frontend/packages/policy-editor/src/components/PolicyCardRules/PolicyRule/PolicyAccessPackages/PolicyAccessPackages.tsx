@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Label, ErrorMessage, Paragraph, Alert, Heading } from '@digdir/designsystemet-react';
+import { useTranslation } from 'react-i18next';
+import { ErrorMessage, Paragraph, Alert } from '@digdir/designsystemet-react';
+import { StudioLabelAsParagraph } from '@studio/components';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
-import { useTranslation } from 'react-i18next';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
@@ -53,15 +54,15 @@ export const PolicyAccessPackages = (): React.ReactElement => {
   return (
     <div className={classes.accessPackages}>
       <Alert severity='warning' size='sm'>
-        <Heading level={2} size='2xs' spacing>
+        <StudioLabelAsParagraph size='md' spacing>
           Tilgangspakker tar over for Altinn-rollene
-        </Heading>
+        </StudioLabelAsParagraph>
         <Paragraph size='sm'>
           Altinn-rollene fases snart ut, og da vil rollene som er lagt til, ikke lenger være gyldig.
           Du må derfor legge til minst en Tilgangspakke for å unngå at regelen blir ugyldig.
         </Paragraph>
       </Alert>
-      <Label size='sm'>Tilgangspakker</Label>
+      <StudioLabelAsParagraph size='sm'>Tilgangspakker</StudioLabelAsParagraph>
       {accessPackages.categories.map((category) => {
         // find chosen packages in current category
         const accessPackagesInCategory = accessPackages.accessPackages.filter(
