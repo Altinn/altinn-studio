@@ -27,7 +27,7 @@ public class DesignerDbFixture : IAsyncLifetime
 
         var options = CreatePostgresDbContextOptions();
         DbContext = new DesignerdbContext(options);
-        // Migration scripts except deisgner role to exist.
+        // Migration scripts expect deisgner role to exist.
         await DbContext.Database.ExecuteSqlAsync($"CREATE ROLE designer WITH LOGIN PASSWORD 'Test1234$'");
         await DbContext.Database.MigrateAsync();
     }
