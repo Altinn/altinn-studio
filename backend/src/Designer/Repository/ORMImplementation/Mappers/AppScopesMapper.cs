@@ -18,7 +18,6 @@ public class AppScopesMapper
     {
         return new AppScopesDbObject
         {
-            Id = appScopes.Id,
             App = appScopes.App,
             Org = appScopes.Org,
             Created = appScopes.Created,
@@ -28,11 +27,17 @@ public class AppScopesMapper
         };
     }
 
+    public static AppScopesDbObject MapToDbModel(AppScopesEntity appScopes, long id)
+    {
+        var dbModel = MapToDbModel(appScopes);
+        dbModel.Id = id;
+        return dbModel;
+    }
+
     public static AppScopesEntity MapToModel(AppScopesDbObject appScopesDbObject)
     {
         return new AppScopesEntity
         {
-            Id = appScopesDbObject.Id,
             App = appScopesDbObject.App,
             Org = appScopesDbObject.Org,
             Created = appScopesDbObject.Created,

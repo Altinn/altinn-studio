@@ -4,6 +4,7 @@ using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
@@ -33,15 +34,19 @@ public class AppScopesRepository : IAppScopesRepository
     public async Task<AppScopesEntity> SaveAppScopesAsync(AppScopesEntity appScopesEntity,
         CancellationToken cancellationToken = default)
     {
-        var dbObject = AppScopesMapper.MapToDbModel(appScopesEntity);
-        var existing = await _dbContext.AppScopes.SingleOrDefaultAsync(a => a.Org == dbObject.Org && a.App == dbObject.App, cancellationToken);
+        var existing = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == appScopesEntity.Org && a.App == appScopesEntity.App, cancellationToken);
+
+        var dbObject = existing is null
+            ? AppScopesMapper.MapToDbModel(appScopesEntity)
+            : AppScopesMapper.MapToDbModel(appScopesEntity, existing.Id);
+
         if (existing is null)
         {
             _dbContext.AppScopes.Add(dbObject);
         }
         else
         {
-            _dbContext.Entry(existing).CurrentValues.SetValues(dbObject);
+            _dbContext.Entry(dbObject).State = EntityState.Modified;
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
