@@ -32,10 +32,10 @@ export interface PolicyAccessPackage {
     en: string;
   };
   services: AccessPackageResource[];
-  category: string[];
+  tags: string[];
 }
 
-export interface PolicyAccessPackageCategory {
+export interface PolicyAccessPackageTag {
   id: string;
   name: {
     nb: string;
@@ -49,6 +49,16 @@ export interface PolicyAccessPackageCategory {
   };
   icon: string;
   shortDescription: {
+    nb: string;
+    nn: string;
+    en: string;
+  };
+  tagGroups: string[];
+}
+
+export interface PolicyAccessPackageTagGroup {
+  id: string;
+  name: {
     nb: string;
     nn: string;
     en: string;
@@ -75,7 +85,8 @@ export interface AccessPackageResource {
 }
 
 export interface AccessPackagesDto {
-  categories: PolicyAccessPackageCategory[];
+  tagsGroups: PolicyAccessPackageTagGroup[];
+  tags: PolicyAccessPackageTag[];
   accessPackages: PolicyAccessPackage[];
 }
 

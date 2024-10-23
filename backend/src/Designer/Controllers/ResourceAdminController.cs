@@ -439,11 +439,41 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetAccessPackages(string org, CancellationToken cancellationToken)
         {
             // 1. GET accesspackages (mocked for now)
-            List<AccessPackageCategory> categories = 
+            List<AccessPackageTagGroup> tagGroups = [
+                new() {
+                    Id = "tag_group_economy",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "" },
+                        { "nb", "Populære" },
+                        { "en", "" }
+                    },
+                },
+                new() {
+                    Id = "tag_group_company_specific",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "" },
+                        { "nb", "Starte bedrift" },
+                        { "en", "" }
+                    },
+                },
+                new() {
+                    Id = "tag_group_others",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "" },
+                        { "nb", "Andre" },
+                        { "en", "" }
+                    },
+                }
+            ];
+
+            List<AccessPackageTag> tags = 
             [
                 new()
                 {
-                    Id = "category_economy",
+                    Id = "tag_economy",
                     Icon = "BankNoteIcon",
                     ShortDescription = new Dictionary<string, string>()
                     {
@@ -463,10 +493,11 @@ namespace Altinn.Studio.Designer.Controllers
                          { "nb", "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll" },
                          { "en", "Grants access to economical services" }
                     },
+                    TagGroups = ["tag_group_economy"]
                 },
                 new()
                 {
-                    Id = "category_transport",
+                    Id = "tag_transport",
                     Icon = "TruckIcon",
                     ShortDescription = new Dictionary<string, string>()
                     {
@@ -486,10 +517,11 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb","Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
                         {"en" , "Grants access to economical services"}
                     },
+                    TagGroups = ["tag_group_company_specific"]
                 },
                 new()
                 {
-                    Id = "category_regnskapsforer",
+                    Id = "tag_regnskapsforer",
                     Icon = "ReceiptIcon",
                     ShortDescription = new Dictionary<string, string>()
                     {
@@ -509,6 +541,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder"},
                         {"en" , "Grants access to regnskapsfører services"}
                     },
+                    TagGroups = ["tag_group_others"]
                 }
             ];
 
@@ -529,7 +562,7 @@ namespace Altinn.Studio.Designer.Controllers
                         { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
                         { "en", "Lets you submit tax info" }
                     },
-                    Category = ["category_economy"]
+                    Tags = ["tag_economy"]
                 },
                 new()
                 {
@@ -546,7 +579,7 @@ namespace Altinn.Studio.Designer.Controllers
                         { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
                         { "en", "Lets you submit tax info" }
                     },
-                    Category = ["category_economy"]
+                    Tags = ["tag_economy"]
                 },
                 new()
                 {
@@ -563,7 +596,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
                         {"en" , "Lets you submit tax info"}
                     },
-                    Category = ["category_economy"]
+                    Tags = ["tag_economy"]
                 },
                 new()
                 {
@@ -580,7 +613,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
                         {"en" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." }
                     },
-                    Category = ["category_transport"]
+                    Tags = ["tag_transport"]
                 },
                 new()
                 {
@@ -597,7 +630,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = ["category_transport"]
+                    Tags = ["tag_transport"]
                 },
                 new()
                 {
@@ -614,7 +647,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = ["category_regnskapsforer"]
+                    Tags = ["tag_regnskapsforer"]
                 },
                 new()
                 {
@@ -631,7 +664,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = ["category_regnskapsforer"]
+                    Tags = ["tag_regnskapsforer"]
                 },
                 new()
                 {
@@ -648,7 +681,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = ["category_regnskapsforer"]
+                    Tags = ["tag_regnskapsforer"]
                 }
             ];
 
@@ -726,7 +759,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             return Ok(new AccessPackagesDto()
             {
-                Categories = categories,
+                TagGroups = tagGroups,
+                Tags = tags,
                 AccessPackages = accessPackages
             });
         }

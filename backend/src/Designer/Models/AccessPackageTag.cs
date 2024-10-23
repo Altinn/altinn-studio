@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Altinn.Studio.Designer.Models
 {
-    public class AccessPackageCategory
+    public class AccessPackageTag
     {
         public required string Id { get; set; }
 
@@ -15,5 +15,7 @@ namespace Altinn.Studio.Designer.Models
         public string Icon { get; set; }
 
         public required Dictionary<string, string> ShortDescription { get; set; }
+
+        public List<string> TagGroups { get; set; } = [];
     }
 }

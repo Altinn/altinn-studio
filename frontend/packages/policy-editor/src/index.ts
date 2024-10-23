@@ -3,7 +3,7 @@ export type {
   Policy,
   PolicyAction,
   PolicySubject,
-  PolicyAccessPackageCategory,
+  PolicyAccessPackageTag,
   AccessPackagesDto,
   PolicyRule,
   PolicyRuleResource,

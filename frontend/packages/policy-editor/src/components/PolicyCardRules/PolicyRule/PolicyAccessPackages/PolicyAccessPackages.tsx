@@ -62,38 +62,38 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='sm'>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
-      {accessPackages.categories.map((category) => {
-        // find chosen packages in current category
-        const accessPackagesInCategory = accessPackages.accessPackages.filter((accessPackage) =>
-          accessPackage.category.includes(category.id),
+      {accessPackages.tags.map((tag) => {
+        // find chosen packages in current tag
+        const accessPackagesInTag = accessPackages.accessPackages.filter((accessPackage) =>
+          accessPackage.tags.includes(tag.id),
         );
-        const numberChosenInCategory = accessPackagesInCategory.filter((pack) =>
+        const numberChosenInTag = accessPackagesInTag.filter((pack) =>
           chosenAccessPackages.includes(pack.urn),
         ).length;
 
         return (
           <PolicyAccordion
-            key={category.id}
-            icon={category.icon}
-            title={category.name[selectedLanguage]}
-            subTitle={category.shortDescription[selectedLanguage]}
-            selectedCount={numberChosenInCategory}
+            key={tag.id}
+            icon={tag.icon}
+            title={tag.name[selectedLanguage]}
+            subTitle={tag.shortDescription[selectedLanguage]}
+            selectedCount={numberChosenInTag}
           >
             <div className={classes.accordionContent}>
-              <Paragraph size='xs'>{category.description[selectedLanguage]}</Paragraph>
-              {accessPackagesInCategory.map((categoryPackage) => {
-                const isChecked = chosenAccessPackages.includes(categoryPackage.urn);
+              <Paragraph size='xs'>{tag.description[selectedLanguage]}</Paragraph>
+              {accessPackagesInTag.map((tagPackage) => {
+                const isChecked = chosenAccessPackages.includes(tagPackage.urn);
                 return (
                   <PolicyAccessPackageAccordion
-                    key={categoryPackage.urn}
-                    accessPackage={categoryPackage}
+                    key={tagPackage.urn}
+                    accessPackage={tagPackage}
                     isChecked={isChecked}
                     selectedLanguage={selectedLanguage}
                     onChange={() => {
                       if (isChecked) {
-                        handleRemoveAccessPackage(categoryPackage);
+                        handleRemoveAccessPackage(tagPackage);
                       } else {
-                        handleAddAccessPackage(categoryPackage);
+                        handleAddAccessPackage(tagPackage);
                       }
                     }}
                   />
