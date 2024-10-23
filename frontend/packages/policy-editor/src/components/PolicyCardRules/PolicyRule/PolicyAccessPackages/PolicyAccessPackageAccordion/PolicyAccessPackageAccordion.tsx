@@ -30,21 +30,23 @@ export const PolicyAccessPackageAccordion = ({
         subTitle={accessPackage.description[selectedLanguage]}
         extraHeaderContent={
           <CheckboxGroup
-            hideLegend
-            legend={
-              isChecked
-                ? t('policy_editor.access_package_remove', {
-                    accessPackage: accessPackage.name[selectedLanguage],
-                  })
-                : t('policy_editor.access_package_add', {
-                    accessPackage: accessPackage.name[selectedLanguage],
-                  })
-            }
+            legend=''
             className={classes.accordionCheckbox}
             value={isChecked ? [CHECKED_VALUE] : []}
             onChange={() => onChange(accessPackage)}
           >
-            <Checkbox value={CHECKED_VALUE} />
+            <Checkbox
+              value={CHECKED_VALUE}
+              aria-label={
+                isChecked
+                  ? t('policy_editor.access_package_remove', {
+                      packageName: accessPackage.name[selectedLanguage],
+                    })
+                  : t('policy_editor.access_package_add', {
+                      packageName: accessPackage.name[selectedLanguage],
+                    })
+              }
+            />
           </CheckboxGroup>
         }
       >

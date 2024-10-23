@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { Tag } from '@digdir/designsystemet-react';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
@@ -23,6 +24,8 @@ export const PolicyAccordion = ({
   extraHeaderContent,
   children,
 }: PolicyAccordion): React.ReactNode => {
+  const { t } = useTranslation();
+
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const IconComponent = StudioIcons[icon];
 
@@ -42,7 +45,10 @@ export const PolicyAccordion = ({
         >
           <div className={classes.accordionButton}>
             {icon && Object.keys(StudioIcons).includes(icon) && (
-              <IconComponent className={cn(classes.accordionIcon, classes.iconContainer)} />
+              <IconComponent
+                className={cn(classes.accordionIcon, classes.iconContainer)}
+                aria-hidden
+              />
             )}
             <div className={classes.accordionTitle}>
               <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
@@ -51,13 +57,17 @@ export const PolicyAccordion = ({
             {selectedCount > 0 && (
               <Tag size='sm' color='neutral'>
                 {selectedCount}
+                <div className={classes.visuallyHidden}>
+                  {' '}
+                  {t('policy_editor.access_package_selected_count')}
+                </div>
               </Tag>
             )}
           </div>
           {isExpanded ? (
-            <ChevronUpIcon className={classes.accordionIcon} />
+            <ChevronUpIcon className={classes.accordionIcon} aria-hidden />
           ) : (
-            <ChevronDownIcon className={classes.accordionIcon} />
+            <ChevronDownIcon className={classes.accordionIcon} aria-hidden />
           )}
         </StudioButton>
         {extraHeaderContent}
