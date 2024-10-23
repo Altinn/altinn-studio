@@ -83,7 +83,7 @@ const EditSubFormTableColumnsWrapper = ({ children }: EditSubFormTableColumnsWra
       <StudioHeading size='2xs' level={2}>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>
-      {children}
+      <div className={classes.contentWrapper}>{children}</div>
     </div>
   );
 };
