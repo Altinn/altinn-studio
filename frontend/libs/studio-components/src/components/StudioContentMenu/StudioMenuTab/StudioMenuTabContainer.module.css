@@ -12,10 +12,6 @@
   cursor: pointer;
 }
 
-.test {
-  height: 100%;
-}
-
 .linkIcon {
   color: var(--fds-semantic-text-neutral-default);
 }

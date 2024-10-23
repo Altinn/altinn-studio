@@ -1,6 +1,6 @@
 import type React from 'react';
 
-export function moveFocus(event: React.KeyboardEvent<HTMLTab>) {
+export function moveFocus(event: React.KeyboardEvent<HTMLElement>) {
   const nextTab = getNextTab(event);
   if (nextTab) {
     event.preventDefault();
@@ -10,7 +10,7 @@ export function moveFocus(event: React.KeyboardEvent<HTMLTab>) {
   }
 }
 
-function getNextTab({ key, currentTarget }: React.KeyboardEvent<>) {
+function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLElement>) {
   const tablist = getParentTablist(currentTarget);
   const tabs = getTabs(tablist);
   switch (key) {
@@ -23,27 +23,19 @@ function getNextTab({ key, currentTarget }: React.KeyboardEvent<>) {
   }
 }
 
-function getTabElementAbove(tabs, currentTab) {
+function getTabElementAbove(tabs: HTMLElement[], currentTab: HTMLElement) {
   const currentIndex = tabs.indexOf(currentTab);
-
-  // If there is a tab above, return it
   if (currentIndex > 0) {
     return tabs[currentIndex - 1] as HTMLElement;
   }
-
-  // If no tab above (i.e., first tab), return null
   return null;
 }
 
-function getTabElementBelow(tabs, currentTab) {
+function getTabElementBelow(tabs: HTMLElement[], currentTab: HTMLElement) {
   const currentIndex = tabs.indexOf(currentTab);
-
-  // If there is a tab below, return it
   if (currentIndex < tabs.length - 1) {
     return tabs[currentIndex + 1] as HTMLElement;
   }
-
-  // If no tab below (i.e., last tab), return null
   return null;
 }
 

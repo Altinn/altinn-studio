@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './StudioContentMenu.module.css';
-import { StudioMenuTab } from './StudioMenuTab';
-import type { StudioMenuTabType } from './StudioMenuTab';
+import { StudioMenuTabContainer } from './StudioMenuTab';
+import type { StudioMenuTabType } from './types/StudioMenuTabType';
 
-type StudioContentMenuProps<TabId extends string> = {
+export type StudioContentMenuProps<TabId extends string> = {
   contentTabs: StudioMenuTabType<TabId>[];
   selectedTabId: TabId;
   onChangeTab: (tabId: TabId) => void;
@@ -22,9 +22,9 @@ export function StudioContentMenu<TabId extends string>({
   };
 
   return (
-    <div className={classes.pagesRouterContainer} role='tablist'>
+    <div className={classes.tabsContainer} role='tablist'>
       {contentTabs.map((contentTab) => (
-        <StudioMenuTab
+        <StudioMenuTabContainer
           key={contentTab.tabId}
           contentTab={contentTab}
           isTabSelected={contentTab.tabId === selectedTab}

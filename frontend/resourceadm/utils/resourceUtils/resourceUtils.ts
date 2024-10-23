@@ -197,9 +197,7 @@ export const CreateMenuLinkTab = (
     icon,
     tabName: t(`resourceadm.left_nav_bar_${tabId}`),
     tabId,
-    actAsLink: {
-      to,
-    },
+    to,
   };
 };
 
