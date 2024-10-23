@@ -1,30 +1,39 @@
 import { StudioTable } from '../../StudioTable';
-import type { ForwardedRef, ReactElement } from 'react';
-import React from 'react';
+import type { FocusEvent, ForwardedRef, ReactElement } from 'react';
+import React, { useCallback } from 'react';
+
 import classes from './Cell.module.css';
 import type { StudioTextareaProps } from '../../StudioTextarea';
 import { StudioTextarea } from '../../StudioTextarea';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';
 import { isCaretAtEnd, isCaretAtStart, isSomethingSelected } from '../dom-utils/caretUtils';
+import { useEventProps } from './useEventProps';
 
 export type CellTextareaProps = StudioTextareaProps;
 
 export class CellTextarea extends BaseInputCell<HTMLTextAreaElement, CellTextareaProps> {
   render(
-    { className: givenClass, ...rest }: CellTextareaProps,
+    { className: givenClass, onFocus, ...rest }: CellTextareaProps,
     ref: ForwardedRef<HTMLTextAreaElement>,
   ): ReactElement {
+    /* eslint-disable react-hooks/rules-of-hooks */
+    /* Eslint misinterprets this as a class component, while it's really just a functional component within a class */
+
+    const handleFocus = useCallback(
+      (event: FocusEvent<HTMLTextAreaElement>): void => {
+        onFocus?.(event);
+        event.currentTarget.select();
+      },
+      [onFocus],
+    );
+
+    const eventProps = useEventProps<HTMLTextAreaElement>({ onFocus: handleFocus, ...rest });
+
     const className = cn(classes.textareaCell, givenClass);
     return (
       <StudioTable.Cell className={className}>
-        <StudioTextarea
-          hideLabel
-          onFocus={(event) => event.currentTarget.select()}
-          ref={ref}
-          size='small'
-          {...rest}
-        />
+        <StudioTextarea hideLabel ref={ref} size='small' {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
   }
