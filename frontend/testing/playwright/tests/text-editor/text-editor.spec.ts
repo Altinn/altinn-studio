@@ -104,7 +104,6 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
 
-// Add another text key
 test('That it is possible to add another text key', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
@@ -119,7 +118,6 @@ test('That it is possible to add another text key', async ({ page, testAppName }
   );
 });
 
-// Add new language
 test('That it is possible to add a new language', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
@@ -137,11 +135,7 @@ test('That it is possible to add a new language', async ({ page, testAppName }) 
     TEXT_VALUE_IN_TEXTAREA,
   );
 
-  // API call to save the newly written text is done when the focus is removed from the textfield - There is no component to check that has been updated, therefore we wait 2 seconds to ensure the call is made.
-  //const twoSeconds: number = 2000;
   await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
-  // await textEditorPage.waitForXAmountOfMilliseconds(twoSeconds);
-  // Can the two above be removed?
 });
 
 test('That the newly added language with key is updated on ui-editor page', async ({
