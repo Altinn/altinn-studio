@@ -652,11 +652,52 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             ];
 
-            string env = "at23";
+            string env = "tt02";
             IEnumerable<string> subjects = accessPackages.Select(accessPackage => accessPackage.Urn);
-                        
+
+            OrgList orgList = await GetOrgList();
+
             // 2. POST to get all resources per access package
             List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(subjects.ToList(), env);
+            subjectResources.Add(new SubjectResources () {
+                Subject = new AttributeMatchV2() {
+                    Type = "",
+                    Value = "",
+                    Urn = "urn:altinn:accesspackage:regnskapsførerlonn"
+                },
+                Resources = new List<AttributeMatchV2>() {
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "brg-maskinportenschemaid-5",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "mat-maskinportenschemaid-54",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "skd-maskinportenschemaid-32",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "slk-maskinportenschemaid-81",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "nav-maskinportenschemaid-141",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "svv-maskinportenschemaid-249",
+                        Urn = ""
+                    }
+                }
+            });
 
             // 3. GET full list of resources
             List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false);
@@ -669,11 +710,15 @@ namespace Altinn.Studio.Designer.Controllers
                 resources?.ForEach(resourceMatch =>
                 {
                     ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
+
+                    orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
+
                     accessPackage.Services.Add(new AccessPackageService() 
                     {
                         Identifier = resourceMatch.Value,
                         Title = fullResource?.Title,
-                        HasCompetentAuthority = fullResource.HasCompetentAuthority
+                        HasCompetentAuthority = fullResource.HasCompetentAuthority,
+                        IconUrl = organization.Logo
                     });
                 });
             });

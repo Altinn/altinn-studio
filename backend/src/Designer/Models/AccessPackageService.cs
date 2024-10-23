@@ -9,5 +9,7 @@ namespace Altinn.Studio.Designer.Models
         public Dictionary<string, string> Title { get; set; }
 
         public CompetentAuthority HasCompetentAuthority { get; set; }
+
+        public string IconUrl { get; set; }
     }
 }
