@@ -31,10 +31,6 @@ export const EditLayoutSet = ({
   if (layoutSetIsUndefined) {
     return (
       <StudioRecommendedNextAction
-        onSave={undefined}
-        saveButtonText={null}
-        onSkip={undefined}
-        skipButtonText={null}
         title={t('ux_editor.component_properties.subform.choose_layout_set_header')}
         description={t('ux_editor.component_properties.subform.choose_layout_set_description')}
         hideSaveButton={true}

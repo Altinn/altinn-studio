@@ -244,7 +244,7 @@ describe('Properties', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders properties when formItem is not a SubForm', () => {
+  it('renders properties when formItem is not a Subform component', () => {
     renderProperties({ formItem: componentMocks[ComponentType.Input] });
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
@@ -253,7 +253,7 @@ describe('Properties', () => {
     expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
   });
 
-  it('render properties accordions when formItem type is subform and has layoutSet', () => {
+  it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
     editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
     renderProperties({
       formItem: { ...componentMocks[ComponentType.SubForm], layoutSet: layoutSetName },

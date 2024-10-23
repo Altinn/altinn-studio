@@ -6,10 +6,10 @@ import { StudioParagraph } from '../StudioParagraph';
 import { Heading } from '@digdir/designsystemet-react';
 
 export type StudioRecommendedNextActionProps = {
-  onSave: React.FormEventHandler<HTMLFormElement>;
-  saveButtonText: string;
-  onSkip: React.MouseEventHandler<HTMLButtonElement>;
-  skipButtonText: string;
+  onSave?: React.FormEventHandler<HTMLFormElement>;
+  saveButtonText?: string;
+  onSkip?: React.MouseEventHandler<HTMLButtonElement>;
+  skipButtonText?: string;
   title: string;
   description: string;
   hideSaveButton?: boolean;
