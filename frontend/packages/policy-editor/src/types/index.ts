@@ -32,7 +32,7 @@ export interface PolicyAccessPackage {
     en: string;
   };
   services: AccessPackageResource[];
-  category: string;
+  category: string[];
 }
 
 export interface PolicyAccessPackageCategory {

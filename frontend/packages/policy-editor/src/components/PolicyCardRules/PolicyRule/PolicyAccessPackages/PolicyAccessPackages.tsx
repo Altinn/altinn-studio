@@ -64,8 +64,8 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       </StudioLabelAsParagraph>
       {accessPackages.categories.map((category) => {
         // find chosen packages in current category
-        const accessPackagesInCategory = accessPackages.accessPackages.filter(
-          (accessPackage) => accessPackage.category === category.id,
+        const accessPackagesInCategory = accessPackages.accessPackages.filter((accessPackage) =>
+          accessPackage.category.includes(category.id),
         );
         const numberChosenInCategory = accessPackagesInCategory.filter((pack) =>
           chosenAccessPackages.includes(pack.urn),

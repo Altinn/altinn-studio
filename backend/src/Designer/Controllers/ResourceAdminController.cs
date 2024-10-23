@@ -529,7 +529,7 @@ namespace Altinn.Studio.Designer.Controllers
                         { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
                         { "en", "Lets you submit tax info" }
                     },
-                    Category = "category_economy"
+                    Category = ["category_economy"]
                 },
                 new()
                 {
@@ -546,7 +546,7 @@ namespace Altinn.Studio.Designer.Controllers
                         { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
                         { "en", "Lets you submit tax info" }
                     },
-                    Category = "category_economy"
+                    Category = ["category_economy"]
                 },
                 new()
                 {
@@ -563,7 +563,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
                         {"en" , "Lets you submit tax info"}
                     },
-                    Category = "category_economy"
+                    Category = ["category_economy"]
                 },
                 new()
                 {
@@ -580,7 +580,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
                         {"en" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." }
                     },
-                    Category = "category_transport"
+                    Category = ["category_transport"]
                 },
                 new()
                 {
@@ -597,7 +597,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = "category_transport"
+                    Category = ["category_transport"]
                 },
                 new()
                 {
@@ -614,7 +614,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = "category_regnskapsforer"
+                    Category = ["category_regnskapsforer"]
                 },
                 new()
                 {
@@ -631,7 +631,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = "category_regnskapsforer"
+                    Category = ["category_regnskapsforer"]
                 },
                 new()
                 {
@@ -648,7 +648,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nb", "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
-                    Category = "category_regnskapsforer"
+                    Category = ["category_regnskapsforer"]
                 }
             ];
 

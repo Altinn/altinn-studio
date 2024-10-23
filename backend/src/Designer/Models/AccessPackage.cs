@@ -12,7 +12,7 @@ namespace Altinn.Studio.Designer.Models
 
         public Dictionary<string, string>? Description { get; set; }
 
-        public required string Category { get; set; }
+        public List<string> Category { get; set; } = [];
         
         public List<AccessPackageService> Services { get; set; } = [];
     }
