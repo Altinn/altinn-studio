@@ -85,7 +85,7 @@ export interface AccessPackageResource {
 }
 
 export interface AccessPackagesDto {
-  tagsGroups: PolicyAccessPackageTagGroup[];
+  tagGroups: PolicyAccessPackageTagGroup[];
   tags: PolicyAccessPackageTag[];
   accessPackages: PolicyAccessPackage[];
 }
