@@ -17,11 +17,18 @@ import classes from './ItemInfo.module.css';
 export type ItemInfoProps = {
   item: AddedItem | null;
   onAddItem: (item: AddedItem) => void;
+  onCancel: () => void;
   setItem: (item: AddedItem | null) => void;
   generateComponentId: (type: string) => string;
 };
 
-export const ItemInfo = ({ item, onAddItem, setItem, generateComponentId }: ItemInfoProps) => {
+export const ItemInfo = ({
+  item,
+  onAddItem,
+  onCancel,
+  setItem,
+  generateComponentId,
+}: ItemInfoProps) => {
   const { t } = useTranslation();
   return (
     <div className={classes.root}>
@@ -44,16 +51,13 @@ export const ItemInfo = ({ item, onAddItem, setItem, generateComponentId }: Item
             setItem(null);
           }}
           onSkip={() => {
-            onAddItem({
-              ...item,
-              componentId: generateComponentId(item.componentType),
-            });
+            onCancel();
             setItem(null);
           }}
-          saveButtonText='Legg til med endringer'
-          skipButtonText='Bruk standardinnstillinger'
+          saveButtonText='Legg til'
+          skipButtonText='Avbryt'
           title={`Legg til ${getComponentTitleByComponentType(item.componentType, t)}`}
-          description='Her kan du endre standardinnstillinger for komponenten. Du kan også hoppe over dette og gjøre det senere.'
+          description='Vi lager automatisk en unik ID for komponenten. Du kan endre den her til noe du selv ønsker, eller la den være som den er. Du kan også endre denne id-en senere.'
         >
           <StudioIconTextfield
             icon={<PencilIcon />}

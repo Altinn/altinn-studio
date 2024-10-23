@@ -14,6 +14,7 @@ export type AddItemContentProps = {
   item: AddedItem | null;
   setItem: (item: AddedItem | null) => void;
   onAddItem: (addedItem: AddedItem) => void;
+  onCancel: () => void;
   availableComponents: KeyValuePairs<IToolbarElement[]>;
 };
 
@@ -21,6 +22,7 @@ export const AddItemContent = ({
   item,
   setItem,
   onAddItem,
+  onCancel,
   availableComponents,
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
@@ -47,6 +49,7 @@ export const AddItemContent = ({
       <div className={classes.componentsInfoWrapper}>
         <ItemInfo
           onAddItem={onAddItem}
+          onCancel={onCancel}
           generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
           item={item}
           setItem={setItem}

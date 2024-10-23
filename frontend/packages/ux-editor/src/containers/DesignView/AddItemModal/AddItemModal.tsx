@@ -22,12 +22,10 @@ export type AddItemProps = {
 };
 
 export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
-  const [isComponentModalOpen, setIsComponentModalOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
 
   const handleCloseModal = () => {
     setSelectedItem(null);
-    setIsComponentModalOpen(false);
     modalRef.current?.close();
   };
   const { handleEdit } = useFormItemContext();
@@ -61,7 +59,6 @@ export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
   };
 
   const handleOpenModal = useCallback(() => {
-    setIsComponentModalOpen(true);
     modalRef.current?.showModal();
   }, []);
 
@@ -87,6 +84,7 @@ export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
             item={selectedItem}
             setItem={setSelectedItem}
             onAddItem={onAddComponent}
+            onCancel={handleCloseModal}
             availableComponents={getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID)}
           />
         </StudioModal.Dialog>
