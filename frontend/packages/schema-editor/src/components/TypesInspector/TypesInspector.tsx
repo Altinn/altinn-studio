@@ -1,11 +1,10 @@
 import type { MouseEvent } from 'react';
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioHeading } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypeItem';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
@@ -38,31 +37,21 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
     save(schemaModel);
   };
 
-  if (!schemaItems) {
-    return (
-      <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {t('schema_editor.no_item_selected')}
-        </p>
-        <Divider />
-      </div>
-    );
-  }
-
   return (
-    <div className={classes.root}>
-      <div className={classes.types}>
-        <div className={classes.addRow}>
-          <span className={classes.addRowText}>{t('schema_editor.types')}</span>
-          <StudioButton
-            className={classes.addRowButton}
-            variant='tertiary'
-            icon={<PlusIcon height={40} />}
-            onClick={handleAddDefinition}
-            title={t('schema_editor.add_type')}
-          />
-        </div>
-
+    <>
+      <div className={classes.headingContainer}>
+        <StudioHeading level={2} size='2xs'>
+          {t('schema_editor.types')}
+        </StudioHeading>
+        <StudioButton
+          className={classes.addTypeButton}
+          variant='tertiary'
+          icon={<PlusIcon height={40} />}
+          onClick={handleAddDefinition}
+          title={t('schema_editor.add_type')}
+        />
+      </div>
+      <div className={classes.typesList}>
         {schemaItems.map((item) => (
           <TypeItem
             uiSchemaNode={item}
@@ -72,6 +61,6 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
           />
         ))}
       </div>
-    </div>
+    </>
   );
 };

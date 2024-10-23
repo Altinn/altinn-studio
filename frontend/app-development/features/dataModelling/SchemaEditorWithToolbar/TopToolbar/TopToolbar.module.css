@@ -1,27 +1,19 @@
 .toolbar {
-  align-items: center;
-  background: #fff;
-  border-bottom: 1px solid #c9c9c9;
+  height: var(--subtoolbar-height);
+  background: white;
   display: flex;
-  padding: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
+  padding-inline: var(--fds-spacing-6);
+  gap: var(--fds-spacing-2);
 }
 
-.toolbar > *,
-.toolbar > {
-  margin-right: 1rem;
+.blueBackground {
+  background: var(--fds-colors-blue-100);
 }
 
-.toolbar button[class*='selected'] {
-  color: #fff;
-}
-
-.toolbar button[class*='toggle'] {
-  font-size: 1em;
-  padding-top: 4px;
-}
-
-.generateButtonWrapper {
-  flex: 1;
+.modelName {
+  /*font-weight: 400;*/
 }
 
 @keyframes fadeOut {
@@ -41,15 +33,4 @@
 
 .statusPopover.success {
   animation: fadeOut 1.5s;
-}
-
-.toggleButtonGroupWrapper {
-  flex: 0.5;
-}
-
-.right {
-  display: flex;
-  flex: 3;
-  gap: 1rem;
-  justify-content: flex-end;
 }

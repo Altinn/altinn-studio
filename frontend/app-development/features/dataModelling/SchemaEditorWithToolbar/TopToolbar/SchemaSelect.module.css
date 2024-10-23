@@ -1,4 +1,12 @@
+.selectContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-4);
+}
+
 .select {
+  display: flex;
+  flex-direction: row;
   cursor: pointer;
   min-width: 20vw;
 }

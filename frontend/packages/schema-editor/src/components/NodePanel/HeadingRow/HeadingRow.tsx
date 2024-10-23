@@ -1,5 +1,4 @@
 import classes from './HeadingRow.module.css';
-import { Heading } from '@digdir/designsystemet-react';
 import { NodeIcon } from '../../NodeIcon';
 import type { ReactNode } from 'react';
 import React from 'react';
@@ -13,7 +12,12 @@ import {
   SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components';
+import {
+  StudioButton,
+  StudioDeleteButton,
+  StudioDropdownMenu,
+  StudioHeading,
+} from '@studio/components';
 import {
   BooleanIcon,
   CombinationIcon,
@@ -26,6 +30,7 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useAddProperty } from '../../../hooks/useAddProperty';
 import cn from 'classnames';
+import { ArrowLeftIcon } from '@studio/icons';
 
 export interface HeadingRowProps {
   schemaPointer?: string;
@@ -44,7 +49,7 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
 
   return (
     <div className={cn(classes.root, isSelected && classes.selected)}>
-      <Heading level={1} className={classes.heading}>
+      <StudioHeading level={1}>
         <StudioButton
           className={classes.headingButton}
           color='second'
@@ -54,9 +59,10 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
         >
           {title}
         </StudioButton>
-      </Heading>
+      </StudioHeading>
       {isValidParent && <AddNodeMenu schemaPointer={schemaPointer} />}
-      {!isDataModelRoot && <DeleteButton schemaPointer={schemaPointer} />}
+      <DeleteButton schemaPointer={schemaPointer} />
+      {/*{!isDataModelRoot && <BackButton />}*/}
     </div>
   );
 };
@@ -171,3 +177,13 @@ const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
     </StudioDeleteButton>
   );
 };
+
+const BackButton = () => (
+  <div
+    style={{
+      marginInline: 'auto 16px',
+    }}
+  >
+    <StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>
+  </div>
+);

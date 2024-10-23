@@ -5,7 +5,8 @@ import {
   groupMetadataOptions,
 } from '../../../../utils/metadataUtils';
 import type { MetadataOption } from '../../../../types/MetadataOption';
-import { NativeSelect } from '@digdir/designsystemet-react';
+import { Label } from '@digdir/designsystemet-react';
+import { StudioNativeSelect } from '@studio/components';
 import classes from './SchemaSelect.module.css';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
@@ -30,26 +31,31 @@ export const SchemaSelect = ({
     setSelectedOption(findMetadataOptionByRelativeUrl(options, repositoryUrl));
 
   return (
-    <NativeSelect
-      aria-label={t('schema_editor.choose_model')}
-      className={classes.select}
-      disabled={disabled}
-      onChange={(e) => handleChange(e.target.value)}
-      value={selectedOption?.value.repositoryRelativeUrl}
-      size='small'
-    >
-      {optionGroups.map((group) => (
-        <optgroup label={group.label} key={group.label}>
-          {group.options.map((option) => (
-            <option
-              value={option.value.repositoryRelativeUrl}
-              key={option.value.repositoryRelativeUrl}
-            >
-              {option.label}
-            </option>
-          ))}
-        </optgroup>
-      ))}
-    </NativeSelect>
+    <div className={classes.selectContainer}>
+      <Label htmlFor={t('schema_editor.choose_model')} size='sm'>
+        Datamodell:
+      </Label>
+      <StudioNativeSelect
+        aria-label={t('schema_editor.choose_model')}
+        className={classes.select}
+        disabled={disabled}
+        onChange={(e) => handleChange(e.target.value)}
+        value={selectedOption?.value.repositoryRelativeUrl}
+        size='sm'
+      >
+        {optionGroups.map((group) => (
+          <optgroup label={group.label} key={group.label}>
+            {group.options.map((option) => (
+              <option
+                value={option.value.repositoryRelativeUrl}
+                key={option.value.repositoryRelativeUrl}
+              >
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </StudioNativeSelect>
+    </div>
   );
 };

@@ -4,7 +4,16 @@
   height: 100%;
 }
 
-.noItem {
-  font-weight: 500;
-  margin: 18px;
+.noSelectionHeadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-inline: var(--fds-spacing-6);
+  height: var(--subtoolbar-height);
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
+}
+
+.tabHeader {
+  height: var(--subtoolbar-height);
+  font-size: var(--fds-typography-heading-small);
 }
