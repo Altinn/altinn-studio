@@ -1,5 +1,16 @@
 .buttonContainer {
   display: flex;
   gap: var(--fds-spacing-3);
-  padding: var(--fds-spacing-3) 0;
+}
+
+.alertContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-3);
+}
+
+.paymentContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
 }

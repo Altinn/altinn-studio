@@ -61,6 +61,7 @@ interface Address {
 interface Company {
   organisationNumber?: string;
   name?: string;
+  ContactPerson?: Person;
 }
 
 interface Payer {

@@ -20,7 +20,7 @@ export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>)
   const instanceGuid = useNavigationParam('instanceGuid');
   const { next, busy } = useProcessNavigation() || {};
   const paymentInfo = usePaymentInformation();
-  const { mutate: performPayment } = usePerformPayActionMutation(partyId, instanceGuid);
+  const { mutate: performPayment, error: paymentError } = usePerformPayActionMutation(partyId, instanceGuid);
   const paymentDoesNotExist = paymentInfo?.status === PaymentStatus.Uninitialized;
   const { title, description } = useNodeItem(node, (i) => i.textResourceBindings) ?? {};
   const actionCalled = useRef(false);
@@ -45,54 +45,56 @@ export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>)
     }
   }, [paymentInfo, next]);
 
-  if (busy || paymentDoesNotExist) {
+  if ((busy || paymentDoesNotExist) && !paymentError) {
     return <SkeletonLoader />;
   }
 
   return (
     <ComponentStructureWrapper node={node}>
-      <PaymentDetailsTable
-        orderDetails={paymentInfo?.orderDetails}
-        tableTitle={title}
-        description={description}
-      />
-      <div>
-        {paymentInfo?.status === PaymentStatus.Failed && (
-          <Alert severity='warning'>
-            <Lang id='payment.alert.failed' />
-          </Alert>
-        )}
-        {paymentInfo?.status === PaymentStatus.Paid && (
-          <Alert severity={'info'}>
-            <Lang id='payment.alert.paid' />
-          </Alert>
-        )}
-      </div>
-      <div className={classes.buttonContainer}>
-        {paymentInfo?.status === PaymentStatus.Created && (
-          <>
+      <div className={classes.paymentContainer}>
+        <PaymentDetailsTable
+          orderDetails={paymentInfo?.orderDetails}
+          tableTitle={title}
+          description={description}
+        />
+        <div className={classes.alertContainer}>
+          {(paymentInfo?.status === PaymentStatus.Failed || paymentError) && (
+            <Alert severity='warning'>
+              <Lang id='payment.alert.failed' />
+            </Alert>
+          )}
+          {paymentInfo?.status === PaymentStatus.Paid && (
+            <Alert severity={'info'}>
+              <Lang id='payment.alert.paid' />
+            </Alert>
+          )}
+        </div>
+        <div className={classes.buttonContainer}>
+          {(paymentInfo?.status === PaymentStatus.Created || paymentError) && (
+            <>
+              <Button
+                variant='secondary'
+                onClick={() => next && next({ action: 'reject', nodeId: 'reject-button' })}
+              >
+                <Lang id='general.back' />
+              </Button>
+              <Button
+                color='success'
+                onClick={() => performPayment()}
+              >
+                <Lang id='payment.pay' />
+              </Button>
+            </>
+          )}
+          {paymentInfo?.status === PaymentStatus.Paid && (
             <Button
               variant='secondary'
-              onClick={() => next && next({ action: 'reject', nodeId: 'reject-button' })}
+              onClick={() => next && next({ action: 'confirm', nodeId: 'next-button' })}
             >
-              <Lang id='general.back' />
+              <Lang id='general.next' />
             </Button>
-            <Button
-              color='success'
-              onClick={() => performPayment()}
-            >
-              <Lang id='payment.pay' />
-            </Button>
-          </>
-        )}
-        {paymentInfo?.status === PaymentStatus.Paid && (
-          <Button
-            variant='secondary'
-            onClick={() => next && next({ action: 'confirm', nodeId: 'next-button' })}
-          >
-            <Lang id='general.next' />
-          </Button>
-        )}
+          )}
+        </div>
       </div>
     </ComponentStructureWrapper>
   );

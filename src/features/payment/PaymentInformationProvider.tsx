@@ -30,14 +30,14 @@ const usePaymentInformationQuery = () => {
   const instanceId = useLaxInstanceId();
   const enabled = useIsPayment();
 
-  const utils = useQuery(usePaymentInformationQueryDef(enabled, instanceId));
+  const result = useQuery(usePaymentInformationQueryDef(enabled, instanceId));
 
   useEffect(() => {
-    utils.error && window.logError('Fetching paymentInfo failed:\n', utils.error);
-  }, [utils.error]);
+    result.error && window.logError('Fetching paymentInfo failed:\n', result.error);
+  }, [result.error]);
 
   return {
-    ...utils,
+    ...result,
     enabled,
   };
 };
