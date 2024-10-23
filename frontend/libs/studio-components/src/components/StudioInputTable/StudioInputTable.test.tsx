@@ -1,4 +1,4 @@
-import type { ForwardedRef, ReactNode } from 'react';
+import type { ForwardedRef, HTMLAttributes, ReactNode } from 'react';
 import React from 'react';
 import { StudioInputTable } from './';
 import type { RenderResult } from '@testing-library/react';
@@ -16,9 +16,30 @@ import {
   textareaLabel,
   textfieldLabel,
 } from './test-data/testTableData';
-import userEvent from '@testing-library/user-event';
+import userEvent, { UserEvent } from '@testing-library/user-event';
+import { CellTextfieldProps } from './Cell/CellTextfield';
+import { CellTextareaProps } from './Cell/CellTextarea';
+import { CellCheckboxProps } from './Cell/CellCheckbox';
+import { CellButtonProps } from './Cell/CellButton';
+import { HTMLCellInputElement } from './types/HTMLCellInputElement';
+
+type ElementName = 'checkbox' | 'textfield' | 'textarea' | 'button';
+type NativeElement<Name extends ElementName> = {
+  checkbox: HTMLInputElement;
+  textfield: HTMLInputElement;
+  textarea: HTMLTextAreaElement;
+  button: HTMLButtonElement;
+}[Name];
+
+// Test data:
+const onChangeAny = jest.fn();
+const onFocusAny = jest.fn();
+const onBlurAny = jest.fn();
+const defaultProps: StudioInputTableProps = { onChangeAny, onFocusAny, onBlurAny };
 
 describe('StudioInputTable', () => {
+  afterEach(jest.clearAllMocks);
+
   it('Renders a table', () => {
     renderStudioInputTable();
     expect(getTable()).toBeInTheDocument();
@@ -210,45 +231,22 @@ describe('StudioInputTable', () => {
     };
     const testLabel = 'test';
     const testCases: {
-      checkbox: TestCase<HTMLInputElement>;
-      textfield: TestCase<HTMLInputElement>;
-      textarea: TestCase<HTMLTextAreaElement>;
-      button: TestCase<HTMLButtonElement>;
+      [Name in ElementName]: TestCase<NativeElement<Name>>;
     } = {
       checkbox: {
-        render: (ref) =>
-          render(
-            <SingleRow>
-              <StudioInputTable.Cell.Checkbox value='test' aria-label={testLabel} ref={ref} />
-            </SingleRow>,
-          ),
+        render: (ref) => renderSingleCheckboxCell({ value: 'test', 'aria-label': testLabel }, ref),
         getElement: () => getCheckbox(testLabel),
       },
       textfield: {
-        render: (ref) =>
-          render(
-            <SingleRow>
-              <StudioInputTable.Cell.Textfield label={testLabel} ref={ref} />
-            </SingleRow>,
-          ),
+        render: (ref) => renderSingleTextfieldCell({ label: testLabel }, ref),
         getElement: () => getTextbox(testLabel) as HTMLInputElement,
       },
       textarea: {
-        render: (ref) =>
-          render(
-            <SingleRow>
-              <StudioInputTable.Cell.Textarea label={testLabel} ref={ref} />
-            </SingleRow>,
-          ),
+        render: (ref) => renderSingleTextareaCell({ label: testLabel }, ref),
         getElement: () => getTextbox(testLabel) as HTMLTextAreaElement,
       },
       button: {
-        render: (ref) =>
-          render(
-            <SingleRow>
-              <StudioInputTable.Cell.Button ref={ref}>{testLabel}</StudioInputTable.Cell.Button>
-            </SingleRow>,
-          ),
+        render: (ref) => renderSingleButtonCell({ children: testLabel }, ref),
         getElement: () => getButton(testLabel),
       },
     };
@@ -258,12 +256,155 @@ describe('StudioInputTable', () => {
       testRefForwarding(renderComponent, getElement);
     });
   });
+
+  describe('Triggers input level and table level event functions with the same events when the user performs an actions', () => {
+    type TestCase<
+      Element extends HTMLCellInputElement,
+      Prop extends keyof HTMLAttributes<Element>,
+    > = {
+      render: (mockFn: HTMLAttributes<Element>[Prop]) => RenderResult;
+      action: (user: UserEvent) => Promise<void>;
+    };
+
+    const testCases: {
+      [Name in ElementName]: Partial<{
+        [Prop in keyof HTMLAttributes<NativeElement<Name>>]: TestCase<NativeElement<Name>, Prop>;
+      }>;
+    } = {
+      textfield: {
+        onChange: {
+          render: (onChange) => renderSingleTextfieldCell({ label: 'test', onChange }),
+          action: (user) => user.type(screen.getByRole('textbox'), 'a'),
+        },
+        onFocus: {
+          render: (onFocus) => renderSingleTextfieldCell({ label: 'test', onFocus }),
+          action: (user) => user.click(screen.getByRole('textbox')),
+        },
+        onBlur: {
+          render: (onBlur) => renderSingleTextfieldCell({ label: 'test', onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('textbox'));
+            await user.tab();
+          },
+        },
+      },
+      textarea: {
+        onChange: {
+          render: (onChange) => renderSingleTextareaCell({ label: 'test', onChange }),
+          action: (user) => user.type(screen.getByRole('textbox'), 'a'),
+        },
+        onFocus: {
+          render: (onFocus) => renderSingleTextareaCell({ label: 'test', onFocus }),
+          action: (user) => user.click(screen.getByRole('textbox')),
+        },
+        onBlur: {
+          render: (onBlur) => renderSingleTextareaCell({ label: 'test', onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('textbox'));
+            await user.tab();
+          },
+        },
+      },
+      button: {
+        onFocus: {
+          render: (onFocus) => renderSingleButtonCell({ children: 'test', onFocus }),
+          action: (user) => user.click(screen.getByRole('button')),
+        },
+        onBlur: {
+          render: (onBlur) => renderSingleButtonCell({ children: 'test', onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('button'));
+            await user.tab();
+          },
+        },
+      },
+      checkbox: {
+        onChange: {
+          render: (onChange) =>
+            renderSingleCheckboxCell({ value: 'test', 'aria-label': 'test', onChange }),
+          action: (user) => user.click(screen.getByRole('checkbox')),
+        },
+        onFocus: {
+          render: (onFocus) =>
+            renderSingleCheckboxCell({ value: 'test', 'aria-label': 'test', onFocus }),
+          action: (user) => user.click(screen.getByRole('checkbox')),
+        },
+        onBlur: {
+          render: (onBlur) =>
+            renderSingleCheckboxCell({ value: 'test', 'aria-label': 'test', onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('checkbox'));
+            await user.tab();
+          },
+        },
+      },
+    };
+
+    describe.each(Object.keys(testCases))('%s', (key) => {
+      const testCasesForElement = testCases[key];
+
+      test.each(Object.keys(testCasesForElement))('%s', async (prop) => {
+        const user = userEvent.setup();
+        const onEvent = jest.fn();
+        const { render, action } = testCasesForElement[prop];
+        render(onEvent);
+        await action(user);
+        expect(onEvent).toHaveBeenCalledTimes(1);
+        expect(defaultProps[prop + 'Any']).toHaveBeenCalledTimes(1);
+        const inputEvent = onEvent.mock.calls[0][0];
+        const tableEvent = defaultProps[prop + 'Any'].mock.calls[0][0];
+        expect(inputEvent).toBe(tableEvent);
+      });
+    });
+  });
 });
 
 type ArrowKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight';
 
-const renderStudioInputTable = (props: StudioInputTableProps = {}) =>
-  render(<TestTable {...props} />);
+const renderStudioInputTable = (props: StudioInputTableProps = {}): RenderResult =>
+  render(<TestTable {...defaultProps} {...props} />);
+
+const renderSingleTextfieldCell = (
+  props: CellTextfieldProps,
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.Textfield {...props} ref={ref} />
+    </SingleRow>,
+  );
+
+const renderSingleTextareaCell = (
+  props: CellTextareaProps,
+  ref?: ForwardedRef<HTMLTextAreaElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.Textarea {...props} ref={ref} />
+    </SingleRow>,
+  );
+
+const renderSingleButtonCell = (
+  props: CellButtonProps,
+  ref?: ForwardedRef<HTMLButtonElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.Button {...props} ref={ref}>
+        Test
+      </StudioInputTable.Cell.Button>
+    </SingleRow>,
+  );
+
+const renderSingleCheckboxCell = (
+  props: CellCheckboxProps,
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.Checkbox {...props} ref={ref} />
+    </SingleRow>,
+  );
 
 const getTable = (): HTMLTableElement => screen.getByRole('table');
 const getCheckbox = (name: string): HTMLInputElement =>
@@ -309,7 +450,7 @@ const expectedNumberOfRows = expectedNumberOfBodyRows + expectedNumberOfHeaderRo
 
 function SingleRow({ children }: { children: ReactNode }) {
   return (
-    <StudioInputTable>
+    <StudioInputTable {...defaultProps}>
       <StudioInputTable.Body>
         <StudioInputTable.Row>{children}</StudioInputTable.Row>
       </StudioInputTable.Body>
