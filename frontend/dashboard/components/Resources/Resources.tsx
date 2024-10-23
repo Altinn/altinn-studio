@@ -64,8 +64,8 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'dashboard.resource_slack_label',
-    description: 'dashboard.resource_slack_description',
+    label: 'dashboard.resource_contact_label',
+    description: 'dashboard.resource_contact_description',
     url: 'https://altinn.studio/contact',
     icon: (
       <svg
