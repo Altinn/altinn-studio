@@ -165,6 +165,7 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(actionOptions);
         }
 
+
         private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)
         {
 
