@@ -5,11 +5,9 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 export const useSubFormLayoutValidation = (subFormLayoutSetName: string): boolean => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: formLayout } = useFormLayoutsQuery(org, app, subFormLayoutSetName);
-  var hasComponents = false;
+
   if (formLayout) {
-    for (const value of Object.values(formLayout)) {
-      hasComponents ||= getAllLayoutComponents(value).length > 0;
-    }
+    return Object.values(formLayout).some((value) => getAllLayoutComponents(value).length > 0);
   }
-  return hasComponents;
+  return false;
 };
