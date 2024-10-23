@@ -22,8 +22,29 @@ public class AppScopesRepository : IAppScopesRepository
         cancellationToken.ThrowIfCancellationRequested();
         var appScope = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == repoContext.Org && a.App == repoContext.Repo, cancellationToken);
 
+        if (appScope is null)
+        {
+            return null;
+        }
+
         return AppScopesMapper.MapToModel(appScope);
     }
 
-    public Task<AppScopesEntity> SaveAppScopesAsync(AppScopesEntity appScopesEntity, CancellationToken cancellationToken = default) => throw new System.NotImplementedException();
+    public async Task<AppScopesEntity> SaveAppScopesAsync(AppScopesEntity appScopesEntity,
+        CancellationToken cancellationToken = default)
+    {
+        var dbObject = AppScopesMapper.MapToDbModel(appScopesEntity);
+        var existing = await _dbContext.AppScopes.SingleOrDefaultAsync(a => a.Org == dbObject.Org && a.App == dbObject.App, cancellationToken);
+        if (existing is null)
+        {
+            _dbContext.AppScopes.Add(dbObject);
+        }
+        else
+        {
+            _dbContext.Entry(existing).CurrentValues.SetValues(dbObject);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return AppScopesMapper.MapToModel(dbObject);
+    }
 }

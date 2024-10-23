@@ -11,7 +11,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.FeatureManagement.Mvc;
 
 
@@ -20,9 +19,8 @@ namespace Altinn.Studio.Designer.Controllers;
 [FeatureGate(StudioFeatureFlags.AnsattPorten)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/maskinporten")]
 
-public class MaskinPortenController(IMaskinPortenHttpClient maskinPortenHttpClient,
-    IAppScopesService appScopesService,
-    IDistributedCache cache) : ControllerBase
+public class MaskinPortenScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
+    IAppScopesService appScopesService) : ControllerBase
 {
     // TODO: Cleanup model and create separation between presentation dto, domain model and external api model
     // Will be done under: https://github.com/Altinn/altinn-studio/issues/12767 and https://github.com/Altinn/altinn-studio/issues/12766
@@ -47,10 +45,10 @@ public class MaskinPortenController(IMaskinPortenHttpClient maskinPortenHttpClie
 
     [Authorize]
     [HttpPut("scopes")]
-    public async Task Put(string org, string app, [FromBody] AppScopesRequest appScopesRequest,
+    public async Task Put(string org, string app, [FromBody] AppScopesUpsertRequest appScopesUpsertRequest,
         CancellationToken cancellationToken)
     {
-        var scopes = appScopesRequest.Scopes.Select(x => new MaskinPortenScopeEntity()
+        var scopes = appScopesUpsertRequest.Scopes.Select(x => new MaskinPortenScopeEntity()
         {
             Scope = x.Scope,
             Description = x.Description
