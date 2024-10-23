@@ -205,14 +205,16 @@ export const ListComponent = ({ node }: IListProps) => {
           ))}
         </Table.Body>
       </Table>
-      <Pagination
-        pageSize={pageSize}
-        setPageSize={setPageSize}
-        pageNumber={pageNumber}
-        setPageNumber={setPageNumber}
-        numberOfRows={data?._metaData.totaltItemsCount}
-        rowsPerPageOptions={pagination?.alternatives}
-      />
+      {pagination && (
+        <Pagination
+          pageSize={pageSize}
+          setPageSize={setPageSize}
+          pageNumber={pageNumber}
+          setPageNumber={setPageNumber}
+          numberOfRows={data?._metaData.totaltItemsCount}
+          rowsPerPageOptions={pagination?.alternatives}
+        />
+      )}
     </ComponentStructureWrapper>
   );
 };
