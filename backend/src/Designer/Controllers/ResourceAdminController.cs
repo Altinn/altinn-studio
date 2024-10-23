@@ -454,7 +454,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Name = new Dictionary<string, string>()
                     {
                         { "nn", "" },
-                        { "nb", "Starte bedrift" },
+                        { "nb", "Bransjespesifikke" },
                         { "en", "" }
                     },
                 },
@@ -516,6 +516,30 @@ namespace Altinn.Studio.Designer.Controllers
                         {"nn", "Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
                         {"nb","Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
                         {"en" , "Grants access to economical services"}
+                    },
+                    TagGroups = ["tag_group_company_specific"]
+                },
+                new()
+                {
+                    Id = "tag_jordbruk",
+                    Icon = "PlantIcon",
+                    ShortDescription = new Dictionary<string, string>()
+                    {
+                        { "nn", "" },
+                        { "nb", "Tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur" },
+                        { "en", "" }
+                    },
+                    Name = new Dictionary<string, string>()
+                    {
+                        {"nn" , ""},
+                        {"nb" , "Jordbruk, skogbruk, jakt, fiske og akvakultur"},
+                        {"en" , ""}
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", ""},
+                        {"nb", "Denne tilgangspakken er relevant for tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur."},
+                        {"en", ""}
                     },
                     TagGroups = ["tag_group_company_specific"]
                 },
@@ -604,7 +628,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Name = new Dictionary<string, string>()
                     {
                         {"nn" , "Sjøfart"},
-                        {"nb", "Sjøfart"},
+                        {"nb",  "Sjøfart"},
                         {"en" , "Sjøfart"}
                     },
                     Description = new Dictionary<string, string>()
@@ -631,6 +655,40 @@ namespace Altinn.Studio.Designer.Controllers
                         {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
                     },
                     Tags = ["tag_transport"]
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:jordbruk",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "" },
+                        { "nb", "Jordbruk" },
+                        { "en", "" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "" },
+                        {"nb", "Denne tilgangspakken gir tilgang til tjenester knyttet til jordbruk. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir" },
+                        {"en", "" }
+                    },
+                    Tags = ["tag_jordbruk"]
+                },
+                new()
+                {
+                    Urn = "urn:altinn:accesspackage:fiske",
+                    Name = new Dictionary<string, string>()
+                    {
+                        { "nn", "" },
+                        { "nb", "Fiske" },
+                        { "en", "" }
+                    },
+                    Description = new Dictionary<string, string>()
+                    {
+                        {"nn", "" },
+                        {"nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til fiske. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir" },
+                        {"en", "" }
+                    },
+                    Tags = ["tag_jordbruk"]
                 },
                 new()
                 {
