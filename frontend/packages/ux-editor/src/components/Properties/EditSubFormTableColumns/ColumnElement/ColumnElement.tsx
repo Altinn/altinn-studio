@@ -2,7 +2,7 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './ColumnElement.module.css';
 import { type TableColumn } from '../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioParagraph } from '@studio/components';
+import { StudioLabelAsParagraph, StudioParagraph, StudioProperty } from '@studio/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -29,7 +29,7 @@ export const ColumnElement = ({
   const { data: textResources } = useTextResourcesQuery(org, app);
 
   const headerContent =
-    textResources.nb.find(
+    textResources?.nb?.find(
       (textResource: ITextResource) => textResource.id === tableColumn.headerContent,
     )?.value ?? tableColumn.headerContent;
 
@@ -48,16 +48,16 @@ export const ColumnElement = ({
     );
   }
   return (
-    <div
+    <StudioProperty.Button
       className={classes.wrapper}
       onClick={(_) => {
         setEditing(true);
       }}
-    >
-      <StudioLabelAsParagraph size='sm'>
-        {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
-      </StudioLabelAsParagraph>
-      <StudioParagraph size='sm'>{headerContent}</StudioParagraph>
-    </div>
+      property={t('ux_editor.properties_panel.subform_table_columns.column_header', {
+        columnNumber,
+      })}
+      value={headerContent}
+      withoutNegativeMargin={true}
+    ></StudioProperty.Button>
   );
 };

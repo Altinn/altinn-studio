@@ -1,5 +1,6 @@
 .wrapper {
-  margin-top: var(--fds-spacing-4);
+  padding: var(--fds-spacing-0);
+  padding-top: var(--fds-spacing-2);
 }
 
 .wrapper:hover {

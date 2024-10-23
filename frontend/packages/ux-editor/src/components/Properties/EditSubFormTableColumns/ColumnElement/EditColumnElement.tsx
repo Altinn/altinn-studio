@@ -58,18 +58,11 @@ export const EditColumnElement = ({
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
 
     let updatedTableColumn = sourceColumn;
-    if (selectedComponent.textResourceBindings?.title) {
-      updatedTableColumn = {
-        ...sourceColumn,
-        headerContent: selectedComponent.textResourceBindings.title,
-      };
-    }
-    if (selectedComponent.dataModelBindings?.simpleBinding) {
-      updatedTableColumn = {
-        ...sourceColumn,
-        cellContent: { query: selectedComponent.dataModelBindings.simpleBinding },
-      };
-    }
+    updatedTableColumn = {
+      ...sourceColumn,
+      headerContent: selectedComponent.textResourceBindings.title,
+      cellContent: { query: selectedComponent.dataModelBindings.simpleBinding },
+    };
     setTableColumn(updatedTableColumn);
   };
 
