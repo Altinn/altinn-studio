@@ -32,17 +32,15 @@ public class AppScopesService : IAppScopesService
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var appScopes = await _appRepository.GetAppScopesAsync(editingContext, cancellationToken) ?? new AppScopesEntity
-        {
-            Org = editingContext.Org,
-            App = editingContext.Repo
-        };
+        var appScopes = await _appRepository.GetAppScopesAsync(editingContext, cancellationToken) ??
+                        GenerateNewAppScopesEntity(editingContext);
 
         appScopes.Scopes = scopes;
+        appScopes.LastModifiedBy = editingContext.Developer;
         return await _appRepository.SaveAppScopesAsync(appScopes, cancellationToken);
     }
 
-    private AppScopesEntity GenerateNewAppScopesEntity(AltinnRepoEditingContext context, ISet<MaskinPortenScopeEntity> scopes)
+    private AppScopesEntity GenerateNewAppScopesEntity(AltinnRepoEditingContext context)
     {
         return new AppScopesEntity
         {
@@ -50,7 +48,7 @@ public class AppScopesService : IAppScopesService
             App = context.Repo,
             CreatedBy = context.Developer,
             LastModifiedBy = context.Developer,
-            Scopes = scopes
+            Scopes = new HashSet<MaskinPortenScopeEntity>()
         };
     }
 }
