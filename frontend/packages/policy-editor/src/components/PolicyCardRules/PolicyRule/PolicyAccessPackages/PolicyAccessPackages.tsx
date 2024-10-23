@@ -55,14 +55,13 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     <div className={classes.accessPackages}>
       <Alert severity='warning' size='sm'>
         <StudioLabelAsParagraph size='md' spacing>
-          Tilgangspakker tar over for Altinn-rollene
+          {t('policy_editor.access_package_warning_header')}
         </StudioLabelAsParagraph>
-        <Paragraph size='sm'>
-          Altinn-rollene fases snart ut, og da vil rollene som er lagt til, ikke lenger være gyldig.
-          Du må derfor legge til minst en Tilgangspakke for å unngå at regelen blir ugyldig.
-        </Paragraph>
+        <Paragraph size='sm'>{t('policy_editor.access_package_warning_body')}</Paragraph>
       </Alert>
-      <StudioLabelAsParagraph size='sm'>Tilgangspakker</StudioLabelAsParagraph>
+      <StudioLabelAsParagraph size='sm'>
+        {t('policy_editor.access_package_header')}
+      </StudioLabelAsParagraph>
       {accessPackages.categories.map((category) => {
         // find chosen packages in current category
         const accessPackagesInCategory = accessPackages.accessPackages.filter(

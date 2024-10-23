@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
 import { Checkbox, CheckboxGroup, Paragraph } from '@digdir/designsystemet-react';
@@ -20,6 +21,8 @@ export const PolicyAccessPackageAccordion = ({
   selectedLanguage,
   onChange,
 }: PolicyAccessPackageAccordionProps): React.ReactElement => {
+  const { t } = useTranslation();
+
   return (
     <div className={classes.accessPackageAccordion}>
       <PolicyAccordion
@@ -28,7 +31,15 @@ export const PolicyAccessPackageAccordion = ({
         extraHeaderContent={
           <CheckboxGroup
             hideLegend
-            legend={`${isChecked ? 'fjern' : 'legg til'} tilgangspakke ${accessPackage.name[selectedLanguage]}`}
+            legend={
+              isChecked
+                ? t('policy_editor.access_package_remove', {
+                    accessPackage: accessPackage.name[selectedLanguage],
+                  })
+                : t('policy_editor.access_package_add', {
+                    accessPackage: accessPackage.name[selectedLanguage],
+                  })
+            }
             className={classes.accordionCheckbox}
             value={isChecked ? [CHECKED_VALUE] : []}
             onChange={() => onChange(accessPackage)}
@@ -61,7 +72,7 @@ export const PolicyAccessPackageAccordion = ({
             );
           })
         ) : (
-          <Paragraph size='sm'>Denne tilgangspakken inneholder ingen tjenester enda</Paragraph>
+          <Paragraph size='sm'>{t('policy_editor.access_package_no_services')}</Paragraph>
         )}
       </PolicyAccordion>
     </div>
