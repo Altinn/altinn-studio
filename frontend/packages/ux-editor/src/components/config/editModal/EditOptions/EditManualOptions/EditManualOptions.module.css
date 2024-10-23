@@ -1,0 +1,28 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding-block: var(--fds-spacing-5);
+  gap: var(--fds-spacing-3);
+}
+
+.paddingInline {
+  padding-inline: var(--fds-spacing-5);
+}
+
+.optionsSummary {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.summaryHeaderCell,
+.summaryBodyCell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.manualTabModal {
+  width: max(50vw, 64rem);
+  max-width: 100%;
+}

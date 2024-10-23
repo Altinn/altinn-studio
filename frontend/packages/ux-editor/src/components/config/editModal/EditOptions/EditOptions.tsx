@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { ErrorMessage, Heading, Alert } from '@digdir/designsystemet-react';
+import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { EditCodeList, EditCodeListReference } from './EditCodeList';
@@ -33,12 +33,12 @@ export function EditOptions<T extends SelectionComponentType>({
 }: ISelectionEditComponentProvidedProps<T>) {
   const previousEditFormId = useRef(editFormId);
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: staticOptionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const { t } = useTranslation();
   const initialSelectedOptionsType = getSelectedOptionsType(
     component.optionsId,
     component.options,
-    optionListIds || [],
+    staticOptionListIds || [],
   );
   const [selectedOptionsType, setSelectedOptionsType] = React.useState(initialSelectedOptionsType);
 
@@ -49,14 +49,14 @@ export function EditOptions<T extends SelectionComponentType>({
   }, [editFormId]);
 
   useEffect(() => {
-    if (!optionListIds) return;
+    if (!staticOptionListIds) return;
     const updatedSelectedOptionsType = getSelectedOptionsType(
       component.optionsId,
       component.options,
-      optionListIds,
+      staticOptionListIds,
     );
     setSelectedOptionsType(updatedSelectedOptionsType);
-  }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
+  }, [staticOptionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
     <div className={classes.root}>
@@ -69,7 +69,7 @@ export function EditOptions<T extends SelectionComponentType>({
           spinnerTitle={t('ux_editor.modal_properties_loading')}
         />
       ) : isError ? (
-        <ErrorMessage>
+        <ErrorMessage className={classes.errorMessage}>
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
       ) : (
@@ -91,23 +91,26 @@ export function EditOptions<T extends SelectionComponentType>({
               {t('ux_editor.options.tab_referenceId')}
             </StudioTabs.Tab>
           </StudioTabs.List>
-          <StudioTabs.Content value={SelectedOptionsType.CodeList}>
+          <StudioTabs.Content
+            className={classes.codelistTabContent}
+            value={SelectedOptionsType.CodeList}
+          >
             <EditCodeList component={component} handleComponentChange={handleComponentChange} />
           </StudioTabs.Content>
           <StudioTabs.Content
-            className={classes.manualTabContent}
             value={SelectedOptionsType.Manual}
+            className={classes.manualTabContent}
           >
-            {renderOptions.onlyCodeListOptions ? (
-              <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>
-            ) : (
-              <EditManualOptions
-                component={component}
-                handleComponentChange={handleComponentChange}
-              />
-            )}
+            <EditManualOptions
+              component={component}
+              handleComponentChange={handleComponentChange}
+              onlyCodeListOptions={renderOptions.onlyCodeListOptions}
+            />
           </StudioTabs.Content>
-          <StudioTabs.Content value={SelectedOptionsType.ReferenceId}>
+          <StudioTabs.Content
+            value={SelectedOptionsType.ReferenceId}
+            className={classes.codelistTabContent}
+          >
             <EditCodeListReference
               component={component}
               handleComponentChange={handleComponentChange}
