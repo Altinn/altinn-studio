@@ -132,6 +132,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
       Promise.resolve(set.app.getAppMetadata()),
     );
+
     await renderWithInstanceAndLayout({
       renderer: () =>
         env.parsed?.ALTINN_ALL_APPS_RENDER_COMPONENTS === 'true' ? <RenderAllComponents /> : <TestApp />,
@@ -142,7 +143,6 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
         fetchFormData: async () => set.getModel().simulateDataModel(),
         fetchDataModelSchema: async () => set.getModel().getSchema(),
         fetchInstanceData: async () => set.simulateInstance(),
-        fetchProcessState: async () => set.simulateProcess(),
         fetchLayoutSchema: async () => layoutSchema as unknown as JSONSchema7,
         fetchRuleHandler: async () => set.getRuleHandler(),
         fetchDynamics: async () => set.getRuleConfiguration(),

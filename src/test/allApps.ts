@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
-import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { MINIMUM_APPLICATION_VERSION } from 'src/features/applicationMetadata/minVersion';
 import { cleanLayout } from 'src/features/form/layout/cleanLayout';
 import { layoutSetIsDefault } from 'src/features/form/layoutSets/TypeGuards';
@@ -16,7 +15,7 @@ import type { IFormDynamics } from 'src/features/form/dynamics';
 import type { ITextResourceResult } from 'src/features/language/textResources';
 import type { ILayoutFile, ILayoutSet, ILayoutSets, ILayoutSettings } from 'src/layout/common.generated';
 import type { ILayoutCollection } from 'src/layout/layout';
-import type { IInstance, IProcess } from 'src/types/shared';
+import type { IInstance } from 'src/types/shared';
 
 export class ExternalApp {
   private compat = false;
@@ -317,10 +316,6 @@ export class ExternalAppLayoutSet {
       assert(i.data[0].dataType === 'test-data-model');
       i.data[0].dataType = this.config.dataType;
     });
-  }
-
-  simulateProcess(): IProcess {
-    return getProcessDataMock();
   }
 
   simulateValidUrlHash(): string {

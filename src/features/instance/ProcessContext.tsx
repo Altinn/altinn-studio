@@ -5,7 +5,6 @@ import { skipToken, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createStore } from 'zustand';
 import type { QueryClient } from '@tanstack/react-query';
 
-import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { DisplayError } from 'src/core/errorHandling/DisplayError';
@@ -14,6 +13,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { TaskKeys, useNavigatePage } from 'src/hooks/useNavigatePage';
+import { fetchProcessState } from 'src/queries/queries';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
@@ -52,8 +52,7 @@ const { Provider, useSelector, useLaxSelector, useHasProvider } = createZustandC
 export const useHasProcessProvider = () => useHasProvider();
 
 // Also used for prefetching @see appPrefetcher.ts
-export function useProcessQueryDef(instanceId?: string): QueryDefinition<IProcess> {
-  const { fetchProcessState } = useAppQueries();
+export function getProcessQueryDef(instanceId?: string): QueryDefinition<IProcess> {
   return {
     queryKey: ['fetchProcessState', instanceId],
     queryFn: instanceId ? () => fetchProcessState(instanceId) : skipToken,
@@ -62,7 +61,7 @@ export function useProcessQueryDef(instanceId?: string): QueryDefinition<IProces
 }
 
 function useProcessQuery(instanceId: string) {
-  const utils = useQuery<IProcess, HttpClientError>(useProcessQueryDef(instanceId));
+  const utils = useQuery<IProcess, HttpClientError>(getProcessQueryDef(instanceId));
 
   useEffect(() => {
     utils.error && window.logError('Fetching process state failed:\n', utils.error);

@@ -1,8 +1,10 @@
 import React from 'react';
 
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
 import { CustomButtonComponent } from 'src/layout/CustomButton/CustomButtonComponent';
+import { fetchProcessState } from 'src/queries/queries';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { CustomAction } from 'src/layout/CustomButton/config.generated';
 import type { IUserAction } from 'src/types/shared';
@@ -123,6 +125,45 @@ type RenderProps = {
 };
 
 async function render({ actions, actionAuthorization }: RenderProps = { actionAuthorization: [] }) {
+  (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
+    Promise.resolve({
+      started: '2024-01-03T06:52:49.716640678Z',
+      ended: null,
+      endEvent: null,
+      startEvent: '2024-01-03T06:52:49.716640678Z',
+      currentTask: {
+        userActions: [
+          {
+            id: 'read',
+            authorized: true,
+            type: 'ProcessAction',
+          },
+          {
+            id: 'write',
+            authorized: true,
+            type: 'ProcessAction',
+          },
+          {
+            id: 'complete',
+            authorized: false,
+            type: 'ProcessAction',
+          },
+          ...(actionAuthorization ?? []),
+        ],
+        read: true,
+        write: true,
+        flow: 2,
+        started: '2024-01-03T06:37:22.7573522Z',
+        elementId: 'Task_1',
+        name: 'Utfylling',
+        altinnTaskType: 'data',
+        ended: null,
+        validated: null,
+        flowType: 'CompleteCurrentMoveToNext',
+      },
+    }),
+  );
+
   await renderGenericComponentTest({
     type: 'CustomButton',
     renderer: (props) => <CustomButtonComponent {...props} />,
@@ -131,44 +172,6 @@ async function render({ actions, actionAuthorization }: RenderProps = { actionAu
         title: 'Custom button',
       },
       actions,
-    },
-    queries: {
-      fetchProcessState: async () => ({
-        started: '2024-01-03T06:52:49.716640678Z',
-        ended: null,
-        endEvent: null,
-        startEvent: '2024-01-03T06:52:49.716640678Z',
-        currentTask: {
-          userActions: [
-            {
-              id: 'read',
-              authorized: true,
-              type: 'ProcessAction',
-            },
-            {
-              id: 'write',
-              authorized: true,
-              type: 'ProcessAction',
-            },
-            {
-              id: 'complete',
-              authorized: false,
-              type: 'ProcessAction',
-            },
-            ...(actionAuthorization ?? []),
-          ],
-          read: true,
-          write: true,
-          flow: 2,
-          started: '2024-01-03T06:37:22.7573522Z',
-          elementId: 'Task_1',
-          name: 'Utfylling',
-          altinnTaskType: 'data',
-          ended: null,
-          validated: null,
-          flowType: 'CompleteCurrentMoveToNext',
-        },
-      }),
     },
   });
 }

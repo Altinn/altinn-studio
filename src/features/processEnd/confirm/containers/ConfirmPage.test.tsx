@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
@@ -8,6 +9,7 @@ import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
 import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMock';
 import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/processEnd/confirm/containers/ConfirmPage';
+import { fetchProcessState } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
 jest.mock('react-helmet-async');
@@ -69,16 +71,18 @@ describe('ConfirmPage', () => {
   });
 
   it('should show loading when clicking submit', async () => {
+    (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
+      Promise.resolve(
+        getProcessDataMock((p) => {
+          p.currentTask!.actions = {
+            confirm: true,
+          };
+        }),
+      ),
+    );
+
     const { mutations } = await renderWithInstanceAndLayout({
       renderer: () => <ConfirmPage {...props} />,
-      queries: {
-        fetchProcessState: async () =>
-          getProcessDataMock((p) => {
-            p.currentTask!.actions = {
-              confirm: true,
-            };
-          }),
-      },
     });
 
     const submitBtnText = /send inn/i;

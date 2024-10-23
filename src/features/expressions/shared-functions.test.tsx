@@ -12,7 +12,7 @@ import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import type { SharedTestFunctionContext } from 'src/features/expressions/shared';
@@ -214,6 +214,10 @@ describe('Expressions shared function tests', () => {
       (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockResolvedValue(applicationMetadata);
       (useExternalApis as jest.Mock<typeof useExternalApis>).mockReturnValue(externalApis as ExternalApisResult);
 
+      (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
+        Promise.resolve(process ?? getProcessDataMock()),
+      );
+
       const nodeId = nodeIdFromContext(context);
       await renderWithNode({
         nodeId,
@@ -231,7 +235,6 @@ describe('Expressions shared function tests', () => {
           fetchLayouts: async () => layouts ?? getDefaultLayouts(),
           fetchFormData,
           fetchInstanceData,
-          ...(process ? { fetchProcessState: async () => process } : {}),
           ...(frontendSettings ? { fetchApplicationSettings: async () => frontendSettings } : {}),
           fetchUserProfile: async () => profile,
           fetchTextResources: async () => ({

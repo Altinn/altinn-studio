@@ -10,7 +10,7 @@ import { InstanceProvider } from 'src/features/instance/InstanceContext';
 import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
 import { getSummaryDataObject, ReceiptContainer } from 'src/features/receipt/ReceiptContainer';
 import { TaskKeys } from 'src/hooks/useNavigatePage';
-import { fetchApplicationMetadata } from 'src/queries/queries';
+import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -86,6 +86,15 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
       }),
     ),
   );
+  (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
+    Promise.resolve(
+      getProcessDataMock((p) => {
+        p.currentTask = undefined;
+        p.ended = '2022-02-05T09:19:32.8858042Z';
+      }),
+    ),
+  );
+
   return await renderWithoutInstanceAndLayout({
     renderer: () => (
       <InstanceProvider>
@@ -118,11 +127,6 @@ const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender
         },
       }),
       fetchInstanceData: async () => buildInstance(hasPdf),
-      fetchProcessState: async () =>
-        getProcessDataMock((p) => {
-          p.currentTask = undefined;
-          p.ended = '2022-02-05T09:19:32.8858042Z';
-        }),
       fetchFormData: async () => ({}),
     },
   });
