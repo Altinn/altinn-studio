@@ -3,24 +3,25 @@ import type { ReactElement, ReactNode } from 'react';
 import { StudioParagraph } from '../../StudioParagraph';
 import classes from './StudioMenuTab.module.css';
 import { moveFocus } from '../utils/dom-utils';
+import { StudioLink } from '@studio/components';
 
-type StudioMenuTabProps<TabId extends string> = {
+export type StudioMenuTabType<TabId extends string> = {
   icon: ReactNode;
   tabName: string;
   tabId: TabId;
+  actAsLink?: {
+    to: string;
+  };
+};
+
+type StudioMenuTabProps<TabId extends string> = {
+  contentTab: StudioMenuTabType<TabId>;
   isTabSelected: boolean;
   onClick: (tabId: TabId) => void;
 };
 
-export type MenuTab<TabId extends string> = Omit<
-  StudioMenuTabProps<TabId>,
-  'isTabSelected' | 'onClick'
->;
-
 export function StudioMenuTab<TabId extends string>({
-  icon,
-  tabName,
-  tabId,
+  contentTab,
   isTabSelected,
   onClick,
 }: StudioMenuTabProps<TabId>): ReactElement {
@@ -28,22 +29,50 @@ export function StudioMenuTab<TabId extends string>({
     moveFocus(event);
     if (event.key === 'Enter') {
       event.preventDefault();
-      onClick(tabId);
+      onClick(contentTab.tabId);
     }
   };
 
   return (
     <div
       className={isTabSelected ? classes.tabIsSelected : classes.tab}
-      onClick={() => onClick(tabId)}
+      onClick={() => onClick(contentTab.tabId)}
       role='tab'
       tabIndex={-1}
       onKeyDown={handleKeyDown}
     >
-      <div className={classes.icon}>{icon}</div>
-      <StudioParagraph size='small' variant='short' className={classes.tabTitle}>
-        {tabName}
-      </StudioParagraph>
+      {contentTab.actAsLink ? (
+        <TabAsLink contentTab={contentTab} />
+      ) : (
+        <MenuTabContent contentTab={contentTab} />
+      )}
     </div>
+  );
+}
+
+type TabAsLinkProps<TabId extends string> = {
+  contentTab: StudioMenuTabType<TabId>;
+};
+
+function TabAsLink<TabId extends string>({ contentTab }: TabAsLinkProps<TabId>) {
+  return (
+    <StudioLink className={classes.test} href={contentTab.actAsLink.to}>
+      <MenuTabContent contentTab={contentTab} />
+    </StudioLink>
+  );
+}
+
+type MenuTabContentProps<TabId extends string> = TabAsLinkProps<TabId>;
+
+function MenuTabContent<TabId extends string>({ contentTab }: MenuTabContentProps<TabId>) {
+  return (
+    <>
+      <div className={contentTab.actAsLink ? classes.linkIcon : classes.icon}>
+        {contentTab.icon}
+      </div>
+      <StudioParagraph size='small' variant='short' className={classes.tabTitle}>
+        {contentTab.tabName}
+      </StudioParagraph>
+    </>
   );
 }

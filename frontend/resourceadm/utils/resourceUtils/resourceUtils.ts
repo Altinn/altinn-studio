@@ -1,5 +1,4 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,
@@ -13,6 +12,8 @@ import type {
 import type { ReactNode } from 'react';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
+import type { StudioMenuTabType } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 /**
  * The map of resource type
@@ -182,29 +183,23 @@ export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): b
  *
  * @param icon the icon to display
  * @param tabId the id of the tab
- * @param onClick function to be executed on click
- * @param currentPage the current selected page
  * @param to where to navigate to
  *
  * @returns a LeftNavigationTab
  */
-export const createNavigationTab = (
+export const CreateMenuLinkTab = (
   icon: ReactNode,
-  tabId: string,
-  onClick: (tabId: string) => void,
-  currentPage: NavigationBarPage,
+  tabId: NavigationBarPage,
   to: string,
-): LeftNavigationTab => {
+): StudioMenuTabType<NavigationBarPage> => {
+  const { t } = useTranslation();
   return {
     icon,
-    tabName: `resourceadm.left_nav_bar_${tabId}`,
+    tabName: t(`resourceadm.left_nav_bar_${tabId}`),
     tabId,
-    action: {
-      type: 'link',
-      onClick,
+    actAsLink: {
       to,
     },
-    isActiveTab: getIsActiveTab(currentPage, tabId),
   };
 };
 

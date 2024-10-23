@@ -12,6 +12,15 @@
   cursor: pointer;
 }
 
+.test {
+  height: 100%;
+}
+
+.linkIcon {
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.linkIcon,
 .icon {
   display: flex;
   align-items: center;

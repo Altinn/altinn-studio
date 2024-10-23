@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import type { ReactElement } from 'react';
 import classes from './StudioContentMenu.module.css';
-import { StudioMenuTab } from './StudioMenuTab/StudioMenuTab';
-import type { MenuTab } from './StudioMenuTab/StudioMenuTab';
+import { StudioMenuTab } from './StudioMenuTab';
+import type { StudioMenuTabType } from './StudioMenuTab';
 
 type StudioContentMenuProps<TabId extends string> = {
-  contentTabs: MenuTab<TabId>[];
+  contentTabs: StudioMenuTabType<TabId>[];
   selectedTabId: TabId;
   onChangeTab: (tabId: TabId) => void;
 };
@@ -26,9 +26,7 @@ export function StudioContentMenu<TabId extends string>({
       {contentTabs.map((contentTab) => (
         <StudioMenuTab
           key={contentTab.tabId}
-          icon={contentTab.icon}
-          tabName={contentTab.tabName}
-          tabId={contentTab.tabId}
+          contentTab={contentTab}
           isTabSelected={contentTab.tabId === selectedTab}
           onClick={() => handleChangeTab(contentTab.tabId)}
         />
