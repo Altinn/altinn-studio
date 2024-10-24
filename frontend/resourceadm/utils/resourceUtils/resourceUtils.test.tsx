@@ -1,5 +1,5 @@
 import {
-  createNavigationTab,
+  CreateMenuLinkTab,
   getIsActiveTab,
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
@@ -9,10 +9,12 @@ import {
   validateResource,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import { TestFlaskIcon } from '@studio/icons';
 import React from 'react';
 import type { Resource, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import type { StudioMenuTabType } from '@studio/components';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
@@ -120,26 +122,19 @@ describe('getIsActiveTab', () => {
 });
 
 describe('createNavigationTab', () => {
-  const mockOnClick = jest.fn();
-
   const mockTo: string = '/about';
 
-  const mockTab: LeftNavigationTab = {
+  const mockTab: StudioMenuTabType<NavigationBarPage> = {
     icon: <TestFlaskIcon />,
     tabName: 'resourceadm.left_nav_bar_about',
     tabId: 'about',
-    action: {
-      type: 'link',
-      onClick: mockOnClick,
-      to: mockTo,
-    },
-    isActiveTab: true,
+    to: mockTo,
   };
 
   it('creates a new tab when the function is called', () => {
-    const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
+    const newTab = CreateMenuLinkTab(<TestFlaskIcon />, 'about', mockTo);
 
-    expect(newTab).toEqual(mockTab);
+    expect(newTab).toEqual({ ...mockTab, tabName: textMock(mockTab.tabName) });
   });
 });
 
