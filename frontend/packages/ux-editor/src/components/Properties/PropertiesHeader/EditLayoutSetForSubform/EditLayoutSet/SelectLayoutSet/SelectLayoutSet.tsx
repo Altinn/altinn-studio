@@ -57,6 +57,7 @@ export const SelectLayoutSet = ({
       })}
     >
       <StudioNativeSelect
+        className={classes.layoutSetsOption}
         size='small'
         onChange={handleLayoutSetChange}
         label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
