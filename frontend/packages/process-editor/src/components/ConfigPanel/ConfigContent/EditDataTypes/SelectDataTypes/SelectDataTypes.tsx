@@ -1,6 +1,5 @@
 import React from 'react';
-import { Combobox } from '@digdir/designsystemet-react';
-import { StudioButton, StudioDeleteButton } from '@studio/components';
+import { StudioButton, StudioCombobox, StudioDeleteButton } from '@studio/components';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { useTranslation } from 'react-i18next';
 import { XMarkIcon } from '@studio/icons';
@@ -42,28 +41,37 @@ export const SelectDataTypes = ({
     ? [...new Set([...dataModelIds, existingDataType])]
     : dataModelIds;
 
+  const descriptionText = existingDataType
+    ? t('process_editor.configuration_panel_data_model_selection_description_existing_model')
+    : t('process_editor.configuration_panel_data_model_selection_description');
+
+  const value =
+    existingDataType && dataModelOptionsToDisplay.includes(existingDataType)
+      ? currentValue
+      : undefined;
+
   return (
     <div className={classes.dataTypeSelectAndButtons}>
-      <Combobox
+      <StudioCombobox
         label={t('process_editor.configuration_panel_set_data_model_label')}
-        value={currentValue && dataModelIds.includes(existingDataType) ? currentValue : undefined}
-        description={t('process_editor.configuration_panel_data_model_selection_description')}
+        value={value}
+        description={descriptionText}
         size='small'
         className={classes.dataTypeSelect}
       >
-        <Combobox.Empty>
+        <StudioCombobox.Empty>
           {t('process_editor.configuration_panel_no_data_model_to_select')}
-        </Combobox.Empty>
+        </StudioCombobox.Empty>
         {dataModelOptionsToDisplay.map((option) => (
-          <Combobox.Option
+          <StudioCombobox.Option
             value={option}
             key={option}
             onClick={() => handleChangeDataModel([option])}
           >
             {option}
-          </Combobox.Option>
+          </StudioCombobox.Option>
         ))}
-      </Combobox>
+      </StudioCombobox>
       <div className={classes.buttons}>
         <StudioButton
           icon={<XMarkIcon />}
