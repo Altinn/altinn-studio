@@ -33,7 +33,7 @@ export function Feedback() {
       <Typography variant='body1'>
         <Lang id={'feedback.body'} />
       </Typography>
-      <ReadyForPrint />
+      <ReadyForPrint type='load' />
     </div>
   );
 }

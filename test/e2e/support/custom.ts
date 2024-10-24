@@ -210,7 +210,7 @@ const knownWcagViolations: KnownViolation[] = [
 ];
 
 Cypress.Commands.add('clearSelectionAndWait', (viewport) => {
-  cy.get('#readyForPrint').should('exist');
+  cy.get('#finishedLoading').should('exist');
   cy.findByRole('progressbar').should('not.exist');
 
   // Find focused element and blur it, to ensure that we don't get any focus outlines or styles in the snapshot.
@@ -386,13 +386,13 @@ Cypress.Commands.add('testWcag', () => {
 Cypress.Commands.add('reloadAndWait', () => {
   cy.waitUntilSaved();
   cy.reload();
-  cy.get('#readyForPrint').should('exist');
+  cy.get('#finishedLoading').should('exist');
   cy.findByRole('progressbar').should('not.exist');
   cy.injectAxe();
 });
 
 Cypress.Commands.add('waitForLoad', () => {
-  cy.get('#readyForPrint').should('exist');
+  cy.get('#finishedLoading').should('exist');
   cy.findByRole('progressbar').should('not.exist');
   // An initialOption can cause a save to occur immediately after loading is finished, wait for this to finish as well
   cy.waitUntilSaved();
@@ -506,7 +506,7 @@ Cypress.Commands.add('changeLayout', (mutator, wholeLayoutMutator) => {
   cy.get('[data-testid="loader"]').should('exist');
   cy.get('[data-testid="loader"]').should('not.exist');
 
-  cy.get('#readyForPrint').should('exist');
+  cy.get('#finishedLoading').should('exist');
   cy.findByRole('progressbar').should('not.exist');
   cy.waitUntilNodesReady();
 });
@@ -632,7 +632,7 @@ Cypress.Commands.add('testPdf', (snapshotName, callback, returnToForm = false) =
   cy.reload();
 
   // Wait for readyForPrint, after this everything should be rendered so using timeout: 0
-  cy.get('#pdfView > #readyForPrint')
+  cy.get('#readyForPrint')
     .should('exist')
     .then(() => {
       // Enable print media emulation
@@ -680,8 +680,8 @@ Cypress.Commands.add('testPdf', (snapshotName, callback, returnToForm = false) =
     cy.location('href').then((href) => {
       cy.visit(href.replace('?pdf=1', ''));
     });
-    cy.get('#pdfView > #readyForPrint').should('not.exist');
-    cy.get('#readyForPrint').should('exist');
+    cy.get('#readyForPrint').should('not.exist');
+    cy.get('#finishedLoading').should('exist');
   }
 });
 

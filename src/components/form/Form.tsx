@@ -149,7 +149,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
           />
         </Grid>
       </Grid>
-      <ReadyForPrint />
+      <ReadyForPrint type='load' />
       <HandleNavigationFocusComponent />
     </>
   );

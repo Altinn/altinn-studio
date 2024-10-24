@@ -1,6 +1,8 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { Likert } from 'test/e2e/pageobjects/likert';
 
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
+
 const appFrontend = new AppFrontend();
 const likertPage = new Likert();
 
@@ -286,5 +288,41 @@ describe('PDF', () => {
       cy.findByText('Prosentandel av gjeld i boliglån').should('be.visible');
       cy.findByText('Utregnet totalprosent').should('be.visible');
     });
+  });
+
+  it('should not show "#readyForPrint" on unknown error', () => {
+    cy.goto('message');
+
+    // Wait for page to load
+    cy.get('#finishedLoading').should('exist');
+    cy.waitForNetworkIdle(500);
+
+    // This should provoke an unknown error
+    cy.intercept({ method: 'GET', url: '**/data/**includeRowId=true*', times: 1 }, (req) =>
+      req.reply({ statusCode: 404, body: 'Not Found' }),
+    );
+
+    // Visit the PDF page and reload
+    cy.location('href').then((href) => {
+      const regex = getInstanceIdRegExp();
+      const instanceId = regex.exec(href)?.[1];
+      const before = href.split(regex)[0];
+      const visitUrl = `${before}${instanceId}?pdf=1`;
+      cy.visit(visitUrl);
+    });
+    cy.reload();
+
+    // Wait for page to load
+    cy.get('#finishedLoading').should('exist');
+    cy.waitForNetworkIdle(500);
+
+    // Check that we are on the error page and that #readyForPrint is not present
+    cy.findByRole('heading', { name: 'Ukjent feil' }).should('exist');
+    cy.get('#readyForPrint').should('not.exist');
+
+    // To confirm we are on the PDF page, reload (which should now succeed) and check that #readyForPrint is visible
+    cy.reload();
+    cy.get('#readyForPrint').should('exist');
+    cy.findByRole('heading', { name: 'Ukjent feil' }).should('not.exist');
   });
 });

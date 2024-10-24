@@ -181,7 +181,7 @@ function PdfWrapping({ children }: PropsWithChildren) {
         </Heading>
       </ConditionalWrapper>
       {children}
-      <ReadyForPrint />
+      <ReadyForPrint type='print' />
     </div>
   );
 }

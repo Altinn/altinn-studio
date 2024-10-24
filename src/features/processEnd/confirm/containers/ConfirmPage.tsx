@@ -74,7 +74,7 @@ export const ConfirmPage = ({ instance, instanceOwnerParty, appName, application
         pdf={filterDisplayPdfAttachments(instance?.data ?? [])}
       />
       <ProcessNavigation />
-      <ReadyForPrint />
+      <ReadyForPrint type='load' />
     </>
   );
 };

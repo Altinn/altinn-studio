@@ -51,7 +51,7 @@ export function PDFWrapper({ children }: PropsWithChildren) {
 
 async function waitForPrint(timeOut = 5000): Promise<boolean> {
   const start = performance.now();
-  while (document.querySelector('#pdfView #readyForPrint') === null) {
+  while (document.querySelector('#readyForPrint') === null) {
     if (performance.now() - start > timeOut) {
       return false;
     }

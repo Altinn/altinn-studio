@@ -27,7 +27,7 @@ export function InstantiationContainer({ children }: IInstantiateContainerProps)
             <AltinnAppHeader profile={profile} />
             <main id='main-content'>{children}</main>
             <Footer />
-            <ReadyForPrint />
+            <ReadyForPrint type='load' />
           </div>
         </RenderStart>
       </DataLoadingProvider>

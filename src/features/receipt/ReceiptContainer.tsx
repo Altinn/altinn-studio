@@ -186,7 +186,7 @@ export const ReceiptContainer = () => {
           title={<Lang id={'receipt.title'} />}
         />
       )}
-      <ReadyForPrint />
+      <ReadyForPrint type='load' />
     </div>
   );
 };

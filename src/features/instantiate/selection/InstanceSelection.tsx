@@ -274,7 +274,7 @@ function InstanceSelection() {
           </Button>
         </div>
       </div>
-      <ReadyForPrint />
+      <ReadyForPrint type='load' />
     </TaskStoreProvider>
   );
 }
