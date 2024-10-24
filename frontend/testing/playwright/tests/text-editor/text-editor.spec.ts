@@ -48,7 +48,7 @@ const setupAndVerifyTextEditorPage = async (
   return textEditorPage;
 };
 
-test('That it is possible to create a text at the ux-editor page, and that the text appears on text-editor page', async ({
+test('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -81,7 +81,7 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   expect(textareaValue).toBe(INPUT_COMPONENT_LABEL);
 });
 
-test('That it is possible to edit a textkey, and that the key is updated on the ux-editor page', async ({
+test('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
   page,
   testAppName,
 }) => {
