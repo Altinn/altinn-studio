@@ -1,0 +1,35 @@
+.navigationElement {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-block: 20px;
+  border: none;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  background-color: var(--fds-semantic-background-subtle);
+  cursor: pointer;
+}
+
+.icon {
+  font-size: 1.8rem;
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-block: 20px;
+  border: none;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+  background-color: var(--fds-semantic-background-subtle);
+  cursor: pointer;
+}
+
+.backButton:hover {
+  background-color: var(--fds-semantic-surface-action-no_fill-hover);
+}
+
+.buttonText {
+  color: var(--fds-semantic-text-neutral-default);
+  margin-left: 10px;
+}
