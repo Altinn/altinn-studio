@@ -550,14 +550,6 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.MultipleSelect,
     ComponentType.Likert,
   ],
-  button: [
-    ComponentType.Button,
-    ComponentType.CustomButton,
-    ComponentType.NavigationButtons,
-    ComponentType.PrintButton,
-    ComponentType.InstantiationButton,
-    ComponentType.ActionButton,
-  ],
   text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
   info: [
     ComponentType.InstanceInformation,
@@ -565,6 +557,14 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Link,
     ComponentType.IFrame,
     ComponentType.Summary,
+  ],
+  button: [
+    ComponentType.Button,
+    ComponentType.CustomButton,
+    ComponentType.NavigationButtons,
+    ComponentType.PrintButton,
+    ComponentType.InstantiationButton,
+    ComponentType.ActionButton,
   ],
   attachment: [
     ComponentType.AttachmentList,

@@ -160,6 +160,10 @@ export const FormDesigner = (): JSX.Element => {
               orientation='horizontal'
               localStorageContext={`form-designer-main:${user.id}:${org}`}
             >
+              {/**
+               * The following check is done for a live user test behind feature flag. It can be removed if this is not something
+               * that is going to be used in the future.
+               */}
               {!shouldDisplayFeature('addComponentModal') && (
                 <StudioResizableLayout.Element
                   collapsed={elementsCollapsed}
@@ -174,7 +178,7 @@ export const FormDesigner = (): JSX.Element => {
                 </StudioResizableLayout.Element>
               )}
               <StudioResizableLayout.Element
-                minimumSize={shouldDisplayFeature('addComponentModal') ? 600 : 250}
+                minimumSize={shouldDisplayFeature('addComponentModal') ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
               >
                 <DesignView />
               </StudioResizableLayout.Element>

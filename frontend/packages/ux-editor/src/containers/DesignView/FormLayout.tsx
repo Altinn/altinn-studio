@@ -23,6 +23,7 @@ export const FormLayout = ({ layout, isInvalid, duplicateComponents }: FormLayou
     <>
       {hasMultiPageGroup(layout) && <MultiPageWarning />}
       <FormTree duplicateComponents={duplicateComponents} layout={layout} />
+      {/** The following check and component are added as part of a live user test behind a feature flag. Can be removed if we decide not to use after user test. */}
       {shouldDisplayFeature('addComponentModal') && (
         <AddItemModal containerId={BASE_CONTAINER_ID} layout={layout} />
       )}

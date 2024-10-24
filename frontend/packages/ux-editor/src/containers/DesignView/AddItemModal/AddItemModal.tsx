@@ -15,6 +15,7 @@ import type { AddedItem } from './types';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItemContent } from './AddItemContent';
 import { PlusCircleIcon } from '@studio/icons';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
 export type AddItemProps = {
   containerId: string;
@@ -24,6 +25,7 @@ export type AddItemProps = {
 export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
   const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
 
+  const { doReloadPreview } = usePreviewContext();
   const handleCloseModal = () => {
     setSelectedItem(null);
     modalRef.current?.close();
@@ -44,7 +46,14 @@ export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
   const addItem = (type: ComponentType, parentId: string, index: number, newId: string) => {
     const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
-    addItemToLayout({ componentType: type, newId, parentId, index });
+    addItemToLayout(
+      { componentType: type, newId, parentId, index },
+      {
+        onSuccess: () => {
+          doReloadPreview();
+        },
+      },
+    );
     handleEdit(getItem(updatedLayout, newId));
   };
 
