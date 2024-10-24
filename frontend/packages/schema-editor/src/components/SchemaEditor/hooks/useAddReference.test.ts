@@ -78,4 +78,15 @@ describe('useAddReference', () => {
     const addedReferenceNode = addedChild as ReferenceNode;
     expect(addedReferenceNode.reference).toEqual(definitionNodeMock.schemaPointer);
   });
+
+  it('Does not add a reference when the reference would result in a circular reference', () => {
+    const { add, save } = setup();
+    const uniquePointerOfDefinition = SchemaModel.getUniquePointer(
+      definitionNodeMock.schemaPointer,
+    );
+    const target: ItemPosition = { parentId: uniquePointerOfDefinition, index: 0 };
+    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    add(nameOfDefinition, target);
+    expect(save).not.toHaveBeenCalled();
+  });
 });
