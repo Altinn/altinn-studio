@@ -170,6 +170,7 @@ export const FormDesigner = (): JSX.Element => {
                   collapsedSize={50}
                   minimumSize={300}
                   maximumSize={300}
+                  disableRightHandle={true}
                 >
                   <Elements
                     collapsed={elementsCollapsed}
