@@ -8,7 +8,7 @@ import { DisplayError } from 'src/core/errorHandling/DisplayError';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLaxInstanceId, useStrictInstanceRefetch } from 'src/features/instance/InstanceContext';
-import { useLaxProcessData, useSetProcessData } from 'src/features/instance/ProcessContext';
+import { useReFetchProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
@@ -31,8 +31,7 @@ function useProcessNext() {
   const { doProcessNext } = useAppMutations();
   const reFetchInstanceData = useStrictInstanceRefetch();
   const language = useCurrentLanguage();
-  const setProcessData = useSetProcessData();
-  const currentProcessData = useLaxProcessData();
+  const refetchProcessData = useReFetchProcessData();
   const { navigateToTask } = useNavigatePage();
   const instanceId = useLaxInstanceId();
   const onFormSubmitValidation = useOnFormSubmitValidation();
@@ -60,7 +59,7 @@ function useProcessNext() {
     onSuccess: async ([processData, validationIssues]) => {
       if (processData) {
         await reFetchInstanceData();
-        setProcessData?.({ ...processData, processTasks: currentProcessData?.processTasks });
+        await refetchProcessData?.();
         navigateToTask(processData?.currentTask?.elementId);
       } else if (validationIssues) {
         // Set initial validation to validation issues from process/next and make all errors visible

@@ -13,7 +13,7 @@ import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useLaxProcessData, useRealTaskType, useTaskType } from 'src/features/instance/ProcessContext';
+import { useGetTaskType, useLaxProcessData, useRealTaskType } from 'src/features/instance/ProcessContext';
 import { ProcessNavigationProvider } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -119,7 +119,7 @@ export const ProcessWrapper = () => {
   const isCurrentTask = useIsCurrentTask();
   const { isValidTaskId } = useNavigatePage();
   const taskId = useNavigationParam('taskId');
-  const taskType = useTaskType(taskId);
+  const taskType = useGetTaskType()(taskId);
   const realTaskType = useRealTaskType();
   const layoutSets = useLayoutSets();
   const dataModelGuid = useCurrentDataModelGuid();

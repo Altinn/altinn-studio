@@ -6,7 +6,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useGetTaskType, useLaxProcessData, useTaskType } from 'src/features/instance/ProcessContext';
+import { useGetTaskType, useLaxProcessData } from 'src/features/instance/ProcessContext';
 import {
   useAllNavigationParamsAsRef,
   useNavigate as useCtxNavigate,
@@ -129,7 +129,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
   // so it does not make a difference here.
   const { partyId, instanceGuid, taskId, isSubformPage, mainPageKey, componentId, dataElementId } =
     useNavigationParams();
-  const taskType = useTaskType(taskId);
+  const taskType = useGetTaskType()(taskId);
   const isStateless = useApplicationMetadata().isStatelessApp;
 
   return useMemo(() => {
@@ -172,7 +172,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
   ]);
 };
 
-export const useNavigatePage = () => {
+export function useNavigatePage() {
   const isStatelessApp = useApplicationMetadata().isStatelessApp;
   const processTasks = useLaxProcessData()?.processTasks;
   const lastTaskId = processTasks?.slice(-1)[0]?.elementId;
@@ -377,7 +377,7 @@ export const useNavigatePage = () => {
     maybeSaveOnPageChange,
     exitSubform,
   };
-};
+}
 
 export function focusMainContent(options?: NavigateToPageOptions) {
   if (options?.shouldFocusComponent !== true) {
