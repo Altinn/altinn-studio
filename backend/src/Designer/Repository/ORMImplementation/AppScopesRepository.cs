@@ -34,7 +34,7 @@ public class AppScopesRepository : IAppScopesRepository
     public async Task<AppScopesEntity> SaveAppScopesAsync(AppScopesEntity appScopesEntity,
         CancellationToken cancellationToken = default)
     {
-        var existing = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == appScopesEntity.Org && a.App == appScopesEntity.App, cancellationToken);
+        AppScopesDbObject existing = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == appScopesEntity.Org && a.App == appScopesEntity.App, cancellationToken);
 
         var dbObject = existing is null
             ? AppScopesMapper.MapToDbModel(appScopesEntity)

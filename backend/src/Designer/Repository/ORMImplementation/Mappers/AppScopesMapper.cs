@@ -23,7 +23,8 @@ public class AppScopesMapper
             Created = appScopes.Created,
             Scopes = JsonSerializer.Serialize(appScopes.Scopes, s_jsonOptions),
             CreatedBy = appScopes.CreatedBy,
-            LastModifiedBy = appScopes.LastModifiedBy
+            LastModifiedBy = appScopes.LastModifiedBy,
+            Version = appScopes.Version
         };
     }
 
@@ -43,7 +44,8 @@ public class AppScopesMapper
             Created = appScopesDbObject.Created,
             Scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(appScopesDbObject.Scopes, s_jsonOptions),
             CreatedBy = appScopesDbObject.CreatedBy,
-            LastModifiedBy = appScopesDbObject.LastModifiedBy
+            LastModifiedBy = appScopesDbObject.LastModifiedBy,
+            Version = appScopesDbObject.Version
         };
     }
 }
