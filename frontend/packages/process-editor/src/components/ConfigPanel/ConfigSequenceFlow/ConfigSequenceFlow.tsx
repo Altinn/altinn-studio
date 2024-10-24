@@ -10,7 +10,7 @@ import { PlusIcon } from '@studio/icons';
 import { useBpmnContext } from '../../../contexts/BpmnContext';
 import { Paragraph } from '@digdir/designsystemet-react';
 import { BpmnExpressionModeler } from '../../../utils/bpmnModeler/BpmnExpressionModeler';
-import { useExpressionTexts } from 'app-shared/components/Expression/useExpressionTexts';
+import { useExpressionTexts } from 'app-shared/hooks/useExpressionTexts';
 import { useTranslation } from 'react-i18next';
 import classes from './ConfigSequenceFlow.module.css';
 import { ConfigIcon } from '../../../components/ConfigPanel/ConfigContent/ConfigIcon';
