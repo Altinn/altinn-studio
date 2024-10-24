@@ -4,32 +4,32 @@ import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useD
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { useTranslation } from 'react-i18next';
-import { SubFormUtils } from './SubFormUtils';
+import { SubformUtils } from './SubFormUtils';
 
-type DeleteSubFormWrapperProps = {
+type DeleteSubformWrapperProps = {
   layoutSets: LayoutSets;
   selectedLayoutSet: string;
 };
 
-export const DeleteSubFormWrapper = ({
+export const DeleteSubformWrapper = ({
   layoutSets,
   selectedLayoutSet,
-}: DeleteSubFormWrapperProps): React.ReactElement => {
+}: DeleteSubformWrapperProps): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: deleteLayoutSet } = useDeleteLayoutSetMutation(org, app);
   const { t } = useTranslation();
 
-  const onDeleteSubForm = () => {
+  const onDeleteSubform = () => {
     deleteLayoutSet({ layoutSetIdToUpdate: selectedLayoutSet });
   };
 
   const isRegularLayoutSet = !Boolean(
-    SubFormUtils.findSubFormById(layoutSets.sets, selectedLayoutSet),
+    SubformUtils.findSubformById(layoutSets.sets, selectedLayoutSet),
   );
 
   return (
     <StudioDeleteButton
-      onDelete={onDeleteSubForm}
+      onDelete={onDeleteSubform}
       // Delete is only supported for sub-forms, not regular layout-sets
       disabled={isRegularLayoutSet}
       variant='tertiary'

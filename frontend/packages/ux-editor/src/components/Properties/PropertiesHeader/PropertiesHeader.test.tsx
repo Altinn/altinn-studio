@@ -100,7 +100,7 @@ describe('PropertiesHeader', () => {
 
   it('should render subform config when component is subform', () => {
     renderPropertiesHeader({
-      formItem: { id: 'subformComponentId', type: ComponentType.SubForm, itemType: 'COMPONENT' },
+      formItem: { id: 'subformComponentId', type: ComponentType.Subform, itemType: 'COMPONENT' },
     });
     const setLayoutSetButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),

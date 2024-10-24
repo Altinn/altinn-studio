@@ -1,23 +1,23 @@
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import React from 'react';
-import { CreateSubFormWrapper } from './CreateSubFormWrapper';
-import { DeleteSubFormWrapper } from './DeleteSubFormWrapper';
+import { CreateSubformWrapper } from './CreateSubFormWrapper';
+import { DeleteSubformWrapper } from './DeleteSubFormWrapper';
 
-type SubFormWrapperProps = {
+type SubformWrapperProps = {
   layoutSets: LayoutSets;
-  onSubFormCreated: (layoutSetName: string) => void;
+  onSubformCreated: (layoutSetName: string) => void;
   selectedLayoutSet: string;
 };
 
-export const SubFormWrapper = ({
+export const SubformWrapper = ({
   layoutSets,
-  onSubFormCreated,
+  onSubformCreated,
   selectedLayoutSet,
-}: SubFormWrapperProps): React.ReactElement => {
+}: SubformWrapperProps): React.ReactElement => {
   return (
     <div>
-      <CreateSubFormWrapper layoutSets={layoutSets} onSubFormCreated={onSubFormCreated} />
-      <DeleteSubFormWrapper layoutSets={layoutSets} selectedLayoutSet={selectedLayoutSet} />
+      <CreateSubformWrapper layoutSets={layoutSets} onSubformCreated={onSubformCreated} />
+      <DeleteSubformWrapper layoutSets={layoutSets} selectedLayoutSet={selectedLayoutSet} />
     </div>
   );
 };

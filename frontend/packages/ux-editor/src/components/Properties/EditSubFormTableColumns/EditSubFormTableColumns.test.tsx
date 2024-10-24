@@ -1,8 +1,8 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import {
-  EditSubFormTableColumns,
-  type EditSubFormTableColumnsProps,
+  EditSubformTableColumns,
+  type EditSubformTableColumnsProps,
 } from './EditSubFormTableColumns';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
@@ -12,14 +12,14 @@ import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
-const subFormComponentMock = componentMocks[ComponentType.SubForm];
+const subformComponentMock = componentMocks[ComponentType.Subform];
 
-const defaultProps: EditSubFormTableColumnsProps = {
-  component: subFormComponentMock,
+const defaultProps: EditSubformTableColumnsProps = {
+  component: subformComponentMock,
   handleComponentChange: jest.fn(),
 };
 
-describe('EditSubFormTableColumns', () => {
+describe('EditSubformTableColumns', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -28,8 +28,8 @@ describe('EditSubFormTableColumns', () => {
     const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
 
-    renderEditSubFormTableColumns({
-      component: { ...subFormComponentMock, tableColumns: undefined },
+    renderEditSubformTableColumns({
+      component: { ...subformComponentMock, tableColumns: undefined },
       handleComponentChange: handleComponentChangeMock,
     });
 
@@ -48,7 +48,7 @@ describe('EditSubFormTableColumns', () => {
     const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
 
-    renderEditSubFormTableColumns({
+    renderEditSubformTableColumns({
       handleComponentChange: handleComponentChangeMock,
     });
 
@@ -67,12 +67,12 @@ describe('EditSubFormTableColumns', () => {
     const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
 
-    renderEditSubFormTableColumns({
+    renderEditSubformTableColumns({
       handleComponentChange: handleComponentChangeMock,
     });
 
     const headerInputbutton = screen.getByRole('button', {
-      name: `${textMock('ux_editor.properties_panel.subform_table_columns.header_content_label')}: ${subFormComponentMock.tableColumns[0].headerContent}`,
+      name: `${textMock('ux_editor.properties_panel.subform_table_columns.header_content_label')}: ${subformComponentMock.tableColumns[0].headerContent}`,
     });
 
     await user.click(headerInputbutton);
@@ -95,7 +95,7 @@ describe('EditSubFormTableColumns', () => {
     const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
 
-    renderEditSubFormTableColumns({
+    renderEditSubformTableColumns({
       handleComponentChange: handleComponentChangeMock,
     });
 
@@ -113,9 +113,9 @@ describe('EditSubFormTableColumns', () => {
   });
 });
 
-const renderEditSubFormTableColumns = (props: Partial<EditSubFormTableColumnsProps> = {}) => {
+const renderEditSubformTableColumns = (props: Partial<EditSubformTableColumnsProps> = {}) => {
   const queryClient = createQueryClientMock();
-  return renderWithProviders(<EditSubFormTableColumns {...defaultProps} {...props} />, {
+  return renderWithProviders(<EditSubformTableColumns {...defaultProps} {...props} />, {
     ...queriesMock,
     queryClient,
   });

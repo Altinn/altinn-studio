@@ -9,12 +9,12 @@ import { filterOutTableColumn, updateComponentWithSubform } from './utils';
 import { useUniqueKeys } from '@studio/hooks';
 import { ColumnElement } from './ColumnElement';
 
-export type EditSubFormTableColumnsProps = IGenericEditComponent<ComponentType.SubForm>;
+export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.Subform>;
 
-export const EditSubFormTableColumns = ({
+export const EditSubformTableColumns = ({
   component,
   handleComponentChange,
-}: EditSubFormTableColumnsProps): ReactElement => {
+}: EditSubformTableColumnsProps): ReactElement => {
   const { t } = useTranslation();
 
   const tableColumns: TableColumn[] = component?.tableColumns ?? [];
