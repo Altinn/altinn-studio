@@ -18,5 +18,6 @@ export const useFormLayoutsQuery = (
         return convertExternalLayoutsToInternalFormat(formLayouts);
       }),
     staleTime: Infinity,
+    enabled: Boolean(layoutSetName),
   });
 };
