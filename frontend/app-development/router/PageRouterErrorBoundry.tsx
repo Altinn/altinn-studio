@@ -3,8 +3,10 @@ import { StudioPageError, StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from '@digdir/designsystemet-react';
 
-export const ErrorBoundary = (): ReactElement => {
+export const ErrorBoundary = (props: any): ReactElement => {
   const { t } = useTranslation();
+
+  console.log('props', props);
   return (
     <StudioPageError
       title={t('general.page_error_title')}

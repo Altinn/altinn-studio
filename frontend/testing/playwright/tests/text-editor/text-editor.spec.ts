@@ -48,7 +48,7 @@ const setupAndVerifyTextEditorPage = async (
   return textEditorPage;
 };
 
-test('That it is possible to create a text at the ux-editor page, and that the text appears on text-editor page', async ({
+test('That it is possible to create a text at the ui-editor page, and that the text appears on text-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -81,7 +81,7 @@ test('That it is possible to create a text at the ux-editor page, and that the t
   expect(textareaValue).toBe(INPUT_COMPONENT_LABEL);
 });
 
-test('That it is possible to edit a textkey, and that the key is updated on the ux-editor page', async ({
+test('That it is possible to edit a textkey, and that the key is updated on the ui-editor page', async ({
   page,
   testAppName,
 }) => {
@@ -104,14 +104,8 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
 });
 
-test('That it is possible to add a new text, edit the id, and add a new language, and that changes are visible in Gitea', async ({
-  page,
-  testAppName,
-}) => {
+test('That it is possible to add another text key', async ({ page, testAppName }) => {
   const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
-  const header = new Header(page, { app: testAppName });
-  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
-  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await textEditorPage.clickOnAddNewTextButton();
   await textEditorPage.waitForNewTextareaToAppear();
@@ -122,6 +116,10 @@ test('That it is possible to add a new text, edit the id, and add a new language
     TEXT_KEY_FIELD_2,
     TEXT_VALUE_IN_TEXTAREA,
   );
+});
+
+test('That it is possible to add a new language', async ({ page, testAppName }) => {
+  const textEditorPage = await setupAndVerifyTextEditorPage(page, testAppName);
 
   await textEditorPage.selectLanguageFromCombobox(LanguageCode.En);
   await textEditorPage.clickOnAddLanguageButton();
@@ -137,16 +135,31 @@ test('That it is possible to add a new text, edit the id, and add a new language
     TEXT_VALUE_IN_TEXTAREA,
   );
 
-  // API call to save the newly written text is done when the focus is removed from the textfield - There is no component to check that has been updated, therefore we wait 2 seconds to ensure the call is made.
-  const twoSeconds: number = 2000;
   await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
-  await textEditorPage.waitForXAmountOfMilliseconds(twoSeconds);
+});
+
+test('That the newly added language with key is updated on ui-editor page', async ({
+  page,
+  testAppName,
+}) => {
+  await setupAndVerifyTextEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.clickOnTreeItem(INPUT_COMPONENT_LABEL);
   await uiEditorPage.clickOnComponentTextConfigAccordion();
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
+});
+
+test('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
+  page,
+  testAppName,
+}) => {
+  await setupAndVerifyTextEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
