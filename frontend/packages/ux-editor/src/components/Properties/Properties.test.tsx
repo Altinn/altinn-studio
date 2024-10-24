@@ -243,6 +243,28 @@ describe('Properties', () => {
       screen.getByText(textMock('right_menu.rules_calculations_deprecated_info_title')),
     ).toBeInTheDocument();
   });
+
+  it('renders properties when formItem is not a Subform component', () => {
+    renderProperties({ formItem: componentMocks[ComponentType.Input] });
+    expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+  });
+
+  it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
+    editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
+    renderProperties({
+      formItem: { ...componentMocks[ComponentType.Subform], layoutSet: layoutSetName },
+      formItemId: componentMocks[ComponentType.Subform].id,
+    });
+    expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.content'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.dynamics'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('right_menu.calculations'))).toBeInTheDocument();
+  });
 });
 
 const getComponent = (
@@ -268,7 +290,9 @@ const renderProperties = (
   },
 ) => {
   const queryClientMock = createQueryClientMock();
+
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSet1NameMock);
 
   return renderWithProviders(getComponent(formItemContextProps), {
     queryClient: queryClientMock,
