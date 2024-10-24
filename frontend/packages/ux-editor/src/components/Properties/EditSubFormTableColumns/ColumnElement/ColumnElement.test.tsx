@@ -1,4 +1,4 @@
-import React, { act } from 'react';
+import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -7,17 +7,10 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { type TableColumn } from '../types/TableColumn';
-import { layoutSet3SubFormNameMock, layoutSetsMock } from '../../../../testing/layoutSetsMock';
+import { layoutSet3SubFormNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import {
-  component1IdMock,
-  component1Mock,
-  component1TypeMock,
-  externalLayoutsMock,
-  layout1Mock,
-  layoutMock,
-} from '../../../../testing/layoutMock';
+import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
@@ -63,11 +56,9 @@ describe('ColumnElement', () => {
     });
 
     await user.click(componentSelect);
-    await act(async () => {
-      await user.click(
-        screen.getByRole('option', { name: `${component1IdMock} ${component1TypeMock}` }),
-      );
-    });
+    await user.click(
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
+    );
 
     await waitFor(async () => {
       await user.click(
@@ -80,8 +71,8 @@ describe('ColumnElement', () => {
     expect(onEditMock).toHaveBeenCalledTimes(1);
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
-      headerContent: component1Mock.textResourceBindings.title,
-      cellContent: { query: component1Mock.dataModelBindings.simpleBinding },
+      headerContent: subformLayoutMock.component1.textResourceBindings.title,
+      cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
     });
   });
 
@@ -108,9 +99,10 @@ describe('ColumnElement', () => {
 
 const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
   const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet3SubFormNameMock], {
-    side1: layoutMock,
-  });
+  queryClient.setQueryData(
+    [QueryKey.FormLayouts, org, app, layoutSet3SubFormNameMock],
+    subformLayoutMock.layoutSet,
+  );
   return renderWithProviders(<ColumnElement {...defaultProps} {...props} />, {
     ...queriesMock,
     queryClient,

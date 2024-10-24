@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import {
   EditSubFormTableColumns,
   type EditSubFormTableColumnsProps,
@@ -11,11 +11,17 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { subformLayoutMock } from '../../../testing/subformLayoutMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 const subFormComponentMock = componentMocks[ComponentType.SubForm];
 
 const defaultProps: EditSubFormTableColumnsProps = {
-  component: subFormComponentMock,
+  component: {
+    ...subFormComponentMock,
+    layoutSet: subformLayoutMock.layoutSetName,
+  },
   handleComponentChange: jest.fn(),
 };
 
@@ -71,24 +77,33 @@ describe('EditSubFormTableColumns', () => {
       handleComponentChange: handleComponentChangeMock,
     });
 
-    const headerInputbutton = screen.getByRole('button', {
-      name: `${textMock('ux_editor.properties_panel.subform_table_columns.header_content_label')}: ${subFormComponentMock.tableColumns[0].headerContent}`,
+    const editButton = screen.getByRole('button', {
+      name: /ux_editor.properties_panel.subform_table_columns.column_header/,
+    });
+    await user.click(editButton);
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
     });
 
-    await user.click(headerInputbutton);
-
-    const headerInputfield = screen.getByLabelText(
-      textMock('ux_editor.properties_panel.subform_table_columns.header_content_label'),
+    await user.click(componentSelect);
+    await user.click(
+      screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
     );
 
-    const newValue = 'Updated Header';
-    await user.clear(headerInputfield);
-    await user.type(headerInputfield, newValue);
-    await user.tab();
+    await waitFor(async () => {
+      await user.click(
+        screen.getByRole('button', {
+          name: textMock('general.save'),
+        }),
+      );
+    });
 
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
-    expect(updatedComponent.tableColumns[0].headerContent).toBe(newValue);
+    expect(updatedComponent.tableColumns[0].headerContent).toBe(
+      subformLayoutMock.component1.textResourceBindings.title,
+    );
   });
 
   it('should call handleComponentChange when a column is deleted', async () => {
@@ -99,12 +114,14 @@ describe('EditSubFormTableColumns', () => {
       handleComponentChange: handleComponentChangeMock,
     });
 
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.delete_column', {
-        columnNumber: 1,
-      }),
+    const editButton = screen.getByRole('button', {
+      name: /ux_editor.properties_panel.subform_table_columns.column_header/,
     });
+    await user.click(editButton);
 
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
     await user.click(deleteButton);
 
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
@@ -115,6 +132,10 @@ describe('EditSubFormTableColumns', () => {
 
 const renderEditSubFormTableColumns = (props: Partial<EditSubFormTableColumnsProps> = {}) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.FormLayouts, org, app, subformLayoutMock.layoutSetName],
+    subformLayoutMock.layoutSet,
+  );
   return renderWithProviders(<EditSubFormTableColumns {...defaultProps} {...props} />, {
     ...queriesMock,
     queryClient,

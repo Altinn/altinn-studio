@@ -8,7 +8,6 @@ import type {
   FormLayoutsResponse,
 } from 'app-shared/types/api/FormLayoutsResponse';
 import { componentMocks } from './componentMocks';
-import { textLanguagesMock } from './mocks';
 
 export const layout1NameMock = 'Side1';
 export const layout2NameMock = 'Side2';
@@ -19,9 +18,6 @@ export const component1Mock: FormComponent<ComponentType.Input> = {
   id: component1IdMock,
   type: component1TypeMock,
   dataModelBindings: { simpleBinding: 'some-path' },
-  textResourceBindings: {
-    title: 'some-title',
-  },
   itemType: 'COMPONENT',
   propertyPath: 'definitions/inputComponent',
   pageIndex: null,

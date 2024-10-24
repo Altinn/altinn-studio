@@ -8,7 +8,6 @@ import {
   StudioCombobox,
   StudioDeleteButton,
   StudioDivider,
-  StudioLabelAsParagraph,
   StudioParagraph,
   StudioTextfield,
 } from '@studio/components';
