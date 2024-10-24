@@ -27,6 +27,9 @@ public class SaveAppScopesAsyncIntegrationTests : AppScopesIntegrationTestsBase
             d.Org == org &&
             d.App == app);
 
+        dbRecord.Version.Should().BeGreaterThan(0);
+        entity.Version = dbRecord.Version;
+
         EntityAssertions.AssertEqual(entity, dbRecord);
     }
 
@@ -41,12 +44,16 @@ public class SaveAppScopesAsyncIntegrationTests : AppScopesIntegrationTestsBase
             d.Org == org &&
             d.App == app);
 
+        dbRecord.Version.Should().BeGreaterThan(0);
+        entity.Version = dbRecord.Version;
         EntityAssertions.AssertEqual(entity, dbRecord);
 
         entity.Scopes = EntityGenerationUtils.GenerateMaskinPortenScopeEntities(4);
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
 
         var result = await repository.SaveAppScopesAsync(entity);
+        result.Version.Should().NotBe(entity.Version);
+        entity.Version = result.Version;
         result.Should().BeEquivalentTo(entity);
 
         var updatedDbRecord = await DbFixture.DbContext.AppScopes.AsNoTracking().FirstOrDefaultAsync(d =>

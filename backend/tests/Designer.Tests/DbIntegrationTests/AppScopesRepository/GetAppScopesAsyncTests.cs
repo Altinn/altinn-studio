@@ -35,11 +35,13 @@ public class GetAppScopesAsyncTests : AppScopesIntegrationTestsBase
         await PrepareEntityInDatabaseAsync(entity);
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
         AppScopesEntity result = await repository.GetAppScopesAsync(AltinnRepoContext.FromOrgRepo(org, app));
+        result.Version.Should().BeGreaterThan(0);
+        entity.Version = result.Version;
         result.Should().BeEquivalentTo(entity);
     }
 
     public static IEnumerable<object[]> GetAsyncTestData()
     {
-        yield return ["ttd", Guid.NewGuid().ToString(), 3];
+        yield return ["ttd", "repo-" + Guid.NewGuid(), 3];
     }
 }

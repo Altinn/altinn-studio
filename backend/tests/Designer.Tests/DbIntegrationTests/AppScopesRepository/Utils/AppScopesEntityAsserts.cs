@@ -14,8 +14,10 @@ public partial class EntityAssertions
         dbRecord.CreatedBy.Should().BeEquivalentTo(appScopesEntity.CreatedBy);
         dbRecord.LastModifiedBy.Should().BeEquivalentTo(appScopesEntity.LastModifiedBy);
         dbRecord.Created.Should().Be(appScopesEntity.Created);
+        dbRecord.Version.Should().Be(appScopesEntity.Version);
         var scopesFromDb = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(dbRecord.Scopes, JsonOptions);
         scopesFromDb.Should().BeEquivalentTo(appScopesEntity.Scopes);
+        dbRecord.Version.Should().Be(appScopesEntity.Version);
     }
 
 }

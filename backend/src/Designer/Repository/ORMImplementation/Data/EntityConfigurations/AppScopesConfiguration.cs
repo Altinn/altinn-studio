@@ -45,6 +45,9 @@ public class AppScopesConfiguration : IEntityTypeConfiguration<AppScopesDbObject
             .HasColumnType("character varying")
             .HasColumnName("last_modified_by");
 
+        builder.Property(e => e.Version)
+            .IsRowVersion();
+
         builder.HasIndex(e => new { e.Org, e.App }, "idx_app_scopes_org_app")
             .IsUnique();
     }
