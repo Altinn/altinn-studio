@@ -14,6 +14,7 @@ import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { subformLayoutMock } from '../../../testing/subformLayoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { textLanguagesMock } from '../../../testing/mocks';
 
 const subFormComponentMock = componentMocks[ComponentType.SubForm];
 
@@ -128,10 +129,31 @@ describe('EditSubFormTableColumns', () => {
     const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
     expect(updatedComponent.tableColumns.length).toBe(0);
   });
+
+  it('should render the text resource value for the column header', async () => {
+    renderEditSubFormTableColumns({
+      component: {
+        ...subFormComponentMock,
+        tableColumns: [
+          {
+            headerContent: textKeyId,
+            components: [subformLayoutMock.component1Id],
+          },
+        ],
+      },
+    });
+
+    expect(screen.getByText(textKeyValue)).toBeInTheDocument();
+  });
 });
+
+const textKeyId = subformLayoutMock.component1.textResourceBindings.title;
+const textKeyValue = 'testtext';
+const textResourcesMock = { ['nb']: [{ id: textKeyId, value: textKeyValue }] };
 
 const renderEditSubFormTableColumns = (props: Partial<EditSubFormTableColumnsProps> = {}) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.TextResources, org, app], textResourcesMock);
   queryClient.setQueryData(
     [QueryKey.FormLayouts, org, app, subformLayoutMock.layoutSetName],
     subformLayoutMock.layoutSet,
