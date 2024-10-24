@@ -412,5 +412,8 @@ export function nn(): FixedLanguageList {
     likert: {
       left_column_default_header_text: 'Spørsmål',
     },
+    process_error: {
+      submit_error_please_retry: 'Noko gjekk gale med innsending, prøv igjen om nokre minutt.',
+    },
   } satisfies NestedTexts;
 }

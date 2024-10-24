@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { useMutation } from '@tanstack/react-query';
 
@@ -9,6 +10,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useHasPendingAttachments } from 'src/features/attachments/hooks';
 import { useLaxInstanceId, useStrictInstanceRefetch } from 'src/features/instance/InstanceContext';
 import { useReFetchProcessData } from 'src/features/instance/ProcessContext';
+import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
@@ -16,6 +18,8 @@ import { appSupportsIncrementalValidationFeatures } from 'src/features/validatio
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { Validation } from 'src/features/validation/validationContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { isAtLeastVersion } from 'src/utils/versionCompare';
+import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { BackendValidationIssue } from 'src/features/validation';
 import type { IActionType, IProcess } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
@@ -38,7 +42,7 @@ function useProcessNext() {
   const updateInitialValidations = useUpdateInitialValidations();
   const setShowAllBackendErrors = Validation.useSetShowAllBackendErrors();
   const onSubmitFormValidation = useOnFormSubmitValidation();
-  const hasIncrementalValidationFeatures = appSupportsIncrementalValidationFeatures(useApplicationMetadata());
+  const applicationMetadata = useApplicationMetadata();
 
   const utils = useMutation({
     mutationFn: async ({ action }: ProcessNextProps = {}) => {
@@ -48,9 +52,17 @@ function useProcessNext() {
       return doProcessNext(instanceId, language, action)
         .then((process) => [process as IProcess, null] as const)
         .catch((error) => {
-          // If process next failed due to validation, return validationIssues instead of throwing
           if (error.response?.status === 409 && error.response?.data?.['validationIssues']?.length) {
+            // If process next failed due to validation, return validationIssues instead of throwing
             return [null, error.response.data['validationIssues'] as BackendValidationIssue[]] as const;
+          } else if (
+            error.response?.status === 500 &&
+            error.response?.data?.['detail'] === 'Pdf generation failed' &&
+            appUnlocksOnPDFFailure(applicationMetadata)
+          ) {
+            // If process next fails due to the PDF generator failing, don't show unknown error if the app unlocks data elements
+            toast(<Lang id='process_error.submit_error_please_retry' />, { type: 'error', autoClose: false });
+            return [null, null];
           } else {
             throw error;
           }
@@ -63,7 +75,7 @@ function useProcessNext() {
         navigateToTask(processData?.currentTask?.elementId);
       } else if (validationIssues) {
         // Set initial validation to validation issues from process/next and make all errors visible
-        updateInitialValidations(validationIssues, !hasIncrementalValidationFeatures);
+        updateInitialValidations(validationIssues, !appSupportsIncrementalValidationFeatures(applicationMetadata));
         if (!(await onSubmitFormValidation(true))) {
           setShowAllBackendErrors !== ContextNotProvided && setShowAllBackendErrors();
         }
@@ -101,6 +113,10 @@ function useProcessNext() {
   );
 
   return { perform, error: utils.error };
+}
+
+function appUnlocksOnPDFFailure({ altinnNugetVersion }: ApplicationMetadata) {
+  return !altinnNugetVersion || isAtLeastVersion({ actualVersion: altinnNugetVersion, minimumVersion: '8.1.0.115' });
 }
 
 interface ContextData {

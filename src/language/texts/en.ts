@@ -411,5 +411,8 @@ export function en() {
     likert: {
       left_column_default_header_text: 'Question',
     },
+    process_error: {
+      submit_error_please_retry: 'Something went wrong when submitting, please try again in a few minutes.',
+    },
   } satisfies NestedTexts;
 }
