@@ -10,14 +10,12 @@ export type StudioResizableLayoutHandleProps = {
   orientation: StudioResizableOrientation;
   index: number;
   onResizing?: (resizing: boolean) => void;
-  disableRightHandle?: boolean;
 };
 
 export const StudioResizableLayoutHandle = ({
   orientation,
   index,
   onResizing,
-  disableRightHandle,
 }: StudioResizableLayoutHandleProps): ReactElement => {
   const { resizeDelta, containerSize } = useStudioResizableLayoutContext(index);
   const { onMouseDown, isResizing } = useStudioResizableLayoutMouseMovement(
@@ -31,17 +29,6 @@ export const StudioResizableLayoutHandle = ({
   useEffect(() => {
     onResizing?.(isResizing);
   }, [isResizing, onResizing]);
-
-  if (disableRightHandle) {
-    return (
-      <div
-        role='separator'
-        tabIndex={0}
-        className={`${classes.resizeHandle}
-                  ${containerSize < 0.05 ? classes.hideLeftSide : ''}`}
-      ></div>
-    );
-  }
 
   return (
     <div

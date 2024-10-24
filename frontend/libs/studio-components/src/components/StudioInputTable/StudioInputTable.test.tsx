@@ -74,7 +74,7 @@ describe('StudioInputTable', () => {
     expect(document.body).toHaveFocus();
   });
 
-  it('Lets the user focus on the input elements using the arrow and enter keys', async () => {
+  it('Lets the user focus on the input elements using the arrow keys', async () => {
     const user = userEvent.setup();
     render(<TestTable />);
     const headerCheckbox = getCheckbox(headerCheckboxLabel);
@@ -86,7 +86,7 @@ describe('StudioInputTable', () => {
     expect(getCheckboxInRow(1)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to textfield 1
     expect(getTextfieldInRow(1)).toHaveFocus();
-    await user.keyboard('{Enter}'); // Move down to textfield 2
+    await user.keyboard('{ArrowDown}'); // Move down to textfield 2
     expect(getTextfieldInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to textarea 2
     expect(getTextareaInRow(2)).toHaveFocus();

@@ -109,10 +109,9 @@ function Headings(): ReactElement {
   return (
     <StudioInputTable.Head>
       <StudioInputTable.Row>
-        <StudioInputTable.HeaderCell>{texts.value}</StudioInputTable.HeaderCell>
         <StudioInputTable.HeaderCell>{texts.label}</StudioInputTable.HeaderCell>
         <StudioInputTable.HeaderCell>{texts.description}</StudioInputTable.HeaderCell>
-        <StudioInputTable.HeaderCell>{texts.helpText}</StudioInputTable.HeaderCell>
+        <StudioInputTable.HeaderCell>{texts.value}</StudioInputTable.HeaderCell>
         <StudioInputTable.HeaderCell>{texts.delete}</StudioInputTable.HeaderCell>
       </StudioInputTable.Row>
     </StudioInputTable.Head>

@@ -10,7 +10,7 @@ type TestCase = {
 };
 
 describe('getNextInputElement', () => {
-  describe.each(['ArrowDown', 'Enter'])('With %s key', (key) => {
+  describe('With ArrowDown key', () => {
     it('Returns the input element directly below the given element', () => {
       render(<TableWithTextfieldsOnly />);
       const testCases: TestCase[] = [
@@ -23,7 +23,7 @@ describe('getNextInputElement', () => {
       ];
       testCases.forEach(({ queryCoords, expectedResult }) => {
         const input = getInputByCoords(queryCoords);
-        const result = getNextInputElement(input, key);
+        const result = getNextInputElement(input, 'ArrowDown');
         expect(result).toBe(getInputByCoords(expectedResult));
       });
     });
@@ -31,7 +31,7 @@ describe('getNextInputElement', () => {
     it('Returns null when there is no input element below the given element', () => {
       render(<TableWithTextfieldsOnly />);
       const input = getInputByCoords({ row: 2, column: 0 });
-      const result = getNextInputElement(input, key);
+      const result = getNextInputElement(input, 'ArrowDown');
       expect(result).toBeNull();
     });
 
@@ -39,7 +39,7 @@ describe('getNextInputElement', () => {
       render(<DiverseTable />);
       const input = getInputByCoords({ row: 1, column: 1 });
       const expectedResult = getInputByCoords({ row: 4, column: 1 });
-      const result = getNextInputElement(input, key);
+      const result = getNextInputElement(input, 'ArrowDown');
       expect(result).toBe(expectedResult);
     });
   });

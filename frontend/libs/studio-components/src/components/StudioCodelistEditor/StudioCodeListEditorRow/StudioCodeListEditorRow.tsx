@@ -2,7 +2,7 @@ import type { CodeListItem } from '../types/CodeListItem';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
 import React, { useCallback } from 'react';
-import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
+import { changeDescription, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 
 type StudioCodeListEditorRowProps = {
@@ -44,21 +44,8 @@ export function StudioCodeListEditorRow({
     [item, onChange],
   );
 
-  const handleHelpTextChange = useCallback(
-    (helpText: string) => {
-      const updatedItem = changeHelpText(item, helpText);
-      onChange(updatedItem);
-    },
-    [item, onChange],
-  );
-
   return (
     <StudioInputTable.Row>
-      <TextfieldCell
-        label={texts.itemValue(number)}
-        value={item.value}
-        onChange={handleValueChange}
-      />
       <TextfieldCell
         label={texts.itemLabel(number)}
         value={item.label}
@@ -70,9 +57,9 @@ export function StudioCodeListEditorRow({
         onChange={handleDescriptionChange}
       />
       <TextfieldCell
-        label={texts.itemHelpText(number)}
-        value={item.helpText}
-        onChange={handleHelpTextChange}
+        label={texts.itemValue(number)}
+        value={item.value}
+        onChange={handleValueChange}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
     </StudioInputTable.Row>

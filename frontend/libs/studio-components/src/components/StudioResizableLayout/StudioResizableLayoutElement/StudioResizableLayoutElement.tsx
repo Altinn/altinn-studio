@@ -12,7 +12,6 @@ export type StudioResizableLayoutElementProps = {
   style?: React.CSSProperties;
 
   onResizing?: (resizing: boolean) => void;
-  disableRightHandle?: boolean;
 
   //** supplied from container **//
   resize?: (size: number) => void;
@@ -25,16 +24,15 @@ export type StudioResizableLayoutElementProps = {
 const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableLayoutElementProps>(
   (
     {
+      index,
       minimumSize = 0,
       maximumSize,
       collapsedSize,
       collapsed,
-      style,
-      disableRightHandle,
-      index,
-      onResizing,
-      hasNeighbour = false,
       children,
+      hasNeighbour = false,
+      style,
+      onResizing,
     }: StudioResizableLayoutElementProps,
     ref,
   ): ReactElement => {
@@ -60,7 +58,6 @@ const StudioResizableLayoutElement = forwardRef<HTMLDivElement, StudioResizableL
             orientation={orientation}
             index={index}
             onResizing={onResizing}
-            disableRightHandle={disableRightHandle}
           />
         )}
       </>

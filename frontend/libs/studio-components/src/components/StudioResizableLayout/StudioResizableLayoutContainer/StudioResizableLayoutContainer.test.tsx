@@ -5,14 +5,14 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { StudioResizableLayoutElement } from '../StudioResizableLayoutElement/StudioResizableLayoutElement';
 
 describe('StudioResizableLayoutContainer', () => {
-  it('should render two handles with three elements', () => {
+  it('should render just one handle with two elements', () => {
     renderStudioResizableLayoutContainer();
-    expect(screen.getAllByRole('separator').length).toBe(2);
+    expect(screen.getAllByRole('separator').length).toBe(1);
   });
 
   it('should resize containers', () => {
     renderStudioResizableLayoutContainer();
-    const handle = screen.getAllByRole('separator')[0];
+    const handle = screen.getByRole('separator');
 
     dragHandle(handle, { clientX: 400 }, { clientX: 200 });
 
@@ -23,7 +23,7 @@ describe('StudioResizableLayoutContainer', () => {
   it('should not resize containers below minimum size', () => {
     // minimum flexgrow should be minimumSize/containerSize=0.25
     renderStudioResizableLayoutContainer();
-    const handle = screen.getAllByRole('separator')[0];
+    const handle = screen.getByRole('separator');
 
     dragHandle(handle, { clientX: 400 }, { clientX: 0 });
     expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('0.25');
@@ -36,28 +36,11 @@ describe('StudioResizableLayoutContainer', () => {
 
   it('should not resize containers above maximum size', () => {
     renderStudioResizableLayoutContainer(600);
-    const handle = screen.getAllByRole('separator')[0];
+    const handle = screen.getByRole('separator');
 
     dragHandle(handle, { clientX: 400 }, { clientX: 800 });
     expect(screen.getAllByTestId('resizablelayoutelement')[0].style.flexGrow).toBe('1.5');
     expect(screen.getAllByTestId('resizablelayoutelement')[1].style.flexGrow).toBe('0.5');
-  });
-
-  it('should render StudioResizableLayoutHandle with base CSS classes', () => {
-    renderStudioResizableLayoutContainer();
-    expect(screen.getAllByRole('separator')[0]).toHaveClass('resizeHandle');
-    expect(screen.getAllByRole('separator')[1]).toHaveClass('resizeHandle');
-  });
-
-  it('should render StudioResizableLayoutHandle with multiple CSS classes', () => {
-    renderStudioResizableLayoutContainer();
-    expect(screen.getAllByRole('separator')[0]).toHaveClass('resizeHandle');
-    expect(screen.getAllByRole('separator')[0]).toHaveClass('resizeHandleH');
-    expect(screen.getAllByRole('separator')[0]).not.toHaveClass('hideLeftSide');
-
-    expect(screen.getAllByRole('separator')[1]).toHaveClass('resizeHandle');
-    expect(screen.getAllByRole('separator')[1]).not.toHaveClass('resizeHandleH');
-    expect(screen.getAllByRole('separator')[1]).not.toHaveClass('hideLeftSide');
   });
 });
 
@@ -90,7 +73,6 @@ const renderStudioResizableLayoutContainer = (
         maximumSize={maximumSize}
         collapsed={collapsed}
         collapsedSize={400}
-        hasNeighbour={true}
       >
         <div>test1</div>
       </StudioResizableLayoutElement>
@@ -99,18 +81,8 @@ const renderStudioResizableLayoutContainer = (
         maximumSize={maximumSize}
         collapsed={collapsed}
         collapsedSize={400}
-        hasNeighbour={true}
-        disableRightHandle={true}
       >
-        <div>test2</div>
-      </StudioResizableLayoutElement>
-      <StudioResizableLayoutElement
-        minimumSize={100}
-        maximumSize={maximumSize}
-        collapsed={collapsed}
-        collapsedSize={400}
-      >
-        <div>test3</div>
+        <div>test1</div>
       </StudioResizableLayoutElement>
     </StudioResizableLayoutContainer>,
   );
