@@ -19,7 +19,7 @@ export const EditLayoutSet = ({
   if (isLayoutSetSelectorVisible) {
     return (
       <SelectLayoutSet
-        existingLayoutSetForSubForm={existingLayoutSetForSubform}
+        existingLayoutSetForSubform={existingLayoutSetForSubform}
         onUpdateLayoutSet={onUpdateLayoutSet}
         onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
         showButtons={true}
@@ -37,7 +37,7 @@ export const EditLayoutSet = ({
         hideSkipButton={true}
       >
         <SelectLayoutSet
-          existingLayoutSetForSubForm={existingLayoutSetForSubform}
+          existingLayoutSetForSubform={existingLayoutSetForSubform}
           onUpdateLayoutSet={onUpdateLayoutSet}
           onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
           showButtons={false}
@@ -48,7 +48,7 @@ export const EditLayoutSet = ({
 
   return (
     <DefinedLayoutSet
-      existingLayoutSetForSubForm={existingLayoutSetForSubform}
+      existingLayoutSetForSubform={existingLayoutSetForSubform}
       onClick={() => setIsLayoutSetSelectorVisible(true)}
     />
   );

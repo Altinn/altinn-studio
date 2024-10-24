@@ -3,9 +3,9 @@ import { type ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';
 
 export const updateComponentWithSubform = (
-  component: FormItem<ComponentType.SubForm>,
+  component: FormItem<ComponentType.Subform>,
   tableColumnsToAdd: TableColumn[],
-): FormItem<ComponentType.SubForm> => {
+): FormItem<ComponentType.Subform> => {
   return {
     ...component,
     tableColumns: [...(component?.tableColumns ?? []), ...tableColumnsToAdd],

@@ -302,7 +302,7 @@ describe('TextTab', () => {
         props: {
           ...props,
           formItem: {
-            ...componentMocks[ComponentType.SubForm],
+            ...componentMocks[ComponentType.Subform],
           },
         },
       });
@@ -317,14 +317,14 @@ describe('TextTab', () => {
       expect(addColumnButton).toBeInTheDocument();
     });
 
-    it('should call handleUpdate when handleComponentChange is triggered from EditSubFormTableColumns', async () => {
+    it('should call handleUpdate when handleComponentChange is triggered from EditSubformTableColumns', async () => {
       const user = userEvent.setup();
 
       render({
         props: {
           ...props,
           formItem: {
-            ...componentMocks[ComponentType.SubForm],
+            ...componentMocks[ComponentType.Subform],
           },
         },
       });

@@ -17,7 +17,7 @@ export class FilterUtils {
       formItemConfigs[ComponentType.FileUploadWithTag],
       formItemConfigs[ComponentType.InstantiationButton],
       formItemConfigs[ComponentType.Payment],
-      formItemConfigs[ComponentType.SubForm],
+      formItemConfigs[ComponentType.Subform],
     ];
     return !unsupportedSubformComponents.includes(component);
   };

@@ -426,11 +426,11 @@ export const formItemConfigs: FormItemConfigs = {
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
-  [ComponentType.SubForm]: {
-    name: ComponentType.SubForm,
+  [ComponentType.Subform]: {
+    name: ComponentType.Subform,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/subForm',
+    propertyPath: 'definitions/subform',
     icon: ClipboardIcon,
   },
   [ComponentType.Summary]: {
@@ -482,7 +482,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.SubForm],
+  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [

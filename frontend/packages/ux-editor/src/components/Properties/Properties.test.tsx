@@ -256,8 +256,8 @@ describe('Properties', () => {
   it('render properties accordions for a subform component when it is linked to a subform layoutSet', () => {
     editFormComponentSpy.mockReturnValue(<input data-testid={editFormComponentTestId}></input>);
     renderProperties({
-      formItem: { ...componentMocks[ComponentType.SubForm], layoutSet: layoutSetName },
-      formItemId: componentMocks[ComponentType.SubForm].id,
+      formItem: { ...componentMocks[ComponentType.Subform], layoutSet: layoutSetName },
+      formItemId: componentMocks[ComponentType.Subform].id,
     });
     expect(screen.getByText(textMock('right_menu.text'))).toBeInTheDocument();
     expect(screen.getByText(textMock('right_menu.data_model_bindings'))).toBeInTheDocument();

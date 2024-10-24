@@ -105,7 +105,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader({
       formItem: {
         ...component1Mock,
-        type: ComponentType.SubForm,
+        type: ComponentType.Subform,
         layoutSet: layoutSetName,
         id: subformLayoutSetId,
       },
@@ -122,7 +122,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader({
       formItem: {
         ...component1Mock,
-        type: ComponentType.SubForm,
+        type: ComponentType.Subform,
       },
     });
     expect(
@@ -134,7 +134,7 @@ describe('PropertiesHeader', () => {
     renderPropertiesHeader({
       formItem: {
         ...component1Mock,
-        type: ComponentType.SubForm,
+        type: ComponentType.Subform,
       },
     });
     expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();

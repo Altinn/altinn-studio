@@ -1,46 +1,46 @@
 import React from 'react';
-import { DeleteSubFormWrapper } from './DeleteSubFormWrapper';
+import { DeleteSubformWrapper } from './DeleteSubformWrapper';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import {
   layoutSetsMock,
   layoutSet1NameMock,
-  layoutSet3SubFormNameMock,
+  layoutSet3SubformNameMock,
 } from '../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 
-describe('DeleteSubFormWrapper', () => {
+describe('DeleteSubformWrapper', () => {
   it('should disable delete button when selected layoutset is not a subform', () => {
-    renderDeleteSubFormWrapper(layoutSet1NameMock);
+    renderDeleteSubformWrapper(layoutSet1NameMock);
 
-    const deleteSubFormButton = screen.getByRole('button', {
+    const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    expect(deleteSubFormButton).toBeDisabled();
+    expect(deleteSubformButton).toBeDisabled();
   });
 
   it('should enable delete button when selected layoutset is a subform', () => {
-    renderDeleteSubFormWrapper(layoutSet3SubFormNameMock);
+    renderDeleteSubformWrapper(layoutSet3SubformNameMock);
 
-    const deleteSubFormButton = screen.getByRole('button', {
+    const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    expect(deleteSubFormButton).toBeEnabled();
+    expect(deleteSubformButton).toBeEnabled();
   });
 
   it('should not call deleteLayoutSet when delete button is clicked but not confirmed', async () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => false);
     const deleteLayoutSet = jest.fn();
     const user = userEvent.setup();
-    renderDeleteSubFormWrapper(layoutSet3SubFormNameMock, { deleteLayoutSet });
+    renderDeleteSubformWrapper(layoutSet3SubformNameMock, { deleteLayoutSet });
 
-    const deleteSubFormButton = screen.getByRole('button', {
+    const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    await user.click(deleteSubFormButton);
+    await user.click(deleteSubformButton);
 
     expect(deleteLayoutSet).not.toHaveBeenCalled();
   });
@@ -49,24 +49,24 @@ describe('DeleteSubFormWrapper', () => {
     jest.spyOn(window, 'confirm').mockImplementation(() => true);
     const deleteLayoutSet = jest.fn();
     const user = userEvent.setup();
-    renderDeleteSubFormWrapper(layoutSet3SubFormNameMock, { deleteLayoutSet });
+    renderDeleteSubformWrapper(layoutSet3SubformNameMock, { deleteLayoutSet });
 
-    const deleteSubFormButton = screen.getByRole('button', {
+    const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
-    await user.click(deleteSubFormButton);
+    await user.click(deleteSubformButton);
 
     expect(deleteLayoutSet).toHaveBeenCalled();
-    expect(deleteLayoutSet).toHaveBeenCalledWith(org, app, layoutSet3SubFormNameMock);
+    expect(deleteLayoutSet).toHaveBeenCalledWith(org, app, layoutSet3SubformNameMock);
   });
 });
 
-const renderDeleteSubFormWrapper = (
+const renderDeleteSubformWrapper = (
   selectedLayoutSet: string,
   queries: Partial<ServicesContextProps> = {},
 ) => {
   return renderWithProviders(
-    <DeleteSubFormWrapper layoutSets={layoutSetsMock} selectedLayoutSet={selectedLayoutSet} />,
+    <DeleteSubformWrapper layoutSets={layoutSetsMock} selectedLayoutSet={selectedLayoutSet} />,
     { queries },
   );
 };

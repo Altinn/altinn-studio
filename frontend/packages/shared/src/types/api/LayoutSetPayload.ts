@@ -5,7 +5,7 @@ export interface LayoutSetPayload {
   layoutSetConfig: LayoutSetConfig;
 }
 
-type SubFormConfig = {
+type SubformConfig = {
   type: 'subform';
 };
 
@@ -16,4 +16,4 @@ type RegularLayoutSetConfig = {
 export type LayoutSetConfig = {
   id: string;
   dataType?: string;
-} & (SubFormConfig | RegularLayoutSetConfig);
+} & (SubformConfig | RegularLayoutSetConfig);

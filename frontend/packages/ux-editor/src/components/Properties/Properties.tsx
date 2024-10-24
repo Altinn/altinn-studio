@@ -32,7 +32,7 @@ export const Properties = () => {
     }
   };
 
-  const isNotSubformOrHasLayoutSet = formItem.type !== 'SubForm' || !!formItem.layoutSet;
+  const isNotSubformOrHasLayoutSet = formItem.type !== 'Subform' || !!formItem.layoutSet;
 
   return (
     <div className={classes.root} key={formItemId}>

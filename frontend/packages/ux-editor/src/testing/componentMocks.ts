@@ -65,8 +65,8 @@ const textareaComponent: FormComponent<ComponentType.TextArea> = {
   ...commonProps(ComponentType.TextArea),
   dataModelBindings: { simpleBinding: '' },
 };
-const subFormComponent: FormComponent<ComponentType.SubForm> = {
-  ...commonProps(ComponentType.SubForm),
+const subformComponent: FormComponent<ComponentType.Subform> = {
+  ...commonProps(ComponentType.Subform),
   tableColumns: [
     {
       headerContent: 'header content',
@@ -188,7 +188,7 @@ export const componentMocks = {
   [ComponentType.Paragraph]: paragraphComponent,
   [ComponentType.RadioButtons]: radiosComponent,
   [ComponentType.RepeatingGroup]: repeatingGroupContainer,
-  [ComponentType.SubForm]: subFormComponent,
+  [ComponentType.Subform]: subformComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
   [ComponentType.Summary2]: summary2Component,
