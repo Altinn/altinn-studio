@@ -7,7 +7,7 @@
 }
 
 .toolbar > *,
-.toolbar > :global(.MuiGrid-item) {
+.toolbar > {
   margin-right: 1rem;
 }
 

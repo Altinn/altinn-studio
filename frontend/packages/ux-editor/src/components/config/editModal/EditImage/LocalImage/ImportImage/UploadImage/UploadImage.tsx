@@ -1,6 +1,5 @@
-import React, { useRef } from 'react';
-import { fileSelectorInputId } from '@studio/testing/testids';
-import { StudioFileUploader, StudioParagraph, StudioSpinner } from '@studio/components';
+import React from 'react';
+import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAddImageMutation } from 'app-shared/hooks/mutations/useAddImageMutation';
 import { useGetAllImageFileNamesQuery } from 'app-shared/hooks/queries/useGetAllImageFileNamesQuery';
@@ -8,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { MAX_FILE_SIZE_MB, WWWROOT_FILE_PATH } from '../../../../EditImage/constants';
 import classes from './UploadImage.module.css';
 import { toast } from 'react-toastify';
+import { FileUploaderWithValidation } from './FileUploaderWithValidation';
 
 // This list should be fetched from backend to ensure we use equal validation
 // ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
@@ -22,7 +22,6 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
   const { mutate: uploadImage, isPending: pendingUpload } = useAddImageMutation(org, app);
   const { data: imageFileNames } = useGetAllImageFileNamesQuery(org, app);
   const { t } = useTranslation();
-  const imageUploaderRef = useRef(null);
 
   function handleSuccess(name: string): void {
     const filePath = makeFilePath(name);
@@ -57,10 +56,9 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
     <StudioSpinner spinnerTitle={t('general.loading')} />
   ) : (
     <div>
-      <StudioFileUploader
+      <FileUploaderWithValidation
         onUploadFile={handleUpload}
         accept={LIST_OF_ACCEPTABLE_EXTENSIONS_IN_BACKEND}
-        ref={imageUploaderRef}
         uploaderButtonText={t('ux_editor.properties_panel.images.upload_image')}
         customFileValidation={{
           validateFileName: (fileName: string) => isFileNameValid(fileName, imageFileNames),
@@ -68,7 +66,6 @@ export const UploadImage = ({ onImageChange }: UploadImageProps) => {
           fileSizeLimitMb: MAX_FILE_SIZE_MB,
           onInvalidFileSize: handleInvalidFileSize,
         }}
-        dataTestId={fileSelectorInputId}
       />
       <StudioParagraph spacing size='xsmall' className={classes.fileSizeLimit}>
         {t('ux_editor.properties_panel.images.upload_image_file_size_limit', {

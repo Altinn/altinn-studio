@@ -6,7 +6,6 @@ import { renderWithProviders } from '../../testing/mocks';
 import { formItemContextProviderMock } from '../../testing/formItemContextMocks';
 import { Dynamics } from './Dynamics';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
 import type { FormComponent } from '../../types/FormComponent';
 
 const user = userEvent.setup();
@@ -27,16 +26,7 @@ describe('Dynamics', () => {
     expect(screen.getByTestId(expressionsTestId)).toBeInTheDocument();
   });
 
-  it('should not render switch if ruleHandler is not found', async () => {
-    await render();
-    const oldDynamicsSwitch = screen.queryByRole('checkbox', {
-      name: textMock('right_menu.show_old_dynamics'),
-    });
-    expect(oldDynamicsSwitch).not.toBeInTheDocument();
-  });
-
-  it('should render default unchecked switch if ruleHandler is found', async () => {
-    (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
+  it('should render default unchecked switch', async () => {
     await render();
     const oldDynamicsSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.show_old_dynamics'),
@@ -45,8 +35,7 @@ describe('Dynamics', () => {
     expect(oldDynamicsSwitch).not.toBeChecked();
   });
 
-  it('should render depreacated old dynamics when enabling switch if ruleHandler is found', async () => {
-    (window as WindowWithRuleModel).conditionalRuleHandlerObject = {};
+  it('should render depreacated old dynamics when enabling switch', async () => {
     await render();
     const oldDynamicsSwitch = screen.getByRole('checkbox', {
       name: textMock('right_menu.show_old_dynamics'),

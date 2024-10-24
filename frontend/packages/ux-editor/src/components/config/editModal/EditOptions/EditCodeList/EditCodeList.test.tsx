@@ -24,6 +24,7 @@ describe('EditCodeList', () => {
   afterEach(() => {
     queryClientMock.clear();
   });
+
   it('should render the component', async () => {
     await render({
       queries: {
@@ -34,18 +35,6 @@ describe('EditCodeList', () => {
     });
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_code_list_helper')),
-    ).toBeInTheDocument();
-  });
-
-  it('should render the component when optionListIds is empty', async () => {
-    await render({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-      },
-    });
-
-    expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_no_options_found_message')),
     ).toBeInTheDocument();
   });
 
@@ -130,6 +119,91 @@ describe('EditCodeList', () => {
       await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
     ).toBeInTheDocument();
   });
+
+  it('should render success toast if file upload is successful', async () => {
+    const user = userEvent.setup();
+    const file = new File(['hello'], 'hello.json', { type: 'text/json' });
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    const btn = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
+    await user.click(btn);
+
+    const fileInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_code_list_upload'),
+    );
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.modal_properties_code_list_upload_success'),
+    );
+  });
+
+  it('should render error toast if file already exists', async () => {
+    const user = userEvent.setup();
+    const file = new File([optionListIdsMock[0]], optionListIdsMock[0] + '.json', {
+      type: 'text/json',
+    });
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    const btn = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
+    await user.click(btn);
+
+    const fileInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_code_list_upload'),
+    );
+
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
+    );
+  });
+
+  it('should render alert on invalid file name', async () => {
+    const user = userEvent.setup();
+    const invalidFileName = '_InvalidFileName.json';
+    const file = new File([optionListIdsMock[0]], invalidFileName, {
+      type: 'text/json',
+    });
+    await render({
+      queries: {
+        getOptionListIds: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      },
+    });
+
+    const btn = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_upload'),
+    });
+    await user.click(btn);
+
+    const fileInput = screen.getByLabelText(
+      textMock('ux_editor.modal_properties_code_list_upload'),
+    );
+    await user.upload(fileInput, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.model_properties_code_list_filename_error'),
+    );
+  });
 });
 
 const render = async ({
@@ -139,11 +213,11 @@ const render = async ({
 } = {}) => {
   renderWithProviders(
     <EditCodeList
-      handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,
         ...componentProps,
       }}
+      handleComponentChange={handleComponentChange}
     />,
     {
       queries,
