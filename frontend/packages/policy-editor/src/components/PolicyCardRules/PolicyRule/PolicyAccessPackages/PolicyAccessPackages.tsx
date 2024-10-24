@@ -68,7 +68,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
       {groupedAccessPackagesByArea.map(({ area, packages }) => {
-        // find chosen packages in current tag
+        // find chosen packages in current area
         const numberChosenInArea = packages.filter((pack) =>
           chosenAccessPackages.includes(pack.urn),
         ).length;
@@ -83,19 +83,19 @@ export const PolicyAccessPackages = (): React.ReactElement => {
           >
             <div className={classes.accordionContent}>
               <Paragraph size='xs'>{area.description[selectedLanguage]}</Paragraph>
-              {packages.map((tagPackage) => {
-                const isChecked = chosenAccessPackages.includes(tagPackage.urn);
+              {packages.map((accessPackage) => {
+                const isChecked = chosenAccessPackages.includes(accessPackage.urn);
                 return (
                   <PolicyAccessPackageAccordion
-                    key={tagPackage.urn}
-                    accessPackage={tagPackage}
+                    key={accessPackage.urn}
+                    accessPackage={accessPackage}
                     isChecked={isChecked}
                     selectedLanguage={selectedLanguage}
                     onChange={() => {
                       if (isChecked) {
-                        handleRemoveAccessPackage(tagPackage);
+                        handleRemoveAccessPackage(accessPackage);
                       } else {
-                        handleAddAccessPackage(tagPackage);
+                        handleAddAccessPackage(accessPackage);
                       }
                     }}
                   />
