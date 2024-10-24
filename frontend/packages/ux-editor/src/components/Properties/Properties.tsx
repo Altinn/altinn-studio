@@ -16,14 +16,6 @@ export const Properties = () => {
   const { formItemId, formItem, handleUpdate, debounceSave } = useFormItemContext();
   const [openList, setOpenList] = React.useState<string[]>([]);
 
-  const toggleOpen = (id: string) => {
-    if (openList.includes(id)) {
-      setOpenList(openList.filter((item) => item !== id));
-    } else {
-      setOpenList([...openList, id]);
-    }
-  };
-
   if (!formItem) {
     return (
       <div className={classes.root} key={formItemId}>
@@ -32,7 +24,15 @@ export const Properties = () => {
     );
   }
 
-  const isNotSubFormOrHasLayoutSet = formItem.type !== 'SubForm' || !!formItem.layoutSet;
+  const toggleOpen = (id: string) => {
+    if (openList.includes(id)) {
+      setOpenList(openList.filter((item) => item !== id));
+    } else {
+      setOpenList([...openList, id]);
+    }
+  };
+
+  const isNotSubformOrHasLayoutSet = formItem.type !== 'SubForm' || !!formItem.layoutSet;
 
   return (
     <div className={classes.root} key={formItemId}>
@@ -43,7 +43,7 @@ export const Properties = () => {
           debounceSave(formItemId, updatedComponent);
         }}
       />
-      {isNotSubFormOrHasLayoutSet && (
+      {isNotSubformOrHasLayoutSet && (
         <Accordion color='subtle'>
           <Accordion.Item open={openList.includes('text')}>
             <Accordion.Header
