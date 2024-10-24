@@ -64,9 +64,9 @@ const resources: Resource[] = [
     ),
   },
   {
-    label: 'dashboard.resource_slack_label',
-    description: 'dashboard.resource_slack_description',
-    url: 'https://altinn.slack.com',
+    label: 'dashboard.resource_contact_label',
+    description: 'dashboard.resource_contact_description',
+    url: 'https://altinn.studio/contact',
     icon: (
       <svg
         width='60'
@@ -174,7 +174,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_status_label',
     description: 'dashboard.resource_status_description',
-    url: 'https://www.altinn.no/om-altinn/driftsmeldinger/',
+    url: 'https://status.digdir.no/',
     icon: (
       <svg
         width='60'
