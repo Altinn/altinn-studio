@@ -13,7 +13,7 @@ import { WebSocketSyncWrapper } from './WebSocketSyncWrapper';
 import { renderWithProviders } from '../../test/testUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
-jest.mock('app-shared/hooks/useWebSocket', () => ({
+jest.mock('app-development/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
@@ -48,7 +48,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(syncErrorMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-shared/hooks/useWebSocket'),
+      ...jest.requireActual('app-development/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 
@@ -74,7 +74,7 @@ describe('WebSocketSyncWrapper', () => {
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
 
     (useWebSocket as jest.Mock).mockReturnValue({
-      ...jest.requireActual('app-shared/hooks/useWebSocket'),
+      ...jest.requireActual('app-development/hooks/useWebSocket'),
       onWSMessageReceived: mockOnWSMessageReceived,
     });
 

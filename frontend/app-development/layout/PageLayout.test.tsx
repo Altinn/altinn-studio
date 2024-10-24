@@ -12,7 +12,7 @@ import { useWebSocket } from 'app-development/hooks/useWebSocket';
 import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
-jest.mock('app-shared/hooks/useWebSocket', () => ({
+jest.mock('app-development/hooks/useWebSocket', () => ({
   useWebSocket: jest.fn(),
 }));
 
