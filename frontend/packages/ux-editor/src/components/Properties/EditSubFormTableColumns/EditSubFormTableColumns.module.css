@@ -4,6 +4,10 @@
   padding: var(--fds-spacing-3);
 }
 
+.content-wrapper {
+  margin-top: var(--fds-spacing-4);
+}
+
 .addColumnButton {
   margin-top: var(--fds-spacing-3);
 }
