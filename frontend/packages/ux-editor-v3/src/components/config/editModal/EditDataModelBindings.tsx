@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { LinkIcon } from '@studio/icons';
 import { StudioButton } from '@studio/components';
 import classes from './EditDataModelBindings.module.css';
-import { InputActionWrapper } from 'app-shared/components/InputActionWrapper';
+import { InputActionWrapper } from './InputActionWrapper';
 import { useAppContext } from '../../../hooks/useAppContext';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
