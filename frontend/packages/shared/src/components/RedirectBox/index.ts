@@ -1,1 +1,0 @@
-export { RedirectBox } from './RedirectBox';
