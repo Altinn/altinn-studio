@@ -6,13 +6,14 @@ import { StudioParagraph } from '../StudioParagraph';
 import { Heading } from '@digdir/designsystemet-react';
 
 export type StudioRecommendedNextActionProps = {
-  onSave: React.FormEventHandler<HTMLFormElement>;
-  saveButtonText: string;
-  onSkip: React.MouseEventHandler<HTMLButtonElement>;
-  skipButtonText: string;
+  onSave?: React.FormEventHandler<HTMLFormElement>;
+  saveButtonText?: string;
+  onSkip?: React.MouseEventHandler<HTMLButtonElement>;
+  skipButtonText?: string;
   title: string;
   description: string;
   hideSaveButton?: boolean;
+  hideSkipButton?: boolean;
   children: React.ReactNode;
 };
 
@@ -24,6 +25,7 @@ export const StudioRecommendedNextAction = ({
   title,
   description,
   hideSaveButton = false,
+  hideSkipButton,
   children,
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   const formName = useId();
@@ -44,9 +46,11 @@ export const StudioRecommendedNextAction = ({
                 {saveButtonText}
               </StudioButton>
             )}
-            <StudioButton onClick={onSkip} variant='tertiary'>
-              {skipButtonText}
-            </StudioButton>
+            {!hideSkipButton && (
+              <StudioButton onClick={onSkip} variant='tertiary'>
+                {skipButtonText}
+              </StudioButton>
+            )}
           </div>
         </StudioCard.Content>
       </StudioCard>
