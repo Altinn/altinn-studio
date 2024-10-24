@@ -13,7 +13,6 @@ import {
   StudioTextfield,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { ComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
 import type { FormItem } from '../../../../types/FormItem';
@@ -26,7 +25,7 @@ export type ColumnElementProps = {
   columnNumber: number;
   onDeleteColumn: () => void;
   onEdit: (tableColumn: TableColumn) => void;
-  component: FormItem<ComponentType.SubForm>;
+  layoutSetName: string;
 };
 
 export const EditColumnElement = ({
@@ -34,17 +33,17 @@ export const EditColumnElement = ({
   columnNumber,
   onDeleteColumn,
   onEdit,
-  component,
+  layoutSetName,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const subFormLayout = component.layoutSet;
+  const subFormLayout = layoutSetName;
   const [tableColumn, setTableColumn] = useState(sourceColumn);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subFormLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
 
   const textKeyValue =
-    textResources.nb.find(
+    textResources?.nb?.find(
       (textResource: ITextResource) => textResource.id === tableColumn.headerContent,
     )?.value ?? tableColumn.headerContent;
   const components = formLayouts
@@ -90,8 +89,9 @@ export const EditColumnElement = ({
           <StudioActionCloseButton
             variant='secondary'
             onClick={() => onEdit(tableColumn)}
+            title={t('general.save')}
           ></StudioActionCloseButton>
-          <StudioDeleteButton onDelete={onDeleteColumn} />
+          <StudioDeleteButton title={t('general.delete')} onDelete={onDeleteColumn} />
         </div>
       </StudioCard.Content>
     </StudioCard>
@@ -125,17 +125,17 @@ const EditColumnElementComponentSelect = ({
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
   return (
-    <>
-      <StudioLabelAsParagraph size='sm' htmlFor='columncomponentselect'>
-        {t('ux_editor.properties_panel.subform_table_columns.choose_component')}
-      </StudioLabelAsParagraph>
-      <StudioCombobox size='sm' onValueChange={onSelectComponent} id='columncomponentselect'>
-        {components.map((comp: FormItem) => (
-          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-            {comp.id}
-          </StudioCombobox.Option>
-        ))}
-      </StudioCombobox>
-    </>
+    <StudioCombobox
+      label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+      size='sm'
+      onValueChange={onSelectComponent}
+      id='columncomponentselect'
+    >
+      {components.map((comp: FormItem) => (
+        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+          {comp.id}
+        </StudioCombobox.Option>
+      ))}
+    </StudioCombobox>
   );
 };

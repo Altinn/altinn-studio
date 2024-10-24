@@ -1,5 +1,5 @@
-import React from 'react';
-import { screen } from '@testing-library/react';
+import React, { act } from 'react';
+import { screen, waitFor } from '@testing-library/react';
 import { ColumnElement, type ColumnElementProps } from './ColumnElement';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
@@ -7,6 +7,17 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { type TableColumn } from '../types/TableColumn';
+import { layoutSet3SubFormNameMock, layoutSetsMock } from '../../../../testing/layoutSetsMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import {
+  component1IdMock,
+  component1Mock,
+  component1TypeMock,
+  externalLayoutsMock,
+  layout1Mock,
+  layoutMock,
+} from '../../../../testing/layoutMock';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
@@ -26,6 +37,7 @@ const defaultProps: ColumnElementProps = {
   columnNumber: columnNumberMock,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
+  layoutSetName: layoutSet3SubFormNameMock,
 };
 
 describe('ColumnElement', () => {
@@ -41,79 +53,35 @@ describe('ColumnElement', () => {
       onEdit: onEditMock,
     });
 
-    const headerInputbutton = screen.getByRole('button', {
-      name: `${textMock('ux_editor.properties_panel.subform_table_columns.header_content_label')}: ${headerContentMock}`,
+    const editButton = screen.getByRole('button', {
+      name: /ux_editor.properties_panel.subform_table_columns.column_header/,
     });
-    await user.click(headerInputbutton);
+    await user.click(editButton);
 
-    const headerInputfield = screen.getByLabelText(
-      textMock('ux_editor.properties_panel.subform_table_columns.header_content_label'),
-    );
-    const newValue: string = 'a';
-    await user.type(headerInputfield, newValue);
-    await user.tab();
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    await user.click(componentSelect);
+    await act(async () => {
+      await user.click(
+        screen.getByRole('option', { name: `${component1IdMock} ${component1TypeMock}` }),
+      );
+    });
+
+    await waitFor(async () => {
+      await user.click(
+        screen.getByRole('button', {
+          name: textMock('general.save'),
+        }),
+      );
+    });
 
     expect(onEditMock).toHaveBeenCalledTimes(1);
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
-      headerContent: `${headerContentMock}${newValue}`,
-    });
-  });
-
-  it('should call onEdit with updated query content when query text field is blurred', async () => {
-    const onEditMock = jest.fn();
-
-    const user = userEvent.setup();
-    renderColumnElement({
-      onEdit: onEditMock,
-    });
-
-    const queryInputbutton = screen.getByRole('button', {
-      name: `${textMock('ux_editor.properties_panel.subform_table_columns.cell_content_query_label')}: ${cellContentQueryMock}`,
-    });
-    await user.click(queryInputbutton);
-
-    const queryInputfield = screen.getByLabelText(
-      textMock('ux_editor.properties_panel.subform_table_columns.cell_content_query_label'),
-    );
-    const newValue: string = 'a';
-    await user.type(queryInputfield, newValue);
-    await user.tab();
-
-    expect(onEditMock).toHaveBeenCalledTimes(1);
-    expect(onEditMock).toHaveBeenCalledWith({
-      ...mockTableColumn,
-      cellContent: { ...mockTableColumn.cellContent, query: `${cellContentQueryMock}${newValue}` },
-    });
-  });
-
-  it('should call onEdit with updated default content when default text field is blurred', async () => {
-    const onEditMock = jest.fn();
-
-    const user = userEvent.setup();
-    renderColumnElement({
-      onEdit: onEditMock,
-    });
-
-    const defaultInputbutton = screen.getByRole('button', {
-      name: `${textMock('ux_editor.properties_panel.subform_table_columns.cell_content_default_label')}: ${cellContentDefaultMock}`,
-    });
-    await user.click(defaultInputbutton);
-
-    const defaultInputfield = screen.getByLabelText(
-      textMock('ux_editor.properties_panel.subform_table_columns.cell_content_default_label'),
-    );
-    const newValue: string = 'a';
-    await user.type(defaultInputfield, newValue);
-    await user.tab();
-
-    expect(onEditMock).toHaveBeenCalledTimes(1);
-    expect(onEditMock).toHaveBeenCalledWith({
-      ...mockTableColumn,
-      cellContent: {
-        ...mockTableColumn.cellContent,
-        default: `${cellContentDefaultMock}${newValue}`,
-      },
+      headerContent: component1Mock.textResourceBindings.title,
+      cellContent: { query: component1Mock.dataModelBindings.simpleBinding },
     });
   });
 
@@ -125,10 +93,12 @@ describe('ColumnElement', () => {
       onDeleteColumn: onDeleteColumnMock,
     });
 
+    const editButton = screen.getByRole('button', {
+      name: /ux_editor.properties_panel.subform_table_columns.column_header/,
+    });
+    await user.click(editButton);
     const deleteButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.delete_column', {
-        columnNumber: columnNumberMock,
-      }),
+      name: textMock('general.delete'),
     });
     await user.click(deleteButton);
 
@@ -138,6 +108,9 @@ describe('ColumnElement', () => {
 
 const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet3SubFormNameMock], {
+    side1: layoutMock,
+  });
   return renderWithProviders(<ColumnElement {...defaultProps} {...props} />, {
     ...queriesMock,
     queryClient,

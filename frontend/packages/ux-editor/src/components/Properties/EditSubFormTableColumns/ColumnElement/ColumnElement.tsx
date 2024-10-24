@@ -2,14 +2,14 @@ import React, { useState, type ReactElement } from 'react';
 import classes from './ColumnElement.module.css';
 import { type TableColumn } from '../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioParagraph, StudioProperty } from '@studio/components';
+import { StudioProperty } from '@studio/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { ITextResource } from 'app-shared/types/global';
 
 export type ColumnElementProps = {
-  component;
+  layoutSetName: string;
   tableColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
@@ -21,7 +21,7 @@ export const ColumnElement = ({
   columnNumber,
   onDeleteColumn,
   onEdit,
-  component,
+  layoutSetName,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -36,7 +36,7 @@ export const ColumnElement = ({
   if (editing) {
     return (
       <EditColumnElement
-        component={component}
+        layoutSetName={layoutSetName}
         sourceColumn={tableColumn}
         columnNumber={columnNumber}
         onDeleteColumn={onDeleteColumn}
