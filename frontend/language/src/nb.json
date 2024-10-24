@@ -1295,6 +1295,8 @@
   "ux_editor.component_properties.subform.choose_layout_set": "Velg sidegruppe...",
   "ux_editor.component_properties.subform.choose_layout_set_label": "Velg sidegruppe å knytte til underskjema",
   "ux_editor.component_properties.subform.go_to_layout_set": "Gå til utforming av underskjemaet",
+  "ux_editor.component_properties.subform.layout_set_is_missing_content_heading": "Underskjemaet ditt mangler innhold.",
+  "ux_editor.component_properties.subform.layout_set_is_missing_content_paragraph": "Denne tabellen bruker underskjemaet for å hente feltene og tekstene som skal vises i tabellen. Velg Utform underskjemaet for å legge inn innhold.",
   "ux_editor.component_properties.subform.no_layout_sets_acting_as_subform": "Det finnes ingen sidegrupper i løsningen som kan brukes som et underskjema",
   "ux_editor.component_properties.subform.selected_layout_set_label": "Underskjema",
   "ux_editor.component_properties.subform.selected_layout_set_title": "Endre underskjemakobling til {{subform}}",
