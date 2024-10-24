@@ -20,49 +20,20 @@ export interface PolicySubject {
 }
 
 export interface PolicyAccessPackage {
+  id: string;
   urn: string;
-  name: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
-  description: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
+  name: string;
+  description: string;
   services: AccessPackageResource[];
-  tags: string[];
+  area: PolicyAccessPackageArea;
 }
 
-export interface PolicyAccessPackageTag {
+export interface PolicyAccessPackageArea {
   id: string;
-  name: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
-  description: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
-  icon: string;
-  shortDescription: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
-  tagGroups: string[];
-}
-
-export interface PolicyAccessPackageTagGroup {
-  id: string;
-  name: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
+  name: string;
+  description: string;
+  iconName: string;
+  shortDescription: string;
 }
 
 export interface AccessPackageResource {
@@ -82,12 +53,6 @@ export interface AccessPackageResource {
     orgcode: string;
   };
   iconUrl: string;
-}
-
-export interface AccessPackagesDto {
-  tagGroups: PolicyAccessPackageTagGroup[];
-  tags: PolicyAccessPackageTag[];
-  accessPackages: PolicyAccessPackage[];
 }
 
 export interface PolicyAction {

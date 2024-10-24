@@ -73,7 +73,7 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { PolicyAction, PolicySubject, AccessPackagesDto } from '@altinn/policy-editor';
+import type { PolicyAction, PolicySubject, PolicyAccessPackage } from '@altinn/policy-editor';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -131,7 +131,7 @@ export const getAltinn2LinkServices = (org: string, environment: string) => get<
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
 export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
-export const getAccessPackages = (org: string) => get<AccessPackagesDto>(resourceAccessPackagesPath(org));
+export const getAccessPackages = (org: string) => get<PolicyAccessPackage[]>(resourceAccessPackagesPath(org));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));

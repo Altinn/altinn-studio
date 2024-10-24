@@ -1,5 +1,7 @@
 import { ObjectUtils } from '@studio/pure-functions';
 import type {
+  PolicyAccessPackage,
+  PolicyAccessPackageArea,
   PolicyAction,
   PolicyEditorUsage,
   PolicyRule,
@@ -207,6 +209,32 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   });
 
   return copiedSubjects;
+};
+
+export const groupAccessPackagesByArea = (accessPackages: PolicyAccessPackage[]) => {
+  // create temp dictionary. Use area.id as key
+  const groupedByAreaDict: {
+    [areaId: string]: {
+      area: PolicyAccessPackageArea;
+      packages: PolicyAccessPackage[];
+    };
+  } = {};
+
+  // add each package to corresponding area.id
+  accessPackages.forEach((accessPackage) => {
+    if (!groupedByAreaDict[accessPackage.area.id]) {
+      groupedByAreaDict[accessPackage.area.id] = {
+        area: accessPackage.area,
+        packages: [],
+      };
+    }
+    groupedByAreaDict[accessPackage.area.id].packages.push(accessPackage);
+  });
+
+  // map dictionary to an array
+  return Object.keys(groupedByAreaDict).map((key) => {
+    return { ...groupedByAreaDict[key] };
+  });
 };
 
 export const convertSubjectStringToSubjectId = (subjectString: string): string => {

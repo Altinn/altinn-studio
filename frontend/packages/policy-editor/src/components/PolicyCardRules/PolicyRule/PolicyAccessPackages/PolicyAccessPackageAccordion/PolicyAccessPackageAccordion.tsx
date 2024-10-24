@@ -26,8 +26,8 @@ export const PolicyAccessPackageAccordion = ({
   return (
     <div className={classes.accessPackageAccordion}>
       <PolicyAccordion
-        title={accessPackage.name[selectedLanguage]}
-        subTitle={accessPackage.description[selectedLanguage]}
+        title={accessPackage.name}
+        subTitle={accessPackage.description}
         extraHeaderContent={
           <CheckboxGroup
             legend=''
@@ -40,10 +40,10 @@ export const PolicyAccessPackageAccordion = ({
               aria-label={
                 isChecked
                   ? t('policy_editor.access_package_remove', {
-                      packageName: accessPackage.name[selectedLanguage],
+                      packageName: accessPackage.name,
                     })
                   : t('policy_editor.access_package_add', {
-                      packageName: accessPackage.name[selectedLanguage],
+                      packageName: accessPackage.name,
                     })
               }
             />

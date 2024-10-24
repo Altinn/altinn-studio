@@ -439,307 +439,130 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetAccessPackages(string org, CancellationToken cancellationToken)
         {
             // 1. GET accesspackages (mocked for now)
-            List<AccessPackageTagGroup> tagGroups = [
-                new() {
-                    Id = "tag_group_economy",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "" },
-                        { "nb", "Populære" },
-                        { "en", "" }
-                    },
-                },
-                new() {
-                    Id = "tag_group_company_specific",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "" },
-                        { "nb", "Bransjespesifikke" },
-                        { "en", "" }
-                    },
-                },
-                new() {
-                    Id = "tag_group_others",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "" },
-                        { "nb", "Andre" },
-                        { "en", "" }
-                    },
-                }
-            ];
-
-            List<AccessPackageTag> tags = 
-            [
-                new()
-                {
-                    Id = "tag_economy",
-                    Icon = "BankNoteIcon",
-                    ShortDescription = new Dictionary<string, string>()
-                    {
-                        { "nn", "Tjenester som angår skatt, avgift, regnskap og toll" },
-                        { "nb", "Tjenester som angår skatt, avgift, regnskap og toll" },
-                        { "en", "Short economy" }
-                    },
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Skatt og Merverdiavgift" },
-                        { "nb", "Skatt og Merverdiavgift" },
-                        { "en", "Economy" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                         { "nn", "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll" },
-                         { "nb", "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll" },
-                         { "en", "Grants access to economical services" }
-                    },
-                    TagGroups = ["tag_group_economy"]
-                },
-                new()
-                {
-                    Id = "tag_transport",
-                    Icon = "TruckIcon",
-                    ShortDescription = new Dictionary<string, string>()
-                    {
-                        { "nn", "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring" },
-                        { "nb", "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring" },
-                        { "en", "Short transport" }
-                    },
-                    Name = new Dictionary<string, string>()
-                    {
-                        {"nn" , "Transport og lagring"},
-                        {"nb" , "Transport og lagring"},
-                        {"en" , "Transport"}
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
-                        {"nb","Denne fullmakten gir tilgang til alle tjenester som angår transport og lagring."},
-                        {"en" , "Grants access to economical services"}
-                    },
-                    TagGroups = ["tag_group_company_specific"]
-                },
-                new()
-                {
-                    Id = "tag_jordbruk",
-                    Icon = "PlantIcon",
-                    ShortDescription = new Dictionary<string, string>()
-                    {
-                        { "nn", "" },
-                        { "nb", "Tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur" },
-                        { "en", "" }
-                    },
-                    Name = new Dictionary<string, string>()
-                    {
-                        {"nn" , ""},
-                        {"nb" , "Jordbruk, skogbruk, jakt, fiske og akvakultur"},
-                        {"en" , ""}
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", ""},
-                        {"nb", "Denne tilgangspakken er relevant for tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur."},
-                        {"en", ""}
-                    },
-                    TagGroups = ["tag_group_company_specific"]
-                },
-                new()
-                {
-                    Id = "tag_regnskapsforer",
-                    Icon = "ReceiptIcon",
-                    ShortDescription = new Dictionary<string, string>()
-                    {
-                        { "nn", "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder" },
-                        { "nb", "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder" },
-                        { "en", "Short transport" }
-                    },
-                    Name = new Dictionary<string, string>()
-                    {
-                        {"nn" , "Regnskapsførere"},
-                        {"nb" , "Regnskapsførere"},
-                        {"en" , "Regnskapsførere"}
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder"},
-                        {"nb", "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder"},
-                        {"en" , "Grants access to regnskapsfører services"}
-                    },
-                    TagGroups = ["tag_group_others"]
-                }
-            ];
+            AccessPackageArea transportArea = new () 
+            {
+                Id = "589217CF-6070-474F-9989-8C5359C740F4",
+                Name = "Transport og lagring",
+                Description = "Denne tilgangspakken er relevant for alle tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
+                ShortDescription = "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
+                IconName = "TruckIcon"
+            };
+            AccessPackageArea skattArea = new () 
+            {
+                Id = "F52ADD40-6748-4E89-875A-63D3E153605D",
+                Name = "Skatt og Merverdiavgift",
+                Description = "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll",
+                ShortDescription = "Tjenester som angår skatt, avgift, regnskap og toll",
+                IconName = "BankNoteIcon"
+            };
+            AccessPackageArea jordbrukArea = new ()
+            {
+                Id = "tag_jordbruk",
+                IconName = "PlantIcon",
+                ShortDescription = "Tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur",
+                Name = "Jordbruk, skogbruk, jakt, fiske og akvakultur",
+                Description = "Denne tilgangspakken er relevant for tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur.",
+            };
+            AccessPackageArea revisorArea = new()
+            {
+                Id = "tag_regnskapsforer",
+                IconName = "ReceiptIcon",
+                ShortDescription = "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder",
+                Name = "Regnskapsførere",
+                Description = "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder",
+            };
 
             List<AccessPackage> accessPackages =
             [
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:foretaksskatt",
                     Urn = "urn:altinn:accesspackage:foretaksskatt",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Foretaksskatt" },
-                        { "nb", "Foretaksskatt" },
-                        { "en", "Foretaksskatt" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        { "nn", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
-                        { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak." },
-                        { "en", "Lets you submit tax info" }
-                    },
-                    Tags = ["tag_economy"]
+                    Name = "Foretaksskatt",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak.",
+                    Tags = [],
+                    Area = skattArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:skattegrunnlag",
                     Urn = "urn:altinn:accesspackage:skattegrunnlag",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Skattegrunnlag" },
-                        { "nb", "Skattegrunnlag" },
-                        { "en", "Skattegrunnlag" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        { "nn", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
-                        { "nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag." },
-                        { "en", "Lets you submit tax info" }
-                    },
-                    Tags = ["tag_economy"]
+                    Name = "Skattegrunnlag",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag.",
+                    Tags = [],
+                    Area = skattArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:merverdiavgift",
                     Urn = "urn:altinn:accesspackage:merverdiavgift",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Merverdiavgift" },
-                        { "nb", "Merverdiavgift" },
-                        { "en", "Merverdiavgift" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
-                        {"nb" , "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift."},
-                        {"en" , "Lets you submit tax info"}
-                    },
-                    Tags = ["tag_economy"]
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = skattArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:sjofart",
                     Urn = "urn:altinn:accesspackage:sjofart",
-                    Name = new Dictionary<string, string>()
-                    {
-                        {"nn" , "Sjøfart"},
-                        {"nb",  "Sjøfart"},
-                        {"en" , "Sjøfart"}
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
-                        {"nb" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." },
-                        {"en" , "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs." }
-                    },
-                    Tags = ["tag_transport"]
+                    Name = "Sjøfart",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs.",
+                    Tags = [],
+                    Area = transportArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:lufttransport",
                     Urn = "urn:altinn:accesspackage:lufttransport",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Lufttransport" },
-                        { "nb", "Lufttransport" },
-                        { "en", "Lufttransport" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                        {"nb", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
-                    },
-                    Tags = ["tag_transport"]
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = transportArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:jordbruk",
                     Urn = "urn:altinn:accesspackage:jordbruk",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "" },
-                        { "nb", "Jordbruk" },
-                        { "en", "" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "" },
-                        {"nb", "Denne tilgangspakken gir tilgang til tjenester knyttet til jordbruk. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir" },
-                        {"en", "" }
-                    },
-                    Tags = ["tag_jordbruk"]
+                    Name = "Jordbruk",
+                    Description = "Denne tilgangspakken gir tilgang til tjenester knyttet til jordbruk. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir",
+                    Tags = [],
+                    Area = jordbrukArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:fiske",
                     Urn = "urn:altinn:accesspackage:fiske",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "" },
-                        { "nb", "Fiske" },
-                        { "en", "" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "" },
-                        {"nb", "Denne tilgangspakken gir fullmakter til tjenester knyttet til fiske. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir" },
-                        {"en", "" }
-                    },
-                    Tags = ["tag_jordbruk"]
+                    Name = "Fiske",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til fiske. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir",
+                    Tags = [],
+                    Area = jordbrukArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:regnskapsforermedsigneringsrettighet",
                     Urn = "urn:altinn:accesspackage:regnskapsforermedsigneringsrettighet",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Regnskapsfører med signeringsrettighet" },
-                        { "nb", "Regnskapsfører med signeringsrettighet" },
-                        { "en", "Regnskapsfører med signeringsrettighet" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                        {"nb", "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
-                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
-                    },
-                    Tags = ["tag_regnskapsforer"]
+                    Name = "Regnskapsfører med signeringsrettighet",
+                    Description = "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+                    Tags = [],
+                    Area = revisorArea
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:regnskapsforerutensigneringsrettighet",
                     Urn = "urn:altinn:accesspackage:regnskapsforerutensigneringsrettighet",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Lufttransport" },
-                        { "nb", "Regnskapsfører uten signeringsrettighet" },
-                        { "en", "Lufttransport" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                        {"nb", "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
-                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
-                    },
-                    Tags = ["tag_regnskapsforer"]
+                    Name = "Regnskapsfører uten signeringsrettighet",
+                    Description = "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+                    Tags = [],
+                    Area = revisorArea
                 },
                 new()
                 {
-                    Urn = "urn:altinn:accesspackage:regnskapsførerlonn",
-                    Name = new Dictionary<string, string>()
-                    {
-                        { "nn", "Lufttransport" },
-                        { "nb", "Regnskapsfører lønn" },
-                        { "en", "Lufttransport" }
-                    },
-                    Description = new Dictionary<string, string>()
-                    {
-                        {"nn", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." },
-                        {"nb", "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir." },
-                        {"en", "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy." }
-                    },
-                    Tags = ["tag_regnskapsforer"]
+                    Id = "urn:altinn:accesspackage:regnskapsforerlonn",
+                    Urn = "urn:altinn:accesspackage:regnskapsforerlonn",
+                    Name = "Regnskapsfører lønn",
+                    Description = "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
+                    Tags = [],
+                    Area = revisorArea
                 }
             ];
 
@@ -754,7 +577,7 @@ namespace Altinn.Studio.Designer.Controllers
                 Subject = new AttributeMatchV2() {
                     Type = "",
                     Value = "",
-                    Urn = "urn:altinn:accesspackage:regnskapsførerlonn"
+                    Urn = "urn:altinn:accesspackage:regnskapsforerlonn"
                 },
                 Resources = new List<AttributeMatchV2>() {
                     new AttributeMatchV2() {
@@ -814,13 +637,7 @@ namespace Altinn.Studio.Designer.Controllers
                 });
             });
 
-
-            return Ok(new AccessPackagesDto()
-            {
-                TagGroups = tagGroups,
-                Tags = tags,
-                AccessPackages = accessPackages
-            });
+            return Ok(accessPackages);
         }
 
         [HttpGet]

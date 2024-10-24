@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorMessage, Paragraph, Alert } from '@digdir/designsystemet-react';
 import { StudioLabelAsParagraph } from '@studio/components';
@@ -9,6 +9,7 @@ import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
 import { PolicyAccordion } from './PolicyAccordion/PolicyAccordion';
+import { groupAccessPackagesByArea } from '@altinn/policy-editor/utils';
 
 const selectedLanguage = 'nb';
 
@@ -20,6 +21,10 @@ export const PolicyAccessPackages = (): React.ReactElement => {
   const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
     policyRule.accessPackages,
   );
+
+  const groupedAccessPackagesByArea = useMemo(() => {
+    return groupAccessPackagesByArea(accessPackages);
+  }, [accessPackages]);
 
   const handleRemoveAccessPackage = (accessPackageToRemove: PolicyAccessPackage): void => {
     setChosenAccessPackages((oldUrns) =>
@@ -62,56 +67,42 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='sm'>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
-      {accessPackages.tagGroups.map((tagGroup) => {
-        // find tags in tagGroup
-        const tagsInTagGroup = accessPackages.tags.filter((tag) =>
-          tag.tagGroups.includes(tagGroup.id),
-        );
+      {groupedAccessPackagesByArea.map(({ area, packages }) => {
+        // find chosen packages in current tag
+        const numberChosenInArea = packages.filter((pack) =>
+          chosenAccessPackages.includes(pack.urn),
+        ).length;
 
         return (
-          <>
-            <div>{tagGroup.name[selectedLanguage]}</div>
-            {tagsInTagGroup.map((tag) => {
-              // find chosen packages in current tag
-              const accessPackagesInTag = accessPackages.accessPackages.filter((accessPackage) =>
-                accessPackage.tags.includes(tag.id),
-              );
-              const numberChosenInTag = accessPackagesInTag.filter((pack) =>
-                chosenAccessPackages.includes(pack.urn),
-              ).length;
-              return (
-                <PolicyAccordion
-                  key={tag.id}
-                  icon={tag.icon}
-                  title={tag.name[selectedLanguage]}
-                  subTitle={tag.shortDescription[selectedLanguage]}
-                  selectedCount={numberChosenInTag}
-                >
-                  <div className={classes.accordionContent}>
-                    <Paragraph size='xs'>{tag.description[selectedLanguage]}</Paragraph>
-                    {accessPackagesInTag.map((tagPackage) => {
-                      const isChecked = chosenAccessPackages.includes(tagPackage.urn);
-                      return (
-                        <PolicyAccessPackageAccordion
-                          key={tagPackage.urn}
-                          accessPackage={tagPackage}
-                          isChecked={isChecked}
-                          selectedLanguage={selectedLanguage}
-                          onChange={() => {
-                            if (isChecked) {
-                              handleRemoveAccessPackage(tagPackage);
-                            } else {
-                              handleAddAccessPackage(tagPackage);
-                            }
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                </PolicyAccordion>
-              );
-            })}
-          </>
+          <PolicyAccordion
+            key={area.id}
+            icon={area.iconName}
+            title={area.name}
+            subTitle={area.shortDescription}
+            selectedCount={numberChosenInArea}
+          >
+            <div className={classes.accordionContent}>
+              <Paragraph size='xs'>{area.description[selectedLanguage]}</Paragraph>
+              {packages.map((tagPackage) => {
+                const isChecked = chosenAccessPackages.includes(tagPackage.urn);
+                return (
+                  <PolicyAccessPackageAccordion
+                    key={tagPackage.urn}
+                    accessPackage={tagPackage}
+                    isChecked={isChecked}
+                    selectedLanguage={selectedLanguage}
+                    onChange={() => {
+                      if (isChecked) {
+                        handleRemoveAccessPackage(tagPackage);
+                      } else {
+                        handleAddAccessPackage(tagPackage);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </PolicyAccordion>
         );
       })}
       {showAllErrors && policyError.subjectsError && (

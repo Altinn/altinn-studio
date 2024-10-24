@@ -6,14 +6,18 @@ namespace Altinn.Studio.Designer.Models
 {
     public class AccessPackage
     {
+        public required string Id { get; set; }
+
         public required string Urn { get; set; }
 
-        public required Dictionary<string, string> Name { get; set; }
+        public string Name { get; set; }
 
-        public Dictionary<string, string>? Description { get; set; }
+        public string Description { get; set; }
 
-        public List<string> Tags { get; set; } = [];
+        public List<AccessPackageTag> Tags { get; set; } = [];
         
+        public AccessPackageArea Area { get; set; }
+
         public List<AccessPackageService> Services { get; set; } = [];
     }
 }
