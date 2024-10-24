@@ -2,7 +2,7 @@ export {
   mapLanguageKeyToLanguageText,
   getMissingInputLanguageString,
   getIsActiveTab,
-  createNavigationTab,
+  CreateMenuLinkTab,
   getResourceIdentifierErrorMessage,
   deepCompare,
   getAvailableEnvironments,

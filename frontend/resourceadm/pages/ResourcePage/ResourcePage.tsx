@@ -17,21 +17,22 @@ import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import {
   GavelSoundBlockIcon,
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
+import { CreateMenuLinkTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { GoBackButton } from 'app-shared/components/GoBackButton';
+import type { StudioMenuTabType } from '@studio/components';
+import { StudioContentMenu } from '@studio/components';
 
 /**
  * @component
@@ -114,7 +115,7 @@ export const ResourcePage = (): React.JSX.Element => {
           resourceErrorModalRef.current.showModal();
         }
       }
-      // Validate Ppolicy and display errors + modal
+      // Validate Policy and display errors + modal
       else if (currentPage === 'policy') {
         const data = await refetchValidatePolicy();
         const validationStatus = data?.data?.status ?? null;
@@ -149,7 +150,7 @@ export const ResourcePage = (): React.JSX.Element => {
   };
 
   /**
-   * Handles the navigation to a page that has erros. This is used from the deploy
+   * Handles the navigation to a page that has errors. This is used from the deploy
    * page when information is displayed about errors on the policy or the resource page.
    *
    * @param page the page to navigate to
@@ -178,43 +179,39 @@ export const ResourcePage = (): React.JSX.Element => {
     return !!altinn2References && shouldDisplayFeature('resourceMigration');
   };
 
-  const aboutPageId = 'about';
-  const policyPageId = 'policy';
-  const deployPageId = 'deploy';
-  const migrationPageId = 'migration';
-  const accessListsPageId = 'accesslists';
+  const aboutPageId: NavigationBarPage = 'about';
+  const policyPageId: NavigationBarPage = 'policy';
+  const deployPageId: NavigationBarPage = 'deploy';
+  const migrationPageId: NavigationBarPage = 'migration';
+  const accessListsPageId: NavigationBarPage = 'accesslists';
 
-  const leftNavigationTabs: LeftNavigationTab[] = [
-    createNavigationTab(
-      <InformationSquareIcon className={classes.icon} />,
+  const leftNavigationTabs: StudioMenuTabType<NavigationBarPage>[] = [
+    CreateMenuLinkTab(
+      <InformationSquareIcon />,
       aboutPageId,
-      () => navigateToPage(aboutPageId),
-      currentPage,
       getResourcePageURL(org, app, resourceId, 'about'),
     ),
-    createNavigationTab(
-      <GavelSoundBlockIcon className={classes.icon} />,
+    CreateMenuLinkTab(
+      <GavelSoundBlockIcon />,
       policyPageId,
-      () => navigateToPage(policyPageId),
-      currentPage,
       getResourcePageURL(org, app, resourceId, 'policy'),
     ),
-    createNavigationTab(
-      <UploadIcon className={classes.icon} />,
+    CreateMenuLinkTab(
+      <UploadIcon />,
       deployPageId,
-      () => navigateToPage(deployPageId),
-      currentPage,
       getResourcePageURL(org, app, resourceId, 'deploy'),
     ),
   ];
 
-  const migrationTab: LeftNavigationTab = createNavigationTab(
-    <MigrationIcon className={classes.icon} />,
+  const migrationTab: StudioMenuTabType<NavigationBarPage> = CreateMenuLinkTab(
+    <MigrationIcon />,
     migrationPageId,
-    () => navigateToPage(migrationPageId),
-    currentPage,
     getResourcePageURL(org, app, resourceId, 'migration'),
   );
+
+  const handleTabChange = async (tabId: NavigationBarPage) => {
+    await navigateToPage(tabId);
+  };
 
   /**
    * Gets the tabs to display. If showMigrate is true, the migration tab
@@ -222,7 +219,7 @@ export const ResourcePage = (): React.JSX.Element => {
    *
    * @returns the tabs to display in the LeftNavigationBar
    */
-  const getTabs = (): LeftNavigationTab[] => {
+  const getTabs = (): StudioMenuTabType<NavigationBarPage>[] => {
     return isMigrateEnabled() ? [...leftNavigationTabs, migrationTab] : leftNavigationTabs;
   };
 
@@ -239,14 +236,16 @@ export const ResourcePage = (): React.JSX.Element => {
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
-        <LeftNavigationBar
-          upperTab='backButton'
-          tabs={getTabs()}
-          backLink={getResourceDashboardURL(org, app)}
-          backLinkText={t('resourceadm.left_nav_bar_back')}
-          selectedTab={
+        <GoBackButton
+          to={getResourceDashboardURL(org, app)}
+          text={t('resourceadm.left_nav_bar_back')}
+        />
+        <StudioContentMenu
+          contentTabs={getTabs()}
+          selectedTabId={
             currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
           }
+          onChangeTab={handleTabChange}
         />
       </div>
       {resourcePending || !resourceData ? (
