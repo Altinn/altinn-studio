@@ -3,7 +3,6 @@ import classes from './ContactPage.module.css';
 import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
-import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import classNames from 'classnames';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
@@ -19,7 +18,7 @@ export const ContactPage = (): React.ReactElement => {
   const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
   return (
-    <PageContainer>
+    <div className={classes.pageContainer}>
       <div className={classes.container}>
         <div className={classes.content}>
           <div>
@@ -78,6 +77,6 @@ export const ContactPage = (): React.ReactElement => {
           </section>
         </div>
       </div>
-    </PageContainer>
+    </div>
   );
 };
