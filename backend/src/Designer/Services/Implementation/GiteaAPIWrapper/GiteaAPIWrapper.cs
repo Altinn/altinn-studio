@@ -158,7 +158,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var starredRepos = new List<RepositoryClient.Model.Repository>();
 
-            HttpResponseMessage response = await _httpClient.GetAsync("user/starred");
+            HttpResponseMessage response = await _httpClient.GetAsync("user/starred?limit=100");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
@@ -312,6 +312,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (!string.IsNullOrEmpty(searchOption.Keyword))
             {
                 giteaSearchUriString += $"&q={searchOption.Keyword}";
+            }
+
+            // Search in description. To prevent DataModelsRepoList from displaying repos with '-datamodels' only in the description,
+            // we exclude description searches containing this keyword.
+            if (searchOption.Keyword != null && !searchOption.Keyword.Contains("-datamodels"))
+            {
+                giteaSearchUriString += "&includeDesc=true";
             }
 
             if (searchOption.UId != 0)

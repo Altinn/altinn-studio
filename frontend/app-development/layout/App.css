@@ -76,7 +76,3 @@ button[class*='Button-module_small__'] svg {
     transform: rotate(360deg);
   }
 }
-
-.ReactModalPortal {
-  z-index: 9999;
-}
