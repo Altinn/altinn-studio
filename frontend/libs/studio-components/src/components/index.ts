@@ -39,6 +39,7 @@ export * from './StudioParagraph';
 export * from './StudioPopover';
 export * from './StudioProperty';
 export * from './StudioRecommendedNextAction';
+export * from './StudioRedirectBox';
 export * from './StudioResizableLayout';
 export * from './StudioSectionHeader';
 export * from './StudioSpinner';
