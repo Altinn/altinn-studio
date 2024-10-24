@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import { Documentation } from './Documentation';
 import { Navigation } from './Navigation';
 import { News } from './News';
-import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import { Deployments } from './Deployments';
 import { Header } from './Header';
 
@@ -13,7 +12,7 @@ export const Overview = () => {
   const { t } = useTranslation();
 
   return (
-    <PageContainer>
+    <div className={classes.pageContainer}>
       <main className={classes.container}>
         {/* According to https://developer.mozilla.org/en-US/docs/Web/HTML/Element/header, the role of <header> should implicitly be "generic" when it is a descendant of <main>, but Testing Library still interprets it as "banner". */}
         <header className={classes.header} role='generic'>
@@ -41,6 +40,6 @@ export const Overview = () => {
           </footer>
         </div>
       </main>
-    </PageContainer>
+    </div>
   );
 };
