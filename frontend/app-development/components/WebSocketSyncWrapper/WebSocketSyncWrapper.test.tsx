@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { useWebSocket } from 'app-development/hooks/useWebSocket';
 import { SyncEventsWebSocketHub } from 'app-shared/api/paths';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import type { SyncError, SyncSuccess } from 'app-shared/types/api/SyncResponses';
