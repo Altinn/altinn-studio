@@ -1,1 +1,1 @@
-export { EditSubformTableColumns } from './EditSubFormTableColumns';
+export { EditSubformTableColumns } from './EditSubformTableColumns';

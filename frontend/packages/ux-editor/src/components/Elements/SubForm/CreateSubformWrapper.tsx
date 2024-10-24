@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import classes from './CreateSubFormWrapper.module.css';
+import classes from './CreateSubformWrapper.module.css';
 
 type CreateSubformWrapperProps = {
   layoutSets: LayoutSets;

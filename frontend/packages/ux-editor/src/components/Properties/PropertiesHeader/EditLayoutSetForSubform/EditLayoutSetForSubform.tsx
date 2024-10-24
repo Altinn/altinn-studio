@@ -2,7 +2,7 @@ import React from 'react';
 import { EditLayoutSet } from './EditLayoutSet';
 import { NoSubformLayoutsExist } from './NoSubformLayoutsExist';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { SubformUtilsImpl } from '../../../../classes/SubFormUtils';
+import { SubformUtilsImpl } from '../../../../classes/SubformUtils';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../components/config/componentConfig';

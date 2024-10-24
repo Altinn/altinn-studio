@@ -1,5 +1,5 @@
 import React from 'react';
-import { DeleteSubformWrapper } from './DeleteSubFormWrapper';
+import { DeleteSubformWrapper } from './DeleteSubformWrapper';
 import userEvent from '@testing-library/user-event';
 import { screen } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';

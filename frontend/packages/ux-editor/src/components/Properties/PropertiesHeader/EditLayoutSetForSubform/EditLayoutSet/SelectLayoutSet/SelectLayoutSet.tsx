@@ -5,7 +5,7 @@ import classes from './SelectLayoutSet.module.css';
 import { EditLayoutSetButtons } from './EditLayoutSetButtons/EditLayoutSetButtons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { SubformUtilsImpl } from '../../../../../../classes/SubFormUtils';
+import { SubformUtilsImpl } from '../../../../../../classes/SubformUtils';
 
 type SelectLayoutSetProps = {
   existingLayoutSetForSubform: string;

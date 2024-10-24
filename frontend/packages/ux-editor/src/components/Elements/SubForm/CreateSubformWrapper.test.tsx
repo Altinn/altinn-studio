@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
-import { CreateSubformWrapper } from './CreateSubFormWrapper';
+import { CreateSubformWrapper } from './CreateSubformWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';

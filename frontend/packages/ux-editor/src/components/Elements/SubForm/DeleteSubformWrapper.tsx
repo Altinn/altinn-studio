@@ -4,7 +4,7 @@ import { useDeleteLayoutSetMutation } from 'app-development/hooks/mutations/useD
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { useTranslation } from 'react-i18next';
-import { SubformUtils } from './SubFormUtils';
+import { SubformUtils } from './SubformUtils';
 
 type DeleteSubformWrapperProps = {
   layoutSets: LayoutSets;

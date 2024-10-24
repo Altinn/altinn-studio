@@ -3,7 +3,7 @@ import { screen } from '@testing-library/react';
 import {
   EditSubformTableColumns,
   type EditSubformTableColumnsProps,
-} from './EditSubFormTableColumns';
+} from './EditSubformTableColumns';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from 'dashboard/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

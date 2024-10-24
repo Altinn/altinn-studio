@@ -1,1 +1,1 @@
-export { updateComponentWithSubform, filterOutTableColumn } from './editSubFormTableColumnsUtils';
+export { updateComponentWithSubform, filterOutTableColumn } from './editSubformTableColumnsUtils';

@@ -1,7 +1,7 @@
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import React from 'react';
-import { CreateSubformWrapper } from './CreateSubFormWrapper';
-import { DeleteSubformWrapper } from './DeleteSubFormWrapper';
+import { CreateSubformWrapper } from './CreateSubformWrapper';
+import { DeleteSubformWrapper } from './DeleteSubformWrapper';
 
 type SubformWrapperProps = {
   layoutSets: LayoutSets;

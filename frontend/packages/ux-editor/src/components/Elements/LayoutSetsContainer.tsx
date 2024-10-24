@@ -5,7 +5,7 @@ import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { SubformWrapper } from './SubForm/SubFormWrapper';
+import { SubformWrapper } from './Subform/SubformWrapper';
 import { StudioCombobox } from '@studio/components';
 
 export function LayoutSetsContainer() {

@@ -1,4 +1,4 @@
-import { updateComponentWithSubform, filterOutTableColumn } from './editSubFormTableColumnsUtils';
+import { updateComponentWithSubform, filterOutTableColumn } from './editSubformTableColumnsUtils';
 import { type FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';

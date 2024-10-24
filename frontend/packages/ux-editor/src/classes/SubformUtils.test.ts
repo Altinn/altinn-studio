@@ -1,4 +1,4 @@
-import { SubformUtilsImpl } from './SubFormUtils';
+import { SubformUtilsImpl } from './SubformUtils';
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
 describe('SubformUtilsImpl', () => {
