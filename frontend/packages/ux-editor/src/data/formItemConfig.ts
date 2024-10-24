@@ -37,6 +37,7 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
@@ -530,6 +531,56 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   ...confOnScreenComponents,
 ];
 
+export type ComponentCategory =
+  | 'form'
+  | 'select'
+  | 'button'
+  | 'text'
+  | 'info'
+  | 'container'
+  | 'attachment'
+  | 'advanced';
+
+export const allComponents: KeyValuePairs<ComponentType[]> = {
+  form: [ComponentType.Input, ComponentType.TextArea, ComponentType.Datepicker],
+  select: [
+    ComponentType.Checkboxes,
+    ComponentType.RadioButtons,
+    ComponentType.Dropdown,
+    ComponentType.MultipleSelect,
+    ComponentType.Likert,
+  ],
+  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
+  info: [
+    ComponentType.InstanceInformation,
+    ComponentType.Image,
+    ComponentType.Link,
+    ComponentType.IFrame,
+    ComponentType.Summary,
+  ],
+  button: [
+    ComponentType.Button,
+    ComponentType.CustomButton,
+    ComponentType.NavigationButtons,
+    ComponentType.PrintButton,
+    ComponentType.InstantiationButton,
+    ComponentType.ActionButton,
+  ],
+  attachment: [
+    ComponentType.AttachmentList,
+    ComponentType.FileUpload,
+    ComponentType.FileUploadWithTag,
+  ],
+  container: [
+    ComponentType.Group,
+    ComponentType.Grid,
+    ComponentType.Accordion,
+    ComponentType.AccordionGroup,
+    ComponentType.List,
+    ComponentType.RepeatingGroup,
+  ],
+  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom],
+};
 export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
   ...textComponents,

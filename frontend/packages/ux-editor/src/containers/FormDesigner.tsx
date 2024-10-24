@@ -31,6 +31,7 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -159,19 +160,27 @@ export const FormDesigner = (): JSX.Element => {
               orientation='horizontal'
               localStorageContext={`form-designer-main:${user.id}:${org}`}
             >
-              <StudioResizableLayout.Element
-                collapsed={elementsCollapsed}
-                collapsedSize={50}
-                minimumSize={300}
-                maximumSize={300}
-                disableRightHandle={true}
-              >
-                <Elements
+              {/**
+               * The following check is done for a live user test behind feature flag. It can be removed if this is not something
+               * that is going to be used in the future.
+               */}
+              {!shouldDisplayFeature('addComponentModal') && (
+                <StudioResizableLayout.Element
                   collapsed={elementsCollapsed}
-                  onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
-                />
-              </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element minimumSize={250}>
+                  collapsedSize={50}
+                  minimumSize={300}
+                  maximumSize={300}
+                  disableRightHandle={true}
+                >
+                  <Elements
+                    collapsed={elementsCollapsed}
+                    onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
+                  />
+                </StudioResizableLayout.Element>
+              )}
+              <StudioResizableLayout.Element
+                minimumSize={shouldDisplayFeature('addComponentModal') ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
+              >
                 <DesignView />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
