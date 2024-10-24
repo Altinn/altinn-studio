@@ -81,27 +81,25 @@ export const PolicyAccessPackages = (): React.ReactElement => {
             subTitle={area.shortDescription}
             selectedCount={numberChosenInArea}
           >
-            <div className={classes.accordionContent}>
-              <Paragraph size='xs'>{area.description[selectedLanguage]}</Paragraph>
-              {packages.map((accessPackage) => {
-                const isChecked = chosenAccessPackages.includes(accessPackage.urn);
-                return (
-                  <PolicyAccessPackageAccordion
-                    key={accessPackage.urn}
-                    accessPackage={accessPackage}
-                    isChecked={isChecked}
-                    selectedLanguage={selectedLanguage}
-                    onChange={() => {
-                      if (isChecked) {
-                        handleRemoveAccessPackage(accessPackage);
-                      } else {
-                        handleAddAccessPackage(accessPackage);
-                      }
-                    }}
-                  />
-                );
-              })}
-            </div>
+            <Paragraph size='xs'>{area.description}</Paragraph>
+            {packages.map((accessPackage) => {
+              const isChecked = chosenAccessPackages.includes(accessPackage.urn);
+              return (
+                <PolicyAccessPackageAccordion
+                  key={accessPackage.urn}
+                  accessPackage={accessPackage}
+                  isChecked={isChecked}
+                  selectedLanguage={selectedLanguage}
+                  onChange={() => {
+                    if (isChecked) {
+                      handleRemoveAccessPackage(accessPackage);
+                    } else {
+                      handleAddAccessPackage(accessPackage);
+                    }
+                  }}
+                />
+              );
+            })}
           </PolicyAccordion>
         );
       })}
