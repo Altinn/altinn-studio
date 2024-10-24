@@ -14,7 +14,6 @@ import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { subformLayoutMock } from '../../../testing/subformLayoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
-import { textLanguagesMock } from '../../../testing/mocks';
 
 const subFormComponentMock = componentMocks[ComponentType.SubForm];
 
