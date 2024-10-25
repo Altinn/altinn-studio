@@ -5,7 +5,6 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
-import { insertArrayElementAtPos, areItemsUnique } from 'app-shared/utils/arrayUtils';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
@@ -291,7 +290,7 @@ export const moveLayoutItem = (
       newLayout.order[oldContainerId],
       id,
     );
-    newLayout.order[newContainerId] = insertArrayElementAtPos(
+    newLayout.order[newContainerId] = ArrayUtils.insertArrayElementAtPos(
       newLayout.order[newContainerId],
       id,
       newPosition,
@@ -434,7 +433,7 @@ export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =
 export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean => {
   if (!layout?.order) return false;
   const idsInLayout = flattenObjectValues(layout.order);
-  return !areItemsUnique(idsInLayout);
+  return !ArrayUtils.areItemsUnique(idsInLayout);
 };
 
 /**

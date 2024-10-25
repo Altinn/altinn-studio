@@ -27,7 +27,6 @@ const defaultProps: PropertiesHeaderProps = {
   formItem: component1Mock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
-const user = userEvent.setup();
 
 describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -43,6 +42,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('displays the help text when the help text button is clicked', async () => {
+    const user = userEvent.setup();
     renderPropertiesHeader();
 
     const helpTextButton = screen.getByRole('button', {
@@ -61,6 +61,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should invoke "handleComponentUpdate" when id field blurs', async () => {
+    const user = userEvent.setup();
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
@@ -78,6 +79,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should not invoke "handleComponentUpdateMock" when input field has error', async () => {
+    const user = userEvent.setup();
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
@@ -98,14 +100,46 @@ describe('PropertiesHeader', () => {
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
 
-  it('should render subform config when component is subform', () => {
+  it('should not render recommendedNextAction when component is subform and has layoutset ', () => {
+    const subformLayoutSetId = 'subformLayoutSetId';
     renderPropertiesHeader({
-      formItem: { id: 'subformComponentId', type: ComponentType.SubForm, itemType: 'COMPONENT' },
+      formItem: {
+        ...component1Mock,
+        type: ComponentType.SubForm,
+        layoutSet: layoutSetName,
+        id: subformLayoutSetId,
+      },
     });
-    const setLayoutSetButton = screen.getByRole('button', {
-      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
+    expect(subformLayoutSetId).toBe('subformLayoutSetId');
+    expect(
+      screen.queryByText(
+        textMock('ux_editor.component_properties.subform.choose_layout_set_header'),
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render recommendedNextAction when component is subform and has no layoutset ', () => {
+    renderPropertiesHeader({
+      formItem: {
+        ...component1Mock,
+        type: ComponentType.SubForm,
+      },
     });
-    expect(setLayoutSetButton).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.subform.choose_layout_set_header')),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render other accordions config when component type is subform and has no layoutset', () => {
+    renderPropertiesHeader({
+      formItem: {
+        ...component1Mock,
+        type: ComponentType.SubForm,
+      },
+    });
+    expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('right_menu.data_model_bindings'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('right_menu.content'))).not.toBeInTheDocument();
   });
 
   it('should not render subform config when component is not subform', () => {
