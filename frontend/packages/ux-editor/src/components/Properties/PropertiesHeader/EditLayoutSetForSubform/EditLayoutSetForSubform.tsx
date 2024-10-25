@@ -25,10 +25,15 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
     handleComponentChange(updatedComponent);
   };
 
+  function handleSubFormCreated(layoutSetName: string): void {
+    handleUpdatedLayoutSet(layoutSetName);
+  }
+
   return (
     <EditLayoutSet
       existingLayoutSetForSubform={component['layoutSet']}
       onUpdateLayoutSet={handleUpdatedLayoutSet}
+      onSubFormCreated={handleSubFormCreated}
     />
   );
 };
