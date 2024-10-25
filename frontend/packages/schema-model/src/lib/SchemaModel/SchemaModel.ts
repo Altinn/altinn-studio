@@ -19,7 +19,6 @@ import {
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { ReferenceNode } from '../../types/ReferenceNode';
 import { ObjectUtils, ArrayUtils, StringUtils } from '@studio/pure-functions';
-import { replaceStart } from 'app-shared/utils/stringUtils';
 import {
   createDefinitionPointer,
   createPropertyPointer,
@@ -369,7 +368,7 @@ export class SchemaModel extends SchemaModelBase {
     const node = this.getNodeBySchemaPointer(newPointer); // Expects the node map to be updated
     if (isFieldOrCombination(node) && node.children) {
       const makeNewPointer = (schemaPointer: string) =>
-        replaceStart(schemaPointer, oldPointer, newPointer);
+        StringUtils.replaceStart(schemaPointer, oldPointer, newPointer);
       node.children.forEach((childPointer) => {
         const newPointer = makeNewPointer(childPointer);
         this.changePointer(childPointer, newPointer);
