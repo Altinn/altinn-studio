@@ -20,6 +20,10 @@
   padding: var(--fds-spacing-5) 0;
 }
 
+.codelistTabContent {
+  padding: var(--fds-spacing-4);
+}
+
 .optionsHeading {
   padding-left: var(--fds-spacing-5);
 }
