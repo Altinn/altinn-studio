@@ -21,6 +21,8 @@ export class SubFormUtilsImpl implements SubFormUtils {
   }
 
   private get getSubformLayoutSets(): Array<SubFormLayoutSet> {
-    return this.layoutSets.filter((set) => set.type === 'subform') as Array<SubFormLayoutSet>;
+    return (this.layoutSets || []).filter(
+      (set) => set.type === 'subform',
+    ) as Array<SubFormLayoutSet>;
   }
 }
