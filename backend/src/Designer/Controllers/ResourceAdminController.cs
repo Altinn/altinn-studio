@@ -626,15 +626,19 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
 
-                    orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
-
-                    accessPackage.Services.Add(new AccessPackageService()
+                    if (fullResource != null)
                     {
-                        Identifier = resourceMatch.Value,
-                        Title = fullResource?.Title,
-                        HasCompetentAuthority = fullResource.HasCompetentAuthority,
-                        IconUrl = organization.Logo
-                    });
+                        orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
+
+                        accessPackage.Services.Add(new AccessPackageService()
+                        {
+                            Identifier = resourceMatch.Value,
+                            Title = fullResource?.Title,
+                            HasCompetentAuthority = fullResource.HasCompetentAuthority,
+                            IconUrl = organization.Logo
+                        });
+                    }
+
                 });
             });
 
