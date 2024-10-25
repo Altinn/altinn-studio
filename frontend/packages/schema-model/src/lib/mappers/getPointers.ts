@@ -1,5 +1,5 @@
 import type { UiSchemaNodes } from '../../types';
-import { mapByKey } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 
 /**
  * Returns all pointers from uiSchema.
@@ -7,4 +7,4 @@ import { mapByKey } from 'app-shared/utils/arrayUtils';
  * @returns An array of pointers.
  */
 export const getPointers = (uiSchema: UiSchemaNodes): string[] =>
-  mapByKey(uiSchema, 'schemaPointer');
+  ArrayUtils.mapByKey(uiSchema, 'schemaPointer');

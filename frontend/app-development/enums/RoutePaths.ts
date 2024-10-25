@@ -6,4 +6,5 @@ export enum RoutePaths {
   Deploy = 'deploy',
   Text = 'text-editor',
   ProcessEditor = 'process-editor',
+  ContentLibrary = 'content-library',
 }

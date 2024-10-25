@@ -4,7 +4,7 @@ import { isField, isReference, splitPointerInBaseAndName } from '../utils';
 import { convertPropToType } from './convert-node';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { castRestrictionType } from '../restrictions';
-import { swapArrayElements } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 import { changeNameInPointer } from '../pointerUtils';
 
 export const promoteProperty: UiSchemaReducer<string> = (uiSchema, path) => {
@@ -206,6 +206,7 @@ export const changeChildrenOrder: UiSchemaReducer<ChangeChildrenOrderArgs> = (
   if (baseA !== baseB) return uiSchema;
   const newSchema = uiSchema.deepClone();
   const parentNode = newSchema.getParentNode(pointerA);
-  if (parentNode) parentNode.children = swapArrayElements(parentNode.children, pointerA, pointerB);
+  if (parentNode)
+    parentNode.children = ArrayUtils.swapArrayElements(parentNode.children, pointerA, pointerB);
   return newSchema;
 };
