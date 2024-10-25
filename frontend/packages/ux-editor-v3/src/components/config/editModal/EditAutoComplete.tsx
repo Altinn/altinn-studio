@@ -2,9 +2,9 @@ import type { ChangeEvent } from 'react';
 import React, { useEffect, useMemo, useState } from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { stringToArray, arrayToString } from '../../../utils/stringUtils';
-import { replaceLastItem } from 'app-shared/utils/arrayUtils';
 import { FormField } from '../../FormField';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
+import { ArrayUtils } from '@studio/pure-functions';
 
 const getLastWord = (value: string) => value.split(' ').pop();
 const stdAutocompleteOpts = [
@@ -79,7 +79,7 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
 
   const buildNewText = (word: string): string => {
     const wordParts = stringToArray(autocompleteText, ' ');
-    const newWordParts = replaceLastItem(wordParts, word);
+    const newWordParts = ArrayUtils.replaceLastItem(wordParts, word);
     return arrayToString(newWordParts);
   };
 

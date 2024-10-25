@@ -882,7 +882,6 @@
   "schema_editor.integer": "Heltall",
   "schema_editor.invalid_child_error": "Du kan ikke plassere den komponenttypen i denne gruppen.",
   "schema_editor.invalid_datamodel_name": "Navnet er ugyldig. Du kan bruke tall og store og små bokstaver fra det norske alfabetet, og understrek, punktum og bindestrek.",
-  "schema_editor.invalid_datamodel_upload_filename": "Filnavnet er ugyldig. Du kan bruke tall og store og små bokstaver fra det norske alfabetet, og understrek, punktum og bindestrek.",
   "schema_editor.language": "Språk",
   "schema_editor.language_add_language": "Legg til språk:",
   "schema_editor.language_confirm_deletion": "Ja, slett språket",
