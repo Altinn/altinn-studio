@@ -5,5 +5,7 @@
 }
 
 .image {
+  min-width: 10rem;
   width: 40%;
+  max-width: 30rem;
 }
