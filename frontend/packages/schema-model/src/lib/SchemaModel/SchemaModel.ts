@@ -16,12 +16,6 @@ import {
   isNodeValidParent,
   isReference,
 } from '../utils';
-import {
-  generateUniqueStringWithNumber,
-  insertArrayElementAtPos,
-  moveArrayItem,
-  replaceItemsByValue,
-} from 'app-shared/utils/arrayUtils';
 import { ROOT_POINTER, UNIQUE_POINTER_PREFIX } from '../constants';
 import type { ReferenceNode } from '../../types/ReferenceNode';
 import { ObjectUtils, ArrayUtils, StringUtils } from '@studio/pure-functions';
@@ -199,7 +193,7 @@ export class SchemaModel extends SchemaModelBase {
   private addChildPointer = (target: NodePosition, newPointer: string): void => {
     const parent = this.getNodeBySchemaPointer(target.parentPointer) as FieldNode | CombinationNode;
     if (!isNodeValidParent(parent)) throw new Error('Invalid parent node.');
-    parent.children = insertArrayElementAtPos(parent.children, newPointer, target.index);
+    parent.children = ArrayUtils.insertArrayElementAtPos(parent.children, newPointer, target.index);
   };
 
   public addFieldType = (name: string): FieldNode => {
@@ -249,7 +243,7 @@ export class SchemaModel extends SchemaModelBase {
     toIndex: number,
   ): UiSchemaNode => {
     const finalIndex = ArrayUtils.getValidIndex(parent.children, toIndex);
-    parent.children = moveArrayItem(parent.children, fromIndex, finalIndex);
+    parent.children = ArrayUtils.moveArrayItem(parent.children, fromIndex, finalIndex);
     this.synchronizeCombinationChildPointers(parent);
     return this.getNodeBySchemaPointer(parent.children[toIndex]);
   };
@@ -303,7 +297,7 @@ export class SchemaModel extends SchemaModelBase {
   ): UiSchemaNode => {
     const currentIndex = this.getIndexOfChildNode(schemaPointer);
     const finalIndex = ArrayUtils.getValidIndex(parent.children, newIndex);
-    parent.children = moveArrayItem(parent.children, currentIndex, finalIndex);
+    parent.children = ArrayUtils.moveArrayItem(parent.children, currentIndex, finalIndex);
     return this.getNodeBySchemaPointer(parent.children[finalIndex]);
   };
 
@@ -359,7 +353,7 @@ export class SchemaModel extends SchemaModelBase {
   private changePointerInParent(oldPointer: string, newPointer: string): void {
     const parentNode = this.getParentNode(oldPointer);
     if (parentNode) {
-      const children = replaceItemsByValue(parentNode.children, oldPointer, newPointer);
+      const children = ArrayUtils.replaceItemsByValue(parentNode.children, oldPointer, newPointer);
       this.updateNodeData(parentNode.schemaPointer, { ...parentNode, children });
     }
   }
@@ -426,14 +420,14 @@ export class SchemaModel extends SchemaModelBase {
     const node = this.getNodeBySchemaPointer(schemaPointer);
     const childPointers = isFieldOrCombination(node) ? node.children : [];
     const childNames = childPointers.map(extractNameFromPointer);
-    return generateUniqueStringWithNumber(childNames, namePrefix);
+    return ArrayUtils.generateUniqueStringWithNumber(childNames, namePrefix);
   }
 
   public generateUniqueDefinitionName(namePrefix: string = ''): string {
     const definitions = this.getDefinitions();
     const definitionPointers = definitions.map((node) => node.schemaPointer);
     const definitionNames = definitionPointers.map(extractNameFromPointer);
-    return generateUniqueStringWithNumber(definitionNames, namePrefix);
+    return ArrayUtils.generateUniqueStringWithNumber(definitionNames, namePrefix);
   }
 
   public changeCombinationType(
