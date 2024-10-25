@@ -115,6 +115,7 @@ describe('ScopedStorage', () => {
 
       const scopedStorage = new ScopedStorageImpl(customStorage, 'unit/test');
       scopedStorage.setItem('testKey', 'testValue');
+      expect(setItemMock).toHaveBeenCalledWith('unit/test', '{"testKey":"testValue"}');
     });
   });
 });
