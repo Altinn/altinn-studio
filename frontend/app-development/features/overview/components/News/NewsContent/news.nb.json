@@ -2,7 +2,7 @@
   "$schema": "news.schema.json",
   "news": [
     {
-      "date": "2024-10-22",
+      "date": "2024-10-25",
       "title": "Prosess har blitt voksen!",
       "content": "Vi har nå fjernet Beta-merket på Prosess, fordi den er godt testet og i aktiv bruk."
     },
