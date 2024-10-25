@@ -16,7 +16,7 @@ describe('ScopedStorage', () => {
   describe('get item', () => {
     it('should return "null" if key does not exist', () => {
       const scopedStorage = new ScopedStorageImpl(window.localStorage, 'unit/test');
-      expect(scopedStorage.getItem('firstName', 'Random Value')).toBeNull();
+      expect(scopedStorage.getItem('firstName')).toBeNull();
     });
   });
 
