@@ -76,6 +76,7 @@ describe('ScopedStorage', () => {
       const customStorage = {
         getItem: jest.fn().mockImplementation(() => null),
         removeItem: removeItemMock,
+        setItem: jest.fn(),
       };
 
       const scopedStorage = new ScopedStorageImpl(customStorage, 'unit/test');
