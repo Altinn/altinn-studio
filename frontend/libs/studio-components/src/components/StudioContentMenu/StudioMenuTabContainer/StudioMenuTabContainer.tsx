@@ -3,7 +3,6 @@ import type { ReactElement, ReactNode } from 'react';
 import classes from './StudioMenuTabContainer.module.css';
 import { moveFocus } from '../utils/dom-utils';
 import type { StudioMenuTabType } from '../types/StudioMenuTabType';
-import type { HTMLTabElement } from '../types/HTMLTabElement';
 
 type StudioMenuTabProps<TabId extends string> = {
   children: ReactNode;
@@ -28,10 +27,10 @@ export function StudioMenuTabContainer<TabId extends string>({
 
   return (
     <div
-      className={isTabSelected ? classes.tabIsSelected : classes.tab}
+      className={isTabSelected ? classes.selectedTab : classes.tab}
       onClick={() => onClick(contentTab.tabId)}
       role='tab'
-      tabIndex={-1}
+      tabIndex={0}
       onKeyDown={handleKeyDown}
       title={contentTab.tabName}
     >

@@ -1,10 +1,8 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { BookIcon, VideoIcon, QuestionmarkDiamondIcon, ExternalLinkIcon } from '@studio/icons';
-import {
-  StudioContentMenuWrapper,
-  StudioContentMenuWrapperProps,
-} from './StudioContentMenuWrapper';
+import type { StudioContentMenuWrapperProps } from './StudioContentMenuWrapper';
+import { StudioContentMenuWrapper } from './StudioContentMenuWrapper';
 
 type Story = StoryFn<StudioContentMenuWrapperProps<StudioMenuTabName>>;
 

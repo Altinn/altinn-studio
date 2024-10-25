@@ -20,7 +20,7 @@ export function StudioButtonTab<TabId extends string>({
       isTabSelected={selectedTabId === contentTab.tabId}
       onClick={() => onChangeTab(contentTab.tabId)}
     >
-      <button className={classes.buttonTab}>
+      <button className={classes.buttonTab} tabIndex={-1}>
         <div className={classes.icon}>{contentTab.icon}</div>
         <StudioMenuTab contentTab={contentTab} />
       </button>

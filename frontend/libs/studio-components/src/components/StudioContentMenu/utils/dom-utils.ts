@@ -26,7 +26,7 @@ function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLDivElement>)
 function getTabElementAbove(tabs: HTMLDivElement[], currentTab: HTMLDivElement) {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex > 0) {
-    return tabs[currentIndex - 1] as HTMLTabElement;
+    return tabs[currentIndex - 1];
   }
   return null;
 }

@@ -1,5 +1,4 @@
 :root {
-  --selected-border-marking: 3px;
   --tab-icon-title-gap: var(--fds-spacing-2);
   --tab-display: flex;
   --tab-align-items: center;
@@ -7,7 +6,7 @@
   --tab-width: 100%;
 }
 
-.tabIsSelected,
+.selectedTab,
 .tab {
   display: var(--tab-display);
   align-items: var(--tab-align-items);
@@ -20,12 +19,18 @@
   cursor: var(--tab-cursor);
 }
 
-.tabIsSelected {
-  border-left: var(--selected-border-marking) solid var(--semantic-surface-action-default);
+.selectedTab {
+  border-left: var(--fds-border_radius-interactive) solid var(--semantic-surface-action-default);
   background-color: white;
 }
 
 .tab:hover,
-.tabIsSelected:hover {
+.selectedTab:hover {
   background-color: var(--fds-semantic-surface-action-no_fill-hover);
+}
+
+.tab:focus,
+.selectedTab:focus {
+  outline: none; /* Remove default focus outline */
+  border-color: var(--fds-border_width-tab_focus) var(--fds-semantic-surface-focus-default);
 }

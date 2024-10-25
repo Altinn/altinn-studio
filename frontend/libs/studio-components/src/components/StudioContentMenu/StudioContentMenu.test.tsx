@@ -33,6 +33,14 @@ describe('StudioContentMenu', () => {
     expect(emptyMenu).toBeInTheDocument();
   });
 
+  it('renders first tab as selected if selectedTab is not provided', () => {
+    renderStudioContentMenu({
+      buttonTabs: [tab1, tab2],
+    });
+    const firstTab = screen.getByRole('tab', { name: tab1Name });
+    expect(firstTab).toHaveClass('selectedTab');
+  });
+
   it('renders the title and icon of a given menu tab', () => {
     const iconTitle = 'My icon';
     renderStudioContentMenu({

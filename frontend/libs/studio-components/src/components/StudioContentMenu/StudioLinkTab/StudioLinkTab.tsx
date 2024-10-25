@@ -21,7 +21,7 @@ export function StudioLinkTab<TabId extends string>({
       isTabSelected={selectedTabId === contentTab.tabId}
       onClick={() => onChangeTab(contentTab.tabId)}
     >
-      <StudioLink className={classes.linkTab} href={contentTab.to}>
+      <StudioLink className={classes.linkTab} href={contentTab.to} tabIndex={-1}>
         <div className={classes.linkIcon}>{contentTab.icon}</div>
         <StudioMenuTab contentTab={contentTab} />
       </StudioLink>
