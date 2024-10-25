@@ -2,16 +2,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
-import {
-  StudioButton,
-  StudioIconTextfield,
-  StudioNativeSelect,
-  StudioProperty,
-  StudioRecommendedNextAction,
-} from '@studio/components';
+import { StudioProperty, StudioRecommendedNextAction } from '@studio/components';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { CheckmarkIcon, ClipboardIcon, PlusIcon } from '@studio/icons';
+import { PlusIcon } from '@studio/icons';
 import classes from './EditLayoutSet.module.css';
+import { CreateNewSubform } from './CreateNewSubform';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
@@ -24,6 +19,11 @@ export const EditLayoutSet = ({
 }: EditLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
+  const [showCreateSubform, setShowCreateSubform] = useState<boolean>(false);
+
+  function handleClick() {
+    setShowCreateSubform(true);
+  }
 
   if (isLayoutSetSelectorVisible) {
     return (
@@ -35,7 +35,6 @@ export const EditLayoutSet = ({
       />
     );
   }
-
   const layoutSetIsUndefined = !existingLayoutSetForSubform;
   if (layoutSetIsUndefined) {
     return (
@@ -60,42 +59,22 @@ export const EditLayoutSet = ({
             className={classes.button}
             property={t('ux_editor.component_properties.subform.create_layout_set_button')}
             icon={<PlusIcon />}
-            onClick={undefined}
+            onClick={handleClick}
           />
         </StudioRecommendedNextAction>
-
-        {/* TODO:  - Fix align for all  */}
-        <StudioRecommendedNextAction hideSaveButton={true} hideSkipButton={true}>
-          <ClipboardIcon />
-          {/* TODO:  - extract text   -  add functionalty */}
-          <StudioIconTextfield
-            error={undefined}
-            icon={undefined}
-            size='sm'
-            label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-            onChange={undefined}
-            value={undefined}
+        {showCreateSubform && (
+          <CreateNewSubform
+            layoutSetName={existingLayoutSetForSubform}
+            dataModelValue={existingLayoutSetForSubform}
+            handleNameChange={onUpdateLayoutSet}
+            onChangeDataModel={onUpdateLayoutSet}
+            onSaveClick={() => {
+              // Save the new layout set and then hide the create subform
+              //TODO: Implement save function and then hide the create subform
+              setShowCreateSubform(false);
+            }}
           />
-          {/* TODO:  - Add seelctor for datmodell*/}
-
-          <StudioNativeSelect
-            id={undefined}
-            label={t('ux_editor.component_properties.subform.datamodell_binding_layout_set_name')}
-            onChange={undefined}
-            value={undefined}
-            size='sm'
-          />
-
-          {/* TODO:  - extract text   -  add functionalty */}
-          <StudioButton
-            className={classes.savelayoutSetButton}
-            icon={<CheckmarkIcon />}
-            onClick={undefined}
-            title={'Lagreeeeeeeee'}
-            variant='tertiary'
-            color='success'
-          />
-        </StudioRecommendedNextAction>
+        )}
       </>
     );
   }
