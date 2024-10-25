@@ -12,16 +12,17 @@ import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { TableIcon } from '@studio/icons';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
+import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
 
-export interface IEditManualOptionsProps extends IGenericEditComponent<T> {
+export type EditManualOptionsProps = {
   onlyCodeListOptions?: boolean;
-}
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component', 'handleComponentChange'>;
 
 export function EditManualOptions({
   component,
   handleComponentChange,
   onlyCodeListOptions,
-}: IEditManualOptionsProps) {
+}: EditManualOptionsProps) {
   const { t } = useTranslation();
   const manualCodeListModalRef = useRef<HTMLDialogElement>(null);
 
