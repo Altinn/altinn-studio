@@ -24,7 +24,7 @@ export class ScopedStorageImpl implements ScopedStorage {
     );
   }
 
-  public getItem<T>(key: keyof T): T {
+  public getItem<T>(key: keyof T): T | null {
     const records: T = this.getAllRecordsInStorage();
 
     if (!records) {
