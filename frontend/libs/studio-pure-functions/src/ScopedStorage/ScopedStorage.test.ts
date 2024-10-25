@@ -20,7 +20,7 @@ describe('ScopedStorage', () => {
     });
   });
 
-  describe('parsing', () => {
+  describe('Storage parsing', () => {
     const consoleErrorMock = jest.fn();
     const originalConsoleError = console.error;
     beforeEach(() => {
