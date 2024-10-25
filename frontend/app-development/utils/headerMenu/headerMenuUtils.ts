@@ -41,7 +41,6 @@ export const topBarMenuItem: HeaderMenuItem[] = [
     link: RoutePaths.ProcessEditor,
     icon: TenancyIcon,
     repositoryTypes: [RepositoryType.App],
-    isBeta: true,
     group: HeaderMenuGroupKey.Tools,
   },
   {
