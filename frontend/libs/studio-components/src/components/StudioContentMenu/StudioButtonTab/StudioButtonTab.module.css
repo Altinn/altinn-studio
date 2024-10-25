@@ -1,0 +1,14 @@
+.buttonTab {
+  all: unset;
+  display: var(--tab-display);
+  align-items: var(--tab-align-items);
+  gap: var(--tab-icon-title-gap);
+  cursor: var(--tab-cursor);
+  width: var(--tab-width);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  font-size: var(--fds-spacing-8);
+}

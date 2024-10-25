@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import type { StudioContentMenuProps } from './StudioContentMenu';
-import { StudioContentMenu } from './StudioContentMenu';
+import { StudioContentMenu } from './';
 import type { StudioMenuTabType } from './types/StudioMenuTabType';
+import type { StudioContentMenuWrapperProps } from './StudioContentMenuWrapper';
 
 type StudioMenuTabName = 'tab1' | 'tab2' | 'tab3';
 
@@ -14,21 +14,21 @@ const tab1Id: StudioMenuTabName = 'tab1';
 const tab1: StudioMenuTabType<StudioMenuTabName> = {
   tabName: tab1Name,
   tabId: tab1Id,
-  icon: <svg></svg>,
+  icon: <svg />,
 };
 const tab2Name = 'My second tab';
 const tab2Id: StudioMenuTabName = 'tab2';
 const tab2: StudioMenuTabType<StudioMenuTabName> = {
   tabName: tab2Name,
   tabId: tab2Id,
-  icon: <svg></svg>,
+  icon: <svg />,
 };
 
 describe('StudioContentMenu', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders an empty contentMenu when there is no provided tabs', () => {
-    renderStudioContentMenu({ contentTabs: [] });
+    renderStudioContentMenu({ buttonTabs: [] });
     const emptyMenu = screen.getByRole('tablist');
     expect(emptyMenu).toBeInTheDocument();
   });
@@ -36,7 +36,7 @@ describe('StudioContentMenu', () => {
   it('renders the title and icon of a given menu tab', () => {
     const iconTitle = 'My icon';
     renderStudioContentMenu({
-      contentTabs: [
+      buttonTabs: [
         {
           ...tab1,
           icon: <svg data-testid={iconTitle}></svg>,
@@ -52,7 +52,7 @@ describe('StudioContentMenu', () => {
   it('renders a tab with "to" prop as a link element', () => {
     const link = 'url-link';
     renderStudioContentMenu({
-      contentTabs: [
+      linkTabs: [
         {
           ...tab1,
           to: link,
@@ -69,7 +69,7 @@ describe('StudioContentMenu', () => {
   it('allows changing focus to next tab using keyboard', async () => {
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [tab1, tab2],
+      buttonTabs: [tab1, tab2],
     });
     const tab1Element = screen.getByRole('tab', { name: tab1Name });
     await user.click(tab1Element);
@@ -82,7 +82,7 @@ describe('StudioContentMenu', () => {
   it('keeps focus on current tab if pressing keyDown when focus is on last tab in menu', async () => {
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [tab1, tab2],
+      buttonTabs: [tab1, tab2],
     });
     const tab2Element = screen.getByRole('tab', { name: tab2Name });
     await user.click(tab2Element);
@@ -94,7 +94,7 @@ describe('StudioContentMenu', () => {
   it('allows changing focus to previous tab using keyboard', async () => {
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [tab1, tab2],
+      buttonTabs: [tab1, tab2],
     });
     const tab2Element = screen.getByRole('tab', { name: tab2Name });
     await user.click(tab2Element);
@@ -107,7 +107,7 @@ describe('StudioContentMenu', () => {
   it('keeps focus on current tab if pressing keyUp when focus is on first tab in menu', async () => {
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [tab1, tab2],
+      buttonTabs: [tab1, tab2],
     });
     const tab1Element = screen.getByRole('tab', { name: tab1Name });
     await user.click(tab1Element);
@@ -119,7 +119,7 @@ describe('StudioContentMenu', () => {
   it('calls onChangeTab when clicking enter on a tab with focus', async () => {
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [tab1, tab2],
+      buttonTabs: [tab1, tab2],
     });
     const tab1Element = screen.getByRole('tab', { name: tab1Name });
     await user.click(tab1Element);
@@ -133,7 +133,7 @@ describe('StudioContentMenu', () => {
   it('calls onChangeTab when clicking on a menu tab', async () => {
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [tab1],
+      buttonTabs: [tab1],
     });
     const menuTab = screen.getByRole('tab', { name: tab1Name });
     await user.click(menuTab);
@@ -145,7 +145,7 @@ describe('StudioContentMenu', () => {
     const link = 'url-link';
     const user = userEvent.setup();
     renderStudioContentMenu({
-      contentTabs: [
+      linkTabs: [
         {
           ...tab1,
           to: link,
@@ -160,13 +160,17 @@ describe('StudioContentMenu', () => {
 });
 
 const renderStudioContentMenu = ({
-  contentTabs,
-}: Partial<StudioContentMenuProps<StudioMenuTabName>> = {}) => {
+  buttonTabs = [],
+  linkTabs = [],
+}: Partial<StudioContentMenuWrapperProps<StudioMenuTabName>> = {}) => {
   render(
-    <StudioContentMenu
-      contentTabs={contentTabs}
-      selectedTabId={undefined}
-      onChangeTab={onChangeTabMock}
-    />,
+    <StudioContentMenu selectedTabId={undefined} onChangeTab={onChangeTabMock}>
+      {buttonTabs.map((buttonTab) => (
+        <StudioContentMenu.ButtonTab key={buttonTab.tabId} contentTab={buttonTab} />
+      ))}
+      {linkTabs.map((linkTab) => (
+        <StudioContentMenu.LinkTab key={linkTab.tabId} contentTab={linkTab} />
+      ))}
+    </StudioContentMenu>,
   );
 };

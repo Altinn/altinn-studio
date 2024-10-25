@@ -1,21 +1,30 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioContentMenu } from './StudioContentMenu';
 import { BookIcon, VideoIcon, QuestionmarkDiamondIcon, ExternalLinkIcon } from '@studio/icons';
-import { StudioContentMenuWrapper } from './StudioContentMenuWrapper';
+import {
+  StudioContentMenuWrapper,
+  StudioContentMenuWrapperProps,
+} from './StudioContentMenuWrapper';
 
-type Story = StoryFn<typeof StudioContentMenu>;
+type Story = StoryFn<StudioContentMenuWrapperProps<StudioMenuTabName>>;
 
-const meta: Meta = {
+const meta: Meta<StudioContentMenuWrapperProps<StudioMenuTabName>> = {
   title: 'Components/StudioContentMenu',
-  component: StudioContentMenu,
+  component: StudioContentMenuWrapper,
   argTypes: {
-    contentTabs: {
+    buttonTabs: {
+      control: 'object',
+      description: 'Array of button menu tabs with icons, names, and ids.',
+      table: {
+        type: { summary: 'StudioButtonTabType<TabId>[]' },
+      },
+    },
+    linkTabs: {
       control: 'object',
       description:
-        'Array of menu tabs with icons, names, and ids. Add prop `to` if tab should navigate to a different url',
+        'Array of link menu tabs with icons, names, and ids. Prop `to` defines the url to navigate to.',
       table: {
-        type: { summary: 'StudioMenuTabType<TabId>[]' },
+        type: { summary: 'StudioLinkTabType<TabId>[]' },
       },
     },
     selectedTabId: {
@@ -29,12 +38,14 @@ const meta: Meta = {
 
 export default meta;
 
-export const Preview: Story = (args) => (
-  <StudioContentMenuWrapper {...args}></StudioContentMenuWrapper>
+type StudioMenuTabName = 'booksTab' | 'videosTab' | 'tabWithVeryLongTabName' | 'tabAsLink';
+
+export const Preview: Story = (args: StudioContentMenuWrapperProps<StudioMenuTabName>) => (
+  <StudioContentMenuWrapper {...args} />
 );
 
 Preview.args = {
-  contentTabs: [
+  buttonTabs: [
     {
       tabId: 'booksTab',
       tabName: 'Bøker',
@@ -50,6 +61,8 @@ Preview.args = {
       tabName: 'LoremIpsumLoremIpsumLoremIpsum',
       icon: <QuestionmarkDiamondIcon />,
     },
+  ],
+  linkTabs: [
     {
       tabId: 'tabAsLink',
       tabName: 'Gå til Designsystemet',
@@ -57,4 +70,5 @@ Preview.args = {
       to: 'https://next.storybook.designsystemet.no',
     },
   ],
+  onChangeTab: () => {},
 };

@@ -1,6 +1,6 @@
 import type React from 'react';
 
-export function moveFocus(event: React.KeyboardEvent<HTMLElement>) {
+export function moveFocus(event: React.KeyboardEvent<HTMLDivElement>) {
   const nextTab = getNextTab(event);
   if (nextTab) {
     event.preventDefault();
@@ -10,7 +10,7 @@ export function moveFocus(event: React.KeyboardEvent<HTMLElement>) {
   }
 }
 
-function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLElement>) {
+function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLDivElement>) {
   const tablist = getParentTablist(currentTarget);
   const tabs = getTabs(tablist);
   switch (key) {
@@ -23,26 +23,26 @@ function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLElement>) {
   }
 }
 
-function getTabElementAbove(tabs: HTMLElement[], currentTab: HTMLElement) {
+function getTabElementAbove(tabs: HTMLDivElement[], currentTab: HTMLDivElement) {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex > 0) {
-    return tabs[currentIndex - 1] as HTMLElement;
+    return tabs[currentIndex - 1] as HTMLTabElement;
   }
   return null;
 }
 
-function getTabElementBelow(tabs: HTMLElement[], currentTab: HTMLElement) {
+function getTabElementBelow(tabs: HTMLDivElement[], currentTab: HTMLDivElement) {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex < tabs.length - 1) {
-    return tabs[currentIndex + 1] as HTMLElement;
+    return tabs[currentIndex + 1] as HTMLDivElement;
   }
   return null;
 }
 
-function getTabs(tablist: HTMLElement): HTMLElement[] {
-  return Array.from(tablist.querySelectorAll('[role="tab"]')) as HTMLElement[];
+function getTabs(tablist: HTMLDivElement): HTMLDivElement[] {
+  return Array.from(tablist.querySelectorAll('[role="tab"]')) as HTMLDivElement[];
 }
 
-function getParentTablist(element: HTMLElement): HTMLElement | null {
+function getParentTablist(element: HTMLDivElement): HTMLDivElement | null {
   return element.closest('[role="tablist"]');
 }

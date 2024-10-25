@@ -1,23 +1,24 @@
 import React from 'react';
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import classes from './StudioMenuTabContainer.module.css';
 import { moveFocus } from '../utils/dom-utils';
-import type { StudioMenuTabAsLinkType, StudioMenuTabType } from '../types/StudioMenuTabType';
-import { StudioMenuTabAsLink } from './StudioMenuTabAsLink';
-import { StudioMenuTab } from './StudioMenuTab';
+import type { StudioMenuTabType } from '../types/StudioMenuTabType';
+import type { HTMLTabElement } from '../types/HTMLTabElement';
 
 type StudioMenuTabProps<TabId extends string> = {
+  children: ReactNode;
   contentTab: StudioMenuTabType<TabId>;
   isTabSelected: boolean;
   onClick: (tabId: TabId) => void;
 };
 
 export function StudioMenuTabContainer<TabId extends string>({
+  children,
   contentTab,
   isTabSelected,
   onClick,
 }: StudioMenuTabProps<TabId>): ReactElement {
-  const handleKeyDown = (event: React.KeyboardEvent<any>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     moveFocus(event);
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -34,17 +35,7 @@ export function StudioMenuTabContainer<TabId extends string>({
       onKeyDown={handleKeyDown}
       title={contentTab.tabName}
     >
-      {isStudioMenuTabAsLink(contentTab) ? (
-        <StudioMenuTabAsLink contentTab={contentTab} />
-      ) : (
-        <StudioMenuTab contentTab={contentTab} />
-      )}
+      {children}
     </div>
   );
-}
-
-function isStudioMenuTabAsLink<TabId extends string>(
-  contentTab: StudioMenuTabType<TabId>,
-): contentTab is StudioMenuTabAsLinkType<TabId> {
-  return 'to' in contentTab;
 }

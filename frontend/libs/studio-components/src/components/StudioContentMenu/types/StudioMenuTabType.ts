@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 
-export type StudioMenuTabAsButtonType<TabId extends string> = {
+export type StudioButtonTabType<TabId extends string> = {
   icon: ReactNode;
   tabName: string;
   tabId: TabId;
 };
 
-export type StudioMenuTabAsLinkType<TabId extends string> = StudioMenuTabAsButtonType<TabId> & {
+export type StudioLinkTabType<TabId extends string> = StudioButtonTabType<TabId> & {
   to: string;
 };
 
 export type StudioMenuTabType<TabId extends string> =
-  | StudioMenuTabAsButtonType<TabId>
-  | StudioMenuTabAsLinkType<TabId>;
+  | StudioButtonTabType<TabId>
+  | StudioLinkTabType<TabId>;

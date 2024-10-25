@@ -1,1 +1,1 @@
-export { StudioMenuTabContainer } from '../StudioMenuTab/StudioMenuTabContainer';
+export { StudioMenuTab } from './StudioMenuTab';
