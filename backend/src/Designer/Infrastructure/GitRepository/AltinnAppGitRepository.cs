@@ -767,12 +767,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="payload">The contents of the new options list as a string</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The new options list as a string.</returns>
-        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, string payload, CancellationToken cancellationToken = default)
+        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var serialiseOptions = new JsonSerializerOptions { WriteIndented = true };
+            string payloadString = JsonSerializer.Serialize(payload, serialiseOptions);
+
             string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
-            await WriteTextByRelativePathAsync(optionsFilePath, payload, true, cancellationToken);
+            await WriteTextByRelativePathAsync(optionsFilePath, payloadString, true, cancellationToken);
             string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
 
             return fileContent;

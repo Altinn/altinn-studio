@@ -87,7 +87,10 @@ export function EditOptions<T extends SelectionComponentType>({
               {t('ux_editor.options.tab_referenceId')}
             </StudioTabs.Tab>
           </StudioTabs.List>
-          <StudioTabs.Content value={SelectedOptionsType.CodeList}>
+          <StudioTabs.Content
+            className={classes.codelistTabContent}
+            value={SelectedOptionsType.CodeList}
+          >
             <EditCodeList component={component} handleComponentChange={handleComponentChange} />
           </StudioTabs.Content>
           <StudioTabs.Content
