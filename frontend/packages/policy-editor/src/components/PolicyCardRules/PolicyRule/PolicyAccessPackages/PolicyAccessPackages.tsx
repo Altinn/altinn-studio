@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ErrorMessage, Paragraph, Alert } from '@digdir/designsystemet-react';
+import { Paragraph, Alert, CheckboxGroup, Checkbox } from '@digdir/designsystemet-react';
 import { StudioLabelAsParagraph } from '@studio/components';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
@@ -11,12 +11,13 @@ import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
 import { PolicyAccordion } from './PolicyAccordion/PolicyAccordion';
 import { groupAccessPackagesByArea } from '@altinn/policy-editor/utils';
 
+const CHECKED_VALUE = 'on';
 const selectedLanguage = 'nb';
 
 export const PolicyAccessPackages = (): React.ReactElement => {
   const { t } = useTranslation();
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
-  const { policyRule, showAllErrors, policyError } = usePolicyRuleContext();
+  const { policyRule } = usePolicyRuleContext();
 
   const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
     policyRule.accessPackages,
@@ -26,18 +27,25 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     return groupAccessPackagesByArea(accessPackages);
   }, [accessPackages]);
 
-  const handleRemoveAccessPackage = (accessPackageToRemove: PolicyAccessPackage): void => {
-    setChosenAccessPackages((oldUrns) =>
-      oldUrns.filter((urn) => urn !== accessPackageToRemove.urn),
-    );
-    const urnsToSave = policyRule.accessPackages.filter((x) => x !== accessPackageToRemove.urn);
+  const onPackageSelectChange = (accessPackage: PolicyAccessPackage): void => {
+    const isSelected = chosenAccessPackages.includes(accessPackage.urn);
+    if (isSelected) {
+      handleRemoveAccessPackage(accessPackage.urn);
+    } else {
+      handleAddAccessPackage(accessPackage.urn);
+    }
+  };
+
+  const handleRemoveAccessPackage = (packageUrn: string): void => {
+    setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
+    const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
 
     handleAccessPackageChange(urnsToSave);
   };
 
-  const handleAddAccessPackage = (accessPackageToAdd: PolicyAccessPackage): void => {
-    setChosenAccessPackages((oldUrns) => [...oldUrns, accessPackageToAdd.urn]);
-    const urnsToSave = [...policyRule.accessPackages, accessPackageToAdd.urn];
+  const handleAddAccessPackage = (packageUrn: string): void => {
+    setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
+    const urnsToSave = [...policyRule.accessPackages, packageUrn];
 
     handleAccessPackageChange(urnsToSave);
   };
@@ -68,7 +76,6 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
       {groupedAccessPackagesByArea.map(({ area, packages }) => {
-        // find chosen packages in current area
         const numberChosenInArea = packages.filter((pack) =>
           chosenAccessPackages.includes(pack.urn),
         ).length;
@@ -84,28 +91,36 @@ export const PolicyAccessPackages = (): React.ReactElement => {
             <Paragraph size='xs'>{area.description}</Paragraph>
             {packages.map((accessPackage) => {
               const isChecked = chosenAccessPackages.includes(accessPackage.urn);
+              const checkboxLabel = t(
+                isChecked
+                  ? 'policy_editor.access_package_remove'
+                  : 'policy_editor.access_package_add',
+                {
+                  packageName: accessPackage.name,
+                },
+              );
+              const packageCheckbox = (
+                <CheckboxGroup
+                  legend=''
+                  className={classes.accordionCheckbox}
+                  value={isChecked ? [CHECKED_VALUE] : []}
+                  onChange={() => onPackageSelectChange(accessPackage)}
+                >
+                  <Checkbox value={CHECKED_VALUE} aria-label={checkboxLabel} />
+                </CheckboxGroup>
+              );
               return (
                 <PolicyAccessPackageAccordion
                   key={accessPackage.urn}
                   accessPackage={accessPackage}
-                  isChecked={isChecked}
                   selectedLanguage={selectedLanguage}
-                  onChange={() => {
-                    if (isChecked) {
-                      handleRemoveAccessPackage(accessPackage);
-                    } else {
-                      handleAddAccessPackage(accessPackage);
-                    }
-                  }}
+                  selectPackageElement={packageCheckbox}
                 />
               );
             })}
           </PolicyAccordion>
         );
       })}
-      {showAllErrors && policyError.subjectsError && (
-        <ErrorMessage size='sm'>{t('policy_editor.rule_card_subjects_error')}</ErrorMessage>
-      )}
     </div>
   );
 };

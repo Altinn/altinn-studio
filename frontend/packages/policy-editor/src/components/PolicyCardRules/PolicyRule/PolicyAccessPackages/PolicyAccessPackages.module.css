@@ -10,3 +10,8 @@
   flex-direction: column;
   gap: var(--fds-spacing-2);
 }
+
+.accordionCheckbox {
+  display: block;
+  padding: 0 var(--fds-spacing-4);
+}

@@ -2,24 +2,20 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
-import { Checkbox, CheckboxGroup, Paragraph } from '@digdir/designsystemet-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { StudioLabelAsParagraph } from '@studio/components';
 import { PolicyAccordion } from '../PolicyAccordion/PolicyAccordion';
 
-const CHECKED_VALUE = 'on';
-
 interface PolicyAccessPackageAccordionProps {
   accessPackage: PolicyAccessPackage;
-  isChecked: boolean;
   selectedLanguage: 'nb' | 'nn' | 'en';
-  onChange: (accessPackage: PolicyAccessPackage) => void;
+  selectPackageElement: React.ReactNode;
 }
 
 export const PolicyAccessPackageAccordion = ({
   accessPackage,
-  isChecked,
   selectedLanguage,
-  onChange,
+  selectPackageElement,
 }: PolicyAccessPackageAccordionProps): React.ReactElement => {
   const { t } = useTranslation();
 
@@ -28,27 +24,7 @@ export const PolicyAccessPackageAccordion = ({
       <PolicyAccordion
         title={accessPackage.name}
         subTitle={accessPackage.description}
-        extraHeaderContent={
-          <CheckboxGroup
-            legend=''
-            className={classes.accordionCheckbox}
-            value={isChecked ? [CHECKED_VALUE] : []}
-            onChange={() => onChange(accessPackage)}
-          >
-            <Checkbox
-              value={CHECKED_VALUE}
-              aria-label={
-                isChecked
-                  ? t('policy_editor.access_package_remove', {
-                      packageName: accessPackage.name,
-                    })
-                  : t('policy_editor.access_package_add', {
-                      packageName: accessPackage.name,
-                    })
-              }
-            />
-          </CheckboxGroup>
-        }
+        extraHeaderContent={selectPackageElement}
       >
         {accessPackage.services.length > 0 ? (
           accessPackage.services.map((resource) => {

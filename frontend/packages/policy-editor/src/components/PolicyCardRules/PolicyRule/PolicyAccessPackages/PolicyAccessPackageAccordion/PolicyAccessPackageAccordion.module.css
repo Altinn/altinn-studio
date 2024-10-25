@@ -2,11 +2,6 @@
   --logo-size: 30px;
 }
 
-.accordionCheckbox {
-  display: block;
-  padding: 0 var(--fds-spacing-4);
-}
-
 .accessPackageAccordion {
   background-color: #e9f5ff;
 }
