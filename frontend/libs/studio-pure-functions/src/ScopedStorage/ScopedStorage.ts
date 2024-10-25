@@ -24,7 +24,7 @@ export class ScopedStorageImpl implements ScopedStorage {
     );
   }
 
-  public getItem<T>(key: keyof T): T | null {
+  public getItem<T>(key: string) {
     const records: T = this.getAllRecordsInStorage();
 
     if (!records) {
@@ -34,7 +34,7 @@ export class ScopedStorageImpl implements ScopedStorage {
     return records[key] as unknown as T;
   }
 
-  public removeItem<T>(key: keyof T): void {
+  public removeItem<T>(key: string): void {
     const storageRecords: T | null = this.getAllRecordsInStorage<T>();
 
     if (!storageRecords) {
