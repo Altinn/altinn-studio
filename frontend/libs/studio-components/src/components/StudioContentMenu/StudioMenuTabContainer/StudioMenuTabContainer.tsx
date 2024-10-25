@@ -30,7 +30,7 @@ export function StudioMenuTabContainer<TabId extends string>({
       className={isTabSelected ? classes.selectedTab : classes.tab}
       onClick={() => onClick(contentTab.tabId)}
       role='tab'
-      tabIndex={0}
+      tabIndex={isTabSelected ? 0 : -1}
       onKeyDown={handleKeyDown}
       title={contentTab.tabName}
     >
