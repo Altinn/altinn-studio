@@ -20,29 +20,6 @@ describe('ScopedStorage', () => {
     });
   });
 
-  describe('Storage parsing', () => {
-    const consoleErrorMock = jest.fn();
-    const originalConsoleError = console.error;
-    beforeEach(() => {
-      console.error = consoleErrorMock;
-    });
-
-    afterEach(() => {
-      console.error = originalConsoleError;
-    });
-
-    it('should console.error when parsing the storage fails', () => {
-      window.localStorage.setItem('unit/test', '{"person";{"name":"tester"}}');
-      const scopedStorage = new ScopedStorageImpl(window.localStorage, 'unit/test');
-      expect(scopedStorage.getItem('person')).toBeNull();
-      expect(consoleErrorMock).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'Failed to parse storage with key unit/test. Ensure that the storage is a valid JSON string. Error: SyntaxError:',
-        ),
-      );
-    });
-  });
-
   describe('update existing key', () => {
     it('should append a new key-value pair to the existing scoped key', () => {
       const scopedStorage = new ScopedStorageImpl(window.localStorage, 'unit/test');
@@ -83,6 +60,29 @@ describe('ScopedStorage', () => {
       scopedStorage.removeItem('keyDoesNotExist');
 
       expect(removeItemMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Storage parsing', () => {
+    const consoleErrorMock = jest.fn();
+    const originalConsoleError = console.error;
+    beforeEach(() => {
+      console.error = consoleErrorMock;
+    });
+
+    afterEach(() => {
+      console.error = originalConsoleError;
+    });
+
+    it('should console.error when parsing the storage fails', () => {
+      window.localStorage.setItem('unit/test', '{"person";{"name":"tester"}}');
+      const scopedStorage = new ScopedStorageImpl(window.localStorage, 'unit/test');
+      expect(scopedStorage.getItem('person')).toBeNull();
+      expect(consoleErrorMock).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Failed to parse storage with key unit/test. Ensure that the storage is a valid JSON string. Error: SyntaxError:',
+        ),
+      );
     });
   });
 
