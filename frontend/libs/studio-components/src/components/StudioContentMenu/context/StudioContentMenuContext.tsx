@@ -6,7 +6,7 @@ export type StudioContentMenuContextProps<TabId extends string> = {
 };
 
 export const StudioContentMenuContext =
-  createContext<Partial<StudioContentMenuContextProps>>(undefined);
+  createContext<Partial<StudioContentMenuContextProps<string>>>(undefined);
 
 export type StudioContentMenuContextProviderProps<TabId extends string> = {
   children: ReactNode;
@@ -27,7 +27,9 @@ export function StudioContentMenuContextProvider<TabId extends string>({
 export const useStudioContentMenuContext = <TabId extends string>(): Partial<
   StudioContentMenuContextProps<TabId>
 > => {
-  const context = useContext(StudioContentMenuContext);
+  const context = useContext(StudioContentMenuContext) as Partial<
+    StudioContentMenuContextProps<TabId>
+  >;
   if (context === undefined) {
     throw new Error(
       'useStudioContentMenuContext must be used within a StudioContentMenuContextProvider',
