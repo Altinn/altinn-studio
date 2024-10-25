@@ -31,7 +31,7 @@ export class ScopedStorageImpl implements ScopedStorage {
       return null;
     }
 
-    return records[key] as unknown as T;
+    return records[key] as T;
   }
 
   public removeItem<T>(key: string): void {

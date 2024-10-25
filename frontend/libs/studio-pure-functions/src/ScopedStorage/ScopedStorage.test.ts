@@ -1,4 +1,4 @@
-import { ScopedStorage, ScopedStorageImpl } from './ScopedStorage';
+import { type ScopedStorage, ScopedStorageImpl } from './ScopedStorage';
 
 describe('ScopedStorage', () => {
   beforeEach(() => {
