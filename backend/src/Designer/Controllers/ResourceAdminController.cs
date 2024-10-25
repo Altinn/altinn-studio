@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
-using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
@@ -439,7 +438,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetAccessPackages(string org, CancellationToken cancellationToken)
         {
             // 1. GET accesspackages (mocked for now)
-            AccessPackageArea transportArea = new () 
+            AccessPackageArea transportArea = new()
             {
                 Id = "589217CF-6070-474F-9989-8C5359C740F4",
                 Name = "Transport og lagring",
@@ -447,7 +446,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ShortDescription = "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
                 IconName = "TruckIcon"
             };
-            AccessPackageArea skattArea = new () 
+            AccessPackageArea skattArea = new()
             {
                 Id = "F52ADD40-6748-4E89-875A-63D3E153605D",
                 Name = "Skatt og Merverdiavgift",
@@ -455,7 +454,7 @@ namespace Altinn.Studio.Designer.Controllers
                 ShortDescription = "Tjenester som angår skatt, avgift, regnskap og toll",
                 IconName = "BankNoteIcon"
             };
-            AccessPackageArea jordbrukArea = new ()
+            AccessPackageArea jordbrukArea = new()
             {
                 Id = "tag_jordbruk",
                 IconName = "PlantIcon",
@@ -573,8 +572,10 @@ namespace Altinn.Studio.Designer.Controllers
 
             // 2. POST to get all resources per access package
             List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources(subjects.ToList(), env);
-            subjectResources.Add(new SubjectResources () {
-                Subject = new AttributeMatchV2() {
+            subjectResources.Add(new SubjectResources()
+            {
+                Subject = new AttributeMatchV2()
+                {
                     Type = "",
                     Value = "",
                     Urn = "urn:altinn:accesspackage:regnskapsforerlonn"
@@ -617,7 +618,7 @@ namespace Altinn.Studio.Designer.Controllers
             List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false);
 
             // 4. map resource to access package based on data from step 2.
-            accessPackages.ForEach(accessPackage => 
+            accessPackages.ForEach(accessPackage =>
             {
                 List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accessPackage.Urn)?.Resources;
 
@@ -627,7 +628,7 @@ namespace Altinn.Studio.Designer.Controllers
 
                     orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
 
-                    accessPackage.Services.Add(new AccessPackageService() 
+                    accessPackage.Services.Add(new AccessPackageService()
                     {
                         Identifier = resourceMatch.Value,
                         Title = fullResource?.Title,

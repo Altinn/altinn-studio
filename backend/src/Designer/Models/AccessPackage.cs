@@ -15,7 +15,7 @@ namespace Altinn.Studio.Designer.Models
         public string Description { get; set; }
 
         public List<AccessPackageTag> Tags { get; set; } = [];
-        
+
         public AccessPackageArea Area { get; set; }
 
         public List<AccessPackageService> Services { get; set; } = [];
