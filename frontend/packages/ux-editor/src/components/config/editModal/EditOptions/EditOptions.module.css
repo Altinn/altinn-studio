@@ -17,5 +17,6 @@
 }
 
 .manualTabContent {
-  padding: 0;
+  padding-block: var(--fds-spacing-5);
+  padding-inline: 0;
 }
