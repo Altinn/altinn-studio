@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Option } from 'app-shared/types/Option';
+import type { Option } from 'app-shared/types/Option';
 
 export const useCodeListButtonValue = (options: Option[] | undefined) => {
   const { t } = useTranslation();
