@@ -1,4 +1,4 @@
-import { areItemsUnique } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type {
   FormCheckboxesComponent,
@@ -36,7 +36,7 @@ const validateOptionGroup = (
         isValid: false,
         error: ErrorCode.NoOptions,
       };
-    } else if (!areItemsUnique(component.options.map((option) => option.value))) {
+    } else if (!ArrayUtils.areItemsUnique(component.options.map((option) => option.value))) {
       return {
         isValid: false,
         error: ErrorCode.DuplicateValues,
