@@ -181,67 +181,6 @@
         ]
       },
       {
-        "id": "date1",
-        "type": "Date",
-        "textResourceBindings": {
-          "title": "Dato"
-        },
-        "value": "2022-09-27 18:00:00.000",
-        "format": "dd.MM.yyyy",
-        "grid": {
-          "xs": 6
-        }
-      },
-      {
-        "id": "date2",
-        "type": "Date",
-        "textResourceBindings": {
-          "title": "Dato med tid"
-        },
-        "value": "2022-09-27 18:00:00.000",
-        "format": "dd.MM.yyyy hh:mm:ss",
-        "grid": {
-          "xs": 6
-        }
-      },
-      {
-        "id": "date3",
-        "type": "Date",
-        "textResourceBindings": {
-          "title": "Dato med annet format"
-        },
-        "value": "2022-09-27",
-        "format": "dd/MM/yyyy",
-        "grid": {
-          "xs": 6
-        }
-      },
-      {
-        "id": "date4",
-        "type": "Date",
-        "textResourceBindings": {
-          "title": "Dato med tid på annet format"
-        },
-        "value": "2022-09-27 18:00:00.000",
-        "format": "dd/MM/yyyy hh:mm:ss",
-        "direction": "vertical",
-        "grid": {
-          "xs": 6
-        }
-      },
-      {
-        "type": "Cards",
-        "id": "date-Card",
-        "color": "subtle",
-        "cards": [
-          {
-            "title": "Dato kort",
-            "description": "",
-            "children": ["date1", "date2", "date3", "date4"]
-          }
-        ]
-      },
-      {
         "id": "text1",
         "type": "Text",
         "textResourceBindings": {
