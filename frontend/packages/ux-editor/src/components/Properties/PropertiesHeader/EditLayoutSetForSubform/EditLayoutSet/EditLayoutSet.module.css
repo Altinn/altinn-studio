@@ -2,9 +2,3 @@
   padding-left: 0;
   border-radius: var(--fds-sizing-1);
 }
-
-.savelayoutSetButton {
-  display: flex;
-  align-self: flex-start;
-  border: 2px solid var(--success-color);
-}

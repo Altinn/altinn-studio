@@ -47,6 +47,29 @@ describe('EditLayoutSetForSubForm', () => {
     expect(setLayoutSetButton).toBeInTheDocument();
   });
 
+  it('displays a button(Opprett et nytt skjema) to set a layout set for the subform', async () => {
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    const createNewLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
+    });
+    expect(createNewLayoutSetButton).toBeInTheDocument();
+  });
+
+  it('renders CreateNewLayoutSet component when clicking the create new layout set button', async () => {
+    const user = userEvent.setup();
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    const createNewLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
+    });
+    await user.click(createNewLayoutSetButton);
+    const createNewLayoutSetComponent = screen.getByText(
+      textMock('ux_editor.component_properties.subform.created_layout_set_name'),
+    );
+    expect(createNewLayoutSetComponent).toBeInTheDocument();
+  });
+
   it('displays a select to choose a layout set for the subform', async () => {
     const subformLayoutSetId = 'subformLayoutSetId';
     renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
