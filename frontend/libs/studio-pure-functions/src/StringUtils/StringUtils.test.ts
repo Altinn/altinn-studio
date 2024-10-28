@@ -52,4 +52,56 @@ describe('StringUtils', () => {
       expect(input).toBe('abc/def/ghi');
     });
   });
+
+  describe('replaceEnd', () => {
+    it('Replaces the given substring with the given replacement at the end of the string', () => {
+      expect(StringUtils.replaceEnd('abc/def/ghi', 'ghi', 'xyz')).toBe('abc/def/xyz');
+    });
+
+    it('Does not replace the given substring other places than at the end', () => {
+      expect(StringUtils.replaceEnd('abcdefghi', 'abc', 'xyz')).toBe('abcdefghi');
+      expect(StringUtils.replaceEnd('abcdefghi', 'def', 'xyz')).toBe('abcdefghi');
+      expect(StringUtils.replaceEnd('abcdefghidef', 'def', 'xyz')).toBe('abcdefghixyz');
+    });
+  });
+
+  describe('replaceStart', () => {
+    it('Replaces the given substring with the given replacement at the start of the string', () => {
+      expect(StringUtils.replaceStart('abc/def/ghi', 'abc', 'xyz')).toBe('xyz/def/ghi');
+    });
+
+    it('Does not replace the given substring other places than at the start', () => {
+      expect(StringUtils.replaceStart('abcdefghi', 'ghi', 'xyz')).toBe('abcdefghi');
+      expect(StringUtils.replaceStart('abcdefghi', 'def', 'xyz')).toBe('abcdefghi');
+      expect(StringUtils.replaceStart('defabcdefghi', 'def', 'xyz')).toBe('xyzabcdefghi');
+    });
+  });
+
+  describe('substringBeforeLast', () => {
+    it('Returns substring before last occurrence of separator', () => {
+      expect(StringUtils.substringBeforeLast('abc/def/ghi', '/')).toBe('abc/def');
+    });
+
+    it('Returns whole string if separator is not found', () => {
+      expect(StringUtils.substringBeforeLast('abc', '/')).toBe('abc');
+    });
+
+    it('Returns whole string if there are no characters before the last separator', () => {
+      expect(StringUtils.substringBeforeLast('/abc', '/')).toBe('');
+    });
+  });
+
+  describe('substringAfterLast', () => {
+    it('Returns substring after last occurrence of separator', () => {
+      expect(StringUtils.substringAfterLast('abc/def/ghi', '/')).toBe('ghi');
+    });
+
+    it('Returns whole string if separator is not found', () => {
+      expect(StringUtils.substringAfterLast('abc', '/')).toBe('abc');
+    });
+
+    it('Returns empty string if there are no characters after the last separator', () => {
+      expect(StringUtils.substringAfterLast('abc/def/', '/')).toBe('');
+    });
+  });
 });

@@ -9,7 +9,7 @@ interface RouterInstanceMock extends QueryParamsRouter {
 }
 
 const mockRouterInstance: RouterInstanceMock = {
-  currentRoute: 'root',
+  currentRoute: 'landingPage',
   navigate: jest.fn(),
 };
 
@@ -20,7 +20,7 @@ jest.mock('../utils/router/QueryParamsRouter', () => ({
 }));
 
 describe('useNavigation Hook', () => {
-  const mockCurrentPage: PageName = 'root';
+  const mockCurrentPage: PageName = 'landingPage';
 
   beforeEach(() => {
     mockRouterInstance.currentRoute = mockCurrentPage;

@@ -3,8 +3,7 @@ import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
 } from 'app-shared/types/DataModelMetadata';
-import { replaceEnd } from 'app-shared/utils/stringUtils';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils, StringUtils } from '@studio/pure-functions';
 import type { MetadataOption } from '../types/MetadataOption';
 import type { MetadataOptionsGroup } from '../types/MetadataOptionsGroup';
 import { removeSchemaExtension } from 'app-shared/utils/filenameUtils';
@@ -23,7 +22,7 @@ export const filterOutXsdDataIfJsonDataExist = (
     ({ fileName }) =>
       !jsonData.find(
         ({ fileName: jsonFileName }) =>
-          jsonFileName === replaceEnd(fileName, '.xsd', '.schema.json'),
+          jsonFileName === StringUtils.replaceEnd(fileName, '.xsd', '.schema.json'),
       ),
   );
 
