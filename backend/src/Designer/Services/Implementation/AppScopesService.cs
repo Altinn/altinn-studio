@@ -37,7 +37,7 @@ public class AppScopesService : IAppScopesService
 
         appScopes.Scopes = scopes;
         appScopes.LastModifiedBy = editingContext.Developer;
-        return await _appRepository.SaveAppScopesAsync(appScopes, cancellationToken);
+        return await _appRepository.UpsertAppScopesAsync(appScopes, cancellationToken);
     }
 
     private AppScopesEntity GenerateNewAppScopesEntity(AltinnRepoEditingContext context)

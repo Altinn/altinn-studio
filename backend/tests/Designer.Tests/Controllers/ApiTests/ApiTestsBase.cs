@@ -74,7 +74,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         string configPath = GetConfigPath();
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile(configPath, false, false)
-            .AddJsonStream(GenerateOidcConfigJsonConfig())
+            .AddJsonStream(GenerateJsonOverrideConfig())
             .AddEnvironmentVariables()
             .Build();
 
@@ -84,7 +84,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
             builder.ConfigureAppConfiguration((_, conf) =>
             {
                 conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateOidcConfigJsonConfig());
+                conf.AddJsonStream(GenerateJsonOverrideConfig());
             });
             builder.ConfigureTestServices(ConfigureTestServices);
             builder.ConfigureTestServices(services =>
@@ -115,9 +115,8 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
     }
 
-    protected Stream GenerateOidcConfigJsonConfig()
-    {
-        string configOverride = $@"
+    protected virtual string JsonConfigOverride =>
+        $@"
               {{
                     ""OidcLoginSettings"": {{
                         ""ClientId"": ""{Guid.NewGuid()}"",
@@ -141,7 +140,10 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                     }}
               }}
             ";
-        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
+
+    private Stream GenerateJsonOverrideConfig()
+    {
+        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConfigOverride));
         configStream.Seek(0, SeekOrigin.Begin);
         return configStream;
     }

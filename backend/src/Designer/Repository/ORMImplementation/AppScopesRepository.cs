@@ -31,7 +31,7 @@ public class AppScopesRepository : IAppScopesRepository
         return AppScopesMapper.MapToModel(appScope);
     }
 
-    public async Task<AppScopesEntity> SaveAppScopesAsync(AppScopesEntity appScopesEntity,
+    public async Task<AppScopesEntity> UpsertAppScopesAsync(AppScopesEntity appScopesEntity,
         CancellationToken cancellationToken = default)
     {
         AppScopesDbObject existing = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == appScopesEntity.Org && a.App == appScopesEntity.App, cancellationToken);

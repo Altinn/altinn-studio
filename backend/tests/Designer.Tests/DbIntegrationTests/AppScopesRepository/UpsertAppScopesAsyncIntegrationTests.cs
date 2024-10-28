@@ -1,27 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Designer.Tests.DbIntegrationTests.AppScopesRepository.Base;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.AppScopesRepository;
 
-public class SaveAppScopesAsyncIntegrationTests : AppScopesIntegrationTestsBase
+public class UpsertAppScopesAsyncIntegrationTests : DbIntegrationTestsBase
 {
-    public SaveAppScopesAsyncIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
+    public UpsertAppScopesAsyncIntegrationTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
     }
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task SaveAppScopesAsync_ShouldCreateAppScopes_IfNotExists(string org, string app, int numberOfScopes)
+    public async Task UpsertAppScopesAsync_ShouldCreateAppScopes_IfNotExists(string org, string app, int numberOfScopes)
     {
-        var entity = EntityGenerationUtils.GenerateAppScopesEntity(org, app, numberOfScopes);
+        var entity = EntityGenerationUtils.AppScopes.GenerateAppScopesEntity(org, app, numberOfScopes);
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
-        await repository.SaveAppScopesAsync(entity);
+        await repository.UpsertAppScopesAsync(entity);
 
         var dbRecord = await DbFixture.DbContext.AppScopes.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
@@ -35,10 +35,10 @@ public class SaveAppScopesAsyncIntegrationTests : AppScopesIntegrationTestsBase
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public async Task SaveAppScopesAsync_ShouldUpdateAppScopes_IfAlreadyExists(string org, string app, int numberOfScopes)
+    public async Task UpsertAppScopesAsync_ShouldUpdateAppScopes_IfAlreadyExists(string org, string app, int numberOfScopes)
     {
-        var entity = EntityGenerationUtils.GenerateAppScopesEntity(org, app, numberOfScopes);
-        await PrepareEntityInDatabaseAsync(entity);
+        var entity = EntityGenerationUtils.AppScopes.GenerateAppScopesEntity(org, app, numberOfScopes);
+        await DbFixture.PrepareAppScopesEntityInDatabaseAsync(entity);
 
         var dbRecord = await DbFixture.DbContext.AppScopes.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
@@ -48,10 +48,10 @@ public class SaveAppScopesAsyncIntegrationTests : AppScopesIntegrationTestsBase
         entity.Version = dbRecord.Version;
         EntityAssertions.AssertEqual(entity, dbRecord);
 
-        entity.Scopes = EntityGenerationUtils.GenerateMaskinPortenScopeEntities(4);
+        entity.Scopes = EntityGenerationUtils.AppScopes.GenerateMaskinPortenScopeEntities(4);
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
 
-        var result = await repository.SaveAppScopesAsync(entity);
+        var result = await repository.UpsertAppScopesAsync(entity);
         result.Version.Should().NotBe(entity.Version);
         entity.Version = result.Version;
         result.Should().BeEquivalentTo(entity);
@@ -68,6 +68,6 @@ public class SaveAppScopesAsyncIntegrationTests : AppScopesIntegrationTestsBase
 
     public static IEnumerable<object[]> TestData()
     {
-        yield return ["ttd", "repo-" + Guid.NewGuid(), 3];
+        yield return ["ttd", TestDataHelper.GenerateTestRepoName(), 3];
     }
 }

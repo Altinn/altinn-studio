@@ -17,16 +17,16 @@ using Microsoft.FeatureManagement.Mvc;
 namespace Altinn.Studio.Designer.Controllers;
 
 [FeatureGate(StudioFeatureFlags.AnsattPorten)]
-[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/maskinporten")]
+[Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
 
-public class MaskinPortenScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
+public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     IAppScopesService appScopesService) : ControllerBase
 {
     // TODO: Cleanup model and create separation between presentation dto, domain model and external api model
     // Will be done under: https://github.com/Altinn/altinn-studio/issues/12767 and https://github.com/Altinn/altinn-studio/issues/12766
     [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
-    [HttpGet("scopes")]
-    public async Task<IActionResult> Get(string org, string app, CancellationToken cancellationToken)
+    [HttpGet("maskinporten")]
+    public async Task<IActionResult> GetScopesFromMaskinPorten(string org, string app, CancellationToken cancellationToken)
     {
         var scopes = await maskinPortenHttpClient.GetAvailableScopes(cancellationToken);
 
@@ -44,8 +44,8 @@ public class MaskinPortenScopesController(IMaskinPortenHttpClient maskinPortenHt
 
 
     [Authorize]
-    [HttpPut("scopes")]
-    public async Task Put(string org, string app, [FromBody] AppScopesUpsertRequest appScopesUpsertRequest,
+    [HttpPut]
+    public async Task UpsertAppScopes(string org, string app, [FromBody] AppScopesUpsertRequest appScopesUpsertRequest,
         CancellationToken cancellationToken)
     {
         var scopes = appScopesUpsertRequest.Scopes.Select(x => new MaskinPortenScopeEntity()
@@ -60,8 +60,8 @@ public class MaskinPortenScopesController(IMaskinPortenHttpClient maskinPortenHt
 
 
     [Authorize]
-    [HttpGet("scopes/available")]
-    public async Task<IActionResult> GetAvailableScopes(string org, string app, CancellationToken cancellationToken)
+    [HttpGet]
+    public async Task<IActionResult> GetAppScopes(string org, string app, CancellationToken cancellationToken)
     {
         var appScopes = await appScopesService.GetAppScopesAsync(AltinnRepoContext.FromOrgRepo(org, app), cancellationToken);
 

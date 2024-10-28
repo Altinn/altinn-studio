@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
-using Designer.Tests.DbIntegrationTests.AppScopesRepository.Base;
 using Designer.Tests.Fixtures;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
 namespace Designer.Tests.DbIntegrationTests.AppScopesRepository;
 
-public class GetAppScopesAsyncTests : AppScopesIntegrationTestsBase
+public class GetAppScopesAsyncTests : DbIntegrationTestsBase
 {
     public GetAppScopesAsyncTests(DesignerDbFixture dbFixture) : base(dbFixture)
     {
@@ -31,8 +31,8 @@ public class GetAppScopesAsyncTests : AppScopesIntegrationTestsBase
     [MemberData(nameof(GetAsyncTestData))]
     public async Task GetAppScopesAsync_ReturnExpected(string org, string app, int numberOfScopes)
     {
-        var entity = EntityGenerationUtils.GenerateAppScopesEntity(org, app, numberOfScopes);
-        await PrepareEntityInDatabaseAsync(entity);
+        var entity = EntityGenerationUtils.AppScopes.GenerateAppScopesEntity(org, app, numberOfScopes);
+        await DbFixture.PrepareAppScopesEntityInDatabaseAsync(entity);
         var repository = new Altinn.Studio.Designer.Repository.ORMImplementation.AppScopesRepository(DbFixture.DbContext);
         AppScopesEntity result = await repository.GetAppScopesAsync(AltinnRepoContext.FromOrgRepo(org, app));
         result.Version.Should().BeGreaterThan(0);
@@ -42,6 +42,6 @@ public class GetAppScopesAsyncTests : AppScopesIntegrationTestsBase
 
     public static IEnumerable<object[]> GetAsyncTestData()
     {
-        yield return ["ttd", "repo-" + Guid.NewGuid(), 3];
+        yield return ["ttd", TestDataHelper.GenerateTestRepoName(), 3];
     }
 }

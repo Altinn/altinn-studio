@@ -90,6 +90,8 @@ namespace Altinn.Studio.Designer.Infrastructure
                             NameClaimType = GiteaUserNameClaim
                         };
 
+                        options.CallbackPath = "/gitea-signin-oidc";
+
 
                         options.Events.OnRedirectToIdentityProvider = context =>
                         {
