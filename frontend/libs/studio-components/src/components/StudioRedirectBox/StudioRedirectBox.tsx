@@ -1,13 +1,11 @@
-import React, { type ReactNode, type ReactElement } from 'react';
+import React, { type ReactElement, type HTMLAttributes } from 'react';
 import cn from 'classnames';
 import classes from './StudioRedirectBox.module.css';
 import { StudioLabelAsParagraph } from '@studio/components';
 
 export type StudioRedirectBoxProps = {
   title: string;
-  children: ReactNode;
-  className?: string;
-};
+} & HTMLAttributes<HTMLDivElement>;
 
 export const StudioRedirectBox = ({
   title,
