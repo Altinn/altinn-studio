@@ -46,7 +46,7 @@ const layoutSet = {
   side1: layout,
 };
 
-const layoutSetName = 'subFormLayoutSet1Mock';
+const layoutSetName = 'subformLayoutSet1Mock';
 
 export const subformLayoutMock = {
   layoutSetName,

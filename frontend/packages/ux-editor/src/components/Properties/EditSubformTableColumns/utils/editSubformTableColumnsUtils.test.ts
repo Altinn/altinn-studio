@@ -1,4 +1,4 @@
-import { updateComponentWithSubform, filterOutTableColumn } from './editSubFormTableColumnsUtils';
+import { updateComponentWithSubform, filterOutTableColumn } from './editSubformTableColumnsUtils';
 import { type FormItem } from '@altinn/ux-editor/types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { type TableColumn } from '../types/TableColumn';
@@ -18,17 +18,17 @@ const mockTableColumn3: TableColumn = {
   cellContent: { query: 'query 3', default: 'default 3' },
 };
 
-const subFormComponentMock = componentMocks[ComponentType.SubForm];
+const subformComponentMock = componentMocks[ComponentType.SubForm];
 
-describe('editSubFormTableColumnsUtils', () => {
+describe('editSubformTableColumnsUtils', () => {
   describe('updateComponentWithSubform', () => {
     it('should add table columns to the component', () => {
       const tableColumnsToAdd = [mockTableColumn2, mockTableColumn3];
 
-      const updatedComponent = updateComponentWithSubform(subFormComponentMock, tableColumnsToAdd);
+      const updatedComponent = updateComponentWithSubform(subformComponentMock, tableColumnsToAdd);
 
       expect(updatedComponent.tableColumns).toEqual([
-        subFormComponentMock.tableColumns[0],
+        subformComponentMock.tableColumns[0],
         mockTableColumn2,
         mockTableColumn3,
       ]);
@@ -36,7 +36,7 @@ describe('editSubFormTableColumnsUtils', () => {
 
     it('should handle case where the component has no initial tableColumns', () => {
       const componentWithoutColumns: FormItem<ComponentType.SubForm> = {
-        ...subFormComponentMock,
+        ...subformComponentMock,
         tableColumns: undefined,
       };
 
@@ -51,9 +51,9 @@ describe('editSubFormTableColumnsUtils', () => {
     });
 
     it('should return the same component if tableColumnsToAdd is an empty array', () => {
-      const updatedComponent = updateComponentWithSubform(subFormComponentMock, []);
+      const updatedComponent = updateComponentWithSubform(subformComponentMock, []);
 
-      expect(updatedComponent.tableColumns).toEqual([subFormComponentMock.tableColumns[0]]);
+      expect(updatedComponent.tableColumns).toEqual([subformComponentMock.tableColumns[0]]);
     });
   });
 
