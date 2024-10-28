@@ -11,14 +11,17 @@ export const ErrorBoundary = (props: any): ReactElement => {
     <StudioPageError
       title={t('general.page_error_title')}
       message={
-        <StudioParagraph>
-          <Trans
-            i18nKey={'general.page_error_message'}
-            components={{
-              a: <Link href='/contact'> </Link>,
-            }}
-          />
-        </StudioParagraph>
+        <>
+          <StudioParagraph>
+            <Trans
+              i18nKey={'general.page_error_message'}
+              components={{
+                a: <Link href='/contact'> </Link>,
+              }}
+            />
+          </StudioParagraph>
+          <StudioParagraph>HER ER FEILENE!!!!!!!! - {JSON.stringify(props)}</StudioParagraph>
+        </>
       }
     />
   );
