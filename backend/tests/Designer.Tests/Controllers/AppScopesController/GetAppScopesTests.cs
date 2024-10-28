@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
-using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Controllers.AppScopesController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using FluentAssertions;
@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppScopesController;
 
-public class GetAppScopesTests : DbDesignerEndpointsTestsBase<GetAppScopesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetAppScopesTests : AppScopesControllerTestsBase<GetAppScopesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
         $"/designer/api/{org}/{repository}/app-scopes";

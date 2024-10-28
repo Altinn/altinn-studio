@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
-using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Controllers.AppScopesController.Base;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -18,7 +18,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppScopesController;
 
-public class UpsertAppScopesTests : DbDesignerEndpointsTestsBase<UpsertAppScopesTests>, IClassFixture<WebApplicationFactory<Program>>
+public class UpsertAppScopesTests : AppScopesControllerTestsBase<UpsertAppScopesTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
             $"/designer/api/{org}/{repository}/app-scopes";

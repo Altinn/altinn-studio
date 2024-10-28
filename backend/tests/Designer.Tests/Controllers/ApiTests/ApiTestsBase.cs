@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Designer.Tests.Fixtures;
@@ -62,6 +64,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
         Factory = factory;
         SetupDirtyHackIfLinux();
+        InitializeJsonConfigOverrides();
     }
 
     /// <summary>
@@ -115,8 +118,13 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
     }
 
-    protected virtual string JsonConfigOverride =>
-        $@"
+    protected List<string> JsonConfigOverrides;
+
+    private void InitializeJsonConfigOverrides()
+    {
+        JsonConfigOverrides =
+        [
+            $@"
               {{
                     ""OidcLoginSettings"": {{
                         ""ClientId"": ""{Guid.NewGuid()}"",
@@ -139,11 +147,26 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         ""CookieExpiryTimeInMinutes"" : 59
                     }}
               }}
-            ";
+            "
+        ];
+    }
+
 
     private Stream GenerateJsonOverrideConfig()
     {
-        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConfigOverride));
+        var overrideJson = Newtonsoft.Json.Linq.JObject.Parse(JsonConfigOverrides.First());
+        if (JsonConfigOverrides.Count > 1)
+        {
+            foreach (string jsonConfig in JsonConfigOverrides)
+            {
+                overrideJson.Merge(Newtonsoft.Json.Linq.JObject.Parse(jsonConfig), new Newtonsoft.Json.Linq.JsonMergeSettings
+                {
+                    MergeArrayHandling = Newtonsoft.Json.Linq.MergeArrayHandling.Union
+                });
+            }
+        }
+        string overrideJsonString = overrideJson.ToString();
+        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(overrideJsonString));
         configStream.Seek(0, SeekOrigin.Begin);
         return configStream;
     }

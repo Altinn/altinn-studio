@@ -16,37 +16,15 @@ namespace Designer.Tests.Controllers.ApiTests
             DesignerDbFixture designerDbFixture) : base(factory)
         {
             DesignerDbFixture = designerDbFixture;
-        }
-
-        protected override string JsonConfigOverride =>
-            $@"
+            JsonConfigOverrides.Add($@"
               {{
-                    ""OidcLoginSettings"": {{
-                        ""ClientId"": ""{Guid.NewGuid()}"",
-                        ""ClientSecret"": ""{Guid.NewGuid()}"",
-                        ""Authority"": ""http://studio.localhost/repos/"",
-                        ""Scopes"": [
-                            ""openid"",
-                            ""profile"",
-                            ""write:activitypub"",
-                            ""write:admin"",
-                            ""write:issue"",
-                            ""write:misc"",
-                            ""write:notification"",
-                            ""write:organization"",
-                            ""write:package"",
-                            ""write:repository"",
-                            ""write:user""
-                        ],
-                        ""RequireHttpsMetadata"": false,
-                        ""CookieExpiryTimeInMinutes"" : 59
-                    }},
                     ""PostgreSQLSettings"": {{
                         ""ConnectionString"": ""{DesignerDbFixture.ConnectionString}"",
                         ""DesignerDbPwd"": """"
                     }}
              }}
-            ";
+            ");
+        }
 
     }
 }
