@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Repository.Models.AppScope;
-using Designer.Tests.Controllers.AppScopesController.Base;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.DbIntegrationTests;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
@@ -58,7 +58,7 @@ public class UpsertAppScopesTests : DbDesignerEndpointsTestsBase<UpsertAppScopes
 
         dbEntity.Should().NotBeNull();
 
-        var scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(dbEntity.Scopes, JsonOptions);
+        var scopes = JsonSerializer.Deserialize<ISet<MaskinPortenScopeEntity>>(dbEntity.Scopes, JsonSerializerOptions);
         scopes.Should().HaveCount(payload.Scopes.Count);
         foreach (MaskinPortenScopeEntity maskinPortenScopeEntity in scopes)
         {

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Text.Json;
-using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Fixtures;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-namespace Designer.Tests.Controllers.AppScopesController.Base
+namespace Designer.Tests.Controllers.ApiTests
 {
     [Trait("Category", "DbIntegrationTest")]
     [Collection(nameof(DesignerDbCollection))]
@@ -13,12 +11,6 @@ namespace Designer.Tests.Controllers.AppScopesController.Base
         where TControllerTest : class
     {
         protected readonly DesignerDbFixture DesignerDbFixture;
-
-        protected static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
-        };
 
         protected DbDesignerEndpointsTestsBase(WebApplicationFactory<Program> factory,
             DesignerDbFixture designerDbFixture) : base(factory)
