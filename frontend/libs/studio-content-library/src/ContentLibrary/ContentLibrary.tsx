@@ -44,7 +44,7 @@ function ContentLibraryForPage<T extends PageName = 'landingPage'>({
       <div className={classes.libraryContainer}>
         <LibraryHeader />
         <div className={classes.libraryContent}>
-          <PagesRouter pageNames={Object.keys(pages) as PageName[]} />
+          <PagesRouter currentPage={currentPage} />
           <div className={classes.component}>
             <Component {...componentProps} />
           </div>
