@@ -3,7 +3,8 @@ import React from 'react';
 import { StudioMenuTab } from '../StudioMenuTab';
 import { StudioMenuTabContainer } from '../StudioMenuTabContainer';
 import { useStudioContentMenuContext } from '../context/StudioContentMenuContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import classes from './StudioContentMenuLinkTab.module.css';
 
 export type StudioContentMenuLinkTabProps<TabId extends string> = {
   icon: ReactNode;
@@ -19,6 +20,15 @@ export function StudioContentMenuLinkTab<TabId extends string>({
   to,
 }: StudioContentMenuLinkTabProps<TabId>): React.ReactElement {
   const { selectedTabId, onChangeTab } = useStudioContentMenuContext();
+  const navigate = useNavigate();
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      onChangeTab(tabId);
+      navigate(to);
+    }
+  };
 
   return (
     <StudioMenuTabContainer
@@ -26,8 +36,9 @@ export function StudioContentMenuLinkTab<TabId extends string>({
       tabName={tabName}
       isTabSelected={selectedTabId === tabId}
       onClick={() => onChangeTab(tabId)}
+      onKeyDown={handleKeyDown}
     >
-      <Link to={to} tabIndex={-1}>
+      <Link className={classes.linkTab} to={to}>
         <StudioMenuTab icon={icon} tabName={tabName} />
       </Link>
     </StudioMenuTabContainer>

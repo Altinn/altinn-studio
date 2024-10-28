@@ -9,6 +9,7 @@ type StudioMenuTabProps<TabId extends string> = {
   tabName: string;
   isTabSelected: boolean;
   onClick: (tabId: TabId) => void;
+  onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => void;
 };
 
 export function StudioMenuTabContainer<TabId extends string>({
@@ -17,6 +18,7 @@ export function StudioMenuTabContainer<TabId extends string>({
   tabName,
   isTabSelected,
   onClick,
+  onKeyDown,
 }: StudioMenuTabProps<TabId>): ReactElement {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     moveFocus(event);
@@ -32,7 +34,7 @@ export function StudioMenuTabContainer<TabId extends string>({
       onClick={() => onClick(tabId)}
       role='tab'
       tabIndex={isTabSelected ? 0 : -1}
-      onKeyDown={handleKeyDown}
+      onKeyDown={onKeyDown ?? handleKeyDown}
       title={tabName}
     >
       {children}

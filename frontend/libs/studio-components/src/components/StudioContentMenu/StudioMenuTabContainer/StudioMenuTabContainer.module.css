@@ -1,8 +1,6 @@
 :root {
-  --tab-icon-title-gap: var(--fds-spacing-2);
   --tab-display: flex;
   --tab-align-items: center;
-  --tab-cursor: pointer;
   --tab-width: 100%;
 }
 
@@ -10,13 +8,12 @@
 .tab {
   display: var(--tab-display);
   align-items: var(--tab-align-items);
-  gap: var(--tab-icon-title-gap);
   box-sizing: border-box;
   border: solid 1px var(--fds-semantic-border-action-second-subtle);
   padding: var(--fds-spacing-3);
   width: var(--tab-width);
   background-color: var(--fds-semantic-surface-action-second-subtle);
-  cursor: var(--tab-cursor);
+  cursor: pointer;
 }
 
 .selectedTab {

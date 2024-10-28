@@ -1,7 +1,7 @@
 .tabContent {
   display: flex;
   align-items: center;
-  gap: var(--tab-icon-title-gap);
+  gap: var(--fds-spacing-2);
 }
 
 .tabIcon {

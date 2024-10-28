@@ -1,4 +1,3 @@
-.buttonTab {
-  all: unset;
+.linkTab {
   width: var(--tab-width);
 }
