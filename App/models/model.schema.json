@@ -215,6 +215,9 @@
     },
     "anyNumber": {
       "type": "number"
+    },
+    "checkboxForCard": {
+      "type": "boolean"
     }
   }
 }
