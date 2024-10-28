@@ -16,11 +16,6 @@
 .divider {
   margin-top: var(--fds-spacing-0);
 }
-
-.field {
-  justify-content: inline;
-}
-
 .buttons {
   display: flex;
   gap: var(--fds-spacing-2);
