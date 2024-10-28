@@ -113,15 +113,30 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("LikertExample")]
     public List<LikertQuestion> LikertExample { get; set; }
 
-    [XmlElement("mapComponent", Order = 21)]
-    [JsonProperty("mapComponent")]
-    [JsonPropertyName("mapComponent")]
-    public string mapComponent { get; set; }
-    
-    [XmlElement("DatepickerExample", Order = 22)]
+    [XmlElement("DatepickerExample", Order = 21)]
     [JsonProperty("DatepickerExample")]
     [JsonPropertyName("DatepickerExample")]
     public string DatepickerExample { get; set; }
+
+    [XmlElement("mapComponent", Order = 22)]
+    [JsonProperty("mapComponent")]
+    [JsonPropertyName("mapComponent")]
+    public string mapComponent { get; set; }
+
+    [Range(Double.MinValue, 100d)]
+    [XmlElement("numberPercentage", Order = 23)]
+    [JsonProperty("numberPercentage")]
+    [JsonPropertyName("numberPercentage")]
+    public decimal? numberPercentage { get; set; }
+
+    public bool ShouldSerializenumberPercentage() => numberPercentage.HasValue;
+
+    [XmlElement("anyNumber", Order = 24)]
+    [JsonProperty("anyNumber")]
+    [JsonPropertyName("anyNumber")]
+    public decimal? anyNumber { get; set; }
+
+    public bool ShouldSerializeanyNumber() => anyNumber.HasValue;
 
   }
 

@@ -208,6 +208,13 @@
     },
     "mapComponent": {
       "type": "string"
+    },
+    "numberPercentage": {
+      "type": "integer",
+      "maximum": 100
+    },
+    "anyNumber": {
+      "type": "number"
     }
   }
 }

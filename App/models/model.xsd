@@ -73,7 +73,10 @@
         <xs:element minOccurs="0" maxOccurs="3" name="nestedRepeatingGroup" type="RepeatingGroupWithNestedGroup" />
         <xs:element minOccurs="0" name="list" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="LikertExample" type="LikertQuestion" />
+        <xs:element minOccurs="0" name="DatepickerExample" type="xs:string" />
         <xs:element minOccurs="0" name="mapComponent" type="xs:string" />
+        <xs:element minOccurs="0" name="numberPercentage" type="xs:long" />
+        <xs:element minOccurs="0" name="anyNumber" type="xs:double" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
