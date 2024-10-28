@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { PagesConfig } from '../types/PagesProps';
 import { ResourceContentLibraryImpl } from './ContentResourceLibraryImpl';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { BrowserRouter } from 'react-router-dom';
 
 describe('ContentResourceLibraryImpl', () => {
   it('renders ContentResourceLibraryImpl with given pages', () => {
@@ -51,5 +52,5 @@ describe('ContentResourceLibraryImpl', () => {
 const renderContentResourceLibraryImpl = (pages: PagesConfig) => {
   const contentResourceLibraryImpl = new ResourceContentLibraryImpl({ pages });
   const { getContentResourceLibrary } = contentResourceLibraryImpl;
-  render(<div>{getContentResourceLibrary()}</div>);
+  render(<BrowserRouter>{getContentResourceLibrary()}</BrowserRouter>);
 };

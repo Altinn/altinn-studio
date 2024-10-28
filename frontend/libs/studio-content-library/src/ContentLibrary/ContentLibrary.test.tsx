@@ -6,6 +6,7 @@ import { mockPagesConfig } from '../../mocks/mockPagesConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../contexts/RouterContext';
 import type { PageName } from '../types/PageName';
+import { BrowserRouter } from 'react-router-dom';
 
 const navigateMock = jest.fn();
 
@@ -13,7 +14,7 @@ describe('ContentLibrary', () => {
   it('renders the ContentLibrary with landingPage by default', () => {
     renderContentLibrary();
     const libraryHeader = screen.getByRole('heading', {
-      name: textMock('app_content_library.landing_page.page_name'),
+      name: textMock('app_content_library.library_heading'),
     });
     const landingPageTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
@@ -52,8 +53,10 @@ describe('ContentLibrary', () => {
 
 const renderContentLibrary = (currentPage: PageName = undefined) => {
   render(
-    <RouterContext.Provider value={{ currentPage, navigate: navigateMock }}>
-      <ContentLibrary pages={mockPagesConfig} />
-    </RouterContext.Provider>,
+    <BrowserRouter>
+      <RouterContext.Provider value={{ currentPage, navigate: navigateMock }}>
+        <ContentLibrary pages={mockPagesConfig} />
+      </RouterContext.Provider>
+    </BrowserRouter>,
   );
 };

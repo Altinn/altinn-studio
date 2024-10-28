@@ -1,11 +1,12 @@
 import React from 'react';
 import { StudioContentMenu } from './';
 import classes from './StudioContentMenuWrapper.module.css';
-import type { StudioButtonTabType, StudioLinkTabType } from './types/StudioMenuTabType';
+import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
+import type { StudioContentMenuLinkTabProps } from './StudioContentMenuLinkTab';
 
 export type StudioContentMenuWrapperProps<TabId extends string> = {
-  buttonTabs: StudioButtonTabType<TabId>[];
-  linkTabs: StudioLinkTabType<TabId>[];
+  buttonTabs: StudioContentMenuButtonTabProps<TabId>[];
+  linkTabs: StudioContentMenuLinkTabProps<TabId>[];
   selectedTabId: TabId;
   onChangeTab: (tabId: TabId) => void;
 };
@@ -19,10 +20,27 @@ export function StudioContentMenuWrapper<TabId extends string>({
   return (
     <div className={classes.contentMenuWrapper}>
       <StudioContentMenu selectedTabId={selectedTabId} onChangeTab={onChangeTab}>
-        <StudioContentMenu.ButtonTab contentTab={buttonTabs[0]} />
-        <StudioContentMenu.ButtonTab contentTab={buttonTabs[1]} />
-        <StudioContentMenu.ButtonTab contentTab={buttonTabs[2]} />
-        <StudioContentMenu.LinkTab contentTab={linkTabs[0]} />
+        <StudioContentMenu.ButtonTab
+          icon={buttonTabs[0].icon}
+          tabId={buttonTabs[0].tabId}
+          tabName={buttonTabs[0].tabName}
+        />
+        <StudioContentMenu.ButtonTab
+          icon={buttonTabs[1].icon}
+          tabId={buttonTabs[1].tabId}
+          tabName={buttonTabs[1].tabName}
+        />
+        <StudioContentMenu.ButtonTab
+          icon={buttonTabs[2].icon}
+          tabId={buttonTabs[2].tabId}
+          tabName={buttonTabs[2].tabName}
+        />
+        <StudioContentMenu.LinkTab
+          icon={linkTabs[0].icon}
+          tabId={linkTabs[0].tabId}
+          tabName={linkTabs[0].tabName}
+          renderTab={linkTabs[0].renderTab}
+        />
       </StudioContentMenu>
     </div>
   );

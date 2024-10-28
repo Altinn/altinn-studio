@@ -8,25 +8,14 @@ import { RouterContext } from '../../contexts/RouterContext';
 const navigateMock = jest.fn();
 
 describe('LibraryHeader', () => {
-  it('renders the landingPage header', () => {
+  it('renders the contentLibrary header', () => {
     renderLibraryHeader();
-    const landingPageIcon = screen.getByRole('img');
-    const landingPageHeader = screen.getByRole('heading', {
-      name: textMock('app_content_library.landing_page.page_name'),
+    const libraryIcon = screen.getByRole('img');
+    const libraryHeader = screen.getByRole('heading', {
+      name: textMock('app_content_library.library_heading'),
     });
-    expect(landingPageIcon).toBeInTheDocument();
-    expect(landingPageHeader).toBeInTheDocument();
-  });
-
-  it('calls navigate from useRouterContext when clicking on the header', async () => {
-    const user = userEvent.setup();
-    renderLibraryHeader();
-    const landingPageHeader = screen.getByRole('heading', {
-      name: textMock('app_content_library.landing_page.page_name'),
-    });
-    await user.click(landingPageHeader);
-    expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('landingPage');
+    expect(libraryIcon).toBeInTheDocument();
+    expect(libraryHeader).toBeInTheDocument();
   });
 });
 

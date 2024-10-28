@@ -9,10 +9,8 @@ export function LibraryHeader(): React.ReactElement {
 
   return (
     <div className={classes.libraryHeading}>
-      <div className={classes.libraryLandingPageNavigation}>
-        <BookIcon className={classes.headingIcon} />
-        <StudioHeading size='small'>{t('app_content_library.library_heading')}</StudioHeading>
-      </div>
+      <BookIcon className={classes.headingIcon} />
+      <StudioHeading size='small'>{t('app_content_library.library_heading')}</StudioHeading>
     </div>
   );
 }

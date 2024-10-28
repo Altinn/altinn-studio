@@ -1,35 +1,40 @@
 import React from 'react';
 import type { PageName } from '../types/PageName';
 import { BookIcon, CodeListsIcon, ImageIcon } from '@studio/icons';
-import type { StudioMenuTabType } from '@studio/components';
+import type { StudioContentMenuLinkTabProps } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
+
+type TabDictionary<T extends string> = Record<T, StudioContentMenuLinkTabProps<T>>;
 
 type useContentTabsReturnType = {
-  getContentTabs: () => StudioMenuTabType<PageName>[];
+  getContentTabs: () => TabDictionary<PageName>;
 };
 
 export const useContentTabs = (): useContentTabsReturnType => {
   const { t } = useTranslation();
-  const getContentTabs = (): StudioMenuTabType<PageName>[] => [
-    {
+
+  const getContentTabs = (): TabDictionary<PageName> => ({
+    landingPage: {
       tabName: t('app_content_library.landing_page.page_name'),
       tabId: 'landingPage',
       icon: <BookIcon />,
-      to: '',
+      renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=landingPage`} {...props} />,
     },
-    {
-      icon: <CodeListsIcon />,
-      tabId: 'codeList',
+    codeList: {
       tabName: t('app_content_library.code_lists.page_name'),
-      to: '',
+      tabId: 'codeList',
+      icon: <CodeListsIcon />,
+      renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=codeList`} {...props} />,
     },
-    {
-      icon: <ImageIcon />,
-      tabId: 'images',
+    images: {
       tabName: t('app_content_library.images.page_name'),
-      to: '',
+      tabId: 'images',
+      icon: <ImageIcon />,
+      renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=images`} {...props} />,
     },
-  ];
+  });
 
   return { getContentTabs };
 };

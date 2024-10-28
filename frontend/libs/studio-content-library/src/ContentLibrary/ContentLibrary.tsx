@@ -4,11 +4,10 @@ import type { PageComponent } from '../utils/router/RouterRouteMapper';
 import { RouterRouteMapperImpl } from '../utils/router/RouterRouteMapper';
 import type { PagePropsMap, PagesConfig } from '../types/PagesProps';
 import classes from './ContentLibrary.module.css';
-import { InfoBox } from './InfoBox';
-import { PagesRouter } from './PagesRouter';
 import { LibraryHeader } from './LibraryHeader';
 import { StudioHeading } from '@studio/components';
 import type { PageName } from '../types/PageName';
+import { LibraryContent } from './LibraryContent/LibraryContent';
 
 type ContentLibraryProps = {
   pages: PagesConfig;
@@ -34,22 +33,11 @@ function ContentLibraryForPage<T extends PageName = 'landingPage'>({
     router.configuredRoutes.get(currentPage);
   if (!Component) return <StudioHeading>404 Page Not Found</StudioHeading>; // Show the NotFound page from app-dev instead
 
-  const componentPropsAreExternal = currentPage !== 'landingPage';
-
-  const componentProps: Required<PagePropsMap>[T] =
-    componentPropsAreExternal && (pages[currentPage].props as Required<PagePropsMap>[T]);
-
   return (
     <div className={classes.libraryBackground}>
       <div className={classes.libraryContainer}>
         <LibraryHeader />
-        <div className={classes.libraryContent}>
-          <PagesRouter currentPage={currentPage} />
-          <div className={classes.component}>
-            <Component {...componentProps} />
-          </div>
-          <InfoBox pageName={currentPage} />
-        </div>
+        <LibraryContent Component={Component} pages={pages} currentPage={currentPage} />
       </div>
     </div>
   );

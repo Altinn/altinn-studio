@@ -1,0 +1,6 @@
+.buttonTab {
+  all: unset;
+  display: var(--tab-display);
+  align-items: var(--tab-align-items);
+  width: var(--tab-width);
+}

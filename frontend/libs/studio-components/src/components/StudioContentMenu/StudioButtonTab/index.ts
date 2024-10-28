@@ -1,1 +1,0 @@
-export { StudioButtonTab } from './StudioButtonTab';

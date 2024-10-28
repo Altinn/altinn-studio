@@ -2,7 +2,7 @@ import React from 'react';
 import { InfoBox } from './InfoBox';
 import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { PageName } from '../../types/PageName';
+import type { PageName } from '../../../types/PageName';
 import { infoBoxConfigs } from './infoBoxConfigs';
 
 const pageNameMock: PageName = 'codeList';

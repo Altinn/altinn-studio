@@ -1,13 +1,9 @@
 .libraryHeading {
-  padding: var(--fds-spacing-4);
-  border-bottom: solid 1px var(--fds-semantic-border-neutral-subtle);
-}
-
-.libraryLandingPageNavigation {
   display: flex;
   align-items: center;
   gap: var(--fds-spacing-1);
-  width: fit-content;
+  padding: var(--fds-spacing-4);
+  border-bottom: solid 1px var(--fds-semantic-border-neutral-subtle);
 }
 
 .headingIcon {

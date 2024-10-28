@@ -1,9 +1,9 @@
 import { type ComponentProps, type ReactElement } from 'react';
-import { CodeList } from '../../ContentLibrary/pages/CodeList';
+import { CodeList } from '../../ContentLibrary/LibraryContent/pages/CodeList';
 import type { PageName } from '../../types/PageName';
-import { LandingPage } from '../../ContentLibrary/pages/LandingPage';
+import { LandingPage } from '../../ContentLibrary/LibraryContent/pages/LandingPage';
 import type { PagesConfig } from '../../types/PagesProps';
-import { Images } from '../../ContentLibrary/pages/Images';
+import { Images } from '../../ContentLibrary/LibraryContent/pages/Images';
 
 type PageProps =
   | ComponentProps<typeof LandingPage>
