@@ -15,8 +15,8 @@ where TControllerTest : class
                         ""AnsattPorten"": true
                     }},
                     ""AnsattPortenLoginSettings"": {{
-                        ""ClientId"": ""dummy"",
-                        ""ClientSecret"": ""dummy""
+                        ""ClientId"": ""non-empty-for-testing"",
+                        ""ClientSecret"": ""non-empty-for-testing""
                     }}
              }}
             ");

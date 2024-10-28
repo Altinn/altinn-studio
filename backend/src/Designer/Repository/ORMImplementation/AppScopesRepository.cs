@@ -23,12 +23,7 @@ public class AppScopesRepository : IAppScopesRepository
         cancellationToken.ThrowIfCancellationRequested();
         var appScope = await _dbContext.AppScopes.AsNoTracking().SingleOrDefaultAsync(a => a.Org == repoContext.Org && a.App == repoContext.Repo, cancellationToken);
 
-        if (appScope is null)
-        {
-            return null;
-        }
-
-        return AppScopesMapper.MapToModel(appScope);
+        return appScope is null ? null : AppScopesMapper.MapToModel(appScope);
     }
 
     public async Task<AppScopesEntity> UpsertAppScopesAsync(AppScopesEntity appScopesEntity,
