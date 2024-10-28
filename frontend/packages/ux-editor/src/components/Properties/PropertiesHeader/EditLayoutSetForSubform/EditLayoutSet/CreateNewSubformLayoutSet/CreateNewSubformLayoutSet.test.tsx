@@ -54,7 +54,7 @@ describe('CreateNewSubformLayoutSet ', () => {
 
 const renderCreateNewSubformLayoutSet = (
   layoutSetsMock: LayoutSets = layoutSets,
-  componentProps: Partial<FormComponent<ComponentType.SubForm>> = {},
+  componentProps: Partial<FormComponent<ComponentType.Subform>> = {},
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
