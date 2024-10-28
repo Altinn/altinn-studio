@@ -59,5 +59,6 @@
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="8.0.10" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
+    <PackageReference Update="WireMock.Net" Version="1.6.7" />
   </ItemGroup>
 </Project>
