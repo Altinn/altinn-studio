@@ -36,7 +36,7 @@ public class GetAppScopesAsyncTests : DbIntegrationTestsBase
         AppScopesEntity result = await repository.GetAppScopesAsync(AltinnRepoContext.FromOrgRepo(org, app));
         result.Version.Should().BeGreaterThan(0);
         entity.Version = result.Version;
-        result.Should().BeEquivalentTo(entity);
+        EntityAssertions.AssertEqual(result, entity);
     }
 
     public static IEnumerable<object[]> GetAsyncTestData()

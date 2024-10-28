@@ -53,13 +53,11 @@ public class UpsertAppScopesAsyncIntegrationTests : DbIntegrationTestsBase
         var result = await repository.UpsertAppScopesAsync(entity);
         result.Version.Should().NotBe(entity.Version);
         entity.Version = result.Version;
-        result.Should().BeEquivalentTo(entity);
+        EntityAssertions.AssertEqual(entity, result);
 
         var updatedDbRecord = await DbFixture.DbContext.AppScopes.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
             d.App == app);
-
-        updatedDbRecord.Should().NotBeEquivalentTo(dbRecord);
 
         EntityAssertions.AssertEqual(entity, updatedDbRecord);
     }
