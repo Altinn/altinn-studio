@@ -1,11 +1,6 @@
 .wrapper {
-  padding: var(--fds-spacing-0);
-  padding-top: var(--fds-spacing-2);
-}
-
-.wrapper:hover {
-  background-color: var(--fds-semantic-surface-action-first-no_fill-hover);
-  cursor: pointer;
+  margin-top: var(--fds-spacing-1);
+  margin-left: calc(var(--fds-spacing-5) * -1);
 }
 
 .headerWrapper {

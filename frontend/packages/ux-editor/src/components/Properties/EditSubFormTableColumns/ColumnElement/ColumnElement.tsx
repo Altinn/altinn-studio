@@ -57,7 +57,6 @@ export const ColumnElement = ({
         columnNumber,
       })}
       value={headerContent}
-      withoutNegativeMargin={true}
     ></StudioProperty.Button>
   );
 };
