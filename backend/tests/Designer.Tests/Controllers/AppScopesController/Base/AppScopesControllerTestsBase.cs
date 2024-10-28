@@ -13,6 +13,10 @@ where TControllerTest : class
               {{
                     ""FeatureManagement"": {{
                         ""AnsattPorten"": true
+                    }},
+                    ""AnsattPortenLoginSettings"": {{
+                        ""ClientId"": ""dummy"",
+                        ""ClientSecret"": ""dummy""
                     }}
              }}
             ");
