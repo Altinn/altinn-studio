@@ -29,7 +29,7 @@ export const EditLayoutSet = ({
   if (isLayoutSetSelectorVisible) {
     return (
       <SelectLayoutSet
-        existingLayoutSetForSubForm={existingLayoutSetForSubform}
+        existingLayoutSetForSubform={existingLayoutSetForSubform}
         onUpdateLayoutSet={onUpdateLayoutSet}
         onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
         showButtons={true}
@@ -50,7 +50,7 @@ export const EditLayoutSet = ({
             {t('ux_editor.component_properties.subform.create_layout_set_description')}
           </StudioParagraph>
           <SelectLayoutSet
-            existingLayoutSetForSubForm={existingLayoutSetForSubform}
+            existingLayoutSetForSubform={existingLayoutSetForSubform}
             onUpdateLayoutSet={onUpdateLayoutSet}
             onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
             showButtons={false}
@@ -69,7 +69,7 @@ export const EditLayoutSet = ({
 
   return (
     <DefinedLayoutSet
-      existingLayoutSetForSubForm={existingLayoutSetForSubform}
+      existingLayoutSetForSubform={existingLayoutSetForSubform}
       onClick={() => setIsLayoutSetSelectorVisible(true)}
     />
   );

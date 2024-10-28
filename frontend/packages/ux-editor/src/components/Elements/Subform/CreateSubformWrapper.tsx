@@ -6,19 +6,19 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import classes from './CreateSubFormWrapper.module.css';
+import classes from './CreateSubformWrapper.module.css';
 
-type CreateSubFormWrapperProps = {
+type CreateSubformWrapperProps = {
   layoutSets: LayoutSets;
-  onSubFormCreated: (layoutSetName: string) => void;
+  onSubformCreated: (layoutSetName: string) => void;
 };
 
-export const CreateSubFormWrapper = ({
+export const CreateSubformWrapper = ({
   layoutSets,
-  onSubFormCreated,
-}: CreateSubFormWrapperProps) => {
+  onSubformCreated,
+}: CreateSubformWrapperProps) => {
   const [createNewOpen, setCreateNewOpen] = useState(false);
-  const [newSubFormName, setNewSubFormName] = useState('');
+  const [newSubformName, setNewSubformName] = useState('');
   const [nameError, setNameError] = useState('');
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
@@ -29,19 +29,19 @@ export const CreateSubFormWrapper = ({
     setCreateNewOpen(false);
 
     addLayoutSet({
-      layoutSetIdToUpdate: newSubFormName,
+      layoutSetIdToUpdate: newSubformName,
       layoutSetConfig: {
-        id: newSubFormName,
+        id: newSubformName,
         type: 'subform',
       },
     });
-    onSubFormCreated(newSubFormName);
+    onSubformCreated(newSubformName);
   };
 
-  const onNameChange = (subFormName: string) => {
-    const subFormNameValidation = validateLayoutSetName(subFormName, layoutSets);
-    setNameError(subFormNameValidation);
-    setNewSubFormName(subFormName);
+  const onNameChange = (subformName: string) => {
+    const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
+    setNameError(subformNameValidation);
+    setNewSubformName(subformName);
   };
 
   return (
@@ -59,7 +59,7 @@ export const CreateSubFormWrapper = ({
         <StudioTextfield
           label={t('ux_editor.create.subform.label')}
           size='small'
-          value={newSubFormName}
+          value={newSubformName}
           onChange={(e) => onNameChange(e.target.value)}
           error={nameError}
         />
@@ -67,7 +67,7 @@ export const CreateSubFormWrapper = ({
           className={classes.confirmCreateButton}
           variant='secondary'
           onClick={onCreateConfirmClick}
-          disabled={!newSubFormName || !!nameError}
+          disabled={!newSubformName || !!nameError}
         >
           {t('ux_editor.create.subform.confirm_button')}
         </StudioButton>
