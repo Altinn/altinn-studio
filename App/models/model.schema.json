@@ -217,7 +217,7 @@
       "type": "number"
     },
     "checkboxForCard": {
-      "type": "boolean"
+      "type": "string"
     }
   }
 }

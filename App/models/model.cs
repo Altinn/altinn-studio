@@ -138,12 +138,10 @@ namespace Altinn.App.Models.model
 
     public bool ShouldSerializeanyNumber() => anyNumber.HasValue;
 
-    [XmlElement("name0", Order = 25)]
-    [JsonProperty("name0")]
-    [JsonPropertyName("name0")]
-    public bool? name0 { get; set; }
-
-    public bool ShouldSerializename0() => name0.HasValue;
+    [XmlElement("checkboxForCard", Order = 25)]
+    [JsonProperty("checkboxForCard")]
+    [JsonPropertyName("checkboxForCard")]
+    public string checkboxForCard { get; set; }
 
   }
 
