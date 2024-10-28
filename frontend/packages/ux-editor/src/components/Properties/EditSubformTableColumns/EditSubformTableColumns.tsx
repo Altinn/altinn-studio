@@ -1,5 +1,5 @@
 import React, { type ReactElement } from 'react';
-import classes from './EditSubFormTableColumns.module.css';
+import classes from './EditSubformTableColumns.module.css';
 import { StudioButton, StudioHeading } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { type IGenericEditComponent } from '../../config/componentConfig';
