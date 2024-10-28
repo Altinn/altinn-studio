@@ -90,7 +90,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                             NameClaimType = GiteaUserNameClaim
                         };
 
-                        
+
                         options.Events.OnRedirectToIdentityProvider = context =>
                         {
                             // AspNetCore.OpenIdConnect.Nonce being created after each login

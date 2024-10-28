@@ -68,9 +68,11 @@ public class UpsertAppScopesTests : DbDesignerEndpointsTestsBase<UpsertAppScopes
 
     public static IEnumerable<object[]> TestData()
     {
-        yield return ["ttd", TestDataHelper.GenerateTestRepoName(), new AppScopesUpsertRequest()
-        {
-            Scopes = new HashSet<MaskinPortenScopeDto>()
+        yield return ["ttd",
+            TestDataHelper.GenerateTestRepoName(),
+            new AppScopesUpsertRequest()
+            {
+                Scopes = new HashSet<MaskinPortenScopeDto>()
             {
                 new()
                 {
@@ -78,7 +80,7 @@ public class UpsertAppScopesTests : DbDesignerEndpointsTestsBase<UpsertAppScopes
                     Description = "test"
                 }
             }
-        }];
+            }];
     }
 
 }

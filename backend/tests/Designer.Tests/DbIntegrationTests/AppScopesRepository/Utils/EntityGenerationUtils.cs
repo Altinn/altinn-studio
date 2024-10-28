@@ -25,7 +25,8 @@ public static partial class EntityGenerationUtils
         public static MaskinPortenScopeEntity GenerateMaskinPortenScopeEntity() =>
             new()
             {
-                Scope = Guid.NewGuid().ToString(), Description = Guid.NewGuid().ToString(),
+                Scope = Guid.NewGuid().ToString(),
+                Description = Guid.NewGuid().ToString(),
             };
 
         public static ISet<MaskinPortenScopeEntity> GenerateMaskinPortenScopeEntities(int count) =>
