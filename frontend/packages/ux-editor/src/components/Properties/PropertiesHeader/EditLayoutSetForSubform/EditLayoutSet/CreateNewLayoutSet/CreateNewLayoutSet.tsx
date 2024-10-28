@@ -57,7 +57,7 @@ export const CreateNewLayoutSet = ({
           onClick={createNewSubform}
           title={t('general.close')}
           variant='tertiary'
-          color='success'
+          color='second'
         />
       </StudioCard.Content>
     </StudioCard>
