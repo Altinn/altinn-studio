@@ -90,9 +90,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                             NameClaimType = GiteaUserNameClaim
                         };
 
-                        options.CallbackPath = "/gitea-signin-oidc";
-
-
+                        
                         options.Events.OnRedirectToIdentityProvider = context =>
                         {
                             // AspNetCore.OpenIdConnect.Nonce being created after each login

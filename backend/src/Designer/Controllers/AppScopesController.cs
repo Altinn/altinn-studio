@@ -22,8 +22,6 @@ namespace Altinn.Studio.Designer.Controllers;
 public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     IAppScopesService appScopesService) : ControllerBase
 {
-    // TODO: Cleanup model and create separation between presentation dto, domain model and external api model
-    // Will be done under: https://github.com/Altinn/altinn-studio/issues/12767 and https://github.com/Altinn/altinn-studio/issues/12766
     [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
     [HttpGet("maskinporten")]
     public async Task<IActionResult> GetScopesFromMaskinPorten(string org, string app, CancellationToken cancellationToken)
