@@ -49,7 +49,7 @@ describe('EditLayoutSetForSubform', () => {
 
   it('displays a button(Opprett et nytt skjema) to set a layout set for the subform', async () => {
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const createNewLayoutSetButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
     });
@@ -59,7 +59,7 @@ describe('EditLayoutSetForSubform', () => {
   it('renders CreateNewLayoutSet component when clicking the create new layout set button', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const createNewLayoutSetButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
     });
@@ -137,7 +137,7 @@ describe('EditLayoutSetForSubform', () => {
   it('calls handleComponentChange after creating a new layout set and clicking Lukk button', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const createNewLayoutSetButton = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
     });
