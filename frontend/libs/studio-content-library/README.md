@@ -26,7 +26,7 @@ const MyInternalContentLibrary = (): React.ReactElement => {
     pages: {
       root: {
         props: {
-          title: 'Welcome to App Libary for resources',
+          title: 'Welcome to App Library for resources',
           children: <div>My custom component</div>,
         },
       },
@@ -38,6 +38,6 @@ const MyInternalContentLibrary = (): React.ReactElement => {
     },
   });
 
-  return <div>{getContentResourceLibrary}</div>;
+  return <div>{getContentResourceLibrary()}</div>;
 };
 ```
