@@ -7,7 +7,7 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityGenerationUtils
 {
-    public static partial class AppScopes
+    public static class AppScopes
     {
         public static AppScopesEntity GenerateAppScopesEntity(string org, string app = null, int numberOfScopes = 3, string developer = "testUser")
         {
