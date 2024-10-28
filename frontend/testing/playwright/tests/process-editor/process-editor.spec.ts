@@ -132,6 +132,7 @@ test('that the user can edit the id of a task and add data-types to sign', async
   const giteaPage = new GiteaPage(page, { app: testAppName });
 
   const signingTask = await addNewSigningTaskToProcessEditor(page);
+  await processEditorPage.skipRecommendedTask();
 
   const randomGeneratedId = await processEditorPage.getTaskIdFromOpenNewlyAddedTask();
 
