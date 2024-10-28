@@ -1,9 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import { useNavigation } from '../hooks/useNavigation';
+import type { PageName } from '../types/PageName';
 
 export type RouterContextProps = {
-  currentPage: string;
-  navigate: (page: string) => void;
+  currentPage: PageName;
+  navigate: (page: PageName) => void;
 };
 
 export const RouterContext = createContext<RouterContextProps>(undefined);

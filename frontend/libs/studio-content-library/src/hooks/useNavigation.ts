@@ -4,7 +4,7 @@ import type { PageName } from '../types/PageName';
 
 type UseNavigationResult = {
   navigate: (page: PageName) => void;
-  currentPage: string;
+  currentPage: PageName;
 };
 
 export const useNavigation = (): UseNavigationResult => {
