@@ -4,15 +4,15 @@ import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
 import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
 import { useAddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import classes from './CreateNewLayoutSet.module.css';
+import classes from './CreateNewSubformLayoutSet.module.css';
 
-type CreateNewLayoutSetProps = {
+type CreateNewSubformLayoutSetProps = {
   onSubFormCreated: (layoutSetName: string) => void;
 };
 
-export const CreateNewLayoutSet = ({
+export const CreateNewSubformLayoutSet = ({
   onSubFormCreated,
-}: CreateNewLayoutSetProps): React.ReactElement => {
+}: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubForm, setNewSubForm] = useState('');
   const { org, app } = useStudioEnvironmentParams();
@@ -31,12 +31,8 @@ export const CreateNewLayoutSet = ({
     setNewSubForm('');
   };
 
-  function onNameChange(subFormName: string) {
-    setNewSubForm(subFormName);
-  }
-
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    onNameChange(e.target.value);
+    setNewSubForm(e.target.value);
   }
 
   return (
@@ -57,7 +53,7 @@ export const CreateNewLayoutSet = ({
           onClick={createNewSubform}
           title={t('general.close')}
           variant='tertiary'
-          color='second'
+          color='success'
         />
       </StudioCard.Content>
     </StudioCard>

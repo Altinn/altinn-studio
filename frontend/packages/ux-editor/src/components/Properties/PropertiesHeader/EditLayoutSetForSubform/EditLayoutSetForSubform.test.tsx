@@ -64,9 +64,9 @@ describe('EditLayoutSetForSubForm', () => {
       name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
     });
     await user.click(createNewLayoutSetButton);
-    const createNewLayoutSetComponent = screen.getByText(
-      textMock('ux_editor.component_properties.subform.created_layout_set_name'),
-    );
+    const createNewLayoutSetComponent = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.created_layout_set_name'),
+    });
     expect(createNewLayoutSetComponent).toBeInTheDocument();
   });
 

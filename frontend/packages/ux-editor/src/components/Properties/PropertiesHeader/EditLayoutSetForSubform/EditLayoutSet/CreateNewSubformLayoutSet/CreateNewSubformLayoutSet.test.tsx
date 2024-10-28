@@ -1,6 +1,6 @@
 import React from 'react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
-import { CreateNewLayoutSet } from './CreateNewLayoutSet';
+import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { screen, waitFor } from '@testing-library/react';
@@ -16,32 +16,33 @@ import { appContextMock } from '../../../../../../testing/appContextMock';
 
 const onSubFormCreatedMock = jest.fn();
 
-describe('CreateNewLayoutSet', () => {
+describe('CreateNewSubformLayoutSet ', () => {
   afterEach(jest.clearAllMocks);
 
   it('displays the card with label and input field', () => {
-    renderCreateNewLayoutSet();
-    const card = screen.getByLabelText(
-      textMock('ux_editor.component_properties.subform.created_layout_set_name'),
-    );
+    renderCreateNewSubformLayoutSet();
+    const card = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.created_layout_set_name'),
+    });
+
     expect(card).toBeInTheDocument();
   });
 
   it('displays the input field', () => {
-    renderCreateNewLayoutSet();
+    renderCreateNewSubformLayoutSet();
     const input = screen.getByRole('textbox');
     expect(input).toBeInTheDocument();
   });
 
   it('displays the save button', () => {
-    renderCreateNewLayoutSet();
+    renderCreateNewSubformLayoutSet();
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     expect(saveButton).toBeInTheDocument();
   });
 
   it('calls onSubFormCreated when save button is clicked', async () => {
     const user = userEvent.setup();
-    renderCreateNewLayoutSet();
+    renderCreateNewSubformLayoutSet();
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubForm');
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
@@ -51,7 +52,7 @@ describe('CreateNewLayoutSet', () => {
   });
 });
 
-const renderCreateNewLayoutSet = (
+const renderCreateNewSubformLayoutSet = (
   layoutSetsMock: LayoutSets = layoutSets,
   componentProps: Partial<FormComponent<ComponentType.SubForm>> = {},
 ) => {
@@ -59,7 +60,7 @@ const renderCreateNewLayoutSet = (
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <AppContext.Provider value={{ ...appContextMock }}>
-      <CreateNewLayoutSet onSubFormCreated={onSubFormCreatedMock} {...componentProps} />
+      <CreateNewSubformLayoutSet onSubFormCreated={onSubFormCreatedMock} {...componentProps} />
     </AppContext.Provider>,
     { queryClient },
   );

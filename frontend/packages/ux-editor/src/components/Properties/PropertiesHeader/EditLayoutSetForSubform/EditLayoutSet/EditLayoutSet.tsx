@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
-import { StudioProperty, StudioRecommendedNextAction } from '@studio/components';
-import { Paragraph } from '@digdir/designsystemet-react';
+import { StudioParagraph, StudioProperty, StudioRecommendedNextAction } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import classes from './EditLayoutSet.module.css';
-import { CreateNewLayoutSet } from './CreateNewLayoutSet/CreateNewLayoutSet';
+import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
@@ -24,7 +23,7 @@ export const EditLayoutSet = ({
   const [showCreateSubform, setShowCreateSubform] = useState<boolean>(false);
 
   function handleClick() {
-    setShowCreateSubform(!showCreateSubform);
+    setShowCreateSubform(true);
   }
 
   if (isLayoutSetSelectorVisible) {
@@ -47,9 +46,9 @@ export const EditLayoutSet = ({
           hideSaveButton={true}
           hideSkipButton={true}
         >
-          <Paragraph size='sm'>
+          <StudioParagraph size='sm'>
             {t('ux_editor.component_properties.subform.create_layout_set_description')}
-          </Paragraph>
+          </StudioParagraph>
           <SelectLayoutSet
             existingLayoutSetForSubForm={existingLayoutSetForSubform}
             onUpdateLayoutSet={onUpdateLayoutSet}
@@ -63,7 +62,7 @@ export const EditLayoutSet = ({
             onClick={handleClick}
           />
         </StudioRecommendedNextAction>
-        {showCreateSubform && <CreateNewLayoutSet onSubFormCreated={onSubFormCreated} />}
+        {showCreateSubform && <CreateNewSubformLayoutSet onSubFormCreated={onSubFormCreated} />}
       </>
     );
   }
