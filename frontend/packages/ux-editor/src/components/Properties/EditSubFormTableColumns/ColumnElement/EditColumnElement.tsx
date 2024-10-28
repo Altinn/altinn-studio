@@ -17,7 +17,7 @@ import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
 import type { FormItem } from '../../../../types/FormItem';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import type { ITextResource } from 'app-shared/types/global';
+import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -41,10 +41,10 @@ export const EditColumnElement = ({
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subFormLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const textKeyValue =
-    textResources?.nb?.find(
-      (textResource: ITextResource) => textResource.id === tableColumn.headerContent,
-    )?.value ?? tableColumn.headerContent;
+  const textKeyValue = textResourceByLanguageAndIdSelector(
+    'nb',
+    tableColumn.headerContent,
+  )(textResources)?.value;
   const components = formLayouts
     ? Object.values(formLayouts).flatMap((layout) => {
         return getAllLayoutComponents(layout);

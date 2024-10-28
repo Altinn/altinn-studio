@@ -6,7 +6,6 @@ import { StudioProperty } from '@studio/components';
 import { EditColumnElement } from './EditColumnElement';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { ITextResource } from 'app-shared/types/global';
 
 export type ColumnElementProps = {
   layoutSetName: string;
@@ -28,10 +27,10 @@ export const ColumnElement = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const headerContent =
-    textResources?.nb?.find(
-      (textResource: ITextResource) => textResource.id === tableColumn.headerContent,
-    )?.value ?? tableColumn.headerContent;
+  const textKeyValue = textResourceByLanguageAndIdSelector(
+    'nb',
+    tableColumn.headerContent,
+  )(textResources)?.value;
 
   if (editing) {
     return (
@@ -56,7 +55,7 @@ export const ColumnElement = ({
       property={t('ux_editor.properties_panel.subform_table_columns.column_header', {
         columnNumber,
       })}
-      value={headerContent}
+      value={textKeyValue}
     ></StudioProperty.Button>
   );
 };
