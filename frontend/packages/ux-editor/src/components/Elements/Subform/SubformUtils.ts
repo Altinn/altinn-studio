@@ -2,8 +2,8 @@ import type { LayoutSet } from 'app-shared/types/api/LayoutSetsResponse';
 
 const SUBFORM_IDENTIFIER = 'subform';
 
-export class SubFormUtils {
-  public static findSubFormById(
+export class SubformUtils {
+  public static findSubformById(
     layoutSets: Array<LayoutSet>,
     layoutSetId: string,
   ): LayoutSet | null {
@@ -11,10 +11,10 @@ export class SubFormUtils {
 
     if (!foundLayoutSet) return null;
 
-    return SubFormUtils.isLayoutSetSubForm(foundLayoutSet) ? foundLayoutSet : null;
+    return SubformUtils.isLayoutSetSubform(foundLayoutSet) ? foundLayoutSet : null;
   }
 
-  private static isLayoutSetSubForm(layoutSet: LayoutSet): boolean {
+  private static isLayoutSetSubform(layoutSet: LayoutSet): boolean {
     return layoutSet.type === SUBFORM_IDENTIFIER;
   }
 }
