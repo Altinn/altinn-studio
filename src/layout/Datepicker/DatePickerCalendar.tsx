@@ -43,7 +43,7 @@ export const DatePickerCalendar = ({
       }}
       locale={currentLocale}
       today={new Date()}
-      month={selectedDate}
+      defaultMonth={selectedDate}
       disabled={[{ before: minDate, after: maxDate }]}
       weekStartsOn={1}
       mode='single'

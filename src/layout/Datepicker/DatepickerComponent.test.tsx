@@ -179,12 +179,12 @@ describe('DatepickerComponent', () => {
   it('should call setLeafValue if not finished filling out the date', async () => {
     const { formDataMethods } = await render();
 
-    await userEvent.type(screen.getByRole('textbox'), `12.34`);
+    await userEvent.type(screen.getByRole('textbox'), `1234`);
     await userEvent.tab();
 
     expect(formDataMethods.setLeafValue).toHaveBeenCalledWith({
       reference: { field: 'myDate', dataType: defaultDataTypeMock },
-      newValue: '12.34',
+      newValue: '12.34.____',
     });
   });
 

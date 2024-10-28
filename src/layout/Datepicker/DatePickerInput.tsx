@@ -1,81 +1,69 @@
-import React, { forwardRef, useEffect, useState } from 'react';
-import type { FocusEventHandler, RefObject } from 'react';
+import React, { useEffect, useState } from 'react';
+import { PatternFormat } from 'react-number-format';
 
-import { Button, Textfield } from '@digdir/designsystemet-react';
-import { CalendarIcon } from '@navikt/aksel-icons';
-import { format, isMatch, isValid } from 'date-fns';
+import { Textfield } from '@digdir/designsystemet-react';
+import { format, isValid } from 'date-fns';
 
-import { useLanguage } from 'src/features/language/useLanguage';
 import styles from 'src/layout/Datepicker/Calendar.module.css';
-import { DatepickerSaveFormatNoTimestamp, DatepickerSaveFormatTimestamp } from 'src/utils/dateHelpers';
+import { getSaveFormattedDateString, strictParseFormat, strictParseISO } from 'src/utils/dateHelpers';
+import { getFormatPattern } from 'src/utils/formatDateLocale';
 
 export interface DatePickerInputProps {
   id: string;
+  datepickerFormat: string;
+  timeStamp: boolean;
   value?: string;
-  formatString?: string;
-  onBlur?: FocusEventHandler<HTMLInputElement>;
-  onClick?: () => void;
-  isDialogOpen?: boolean;
+  onValueChange?: (value: string) => void;
   readOnly?: boolean;
 }
 
-export const DatePickerInput = forwardRef(
-  (
-    { id, value, formatString, onBlur, isDialogOpen, readOnly, onClick }: DatePickerInputProps,
-    ref: RefObject<HTMLButtonElement>,
-  ) => {
-    const [input, setInput] = useState(value ?? '');
+export function DatePickerInput({
+  id,
+  value,
+  datepickerFormat,
+  timeStamp,
+  onValueChange,
+  readOnly,
+}: DatePickerInputProps) {
+  const formatPattern = getFormatPattern(datepickerFormat);
+  const dateValue = strictParseISO(value);
+  const formattedDateValue = dateValue ? format(dateValue, datepickerFormat) : value;
+  const [inputValue, setInputValue] = useState(formattedDateValue ?? '');
 
-    const { langAsString } = useLanguage();
+  useEffect(() => {
+    setInputValue(formattedDateValue ?? '');
+  }, [formattedDateValue]);
 
-    useEffect(() => {
-      if (value) {
-        if (formatString && isMatch(value, formatString)) {
-          setInput(isValid(new Date(value)) ? format(value, formatString) : value);
-        } else if (isMatch(value, DatepickerSaveFormatNoTimestamp)) {
-          setInput(isValid(new Date(value)) ? format(value, formatString ?? 'dd.MM.yyyy') : value);
-        } else if (isMatch(value, DatepickerSaveFormatTimestamp)) {
-          setInput(isValid(new Date(value)) ? format(value, formatString ?? 'dd.MM.yyyy') : value);
-        }
-      }
-    }, [value, formatString]);
+  const saveValue = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const stringValue = e.target.value;
+    const date = strictParseFormat(stringValue, datepickerFormat);
+    const valueToSave = getSaveFormattedDateString(date, timeStamp) ?? stringValue;
+    onValueChange && onValueChange(valueToSave);
+  };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setInput(e.target.value);
-    };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const stringValue = e.target.value;
+    setInputValue(stringValue);
+    // If the date is valid, save immediately
+    if (stringValue.length == 0 || isValid(strictParseFormat(stringValue, datepickerFormat))) {
+      saveValue(e);
+    }
+  };
 
-    return (
-      <div className={styles.calendarInputWrapper}>
-        <Textfield
-          className={styles.calendarInput}
-          type='text'
-          id={id}
-          value={input}
-          placeholder={formatString}
-          onChange={handleInputChange}
-          onBlur={onBlur}
-          readOnly={readOnly}
-          aria-readonly={readOnly}
-        />
-        <Button
-          id={`${id}-button`}
-          variant='tertiary'
-          icon={true}
-          aria-controls='dialog'
-          aria-haspopup='dialog'
-          onClick={onClick}
-          aria-expanded={isDialogOpen}
-          aria-label={langAsString('date_picker.aria_label_icon')}
-          ref={ref}
-          disabled={readOnly}
-          color='first'
-          size='small'
-        >
-          <CalendarIcon title={langAsString('date_picker.aria_label_icon')} />
-        </Button>
-      </div>
-    );
-  },
-);
-
-DatePickerInput.displayName = 'DatePickerInput';
+  return (
+    <PatternFormat
+      format={formatPattern}
+      customInput={Textfield}
+      mask='_'
+      className={styles.calendarInput}
+      type='text'
+      id={id}
+      value={inputValue}
+      placeholder={datepickerFormat.toUpperCase()}
+      onChange={handleChange}
+      onBlur={saveValue}
+      readOnly={readOnly}
+      aria-readonly={readOnly}
+    />
+  );
+}

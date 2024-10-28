@@ -1,14 +1,15 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
-import { isAfter, isBefore, isValid, parseISO } from 'date-fns';
+import { isAfter, isBefore } from 'date-fns';
 
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { formatISOString, getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
+import { formatISOString, getDateConstraint, getDateFormat, strictParseISO } from 'src/utils/dateHelpers';
+import { getDatepickerFormat } from 'src/utils/formatDateLocale';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
@@ -87,26 +88,27 @@ export class Datepicker extends DatepickerDef implements ValidateComponent<'Date
       nodeDataSelector((picker) => picker(node)?.item?.format, [node]),
       currentLanguage,
     );
+    const datePickerFormat = getDatepickerFormat(format).toUpperCase();
 
     const validations: ComponentValidation[] = [];
-    const date = parseISO(dataAsString);
-    if (!isValid(date)) {
+    const date = strictParseISO(dataAsString);
+    if (!date) {
       validations.push({
-        message: { key: 'date_picker.invalid_date_message', params: [format] },
+        message: { key: 'date_picker.invalid_date_message', params: [datePickerFormat] },
         severity: 'error',
         source: FrontendValidationSource.Component,
         category: ValidationMask.Component,
       });
     }
 
-    if (isBefore(date, minDate)) {
+    if (date && isBefore(date, minDate)) {
       validations.push({
         message: { key: 'date_picker.min_date_exeeded' },
         severity: 'error',
         source: FrontendValidationSource.Component,
         category: ValidationMask.Component,
       });
-    } else if (isAfter(date, maxDate)) {
+    } else if (date && isAfter(date, maxDate)) {
       validations.push({
         message: { key: 'date_picker.max_date_exeeded' },
         severity: 'error',

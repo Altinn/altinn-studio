@@ -1,4 +1,4 @@
-import { endOfDay, formatDate, formatISO, isValid, parseISO, startOfDay } from 'date-fns';
+import { endOfDay, format, formatDate, formatISO, isValid, parse, parseISO, startOfDay } from 'date-fns';
 import type { Locale } from 'date-fns/locale';
 
 import { DateFlags } from 'src/types';
@@ -7,9 +7,7 @@ import { locales } from 'src/utils/dateLocales';
 export const DatepickerMinDateDefault = '1900-01-01T00:00:00Z';
 export const DatepickerMaxDateDefault = '2100-01-01T23:59:59Z';
 export const DatepickerFormatDefault = 'dd.MM.yyyy';
-export const DatepickerSaveFormatTimestamp = "yyyy-MM-dd'T'HH:mm:ssXXXXX";
 export const PrettyDateAndTime = 'dd.MM.yyyy HH.mm.ss';
-export const DatepickerSaveFormatNoTimestamp = 'yyyy-MM-dd';
 
 export type DateResult =
   | {
@@ -63,8 +61,8 @@ export function getDateConstraint(dateOrFlag: string | DateFlags | undefined, co
     return shiftTime(new Date());
   }
 
-  const { date, isValid } = parseISOString(dateOrFlag);
-  if (isValid) {
+  const date = strictParseISO(dateOrFlag);
+  if (date && isValid(date)) {
     return shiftTime(date);
   }
   if (constraint === 'min') {
@@ -75,10 +73,10 @@ export function getDateConstraint(dateOrFlag: string | DateFlags | undefined, co
 }
 
 export function formatISOString(isoString: string | undefined, format: string, locale?: Locale): string | null {
-  const isoDate = parseISOString(isoString).date;
+  const date = strictParseISO(isoString);
 
-  if (isoDate) {
-    return formatDate(isoDate, format, { locale });
+  if (date && isValid(date)) {
+    return formatDate(date, format, { locale });
   } else {
     return null;
   }
@@ -92,19 +90,31 @@ export function getLocale(language: string): Locale {
   return locales[language] ?? locales.nb;
 }
 
-export function parseISOString(isoString: string | undefined): DateResult {
-  const date = parseISO(isoString ?? '');
-  if (isValid(date)) {
-    return {
-      isValid: true,
-      date,
-      input: undefined,
-    };
-  } else {
-    return {
-      isValid: false,
-      date: null,
-      input: isoString ?? '',
-    };
+/**
+ * The date-fns parseISO function is a bit too lax for us, and will parse e.g. '01' as the date '0100-01-01',
+ * this function requires at least a full date to parse successfully.
+ * This prevents the value in the Datepicker input from changing while typing.
+ * It returns either a valid date or null
+ */
+export function strictParseISO(isoString: string | undefined): Date | null {
+  const minimumDate = 'yyyy-MM-dd';
+  if (!isoString || isoString.length < minimumDate.length) {
+    return null;
   }
+  const date = parseISO(isoString);
+  return isValid(date) ? date : null;
+}
+
+/**
+ * The format function is a bit too lax, and will parse '01/01/1' (format: 'dd/MM/yyyy', which requires full year) as '01/01/0001',
+ * this function requires that the parsed date when formatted using the same format is equal to the input.
+ * This prevents the value in the Datepicker input from changing while typing.
+ */
+export function strictParseFormat(formattedDate: string | undefined, formatString: string): Date | null {
+  if (!formattedDate) {
+    return null;
+  }
+  const date = parse(formattedDate, formatString, new Date());
+  const newFormattedDate = isValid(date) ? format(date, formatString) : undefined;
+  return newFormattedDate && newFormattedDate === formattedDate ? date : null;
 }

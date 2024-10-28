@@ -1,16 +1,15 @@
 import { jest } from '@jest/globals';
-import { format, parseISO } from 'date-fns';
+import { formatISO, isValid, parseISO } from 'date-fns';
 
 import { DateFlags } from 'src/types';
 import {
   DatepickerMaxDateDefault,
   DatepickerMinDateDefault,
-  DatepickerSaveFormatTimestamp,
   formatISOString,
   getDateConstraint,
   getDateFormat,
   getSaveFormattedDateString,
-  parseISOString,
+  strictParseISO,
 } from 'src/utils/dateHelpers';
 
 describe('dateHelpers', () => {
@@ -81,41 +80,40 @@ describe('dateHelpers', () => {
     tests.forEach(({ props, expected }) => {
       it(`should return ${expected} when called with ${JSON.stringify(props)}`, () => {
         const result = getDateConstraint(...props);
-        expect(format(result, DatepickerSaveFormatTimestamp)).toEqual(expected);
+        expect(formatISO(result, { representation: 'complete' })).toEqual(expected);
       });
     });
   });
 
-  describe('parseISOString', () => {
+  describe('strictParseISO', () => {
     const tests: {
-      props: Parameters<typeof parseISOString>;
-      expected: Omit<ReturnType<typeof parseISOString>, 'date'> & { date: string | null };
+      props: Parameters<typeof strictParseISO>;
+      expected: { isValid: boolean; date: string | null };
     }[] = [
-      { props: [undefined], expected: { isValid: false, date: null, input: '' } },
-      { props: ['asdf'], expected: { isValid: false, date: null, input: 'asdf' } },
-      { props: ['2023-45-01'], expected: { isValid: false, date: null, input: '2023-45-01' } },
-      { props: ['2023-05-34'], expected: { isValid: false, date: null, input: '2023-05-34' } },
+      { props: [undefined], expected: { isValid: false, date: null } },
+      { props: ['asdf'], expected: { isValid: false, date: null } },
+      { props: ['2023-45-01'], expected: { isValid: false, date: null } },
+      { props: ['2023-05-34'], expected: { isValid: false, date: null } },
       {
         props: ['2023-13-33T23:00:00.000Z'],
-        expected: { isValid: false, date: null, input: '2023-13-33T23:00:00.000Z' },
+        expected: { isValid: false, date: null },
       },
-      { props: ['2023-07-07'], expected: { isValid: true, date: '2023-07-07T00:00:00.000Z', input: undefined } },
+      { props: ['2023-07-07'], expected: { isValid: true, date: '2023-07-07T00:00:00.000Z' } },
       {
         props: ['2023-07-07T00:00:00.000Z'],
-        expected: { isValid: true, date: '2023-07-07T00:00:00.000Z', input: undefined },
+        expected: { isValid: true, date: '2023-07-07T00:00:00.000Z' },
       },
       {
         props: ['2023-12-31T23:00:00.000Z'],
-        expected: { isValid: true, date: '2023-12-31T23:00:00.000Z', input: undefined },
+        expected: { isValid: true, date: '2023-12-31T23:00:00.000Z' },
       },
     ];
     tests.forEach(({ props, expected }) => {
       it(`should return ${JSON.stringify(expected)} when called with ${JSON.stringify(props)}`, () => {
-        const { isValid, date, input } = parseISOString(...props);
-        expect(isValid).toEqual(expected.isValid);
+        const date = strictParseISO(...props);
+        expect(isValid(date)).toEqual(expected.isValid);
         const dateStr = date?.toISOString() ?? null;
         expect(dateStr).toEqual(expected.date);
-        expect(input).toEqual(expected.input);
       });
     });
   });

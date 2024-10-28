@@ -36,8 +36,7 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
 
   const years = getYears(fromDate, toDate, calendarMonth.date.getFullYear()).reverse();
   const months = getMonths(fromDate, toDate, calendarMonth.date);
-  const yearDropdownLabel = langAsString('date_picker.aria_label_year_dropdown');
-  const MonthDropdownLabel = langAsString('date_picker.aria_label_month_dropdown');
+
   return (
     <>
       <div className={styles.dropdownCaption}>
@@ -59,20 +58,21 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
             size='small'
             value={[calendarMonth.date.getMonth().toString()]}
             onValueChange={(months) => handleMonthChange(months[0])}
-            aria-label={MonthDropdownLabel}
+            aria-label={langAsString('date_picker.aria_label_month_dropdown')}
             className={comboboxClasses.container}
             portal={!isMobile}
           >
             <Combobox.Empty>
               <Lang id={'form_filler.no_options_found'} />
             </Combobox.Empty>
-            {months.map((value) => (
+            {months.map((date) => (
               <Combobox.Option
-                key={value.getMonth()}
-                value={value.getMonth().toString()}
-                displayValue={formatMonthDropdown(value.getMonth(), currentLocale)}
+                ref={scrollToIfSelected(date.getMonth() === calendarMonth.date.getMonth())}
+                key={date.getMonth()}
+                value={date.getMonth().toString()}
+                displayValue={formatMonthDropdown(date.getMonth(), currentLocale)}
               >
-                <Lang id={formatMonthDropdown(value.getMonth(), currentLocale)} />
+                <Lang id={formatMonthDropdown(date.getMonth(), currentLocale)} />
               </Combobox.Option>
             ))}
           </Combobox>
@@ -82,7 +82,7 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
             size='small'
             value={[calendarMonth.date.getFullYear().toString()]}
             onValueChange={(years) => handleYearChange(years[0])}
-            aria-label={yearDropdownLabel}
+            aria-label={langAsString('date_picker.aria_label_year_dropdown')}
             className={comboboxClasses.container}
             portal={!isMobile}
           >
@@ -91,6 +91,7 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
             </Combobox.Empty>
             {years.map((date) => (
               <Combobox.Option
+                ref={scrollToIfSelected(date.getFullYear() === calendarMonth.date.getFullYear())}
                 key={date.getFullYear().toString()}
                 value={date.getFullYear().toString()}
                 displayValue={date.getFullYear().toString()}
@@ -115,3 +116,30 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
     </>
   );
 };
+
+/**
+ * This is a workaround to make sure that the selected option is visible when opening the dropdown see: https://github.com/Altinn/app-frontend-react/issues/2637
+ * The ref attribute will call this function with the option element, and this will try to scroll it into view once.
+ * When it succeeds, we set a 'data-scroll' attribute to make sure it does not keep trying so the user can scroll as they please.
+ */
+function scrollToIfSelected(selected: boolean) {
+  return selected
+    ? (el: HTMLButtonElement | null) => {
+        if (
+          el &&
+          el.parentElement &&
+          // The option list seems to first render with unbounded height and later rendering with scroll-bars, we need to check again when the height changes
+          el.getAttribute('data-scroll-element-height') !== `${el.parentElement.clientHeight}`
+        ) {
+          el.parentElement.scrollTop = el.offsetTop;
+          if (
+            el.offsetTop == 0 || // no scrolling necessary
+            el.parentElement.scrollHeight - el.parentElement.clientHeight == 0 || // container does not have scroll-bars
+            (el.offsetTop > 0 && el.parentElement.scrollTop > 0) // check that we have actually scrolled
+          ) {
+            el.setAttribute('data-scroll-element-height', `${el.parentElement.clientHeight}`);
+          }
+        }
+      }
+    : undefined;
+}
