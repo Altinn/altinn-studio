@@ -2,7 +2,7 @@ import React from 'react';
 import { EditLayoutSet } from './EditLayoutSet';
 import { NoSubformLayoutsExist } from './NoSubformLayoutsExist';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { SubFormUtilsImpl } from '../../../../classes/SubFormUtils';
+import { SubformUtilsImpl } from '../../../../classes/SubformUtils';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../components/config/componentConfig';
@@ -14,9 +14,9 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const subFormUtils = new SubFormUtilsImpl(layoutSets.sets);
+  const subformUtils = new SubformUtilsImpl(layoutSets.sets);
 
-  if (!subFormUtils.hasSubforms) {
+  if (!subformUtils.hasSubforms) {
     return <NoSubformLayoutsExist />;
   }
 
