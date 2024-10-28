@@ -14,7 +14,7 @@ const meta: Meta<StudioContentMenuWrapperProps<StudioMenuTabName>> = {
       control: 'object',
       description: 'Array of button menu tabs with icons, names, and ids.',
       table: {
-        type: { summary: 'StudioButtonTabType<TabId>[]' },
+        type: { summary: 'StudioContentMenuButtonTabProps<TabId>[]' },
       },
     },
     linkTabs: {
@@ -22,7 +22,7 @@ const meta: Meta<StudioContentMenuWrapperProps<StudioMenuTabName>> = {
       description:
         'Array of link menu tabs with icons, names, and ids. Prop `to` defines the url to navigate to.',
       table: {
-        type: { summary: 'StudioLinkTabType<TabId>[]' },
+        type: { summary: 'StudioContentMenuLinkTabProps<TabId>[]' },
       },
     },
     selectedTabId: {

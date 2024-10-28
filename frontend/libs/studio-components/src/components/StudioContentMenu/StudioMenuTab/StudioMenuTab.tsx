@@ -1,16 +1,20 @@
 import classes from './StudioMenuTab.module.css';
 import { StudioParagraph } from '@studio/components';
+import type { ReactNode } from 'react';
 import React from 'react';
-import type { StudioMenuTabType } from '../types/StudioMenuTabType';
 
-type MenuTabContentProps<TabId extends string> = {
-  contentTab: StudioMenuTabType<TabId>;
+type StudioMenuTabProps = {
+  icon: ReactNode;
+  tabName: string;
 };
 
-export function StudioMenuTab<TabId extends string>({ contentTab }: MenuTabContentProps<TabId>) {
+export function StudioMenuTab({ icon, tabName }: StudioMenuTabProps) {
   return (
-    <StudioParagraph size='small' variant='short' className={classes.tabTitle}>
-      {contentTab.tabName}
-    </StudioParagraph>
+    <div className={classes.tabContent}>
+      <div className={classes.tabIcon}>{icon}</div>
+      <StudioParagraph size='small' variant='short' className={classes.tabTitle}>
+        {tabName}
+      </StudioParagraph>
+    </div>
   );
 }

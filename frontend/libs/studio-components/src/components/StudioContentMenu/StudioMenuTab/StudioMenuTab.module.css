@@ -1,3 +1,17 @@
+.tabContent {
+  display: flex;
+  align-items: center;
+  gap: var(--tab-icon-title-gap);
+}
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  font-size: var(--fds-spacing-8);
+  color: var(--fds-semantic-text-neutral-default);
+}
+
+.tabContent,
 .tabTitle {
   overflow: hidden;
   text-overflow: ellipsis;

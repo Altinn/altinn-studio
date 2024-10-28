@@ -36,5 +36,5 @@ export const StudioContentMenu = forwardRef<HTMLDivElement, StudioContentMenuPro
 const getFirstTabId = (children: ReactNode) => {
   return Children.toArray(children).filter((child): child is ReactElement =>
     React.isValidElement(child),
-  )[0]?.props.contentTab.tabId;
+  )[0]?.props.tabId;
 };

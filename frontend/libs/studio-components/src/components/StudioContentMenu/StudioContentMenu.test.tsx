@@ -2,8 +2,9 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { StudioContentMenu } from './';
-import type { StudioMenuTabType } from './types/StudioMenuTabType';
 import type { StudioContentMenuWrapperProps } from './StudioContentMenuWrapper';
+import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
+import { BrowserRouter } from 'react-router-dom';
 
 type StudioMenuTabName = 'tab1' | 'tab2' | 'tab3';
 
@@ -11,14 +12,14 @@ const onChangeTabMock = jest.fn();
 
 const tab1Name = 'My tab';
 const tab1Id: StudioMenuTabName = 'tab1';
-const tab1: StudioMenuTabType<StudioMenuTabName> = {
+const tab1: StudioContentMenuButtonTabProps<StudioMenuTabName> = {
   tabName: tab1Name,
   tabId: tab1Id,
   icon: <svg />,
 };
 const tab2Name = 'My second tab';
 const tab2Id: StudioMenuTabName = 'tab2';
-const tab2: StudioMenuTabType<StudioMenuTabName> = {
+const tab2: StudioContentMenuButtonTabProps<StudioMenuTabName> = {
   tabName: tab2Name,
   tabId: tab2Id,
   icon: <svg />,
@@ -71,7 +72,7 @@ describe('StudioContentMenu', () => {
     const linkTab = screen.getByRole('link', { name: tab1Name });
     expect(menuTab).toBeInTheDocument();
     expect(linkTab).toBeInTheDocument();
-    expect(linkTab).toHaveAttribute('href', link);
+    expect(linkTab).toHaveAttribute('href', `/${link}`);
   });
 
   it('allows changing focus to next tab using keyboard', async () => {
@@ -172,13 +173,26 @@ const renderStudioContentMenu = ({
   linkTabs = [],
 }: Partial<StudioContentMenuWrapperProps<StudioMenuTabName>> = {}) => {
   render(
-    <StudioContentMenu selectedTabId={undefined} onChangeTab={onChangeTabMock}>
-      {buttonTabs.map((buttonTab) => (
-        <StudioContentMenu.ButtonTab key={buttonTab.tabId} contentTab={buttonTab} />
-      ))}
-      {linkTabs.map((linkTab) => (
-        <StudioContentMenu.LinkTab key={linkTab.tabId} contentTab={linkTab} />
-      ))}
-    </StudioContentMenu>,
+    <BrowserRouter>
+      <StudioContentMenu selectedTabId={undefined} onChangeTab={onChangeTabMock}>
+        {buttonTabs.map((buttonTab) => (
+          <StudioContentMenu.ButtonTab
+            key={buttonTab.tabId}
+            icon={buttonTab.icon}
+            tabId={buttonTab.tabId}
+            tabName={buttonTab.tabName}
+          />
+        ))}
+        {linkTabs.map((linkTab) => (
+          <StudioContentMenu.LinkTab
+            key={linkTab.tabId}
+            icon={linkTab.icon}
+            tabId={linkTab.tabId}
+            tabName={linkTab.tabName}
+            to={linkTab.to}
+          />
+        ))}
+      </StudioContentMenu>
+    </BrowserRouter>,
   );
 };
