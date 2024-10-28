@@ -12,7 +12,7 @@ const MockComponent = () => {
   return (
     <div>
       <span>{currentPage}</span>
-      <button onClick={() => navigate('home')}>Go Home</button>
+      <button onClick={() => navigate('landingPage')}>Go Home</button>
     </div>
   );
 };
@@ -52,7 +52,7 @@ describe('RouterContext', () => {
     const linkButton = screen.getByRole('button', { name: 'Go Home' });
     await user.click(linkButton);
 
-    expect(navigateMock).toHaveBeenCalledWith('home');
+    expect(navigateMock).toHaveBeenCalledWith('landingPage');
   });
 
   it('should throw an error when useRouterContext is used outside of a RouterContextProvider', () => {
