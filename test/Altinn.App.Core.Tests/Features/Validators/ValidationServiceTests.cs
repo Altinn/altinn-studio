@@ -57,7 +57,7 @@ public class ValidationServiceTests : IAsyncLifetime
     private Mock<IValidator> RegisterValidatorMock(
         string source,
         bool? hasRelevantChanges = null,
-        List<DataElementChange>? expectedChanges = null,
+        DataElementChanges? expectedChanges = null,
         List<ValidationIssue>? issues = null,
         string? expectedLanguage = null,
         bool noIncrementalValidation = false
@@ -68,14 +68,13 @@ public class ValidationServiceTests : IAsyncLifetime
         mock.Setup(v => v.ValidationSource).Returns(source);
         if (hasRelevantChanges.HasValue && expectedChanges is not null)
         {
-            mock.Setup(v => v.HasRelevantChanges(_instance, _instanceDataAccessor, "Task_1", expectedChanges))
+            mock.Setup(v => v.HasRelevantChanges(_instanceDataAccessor, "Task_1", expectedChanges))
                 .ReturnsAsync(hasRelevantChanges.Value);
         }
 
         if (issues is not null)
         {
-            mock.Setup(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", expectedLanguage))
-                .ReturnsAsync(issues);
+            mock.Setup(v => v.Validate(_instanceDataAccessor, "Task_1", expectedLanguage)).ReturnsAsync(issues);
         }
 
         mock.SetupGet(v => v.NoIncrementalValidation).Returns(noIncrementalValidation);
@@ -91,14 +90,7 @@ public class ValidationServiceTests : IAsyncLifetime
 
         // Act
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
-        var result = await validationService.ValidateInstanceAtTask(
-            _instance,
-            _instanceDataAccessor,
-            "Task_1",
-            null,
-            null,
-            null
-        );
+        var result = await validationService.ValidateInstanceAtTask(_instanceDataAccessor, "Task_1", null, null, null);
 
         // Assert
         Assert.Empty(result);
@@ -111,9 +103,8 @@ public class ValidationServiceTests : IAsyncLifetime
     {
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
 
-        var changes = new List<DataElementChange>();
+        var changes = new DataElementChanges([]);
         var result = await validationService.ValidateIncrementalFormData(
-            _instance,
             _instanceDataAccessor,
             "Task_1",
             changes,
@@ -129,7 +120,7 @@ public class ValidationServiceTests : IAsyncLifetime
     [Fact]
     public async Task ValidateIncrementalFormData_WithIgnoredValidators_ShouldRunOnlyNonIgnoredValidators()
     {
-        var changes = new List<DataElementChange>();
+        var changes = new DataElementChanges([]);
         var issues = new List<ValidationIssue>();
 
         RegisterValidatorMock("IgnoredValidator"); // Throws error if changes or validation is called
@@ -137,7 +128,6 @@ public class ValidationServiceTests : IAsyncLifetime
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
         var result = await validationService.ValidateIncrementalFormData(
-            _instance,
             _instanceDataAccessor,
             "Task_1",
             changes,
@@ -168,7 +158,6 @@ public class ValidationServiceTests : IAsyncLifetime
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
         var result = await validationService.ValidateInstanceAtTask(
-            _instance,
             _instanceDataAccessor,
             "Task_1",
             new List<string> { "IgnoredValidator" },
@@ -205,7 +194,6 @@ public class ValidationServiceTests : IAsyncLifetime
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
         var issues = await validationService.ValidateInstanceAtTask(
-            _instance,
             _instanceDataAccessor,
             "Task_1",
             null,
@@ -218,25 +206,16 @@ public class ValidationServiceTests : IAsyncLifetime
         switch (onlyIncrementalValidators)
         {
             case true:
-                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Once);
-                nonIncrementalMock.Verify(
-                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
-                    Times.Never
-                );
+                incrementalMock.Verify(v => v.Validate(_instanceDataAccessor, "Task_1", null), Times.Once);
+                nonIncrementalMock.Verify(v => v.Validate(_instanceDataAccessor, "Task_1", null), Times.Never);
                 break;
             case false:
-                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Never);
-                nonIncrementalMock.Verify(
-                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
-                    Times.Once
-                );
+                incrementalMock.Verify(v => v.Validate(_instanceDataAccessor, "Task_1", null), Times.Never);
+                nonIncrementalMock.Verify(v => v.Validate(_instanceDataAccessor, "Task_1", null), Times.Once);
                 break;
             case null:
-                incrementalMock.Verify(v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null), Times.Once);
-                nonIncrementalMock.Verify(
-                    v => v.Validate(_instance, _instanceDataAccessor, "Task_1", null),
-                    Times.Once
-                );
+                incrementalMock.Verify(v => v.Validate(_instanceDataAccessor, "Task_1", null), Times.Once);
+                nonIncrementalMock.Verify(v => v.Validate(_instanceDataAccessor, "Task_1", null), Times.Once);
                 break;
         }
     }
@@ -302,14 +281,7 @@ public class ValidationServiceTests : IAsyncLifetime
         _services.AddSingleton<IFormDataValidator>(genericValidator);
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
-        var issues = await validationService.ValidateInstanceAtTask(
-            _instance,
-            _instanceDataAccessor,
-            taskId,
-            null,
-            null,
-            null
-        );
+        var issues = await validationService.ValidateInstanceAtTask(_instanceDataAccessor, taskId, null, null, null);
         var issue = issues.Should().ContainSingle().Which;
         issue.Source.Should().Be($"{genericValidator.GetType().FullName}-{defaultDataType}");
         issue.DataElementId.Should().Be(dataElement.Id);
@@ -408,14 +380,7 @@ public class ValidationServiceTests : IAsyncLifetime
         );
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
-        var issues = await validationService.ValidateInstanceAtTask(
-            _instance,
-            _instanceDataAccessor,
-            "Task_1",
-            null,
-            null,
-            null
-        );
+        var issues = await validationService.ValidateInstanceAtTask(_instanceDataAccessor, "Task_1", null, null, null);
         issues.Should().ContainSingle(i => i.Code == "TestCode543");
 
         formDataValidatorNoAppLogicMock.Verify();
@@ -456,29 +421,38 @@ public class ValidationServiceTests : IAsyncLifetime
             }
         ];
 
-        List<DataElementChange> changes =
-            new()
-            {
-                new DataElementChange()
+        var changes = new DataElementChanges(
+            [
+                new FormDataChange()
                 {
+                    Type = ChangeType.Updated,
                     DataElement = dataElement,
+                    DataType = _instanceDataAccessor.GetDataType(dataElement),
+                    ContentType = "text/plain",
                     CurrentFormData = "currentValue",
-                    PreviousFormData = "previousValue"
+                    PreviousFormData = "previousValue",
+                    CurrentBinaryData = default,
+                    PreviousBinaryData = default
                 },
-                new DataElementChange()
+                new FormDataChange()
                 {
+                    Type = ChangeType.Updated,
                     DataElement = dataElementNoValidation,
+                    DataType = _instanceDataAccessor.GetDataType(dataElement),
+                    ContentType = "text/plain",
                     CurrentFormData = "currentValue",
-                    PreviousFormData = "previousValue"
+                    PreviousFormData = "previousValue",
+                    CurrentBinaryData = null,
+                    PreviousBinaryData = null
                 }
-            };
+            ]
+        );
 
         var genericValidator = new GenericValidatorFake(defaultDataType, validatorIssues, hasRelevantChanges: true);
         _services.AddSingleton<IFormDataValidator>(genericValidator);
 
         var validationService = _serviceProvider.Value.GetRequiredService<IValidationService>();
         var issues = await validationService.ValidateIncrementalFormData(
-            _instance,
             _instanceDataAccessor,
             taskId,
             changes,

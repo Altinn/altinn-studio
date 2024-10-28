@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Validation.Helpers;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -50,26 +51,20 @@ public class LegacyIInstanceValidatorTaskValidator : IValidator
 
     /// <inheritdoc />
     public async Task<List<ValidationIssue>> Validate(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? language
     )
     {
         var modelState = new ModelStateDictionary();
-        await _instanceValidator.ValidateTask(instance, taskId, modelState);
-        return ModelStateHelpers.MapModelStateToIssueList(modelState, instance, _generalSettings);
+        await _instanceValidator.ValidateTask(dataAccessor.Instance, taskId, modelState);
+        return ModelStateHelpers.MapModelStateToIssueList(modelState, dataAccessor.Instance, _generalSettings);
     }
 
     /// <summary>
     /// Don't run the legacy Instance validator for incremental validation (it was not running before)
     /// </summary>
-    public Task<bool> HasRelevantChanges(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
-        string taskId,
-        List<DataElementChange> changes
-    )
+    public Task<bool> HasRelevantChanges(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes)
     {
         throw new NotImplementedException(
             "Validators with NoIncrementalValidation should not be used for incremental validation"

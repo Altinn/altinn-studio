@@ -26,13 +26,13 @@ public class FileValidationService : IFileValidationService
     /// <summary>
     /// Runs all registered validators on the specified <see cref="DataType"/>
     /// </summary>
-    public async Task<(bool Success, List<ValidationIssue> Errors)> Validate(
+    public async Task<(bool Success, List<ValidationIssueWithSource> Errors)> Validate(
         DataType dataType,
-        IEnumerable<FileAnalysisResult> fileAnalysisResults
+        List<FileAnalysisResult> fileAnalysisResults
     )
     {
         using var activity = _telemetry?.StartFileValidateActivity();
-        List<ValidationIssue> allErrors = new();
+        List<ValidationIssueWithSource> allErrors = new();
         bool allSuccess = true;
 
         List<IFileValidator> fileValidators = _fileValidatorFactory
@@ -47,7 +47,15 @@ public class FileValidationService : IFileValidationService
             if (!success)
             {
                 allSuccess = false;
-                allErrors.AddRange(errors);
+                allErrors.AddRange(
+                    errors.Select(e =>
+                        ValidationIssueWithSource.FromIssue(
+                            e,
+                            fileValidator.GetType().Name,
+                            noIncrementalUpdates: false
+                        )
+                    )
+                );
             }
         }
 

@@ -7,6 +7,7 @@ using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Internal.Process.Elements.Base;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Tests.Internal.Process.TestUtils;
 using Altinn.App.PlatformServices.Tests.Internal.Process.StubGatewayFilters;
@@ -273,6 +274,7 @@ public class ProcessNavigatorTests
         IEnumerable<IProcessExclusiveGateway> gatewayFilters
     )
     {
+        _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         ProcessReader pr = ProcessTestUtils.SetupProcessReader(bpmnfile);
         return new ProcessNavigator(
             pr,

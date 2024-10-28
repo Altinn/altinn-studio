@@ -64,7 +64,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
                 p.ProcessDataWrite(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string>(),
-                    It.IsAny<List<DataElementChange>>(),
+                    It.IsAny<DataElementChanges>(),
                     It.IsAny<string?>()
                 )
             )
@@ -166,7 +166,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
                 p.ProcessDataWrite(
                     It.IsAny<IInstanceDataMutator>(),
                     It.IsAny<string>(),
-                    It.IsAny<List<DataElementChange>>(),
+                    It.IsAny<DataElementChanges>(),
                     It.IsAny<string?>()
                 )
             )

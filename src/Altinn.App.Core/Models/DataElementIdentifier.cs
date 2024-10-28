@@ -17,27 +17,37 @@ public readonly struct DataElementIdentifier : IEquatable<DataElementIdentifier>
     /// </summary>
     public string Id { get; }
 
-    private DataElementIdentifier(Guid guid, string id)
+    /// <summary>
+    /// Constructor that takes a string representation of a guid
+    /// </summary>
+    /// <param name="id">The <see cref="DataElement.Id"/></param>
+    public DataElementIdentifier(string id)
+    {
+        Guid = Guid.Parse(id);
+        Id = id;
+    }
+
+    /// <summary>
+    /// Constructor that takes a guid
+    /// </summary>
+    /// <param name="guid">The <see cref="DataElement.Id"/> parsed as a guid</param>
+    public DataElementIdentifier(Guid guid)
     {
         Guid = guid;
-        Id = id;
+        Id = guid.ToString();
     }
 
     /// <summary>
     /// Implicit conversion to allow DataElements to be used as DataElementIds
     /// </summary>
-    public static implicit operator DataElementIdentifier(DataElement dataElement) =>
-        new(Guid.Parse(dataElement.Id), dataElement.Id);
+    public static implicit operator DataElementIdentifier(DataElement dataElement) => new(dataElement.Id);
 
     /// <summary>
-    /// Make the implicit conversion from string (containing a valid guid) to DataElementIdentifier work
+    /// Implicit conversion to allow DataElements to be used as DataElementIds,
+    /// but accept and return null values
     /// </summary>
-    public static explicit operator DataElementIdentifier(string id) => new(Guid.Parse(id), id);
-
-    /// <summary>
-    /// Make the implicit conversion from guid to DataElementIdentifier work
-    /// </summary>
-    public static explicit operator DataElementIdentifier(Guid guid) => new(guid, guid.ToString());
+    public static implicit operator DataElementIdentifier?(DataElement? dataElement) =>
+        dataElement is null ? default : new(dataElement.Id);
 
     /// <summary>
     /// Make the ToString method return the ID

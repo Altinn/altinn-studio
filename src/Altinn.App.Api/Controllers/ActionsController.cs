@@ -126,11 +126,11 @@ public class ActionsController : ControllerBase
             return Forbid();
         }
 
-        var dataMutator = new CachedInstanceDataAccessor(
+        var dataMutator = new InstanceDataUnitOfWork(
             instance,
             _dataClient,
             _instanceClient,
-            _appMetadata,
+            await _appMetadata.GetApplicationMetadata(),
             _modelSerialization
         );
         UserActionContext userActionContext =
@@ -179,7 +179,6 @@ public class ActionsController : ControllerBase
         var saveTask = dataMutator.SaveChanges(changes);
 
         var validationIssues = await GetIncrementalValidations(
-            instance,
             dataMutator,
             changes,
             actionRequest.IgnoredValidators,
@@ -187,7 +186,10 @@ public class ActionsController : ControllerBase
         );
         await saveTask;
 
-        var updatedDataModels = changes.ToDictionary(c => c.DataElement.Id, c => c.CurrentFormData);
+        var updatedDataModels = changes.FormDataChanges.ToDictionary(
+            c => c.DataElementIdentifier.Id,
+            c => c.CurrentFormData
+        );
 
 #pragma warning disable CS0618 // Type or member is obsolete
         if (result.UpdatedDataModels is { Count: > 0 })
@@ -216,16 +218,16 @@ public class ActionsController : ControllerBase
         string,
         Dictionary<string, List<ValidationIssueWithSource>>
     >?> GetIncrementalValidations(
-        Instance instance,
         IInstanceDataAccessor dataAccessor,
-        List<DataElementChange> changes,
+        DataElementChanges changes,
         List<string>? ignoredValidators,
         string? language
     )
     {
-        var taskId = instance.Process.CurrentTask.ElementId;
+        var taskId =
+            dataAccessor.Instance.Process?.CurrentTask?.ElementId
+            ?? throw new Exception("Unable to validate instance without a started process.");
         var validationIssues = await _validationService.ValidateIncrementalFormData(
-            instance,
             dataAccessor,
             taskId,
             changes,

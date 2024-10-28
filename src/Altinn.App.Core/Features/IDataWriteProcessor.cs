@@ -1,3 +1,5 @@
+using Altinn.App.Core.Models;
+
 namespace Altinn.App.Core.Features;
 
 /// <summary>
@@ -7,9 +9,10 @@ public interface IDataWriteProcessor
 {
     /// <summary>
     /// Is called to run custom calculation events defined by app developer when data is written to app.
+    /// This method is called for POST requests in addition to PATCH and PUT requests as the old <see cref="IDataProcessor"/>.
     /// </summary>
     /// <remarks>
-    /// Make changes directly to the changes[].CurrentFormData object, or fetch other data elements from the instanceDataMutator.
+    /// Make changes directly to the <see cref="DataElementChanges.FormDataChanges"/>.<see cref="FormDataChange.CurrentFormData"/> object, or fetch other data elements from the instanceDataMutator.
     /// </remarks>
     /// <param name="instanceDataMutator">Object to fetch data elements not included in changes</param>
     /// <param name="taskId">The current task ID</param>
@@ -18,7 +21,7 @@ public interface IDataWriteProcessor
     Task ProcessDataWrite(
         IInstanceDataMutator instanceDataMutator,
         string taskId,
-        List<DataElementChange> changes,
+        DataElementChanges changes,
         string? language
     );
 }

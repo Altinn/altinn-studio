@@ -20,7 +20,7 @@ public class DataModel
     public DataModel(IInstanceDataAccessor dataAccessor, ApplicationMetadata appMetadata)
     {
         _dataAccessor = dataAccessor;
-        foreach (var dataElement in dataAccessor.Instance.Data)
+        foreach (var dataElement in dataAccessor.DataElements)
         {
             var dataTypeId = dataElement.DataType;
             var dataType = appMetadata.DataTypes.Find(d => d.Id == dataTypeId);

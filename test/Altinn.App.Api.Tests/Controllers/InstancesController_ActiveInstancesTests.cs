@@ -2,11 +2,13 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -43,9 +45,14 @@ public class InstancesController_ActiveInstancesTest
     private readonly Mock<IProcessEngine> _processEngine = new();
     private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
     private readonly Mock<IHostEnvironment> _envMock = new();
+    private readonly ModelSerializationService _modelSerializationService;
 
-    private InstancesController SUT =>
-        new InstancesController(
+    private InstancesController SUT;
+
+    public InstancesController_ActiveInstancesTest()
+    {
+        _modelSerializationService = new ModelSerializationService(_appModel.Object);
+        SUT = new InstancesController(
             _logger.Object,
             _registrer.Object,
             _instanceClient.Object,
@@ -61,8 +68,20 @@ public class InstancesController_ActiveInstancesTest
             _profile.Object,
             _processEngine.Object,
             _oarganizationClientMock.Object,
-            _envMock.Object
+            _envMock.Object,
+            _modelSerializationService,
+            new PatchService(
+                _appMetadata.Object,
+                _data.Object,
+                _instanceClient.Object,
+                null!,
+                [],
+                [],
+                _modelSerializationService,
+                _envMock.Object
+            )
         );
+    }
 
     private void VerifyNoOtherCalls()
     {

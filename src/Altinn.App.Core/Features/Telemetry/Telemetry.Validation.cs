@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Core.Models;
 using static Altinn.App.Core.Features.Telemetry.Validation;
 
 namespace Altinn.App.Core.Features;
@@ -19,7 +20,7 @@ partial class Telemetry
         return activity;
     }
 
-    internal Activity? StartValidateIncrementalActivity(string taskId, List<DataElementChange> changes)
+    internal Activity? StartValidateIncrementalActivity(string taskId, DataElementChanges changes)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskId);
         ArgumentNullException.ThrowIfNull(changes);
@@ -30,11 +31,13 @@ partial class Telemetry
         var changesPrefix = "ChangedDataElements";
         var now = DateTimeOffset.UtcNow;
 
-        ActivityTagsCollection tags = new([new($"{changesPrefix}.count", changes.Count)]);
-        for (var i = 0; i < changes.Count; i++)
+        var allChanges = changes.AllChanges;
+
+        ActivityTagsCollection tags = new([new($"{changesPrefix}.count", allChanges.Count)]);
+        for (var i = 0; i < allChanges.Count; i++)
         {
-            var change = changes[i];
-            tags.Add(new($"{changesPrefix}.{i}.Id", change.DataElement.Id));
+            var change = allChanges[i];
+            tags.Add(new($"{changesPrefix}.{i}.Id", change.DataElementIdentifier.Id));
         }
         activity?.AddEvent(new ActivityEvent(changesPrefix, now, tags));
         return activity;

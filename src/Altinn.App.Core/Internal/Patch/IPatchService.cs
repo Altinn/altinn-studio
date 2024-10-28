@@ -1,5 +1,7 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Result;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
 
@@ -21,12 +23,23 @@ public interface IPatchService
     );
 
     /// <summary>
-    /// Runs data processors on all the changes.
+    /// Runs <see cref="IDataProcessor.ProcessDataWrite"/> and <see cref="IDataWriteProcessor.ProcessDataWrite"/> on the changes.
     /// </summary>
     Task RunDataProcessors(
         IInstanceDataMutator dataMutator,
-        List<DataElementChange> changes,
+        DataElementChanges changes,
         string taskId,
+        string? language
+    );
+
+    /// <summary>
+    /// Runs incremental validation on the changes.
+    /// </summary>
+    Task<List<ValidationSourcePair>> RunIncrementalValidation(
+        IInstanceDataAccessor dataAccessor,
+        string taskId,
+        DataElementChanges changes,
+        List<string>? ignoredValidators,
         string? language
     );
 }

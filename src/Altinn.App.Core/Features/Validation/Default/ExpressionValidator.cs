@@ -59,16 +59,14 @@ public class ExpressionValidator : IValidator
     /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
     /// </summary>
     public Task<bool> HasRelevantChanges(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
-        List<DataElementChange> changes
+        DataElementChanges changes
     ) => Task.FromResult(true);
 
     /// <inheritdoc />
     public async Task<List<ValidationIssue>> Validate(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? language
     )
@@ -76,17 +74,10 @@ public class ExpressionValidator : IValidator
         var validationIssues = new List<ValidationIssue>();
         foreach (var (dataType, validationConfig) in GetDataTypesWithExpressionsForTask(taskId))
         {
-            var formDataElementsForTask = instance.Data.Where(d => d.DataType == dataType.Id);
+            var formDataElementsForTask = dataAccessor.DataElements.Where(d => d.DataType == dataType.Id);
             foreach (var dataElement in formDataElementsForTask)
             {
-                var issues = await ValidateFormData(
-                    instance,
-                    dataElement,
-                    instanceDataAccessor,
-                    validationConfig,
-                    taskId,
-                    language
-                );
+                var issues = await ValidateFormData(dataElement, dataAccessor, validationConfig, taskId, language);
                 validationIssues.AddRange(issues);
             }
         }
@@ -95,7 +86,6 @@ public class ExpressionValidator : IValidator
     }
 
     internal async Task<List<ValidationIssue>> ValidateFormData(
-        Instance instance,
         DataElement dataElement,
         IInstanceDataAccessor dataAccessor,
         string rawValidationConfig,

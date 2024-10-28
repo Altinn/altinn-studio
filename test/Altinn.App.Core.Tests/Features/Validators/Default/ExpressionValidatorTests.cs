@@ -89,7 +89,6 @@ public class ExpressionValidatorTests
         var dataAccessor = new InstanceDataAccessorFake(instance) { { dataElement, dataModel } };
 
         var validationIssues = await _validator.ValidateFormData(
-            instance,
             dataElement,
             dataAccessor,
             JsonSerializer.Serialize(testCase.ValidationConfig),

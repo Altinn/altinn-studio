@@ -1,3 +1,4 @@
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -39,15 +40,14 @@ internal class DataElementValidatorWrapper : IValidator
     /// Run all legacy <see cref="IDataElementValidator"/> instances for the given <see cref="DataType"/>.
     /// </summary>
     public async Task<List<ValidationIssue>> Validate(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? language
     )
     {
         var issues = new List<ValidationIssue>();
         var validateAllElements = _dataElementValidator.DataType == "*";
-        foreach (var dataElement in instance.Data)
+        foreach (var dataElement in dataAccessor.DataElements)
         {
             if (validateAllElements || _dataElementValidator.DataType == dataElement.DataType)
             {
@@ -59,7 +59,7 @@ internal class DataElementValidatorWrapper : IValidator
                     );
                 }
                 var dataElementValidationResult = await _dataElementValidator.ValidateDataElement(
-                    instance,
+                    dataAccessor.Instance,
                     dataElement,
                     dataType,
                     language
@@ -75,12 +75,7 @@ internal class DataElementValidatorWrapper : IValidator
     }
 
     /// <inheritdoc />
-    public Task<bool> HasRelevantChanges(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
-        string taskId,
-        List<DataElementChange> changes
-    )
+    public Task<bool> HasRelevantChanges(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes)
     {
         // DataElementValidator did not previously implement incremental validation, so we always return false
         throw new NotImplementedException(

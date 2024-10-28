@@ -1,7 +1,7 @@
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Expressions;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Validation.Default;
 
@@ -43,14 +43,13 @@ public class RequiredLayoutValidator : IValidator
 
     /// <inheritdoc />
     public async Task<List<ValidationIssue>> Validate(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? language
     )
     {
         var evaluationState = await _layoutEvaluatorStateInitializer.Init(
-            instanceDataAccessor,
+            dataAccessor,
             taskId,
             gatewayAction: null,
             language
@@ -63,9 +62,8 @@ public class RequiredLayoutValidator : IValidator
     /// We don't have an efficient way to figure out if changes to the model results in different validations, and frontend ignores this anyway
     /// </summary>
     public Task<bool> HasRelevantChanges(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
-        List<DataElementChange> changes
+        DataElementChanges changes
     ) => Task.FromResult(true);
 }

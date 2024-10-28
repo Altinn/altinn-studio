@@ -14,6 +14,11 @@ public interface IInstanceDataAccessor
     Instance Instance { get; }
 
     /// <summary>
+    /// The data elements on the instance.
+    /// </summary>
+    IEnumerable<DataElement> DataElements => Instance.Data;
+
+    /// <summary>
     /// Get the actual data represented in the data element.
     /// </summary>
     /// <returns>The deserialized data model for this data element or an exception for non-form data elements</returns>

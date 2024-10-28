@@ -41,6 +41,44 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
     }
 
     [Fact]
+    public async Task PostBinaryElement_ContentTooLarge_ReturnsBadRequest()
+    {
+        // Setup test data
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 1337;
+        string dataType = "specificFileType"; // Should have restrictions on 1 mb in app metadata
+        Guid guid = new Guid("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+        HttpClient client = GetRootedClient(org, app);
+        string token = PrincipalUtil.GetOrgToken("nav", "160694123");
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        TestData.DeleteInstanceAndData(org, app, instanceOwnerPartyId, guid);
+        TestData.PrepareInstance(org, app, instanceOwnerPartyId, guid);
+
+        using var content = new ByteArrayContent(new byte[1024 * 1024 + 1]); // 1 mb
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+        {
+            FileName = "example.pdf"
+        };
+        var response = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwnerPartyId}/{guid}/data/{dataType}",
+            content
+        );
+        var responseContent = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine(responseContent);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        responseContent
+            .Should()
+            .Contain(
+                """
+                "code":"DataElementTooLarge","description":"Invalid data provided. Error: Binary attachment exceeds limit of 1048576","source":"DataRestrictionValidation"
+                """
+            );
+    }
+
+    [Fact]
     public async Task CreateDataElement_BinaryPdf_AnalyserShouldRunOk()
     {
         OverrideServicesForThisTest = (services) =>

@@ -72,14 +72,11 @@ public class LayoutModel
         var pageContexts = new List<ComponentContext>();
         foreach (var page in _defaultLayoutSet.Pages)
         {
-            pageContexts.Add(
-                await GenerateComponentContextsRecurs(
-                    page,
-                    dataModel,
-                    _defaultLayoutSet.GetDefaultDataElementId(instance),
-                    []
-                )
-            );
+            var defaultElementId = _defaultLayoutSet.GetDefaultDataElementId(instance);
+            if (defaultElementId is not null)
+            {
+                pageContexts.Add(await GenerateComponentContextsRecurs(page, dataModel, defaultElementId.Value, []));
+            }
         }
 
         return pageContexts;
@@ -208,8 +205,8 @@ public class LayoutModel
         return new ComponentContext(subFormComponent, null, null, defaultDataElementIdentifier, children);
     }
 
-    internal DataElementIdentifier GetDefaultDataElementId(Instance instanceContext)
+    internal DataElementIdentifier? GetDefaultDataElementId(Instance instance)
     {
-        return _defaultLayoutSet.GetDefaultDataElementId(instanceContext);
+        return _defaultLayoutSet.GetDefaultDataElementId(instance);
     }
 }

@@ -132,9 +132,7 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         _validationMock
-            .Setup(v =>
-                v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null)
-            )
+            .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
             .ReturnsAsync(validationResult);
 
         // Act
@@ -166,9 +164,7 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         _validationMock
-            .Setup(v =>
-                v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null)
-            )
+            .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
             .Throws(exception);
 
         // Act
@@ -200,9 +196,7 @@ public class ValidateControllerTests
             .Returns(Task.FromResult<Instance>(instance));
 
         _validationMock
-            .Setup(v =>
-                v.ValidateInstanceAtTask(instance, It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null)
-            )
+            .Setup(v => v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "dummy", null, null, null))
             .Throws(exception);
 
         // Act

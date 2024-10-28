@@ -222,11 +222,11 @@ public class ApiTestBase
         HttpStatusCode expectedStatusCode
     )
     {
-        // Verify status code
-        response.Should().HaveStatusCode(expectedStatusCode);
-
         // Deserialize content and log everything if it fails
         var content = await response.Content.ReadAsStringAsync();
+        OutputHelper.WriteLine($"Response content: {content}");
+        // Verify status code
+        response.Should().HaveStatusCode(expectedStatusCode);
         try
         {
             return JsonSerializer.Deserialize<T>(content, JsonSerializerOptions)

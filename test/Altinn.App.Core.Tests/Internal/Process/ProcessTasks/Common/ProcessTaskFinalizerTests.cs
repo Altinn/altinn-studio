@@ -71,6 +71,6 @@ public class ProcessTaskFinalizerTests
 
         // Assert
         // Called once in Finalize and once in CachedInstanceDataAccessor.UpdateInstanceData
-        _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Exactly(2));
+        _appMetadataMock.Verify(x => x.GetApplicationMetadata(), Times.Once);
     }
 }

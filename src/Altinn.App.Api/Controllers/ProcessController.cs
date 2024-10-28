@@ -249,15 +249,14 @@ public class ProcessController : ControllerBase
         string? language
     )
     {
-        var dataAccessor = new CachedInstanceDataAccessor(
+        var dataAccessor = new InstanceDataUnitOfWork(
             instance,
             _dataClient,
             _instanceClient,
-            _appMetadata,
+            await _appMetadata.GetApplicationMetadata(),
             _modelSerialization
         );
         var validationIssues = await _validationService.ValidateInstanceAtTask(
-            instance,
             dataAccessor,
             currentTaskId, // run full validation
             ignoredValidators: null,

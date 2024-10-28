@@ -50,15 +50,15 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     /// <inheritdoc/>
     public async Task Finalize(string taskId, Instance instance)
     {
-        var dataAccessor = new CachedInstanceDataAccessor(
+        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
+
+        var dataAccessor = new InstanceDataUnitOfWork(
             instance,
             _dataClient,
             _intanceClient,
-            _appMetadata,
+            applicationMetadata,
             _modelSerializer
         );
-
-        ApplicationMetadata applicationMetadata = await _appMetadata.GetApplicationMetadata();
 
         List<Task> tasks = [];
         foreach (
@@ -80,7 +80,7 @@ public class ProcessTaskFinalizer : IProcessTaskFinalizer
     }
 
     private async Task RemoveFieldsOnTaskComplete(
-        CachedInstanceDataAccessor dataAccessor,
+        InstanceDataUnitOfWork dataAccessor,
         string taskId,
         ApplicationMetadata applicationMetadata,
         DataElement dataElement,

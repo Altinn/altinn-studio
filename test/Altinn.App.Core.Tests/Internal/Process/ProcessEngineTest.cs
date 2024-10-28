@@ -409,6 +409,7 @@ public sealed class ProcessEngineTest : IDisposable
                 EndEvent = "EndEvent_1"
             }
         };
+        _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(new ApplicationMetadata("org/app"));
         Mock<IUserAction> userActionMock = new Mock<IUserAction>(MockBehavior.Strict);
         userActionMock.Setup(u => u.Id).Returns("sign");
         userActionMock

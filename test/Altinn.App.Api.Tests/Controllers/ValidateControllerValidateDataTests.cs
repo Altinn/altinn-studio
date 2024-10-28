@@ -253,14 +253,7 @@ public class ValidationControllerValidateDataTests
         {
             _validationMock
                 .Setup(v =>
-                    v.ValidateInstanceAtTask(
-                        testScenario.ReceivedInstance,
-                        It.IsAny<IInstanceDataAccessor>(),
-                        "Task_1",
-                        null,
-                        It.IsAny<bool?>(),
-                        null
-                    )
+                    v.ValidateInstanceAtTask(It.IsAny<IInstanceDataAccessor>(), "Task_1", null, It.IsAny<bool?>(), null)
                 )
                 .ReturnsAsync(testScenario.ReceivedValidationIssues);
         }

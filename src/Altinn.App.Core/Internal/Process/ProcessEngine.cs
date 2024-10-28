@@ -171,11 +171,11 @@ public class ProcessEngine : IProcessEngine
 
         int? userId = request.User.GetUserIdAsInt();
         IUserAction? actionHandler = _userActionService.GetActionHandler(request.Action);
-        var cachedDataMutator = new CachedInstanceDataAccessor(
+        var cachedDataMutator = new InstanceDataUnitOfWork(
             instance,
             _dataClient,
             _instanceClient,
-            _appMetadata,
+            await _appMetadata.GetApplicationMetadata(),
             _modelSerialization
         );
 
@@ -198,6 +198,8 @@ public class ProcessEngine : IProcessEngine
         var changes = cachedDataMutator.GetDataElementChanges(initializeAltinnRowId: false);
         await cachedDataMutator.UpdateInstanceData(changes);
         await cachedDataMutator.SaveChanges(changes);
+
+        // TODO: consider using the same cachedDataMutator for the rest of the process to avoid refetching data from storage
 
         ProcessStateChange? nextResult = await HandleMoveToNext(instance, request.User, request.Action);
 

@@ -1,6 +1,6 @@
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Core.Internal.Validation;
@@ -30,7 +30,6 @@ public class ValidationService : IValidationService
 
     /// <inheritdoc/>
     public async Task<List<ValidationIssueWithSource>> ValidateInstanceAtTask(
-        Instance instance,
         IInstanceDataAccessor dataAccessor,
         string taskId,
         List<string>? ignoredValidators,
@@ -38,7 +37,8 @@ public class ValidationService : IValidationService
         string? language
     )
     {
-        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(dataAccessor);
+        ArgumentNullException.ThrowIfNull(dataAccessor.Instance);
         ArgumentNullException.ThrowIfNull(taskId);
 
         using var activity = _telemetry?.StartValidateInstanceAtTaskActivity(taskId);
@@ -60,7 +60,7 @@ public class ValidationService : IValidationService
             using var validatorActivity = _telemetry?.StartRunValidatorActivity(v);
             try
             {
-                var issues = await v.Validate(instance, dataAccessor, taskId, language);
+                var issues = await v.Validate(dataAccessor, taskId, language);
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
                 return KeyValuePair.Create(
                     v.ValidationSource,
@@ -76,7 +76,7 @@ public class ValidationService : IValidationService
                     "Error while running validator {ValidatorName} for task {TaskId} on instance {InstanceId}",
                     v.ValidationSource,
                     taskId,
-                    instance.Id
+                    dataAccessor.Instance.Id
                 );
                 validatorActivity?.Errored(e);
                 throw;
@@ -94,15 +94,14 @@ public class ValidationService : IValidationService
 
     /// <inheritdoc/>
     public async Task<List<ValidationSourcePair>> ValidateIncrementalFormData(
-        Instance instance,
         IInstanceDataAccessor dataAccessor,
         string taskId,
-        List<DataElementChange> changes,
+        DataElementChanges changes,
         List<string>? ignoredValidators,
         string? language
     )
     {
-        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(dataAccessor.Instance);
         ArgumentNullException.ThrowIfNull(taskId);
         ArgumentNullException.ThrowIfNull(changes);
 
@@ -121,11 +120,11 @@ public class ValidationService : IValidationService
             using var validatorActivity = _telemetry?.StartRunValidatorActivity(validator);
             try
             {
-                var hasRelevantChanges = await validator.HasRelevantChanges(instance, dataAccessor, taskId, changes);
+                var hasRelevantChanges = await validator.HasRelevantChanges(dataAccessor, taskId, changes);
                 validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorHasRelevantChanges, hasRelevantChanges);
                 if (hasRelevantChanges)
                 {
-                    var issues = await validator.Validate(instance, dataAccessor, taskId, language);
+                    var issues = await validator.Validate(dataAccessor, taskId, language);
                     validatorActivity?.SetTag(Telemetry.InternalLabels.ValidatorIssueCount, issues.Count);
                     var issuesWithSource = issues
                         .Select(i =>
@@ -148,7 +147,7 @@ public class ValidationService : IValidationService
                     "Error while running validator {validatorName} on task {taskId} in instance {instanceId}",
                     validator.GetType().Name,
                     taskId,
-                    instance.Id
+                    dataAccessor.Instance.Id
                 );
                 validatorActivity?.Errored(e);
                 throw;

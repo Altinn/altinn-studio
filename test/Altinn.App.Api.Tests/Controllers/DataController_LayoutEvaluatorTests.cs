@@ -46,7 +46,7 @@ public class DataController_LayoutEvaluatorTests : ApiTestBase, IClassFixture<We
             var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(layoutEvaluatorState);
             if (dataId.HasValue)
             {
-                var id = (DataElementIdentifier)dataId;
+                var id = new DataElementIdentifier(dataId.Value);
                 hidden
                     .Should()
                     .BeEquivalentTo([new DataReference() { DataElementIdentifier = id, Field = "melding.hidden" }]);

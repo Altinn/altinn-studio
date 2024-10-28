@@ -105,4 +105,7 @@ public class ValidationIssueWithSource
 /// </summary>
 /// <param name="Source">The <see cref="IValidator.ValidationSource"/> for the Validator that created theese issues</param>
 /// <param name="Issues">List of issues</param>
-public record ValidationSourcePair(string Source, List<ValidationIssueWithSource> Issues);
+public record ValidationSourcePair(
+    [property: JsonPropertyName("source")] string Source,
+    [property: JsonPropertyName("issues")] List<ValidationIssueWithSource> Issues
+);

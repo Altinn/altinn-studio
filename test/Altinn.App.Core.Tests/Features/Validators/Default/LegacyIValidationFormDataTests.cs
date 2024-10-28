@@ -7,6 +7,7 @@ using Altinn.App.Core.Features.Validation.Default;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -19,7 +20,7 @@ public class LegacyIValidationFormDataTests
     private readonly LegacyIInstanceValidatorFormDataValidator _validator;
     private readonly Mock<IInstanceValidator> _instanceValidator = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
-    private readonly Mock<IInstanceDataAccessor> _instanceDataAccessor = new(MockBehavior.Strict);
+    private readonly InstanceDataAccessorFake _instanceDataAccessor;
 
     private readonly ApplicationMetadata _applicationMetadata = new ApplicationMetadata("ttd/test")
     {
@@ -57,6 +58,7 @@ public class LegacyIValidationFormDataTests
             InstanceOwner = new InstanceOwner() { PartyId = "1", },
             Data = [_dataElement]
         };
+        _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _applicationMetadata, "Task_1", "test");
     }
 
     [Fact]
@@ -77,10 +79,10 @@ public class LegacyIValidationFormDataTests
             )
             .Verifiable(Times.Once);
 
-        _instanceDataAccessor.Setup(ida => ida.GetFormData(_dataElement)).ReturnsAsync(data);
+        _instanceDataAccessor.Add(_dataElement, data);
 
         // Act
-        var result = await _validator.Validate(_instance, _instanceDataAccessor.Object, "Task_1", null);
+        var result = await _validator.Validate(_instanceDataAccessor, "Task_1", null);
 
         // Assert
         result
@@ -112,7 +114,6 @@ public class LegacyIValidationFormDataTests
                 )
             );
 
-        _instanceDataAccessor.Verify();
         _instanceValidator.Verify();
     }
 
@@ -156,10 +157,10 @@ public class LegacyIValidationFormDataTests
                 }
             )
             .Verifiable(Times.Once);
-        _instanceDataAccessor.Setup(ida => ida.GetFormData(_dataElement)).ReturnsAsync(data).Verifiable(Times.Once);
+        _instanceDataAccessor.Add(_dataElement, data);
 
         // Act
-        var result = await _validator.Validate(_instance, _instanceDataAccessor.Object, "Task_1", null);
+        var result = await _validator.Validate(_instanceDataAccessor, "Task_1", null);
 
         // Assert
         result.Should().HaveCount(2);
@@ -173,7 +174,6 @@ public class LegacyIValidationFormDataTests
         fixedIssue.Severity.Should().Be(ValidationIssueSeverity.Fixed);
         fixedIssue.Description.Should().Be(errorMessage + " Fixed");
 
-        _instanceDataAccessor.Verify();
         _instanceValidator.Verify();
     }
 }

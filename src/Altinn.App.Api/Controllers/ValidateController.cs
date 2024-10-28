@@ -4,6 +4,7 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Internal.Validation;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -80,16 +81,15 @@ public class ValidateController : ControllerBase
 
         try
         {
-            var dataAccessor = new CachedInstanceDataAccessor(
+            var dataAccessor = new InstanceDataUnitOfWork(
                 instance,
                 _dataClient,
                 _instanceClient,
-                _appMetadata,
+                await _appMetadata.GetApplicationMetadata(),
                 _modelSerialization
             );
             var ignoredSources = ignoredValidators?.Split(',').ToList();
             List<ValidationIssueWithSource> messages = await _validationService.ValidateInstanceAtTask(
-                instance,
                 dataAccessor,
                 taskId,
                 ignoredSources,
@@ -152,7 +152,7 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unable to validate data element.");
         }
 
-        Application application = await _appMetadata.GetApplicationMetadata();
+        ApplicationMetadata application = await _appMetadata.GetApplicationMetadata();
 
         DataType? dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 
@@ -161,17 +161,16 @@ public class ValidateController : ControllerBase
             throw new ValidationException("Unknown element type.");
         }
 
-        var dataAccessor = new CachedInstanceDataAccessor(
+        var dataAccessor = new InstanceDataUnitOfWork(
             instance,
             _dataClient,
             _instanceClient,
-            _appMetadata,
+            application,
             _modelSerialization
         );
 
         // Run validations for all data elements, but only return the issues for the specific data element
         var issues = await _validationService.ValidateInstanceAtTask(
-            instance,
             dataAccessor,
             dataType.TaskId,
             ignoredValidators: null,

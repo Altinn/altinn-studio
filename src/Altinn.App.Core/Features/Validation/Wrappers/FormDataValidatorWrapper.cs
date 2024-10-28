@@ -1,3 +1,5 @@
+using Altinn.App.Core.Models;
+
 namespace Altinn.App.Core.Features.Validation.Wrappers;
 
 using Altinn.App.Core.Models.Validation;
@@ -27,17 +29,16 @@ internal class FormDataValidatorWrapper : IValidator
     /// Run all legacy <see cref="IDataElementValidator"/> instances for the given <see cref="DataType"/>.
     /// </summary>
     public async Task<List<ValidationIssue>> Validate(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
+        IInstanceDataAccessor dataAccessor,
         string taskId,
         string? language
     )
     {
         var issues = new List<ValidationIssue>();
         var validateAllElements = _formDataValidator.DataType == "*";
-        foreach (var dataElement in instance.Data)
+        foreach (var dataElement in dataAccessor.DataElements)
         {
-            var dataType = instanceDataAccessor.GetDataType(dataElement);
+            var dataType = dataAccessor.GetDataType(dataElement);
             if (dataType.AppLogic?.ClassRef == null)
             {
                 continue;
@@ -47,9 +48,9 @@ internal class FormDataValidatorWrapper : IValidator
                 continue;
             }
 
-            var data = await instanceDataAccessor.GetFormData(dataElement);
+            var data = await dataAccessor.GetFormData(dataElement);
             var dataElementValidationResult = await _formDataValidator.ValidateFormData(
-                instance,
+                dataAccessor.Instance,
                 dataElement,
                 data,
                 language
@@ -63,23 +64,24 @@ internal class FormDataValidatorWrapper : IValidator
     }
 
     /// <inheritdoc />
-    public Task<bool> HasRelevantChanges(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
-        string taskId,
-        List<DataElementChange> changes
-    )
+    public Task<bool> HasRelevantChanges(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes)
     {
         try
         {
-            foreach (var change in changes)
+            foreach (var change in changes.FormDataChanges)
             {
-                if (
-                    (_formDataValidator.DataType == "*" || _formDataValidator.DataType == change.DataElement.DataType)
-                    && _formDataValidator.HasRelevantChanges(change.CurrentFormData, change.PreviousFormData)
-                )
+                // Check if the DataType is a wildcard or matches the change's DataType, and if the change is not an update or has relevant changes
+                if (_formDataValidator.DataType == "*" || _formDataValidator.DataType == change.DataType.Id)
                 {
-                    return Task.FromResult(true);
+                    if (change.Type != ChangeType.Updated)
+                    {
+                        return Task.FromResult(true);
+                    }
+
+                    if (_formDataValidator.HasRelevantChanges(change.CurrentFormData, change.PreviousFormData))
+                    {
+                        return Task.FromResult(true);
+                    }
                 }
             }
 

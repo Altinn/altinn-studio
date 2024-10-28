@@ -52,10 +52,14 @@ public record LayoutSetComponent
     /// <summary>
     /// Get the <see cref="DataElementIdentifier"/> of the <see cref="DataElement"/> that is default for this layout
     /// </summary>
-    public DataElementIdentifier GetDefaultDataElementId(Instance instance)
+    public DataElementIdentifier? GetDefaultDataElementId(Instance instance)
     {
         var dataType = DefaultDataType.Id;
-        return instance.Data.Find(d => d.DataType == dataType)
-            ?? throw new ArgumentException($"Data element with type {dataType} not found");
+        var dataElement = instance.Data.Find(d => d.DataType == dataType);
+        if (dataElement is null)
+        {
+            return null;
+        }
+        return (DataElementIdentifier?)dataElement;
     }
 }

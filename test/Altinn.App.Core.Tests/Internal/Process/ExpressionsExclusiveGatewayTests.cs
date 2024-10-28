@@ -271,11 +271,11 @@ public class ExpressionsExclusiveGatewayTests
 
         var frontendSettings = Options.Create(new FrontEndSettings());
 
-        var dataAccessor = new CachedInstanceDataAccessor(
+        var dataAccessor = new InstanceDataUnitOfWork(
             instance,
             _dataClient.Object,
             _instanceClient.Object,
-            _appMetadata.Object,
+            appMetadata,
             modelSerializationService
         );
 

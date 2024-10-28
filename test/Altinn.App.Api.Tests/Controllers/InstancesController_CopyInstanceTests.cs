@@ -3,14 +3,17 @@ using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
+using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.Validation;
@@ -46,6 +49,7 @@ public class InstancesController_CopyInstanceTests
     private readonly Mock<HttpContext> _httpContextMock = new();
     private readonly Mock<IOrganizationClient> _oarganizationClientMock = new();
     private readonly Mock<IHostEnvironment> _envMock = new();
+    private readonly Mock<IValidationService> _validationService = new(MockBehavior.Strict);
 
     private readonly InstancesController SUT;
 
@@ -53,6 +57,17 @@ public class InstancesController_CopyInstanceTests
     {
         ControllerContext controllerContext = new ControllerContext() { HttpContext = _httpContextMock.Object };
 
+        var modelSerializationService = new ModelSerializationService(_appModel.Object);
+        var patchService = new PatchService(
+            _appMetadata.Object,
+            _data.Object,
+            _instanceClient.Object,
+            _validationService.Object,
+            [],
+            [],
+            modelSerializationService,
+            _envMock.Object
+        );
         SUT = new InstancesController(
             _logger.Object,
             _registrer.Object,
@@ -69,7 +84,9 @@ public class InstancesController_CopyInstanceTests
             _profile.Object,
             _processEngine.Object,
             _oarganizationClientMock.Object,
-            _envMock.Object
+            _envMock.Object,
+            modelSerializationService,
+            patchService
         )
         {
             ControllerContext = controllerContext

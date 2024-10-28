@@ -12,8 +12,8 @@ public interface IFileValidationService
     /// <summary>
     /// Validates the file based on the file analysis results.
     /// </summary>
-    Task<(bool Success, List<ValidationIssue> Errors)> Validate(
+    Task<(bool Success, List<ValidationIssueWithSource> Errors)> Validate(
         DataType dataType,
-        IEnumerable<FileAnalysisResult> fileAnalysisResults
+        List<FileAnalysisResult> fileAnalysisResults
     );
 }

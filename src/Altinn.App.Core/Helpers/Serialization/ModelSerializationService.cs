@@ -127,11 +127,35 @@ public class ModelSerializationService
         object model;
         if (contentType?.Contains("application/xml") ?? true) // default to xml if no content type is provided
         {
-            model = DeserializeXml(segment, modelType);
+            try
+            {
+                model = DeserializeXml(segment, modelType);
+            }
+            catch (XmlException e)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Failed to deserialize XML",
+                    Detail = e.Message,
+                    Status = StatusCodes.Status400BadRequest,
+                };
+            }
         }
         else if (contentType.Contains("application/json"))
         {
-            model = DeserializeJson(segment, modelType);
+            try
+            {
+                model = DeserializeJson(segment, modelType);
+            }
+            catch (JsonException e)
+            {
+                return new ProblemDetails()
+                {
+                    Title = "Failed to deserialize JSON",
+                    Detail = e.Message,
+                    Status = StatusCodes.Status400BadRequest,
+                };
+            }
         }
         else
         {
@@ -261,5 +285,14 @@ public class ModelSerializationService
 
             return modelType.Name;
         }
+    }
+
+    /// <summary>
+    /// Initialize an empty object of the specified type
+    /// </summary>
+    public object GetEmpty(DataType dataType)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(dataType?.AppLogic?.ClassRef);
+        return _appModel.Create(dataType.AppLogic.ClassRef);
     }
 }

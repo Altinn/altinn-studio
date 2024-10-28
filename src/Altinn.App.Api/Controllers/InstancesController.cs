@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Net;
-using System.Text;
+using System.Text.Json;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Mappers;
@@ -16,6 +16,7 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
+using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Profile;
@@ -67,6 +68,9 @@ public class InstancesController : ControllerBase
     private readonly IProcessEngine _processEngine;
     private readonly IOrganizationClient _orgClient;
     private readonly IHostEnvironment _env;
+    private readonly ModelSerializationService _serializationService;
+    private readonly IPatchService _patchService;
+    private static readonly JsonSerializerOptions _jsonSerializerOptionsWeb = new(JsonSerializerDefaults.Web);
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -88,7 +92,9 @@ public class InstancesController : ControllerBase
         IProfileClient profileClient,
         IProcessEngine processEngine,
         IOrganizationClient orgClient,
-        IHostEnvironment env
+        IHostEnvironment env,
+        ModelSerializationService serializationService,
+        IPatchService patchService
     )
     {
         _logger = logger;
@@ -107,6 +113,8 @@ public class InstancesController : ControllerBase
         _processEngine = processEngine;
         _orgClient = orgClient;
         _env = env;
+        _serializationService = serializationService;
+        _patchService = patchService;
     }
 
     /// <summary>
@@ -171,6 +179,7 @@ public class InstancesController : ControllerBase
     /// <param name="org">unique identifier of the organisation responsible for the app</param>
     /// <param name="app">application identifier which is unique within an organisation</param>
     /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
+    /// <param name="language">The currently active user language</param>
     /// <returns>the created instance</returns>
     [HttpPost]
     [DisableFormValueModelBinding]
@@ -181,7 +190,8 @@ public class InstancesController : ControllerBase
     public async Task<ActionResult<Instance>> Post(
         [FromRoute] string org,
         [FromRoute] string app,
-        [FromQuery] int? instanceOwnerPartyId
+        [FromQuery] int? instanceOwnerPartyId,
+        [FromQuery] string? language = null
     )
     {
         if (string.IsNullOrEmpty(org))
@@ -198,15 +208,16 @@ public class InstancesController : ControllerBase
         if (VerifyInstantiationPermissions(application, org, app) is { } verificationResult)
             return verificationResult;
 
-        MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
-        await parsedRequest.Read();
+        var readResult = await MultipartRequestReader.Read(Request);
 
-        if (parsedRequest.Errors.Count != 0)
+        if (!readResult.Success)
         {
-            return BadRequest($"Error when reading content: {JsonConvert.SerializeObject(parsedRequest.Errors)}");
+            return StatusCode(readResult.Error.Status ?? 500, readResult.Error);
         }
 
-        Instance? instanceTemplate = await ExtractInstanceTemplate(parsedRequest);
+        var requestParts = readResult.Ok;
+
+        Instance? instanceTemplate = ExtractInstanceTemplate(requestParts);
 
         if (instanceOwnerPartyId is null && instanceTemplate is null)
         {
@@ -254,7 +265,7 @@ public class InstancesController : ControllerBase
         }
 
         RequestPartValidator requestValidator = new(application);
-        string? multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
+        string? multipartError = requestValidator.ValidateParts(requestParts);
 
         if (!string.IsNullOrEmpty(multipartError))
         {
@@ -334,7 +345,11 @@ public class InstancesController : ControllerBase
 
         try
         {
-            await StorePrefillParts(instance, application, parsedRequest.Parts);
+            var prefillProblem = await StorePrefillParts(instance, application, requestParts, language);
+            if (prefillProblem is not null)
+            {
+                return StatusCode(prefillProblem.Status ?? 500, prefillProblem);
+            }
 
             // get the updated instance
             instance = await _instanceClient.GetInstance(
@@ -1105,15 +1120,24 @@ public class InstancesController : ControllerBase
         }
     }
 
-    private async Task StorePrefillParts(Instance instance, ApplicationMetadata appInfo, List<RequestPart> parts)
+    private async Task<ProblemDetails?> StorePrefillParts(
+        Instance instance,
+        ApplicationMetadata appInfo,
+        List<RequestPart> parts,
+        string? language
+    )
     {
-        Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-        int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId, CultureInfo.InvariantCulture);
-        string org = instance.Org;
-        string app = instance.AppId.Split("/")[1];
+        var dataMutator = new InstanceDataUnitOfWork(
+            instance,
+            _dataClient,
+            _instanceClient,
+            appInfo,
+            _serializationService
+        );
 
-        foreach (RequestPart part in parts)
+        for (int partIndex = 0; partIndex < parts.Count; partIndex++)
         {
+            RequestPart part = parts[partIndex];
             // NOTE: part.Name is nullable on the type here, but `RequestPartValidator.ValidatePart` which is called
             // further up the stack will error out if it actually null, so we just sanity-check here
             // and throw if it is null.
@@ -1125,68 +1149,57 @@ public class InstancesController : ControllerBase
 
             DataType? dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
 
-            DataElement dataElement;
-            if (dataType?.AppLogic?.ClassRef != null)
+            if (dataType == null)
+            {
+                return new ProblemDetails
+                {
+                    Title = "Data type not found",
+                    Detail =
+                        $"Data type with id {part.Name} from request part {partIndex} not found in application metadata"
+                };
+            }
+
+            if (dataType.AppLogic?.ClassRef != null)
             {
                 _logger.LogInformation("Storing part {partName}", part.Name);
-
-                Type type;
-                try
+                var deserializationResult = await _serializationService.DeserializeSingleFromStream(
+                    new MemoryAsStream(part.Bytes),
+                    part.ContentType,
+                    dataType
+                );
+                if (!deserializationResult.Success)
                 {
-                    type = _appModel.GetModelType(dataType.AppLogic.ClassRef);
-                }
-                catch (Exception altinnAppException)
-                {
-                    throw new ServiceException(
-                        HttpStatusCode.InternalServerError,
-                        $"App.GetAppModelType failed: {altinnAppException.Message}",
-                        altinnAppException
-                    );
+                    return deserializationResult.Error;
                 }
 
-                ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
-                object? data = await deserializer.DeserializeAsync(part.Stream, part.ContentType);
-
-                if (!string.IsNullOrEmpty(deserializer.Error) || data is null)
-                {
-                    throw new InvalidOperationException(deserializer.Error);
-                }
+                var data = deserializationResult.Ok;
 
                 await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
-
                 await _instantiationProcessor.DataCreation(instance, data, null);
 
-                ObjectUtils.InitializeAltinnRowId(data);
-
-                dataElement = await _dataClient.InsertFormData(
-                    data,
-                    instanceGuid,
-                    type,
-                    org,
-                    app,
-                    instanceOwnerIdAsInt,
-                    part.Name
-                );
+                dataMutator.AddFormDataElement(dataType.Id, data);
             }
             else
             {
-                dataElement = await _dataClient.InsertBinaryData(
-                    instance.Id,
-                    part.Name,
-                    part.ContentType,
-                    part.FileName,
-                    part.Stream
-                );
+                _logger.LogInformation("Storing part {partName}", part.Name);
+                dataMutator.AddBinaryDataElement(dataType.Id, part.ContentType, part.FileName, part.Bytes);
             }
 
-            if (dataElement == null)
-            {
-                throw new ServiceException(
-                    HttpStatusCode.InternalServerError,
-                    $"Data service did not return a valid instance metadata when attempt to store data element {part.Name}"
-                );
-            }
+            var taskId = instance.Process?.CurrentTask?.ElementId;
+
+            if (taskId is null)
+                throw new InvalidOperationException("There should be a task while initializing data");
+
+            var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+            await _patchService.RunDataProcessors(dataMutator, changes, taskId, language);
+
+            // Update the changes list if it changed in data processors
+            changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+            await dataMutator.UpdateInstanceData(changes);
+            await dataMutator.SaveChanges(changes);
         }
+
+        return null;
     }
 
     /// <summary>
@@ -1195,36 +1208,32 @@ public class InstancesController : ControllerBase
     ///
     /// If found the method removes the part corresponding to the instance template form the parts list.
     /// </summary>
-    /// <param name="reader">multipart reader object</param>
+    /// <param name="parts">the parts of the multipart request</param>
     /// <returns>the instance template or null if none is found</returns>
-    private static async Task<Instance?> ExtractInstanceTemplate(MultipartRequestReader reader)
+    private static Instance? ExtractInstanceTemplate(List<RequestPart> parts)
     {
-        Instance? instanceTemplate = null;
-
-        RequestPart? instancePart = reader.Parts.Find(part => part.Name == "instance");
+        RequestPart? instancePart = parts.Find(part => part.Name == "instance");
 
         // assume that first part with no name is an instanceTemplate
         if (
             instancePart == null
-            && reader.Parts.Count == 1
-            && reader.Parts[0].ContentType.Contains("application/json")
-            && reader.Parts[0].Name == null
+            && parts.Count == 1
+            && parts[0].ContentType.Contains("application/json")
+            && parts[0].Name == null
+            && parts[0].Bytes.Length > 0
         )
         {
-            instancePart = reader.Parts[0];
+            instancePart = parts[0];
         }
 
         if (instancePart != null)
         {
-            reader.Parts.Remove(instancePart);
+            parts.Remove(instancePart);
 
-            using StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
-            string content = await streamReader.ReadToEndAsync();
-
-            instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);
+            return System.Text.Json.JsonSerializer.Deserialize<Instance>(instancePart.Bytes, _jsonSerializerOptionsWeb);
         }
 
-        return instanceTemplate;
+        return null;
     }
 
     private async Task RegisterEvent(string eventType, Instance instance)

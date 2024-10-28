@@ -1,5 +1,5 @@
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features.Validation.Wrappers;
 
@@ -31,23 +31,13 @@ internal class TaskValidatorWrapper : IValidator
     public bool NoIncrementalValidation => true;
 
     /// <inheritdoc />
-    public Task<List<ValidationIssue>> Validate(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
-        string taskId,
-        string? language
-    )
+    public Task<List<ValidationIssue>> Validate(IInstanceDataAccessor dataAccessor, string taskId, string? language)
     {
-        return _taskValidator.ValidateTask(instance, taskId, language);
+        return _taskValidator.ValidateTask(dataAccessor.Instance, taskId, language);
     }
 
     /// <inheritdoc />
-    public Task<bool> HasRelevantChanges(
-        Instance instance,
-        IInstanceDataAccessor instanceDataAccessor,
-        string taskId,
-        List<DataElementChange> changes
-    )
+    public Task<bool> HasRelevantChanges(IInstanceDataAccessor dataAccessor, string taskId, DataElementChanges changes)
     {
         throw new NotImplementedException(
             "TaskValidatorWrapper should not be used for incremental validation, because it sets NoIncrementalValidation to true"

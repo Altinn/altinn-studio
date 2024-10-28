@@ -27,14 +27,14 @@ public class DataPatchResponseMultiple
     /// </summary>
     [JsonPropertyName("instance")]
     public required Instance Instance { get; init; }
-
-    /// <summary>
-    /// Pair of Guid and data object.
-    /// </summary>
-    /// <param name="DataElementId">The guid of the DataElement</param>
-    /// <param name="Data">The form data of the data element</param>
-    public record DataModelPairResponse(
-        [property: JsonPropertyName("dataElementId")] Guid DataElementId,
-        [property: JsonPropertyName("data")] object Data
-    );
 }
+
+/// <summary>
+/// Pair of Guid and data object.
+/// </summary>
+/// <param name="DataElementId">The guid of the DataElement</param>
+/// <param name="Data">The form data of the data element</param>
+public record DataModelPairResponse(
+    [property: JsonPropertyName("dataElementId")] Guid DataElementId,
+    [property: JsonPropertyName("data")] object Data
+);

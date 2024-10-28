@@ -9,6 +9,7 @@ using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
+using Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
@@ -72,10 +73,11 @@ public class ValidationServiceOldTests
         _applicationMetadata.DataTypes.Add(dataType);
         var dataElement = new DataElement() { DataType = "testScan", FileScanResult = FileScanResult.Infected };
         var instance = new Instance() { Data = [dataElement] };
-        var dataAccessor = new Mock<IInstanceDataAccessor>();
+        var dataAccessor = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessor.SetupGet(da => da.Instance).Returns(instance);
+        dataAccessor.SetupGet(da => da.DataElements).Returns(instance.Data);
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
-            instance,
             dataAccessor.Object,
             "Task_1",
             null,
@@ -102,10 +104,11 @@ public class ValidationServiceOldTests
         var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Pending, };
         var instance = new Instance() { Data = [dataElement] };
 
-        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);
+        dataAccessorMock.SetupGet(da => da.DataElements).Returns(instance.Data);
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
-            instance,
             dataAccessorMock.Object,
             "Task_1",
             null,
@@ -132,10 +135,11 @@ public class ValidationServiceOldTests
         _applicationMetadata.DataTypes.Add(dataType);
         var dataElement = new DataElement() { DataType = "testScan", FileScanResult = FileScanResult.Pending };
         var instance = new Instance() { Data = [dataElement], };
-        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);
+        dataAccessorMock.SetupGet(da => da.DataElements).Returns(instance.Data);
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
-            instance,
             dataAccessorMock.Object,
             "Task_1",
             null,
@@ -161,11 +165,13 @@ public class ValidationServiceOldTests
             Data = [dataElement]
         };
 
-        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        var dataAccessorMock = new InstanceDataAccessorFake(instance, _applicationMetadata, "Task_1", "test")
+        {
+            { dataElement, new ReadOnlyMemory<byte>() }
+        };
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
-            instance,
-            dataAccessorMock.Object,
+            dataAccessorMock,
             "Task_1",
             null,
             null,
@@ -208,16 +214,11 @@ public class ValidationServiceOldTests
             },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } }
         };
-        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);
+        dataAccessorMock.SetupGet(da => da.DataElements).Returns(instance.Data);
 
-        var issues = await validationService.ValidateInstanceAtTask(
-            instance,
-            dataAccessorMock.Object,
-            taskId,
-            null,
-            null,
-            null
-        );
+        var issues = await validationService.ValidateInstanceAtTask(dataAccessorMock.Object, taskId, null, null, null);
         issues.Should().BeEmpty();
 
         // instance.Process?.CurrentTask?.Validated.CanCompleteTask.Should().BeTrue();
@@ -267,16 +268,11 @@ public class ValidationServiceOldTests
             },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } }
         };
-        var dataAccessorMock = new Mock<IInstanceDataAccessor>();
+        var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
+        dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);
+        dataAccessorMock.SetupGet(da => da.DataElements).Returns(instance.Data);
 
-        var issues = await validationService.ValidateInstanceAtTask(
-            instance,
-            dataAccessorMock.Object,
-            taskId,
-            null,
-            null,
-            null
-        );
+        var issues = await validationService.ValidateInstanceAtTask(dataAccessorMock.Object, taskId, null, null, null);
         issues.Should().HaveCount(1);
         issues.Should().ContainSingle(i => i.Code == ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType);
     }
