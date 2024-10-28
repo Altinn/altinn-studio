@@ -635,7 +635,7 @@ namespace Altinn.Studio.Designer.Controllers
                             Identifier = resourceMatch.Value,
                             Title = fullResource?.Title,
                             HasCompetentAuthority = fullResource.HasCompetentAuthority,
-                            IconUrl = organization.Logo
+                            LogoUrl = organization.Logo
                         });
                     }
 

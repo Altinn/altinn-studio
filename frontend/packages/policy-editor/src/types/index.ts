@@ -52,7 +52,7 @@ export interface AccessPackageResource {
     organization: string;
     orgcode: string;
   };
-  iconUrl: string;
+  logoUrl: string;
 }
 
 export interface PolicyAction {

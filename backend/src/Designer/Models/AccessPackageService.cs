@@ -10,6 +10,6 @@ namespace Altinn.Studio.Designer.Models
 
         public CompetentAuthority HasCompetentAuthority { get; set; }
 
-        public string IconUrl { get; set; }
+        public string LogoUrl { get; set; }
     }
 }

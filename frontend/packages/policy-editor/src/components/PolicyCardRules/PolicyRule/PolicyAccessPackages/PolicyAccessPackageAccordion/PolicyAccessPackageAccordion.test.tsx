@@ -36,7 +36,7 @@ const resource = {
     organization: '974761076',
     orgcode: 'skd',
   },
-  iconUrl: '',
+  logoUrl: '',
 };
 
 describe('PolicyAccessPackageAccordion', () => {
@@ -84,7 +84,7 @@ describe('PolicyAccessPackageAccordion', () => {
       <PolicyAccessPackageAccordion
         accessPackage={{
           ...defaultAccessPackageProp,
-          services: [{ ...resource, iconUrl: 'https://altinncdn.no/orgs/skd/skd.png' }],
+          services: [{ ...resource, logoUrl: 'https://altinncdn.no/orgs/skd/skd.png' }],
         }}
         selectedLanguage='nb'
         selectPackageElement={<div />}

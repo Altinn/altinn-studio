@@ -30,10 +30,10 @@ export const PolicyAccessPackageAccordion = ({
           accessPackage.services.map((resource) => {
             return (
               <div key={resource.identifier} className={classes.serviceContainer}>
-                {resource.iconUrl ? (
+                {resource.logoUrl ? (
                   <img
                     className={classes.logo}
-                    src={resource.iconUrl}
+                    src={resource.logoUrl}
                     alt={resource.hasCompetentAuthority.name[selectedLanguage]}
                     title={resource.hasCompetentAuthority.name[selectedLanguage]}
                   />
