@@ -119,7 +119,7 @@ type LabelSettings = {
 type ButtonStyle = 'primary' | 'secondary';
 type LayoutStyle = 'column' | 'row' | 'table';
 
-type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage';
+type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage' | 'closeSubform';
 type ClientAction<T extends ClientActionId = ClientActionId> = {
   id: T;
   type: 'ClientAction';

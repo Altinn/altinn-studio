@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import classes from './ToolbarItemComponent.module.css';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
 import { InformationPanelComponent } from './InformationPanelComponent';
 
 export type ToolbarItemProvidedProps = {
-  componentType: ComponentType;
+  componentType: ComponentType | InternalComponentType;
   thirdPartyLabel?: string;
   icon?: React.ComponentType;
 };

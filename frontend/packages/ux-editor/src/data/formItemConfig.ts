@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { RefAttributes, SVGProps } from 'react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import {
   AccordionIcon,
@@ -40,16 +40,18 @@ import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecific
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
-export type FormItemConfig<T extends ComponentType = ComponentType> = {
-  name: T;
+export type FormItemConfig<T extends ComponentType | InternalComponentType = ComponentType> = {
+  name: ComponentType | InternalComponentType;
+  getDisplayName?: (formItem: ComponentSpecificConfig<ComponentType>) => string;
+  componentRef?: ComponentType;
   itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
-  defaultProperties: ComponentSpecificConfig<T>;
+  defaultProperties: ComponentSpecificConfig;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
+export type FormItemConfigs = { [T in ComponentType | InternalComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -157,6 +159,25 @@ export const formItemConfigs: FormItemConfigs = {
     },
     icon: FingerButtonIcon,
   },
+  [InternalComponentType.CloseSubformButton]: {
+    name: InternalComponentType.CloseSubformButton,
+    componentRef: ComponentType.CustomButton,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      actions: [
+        {
+          type: 'ClientAction',
+          id: 'closeSubform',
+          validation: {
+            page: 'all',
+            show: ['All'],
+          },
+        },
+      ],
+    },
+    icon: FingerButtonIcon,
+  },
+
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
     itemType: LayoutItemType.Component,
@@ -534,4 +555,5 @@ export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
+  formItemConfigs[InternalComponentType.CloseSubformButton],
 ].filter(FilterUtils.filterUnsupportedSubformComponents);

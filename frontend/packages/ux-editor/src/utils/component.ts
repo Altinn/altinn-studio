@@ -139,7 +139,10 @@ export const generateRandomOption = (): IOption => ({ label: '', value: generate
  */
 export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
   const { defaultProperties, itemType } = formItemConfigs[type];
-  return { ...defaultProperties, id, type, itemType } as FormItem<T>;
+  const componentType = formItemConfigs[type].componentRef
+    ? formItemConfigs[type].componentRef
+    : type;
+  return { ...defaultProperties, id, type: componentType, itemType } as FormItem<T>;
 };
 
 /**

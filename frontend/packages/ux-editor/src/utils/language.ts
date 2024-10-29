@@ -1,6 +1,6 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
 import type i18next from 'i18next';
 
 /**
@@ -25,7 +25,10 @@ export function getComponentHelperTextByComponentType(
  * @param t The translation function
  * @returns The title text for the component, or the type if none is found
  */
-export function getComponentTitleByComponentType(type: ComponentType, t: typeof i18next.t): string {
+export function getComponentTitleByComponentType(
+  type: ComponentType | InternalComponentType,
+  t: typeof i18next.t,
+): string {
   const text = t(`ux_editor.component_title.${type}`);
   return text !== `ux_editor.component_title.${type}` ? text : type;
 }
