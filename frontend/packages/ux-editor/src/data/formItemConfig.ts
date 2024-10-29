@@ -42,7 +42,9 @@ import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType | InternalComponentType = ComponentType> = {
   name: ComponentType | InternalComponentType;
-  getDisplayName?: (formItem: ComponentSpecificConfig<ComponentType>) => string;
+  getDisplayName?: (
+    formItem: ComponentSpecificConfig<ComponentType>,
+  ) => ComponentType | InternalComponentType;
   componentRef?: ComponentType;
   itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
   defaultProperties: ComponentSpecificConfig;
@@ -153,6 +155,15 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.CustomButton]: {
     name: ComponentType.CustomButton,
     itemType: LayoutItemType.Component,
+    getDisplayName: (
+      formItem: ComponentSpecificConfig<ComponentType.CustomButton>,
+    ): ComponentType | InternalComponentType => {
+      return formItem?.actions?.length === 1 &&
+        formItem.actions[0].id === 'closeSubform' &&
+        formItem.actions[0].type === 'ClientAction'
+        ? InternalComponentType.CloseSubformButton
+        : ComponentType.CustomButton;
+    },
     defaultProperties: {
       actions: [],
       buttonStyle: 'primary',

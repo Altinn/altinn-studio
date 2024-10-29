@@ -10,7 +10,7 @@ import type i18next from 'i18next';
  * @returns The help text for the component, or the default help text if none is found
  */
 export function getComponentHelperTextByComponentType(
-  type: ComponentType,
+  type: ComponentType | InternalComponentType,
   t: typeof i18next.t,
 ): string {
   const text = t(`ux_editor.component_help_text.${type}`);
@@ -25,7 +25,7 @@ export function getComponentHelperTextByComponentType(
  * @param t The translation function
  * @returns The title text for the component, or the type if none is found
  */
-export function getComponentTitleByComponentType(
+export function getTitleByComponentType(
   type: ComponentType | InternalComponentType,
   t: typeof i18next.t,
 ): string {

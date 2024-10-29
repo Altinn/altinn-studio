@@ -4,20 +4,29 @@ import type { ComponentType, InternalComponentType } from 'app-shared/types/Comp
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 type ToolbarItemProps = {
-  text: string;
+  componentTitle: string;
   notDraggable?: boolean;
   componentType: ComponentType | InternalComponentType;
   icon?: React.ComponentType;
 };
 
-export const ToolbarItem = ({ notDraggable, componentType, text, icon }: ToolbarItemProps) => {
+export const ToolbarItem = ({
+  notDraggable,
+  componentType,
+  componentTitle,
+  icon,
+}: ToolbarItemProps) => {
   return (
     <div>
       <DragAndDropTree.NewItem<ComponentType | InternalComponentType>
         notDraggable={notDraggable}
         payload={componentType}
       >
-        <ToolbarItemComponent componentType={componentType} thirdPartyLabel={text} icon={icon} />
+        <ToolbarItemComponent
+          componentType={componentType}
+          componentTitle={componentTitle}
+          icon={icon}
+        />
       </DragAndDropTree.NewItem>
     </div>
   );

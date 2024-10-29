@@ -1,28 +1,26 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import {
-  getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType,
-} from '../../utils/language';
+import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
+import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
-import { StudioLabelAsParagraph, StudioPopover } from '@studio/components';
+import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components';
 import { InformationIcon } from '@studio/icons';
-import { Paragraph } from '@digdir/designsystemet-react';
 
 export type InformationPanelProvidedProps = {
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
-  selectedComponent: ComponentType;
+  componentTitle: string;
+  componentType: ComponentType | InternalComponentType;
 };
 
 export const InformationPanelComponent = ({
   isOpen,
   onOpen,
   onClose,
-  selectedComponent,
+  componentTitle,
+  componentType,
 }: InformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
@@ -32,14 +30,12 @@ export const InformationPanelComponent = ({
       </StudioPopover.Trigger>
       <StudioPopover.Content>
         <div className={classNames(classes.informationPanelHeader)}>
-          <StudioLabelAsParagraph size='small'>
-            {getComponentTitleByComponentType(selectedComponent, t)}
-          </StudioLabelAsParagraph>
+          <StudioLabelAsParagraph size='small'>{componentTitle}</StudioLabelAsParagraph>
         </div>
         <div className={classNames(classes.informationPanelText)}>
-          <Paragraph size='small'>
-            {getComponentHelperTextByComponentType(selectedComponent, t)}
-          </Paragraph>
+          <StudioParagraph size='small'>
+            {getComponentHelperTextByComponentType(componentType, t)}
+          </StudioParagraph>
         </div>
       </StudioPopover.Content>
     </StudioPopover>
