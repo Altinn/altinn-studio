@@ -5,6 +5,9 @@ import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
 import { useAddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './CreateNewSubformLayoutSet.module.css';
+import type { MetadataOption } from 'app-development/types/MetadataOption';
+import { useDataModelsJsonQuery } from 'app-shared/hooks/queries';
+import { SubformDataModelSelect } from './SubformDataModelSelect';
 
 type CreateNewSubformLayoutSetProps = {
   onSubFormCreated: (layoutSetName: string) => void;
@@ -17,6 +20,8 @@ export const CreateNewSubformLayoutSet = ({
   const [newSubForm, setNewSubForm] = useState('');
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
+  const [selectedOption, setSelectedOption] = useState<MetadataOption | null>(null);
+  const jsonQuery = useDataModelsJsonQuery(org, app);
 
   const createNewSubform = () => {
     if (!newSubForm) return;
@@ -46,6 +51,12 @@ export const CreateNewSubformLayoutSet = ({
           value={newSubForm}
           size='sm'
           onChange={handleChange}
+        />
+        <SubformDataModelSelect
+          dataModels={jsonQuery.data || []}
+          disabled={false}
+          selectedOption={selectedOption}
+          setSelectedOption={setSelectedOption}
         />
         <StudioButton
           className={classes.savelayoutSetButton}
