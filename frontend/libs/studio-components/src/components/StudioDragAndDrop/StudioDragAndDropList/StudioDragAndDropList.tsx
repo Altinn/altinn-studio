@@ -5,11 +5,11 @@ import { useDrop } from 'react-dnd';
 import type { DndItem } from '../types';
 import { DraggableEditorItemType } from '../types';
 import classes from './StudioDragAndDropList.module.css';
-import { droppableListId } from '@studio/testing/testids';
 import { useIsParentDisabled } from '../hooks/useIsParentDisabled';
 import { useParentId } from '../hooks/useParentId';
 import { useOnDrop } from '../hooks/useOnDrop';
 import { useDomSelectors } from '../hooks/useDomSelectors';
+import { droppableListId } from '../testUtils/dataTestIds';
 
 export type StudioDragAndDropListProps = HTMLAttributes<HTMLDivElement>;
 

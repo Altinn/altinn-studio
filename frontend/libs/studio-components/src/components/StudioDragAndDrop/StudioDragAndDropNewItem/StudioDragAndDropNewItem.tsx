@@ -3,7 +3,7 @@ import React from 'react';
 import { useDrag } from 'react-dnd';
 import type { NewDndItem } from '../types';
 import { DraggableEditorItemType } from '../types';
-import { draggableToolbarItemId } from '@studio/testing/testids';
+import { draggableToolbarItemId } from '../testUtils/dataTestIds';
 
 export interface StudioDragAndDropNewItemProps<T> {
   /** If true, the item cannot be dragged. */
