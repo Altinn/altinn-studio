@@ -54,6 +54,16 @@ describe('CodeListTableEditor', () => {
 
   it('should close Dialog', async () => {
     const user = userEvent.setup();
+    await renderCodeListTableEditor();
+    await userFindOpenButtonAndClick(user);
+
+    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('should call handClose when closing Dialog', async () => {
+    const user = userEvent.setup();
     const doReloadPreview = jest.fn();
     await renderCodeListTableEditor({ previewContextProps: { doReloadPreview } });
     await userFindOpenButtonAndClick(user);
@@ -61,7 +71,7 @@ describe('CodeListTableEditor', () => {
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(doReloadPreview).toHaveBeenCalledTimes(1); // Todo: assertion fails, needs to take a closer look why handleClose does not get called.
+    expect(doReloadPreview).toHaveBeenCalledTimes(1);
   });
 });
 
