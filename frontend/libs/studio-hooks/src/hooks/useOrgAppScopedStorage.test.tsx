@@ -20,7 +20,7 @@ describe('useOrgAppScopedStorage', () => {
   it.each(storagesToTest)(
     'initializes ScopedStorageImpl with correct storage scope, %s',
     (storage) => {
-      const result = renderUseOrgAppScopedStorage({ storage });
+      const { result } = renderUseOrgAppScopedStorage({ storage });
 
       result.current.setItem('key', 'value');
 
@@ -32,7 +32,7 @@ describe('useOrgAppScopedStorage', () => {
   );
 
   it.each(storagesToTest)('should retrieve parsed objects from %s', (storage) => {
-    const result = renderUseOrgAppScopedStorage({ storage });
+    const { result } = renderUseOrgAppScopedStorage({ storage });
 
     result.current.setItem('person', { name: 'John', age: 18 });
 
@@ -43,7 +43,7 @@ describe('useOrgAppScopedStorage', () => {
   });
 
   it.each(storagesToTest)('should be possible to remove item from %s', (storage) => {
-    const result = renderUseOrgAppScopedStorage({ storage });
+    const { result } = renderUseOrgAppScopedStorage({ storage });
 
     result.current.setItem('key', 'value');
     result.current.removeItem('key');
@@ -51,7 +51,7 @@ describe('useOrgAppScopedStorage', () => {
   });
 
   it('should use localStorage as default storage', () => {
-    const result = renderUseOrgAppScopedStorage({});
+    const { result } = renderUseOrgAppScopedStorage({});
     result.current.setItem('key', 'value');
 
     expect(window.localStorage.getItem(scopedStorageKey)).toBe('{"key":"value"}');
@@ -65,5 +65,5 @@ const renderUseOrgAppScopedStorage = ({ storage }: UseOrgAppScopedStorage) => {
       storage,
     }),
   );
-  return result;
+  return { result };
 };
