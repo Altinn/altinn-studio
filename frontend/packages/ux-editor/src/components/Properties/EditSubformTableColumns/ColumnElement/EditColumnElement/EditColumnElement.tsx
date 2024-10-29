@@ -71,18 +71,17 @@ export const EditColumnElement = ({
           components={components}
           onSelectComponent={selectComponent}
         />
-
         <StudioTextfield
           label={
             <>
-              <PadlockLockedFillIcon /> {t('ux_editor.modal_properties_textResourceBindings_title')}
+              <PadlockLockedFillIcon />
+              {t('ux_editor.modal_properties_textResourceBindings_title')}
             </>
           }
           disabled={true}
           size='sm'
           value={textKeyValue}
         />
-
         <div className={classes.buttons}>
           <StudioActionCloseButton
             variant='secondary'
