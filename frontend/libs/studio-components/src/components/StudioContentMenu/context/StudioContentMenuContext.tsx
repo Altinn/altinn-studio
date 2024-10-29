@@ -1,7 +1,7 @@
 import React, { type ReactNode, createContext, useContext } from 'react';
 
 export type StudioContentMenuContextProps<TabId extends string> = {
-  selectedTabId: TabId;
+  isTabSelected: (tabId: TabId) => boolean;
   onChangeTab: (tabId: TabId) => void;
 };
 
@@ -14,11 +14,11 @@ export type StudioContentMenuContextProviderProps<TabId extends string> = {
 
 export function StudioContentMenuContextProvider<TabId extends string>({
   children,
-  selectedTabId,
+  isTabSelected,
   onChangeTab,
 }: Partial<StudioContentMenuContextProviderProps<TabId>>) {
   return (
-    <StudioContentMenuContext.Provider value={{ selectedTabId, onChangeTab }}>
+    <StudioContentMenuContext.Provider value={{ isTabSelected, onChangeTab }}>
       {children}
     </StudioContentMenuContext.Provider>
   );

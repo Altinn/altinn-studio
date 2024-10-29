@@ -20,7 +20,7 @@ const meta: Meta<StudioContentMenuWrapperProps<StudioMenuTabName>> = {
     linkTabs: {
       control: 'object',
       description:
-        'Array of link menu tabs with icons, names, and ids. Prop `to` defines the url to navigate to.',
+        'Array of link menu tabs with icons, names, and ids. Provide an optional link-element to return `props` in renderTab.',
       table: {
         type: { summary: 'StudioContentMenuLinkTabProps<TabId>[]' },
       },
@@ -65,8 +65,7 @@ Preview.args = {
       tabId: 'tabAsLink',
       tabName: 'Gå til Designsystemet',
       icon: <ExternalLinkIcon />,
-      to: 'https://next.storybook.designsystemet.no',
-      renderTab: (children) => <a href={'https://next.storybook.designsystemet.no'}>{children}</a>,
+      renderTab: (props) => <a href={'https://next.storybook.designsystemet.no'} {...props} />,
     },
   ],
   onChangeTab: () => {},

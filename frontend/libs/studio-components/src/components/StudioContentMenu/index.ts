@@ -13,7 +13,3 @@ export const StudioContentMenu = StudioContentMenuRoot as StudioContentMenuCompo
 
 StudioContentMenu.ButtonTab = StudioContentMenuButtonTab;
 StudioContentMenu.LinkTab = StudioContentMenuLinkTab;
-
-//StudioContentMenu.displayName = 'StudioContentMenu';
-//StudioContentMenu.ButtonTab.displayName = 'StudioContentMenu.ButtonTab';
-//StudioContentMenu.LinkTab.displayName = 'StudioContentMenu.LinkTab';

@@ -27,6 +27,14 @@ const tab2: StudioContentMenuButtonTabProps<StudioMenuTabName> = {
 describe('StudioContentMenu', () => {
   afterEach(jest.clearAllMocks);
 
+  it('renders first tab as selected if selectedTab is not provided', () => {
+    renderStudioContentMenu({
+      buttonTabs: [tab1, tab2],
+    });
+    const firstTab = screen.getByRole('tab', { name: tab1Name });
+    expect(firstTab).toHaveClass('selected');
+  });
+
   it('renders an empty contentMenu when there is no provided tabs', () => {
     renderStudioContentMenu({ buttonTabs: [] });
     const emptyMenu = screen.getByRole('tablist');
@@ -55,8 +63,7 @@ describe('StudioContentMenu', () => {
       linkTabs: [
         {
           ...tab1,
-          to: link,
-          renderTab: (children) => <a href={link}>{children}</a>,
+          renderTab: (props) => <a href={link} {...props} />,
         },
       ],
     });
@@ -161,7 +168,6 @@ const renderStudioContentMenu = ({
           icon={linkTab.icon}
           tabId={linkTab.tabId}
           tabName={linkTab.tabName}
-          to={linkTab.to}
           renderTab={linkTab.renderTab}
         />
       ))}

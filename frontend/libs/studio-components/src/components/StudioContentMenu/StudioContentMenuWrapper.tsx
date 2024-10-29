@@ -39,7 +39,6 @@ export function StudioContentMenuWrapper<TabId extends string>({
           icon={linkTabs[0].icon}
           tabId={linkTabs[0].tabId}
           tabName={linkTabs[0].tabName}
-          to={linkTabs[0].to}
           renderTab={linkTabs[0].renderTab}
         />
       </StudioContentMenu>
