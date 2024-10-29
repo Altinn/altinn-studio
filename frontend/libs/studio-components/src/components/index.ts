@@ -1,5 +1,5 @@
-export * from './StudioAlert';
 export * from './StudioActionCloseButton';
+export * from './StudioAlert';
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
 export * from './StudioBetaTag';
@@ -18,6 +18,7 @@ export * from './StudioDisplayTile';
 export * from './StudioDivider';
 export * from './StudioDropdownMenu';
 export * from './StudioError';
+export * from './StudioErrorMessage';
 export * from './StudioExpression';
 export * from './StudioFieldset';
 export * from './StudioFileUploader';
