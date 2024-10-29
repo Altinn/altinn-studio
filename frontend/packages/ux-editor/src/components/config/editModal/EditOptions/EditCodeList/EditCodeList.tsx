@@ -10,12 +10,13 @@ import { FormField } from '../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
-import { findFileNameError } from './findFileNameError';
-import type { FileNameError } from './findFileNameError';
+import { findFileNameError } from './utils/findFileNameError';
+import type { FileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
+import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
-import type { ApiError } from 'app-shared/types/api/ApiError';
+import { CodeListTableEditor } from './CodeListTableEditor';
 
 export function EditCodeList<T extends SelectionComponentType>({
   component,
@@ -25,7 +26,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
+    hideDefaultError: true,
   });
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -37,6 +38,15 @@ export function EditCodeList<T extends SelectionComponentType>({
       ...component,
       optionsId,
     });
+  };
+
+  const onSubmit = (file: File) => {
+    const fileNameError = findFileNameError(optionListIds, file.name);
+    if (fileNameError) {
+      handleInvalidFileName(fileNameError);
+    } else {
+      handleUpload(file);
+    }
   };
 
   const handleUpload = (file: File) => {
@@ -53,15 +63,6 @@ export function EditCodeList<T extends SelectionComponentType>({
     });
   };
 
-  const onSubmit = (file: File) => {
-    const fileNameError = findFileNameError(optionListIds, file.name);
-    if (fileNameError) {
-      handleInvalidFileName(fileNameError);
-    } else {
-      handleUpload(file);
-    }
-  };
-
   const handleInvalidFileName = (fileNameError: FileNameError) => {
     switch (fileNameError) {
       case 'invalidFileName':
@@ -74,6 +75,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   return (
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
+      <CodeListTableEditor component={component} />
       <StudioFileUploader
         className={classes.studioFileUploader}
         accept='.json'

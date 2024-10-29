@@ -41,7 +41,8 @@ import {
   altinn2DelegationsMigrationPath,
   imagePath,
   addImagePath,
-  optionListPath,
+  optionListUploadPath,
+  optionListUpdatePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -65,6 +66,7 @@ import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment
 import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import type { Option } from 'app-shared/types/Option';
 
 const headers = {
   Accept: 'application/json',
@@ -114,7 +116,8 @@ export const updateAppPolicy = (org: string, app: string, payload: Policy) => pu
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
-export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put(optionListUpdatePath(org, app, optionsListId), payload);
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 
 // Resourceadm

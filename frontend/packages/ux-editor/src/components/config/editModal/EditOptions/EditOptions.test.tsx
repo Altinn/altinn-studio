@@ -1,15 +1,17 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
-
+import { render, screen, waitFor } from '@testing-library/react';
 import { EditOptions } from './EditOptions';
-import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormItem } from '../../../../types/FormItem';
-import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { MemoryRouter } from 'react-router-dom';
+import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
+import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
@@ -20,6 +22,12 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   maxLength: 10,
   itemType: 'COMPONENT',
   dataModelBindings: { simpleBinding: '' },
+};
+
+const defaultPreviewContextProps: PreviewContextProps = {
+  shouldReloadPreview: false,
+  doReloadPreview: jest.fn(),
+  previewHasLoaded: jest.fn(),
 };
 
 const queryClientMock = createQueryClientMock();
@@ -41,16 +49,22 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
     ...mockComponent,
     ...componentProps,
   };
-  renderWithProviders(
-    <EditOptions
-      handleComponentChange={handleComponentChange}
-      component={component}
-      renderOptions={renderOptions}
-    />,
-    {
-      queries,
-      queryClient: queryClientMock,
-    },
+  const allQueries = {
+    ...queriesMock,
+    ...queries,
+  };
+
+  render(
+    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
+      <PreviewContext.Provider value={{ ...defaultPreviewContextProps }}>
+        <EditOptions
+          handleComponentChange={handleComponentChange}
+          component={component}
+          renderOptions={renderOptions}
+        />
+        ,
+      </PreviewContext.Provider>
+    </ServicesContextProvider>,
   );
 };
 
