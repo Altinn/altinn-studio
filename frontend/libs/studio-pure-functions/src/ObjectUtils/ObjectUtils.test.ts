@@ -37,6 +37,15 @@ describe('objectUtils', () => {
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1, b: 3 })).toBe(false);
       expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2, c: 3 }, { a: 1, b: 2, c: 4 })).toBe(false);
     });
+
+    it('should return true for two empty objects', () => {
+      expect(ObjectUtils.areObjectsEqual({}, {})).toBe(true);
+    });
+
+    it('should return true for identical objects (reference equality)', () => {
+      const obj1 = { a: 1, b: 'test' };
+      expect(ObjectUtils.areObjectsEqual(obj1, obj1)).toBe(true);
+    });
   });
 
   describe('mapByProperty', () => {
