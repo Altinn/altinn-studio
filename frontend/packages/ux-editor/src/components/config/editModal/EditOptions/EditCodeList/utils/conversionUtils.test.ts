@@ -1,7 +1,9 @@
 import type { Option } from 'app-shared/types/Option';
 import type { CodeListItem } from '@studio/components';
-import { convertOptionsListToCodeListItemList } from './conversionUtils';
-import { convertCodeListItemListToOptionsList } from './conversionUtils';
+import {
+  convertOptionsListToCodeListItemList,
+  convertCodeListItemListToOptionsList,
+} from './conversionUtils';
 
 // Test data:
 const optionsList: Option[] = [

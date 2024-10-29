@@ -5,7 +5,10 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../../types/FormComponent';
 import type { FormItem } from '../../../../types/FormItem';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import {
+  type ServicesContextProps,
+  ServicesContextProvider,
+} from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

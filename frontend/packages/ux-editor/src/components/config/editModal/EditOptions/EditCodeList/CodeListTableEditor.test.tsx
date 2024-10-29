@@ -11,7 +11,7 @@ import { CodeListTableEditor } from './CodeListTableEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import userEvent, { UserEvent } from '@testing-library/user-event';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = {

@@ -2,7 +2,7 @@ import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { renderHookWithProviders } from '../../testing/mocks';
 import {
-  UpdateOptionListMutationArgs,
+  type UpdateOptionListMutationArgs,
   useUpdateOptionListMutation,
 } from './useUpdateOptionListMutation';
 import type { Option } from 'app-shared/types/Option';
