@@ -1,1 +1,0 @@
-export { StudioMenuTabContainer } from './StudioMenuTabContainer';

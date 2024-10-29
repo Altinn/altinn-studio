@@ -1,4 +1,12 @@
 .buttonTab {
   all: unset;
   width: var(--tab-width);
+  box-sizing: border-box;
+  outline: none;
+  border: solid 1px var(--fds-semantic-border-action-second-subtle);
+}
+
+.buttonTab:focus {
+  outline: none;
+  border-color: var(--fds-border_width-tab_focus) var(--fds-semantic-surface-focus-default);
 }

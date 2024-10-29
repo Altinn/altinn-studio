@@ -1,16 +1,17 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { StudioMenuTab } from '../StudioMenuTab';
-import { StudioMenuTabContainer } from '../StudioMenuTabContainer';
 import { useStudioContentMenuContext } from '../context/StudioContentMenuContext';
-import { Link, useNavigate } from 'react-router-dom';
 import classes from './StudioContentMenuLinkTab.module.css';
+import { StudioLink } from '@studio/components';
+import { moveFocus } from '../utils/dom-utils';
 
 export type StudioContentMenuLinkTabProps<TabId extends string> = {
   icon: ReactNode;
   tabName: string;
   tabId: TabId;
   to: string;
+  renderTab: (children: ReactNode) => React.ReactElement;
 };
 
 export function StudioContentMenuLinkTab<TabId extends string>({
@@ -18,29 +19,29 @@ export function StudioContentMenuLinkTab<TabId extends string>({
   tabName,
   tabId,
   to,
+  renderTab,
 }: StudioContentMenuLinkTabProps<TabId>): React.ReactElement {
   const { selectedTabId, onChangeTab } = useStudioContentMenuContext();
-  const navigate = useNavigate();
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      onChangeTab(tabId);
-      navigate(to);
-    }
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLAnchorElement>) => {
+    moveFocus(event);
   };
 
+  const isTabSelected = selectedTabId === tabId;
+
   return (
-    <StudioMenuTabContainer
-      tabId={tabId}
-      tabName={tabName}
-      isTabSelected={selectedTabId === tabId}
+    <StudioLink
+      className={classes.linkTab}
+      role='tab'
+      tabIndex={0} // isTabSelected ? 0 : -1
+      href={to}
+      asChild
       onClick={() => onChangeTab(tabId)}
       onKeyDown={handleKeyDown}
     >
-      <Link className={classes.linkTab} to={to}>
-        <StudioMenuTab icon={icon} tabName={tabName} />
-      </Link>
-    </StudioMenuTabContainer>
+      {renderTab(<StudioMenuTab icon={icon} tabName={tabName} isTabSelected={isTabSelected} />)}
+    </StudioLink>
   );
 }
+
+//<StudioContentMenuLinkTab icon={} tabName={} tabId={} to={} renderTabName={(children) => <a href={}>{children}</a>}/>

@@ -1,6 +1,8 @@
 import type React from 'react';
 
-export function moveFocus(event: React.KeyboardEvent<HTMLDivElement>) {
+export type HTMLTabElement = HTMLAnchorElement | HTMLButtonElement;
+
+export function moveFocus(event: React.KeyboardEvent<HTMLTabElement>) {
   const nextTab = getNextTab(event);
   if (nextTab) {
     event.preventDefault();
@@ -10,7 +12,7 @@ export function moveFocus(event: React.KeyboardEvent<HTMLDivElement>) {
   }
 }
 
-function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLDivElement>) {
+function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLTabElement>) {
   const tablist = getParentTablist(currentTarget);
   const tabs = getTabs(tablist);
   switch (key) {
@@ -23,7 +25,7 @@ function getNextTab({ key, currentTarget }: React.KeyboardEvent<HTMLDivElement>)
   }
 }
 
-function getTabElementAbove(tabs: HTMLDivElement[], currentTab: HTMLDivElement) {
+function getTabElementAbove(tabs: HTMLTabElement[], currentTab: HTMLTabElement) {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex > 0) {
     return tabs[currentIndex - 1];
@@ -31,18 +33,18 @@ function getTabElementAbove(tabs: HTMLDivElement[], currentTab: HTMLDivElement) 
   return null;
 }
 
-function getTabElementBelow(tabs: HTMLDivElement[], currentTab: HTMLDivElement) {
+function getTabElementBelow(tabs: HTMLTabElement[], currentTab: HTMLTabElement) {
   const currentIndex = tabs.indexOf(currentTab);
   if (currentIndex < tabs.length - 1) {
-    return tabs[currentIndex + 1] as HTMLDivElement;
+    return tabs[currentIndex + 1] as HTMLTabElement;
   }
   return null;
 }
 
-function getTabs(tablist: HTMLDivElement): HTMLDivElement[] {
-  return Array.from(tablist.querySelectorAll('[role="tab"]')) as HTMLDivElement[];
+function getTabs(tablist: HTMLDivElement): HTMLTabElement[] {
+  return Array.from(tablist.querySelectorAll('[role="tab"]')) as HTMLTabElement[];
 }
 
-function getParentTablist(element: HTMLDivElement): HTMLDivElement | null {
+function getParentTablist(element: HTMLTabElement): HTMLDivElement | null {
   return element.closest('[role="tablist"]');
 }

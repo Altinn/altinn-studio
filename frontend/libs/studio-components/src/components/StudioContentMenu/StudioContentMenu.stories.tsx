@@ -66,6 +66,7 @@ Preview.args = {
       tabName: 'Gå til Designsystemet',
       icon: <ExternalLinkIcon />,
       to: 'https://next.storybook.designsystemet.no',
+      renderTab: (children) => <a href={'https://next.storybook.designsystemet.no'}>{children}</a>,
     },
   ],
   onChangeTab: () => {},

@@ -4,7 +4,6 @@ import { userEvent } from '@testing-library/user-event';
 import { StudioContentMenu } from './';
 import type { StudioContentMenuWrapperProps } from './StudioContentMenuWrapper';
 import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
-import { BrowserRouter } from 'react-router-dom';
 
 type StudioMenuTabName = 'tab1' | 'tab2' | 'tab3';
 
@@ -34,14 +33,6 @@ describe('StudioContentMenu', () => {
     expect(emptyMenu).toBeInTheDocument();
   });
 
-  it('renders first tab as selected if selectedTab is not provided', () => {
-    renderStudioContentMenu({
-      buttonTabs: [tab1, tab2],
-    });
-    const firstTab = screen.getByRole('tab', { name: tab1Name });
-    expect(firstTab).toHaveClass('selectedTab');
-  });
-
   it('renders the title and icon of a given menu tab', () => {
     const iconTitle = 'My icon';
     renderStudioContentMenu({
@@ -65,14 +56,13 @@ describe('StudioContentMenu', () => {
         {
           ...tab1,
           to: link,
+          renderTab: (children) => <a href={link}>{children}</a>,
         },
       ],
     });
-    const menuTab = screen.getByRole('tab', { name: tab1Name });
-    const linkTab = screen.getByRole('link', { name: tab1Name });
-    expect(menuTab).toBeInTheDocument();
+    const linkTab = screen.getByRole('tab', { name: tab1Name });
     expect(linkTab).toBeInTheDocument();
-    expect(linkTab).toHaveAttribute('href', `/${link}`);
+    expect(linkTab).toHaveAttribute('href', link);
   });
 
   it('allows changing focus to next tab using keyboard', async () => {
@@ -149,23 +139,6 @@ describe('StudioContentMenu', () => {
     expect(onChangeTabMock).toHaveBeenCalledTimes(1);
     expect(onChangeTabMock).toHaveBeenCalledWith(tab1Id);
   });
-
-  it('calls onChangeTab when clicking on a menu tab with link', async () => {
-    const link = 'url-link';
-    const user = userEvent.setup();
-    renderStudioContentMenu({
-      linkTabs: [
-        {
-          ...tab1,
-          to: link,
-        },
-      ],
-    });
-    const menuTab = screen.getByRole('tab', { name: tab1Name });
-    await user.click(menuTab);
-    expect(onChangeTabMock).toHaveBeenCalledTimes(1);
-    expect(onChangeTabMock).toHaveBeenCalledWith(tab1Id);
-  });
 });
 
 const renderStudioContentMenu = ({
@@ -173,26 +146,25 @@ const renderStudioContentMenu = ({
   linkTabs = [],
 }: Partial<StudioContentMenuWrapperProps<StudioMenuTabName>> = {}) => {
   render(
-    <BrowserRouter>
-      <StudioContentMenu selectedTabId={undefined} onChangeTab={onChangeTabMock}>
-        {buttonTabs.map((buttonTab) => (
-          <StudioContentMenu.ButtonTab
-            key={buttonTab.tabId}
-            icon={buttonTab.icon}
-            tabId={buttonTab.tabId}
-            tabName={buttonTab.tabName}
-          />
-        ))}
-        {linkTabs.map((linkTab) => (
-          <StudioContentMenu.LinkTab
-            key={linkTab.tabId}
-            icon={linkTab.icon}
-            tabId={linkTab.tabId}
-            tabName={linkTab.tabName}
-            to={linkTab.to}
-          />
-        ))}
-      </StudioContentMenu>
-    </BrowserRouter>,
+    <StudioContentMenu selectedTabId={undefined} onChangeTab={onChangeTabMock}>
+      {buttonTabs.map((buttonTab) => (
+        <StudioContentMenu.ButtonTab
+          key={buttonTab.tabId}
+          icon={buttonTab.icon}
+          tabId={buttonTab.tabId}
+          tabName={buttonTab.tabName}
+        />
+      ))}
+      {linkTabs.map((linkTab) => (
+        <StudioContentMenu.LinkTab
+          key={linkTab.tabId}
+          icon={linkTab.icon}
+          tabId={linkTab.tabId}
+          tabName={linkTab.tabName}
+          to={linkTab.to}
+          renderTab={linkTab.renderTab}
+        />
+      ))}
+    </StudioContentMenu>,
   );
 };

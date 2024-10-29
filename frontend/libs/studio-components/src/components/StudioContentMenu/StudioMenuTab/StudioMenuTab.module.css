@@ -1,7 +1,29 @@
-.tabContent {
-  display: flex;
-  align-items: center;
+:root {
+  --tab-display: flex;
+  --tab-align-items: center;
+  --tab-width: 100%;
+}
+
+.selectedTab,
+.tab {
+  display: var(--tab-display);
+  align-items: var(--tab-align-items);
+  box-sizing: border-box;
   gap: var(--fds-spacing-2);
+  padding: var(--fds-spacing-3);
+  width: var(--tab-width);
+  background-color: var(--fds-semantic-surface-action-second-subtle);
+  cursor: pointer;
+}
+
+.selectedTab {
+  border-left: var(--fds-border_radius-interactive) solid var(--semantic-surface-action-default);
+  background-color: white;
+}
+
+.tab:hover,
+.selectedTab:hover {
+  background-color: var(--fds-semantic-surface-action-no_fill-hover);
 }
 
 .tabIcon {
@@ -11,7 +33,6 @@
   color: var(--fds-semantic-text-neutral-default);
 }
 
-.tabContent,
 .tabTitle {
   overflow: hidden;
   text-overflow: ellipsis;

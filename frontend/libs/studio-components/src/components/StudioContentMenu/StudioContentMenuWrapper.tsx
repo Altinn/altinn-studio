@@ -1,7 +1,6 @@
 import React from 'react';
 import { StudioContentMenu } from './';
 import classes from './StudioContentMenuWrapper.module.css';
-import { BrowserRouter } from 'react-router-dom';
 import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
 import type { StudioContentMenuLinkTabProps } from './StudioContentMenuLinkTab';
 
@@ -20,31 +19,30 @@ export function StudioContentMenuWrapper<TabId extends string>({
 }: StudioContentMenuWrapperProps<TabId>) {
   return (
     <div className={classes.contentMenuWrapper}>
-      <BrowserRouter>
-        <StudioContentMenu selectedTabId={selectedTabId} onChangeTab={onChangeTab}>
-          <StudioContentMenu.ButtonTab
-            icon={buttonTabs[0].icon}
-            tabId={buttonTabs[0].tabId}
-            tabName={buttonTabs[0].tabName}
-          />
-          <StudioContentMenu.ButtonTab
-            icon={buttonTabs[1].icon}
-            tabId={buttonTabs[1].tabId}
-            tabName={buttonTabs[1].tabName}
-          />
-          <StudioContentMenu.ButtonTab
-            icon={buttonTabs[2].icon}
-            tabId={buttonTabs[2].tabId}
-            tabName={buttonTabs[2].tabName}
-          />
-          <StudioContentMenu.LinkTab
-            icon={linkTabs[0].icon}
-            tabId={linkTabs[0].tabId}
-            tabName={linkTabs[0].tabName}
-            to={linkTabs[0].to}
-          />
-        </StudioContentMenu>
-      </BrowserRouter>
+      <StudioContentMenu selectedTabId={selectedTabId} onChangeTab={onChangeTab}>
+        <StudioContentMenu.ButtonTab
+          icon={buttonTabs[0].icon}
+          tabId={buttonTabs[0].tabId}
+          tabName={buttonTabs[0].tabName}
+        />
+        <StudioContentMenu.ButtonTab
+          icon={buttonTabs[1].icon}
+          tabId={buttonTabs[1].tabId}
+          tabName={buttonTabs[1].tabName}
+        />
+        <StudioContentMenu.ButtonTab
+          icon={buttonTabs[2].icon}
+          tabId={buttonTabs[2].tabId}
+          tabName={buttonTabs[2].tabName}
+        />
+        <StudioContentMenu.LinkTab
+          icon={linkTabs[0].icon}
+          tabId={linkTabs[0].tabId}
+          tabName={linkTabs[0].tabName}
+          to={linkTabs[0].to}
+          renderTab={linkTabs[0].renderTab}
+        />
+      </StudioContentMenu>
     </div>
   );
 }

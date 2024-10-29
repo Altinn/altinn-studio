@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import React from 'react';
 import { StudioMenuTab } from '../StudioMenuTab';
-import { StudioMenuTabContainer } from '../StudioMenuTabContainer';
 import { useStudioContentMenuContext } from '../context/StudioContentMenuContext';
 import classes from './StudioContentMenuButtonTab.module.css';
+import { moveFocus } from '../utils/dom-utils';
 
 export type StudioContentMenuButtonTabProps<TabId extends string> = {
   icon: ReactNode;
@@ -18,16 +18,21 @@ export function StudioContentMenuButtonTab<TabId extends string>({
 }: StudioContentMenuButtonTabProps<TabId>): React.ReactElement {
   const { selectedTabId, onChangeTab } = useStudioContentMenuContext();
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    moveFocus(event);
+  };
+
+  const isTabSelected = selectedTabId === tabId;
+
   return (
-    <StudioMenuTabContainer
-      tabId={tabId}
-      tabName={tabName}
-      isTabSelected={selectedTabId === tabId}
+    <button
+      className={classes.buttonTab}
+      role='tab'
+      tabIndex={0} // isTabSelected ? 0 : -1
       onClick={() => onChangeTab(tabId)}
+      onKeyDown={handleKeyDown}
     >
-      <button className={classes.buttonTab} tabIndex={-1}>
-        <StudioMenuTab icon={icon} tabName={tabName} />
-      </button>
-    </StudioMenuTabContainer>
+      <StudioMenuTab icon={icon} tabName={tabName} isTabSelected={isTabSelected} />
+    </button>
   );
 }
