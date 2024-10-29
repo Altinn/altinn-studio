@@ -6,7 +6,6 @@ import { StudioDragAndDropListItem } from './StudioDragAndDropListItem';
 import type { StudioDragAndDropListItemProps } from './StudioDragAndDropListItem';
 import { StudioDragAndDropNewItem } from './StudioDragAndDropNewItem';
 import type { StudioDragAndDropNewItemProps } from './StudioDragAndDropNewItem';
-import { droppableListId, draggableToolbarItemId } from './testUtils/dataTestIds';
 
 type StudioDragAndDropComponent = {
   Provider: typeof StudioDragAndDropProvider;
@@ -28,5 +27,3 @@ export type {
   StudioDragAndDropListItemProps,
   StudioDragAndDropNewItemProps,
 };
-
-export { droppableListId, draggableToolbarItemId };

@@ -1,13 +1,8 @@
-import {
-  droppableListId as studioDroppableListId,
-  draggableToolbarItemId as studioDdaggableToolbarItemId,
-} from '@studio/components/src/components/StudioDragAndDrop/testUtils/dataTestIds';
-
 export const appContentWrapperId = 'app-content-wrapper';
 export const dataModellingContainerId = 'data-modelling-container';
 export const deleteButtonId = (key) => `delete-button-${key}`;
-export const draggableToolbarItemId = studioDdaggableToolbarItemId;
-export const droppableListId = studioDroppableListId;
+export const draggableToolbarItemId = 'draggableToolbarItem';
+export const droppableListId = 'droppableList';
 export const orgMenuItemId = (orgUserName) =>
   orgUserName ? `menu-org-${orgUserName}` : 'menu-org-no-org-user-name';
 export const resetRepoContainerId = 'reset-repo-container';
