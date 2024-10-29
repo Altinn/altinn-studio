@@ -1,0 +1,10 @@
+.savelayoutSetButton {
+  display: flex;
+  align-self: flex-start;
+  border: 2px solid var(--success-color);
+  color: var(--success-color);
+}
+
+.headerIcon {
+  font-size: large;
+}
