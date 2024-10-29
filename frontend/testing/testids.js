@@ -1,7 +1,7 @@
 import {
   droppableListId as studioDroppableListId,
   draggableToolbarItemId as studioDdaggableToolbarItemId,
-} from '@studio/components';
+} from '@studio/components/src/components/StudioDragAndDrop/testUtils/dataTestIds';
 
 export const appContentWrapperId = 'app-content-wrapper';
 export const dataModellingContainerId = 'data-modelling-container';
