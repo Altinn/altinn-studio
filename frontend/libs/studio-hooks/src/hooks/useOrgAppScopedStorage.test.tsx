@@ -17,18 +17,21 @@ describe('useOrgAppScopedStorage', () => {
     window.sessionStorage.clear();
   });
 
-  it.each(storagesToTest)('initializes ScopedStorageImpl with correct storage scope', (storage) => {
-    const result = renderUseOrgAppScopedStorage({ storage });
+  it.each(storagesToTest)(
+    'initializes ScopedStorageImpl with correct storage scope, %s',
+    (storage) => {
+      const result = renderUseOrgAppScopedStorage({ storage });
 
-    result.current.setItem('key', 'value');
+      result.current.setItem('key', 'value');
 
-    expect(result.current.setItem).toBeDefined();
-    expect(result.current.getItem).toBeDefined();
-    expect(result.current.removeItem).toBeDefined();
-    expect(window[storage].getItem(scopedStorageKey)).toBe('{"key":"value"}');
-  });
+      expect(result.current.setItem).toBeDefined();
+      expect(result.current.getItem).toBeDefined();
+      expect(result.current.removeItem).toBeDefined();
+      expect(window[storage].getItem(scopedStorageKey)).toBe('{"key":"value"}');
+    },
+  );
 
-  it.each(storagesToTest)('should retrieve parsed objects from storage', (storage) => {
+  it.each(storagesToTest)('should retrieve parsed objects from %s', (storage) => {
     const result = renderUseOrgAppScopedStorage({ storage });
 
     result.current.setItem('person', { name: 'John', age: 18 });
@@ -39,7 +42,7 @@ describe('useOrgAppScopedStorage', () => {
     });
   });
 
-  it.each(storagesToTest)('should be possible to remove item from storage', (storage) => {
+  it.each(storagesToTest)('should be possible to remove item from %s', (storage) => {
     const result = renderUseOrgAppScopedStorage({ storage });
 
     result.current.setItem('key', 'value');

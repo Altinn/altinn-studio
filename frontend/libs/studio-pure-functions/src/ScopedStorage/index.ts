@@ -1,1 +1,1 @@
-export { ScopedStorageImpl, type ScopedStorage } from './ScopedStorage';
+export { ScopedStorageImpl, type ScopedStorage, type ScopedStorageResult } from './ScopedStorage';

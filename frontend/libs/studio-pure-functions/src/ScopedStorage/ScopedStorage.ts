@@ -1,8 +1,10 @@
 type StorageKey = string;
 
-export interface ScopedStorage extends Pick<Storage, 'setItem' | 'getItem' | 'removeItem'> {
-  setItem: <T>(key: string, value: T) => T;
-  getItem: <T>(key: string) => T | null;
+export interface ScopedStorage extends Pick<Storage, 'setItem' | 'getItem' | 'removeItem'> {}
+
+export interface ScopedStorageResult extends ScopedStorage {
+  setItem: <T>(key: string, value: T) => void;
+  getItem: <T>(key: string) => T;
   removeItem: (key: string) => void;
 }
 
