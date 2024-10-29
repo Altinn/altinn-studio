@@ -11,7 +11,7 @@ const supportedStorageMap: Record<UseOrgAppScopedStorage['storage'], ScopedStora
   sessionStorage: window.sessionStorage,
 };
 
-type UseOrgAppScopedStorage = {
+export type UseOrgAppScopedStorage = {
   storage?: 'localStorage' | 'sessionStorage';
 };
 
