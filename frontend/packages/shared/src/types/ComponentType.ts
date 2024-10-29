@@ -43,6 +43,6 @@ export enum ComponentType {
   TextArea = 'TextArea',
 }
 
-export enum InternalComponentType {
+export enum CustomComponentType {
   CloseSubformButton = 'CloseSubformButton',
 }

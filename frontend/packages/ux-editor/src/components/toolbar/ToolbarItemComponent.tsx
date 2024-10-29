@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import classes from './ToolbarItemComponent.module.css';
-import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { InformationPanelComponent } from './InformationPanelComponent';
 
 export type ToolbarItemProvidedProps = {
-  componentType: ComponentType | InternalComponentType;
+  componentType: ComponentType | CustomComponentType;
   componentTitle: string;
   icon?: React.ComponentType;
 };

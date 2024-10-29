@@ -1,12 +1,12 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 type ToolbarItemProps = {
   componentTitle: string;
   notDraggable?: boolean;
-  componentType: ComponentType | InternalComponentType;
+  componentType: ComponentType | CustomComponentType;
   icon?: React.ComponentType;
 };
 
@@ -18,7 +18,7 @@ export const ToolbarItem = ({
 }: ToolbarItemProps) => {
   return (
     <div>
-      <DragAndDropTree.NewItem<ComponentType | InternalComponentType>
+      <DragAndDropTree.NewItem<ComponentType | CustomComponentType>
         notDraggable={notDraggable}
         payload={componentType}
       >

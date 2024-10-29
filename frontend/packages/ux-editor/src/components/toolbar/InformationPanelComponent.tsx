@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
-import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
 import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components';
@@ -12,7 +12,7 @@ export type InformationPanelProvidedProps = {
   onOpen: () => void;
   onClose: () => void;
   componentTitle: string;
-  componentType: ComponentType | InternalComponentType;
+  componentType: ComponentType | CustomComponentType;
 };
 
 export const InformationPanelComponent = ({

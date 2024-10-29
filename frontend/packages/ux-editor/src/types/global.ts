@@ -1,4 +1,4 @@
-import type { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import type { FormComponent } from './FormComponent';
@@ -60,7 +60,7 @@ export interface IWidgetTexts {
 export interface IToolbarElement {
   label: string;
   icon?: React.ComponentType;
-  type: ComponentType | InternalComponentType;
+  type: ComponentType | CustomComponentType;
 }
 
 export enum CollapsableMenus {
