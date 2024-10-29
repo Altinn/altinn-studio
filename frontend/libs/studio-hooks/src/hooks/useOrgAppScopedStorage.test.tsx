@@ -49,6 +49,13 @@ describe('useOrgAppScopedStorage', () => {
     result.current.removeItem('key');
     expect(result.current.getItem('key')).toBeUndefined();
   });
+
+  it('should use localStorage as default storage', () => {
+    const result = renderUseOrgAppScopedStorage({});
+    result.current.setItem('key', 'value');
+
+    expect(window.localStorage.getItem(scopedStorageKey)).toBe('{"key":"value"}');
+  });
 });
 
 const renderUseOrgAppScopedStorage = ({ storage }: UseOrgAppScopedStorage) => {
