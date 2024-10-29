@@ -9,8 +9,6 @@ import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contex
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { MemoryRouter } from 'react-router-dom';
-import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
 import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {

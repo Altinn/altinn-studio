@@ -56,7 +56,7 @@ export function StudioCodeListEditorRow({
     <StudioInputTable.Row>
       <TextfieldCell
         label={texts.itemValue(number)}
-        value={item.value}
+        value={item.value as string}
         onChange={handleValueChange}
       />
       <TextfieldCell
