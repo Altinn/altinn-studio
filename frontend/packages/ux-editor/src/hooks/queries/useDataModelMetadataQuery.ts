@@ -3,6 +3,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import type { DataModelFieldElement } from 'app-shared/types/DataModelFieldElement';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { toast } from 'react-toastify';
 
 type UseDataModelMetadataQuery = {
   org: string;
@@ -25,16 +26,22 @@ export const useDataModelMetadataQuery = (
   return useQuery<DataModelFieldElement[]>({
     queryKey: [QueryKey.DataModelMetadata, org, app, layoutSetName, dataModelName],
     queryFn: () =>
-      getDataModelMetadata(org, app, layoutSetName, dataModelName).then((res) => {
-        const dataModelFields: DataModelFieldElement[] = [];
+      getDataModelMetadata(org, app, layoutSetName, dataModelName)
+        .then((res) => {
+          const dataModelFields: DataModelFieldElement[] = [];
 
-        Object.keys(res.elements).forEach((dataModelField) => {
-          if (dataModelField) {
-            dataModelFields.push(res.elements[dataModelField]);
-          }
-        });
-        return dataModelFields;
-      }),
+          Object.keys(res.elements).forEach((dataModelField) => {
+            if (dataModelField) {
+              dataModelFields.push(res.elements[dataModelField]);
+            }
+          });
+          return dataModelFields;
+        })
+        .catch((error) => {
+          toast.error('getDataModelMetadata --- ', error);
+
+          return error;
+        }),
     ...options,
     meta: {
       hideDefaultError: hideDefault,
