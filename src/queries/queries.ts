@@ -24,6 +24,7 @@ import {
   getFileTagUrl,
   getFileUploadUrl,
   getFooterLayoutUrl,
+  getInstantiateUrl,
   getJsonSchemaUrl,
   getLayoutSetsUrl,
   getLayoutSettingsUrl,
@@ -37,7 +38,6 @@ import {
   getSetCurrentPartyUrl,
   getValidationUrl,
   instancesControllerUrl,
-  instantiateUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
   textResourcesUrl,
@@ -78,11 +78,11 @@ import type {
 export const doSetCurrentParty = (partyId: number) =>
   putWithoutConfig<'Party successfully updated' | string | null>(getSetCurrentPartyUrl(partyId));
 
-export const doInstantiateWithPrefill = async (data: Instantiation): Promise<IInstance> =>
-  cleanUpInstanceData((await httpPost(instantiateUrl, undefined, data)).data);
+export const doInstantiateWithPrefill = async (data: Instantiation, language?: string): Promise<IInstance> =>
+  cleanUpInstanceData((await httpPost(getInstantiateUrl(language), undefined, data)).data);
 
-export const doInstantiate = async (partyId: number): Promise<IInstance> =>
-  cleanUpInstanceData((await httpPost(getCreateInstancesUrl(partyId))).data);
+export const doInstantiate = async (partyId: number, language?: string): Promise<IInstance> =>
+  cleanUpInstanceData((await httpPost(getCreateInstancesUrl(partyId, language))).data);
 
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);

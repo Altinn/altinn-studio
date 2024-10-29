@@ -19,12 +19,14 @@ import { createPatch } from 'src/features/formData/jsonPatch/createPatch';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { getFormDataQueryKey } from 'src/features/formData/useFormDataQuery';
 import { useLaxChangeInstance, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { type BackendValidationIssueGroups, IgnoredValidators } from 'src/features/validation';
 import { useIsUpdatingInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { doPatchMultipleFormData } from 'src/queries/queries';
 import { getMultiPatchUrl } from 'src/utils/urls/appUrlHelper';
+import { getUrlWithLanguage } from 'src/utils/urls/urlHelper';
 import type { SchemaLookupTool } from 'src/features/datamodel/useDataModelSchemaQuery';
 import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { FormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
@@ -84,6 +86,7 @@ function useFormDataSaveMutation() {
   const getDataModelUrl = useGetDataModelUrl();
   const instanceId = useLaxInstanceId();
   const multiPatchUrl = instanceId ? getMultiPatchUrl(instanceId) : undefined;
+  const currentLanguage = useAsRef(useCurrentLanguage());
   const dataModelsRef = useAsRef(useSelector((state) => state.dataModels));
   const saveFinished = useSelector((s) => s.saveFinished);
   const cancelSave = useSelector((s) => s.cancelSave);
@@ -194,11 +197,14 @@ function useFormDataSaveMutation() {
             return;
           }
 
-          const { newDataModels, validationIssues, instance } = await doPatchMultipleFormData(multiPatchUrl, {
-            patches,
-            // Ignore validations that require layout parsing in the backend which will slow down requests significantly
-            ignoredValidators: IgnoredValidators,
-          });
+          const { newDataModels, validationIssues, instance } = await doPatchMultipleFormData(
+            getUrlWithLanguage(multiPatchUrl, currentLanguage.current),
+            {
+              patches,
+              // Ignore validations that require layout parsing in the backend which will slow down requests significantly
+              ignoredValidators: IgnoredValidators,
+            },
+          );
 
           const dataModelChanges: UpdatedDataModel[] = [];
           for (const { dataElementId, data } of newDataModels) {

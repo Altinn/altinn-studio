@@ -10,7 +10,7 @@ describe('saving multiple data models', () => {
   });
 
   it('Calls save on individual data models', () => {
-    cy.intercept('PATCH', '**/data').as('saveFormData');
+    cy.intercept('PATCH', '**/data*').as('saveFormData');
 
     cy.findByRole('textbox', { name: /tekstfelt 1/i }).type('første');
     cy.findByRole('textbox', { name: /tekstfelt 1/i }).clear();
@@ -186,7 +186,7 @@ describe('saving multiple data models', () => {
   });
 
   it('Likert component', () => {
-    cy.intercept('PATCH', '**/data').as('saveFormData');
+    cy.intercept('PATCH', '**/data*').as('saveFormData');
     cy.gotoNavPage('Side4');
 
     // The 'choose-sector' radio component has a 'preselectedOptionIndex' which will auto-select an option before
@@ -217,7 +217,7 @@ describe('saving multiple data models', () => {
   });
 
   it('Dynamic options', () => {
-    cy.intercept('PATCH', '**/data').as('saveFormData');
+    cy.intercept('PATCH', '**/data*').as('saveFormData');
     cy.gotoNavPage('Side2');
 
     // The 'choose-sector' radio component has a 'preselectedOptionIndex' which will auto-select an option before

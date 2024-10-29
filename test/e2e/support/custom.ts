@@ -426,7 +426,7 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('startStatefulFromStateless', () => {
-  cy.intercept('POST', '**/instances/create').as('createInstance');
+  cy.intercept('POST', '**/instances/create*').as('createInstance');
   cy.get(appFrontend.instantiationButton).click();
   cy.wait('@createInstance').its('response.statusCode').should('eq', 201);
 });
@@ -699,7 +699,7 @@ Cypress.Commands.add(
 );
 
 Cypress.Commands.add('runAllBackendValidations', () => {
-  cy.intercept('PATCH', '**/data', (req) => {
+  cy.intercept('PATCH', '**/data*', (req) => {
     req.body.ignoredValidators = [];
   }).as('runBackendValidations');
 });
@@ -712,7 +712,7 @@ Cypress.Commands.add('getNextPatchValidations', (result) => {
   cy.then(() => {
     result.validations = null;
   });
-  cy.intercept({ method: 'PATCH', url: '**/data', times: 1 }, (req) => {
+  cy.intercept({ method: 'PATCH', url: '**/data*', times: 1 }, (req) => {
     req.on('response', (res) => {
       // Consider finding out what data element id corresponds to each type at the beginning of the test instead, for more explicit checking
       result.validations = res.body.validationIssues;

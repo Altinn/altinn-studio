@@ -13,9 +13,13 @@ export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecook
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const currentPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
-export const instantiateUrl = `${appPath}/instances/create`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
 export const applicationLanguagesUrl = `${appPath}/api/v1/applicationlanguages`;
+
+export const getInstantiateUrl = (language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${appPath}/instances/create${queryString}`;
+};
 
 export const getSetCurrentPartyUrl = (partyId: number) => `${appPath}/api/v1/parties/${partyId}`;
 
@@ -64,7 +68,10 @@ export const getActionsUrl = (partyId: string, instanceId: string, language?: st
   return `${appPath}/instances/${partyId}/${instanceId}/actions${queryString}`;
 };
 
-export const getCreateInstancesUrl = (partyId: number) => `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
+export const getCreateInstancesUrl = (partyId: number, language?: string) => {
+  const queryString = getQueryStringFromObject({ instanceOwnerPartyId: partyId.toString(), language });
+  return `${appPath}/instances${queryString}`;
+};
 
 export const getValidationUrl = (instanceId: string, language: string, onlyIncrementalValidators?: boolean) => {
   const queryString = getQueryStringFromObject({

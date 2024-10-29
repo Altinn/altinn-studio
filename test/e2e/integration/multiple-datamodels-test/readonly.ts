@@ -67,7 +67,7 @@ describe('readonly data models', () => {
     cy.get(appFrontend.multipleDatamodelsTest.personsSummary).should('contain.text', 'Alder : 25 år');
 
     const formDataRequests: string[] = [];
-    cy.intercept('PATCH', '**/data', (req) => {
+    cy.intercept('PATCH', '**/data*', (req) => {
       formDataRequests.push(req.url);
     }).as('saveFormData');
 

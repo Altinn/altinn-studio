@@ -180,7 +180,9 @@ describe('Party selection', () => {
       currentParty: ExamplePerson1,
       allowedToInstantiate: [ExamplePerson1],
     });
-    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId=12345678`).as('loadInstance');
+    cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId=${ExamplePerson1.partyId}*`).as(
+      'loadInstance',
+    );
     cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.reportee).should('not.exist');
     cy.wait('@loadInstance');

@@ -5,6 +5,7 @@ import type { AxiosError } from 'axios';
 
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { createContext } from 'src/core/contexts/context';
+import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useNavigate } from 'src/features/routing/AppRoutingContext';
 import type { IInstance } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -40,9 +41,10 @@ function useInstantiateMutation() {
   const { doInstantiate } = useAppMutations();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const currentLanguage = useCurrentLanguage();
 
   return useMutation({
-    mutationFn: (instanceOwnerPartyId: number) => doInstantiate(instanceOwnerPartyId),
+    mutationFn: (instanceOwnerPartyId: number) => doInstantiate(instanceOwnerPartyId, currentLanguage),
     onError: (error: HttpClientError) => {
       window.logError('Instantiation failed:\n', error);
     },
@@ -57,9 +59,10 @@ function useInstantiateWithPrefillMutation() {
   const { doInstantiateWithPrefill } = useAppMutations();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const currentLanguage = useCurrentLanguage();
 
   return useMutation({
-    mutationFn: (instantiation: Instantiation) => doInstantiateWithPrefill(instantiation),
+    mutationFn: (instantiation: Instantiation) => doInstantiateWithPrefill(instantiation, currentLanguage),
     onError: (error: HttpClientError) => {
       window.logError('Instantiation with prefill failed:\n', error);
     },

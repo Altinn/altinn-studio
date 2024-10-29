@@ -5,6 +5,7 @@ import {
   getEnvironmentLoginUrl,
   getFetchFormDynamicsUrl,
   getHostname,
+  getInstantiateUrl,
   getLayoutSettingsUrl,
   getLayoutsUrl,
   getOptionsUrl,
@@ -37,9 +38,20 @@ describe('Frontend urlHelper.ts', () => {
         'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/process',
       );
     });
+    it('should return the expected url for getInstantiateUrl', () => {
+      expect(getInstantiateUrl()).toBe('https://local.altinn.cloud/ttd/test/instances/create');
+    });
+    it('should return the expected url for getInstantiateUrl with language', () => {
+      expect(getInstantiateUrl('en')).toBe('https://local.altinn.cloud/ttd/test/instances/create?language=en');
+    });
     it('should return the expected url for getCreateInstancesUrl', () => {
       expect(getCreateInstancesUrl(12345)).toBe(
         'https://local.altinn.cloud/ttd/test/instances?instanceOwnerPartyId=12345',
+      );
+    });
+    it('should return the expected url for getCreateInstancesUrl with language', () => {
+      expect(getCreateInstancesUrl(12345, 'en')).toBe(
+        'https://local.altinn.cloud/ttd/test/instances?instanceOwnerPartyId=12345&language=en',
       );
     });
     it('should return the expected url for getValidationUrl', () => {
