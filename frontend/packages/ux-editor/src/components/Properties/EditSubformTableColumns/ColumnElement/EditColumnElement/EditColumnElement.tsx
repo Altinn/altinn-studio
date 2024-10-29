@@ -1,6 +1,6 @@
 import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
-import { type TableColumn } from '../types/TableColumn';
+import { type TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
 import {
   StudioActionCloseButton,
@@ -12,12 +12,12 @@ import {
   StudioTextfield,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useFormLayoutsQuery } from '../../../../hooks/queries/useFormLayoutsQuery';
-import { getAllLayoutComponents } from '../../../../utils/formLayoutUtils';
-import type { FormItem } from '../../../../types/FormItem';
+import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
+import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
+import type { FormItem } from '../../../../../types/FormItem';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
+import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
