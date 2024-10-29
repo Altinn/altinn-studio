@@ -36,7 +36,11 @@ export const useBpmnEditor = (): UseBpmnViewerResult => {
       taskEvent,
       taskType: bpmnDetails.taskType,
     });
-    if (bpmnDetails.taskType === 'data' || bpmnDetails.taskType === 'payment')
+    if (
+      bpmnDetails.taskType === 'data' ||
+      bpmnDetails.taskType === 'payment' ||
+      bpmnDetails.taskType === 'signing'
+    )
       addAction(bpmnDetails.id);
   };
 

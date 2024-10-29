@@ -79,7 +79,7 @@ export const Text = () => {
           <EditImage component={form} handleComponentChange={handleComponentChange} />
         </>
       )}
-      {form.type === ComponentType.SubForm && (
+      {form.type === ComponentType.Subform && (
         <EditSubformTableColumns component={form} handleComponentChange={handleComponentChange} />
       )}
     </>

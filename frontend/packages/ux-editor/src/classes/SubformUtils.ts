@@ -1,15 +1,15 @@
 import type { LayoutSetConfig } from 'app-shared/types/api/LayoutSetsResponse';
 
-type SubFormLayoutSet = LayoutSetConfig & {
+type SubformLayoutSet = LayoutSetConfig & {
   type: 'subform';
 };
 
-interface SubFormUtils {
+interface SubformUtils {
   hasSubforms: boolean;
   subformLayoutSetsIds: Array<string>;
 }
 
-export class SubFormUtilsImpl implements SubFormUtils {
+export class SubformUtilsImpl implements SubformUtils {
   constructor(private readonly layoutSets: Array<LayoutSetConfig>) {}
 
   public get hasSubforms(): boolean {
@@ -17,12 +17,12 @@ export class SubFormUtilsImpl implements SubFormUtils {
   }
 
   public get subformLayoutSetsIds(): Array<string> {
-    return this.getSubformLayoutSets.map((set: SubFormLayoutSet) => set.id);
+    return this.getSubformLayoutSets.map((set: SubformLayoutSet) => set.id);
   }
 
-  private get getSubformLayoutSets(): Array<SubFormLayoutSet> {
+  private get getSubformLayoutSets(): Array<SubformLayoutSet> {
     return (this.layoutSets || []).filter(
       (set) => set.type === 'subform',
-    ) as Array<SubFormLayoutSet>;
+    ) as Array<SubformLayoutSet>;
   }
 }

@@ -18,7 +18,7 @@ const mockTableColumn3: TableColumn = {
   cellContent: { query: 'query 3', default: 'default 3' },
 };
 
-const subformComponentMock = componentMocks[ComponentType.SubForm];
+const subformComponentMock = componentMocks[ComponentType.Subform];
 
 describe('editSubformTableColumnsUtils', () => {
   describe('updateComponentWithSubform', () => {
@@ -35,7 +35,7 @@ describe('editSubformTableColumnsUtils', () => {
     });
 
     it('should handle case where the component has no initial tableColumns', () => {
-      const componentWithoutColumns: FormItem<ComponentType.SubForm> = {
+      const componentWithoutColumns: FormItem<ComponentType.Subform> = {
         ...subformComponentMock,
         tableColumns: undefined,
       };
