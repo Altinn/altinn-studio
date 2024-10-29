@@ -1,4 +1,4 @@
-import { ComponentType, InternalComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { renderHook } from '@testing-library/react';
 import { useComponentTitle } from './useComponentTitle';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,7 +11,7 @@ const headerText = textMock(`ux_editor.component_title.${ComponentType.Header}`)
 const checkboxesText = textMock(`ux_editor.component_title.${ComponentType.Checkboxes}`);
 const customButtonText = textMock(`ux_editor.component_title.${ComponentType.CustomButton}`);
 const closeSubformButtonText = textMock(
-  `ux_editor.component_title.${InternalComponentType.CloseSubformButton}`,
+  `ux_editor.component_title.${CustomComponentType.CloseSubformButton}`,
 );
 
 describe('useComponentTypeName', () => {
@@ -21,7 +21,7 @@ describe('useComponentTypeName', () => {
     expect(result.current(componentMocks[ComponentType.Input])).toBe(inputText);
     expect(result.current(componentMocks[ComponentType.Paragraph])).toBe(paragraphText);
     expect(result.current(componentMocks[ComponentType.CustomButton])).toBe(customButtonText);
-    expect(result.current(componentMocks[InternalComponentType.CloseSubformButton])).toBe(
+    expect(result.current(componentMocks[CustomComponentType.CloseSubformButton])).toBe(
       closeSubformButtonText,
     );
   });

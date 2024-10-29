@@ -1,5 +1,5 @@
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import type { FormContainer } from '../types/FormContainer';
 
@@ -21,6 +21,24 @@ const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
   ],
   optionsId: '',
 };
+
+const customButton: FormComponent<ComponentType.CustomButton> = {
+  ...commonProps(ComponentType.CustomButton),
+  actions: [],
+  buttonStyle: 'primary',
+};
+
+const closeSubformButton: FormComponent<ComponentType.CustomButton> = {
+  ...commonProps(ComponentType.CustomButton),
+  actions: [
+    {
+      type: 'ClientAction',
+      id: 'closeSubform',
+    },
+  ],
+  buttonStyle: 'primary',
+};
+
 const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
   ...commonProps(ComponentType.RadioButtons),
   dataModelBindings: { simpleBinding: '' },
@@ -174,6 +192,8 @@ export const componentMocks = {
   [ComponentType.ButtonGroup]: buttonGroupContainer,
   [ComponentType.Button]: buttonComponent,
   [ComponentType.Checkboxes]: checkboxesComponent,
+  [ComponentType.CustomButton]: customButton,
+  [CustomComponentType.CloseSubformButton]: closeSubformButton,
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
   [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
