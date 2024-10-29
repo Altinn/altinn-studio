@@ -1,21 +1,21 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
-import {
-  EditSubformTableColumns,
-  type EditSubformTableColumnsProps,
-} from './EditSubformTableColumns';
-import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from 'dashboard/testing/mocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
+import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { subformLayoutMock } from '../../../testing/subformLayoutMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import {
+  EditSubformTableColumns,
+  type EditSubformTableColumnsProps,
+} from './EditSubformTableColumns';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { renderWithProviders } from '../../../testing/mocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
-const subformComponentMock = componentMocks[ComponentType.SubForm];
+const subformComponentMock = componentMocks[ComponentType.Subform];
 
 const defaultProps: EditSubformTableColumnsProps = {
   component: {

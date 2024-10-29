@@ -36,9 +36,9 @@ export const EditColumnElement = ({
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const subFormLayout = layoutSetName;
+  const subformLayout = layoutSetName;
   const [tableColumn, setTableColumn] = useState(sourceColumn);
-  const { data: formLayouts } = useFormLayoutsQuery(org, app, subFormLayout);
+  const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
 
   const textKeyValue = textResourceByLanguageAndIdSelector(

@@ -9,7 +9,7 @@ import { filterOutTableColumn, updateComponentWithSubform } from './utils';
 import { useUniqueKeys } from '@studio/hooks';
 import { ColumnElement } from './ColumnElement';
 
-export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.SubForm>;
+export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.Subform>;
 
 export const EditSubformTableColumns = ({
   component,

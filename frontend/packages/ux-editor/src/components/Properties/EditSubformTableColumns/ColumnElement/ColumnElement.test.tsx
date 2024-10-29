@@ -7,7 +7,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { type TableColumn } from '../types/TableColumn';
-import { layoutSet3SubFormNameMock } from '../../../../testing/layoutSetsMock';
+import { layoutSet3SubformNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
@@ -30,7 +30,7 @@ const defaultProps: ColumnElementProps = {
   columnNumber: columnNumberMock,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
-  layoutSetName: layoutSet3SubFormNameMock,
+  layoutSetName: layoutSet3SubformNameMock,
 };
 
 describe('ColumnElement', () => {
@@ -100,7 +100,7 @@ describe('ColumnElement', () => {
 const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
-    [QueryKey.FormLayouts, org, app, layoutSet3SubFormNameMock],
+    [QueryKey.FormLayouts, org, app, layoutSet3SubformNameMock],
     subformLayoutMock.layoutSet,
   );
   return renderWithProviders(<ColumnElement {...defaultProps} {...props} />, {
