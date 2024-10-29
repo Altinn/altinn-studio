@@ -118,7 +118,7 @@ describe('OnProcessTaskAddHandler', () => {
     expect(mutateApplicationPolicyMock).toHaveBeenCalledWith(expectedResponse);
   });
 
-  it('should add datatype when signing task is added', () => {
+  it('should add layoutset and datatype when signing task is added', () => {
     const onProcessTaskAddHandler = createOnProcessTaskHandler();
 
     const taskMetadata: OnProcessTaskEvent = {
@@ -128,11 +128,19 @@ describe('OnProcessTaskAddHandler', () => {
 
     onProcessTaskAddHandler.handleOnProcessTaskAdd(taskMetadata);
 
+    expect(addLayoutSetMock).toHaveBeenCalledWith({
+      layoutSetConfig: {
+        id: 'testElementId',
+        tasks: ['testElementId'],
+      },
+      layoutSetIdToUpdate: 'testElementId',
+      taskType: 'signing',
+    });
+
     expect(addDataTypeToAppMetadataMock).toHaveBeenCalledWith({
       dataTypeId: 'signatureInformation-1234',
       taskId: 'testElementId',
     });
-    expect(addLayoutSetMock).not.toHaveBeenCalled();
     expect(mutateApplicationPolicyMock).not.toHaveBeenCalled();
   });
 

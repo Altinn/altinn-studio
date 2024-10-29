@@ -2,55 +2,55 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../testing/mocks';
-import { CreateSubFormWrapper } from './CreateSubFormWrapper';
+import { CreateSubformWrapper } from './CreateSubformWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { app, org } from '@studio/testing/testids';
 import { layoutSetsMock, layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
-const subFormName = 'underskjema';
+const subformName = 'underskjema';
 
-describe('CreateSubFormWrapper', () => {
+describe('CreateSubformWrapper', () => {
   it('should open dialog when clicking "create subform" button', async () => {
     const user = userEvent.setup();
-    renderCreateSubFormWrapper();
+    renderCreateSubformWrapper();
 
-    const createSubFormButton = screen.getByRole('button', {
+    const createSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    await user.click(createSubFormButton);
+    await user.click(createSubformButton);
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
-  it('should call onSubFormCreated when subform is created', async () => {
+  it('should call onSubformCreated when subform is created', async () => {
     const user = userEvent.setup();
-    const onSubFormCreated = jest.fn();
-    renderCreateSubFormWrapper(onSubFormCreated);
+    const onSubformCreated = jest.fn();
+    renderCreateSubformWrapper(onSubformCreated);
 
-    const createSubFormButton = screen.getByRole('button', {
+    const createSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    await user.click(createSubFormButton);
+    await user.click(createSubformButton);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, subFormName);
+    await user.type(input, subformName);
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform.confirm_button'),
     });
     await user.click(confirmButton);
-    expect(onSubFormCreated).toHaveBeenCalledWith(subFormName);
+    expect(onSubformCreated).toHaveBeenCalledWith(subformName);
   });
 
   it('should disable confirm button when name already exist', async () => {
     const user = userEvent.setup();
-    renderCreateSubFormWrapper();
+    renderCreateSubformWrapper();
 
-    const createSubFormButton = screen.getByRole('button', {
+    const createSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    await user.click(createSubFormButton);
+    await user.click(createSubformButton);
 
     const input = screen.getByRole('textbox');
     await user.type(input, layoutSet1NameMock);
@@ -62,36 +62,36 @@ describe('CreateSubFormWrapper', () => {
   });
 
   it('should add subform when name is valid', async () => {
-    const onSubFormCreatedMock = jest.fn();
+    const onSubformCreatedMock = jest.fn();
     const user = userEvent.setup();
     const addLayoutSet = jest.fn();
 
-    renderCreateSubFormWrapper(onSubFormCreatedMock, { addLayoutSet });
+    renderCreateSubformWrapper(onSubformCreatedMock, { addLayoutSet });
 
-    const createSubFormButton = screen.getByRole('button', {
+    const createSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform'),
     });
-    await user.click(createSubFormButton);
+    await user.click(createSubformButton);
 
     const input = screen.getByRole('textbox');
-    await user.type(input, subFormName);
+    await user.type(input, subformName);
 
     const confirmButton = screen.getByRole('button', {
       name: textMock('ux_editor.create.subform.confirm_button'),
     });
     await user.click(confirmButton);
-    expect(addLayoutSet).toHaveBeenCalledWith(org, app, subFormName, {
-      layoutSetConfig: { id: subFormName, type: 'subform' },
+    expect(addLayoutSet).toHaveBeenCalledWith(org, app, subformName, {
+      layoutSetConfig: { id: subformName, type: 'subform' },
     });
   });
 });
 
-const renderCreateSubFormWrapper = (
-  onSubFormCreated?: jest.Mock,
+const renderCreateSubformWrapper = (
+  onSubformCreated?: jest.Mock,
   queries: Partial<ServicesContextProps> = {},
 ) => {
   return renderWithProviders(
-    <CreateSubFormWrapper layoutSets={layoutSetsMock} onSubFormCreated={onSubFormCreated} />,
+    <CreateSubformWrapper layoutSets={layoutSetsMock} onSubformCreated={onSubformCreated} />,
     { queries },
   );
 };
