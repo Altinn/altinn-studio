@@ -10,6 +10,7 @@
   cursor: pointer;
   border-left: var(--fds-sizing-1) solid transparent;
   border-width: 0 0 0 var(--fds-sizing-1);
+  border-radius: 0;
 }
 
 .tab.selected {
@@ -20,4 +21,8 @@
 .tab:hover,
 .selectedTab:hover {
   background-color: var(--fds-semantic-surface-action-no_fill-hover);
+}
+
+.tab:focus {
+  z-index: 1;
 }

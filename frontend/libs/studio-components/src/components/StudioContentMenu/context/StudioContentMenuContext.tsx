@@ -5,7 +5,7 @@ export type StudioContentMenuContextProps<TabId extends string> = {
   onChangeTab: (tabId: TabId) => void;
 };
 
-export const StudioContentMenuContext =
+const StudioContentMenuContext =
   createContext<Partial<StudioContentMenuContextProps<string>>>(undefined);
 
 export type StudioContentMenuContextProviderProps<TabId extends string> = {

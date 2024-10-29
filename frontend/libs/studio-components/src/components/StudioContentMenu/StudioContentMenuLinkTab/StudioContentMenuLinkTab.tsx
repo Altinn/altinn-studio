@@ -1,6 +1,7 @@
+import React from 'react';
 import type { ReactNode } from 'react';
-import type React from 'react';
 import { useTabProps } from '../hooks/useTabProps';
+import { StudioButton } from '@studio/components';
 
 export type StudioContentMenuLinkTabProps<TabId extends string> = {
   icon: ReactNode;
@@ -17,5 +18,5 @@ export function StudioContentMenuLinkTab<TabId extends string>({
 }: StudioContentMenuLinkTabProps<TabId>): React.ReactElement {
   const props = useTabProps(icon, tabName, tabId);
 
-  return renderTab(props);
+  return <StudioButton asChild>{renderTab(props)}</StudioButton>;
 }
