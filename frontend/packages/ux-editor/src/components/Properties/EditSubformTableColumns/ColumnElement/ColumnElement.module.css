@@ -1,6 +1,5 @@
 .wrapper {
   margin-top: var(--fds-spacing-1);
-  margin-left: calc(var(--fds-spacing-5) * -1);
 }
 
 .headerWrapper {

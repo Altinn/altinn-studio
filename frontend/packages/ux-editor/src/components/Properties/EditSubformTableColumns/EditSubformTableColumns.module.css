@@ -3,10 +3,8 @@
   margin-inline: var(--fds-spacing-2);
   padding: var(--fds-spacing-3);
 }
-.columnsWrapper {
-  margin-left: var(--fds-spacing-4);
-}
 
 .addColumnButton {
   margin-top: var(--fds-spacing-3);
+  margin-left: var(--fds-spacing-5);
 }

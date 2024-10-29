@@ -46,7 +46,7 @@ export const EditSubformTableColumns = ({
       <StudioHeading size='2xs' level={2}>
         {t('ux_editor.properties_panel.subform_table_columns.heading')}
       </StudioHeading>
-      <div className={classes.columnsWrapper}>
+      <div>
         {tableColumns.length > 0 &&
           tableColumns.map((tableColumn: TableColumn, index: number) => (
             <ColumnElement
