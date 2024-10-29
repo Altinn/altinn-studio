@@ -46,6 +46,10 @@ describe('objectUtils', () => {
       const obj1 = { a: 1, b: 'test' };
       expect(ObjectUtils.areObjectsEqual(obj1, obj1)).toBe(true);
     });
+
+    it('should return false if the length of the objects are not equally length', () => {
+      expect(ObjectUtils.areObjectsEqual({ a: 1, b: 2 }, { a: 1 })).toBe(false);
+    });
   });
 
   describe('mapByProperty', () => {
