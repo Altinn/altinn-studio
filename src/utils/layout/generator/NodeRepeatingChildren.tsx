@@ -87,7 +87,14 @@ interface GenerateRowProps {
   pluginKey: string;
 }
 
-function _GenerateRow({ rowIndex, claims, groupBinding, multiPageMapping, internalProp, pluginKey }: GenerateRowProps) {
+const GenerateRow = React.memo(function GenerateRow({
+  rowIndex,
+  claims,
+  groupBinding,
+  multiPageMapping,
+  internalProp,
+  pluginKey,
+}: GenerateRowProps) {
   const node = GeneratorInternal.useParent() as LayoutNode;
   const removeRow = NodesInternal.useRemoveRow();
   const depth = GeneratorInternal.useDepth();
@@ -132,9 +139,8 @@ function _GenerateRow({ rowIndex, claims, groupBinding, multiPageMapping, intern
       />
     </GeneratorRowProvider>
   );
-}
+});
 
-const GenerateRow = React.memo(_GenerateRow);
 GenerateRow.displayName = 'GenerateRow';
 
 interface ResolveRowProps {

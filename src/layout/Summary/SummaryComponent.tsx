@@ -35,7 +35,10 @@ export interface ISummaryComponent {
   overrides?: Partial<SummaryOverrides>;
 }
 
-function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: React.Ref<HTMLDivElement>) {
+export const SummaryComponent = React.forwardRef(function SummaryComponent(
+  { summaryNode, overrides }: ISummaryComponent,
+  ref: React.Ref<HTMLDivElement>,
+) {
   const summaryItem = useNodeItem(summaryNode);
   const _targetNode = useNode(summaryItem?.componentRef);
   const targetNode = overrides?.targetNode ?? _targetNode;
@@ -165,6 +168,4 @@ function _SummaryComponent({ summaryNode, overrides }: ISummaryComponent, ref: R
       </Grid>
     </Grid>
   );
-}
-
-export const SummaryComponent = React.forwardRef(_SummaryComponent);
+});

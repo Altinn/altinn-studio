@@ -57,7 +57,7 @@ interface GenerateRowProps {
   questionsBinding: IDataModelReference;
 }
 
-function _GenerateRow({ rowIndex, questionsBinding }: GenerateRowProps) {
+const GenerateRow = React.memo(function GenerateRow({ rowIndex, questionsBinding }: GenerateRowProps) {
   const parentItem = GeneratorInternal.useIntermediateItem() as CompIntermediate<'Likert'>;
   const node = GeneratorInternal.useParent() as LayoutNode<'Likert'>;
   const removeRow = NodesInternal.useRemoveRow();
@@ -137,7 +137,6 @@ function _GenerateRow({ rowIndex, questionsBinding }: GenerateRowProps) {
       />
     </GeneratorRowProvider>
   );
-}
+});
 
-const GenerateRow = React.memo(_GenerateRow);
 GenerateRow.displayName = 'GenerateRow';

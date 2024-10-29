@@ -74,7 +74,7 @@ function getEditButtonText(
   return langTools.langAsString(buttonTextKey);
 }
 
-function _RepeatingGroupTableRow({
+export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow({
   className,
   uuid,
   index,
@@ -350,9 +350,8 @@ function _RepeatingGroupTableRow({
       )}
     </Table.Row>
   );
-}
+});
 
-export const RepeatingGroupTableRow = React.memo(_RepeatingGroupTableRow);
 RepeatingGroupTableRow.displayName = 'RepeatingGroupTableRow';
 
 export function shouldEditInTable(

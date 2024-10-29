@@ -35,10 +35,10 @@ export function RepeatingGroupPagination(props: RepeatingGroupPaginationProps) {
     return null;
   }
 
-  return <_RepeatingGroupPagination {...props} />;
+  return <RGPagination {...props} />;
 }
 
-function _RepeatingGroupPagination({ inTable = true }: RepeatingGroupPaginationProps) {
+function RGPagination({ inTable = true }: RepeatingGroupPaginationProps) {
   const { changePage, node } = useRepeatingGroup();
   const { hasPagination, rowsPerPage, currentPage, totalPages } = useRepeatingGroupPagination();
   const pagesWithErrors = usePagesWithErrors(rowsPerPage, node);
