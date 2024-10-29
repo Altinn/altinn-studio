@@ -47,12 +47,15 @@ export const ColumnElement = ({
       />
     );
   }
+
+  const handleClickEdit = (): void => {
+    setEditing(true);
+  };
+
   return (
     <StudioProperty.Button
       className={classes.wrapper}
-      onClick={(_) => {
-        setEditing(true);
-      }}
+      onClick={handleClickEdit}
       property={t('ux_editor.properties_panel.subform_table_columns.column_header', {
         columnNumber,
       })}
