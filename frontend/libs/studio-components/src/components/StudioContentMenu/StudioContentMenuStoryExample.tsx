@@ -1,22 +1,22 @@
 import React from 'react';
 import { StudioContentMenu } from './';
-import classes from './StudioContentMenuWrapper.module.css';
+import classes from './StudioContentMenuStoryExample.module.css';
 import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
 import type { StudioContentMenuLinkTabProps } from './StudioContentMenuLinkTab';
 
-export type StudioContentMenuWrapperProps<TabId extends string> = {
+export type StudioContentMenuStoryExampleProps<TabId extends string> = {
   buttonTabs: StudioContentMenuButtonTabProps<TabId>[];
   linkTabs: StudioContentMenuLinkTabProps<TabId>[];
   selectedTabId: TabId;
   onChangeTab: (tabId: TabId) => void;
 };
 
-export function StudioContentMenuWrapper<TabId extends string>({
+export function StudioContentMenuStoryExample<TabId extends string>({
   selectedTabId,
   onChangeTab,
   buttonTabs,
   linkTabs,
-}: StudioContentMenuWrapperProps<TabId>) {
+}: StudioContentMenuStoryExampleProps<TabId>) {
   return (
     <div className={classes.contentMenuWrapper}>
       <StudioContentMenu selectedTabId={selectedTabId} onChangeTab={onChangeTab}>

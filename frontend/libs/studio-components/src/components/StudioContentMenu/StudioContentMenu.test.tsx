@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import { StudioContentMenu } from './';
-import type { StudioContentMenuWrapperProps } from './StudioContentMenuWrapper';
+import { StudioContentMenu, type StudioContentMenuLinkTabProps } from './';
 import type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
 
 type StudioMenuTabName = 'tab1' | 'tab2' | 'tab3';
@@ -174,10 +173,15 @@ describe('StudioContentMenu', () => {
   });
 });
 
+type RenderStudioContentMenuProps<TabId extends string> = {
+  buttonTabs: StudioContentMenuButtonTabProps<TabId>[];
+  linkTabs: StudioContentMenuLinkTabProps<TabId>[];
+};
+
 const renderStudioContentMenu = ({
   buttonTabs = [],
   linkTabs = [],
-}: Partial<StudioContentMenuWrapperProps<StudioMenuTabName>> = {}) => {
+}: Partial<RenderStudioContentMenuProps<StudioMenuTabName>> = {}) => {
   render(
     <StudioContentMenu selectedTabId={undefined} onChangeTab={onChangeTabMock}>
       {buttonTabs.map((buttonTab) => (

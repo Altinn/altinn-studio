@@ -1,14 +1,14 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { BookIcon, VideoIcon, QuestionmarkDiamondIcon, ExternalLinkIcon } from '@studio/icons';
-import type { StudioContentMenuWrapperProps } from './StudioContentMenuWrapper';
-import { StudioContentMenuWrapper } from './StudioContentMenuWrapper';
+import type { StudioContentMenuStoryExampleProps } from './StudioContentMenuStoryExample';
+import { StudioContentMenuStoryExample } from './StudioContentMenuStoryExample';
 
-type Story = StoryFn<StudioContentMenuWrapperProps<StudioMenuTabName>>;
+type Story = StoryFn<StudioContentMenuStoryExampleProps<StudioMenuTabName>>;
 
-const meta: Meta<StudioContentMenuWrapperProps<StudioMenuTabName>> = {
+const meta: Meta<StudioContentMenuStoryExampleProps<StudioMenuTabName>> = {
   title: 'Components/StudioContentMenu',
-  component: StudioContentMenuWrapper,
+  component: StudioContentMenuStoryExample,
   argTypes: {
     buttonTabs: {
       control: 'object',
@@ -38,8 +38,8 @@ export default meta;
 
 type StudioMenuTabName = 'booksTab' | 'videosTab' | 'tabWithVeryLongTabName' | 'tabAsLink';
 
-export const Preview: Story = (args: StudioContentMenuWrapperProps<StudioMenuTabName>) => (
-  <StudioContentMenuWrapper {...args} />
+export const Preview: Story = (args: StudioContentMenuStoryExampleProps<StudioMenuTabName>) => (
+  <StudioContentMenuStoryExample {...args} />
 );
 
 Preview.args = {
