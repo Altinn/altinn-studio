@@ -17,10 +17,7 @@ import { useCodeListEditorTexts } from './hooks/useCodeListEditorTexts';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import classes from './CodeListTableEditor.module.css';
 
-export type CodeListTableEditorProps = Pick<
-  IGenericEditComponent<SelectionComponentType>,
-  'component'
->;
+type CodeListTableEditorProps = Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
 
 export function CodeListTableEditor({ component }: CodeListTableEditorProps): React.ReactNode {
   const { t } = useTranslation();

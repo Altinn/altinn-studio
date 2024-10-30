@@ -24,7 +24,7 @@ describe('conversionUtils', () => {
     });
 
     it('should return converted list', () => {
-      expect(convertOptionsListToCodeListItemList(optionsList)).toEqual(codeListItemList);
+      expect(convertOptionsListToCodeListItemList(optionsList)).toStrictEqual(codeListItemList);
     });
   });
 
@@ -38,7 +38,7 @@ describe('conversionUtils', () => {
     });
 
     it('should return converted list', () => {
-      expect(convertCodeListItemListToOptionsList(codeListItemList)).toEqual(optionsList);
+      expect(convertCodeListItemListToOptionsList(codeListItemList)).toStrictEqual(optionsList);
     });
   });
 });

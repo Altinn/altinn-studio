@@ -47,7 +47,7 @@ describe('CodeListTableEditor', () => {
   it('should open Dialog', async () => {
     const user = userEvent.setup();
     await renderCodeListTableEditor();
-    await userFindOpenButtonAndClick(user);
+    await openModal(user);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
@@ -55,7 +55,7 @@ describe('CodeListTableEditor', () => {
   it('should close Dialog', async () => {
     const user = userEvent.setup();
     await renderCodeListTableEditor();
-    await userFindOpenButtonAndClick(user);
+    await openModal(user);
 
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
@@ -66,7 +66,7 @@ describe('CodeListTableEditor', () => {
     const user = userEvent.setup();
     const doReloadPreview = jest.fn();
     await renderCodeListTableEditor({ previewContextProps: { doReloadPreview } });
-    await userFindOpenButtonAndClick(user);
+    await openModal(user);
 
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
@@ -75,7 +75,7 @@ describe('CodeListTableEditor', () => {
   });
 });
 
-const userFindOpenButtonAndClick = async (user: UserEvent) => {
+const openModal = async (user: UserEvent) => {
   const btnOpen = await screen.findByRole('button', {
     name: textMock('ux_editor.modal_properties_code_list_open_editor'),
   });
