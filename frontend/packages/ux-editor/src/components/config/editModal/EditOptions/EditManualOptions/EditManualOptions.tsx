@@ -12,13 +12,13 @@ import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 
 export type EditManualOptionsProps = {
-  onlyCodeListOptions?: boolean;
+  isLayoutOptionsUnsupported?: boolean;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export function EditManualOptions({
   component,
   handleComponentChange,
-  onlyCodeListOptions,
+  isLayoutOptionsUnsupported,
 }: EditManualOptionsProps) {
   const { t } = useTranslation();
 
@@ -55,7 +55,7 @@ export function EditManualOptions({
     handleComponentChange(addOptionToComponent(component, generateRandomOption()));
   };
 
-  if (onlyCodeListOptions) {
+  if (isLayoutOptionsUnsupported) {
     return <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>;
   }
 

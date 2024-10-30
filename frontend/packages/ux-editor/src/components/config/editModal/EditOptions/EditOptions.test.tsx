@@ -34,7 +34,7 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
   renderOptions?: {
-    onlyCodeListOptions?: boolean;
+    isLayoutOptionsUnsupported?: boolean;
   };
 } = {}) => {
   const component = {
@@ -204,11 +204,11 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show alert message in Manual tab when prop onlyCodeListOptions is true', async () => {
+  it('should show alert message in Manual tab when prop isLayoutOptionsUnsupported is true', async () => {
     const user = userEvent.setup();
     await renderEditOptions({
       componentProps: { optionsId: '' },
-      renderOptions: { onlyCodeListOptions: true },
+      renderOptions: { isLayoutOptionsUnsupported: true },
       queries: {
         getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
       },

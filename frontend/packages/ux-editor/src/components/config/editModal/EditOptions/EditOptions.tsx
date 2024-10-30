@@ -16,7 +16,7 @@ import { EditManualOptionsWithEditor } from '@altinn/ux-editor/components/config
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {
   renderOptions?: {
-    onlyCodeListOptions?: boolean;
+    isLayoutOptionsUnsupported?: boolean;
   };
 }
 
@@ -107,13 +107,13 @@ export function EditOptions<T extends SelectionComponentType>({
               <EditManualOptionsWithEditor
                 component={component}
                 handleComponentChange={handleComponentChange}
-                onlyCodeListOptions={renderOptions.onlyCodeListOptions}
+                isLayoutOptionsUnsupported={renderOptions.isLayoutOptionsUnsupported}
               />
             ) : (
               <EditManualOptions
                 component={component}
                 handleComponentChange={handleComponentChange}
-                onlyCodeListOptions={renderOptions.onlyCodeListOptions}
+                isLayoutOptionsUnsupported={renderOptions.isLayoutOptionsUnsupported}
               />
             )}
           </StudioTabs.Content>

@@ -11,7 +11,7 @@ import type { EditManualOptionsProps } from '../EditManualOptions';
 export function EditManualOptionsWithEditor({
   component,
   handleComponentChange,
-  onlyCodeListOptions,
+  isLayoutOptionsUnsupported,
 }: EditManualOptionsProps) {
   const { t } = useTranslation();
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
@@ -32,7 +32,7 @@ export function EditManualOptionsWithEditor({
     });
   };
 
-  if (onlyCodeListOptions) {
+  if (isLayoutOptionsUnsupported) {
     return <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>;
   }
 

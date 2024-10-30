@@ -5,9 +5,9 @@ export const useCodeListButtonValue = (options: Option[] | undefined) => {
   const { t } = useTranslation();
 
   if (options?.length > 1) {
-    return options.length + ' ' + t('general.options').toLowerCase();
+    return t('ux_editor.options.multiple', { value: options.length });
   } else if (options?.length > 0) {
-    return options.length + ' ' + t('general.option').toLowerCase();
+    return t('ux_editor.options.single', { value: options.length });
   } else {
     return undefined;
   }

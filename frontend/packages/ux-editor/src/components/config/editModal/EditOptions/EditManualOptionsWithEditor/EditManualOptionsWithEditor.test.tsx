@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -20,15 +20,17 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   dataModelBindings: { simpleBinding: '' },
 };
 
-const renderEditManualOptions = async <
+const renderEditManualOptionsWithEditor = <
   T extends ComponentType.Checkboxes | ComponentType.RadioButtons,
 >({
   componentProps,
   handleComponentChange = jest.fn(),
+  isLayoutOptionsUnsupported = false,
 }: {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
+  isLayoutOptionsUnsupported?: boolean;
 } = {}) => {
   const component = {
     ...mockComponent,
@@ -38,57 +40,62 @@ const renderEditManualOptions = async <
     <EditManualOptionsWithEditor
       handleComponentChange={handleComponentChange}
       component={component}
+      isLayoutOptionsUnsupported={isLayoutOptionsUnsupported}
     />,
   );
 };
 
-describe('EditManualOptions', () => {
-  it('should show manual input when component has options defined', async () => {
-    renderEditManualOptions({
+describe('EditManualOptionsWithEditor', () => {
+  it('should display a button when no code list is defined in the layout', () => {
+    renderEditManualOptionsWithEditor();
+
+    const modalButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
+    });
+
+    expect(modalButton).toBeInTheDocument();
+  });
+
+  it('should display a button when a code list is defined in the layout', () => {
+    renderEditManualOptionsWithEditor({
       componentProps: {
         options: [{ label: 'option1', value: 'option1' }],
       },
     });
-    screen.getByRole('button', { name: textMock('ux_editor.modal_new_option') });
-    screen.getByRole('button', { name: textMock('ux_editor.radios_option', { optionNumber: 1 }) });
+
+    const modalButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
+    });
+
+    expect(modalButton).toBeInTheDocument();
   });
 
-  it('should show manual input when options list has length 0', async () => {
-    renderEditManualOptions({
+  it('should not display how many options have been defined, when no options are defined', () => {
+    renderEditManualOptionsWithEditor();
+
+    const optionText = screen.queryByText(textMock('ux_editor.options.single', { value: 1 }));
+    const optionsText = screen.queryByText(textMock('ux_editor.options.multiple', { value: 2 }));
+
+    expect(optionText).not.toBeInTheDocument();
+    expect(optionsText).not.toBeInTheDocument();
+  });
+
+  it('should display how many options have been defined, when a single option is defined', () => {
+    renderEditManualOptionsWithEditor({
       componentProps: {
-        options: [],
+        options: [{ label: 'option1', value: 'option1' }],
       },
     });
-    screen.getByRole('button', { name: textMock('ux_editor.modal_new_option') });
+
+    const optionText = screen.getByText(textMock('ux_editor.options.single', { value: 1 }));
+    const optionsText = screen.queryByText(textMock('ux_editor.options.multiple', { value: 2 }));
+
+    expect(optionText).toBeInTheDocument();
+    expect(optionsText).not.toBeInTheDocument();
   });
 
-  it('should call handleComponentUpdate when adding a new option', async () => {
-    const handleComponentChangeMock = jest.fn();
-    renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
-      componentProps: {
-        options: [{ label: 'oldOption', value: 'oldOption' }],
-      },
-    });
-
-    const addOptionButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_new_option'),
-    });
-    addOptionButton.click();
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
-      ...mockComponent,
-      options: [
-        { label: 'oldOption', value: 'oldOption' },
-        { label: expect.any(String), value: expect.any(String) },
-      ],
-    });
-  });
-
-  it('should call handleComponentUpdate when removing an option', async () => {
-    const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
-    renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
+  it('should display how many options have been defined, when multiple options are defined', () => {
+    renderEditManualOptionsWithEditor({
       componentProps: {
         options: [
           { label: 'option1', value: 'option1' },
@@ -97,79 +104,54 @@ describe('EditManualOptions', () => {
       },
     });
 
-    const selectOptionButton = screen.getByRole('button', {
-      name: textMock('ux_editor.radios_option', { optionNumber: 2 }),
-    });
-    await user.click(selectOptionButton);
-    const removeOptionButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
-    });
-    await user.click(removeOptionButton);
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
-      ...mockComponent,
-      options: [{ label: 'option1', value: 'option1' }],
-    });
+    const optionText = screen.queryByText(textMock('ux_editor.options.single', { value: 1 }));
+    const optionsText = screen.getByText(textMock('ux_editor.options.multiple', { value: 2 }));
+
+    expect(optionText).not.toBeInTheDocument();
+    expect(optionsText).toBeInTheDocument();
   });
 
-  it('should handle adding new option even if options property has not been set', async () => {
-    const handleComponentChangeMock = jest.fn();
-    renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
-      componentProps: {
-        options: undefined,
-      },
-    });
-
-    const addOptionButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_new_option'),
-    });
-    addOptionButton.click();
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
-      ...mockComponent,
-      options: [{ label: expect.any(String), value: expect.any(String) }],
-    });
-  });
-
-  it('should delete optionsId property if it exists when adding a new option', async () => {
-    const handleComponentChangeMock = jest.fn();
-    renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
-      componentProps: {
-        optionsId: 'testId',
-      },
-    });
-
-    const addOptionButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_new_option'),
-    });
-    addOptionButton.click();
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
-      ...mockComponent,
-      options: [{ label: expect.any(String), value: expect.any(String) }],
-    });
-  });
-
-  it('should call handleComponentUpdate when changing an option', async () => {
+  it('should open a modal when the trigger button is clicked', async () => {
     const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
-    renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
-      componentProps: {
-        options: [{ label: 'option1', value: 'option1' }],
-      },
+    renderEditManualOptionsWithEditor();
+
+    const modalButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
     });
 
-    const selectOptionButton = screen.getByRole('button', {
-      name: textMock('ux_editor.radios_option', { optionNumber: 1 }),
+    await user.click(modalButton);
+
+    const modalDialog = screen.getByRole('dialog');
+
+    expect(modalDialog).toBeInTheDocument();
+  });
+
+  it('should call handleComponentChange when there has been a change in the editor', async () => {
+    const mockHandleComponentChange = jest.fn();
+    const user = userEvent.setup();
+    renderEditManualOptionsWithEditor({ handleComponentChange: mockHandleComponentChange });
+
+    const modalButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
     });
-    await user.click(selectOptionButton);
-    const textField = screen.getByRole('textbox', {
-      name: textMock('general.value'),
+
+    await user.click(modalButton);
+
+    const addNewButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_new_option'),
     });
-    await user.type(textField, 'a');
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
-      ...mockComponent,
-      options: [{ label: 'option1', value: 'option1a' }],
+
+    await user.click(addNewButton);
+    await user.click(addNewButton);
+
+    await waitFor(() => {
+      expect(mockHandleComponentChange).toHaveBeenCalledWith({
+        ...mockComponent,
+        options: [
+          { label: '', value: '' },
+          { label: '', value: '' },
+        ],
+      });
     });
   });
 });
