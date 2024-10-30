@@ -6,15 +6,19 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityGenerationUtils
 {
-    public static BuildEntity GenerateBuildEntity(string buildId = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded, DateTime? finished = null)
+    public static partial class Build
     {
-        return new BuildEntity
+        public static BuildEntity GenerateBuildEntity(string buildId = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded, DateTime? finished = null)
         {
-            Id = buildId ?? Guid.NewGuid().ToString(),
-            Status = buildStatus,
-            Result = buildResult,
-            Started = DateTime.UtcNow,
-            Finished = finished
-        };
+            return new BuildEntity
+            {
+                Id = buildId ?? Guid.NewGuid().ToString(),
+                Status = buildStatus,
+                Result = buildResult,
+                Started = DateTime.UtcNow,
+                Finished = finished
+            };
+        }
     }
+
 }
