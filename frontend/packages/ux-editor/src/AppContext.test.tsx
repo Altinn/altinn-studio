@@ -93,10 +93,7 @@ describe('AppContext', () => {
 
   it('sets selectedFormLayoutSetName correctly', async () => {
     renderAppContext(
-      ({
-        selectedFormLayoutSetName,
-        setSelectedformLayoutSetName: setSelectedFormLayoutSetName,
-      }: AppContextProps) => (
+      ({ selectedFormLayoutSetName, setSelectedFormLayoutSetName }: AppContextProps) => (
         <>
           <Button onClick={() => setSelectedFormLayoutSetName(mockSelectedFormLayoutSetName)} />
           <div data-testid='selectedFormLayoutSetName'>{selectedFormLayoutSetName}</div>

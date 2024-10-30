@@ -237,7 +237,7 @@ const renderEditLayoutSetForSubform = (
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <AppContext.Provider
-      value={{ ...appContextMock, setSelectedformLayoutSetName: setSelectedFormLayoutSetMock }}
+      value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
     >
       <EditLayoutSetForSubform
         component={{ ...componentMocks[ComponentType.Subform], ...componentProps }}

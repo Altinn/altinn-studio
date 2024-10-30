@@ -12,7 +12,7 @@ export interface WindowWithQueryClient extends Window {
 export interface AppContextProps {
   previewIframeRef: MutableRefObject<HTMLIFrameElement>;
   selectedFormLayoutSetName: string;
-  setSelectedformLayoutSetName: (selectedFormLayoutSetName: string) => void;
+  setSelectedFormLayoutSetName: (selectedFormLayoutSetName: string) => void;
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
   updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;

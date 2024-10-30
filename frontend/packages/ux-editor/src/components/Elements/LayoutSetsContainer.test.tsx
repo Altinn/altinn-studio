@@ -42,7 +42,7 @@ describe('LayoutSetsContainer', () => {
     await user.click(screen.getByRole('option', { name: layoutSetName2 }));
 
     await waitFor(() =>
-      expect(appContextMock.setSelectedformLayoutSetName).toHaveBeenCalledTimes(1),
+      expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1),
     );
     expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
     expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set-2');

@@ -35,7 +35,7 @@ describe('RedirectToLayoutSet', () => {
 const renderRedirectToLayoutSet = (selectedSubform: string = subformLayoutSetIdMock) => {
   return renderWithProviders(
     <AppContext.Provider
-      value={{ ...appContextMock, setSelectedformLayoutSetName: setSelectedFormLayoutSetMock }}
+      value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
     >
       <RedirectToLayoutSet selectedSubform={selectedSubform} />
     </AppContext.Provider>,

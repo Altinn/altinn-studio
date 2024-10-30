@@ -14,7 +14,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
 }: IGenericEditComponent<T>): React.ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const { setSelectedformLayoutSetName: setSelectedFormLayoutSetName } = useAppContext();
+  const { setSelectedFormLayoutSetName } = useAppContext();
 
   const subformUtils = new SubformUtilsImpl(layoutSets.sets);
 
