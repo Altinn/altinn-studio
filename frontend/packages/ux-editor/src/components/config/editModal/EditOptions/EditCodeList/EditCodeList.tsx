@@ -17,6 +17,7 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
 import { CodeListTableEditor } from './CodeListTableEditor';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export function EditCodeList<T extends SelectionComponentType>({
   component,
@@ -75,7 +76,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   return (
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      <CodeListTableEditor component={component} />
+      {shouldDisplayFeature('codeListEditor') && <CodeListTableEditor component={component} />}
       <StudioFileUploader
         className={classes.studioFileUploader}
         accept='.json'
