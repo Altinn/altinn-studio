@@ -14,6 +14,7 @@ import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -86,5 +87,9 @@ export const routerRoutes: RouterRoute[] = [
   {
     path: RoutePaths.ProcessEditor,
     subapp: ProcessEditor,
+  },
+  {
+    path: RoutePaths.ContentLibrary,
+    subapp: AppContentLibrary,
   },
 ];

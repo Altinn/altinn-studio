@@ -376,7 +376,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
   };
-  [ComponentType.SubForm]: FormComponentProps;
+  [ComponentType.Subform]: FormComponentProps;
   [ComponentType.Summary]: SummarizableComponentProps & {
     componentRef: string;
     largeGroup?: boolean;

@@ -10,8 +10,8 @@ export type StudioRecommendedNextActionProps = {
   saveButtonText?: string;
   onSkip?: React.MouseEventHandler<HTMLButtonElement>;
   skipButtonText?: string;
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   hideSaveButton?: boolean;
   hideSkipButton?: boolean;
   children: React.ReactNode;

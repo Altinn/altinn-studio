@@ -1,15 +1,19 @@
-import type { RootPageProps } from '../pages/Root';
-import type { CodeListProps } from '../pages/CodeList';
+import type { CodeListProps } from '../ContentLibrary/pages/CodeList';
+import type { PageName } from './PageName';
+import type { ImagesProps } from '../ContentLibrary/pages/Images';
 
-type PagePropsMap = {
-  root: RootPageProps;
+export type PagePropsMap = {
+  landingPage?: {};
   codeList?: CodeListProps;
+  images?: ImagesProps;
 };
 
 type GlobalPageConfig<T> = {
   props: T;
 };
 
-export type PageConfig = {
-  [K in keyof PagePropsMap]: GlobalPageConfig<PagePropsMap[K]>;
+type AllPagesConfig = {
+  [K in PageName]: GlobalPageConfig<PagePropsMap[K]>;
 };
+
+export type PagesConfig = Partial<AllPagesConfig>;
