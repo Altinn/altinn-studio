@@ -1,6 +1,6 @@
 import { RouterRouteMapperImpl } from './RouterRouteMapper';
-import { LandingPage } from '../../ContentLibrary/LibraryContent/pages/LandingPage';
-import { CodeList } from '../../ContentLibrary/LibraryContent/pages/CodeList';
+import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
+import { CodeList } from '../../ContentLibrary/LibraryBody/pages/CodeList';
 import { mockPagesConfig } from '../../../mocks/mockPagesConfig';
 
 describe('RouterRouteMapperImpl', () => {

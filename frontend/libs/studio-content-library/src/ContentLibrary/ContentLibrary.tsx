@@ -7,7 +7,7 @@ import classes from './ContentLibrary.module.css';
 import { LibraryHeader } from './LibraryHeader';
 import { StudioHeading } from '@studio/components';
 import type { PageName } from '../types/PageName';
-import { LibraryContent } from './LibraryContent/LibraryContent';
+import { LibraryBody } from './LibraryBody';
 
 type ContentLibraryProps = {
   pages: PagesConfig;
@@ -37,7 +37,7 @@ function ContentLibraryForPage<T extends PageName = 'landingPage'>({
     <div className={classes.libraryBackground}>
       <div className={classes.libraryContainer}>
         <LibraryHeader />
-        <LibraryContent Component={Component} pages={pages} currentPage={currentPage} />
+        <LibraryBody Component={Component} pages={pages} currentPage={currentPage} />
       </div>
     </div>
   );

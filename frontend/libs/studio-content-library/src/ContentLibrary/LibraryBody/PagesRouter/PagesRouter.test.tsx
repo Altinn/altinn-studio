@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PagesRouter } from './PagesRouter';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../../../contexts/RouterContext';
 import type { PageName } from '../../../types/PageName';
-import { BrowserRouter } from 'react-router-dom';
+import { renderWithBrowserRouter } from '../../../../test-utils/renderWithBrowserRouter';
 
 const navigateMock = jest.fn();
 
@@ -35,11 +35,9 @@ describe('PagesRouter', () => {
 });
 
 const renderPagesRouter = (pageNames: PageName[] = ['codeList', 'images']) => {
-  render(
-    <BrowserRouter>
-      <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
-        <PagesRouter pageNames={pageNames} />
-      </RouterContext.Provider>
-    </BrowserRouter>,
+  renderWithBrowserRouter(
+    <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
+      <PagesRouter pageNames={pageNames} />
+    </RouterContext.Provider>,
   );
 };

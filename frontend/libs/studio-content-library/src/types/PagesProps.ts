@@ -1,6 +1,6 @@
-import type { CodeListProps } from '../ContentLibrary/LibraryContent/pages/CodeList';
+import type { CodeListProps } from '../ContentLibrary/LibraryBody/pages/CodeList';
 import type { PageName } from './PageName';
-import type { ImagesProps } from '../ContentLibrary/LibraryContent/pages/Images';
+import type { ImagesProps } from '../ContentLibrary/LibraryBody/pages/Images';
 
 export type PagePropsMap = {
   landingPage?: {};
