@@ -42,7 +42,7 @@ export const PropertiesHeader = ({
       />
       <div className={classes.content}>
         <EditComponentIdRow component={formItem} handleComponentUpdate={handleComponentUpdate} />
-        {formItem.type === ComponentType.SubForm && (
+        {formItem.type === ComponentType.Subform && (
           <EditLayoutSetForSubform
             component={formItem}
             handleComponentChange={handleComponentUpdate}

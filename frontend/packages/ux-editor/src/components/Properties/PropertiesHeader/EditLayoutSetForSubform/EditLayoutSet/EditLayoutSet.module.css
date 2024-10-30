@@ -1,0 +1,4 @@
+.button {
+  padding-left: 0;
+  border-radius: var(--fds-sizing-1);
+}
