@@ -56,8 +56,10 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
             services.AddScoped<IDeploymentRepository, ORMDeploymentRepository>();
+            services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
