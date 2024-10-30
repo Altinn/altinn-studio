@@ -17,7 +17,7 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
 
   const [currentTab, setCurrentTab] = useState<SettingsModalTabId>('about');
   const dialogRef = useRef<HTMLDialogElement>();
-  const { getMenuTabConfigs } = useSettingsModalMenuTabConfigs();
+  const menuTabConfigs = useSettingsModalMenuTabConfigs();
 
   const openSettings = useCallback(
     (tab: SettingsModalTabId = currentTab) => {
@@ -63,7 +63,7 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
           selectedTabId={currentTab}
           onChangeTab={(tabId: SettingsModalTabId) => setCurrentTab(tabId)}
         >
-          {getMenuTabConfigs().map((contentTab) => (
+          {menuTabConfigs.map((contentTab) => (
             <StudioContentMenu.ButtonTab
               key={contentTab.tabId}
               tabName={contentTab.tabName}

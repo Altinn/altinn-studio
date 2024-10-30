@@ -14,10 +14,10 @@ const setupTabId: SettingsModalTabId = 'setup';
 const policyTabId: SettingsModalTabId = 'policy';
 const accessControlTabId: SettingsModalTabId = 'access_control';
 
-export const useSettingsModalMenuTabConfigs = () => {
-  const { t } = useTranslation();
+export const useSettingsModalMenuTabConfigs =
+  (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
+    const { t } = useTranslation();
 
-  const getMenuTabConfigs = (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
     return [
       {
         tabId: aboutTabId,
@@ -41,6 +41,3 @@ export const useSettingsModalMenuTabConfigs = () => {
       },
     ];
   };
-
-  return { getMenuTabConfigs };
-};
