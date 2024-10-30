@@ -17,17 +17,15 @@ export const ToolbarItem = ({
   icon,
 }: ToolbarItemProps) => {
   return (
-    <div>
-      <DragAndDropTree.NewItem<ComponentType | CustomComponentType>
-        notDraggable={notDraggable}
-        payload={componentType}
-      >
-        <ToolbarItemComponent
-          componentType={componentType}
-          componentTitle={componentTitle}
-          icon={icon}
-        />
-      </DragAndDropTree.NewItem>
-    </div>
+    <DragAndDropTree.NewItem<ComponentType | CustomComponentType>
+      notDraggable={notDraggable}
+      payload={componentType}
+    >
+      <ToolbarItemComponent
+        componentType={componentType}
+        componentTitle={componentTitle}
+        icon={icon}
+      />
+    </DragAndDropTree.NewItem>
   );
 };
