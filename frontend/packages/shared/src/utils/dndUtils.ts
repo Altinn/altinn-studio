@@ -2,7 +2,7 @@ import type { DropTargetMonitor } from 'react-dnd';
 import type { DndItem, ExistingDndItem, ItemPosition } from 'app-shared/types/dndTypes';
 import { DragCursorPosition } from 'app-shared/types/dndTypes';
 import type { RefObject } from 'react';
-import { areObjectsEqual } from 'app-shared/utils/objectUtils';
+import { ObjectUtils } from '@studio/pure-functions';
 
 /**
  * Calculates the position of the dragged item relative to the drop target.
@@ -27,7 +27,7 @@ export const getDragCursorPosition = <T>(
 ): DragCursorPosition => {
   if (!monitor) return DragCursorPosition.Idle;
 
-  if (dragItem.isNew === false && areObjectsEqual(dragItem.position, dropItem.position))
+  if (dragItem.isNew === false && ObjectUtils.areObjectsEqual(dragItem.position, dropItem.position))
     return DragCursorPosition.Self;
 
   const clientOffset = monitor.getClientOffset();
