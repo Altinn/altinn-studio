@@ -43,6 +43,8 @@ on:
         required: true
       trace-connetion-string:
         required: false
+      trace-repo-token:
+        required: false
 
 jobs:
   config-oci-artifact-push:
@@ -104,5 +106,5 @@ jobs:
             connection_string: ${{ secrets.trace-connetion-string }}
             app: "${{ inputs.artifact-name }}"
             team: "${{ inputs.trace-team-name }}"
-            repo_token: ${{ secrets.GITHUB_TOKEN }}
+            repo_token: ${{ secrets.trace-repo-token }}
             environment: ${{ inputs.artifact-environment || inputs.environment }}
