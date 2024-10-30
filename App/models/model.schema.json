@@ -129,6 +129,26 @@
           "type": "string"
         }
       }
+    },
+    "Numbers": {
+      "type": "object",
+      "title": "",
+      "properties": {
+        "TotalGjeld": {
+          "type": "number"
+        },
+        "Gjeldsfordeling": {
+          "type": "object",
+          "properties": {
+            "Prosent": {
+              "type": "number"
+            },
+            "Belop": {
+              "type": "number"
+            }
+          }
+        }
+      }
     }
   },
   "properties": {

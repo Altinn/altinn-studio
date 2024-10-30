@@ -50,6 +50,19 @@
       <xs:element minOccurs="0" name="Answer" type="xs:string" />
     </xs:sequence>
   </xs:complexType>
+  <xs:complexType name="Numbers">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="TotalGjeld" type="xs:double" />
+      <xs:element minOccurs="0" name="Gjeldsfordeling">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element minOccurs="0" name="Prosent" type="xs:double" />
+            <xs:element minOccurs="0" name="Belop" type="xs:double" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
   <xs:element name="model">
     <xs:complexType>
       <xs:sequence>
