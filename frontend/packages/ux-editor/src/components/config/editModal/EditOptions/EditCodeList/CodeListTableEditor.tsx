@@ -61,6 +61,7 @@ export function CodeListTableEditor({ component }: CodeListTableEditorProps): Re
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.modal_add_options_codelist')}
         onBeforeClose={handleClose}
+        onInteractOutside={handleClose}
       >
         <StudioCodeListEditor
           codeList={codeListItemList}
