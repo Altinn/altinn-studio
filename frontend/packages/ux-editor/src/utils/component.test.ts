@@ -171,12 +171,15 @@ describe('Component utils', () => {
       },
     );
 
-    it('handles custom component type correctly, where it use the componentRef to set the type', () => {
+    it('maps custom component type to correct component reference', () => {
       expect(formItemConfigs[CustomComponentType.CloseSubformButton].componentRef).toBe(
         ComponentType.CustomButton,
       );
+    });
 
+    it('generates a form item with the correct structure for a custom component type', () => {
       const component = generateFormItem(CustomComponentType.CloseSubformButton, 'testId');
+
       expect(component).toEqual(
         expect.objectContaining({
           id: 'testId',
