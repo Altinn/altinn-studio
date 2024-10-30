@@ -8,22 +8,26 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityGenerationUtils
 {
-    public static DeploymentEntity GenerateDeploymentEntity(string org, string app = null, string buildId = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
+    public static class Deployment
     {
-        BuildEntity build = GenerateBuildEntity(buildId, buildStatus, buildResult);
-
-        return new DeploymentEntity
+        public static DeploymentEntity GenerateDeploymentEntity(string org, string app = null, string buildId = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
         {
-            Org = org,
-            App = app ?? Guid.NewGuid().ToString(),
-            Build = build,
-            TagName = tagname ?? Guid.NewGuid().ToString(),
-            EnvName = Guid.NewGuid().ToString(),
-            Created = DateTime.UtcNow,
-        };
+            BuildEntity build = Build.GenerateBuildEntity(buildId, buildStatus, buildResult);
+
+            return new DeploymentEntity
+            {
+                Org = org,
+                App = app ?? Guid.NewGuid().ToString(),
+                Build = build,
+                TagName = tagname ?? Guid.NewGuid().ToString(),
+                EnvName = Guid.NewGuid().ToString(),
+                Created = DateTime.UtcNow,
+            };
+        }
+
+        public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(string org, string app, int count) =>
+            Enumerable.Range(0, count)
+                .Select(x => GenerateDeploymentEntity(org, app)).ToList();
     }
 
-    public static IEnumerable<DeploymentEntity> GenerateDeploymentEntities(string org, string app, int count) =>
-        Enumerable.Range(0, count)
-            .Select(x => GenerateDeploymentEntity(org, app)).ToList();
 }
