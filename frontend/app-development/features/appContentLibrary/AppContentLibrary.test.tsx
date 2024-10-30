@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { AppContentLibrary } from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { BrowserRouter } from 'react-router-dom';
+import { renderWithProviders } from '../../test/mocks';
 
 describe('AppContentLibrary', () => {
   it('renders the AppContentLibrary with codeLists and images resources', () => {
@@ -21,9 +21,5 @@ describe('AppContentLibrary', () => {
 });
 
 const renderAppContentLibrary = () => {
-  render(
-    <BrowserRouter>
-      <AppContentLibrary />
-    </BrowserRouter>,
-  );
+  renderWithProviders()(<AppContentLibrary />);
 };
