@@ -167,4 +167,38 @@ describe('Subform test', () => {
     cy.findByRole('button', { name: /neste/i }).should('be.visible');
     cy.get(appFrontend.errorReport).should('not.exist');
   });
+
+  it('PDF should include subforms', () => {
+    cy.findByRole('textbox', { name: /navn/i }).type('Per');
+    cy.findByRole('textbox', { name: /alder/i }).type('28');
+
+    cy.findByRole('button', { name: /legg til moped/i }).click();
+    cy.findByRole('textbox', { name: /registreringsnummer/i }).type('ABC123');
+    cy.findByRole('textbox', { name: /merke/i }).type('Digdir');
+    cy.findByRole('textbox', { name: /modell/i }).type('Scooter2000');
+    cy.findByRole('textbox', { name: /produksjonsår/i }).type('2024');
+    cy.findByRole('button', { name: /ferdig/i }).click();
+
+    cy.findByRole('button', { name: /legg til moped/i }).click();
+    cy.findByRole('textbox', { name: /registreringsnummer/i }).type('XYZ987');
+    cy.findByRole('textbox', { name: /merke/i }).type('Altinn');
+    cy.findByRole('textbox', { name: /modell/i }).type('3.0');
+    cy.findByRole('textbox', { name: /produksjonsår/i }).type('2030');
+    cy.findByRole('button', { name: /ferdig/i }).click();
+
+    cy.testPdf('subform', () => {
+      cy.getSummary('Navn').should('contain.text', 'Per');
+      cy.getSummary('Alder').should('contain.text', '28 år');
+
+      cy.getSummary('Registreringsnummer').eq(0).should('contain.text', 'ABC123');
+      cy.getSummary('Merke').eq(0).should('contain.text', 'Digdir');
+      cy.getSummary('Modell').eq(0).should('contain.text', 'Scooter2000');
+      cy.getSummary('Produksjonsår').eq(0).should('contain.text', '2024');
+
+      cy.getSummary('Registreringsnummer').eq(1).should('contain.text', 'XYZ987');
+      cy.getSummary('Merke').eq(1).should('contain.text', 'Altinn');
+      cy.getSummary('Modell').eq(1).should('contain.text', '3.0');
+      cy.getSummary('Produksjonsår').eq(1).should('contain.text', '2030');
+    });
+  });
 });

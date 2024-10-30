@@ -557,10 +557,6 @@ function IndicateReadiness() {
     // Doing this in a selector instead of a useEffect() so that we don't have to re-render
     document.body.setAttribute('data-nodes-ready', ready.toString());
 
-    if (!GeneratorDebug.displayReadiness) {
-      return [null, null];
-    }
-
     return [s.readiness, s.hiddenViaRulesRan];
   });
 

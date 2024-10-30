@@ -96,6 +96,7 @@ const DoSummaryWrapper = ({
                 textResourceBindings={{ title }}
               />
               <Heading
+                className='no-visual-testing'
                 spacing={false}
                 size={'sm'}
                 level={2}
