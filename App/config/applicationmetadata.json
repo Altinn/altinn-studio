@@ -24,13 +24,13 @@
       "enabledFileValidators": []
     },
     {
-      "id": "model",
+      "id": "Model",
       "allowedContentTypes": [
         "application/xml"
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.model.model",
+        "classRef": "Altinn.App.Models.Model.Model",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
         "allowUserCreate": false,

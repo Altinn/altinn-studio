@@ -7,10 +7,10 @@ using System.Text.Json.Serialization;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
-namespace Altinn.App.Models.model
+namespace Altinn.App.Models.Model
 {
-  [XmlRoot(ElementName="model")]
-  public class model
+  [XmlRoot(ElementName="Model")]
+  public class Model
   {
     [XmlElement("inputfield", Order = 1)]
     [JsonProperty("inputfield")]

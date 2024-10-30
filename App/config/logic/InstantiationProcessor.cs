@@ -3,7 +3,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Core.Internal.Registers;
-using Altinn.App.Models.model;
+using Altinn.App.Models.Model;
 
 namespace Altinn.App.logic.DataProcessing
 {
@@ -19,9 +19,9 @@ namespace Altinn.App.logic.DataProcessing
         public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
 
-            if (data.GetType() == typeof(model))
+            if (data.GetType() == typeof(Model))
             {
-                var model = (model)data;
+                var model = (Model)data;
                 model.LikertExample = new List<LikertQuestion>
                 {
                     new() { Id = "question-1", Answer = "" },
