@@ -1,12 +1,12 @@
 import React from 'react';
-import type { PageConfig } from '../types/PagesProps';
-import { RouterPage } from '../pages/RouterPage';
+import type { PagesConfig } from '../types/PagesProps';
 import { RouterContextProvider } from '../contexts/RouterContext';
+import { ContentLibrary } from '../ContentLibrary/ContentLibrary';
 
 export class ResourceContentLibraryImpl {
-  private readonly pages: PageConfig;
+  private readonly pages: PagesConfig;
 
-  constructor(config: { pages: PageConfig }) {
+  constructor(config: { pages: PagesConfig }) {
     this.pages = config.pages;
     this.getContentResourceLibrary = this.getContentResourceLibrary.bind(this);
   }
@@ -14,7 +14,7 @@ export class ResourceContentLibraryImpl {
   public getContentResourceLibrary(): React.ReactNode {
     return (
       <RouterContextProvider>
-        <RouterPage pages={this.pages} />
+        <ContentLibrary pages={this.pages} />
       </RouterContextProvider>
     );
   }

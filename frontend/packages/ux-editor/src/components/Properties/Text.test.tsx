@@ -302,7 +302,7 @@ describe('TextTab', () => {
         props: {
           ...props,
           formItem: {
-            ...componentMocks[ComponentType.SubForm],
+            ...componentMocks[ComponentType.Subform],
           },
         },
       });
@@ -311,6 +311,27 @@ describe('TextTab', () => {
         level: 2,
       });
       expect(tabelHeading).toBeInTheDocument();
+    });
+
+    it('should call handleUpdate when handleComponentChange is triggered from EditSubformTableColumns', async () => {
+      const user = userEvent.setup();
+
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Subform],
+          },
+        },
+      });
+      const addColumnButton = screen.getByRole('button', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
+      });
+      await user.click(addColumnButton);
+
+      await waitFor(() => {
+        expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });
