@@ -1,5 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://altinn-repositories:3000/ttd/component-library/App/models/Model.schema.json",
   "info": {
     "rootNode": ""
   },
