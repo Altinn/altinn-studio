@@ -24,16 +24,18 @@ export const CreateNewSubformLayoutSet = ({
   const jsonQuery = useDataModelsJsonQuery(org, app);
 
   const createNewSubform = () => {
-    if (!newSubForm) return;
+    if (!newSubForm || !selectedOption) return;
     addLayoutSet({
       layoutSetIdToUpdate: newSubForm,
       layoutSetConfig: {
         id: newSubForm,
         type: 'subform',
+        dataType: selectedOption.label,
       },
     });
     onSubFormCreated(newSubForm);
     setNewSubForm('');
+    setSelectedOption(null);
   };
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
