@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
@@ -21,7 +22,7 @@ public class TestSchemeProvider : AuthenticationSchemeProvider
     public override Task<AuthenticationScheme> GetSchemeAsync(string name)
     {
         // Replace cookies scheme used in oidc setup with test scheme
-        if (name == CookieAuthenticationDefaults.AuthenticationScheme)
+        if (name is CookieAuthenticationDefaults.AuthenticationScheme or AnsattPortenConstants.AnsattportenAuthenticationScheme)
         {
             return base.GetSchemeAsync(TestAuthConstants.TestAuthenticationScheme);
         }

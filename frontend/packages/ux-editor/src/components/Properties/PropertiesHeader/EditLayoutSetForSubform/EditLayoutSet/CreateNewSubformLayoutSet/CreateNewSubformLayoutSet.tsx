@@ -7,32 +7,32 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './CreateNewSubformLayoutSet.module.css';
 
 type CreateNewSubformLayoutSetProps = {
-  onSubFormCreated: (layoutSetName: string) => void;
+  onSubformCreated: (layoutSetName: string) => void;
 };
 
 export const CreateNewSubformLayoutSet = ({
-  onSubFormCreated,
+  onSubformCreated,
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
-  const [newSubForm, setNewSubForm] = useState('');
+  const [newSubform, setNewSubform] = useState('');
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
 
   const createNewSubform = () => {
-    if (!newSubForm) return;
+    if (!newSubform) return;
     addLayoutSet({
-      layoutSetIdToUpdate: newSubForm,
+      layoutSetIdToUpdate: newSubform,
       layoutSetConfig: {
-        id: newSubForm,
+        id: newSubform,
         type: 'subform',
       },
     });
-    onSubFormCreated(newSubForm);
-    setNewSubForm('');
+    onSubformCreated(newSubform);
+    setNewSubform('');
   };
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setNewSubForm(e.target.value);
+    setNewSubform(e.target.value);
   }
 
   return (
@@ -43,7 +43,7 @@ export const CreateNewSubformLayoutSet = ({
         </StudioCard.Header>
         <StudioTextfield
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
-          value={newSubForm}
+          value={newSubform}
           size='sm'
           onChange={handleChange}
         />
