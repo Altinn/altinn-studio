@@ -43,8 +43,6 @@ on:
         required: true
       trace-connetion-string:
         required: false
-        type: string
-        default: ''
 
 jobs:
   config-oci-artifact-push:
