@@ -1,5 +1,5 @@
-export * from './StudioAlert';
 export * from './StudioActionCloseButton';
+export * from './StudioAlert';
 export * from './StudioAnimateHeight';
 export * from './StudioAvatar';
 export * from './StudioBetaTag';
@@ -49,6 +49,7 @@ export * from './StudioTableLocalPagination';
 export * from './StudioTableRemotePagination';
 export * from './StudioTabs';
 export * from './StudioTag';
+export * from './StudioTextResourcePicker';
 export * from './StudioTextarea';
 export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';
