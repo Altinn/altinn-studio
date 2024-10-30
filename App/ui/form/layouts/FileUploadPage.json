@@ -62,7 +62,7 @@
         "type": "FileUploadWithTag",
         "textResourceBindings": {
           "tagTitle": "Filtype",
-          "title": "Filopplasting med type",
+          "title": "Filopplasting med type"
         },
         "options": [
           {
