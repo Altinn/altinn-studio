@@ -91,6 +91,7 @@
         <xs:element minOccurs="0" name="numberPercentage" type="xs:long" />
         <xs:element minOccurs="0" name="anyNumber" type="xs:double" />
         <xs:element minOccurs="0" name="checkboxForCard" type="xs:string" />
+        <xs:element minOccurs="0" name="Numbers" type="Numbers" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

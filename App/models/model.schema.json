@@ -238,6 +238,9 @@
     },
     "checkboxForCard": {
       "type": "string"
+    },
+    "Numbers": {
+      "$ref": "#/$defs/Numbers"
     }
   }
 }
