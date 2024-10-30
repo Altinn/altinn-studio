@@ -26,6 +26,7 @@
     <PackageReference Include="Polly" />
     <PackageReference Include="Testcontainers" />
     <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="WireMock.Net" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" />
