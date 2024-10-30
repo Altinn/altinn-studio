@@ -1,8 +1,8 @@
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { renderHook } from '@testing-library/react';
 import { useComponentTitle } from './useComponentTitle';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { componentMocks } from '../testing/componentMocks';
+import { renderHookWithProviders } from '../testing/mocks';
 
 // Test data:
 const inputText = textMock(`ux_editor.component_title.${ComponentType.Input}`);
@@ -15,7 +15,7 @@ const closeSubformButtonText = textMock(
 );
 
 describe('useComponentTypeName', () => {
-  const { result } = renderHook(useComponentTitle);
+  const { result } = renderHookWithProviders(useComponentTitle);
 
   it('Returns the correct text if it exists', () => {
     expect(result.current(componentMocks[ComponentType.Input])).toBe(inputText);
