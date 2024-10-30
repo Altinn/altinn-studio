@@ -1,12 +1,13 @@
 import React, { useRef } from 'react';
-import { Alert } from '@digdir/designsystemet-react';
-import classes from './EditManualOptionsWithEditor.module.css';
+import { Alert, ErrorMessage } from '@digdir/designsystemet-react';
+import classes from '../EditOptions.module.css';
 import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { useCodeListButtonValue, useCodeListEditorTexts } from '../hooks';
 import { useDebounce } from '@studio/hooks';
 import type { EditManualOptionsProps } from '../EditManualOptions';
+import { useComponentErrorMessage } from '@altinn/ux-editor/hooks';
 
 export function EditManualOptionsWithEditor({
   component,
@@ -15,6 +16,7 @@ export function EditManualOptionsWithEditor({
 }: EditManualOptionsProps) {
   const { t } = useTranslation();
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
+  const errorMessage = useComponentErrorMessage(component);
   const buttonValue = useCodeListButtonValue(component.options);
   const editorTexts = useCodeListEditorTexts();
   const { debounce } = useDebounce({ debounceTimeInMs: 500 });
@@ -46,7 +48,7 @@ export function EditManualOptionsWithEditor({
       <StudioModal.Root>
         <StudioModal.Dialog
           ref={manualOptionsModalRef}
-          className={classes.codeListDialog}
+          className={classes.manualTabDialog}
           closeButtonTitle={t('general.close')}
           heading={t('ux_editor.modal_add_options_codelist')}
         >
@@ -57,6 +59,11 @@ export function EditManualOptionsWithEditor({
           />
         </StudioModal.Dialog>
       </StudioModal.Root>
+      {errorMessage && (
+        <ErrorMessage className={classes.errorMessage} size='small'>
+          {errorMessage}
+        </ErrorMessage>
+      )}
     </>
   );
 }

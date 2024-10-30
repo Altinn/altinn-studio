@@ -20,3 +20,8 @@
   padding-block: var(--fds-spacing-5);
   padding-inline: 0;
 }
+
+.manualTabDialog {
+  width: max(50vw, 64rem);
+  max-width: 100%;
+}
