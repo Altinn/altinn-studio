@@ -23,7 +23,7 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
     public async Task Get_ShouldReturnCorrectRecordsFromDatabase(string org, string app, int top, SortDirection sortDirection)
     {
         int allEntitiesCount = 10;
-        var releaseEntities = EntityGenerationUtils.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
+        var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(releaseEntities);
 
         var repository = new ORMReleaseRepository(DbFixture.DbContext);
@@ -46,7 +46,7 @@ public class GetTopAndSortedIntegrationTests : ReleaseEntityIntegrationTestsBase
         SortDirection sortDirection)
     {
         int allEntitiesCount = 10;
-        var releaseEntities = EntityGenerationUtils.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
+        var releaseEntities = EntityGenerationUtils.Release.GenerateReleaseEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(releaseEntities);
 
         var repository = new ORMReleaseRepository(DbFixture.DbContext);

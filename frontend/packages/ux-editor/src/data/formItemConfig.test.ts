@@ -14,9 +14,9 @@ describe('formItemConfig', () => {
     confOnScreenComponents,
   ];
   const allAvailableComponents = allAvailableLists.flat();
-  const excludedComponents = [ComponentType.Payment, ComponentType.SubForm, ComponentType.Summary2];
+  const excludedComponents = [ComponentType.Payment, ComponentType.Subform, ComponentType.Summary2];
 
-  /**  Test that all components, except Payment, SubForm and Summary2 (since behind featureFlag), are available in one of the visible lists */
+  /**  Test that all components, except Payment, Subform and Summary2 (since behind featureFlag), are available in one of the visible lists */
   it.each(
     Object.values(ComponentType).filter(
       (componentType) => !excludedComponents.includes(componentType),
@@ -29,8 +29,8 @@ describe('formItemConfig', () => {
     expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Payment);
   });
 
-  test('that subForm component is not available in the visible lists', () => {
-    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.SubForm);
+  test('that subform component is not available in the visible lists', () => {
+    expect(allAvailableComponents.map(({ name }) => name)).not.toContain(ComponentType.Subform);
   });
 
   test('that Summary2 component is not available in the visible lists', () => {

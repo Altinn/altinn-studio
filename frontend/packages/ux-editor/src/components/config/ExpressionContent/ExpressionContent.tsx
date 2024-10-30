@@ -8,7 +8,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useDataModelMetadataQuery } from '../../../hooks/queries/useDataModelMetadataQuery';
 import { Paragraph } from '@digdir/designsystemet-react';
 import classes from './ExpressionContent.module.css';
-import { Expression as ExpressionWithTexts } from 'app-shared/components/Expression';
+import { Expression as ExpressionWithTexts } from './Expression';
 import { useText, useAppContext } from '../../../hooks';
 
 export interface ExpressionContentProps {
