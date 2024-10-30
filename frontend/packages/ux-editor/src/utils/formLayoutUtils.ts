@@ -309,7 +309,7 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends ComponentType>(
+export const addItemOfType = <T extends ComponentType | CustomComponentType>(
   layout: IInternalLayout,
   componentType: T,
   id: string,
