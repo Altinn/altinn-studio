@@ -91,9 +91,9 @@ describe('EditOption', () => {
   });
 
   const textResourceLabels: KeyValuePairs<string> = {
-    label: textMock('ux_editor.options_text_label'),
-    description: textMock('ux_editor.options_text_description'),
-    helpText: textMock('ux_editor.options_text_help_text'),
+    label: textMock('ux_editor.modal_properties_textResourceBindings_title'),
+    description: textMock('general.description'),
+    helpText: textMock('ux_editor.modal_properties_textResourceBindings_help'),
   };
 
   it.each(Object.keys(textResourceLabels))(
