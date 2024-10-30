@@ -22,7 +22,7 @@ export class QueryParamsRouterImpl implements QueryParamsRouter {
 
   public get currentRoute(): PageName {
     const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get(pageRouterQueryParamKey) as string as PageName;
+    return (searchParams.get(pageRouterQueryParamKey) as PageName) ?? 'landingPage';
   }
 
   public navigate(queryParam: string): void {

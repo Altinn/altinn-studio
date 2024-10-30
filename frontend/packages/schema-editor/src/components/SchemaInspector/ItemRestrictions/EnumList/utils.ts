@@ -1,9 +1,9 @@
-import { areItemsUnique, removeEmptyStrings } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export const findDuplicateValues = (array: string[]): string[] | null => {
-  const arrayWithoutEmptyStrings: string[] = removeEmptyStrings(array);
+  const arrayWithoutEmptyStrings: string[] = ArrayUtils.removeEmptyStrings(array);
 
-  if (areItemsUnique(arrayWithoutEmptyStrings)) return null;
+  if (ArrayUtils.areItemsUnique(arrayWithoutEmptyStrings)) return null;
 
   return findDuplicates(arrayWithoutEmptyStrings);
 };

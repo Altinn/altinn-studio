@@ -7,7 +7,6 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
-import { insertArrayElementAtPos } from 'app-shared/utils/arrayUtils';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import type { FormComponent } from '../types/FormComponent';
@@ -301,7 +300,7 @@ export const moveLayoutItem = (
       newLayout.order[oldContainerId],
       id,
     );
-    newLayout.order[newContainerId] = insertArrayElementAtPos(
+    newLayout.order[newContainerId] = ArrayUtils.insertArrayElementAtPos(
       newLayout.order[newContainerId],
       id,
       newPosition,
