@@ -46,7 +46,7 @@ export function CodeListTableEditor({ component }: CodeListTableEditorProps): Re
     doReloadPreview();
   };
 
-  if (component.optionsId === undefined || isFetching) return;
+  if (component.optionsId === undefined || component.optionsId === '' || isFetching) return;
   return (
     <StudioModal.Root>
       <StudioModal.Trigger
