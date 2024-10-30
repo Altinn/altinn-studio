@@ -17,16 +17,14 @@ export function LibraryContent<T extends PageName = 'landingPage'>({
   pages,
   currentPage,
 }: LibraryContentProps) {
-  const componentPropsAreExternal = currentPage !== 'landingPage';
-
-  const componentProps: Required<PagePropsMap>[T] =
-    componentPropsAreExternal && (pages[currentPage].props as Required<PagePropsMap>[T]);
+  const componentProps: Required<PagePropsMap>[T] = pages[currentPage]
+    ?.props as Required<PagePropsMap>[T];
 
   return (
     <div className={classes.libraryContent}>
       <PagesRouter pageNames={getAllPageNamesFromPagesConfig(pages)} />
       <div className={classes.component}>
-        <Component {...componentProps} />
+        <Component {...(componentProps ?? {})} />
       </div>
       <InfoBox pageName={currentPage} />
     </div>
