@@ -855,6 +855,7 @@
   "schema_editor.enum_error_duplicate": "Verdiene må være unike.",
   "schema_editor.enum_legend": "Liste med gyldige verdier",
   "schema_editor.enum_value": "Gyldig verdi nummer {{index}}",
+  "schema_editor.error_circular_references": "Du kan ikke utføre denne operasjonen fordi Studio ikke støtter sirkulære referanser.",
   "schema_editor.error_could_not_detect_taskType": "Kunne ikke hente oppgavetype for {{layout}}",
   "schema_editor.error_could_not_detect_taskType_description": "Dette gjør at vi ikke kan vise riktig liste over tilgjengelige komponenter. Velg en annen sidegruppe eller prøv å last siden på nytt.",
   "schema_editor.error_data_type_name_exists": "Modellen kan ikke ha samme navn som datatyper i løsningen.",
