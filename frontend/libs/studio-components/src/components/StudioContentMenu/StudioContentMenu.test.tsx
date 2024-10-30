@@ -35,6 +35,30 @@ describe('StudioContentMenu', () => {
     expect(firstTab).toHaveClass('selected');
   });
 
+  it('renders a not selected tab without selected style', () => {
+    renderStudioContentMenu({
+      buttonTabs: [tab1, tab2],
+    });
+    const notSelectedTab = screen.getByRole('tab', { name: tab2Name });
+    expect(notSelectedTab).not.toHaveClass('selected');
+  });
+
+  it('renders a selected tab with tabIndex 0', () => {
+    renderStudioContentMenu({
+      buttonTabs: [tab1],
+    });
+    const menuTab = screen.getByRole('tab', { name: tab1Name });
+    expect(menuTab).toHaveAttribute('tabIndex', '0');
+  });
+
+  it('renders a not selected tab with tabIndex -1', () => {
+    renderStudioContentMenu({
+      buttonTabs: [tab1, tab2],
+    });
+    const notSelectedTab = screen.getByRole('tab', { name: tab2Name });
+    expect(notSelectedTab).toHaveAttribute('tabIndex', '-1');
+  });
+
   it('renders an empty contentMenu when there is no provided tabs', () => {
     renderStudioContentMenu({ buttonTabs: [] });
     const emptyMenu = screen.getByRole('tablist');
@@ -52,12 +76,14 @@ describe('StudioContentMenu', () => {
       ],
     });
     const menuTab = screen.getByRole('tab', { name: tab1Name });
+    const menuTabTitle = screen.getByTitle(tab1Name);
     const menuIcon = screen.getByTestId(iconTitle);
     expect(menuTab).toBeInTheDocument();
+    expect(menuTabTitle).toBeInTheDocument();
     expect(menuIcon).toBeInTheDocument();
   });
 
-  it('renders a tab with "to" prop as a link element', () => {
+  it('renders a linkTab as a link element', () => {
     const link = 'url-link';
     renderStudioContentMenu({
       linkTabs: [
