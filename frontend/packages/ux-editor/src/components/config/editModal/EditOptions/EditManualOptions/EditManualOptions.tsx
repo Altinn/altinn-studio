@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import type { IGenericEditComponent } from '../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import { useCodeListButtonValue, useCodeListEditorTexts } from '../hooks';
+import { useDebounce } from '@studio/hooks';
 
 export type EditManualOptionsProps = {
   onlyCodeListOptions?: boolean;
@@ -21,15 +22,18 @@ export function EditManualOptions({
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
   const buttonValue = useCodeListButtonValue(component.options);
   const editorTexts = useCodeListEditorTexts();
+  const { debounce } = useDebounce({ debounceTimeInMs: 500 });
 
   const handleOptionsChange = (options: Option[]) => {
     if (component.optionsId) {
       delete component.optionsId;
     }
 
-    handleComponentChange({
-      ...component,
-      options,
+    debounce(() => {
+      handleComponentChange({
+        ...component,
+        options,
+      });
     });
   };
 
