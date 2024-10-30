@@ -11,7 +11,3 @@
 .vertical {
   flex-direction: column;
 }
-.icon {
-  width: 24px;
-  margin-right: 12px;
-}

@@ -4,16 +4,21 @@ import cn from 'classnames';
 
 import { getLabelId } from 'src/components/label/Label';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { Text } from 'src/layout/Text/Text';
-import classes from 'src/layout/Text/TextComponent.module.css';
+import { Date } from 'src/layout/Date/Date';
+import classes from 'src/layout/Date/DateComponent.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
-  const { textResourceBindings, value, icon, direction } = useNodeItem(node);
+export const DateComponent = ({ node }: PropsFromGenericComponent<'Date'>) => {
+  const { textResourceBindings, value, icon, direction, format } = useNodeItem(node);
 
   if (!textResourceBindings?.title) {
-    return <Text value={value} />;
+    return (
+      <Date
+        value={value}
+        format={format}
+      />
+    );
   }
 
   return (
@@ -22,14 +27,15 @@ export const TextComponent = ({ node }: PropsFromGenericComponent<'Text'>) => {
       label={{
         node,
         renderLabelAs: 'span',
-        className: cn(classes.textComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
+        className: cn(classes.dateComponent, direction === 'vertical' ? classes.vertical : classes.horizontal),
       }}
     >
-      <Text
+      <Date
         value={value}
         iconUrl={icon}
         iconAltText={textResourceBindings.title}
         labelId={getLabelId(node.id)}
+        format={format}
       />
     </ComponentStructureWrapper>
   );

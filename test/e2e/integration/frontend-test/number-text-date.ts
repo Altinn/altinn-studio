@@ -1,5 +1,5 @@
 describe('Number and Text components', () => {
-  it('should render correctly', () => {
+  it('should render Number correctly', () => {
     cy.gotoHiddenPage('cards');
     const numberCard = '[data-componentid="number-Card"]';
 
@@ -15,7 +15,23 @@ describe('Number and Text components', () => {
     cy.get(numberCard)
       .findByLabelText(/statisk verdi med desimal/i)
       .should('contain.text', '20 000,2 kr');
-
+  });
+  it('should render Date correctly', () => {
+    cy.gotoHiddenPage('cards');
+    const dateCard = '[data-componentid="date-Card"]';
+    cy.get(dateCard).findAllByLabelText(/Dato/, { trim: true }).should('contain.text', '27.09.2022');
+    cy.get(dateCard)
+      .findAllByLabelText(/Dato med tid/)
+      .should('contain.text', '27.09.2022 06:00:00');
+    cy.get(dateCard)
+      .findAllByLabelText(/Dato med annet format/)
+      .should('contain.text', '27/09/2022');
+    cy.get(dateCard)
+      .findAllByLabelText(/Dato med tid på annet format/)
+      .should('contain.text', '27/09/2022 06:00:00');
+  });
+  it('should render Text correctly', () => {
+    cy.gotoHiddenPage('cards');
     const textCard = '[data-componentid="text-Card"]';
 
     cy.get(textCard)
