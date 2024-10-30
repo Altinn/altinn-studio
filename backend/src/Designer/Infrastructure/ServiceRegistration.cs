@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Repository.ORMImplementation.Data;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,8 +56,10 @@ namespace Altinn.Studio.Designer.Infrastructure
 
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
             services.AddScoped<IDeploymentRepository, ORMDeploymentRepository>();
+            services.AddScoped<IAppScopesRepository, AppScopesRepository>();
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IAppScopesService, AppScopesService>();
             services.AddTransient<IKubernetesDeploymentsService, KubernetesDeploymentsService>();
             services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
@@ -69,10 +72,12 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IOptionsService, OptionsService>();
             services.AddTransient<IEnvironmentsService, EnvironmentsService>();
             services.AddHttpClient<IOrgService, OrgService>();
+            services.AddHttpClient<ImageClient>();
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IResourceRegistry, ResourceRegistryService>();
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
+            services.AddTransient<IImagesService, ImagesService>();
             services.RegisterDatamodeling(configuration);
             services.RegisterUserRequestSynchronization(configuration);
 

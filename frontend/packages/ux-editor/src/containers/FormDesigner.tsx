@@ -7,7 +7,6 @@ import { useFormItemContext } from './FormItemContext';
 import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import {
   StudioPageError,
   StudioPageSpinner,
@@ -32,12 +31,14 @@ import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayou
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: user } = useUserQuery();
-  const { selectedFormLayoutSetName, selectedFormLayoutName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
+    useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -48,7 +49,6 @@ export const FormDesigner = (): JSX.Element => {
     app,
     selectedFormLayoutSetName,
   );
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedFormLayoutSetName);
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
     org,
     app,
@@ -83,7 +83,6 @@ export const FormDesigner = (): JSX.Element => {
     instanceId &&
     formLayouts &&
     formLayoutSettings &&
-    ruleModel &&
     isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
@@ -126,7 +125,7 @@ export const FormDesigner = (): JSX.Element => {
         { componentType: type, newId, parentId, index },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
           },
         },
       );
@@ -147,7 +146,7 @@ export const FormDesigner = (): JSX.Element => {
         { internalLayout: updatedLayout },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
           },
         },
       );
@@ -161,18 +160,27 @@ export const FormDesigner = (): JSX.Element => {
               orientation='horizontal'
               localStorageContext={`form-designer-main:${user.id}:${org}`}
             >
-              <StudioResizableLayout.Element
-                collapsed={elementsCollapsed}
-                collapsedSize={49}
-                minimumSize={262}
-                maximumSize={300}
-              >
-                <Elements
+              {/**
+               * The following check is done for a live user test behind feature flag. It can be removed if this is not something
+               * that is going to be used in the future.
+               */}
+              {!shouldDisplayFeature('addComponentModal') && (
+                <StudioResizableLayout.Element
                   collapsed={elementsCollapsed}
-                  onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
-                />
-              </StudioResizableLayout.Element>
-              <StudioResizableLayout.Element minimumSize={250}>
+                  collapsedSize={50}
+                  minimumSize={300}
+                  maximumSize={300}
+                  disableRightHandle={true}
+                >
+                  <Elements
+                    collapsed={elementsCollapsed}
+                    onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
+                  />
+                </StudioResizableLayout.Element>
+              )}
+              <StudioResizableLayout.Element
+                minimumSize={shouldDisplayFeature('addComponentModal') ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
+              >
                 <DesignView />
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
@@ -183,7 +191,7 @@ export const FormDesigner = (): JSX.Element => {
               </StudioResizableLayout.Element>
               <StudioResizableLayout.Element
                 collapsed={previewCollapsed}
-                collapsedSize={49}
+                collapsedSize={50}
                 minimumSize={400}
               >
                 <Preview
@@ -198,7 +206,5 @@ export const FormDesigner = (): JSX.Element => {
       </DragAndDropTree.Provider>
     );
   }
-  return (
-    <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('ux_editor.loading_form_layout')} />
-  );
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
 };

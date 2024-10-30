@@ -1,3 +1,4 @@
 chartVersion: ""
 imageTag: ""
+dbMigrationsTag: ""
 environmentName: ""

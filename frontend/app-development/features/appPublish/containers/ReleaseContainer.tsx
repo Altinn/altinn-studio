@@ -5,9 +5,9 @@ import type { KeyboardEvent, MouseEvent } from 'react';
 import { BuildResult, BuildStatus } from 'app-shared/types/Build';
 import { CreateRelease } from '../components/CreateRelease';
 import { Release } from '../components/Release';
-import { UploadIcon, CheckmarkIcon, XMarkOctagonFillIcon } from '@studio/icons';
+import { UploadIcon, CheckmarkIcon } from '@studio/icons';
 import { gitCommitPath } from 'app-shared/api/paths';
-import { useMediaQuery, StudioSpinner, StudioPopover } from '@studio/components';
+import { StudioSpinner, StudioPopover, StudioParagraph, StudioError } from '@studio/components';
 import { useBranchStatusQuery, useAppReleasesQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,20 +16,21 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from '@digdir/designsystemet-react';
+import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
 
 export function ReleaseContainer() {
-  const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
   const { org, app } = useStudioEnvironmentParams();
   const [popoverOpenClick, setPopoverOpenClick] = useState<boolean>(false);
   const [popoverOpenHover, setPopoverOpenHover] = useState<boolean>(false);
+  const packagesRouter = new PackagesRouter({ app, org });
 
   const { data: releases = [] } = useAppReleasesQuery(org, app);
   const { data: repoStatus, isPending: isRepoStatusPending } = useRepoStatusQuery(org, app);
-  const {
-    data: masterBranchStatus,
-    isPending: masterBranchStatusIsPending,
-    refetch: getMasterBranchStatus,
-  } = useBranchStatusQuery(org, app, 'master');
+  const { data: masterBranchStatus, isPending: masterBranchStatusIsPending } = useBranchStatusQuery(
+    org,
+    app,
+    'master',
+  );
 
   const latestRelease: AppReleaseType = releases && releases[0] ? releases[0] : null;
 
@@ -77,24 +78,16 @@ export function ReleaseContainer() {
     }
     if (!masterBranchStatus) {
       return (
-        <div className={classes.cannotCreateReleaseContainer}>
-          {hiddenMdDown ? null : (
-            <XMarkOctagonFillIcon className={classes.renderCannotCreateReleaseIcon} />
-          )}
-          <div>
-            <div className={classes.cannotCreateReleaseTitle}>
-              <Trans
-                i18nKey={'app_create_release_errors.fetch_release_failed'}
-                components={{
-                  a: <Link href='/contact'> </Link>,
-                }}
-              ></Trans>
-            </div>
-            <div className={classes.cannotCreateReleaseSubTitle}>
-              {t('app_create_release_errors.technical_error_code')}
-            </div>
-          </div>
-        </div>
+        <StudioError>
+          <StudioParagraph>
+            <Trans
+              i18nKey={'app_create_release_errors.fetch_release_failed'}
+              components={{
+                a: <Link href='/contact'> </Link>,
+              }}
+            ></Trans>
+          </StudioParagraph>
+        </StudioError>
       );
     }
     // Check if latest
@@ -155,17 +148,6 @@ export function ReleaseContainer() {
   }
 
   function renderCreateReleaseTitle() {
-    const handleLinkClick = async (event) => {
-      event.preventDefault(); // Prevent default link behavior
-      const url = await getLatestCommitOnMaster();
-      window.open(url, '#', 'noopener,noreferrer');
-    };
-
-    const getLatestCommitOnMaster = async () => {
-      const { data: newMasterBranchStatus } = await getMasterBranchStatus();
-      return gitCommitPath(org, app, newMasterBranchStatus.commit.id);
-    };
-
     if (!masterBranchStatus || !repoStatus?.contentStatus) {
       return null;
     }
@@ -178,7 +160,11 @@ export function ReleaseContainer() {
       return (
         <>
           {t('app_release.release_title')}
-          <a href='#' onClick={handleLinkClick}>
+          <a
+            href={packagesRouter.getPackageNavigationUrl('latestCommit')}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
             {t('app_release.release_title_link')}
           </a>
         </>

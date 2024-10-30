@@ -1,6 +1,8 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioPropertyGroup } from './StudioPropertyGroup';
+import { testRefForwarding } from '../../../test-utils/testRefForwarding';
+import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
 
 jest.mock('./StudioPropertyGroup.module.css', () => ({
   listWrapper: 'listWrapper',
@@ -14,18 +16,14 @@ describe('StudioPropertyGroup', () => {
   });
 
   it('Appends the given class name', () => {
-    const className = 'test';
-    const testId = 'test-id';
-    render(<StudioPropertyGroup className={className} data-testid={testId} />);
-    const listWrapper = screen.getByTestId(testId);
-    expect(listWrapper).toHaveClass(className);
-    expect(listWrapper).toHaveClass('listWrapper');
+    testRootClassNameAppending((cn) => render(<StudioPropertyGroup className={cn} />));
   });
 
   it('Forwards the ref object if given', () => {
-    const ref = createRef<HTMLDivElement>();
     const testId = 'test-id';
-    render(<StudioPropertyGroup ref={ref} data-testid={testId} />);
-    expect(ref.current).toBe(screen.getByTestId(testId));
+    testRefForwarding<HTMLDivElement>(
+      (ref) => render(<StudioPropertyGroup ref={ref} data-testid={testId} />),
+      () => screen.getByTestId(testId),
+    );
   });
 });

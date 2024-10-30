@@ -28,24 +28,24 @@ export class SavableSchemaModel extends SchemaModel {
     return newNode;
   }
 
-  public deleteNode(pointer: string): SavableSchemaModel {
-    super.deleteNode(pointer);
+  public deleteNode(schemaPointer: string): SavableSchemaModel {
+    super.deleteNode(schemaPointer);
     return this.save();
   }
 
-  public convertToDefinition(pointer: string): SavableSchemaModel {
-    super.convertToDefinition(pointer);
+  public convertToDefinition(schemaPointer: string): SavableSchemaModel {
+    super.convertToDefinition(schemaPointer);
     return this.save();
   }
 
-  public moveNode(pointer: string, target: NodePosition): UiSchemaNode {
-    const movedNode = super.moveNode(pointer, target);
+  public moveNode(schemaPointer: string, target: NodePosition): UiSchemaNode {
+    const movedNode = super.moveNode(schemaPointer, target);
     this.save();
     return movedNode;
   }
 
-  public updateNode(pointer: string, newNode: UiSchemaNode): SavableSchemaModel {
-    super.updateNode(pointer, newNode);
+  public updateNode(schemaPointer: string, newNode: UiSchemaNode): SavableSchemaModel {
+    super.updateNode(schemaPointer, newNode);
     return this.save();
   }
 }

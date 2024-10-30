@@ -1,5 +1,5 @@
 import { stringify as s } from 'qs';
-import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
+import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
 
 // Base path
 const basePath = '/designer/api';
@@ -28,6 +28,8 @@ export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
+export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
+export const optionListPath = (org, app) => `${basePath}/${org}/${app}/options/upload/`; // Post
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
@@ -41,9 +43,6 @@ export const formLayoutPath = (org, app, layout, layoutSetName) => `${basePath}/
 export const formLayoutNamePath = (org, app, layoutName, layoutSetName) => `${basePath}/${org}/${app}/app-development/form-layout-name/${layoutName}?${s({ layoutSetName })}`; // Put
 export const frontEndSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/front-end-settings`; // Get
 
-// Frontend-language
-export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
-
 // Gitea
 export const gitCommitPath = (org, app, commitId) => `/repos/${org}/${app}/commit/${commitId}`;
 export const repositoryGitPath = (org, app) => `/repos/${org}/${app}.git`;
@@ -56,6 +55,13 @@ export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
 export const userLogoutAfterPath = () => `/Home/Logout`;
+
+// Images
+export const allImagesPath = (org, app) => `${basePath}/${org}/${app}/images/all`; // Get
+export const addImagePath = (org, app) => `${basePath}/${org}/${app}/images`; // Post
+export const imagePath = (org, app, imageFilePath) => `${basePath}/${org}/${app}/images/${encodeURIComponent(imageFilePath)}`; // Get, Delete
+export const validateImageFromExternalUrlPath = (org, app, url) => `${basePath}/${org}/${app}/images/validate?${s({ url })}`; // Get
+export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
 
 // Languages - new text-format
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
@@ -141,6 +147,7 @@ export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${e
 export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${page ? `?page=${page}` : ''}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
+export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}/resources/altinn2/delegationmigration/${env}`; // Post
 
 // Process Editor
 export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;

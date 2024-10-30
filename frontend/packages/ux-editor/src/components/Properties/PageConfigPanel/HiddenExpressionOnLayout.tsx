@@ -8,13 +8,13 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useSelectedFormLayoutWithName, useAppContext } from '../../../hooks';
 import { Trans } from 'react-i18next';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { useDebounce } from '@studio/components';
+import { useDebounce } from '@studio/hooks';
 import classes from './HiddenExpressionOnLayout.module.css';
 
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioEnvironmentParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
   const { mutate: saveLayout } = useFormLayoutMutation(
     org,
     app,
@@ -30,7 +30,7 @@ export const HiddenExpressionOnLayout = () => {
         { internalLayout: { ...updatedLayout, hidden: expression } },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
           },
         },
       ),

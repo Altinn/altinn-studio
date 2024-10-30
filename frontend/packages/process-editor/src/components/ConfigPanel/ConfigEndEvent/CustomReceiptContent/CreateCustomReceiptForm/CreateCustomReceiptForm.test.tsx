@@ -3,7 +3,7 @@ import {
   CreateCustomReceiptForm,
   type CreateCustomReceiptFormProps,
 } from './CreateCustomReceiptForm';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext, type BpmnContextProps } from '../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -50,30 +50,26 @@ describe('CreateCustomReceiptForm', () => {
 
     const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.click(optionElement);
-    await user.keyboard('{Escape}');
 
-    const createButton = screen.getByRole('button', {
+    const createButton = await screen.findByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(createButton);
 
-    await waitFor(() => expect(mockAddLayoutSet).toHaveBeenCalledTimes(1));
-    await waitFor(() =>
-      expect(mockAddLayoutSet).toHaveBeenCalledWith(
-        {
-          layoutSetConfig: {
-            id: newId,
-            dataType: mockAllDataModelIds[0],
-            tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
-          },
-          layoutSetIdToUpdate: newId,
+    expect(mockAddLayoutSet).toHaveBeenCalledTimes(1);
+    expect(mockAddLayoutSet).toHaveBeenCalledWith(
+      {
+        layoutSetConfig: {
+          id: newId,
+          dataType: mockAllDataModelIds[0],
+          tasks: [PROTECTED_TASK_NAME_CUSTOM_RECEIPT],
         },
-        {
-          onSuccess: expect.any(Function),
-        },
-      ),
+        layoutSetIdToUpdate: newId,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
     );
-
     expect(mockOnCloseForm).toHaveBeenCalled();
   });
 
@@ -88,14 +84,47 @@ describe('CreateCustomReceiptForm', () => {
 
     const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.click(optionElement);
-    await user.keyboard('{Escape}');
 
-    const createButton = screen.getByRole('button', {
+    const createButton = await screen.findByRole('button', {
       name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
     });
     await user.click(createButton);
 
     const layoutIdError = screen.getByText(textMock('validation_errors.required'));
+    expect(layoutIdError).toBeInTheDocument();
+
+    const dataModelIdError = screen.queryByText(
+      textMock('process_editor.configuration_panel_custom_receipt_create_data_model_error'),
+    );
+    expect(dataModelIdError).not.toBeInTheDocument();
+    expect(mockOnCloseForm).toHaveBeenCalledTimes(0);
+  });
+
+  it('Displays error when there is just one character present for layouSetId', async () => {
+    const user = userEvent.setup();
+    renderCreateCustomReceiptForm();
+
+    const layoutSetInput = screen.getByLabelText(
+      textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+    );
+    await user.type(layoutSetInput, 'a');
+
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_select_data_model_label'),
+    });
+    await user.click(combobox);
+
+    const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
+    await user.click(optionElement);
+
+    const createButton = await screen.findByRole('button', {
+      name: textMock('process_editor.configuration_panel_custom_receipt_create_button'),
+    });
+    await user.click(createButton);
+
+    const layoutIdError = screen.getByText(
+      textMock('process_editor.configuration_panel_custom_receipt_layout_set_name_validation'),
+    );
     expect(layoutIdError).toBeInTheDocument();
 
     const dataModelIdError = screen.queryByText(

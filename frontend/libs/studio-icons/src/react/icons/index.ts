@@ -2,6 +2,7 @@ export { AccordionIcon } from './AccordionIcon';
 export { ArrayIcon } from './ArrayIcon';
 export { BooleanIcon } from './BooleanIcon';
 export { CheckboxIcon } from './CheckboxIcon';
+export { CodeListsIcon } from './CodeListsIcon';
 export { CombinationIcon } from './CombinationIcon';
 export { ConfirmationTaskIcon } from './ConfirmationTaskIcon';
 export { DataTaskIcon } from './DataTaskIcon';

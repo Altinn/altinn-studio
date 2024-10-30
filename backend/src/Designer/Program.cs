@@ -12,6 +12,7 @@ using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
+using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -211,6 +212,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration);
+    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
     services.ConfigureAuthentication(configuration, env);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
@@ -289,7 +291,6 @@ void Configure(IConfiguration configuration)
     }
 
     app.UseDefaultFiles();
-    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
@@ -300,7 +301,7 @@ void Configure(IConfiguration configuration)
                 Public = true,
                 MaxAge = TimeSpan.FromMinutes(60),
             };
-        },
+        }
     });
 
     const string swaggerRoutePrefix = "designer/swagger";

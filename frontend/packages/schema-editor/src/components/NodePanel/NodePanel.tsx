@@ -9,31 +9,33 @@ import { HeadingRow } from './HeadingRow';
 import { isNodeValidParent } from '@altinn/schema-model';
 
 export interface NodePanelProps {
-  pointer?: string;
+  schemaPointer?: string;
 }
 
-export const NodePanel = ({ pointer }: NodePanelProps) => {
+export const NodePanel = ({ schemaPointer }: NodePanelProps) => {
   const { schemaModel } = useSchemaEditorAppContext();
-  const isDataModelRoot = !pointer;
-  const node = isDataModelRoot ? schemaModel.getRootNode() : schemaModel.getNode(pointer);
+  const isDataModelRoot = !schemaPointer;
+  const node = isDataModelRoot
+    ? schemaModel.getRootNode()
+    : schemaModel.getNodeBySchemaPointer(schemaPointer);
 
   return (
     <>
       <div className={classes.top}>
         {!isDataModelRoot && <BackButton />}
-        <HeadingRow pointer={pointer} />
+        <HeadingRow schemaPointer={schemaPointer} />
       </div>
-      {isNodeValidParent(node) && <SchemaTree pointer={pointer} />}
+      {isNodeValidParent(node) && <SchemaTree schemaPointer={schemaPointer} />}
     </>
   );
 };
 
 const BackButton = () => {
-  const { setSelectedNodePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { setSelectedUniquePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
   const navigateToDataModelRoot = () => {
-    setSelectedNodePointer(undefined);
+    setSelectedUniquePointer(undefined);
     setSelectedTypePointer(undefined);
   };
 

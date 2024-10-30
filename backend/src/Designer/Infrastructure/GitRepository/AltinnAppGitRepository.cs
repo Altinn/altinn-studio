@@ -208,6 +208,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Saves the image to the disk.
+        /// </summary>
+        /// <param name="image">Stream representing the image to be saved.</param>
+        /// <param name="imageFileName">The file name of the image to be saved.</param>
+        /// <returns>A string containing the relative path to the file saved.</returns>
+        public async Task<string> SaveImageAsMemoryStream(MemoryStream image, string imageFileName)
+        {
+            string filePath = Path.Combine(ImagesFolderName, imageFileName);
+            image.Position = 0;
+            await WriteStreamByRelativePathAsync(filePath, image, true);
+            image.Position = 0;
+
+            return filePath;
+        }
+
+        /// <summary>
         /// Gets the folder where the data models are stored.
         /// </summary>
         /// <returns>A string with the relative path to the model folder within the app.</returns>
@@ -713,7 +729,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundException("Options folder not found.");
             }
 
-            string[] fileNames = GetFilesByRelativeDirectory(optionsFolder);
+            string[] fileNames = GetFilesByRelativeDirectory(optionsFolder, "*.json");
             List<string> optionsListIds = [];
             foreach (string fileName in fileNames.Select(Path.GetFileNameWithoutExtension))
             {
@@ -751,12 +767,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="payload">The contents of the new options list as a string</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The new options list as a string.</returns>
-        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, string payload, CancellationToken cancellationToken = default)
+        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var serialiseOptions = new JsonSerializerOptions { WriteIndented = true };
+            string payloadString = JsonSerializer.Serialize(payload, serialiseOptions);
+
             string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
-            await WriteTextByRelativePathAsync(optionsFilePath, payload, true, cancellationToken);
+            await WriteTextByRelativePathAsync(optionsFilePath, payloadString, true, cancellationToken);
             string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
 
             return fileContent;
@@ -805,16 +824,68 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Checks if image already exists in wwwroot
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image from wwwroot</param>
+        /// <returns>A boolean indication if image exists</returns>
+        public bool DoesImageExist(string imageFilePath)
+        {
+            return FileExistsByRelativePath(GetPathToImage(imageFilePath));
+        }
+
+        /// <summary>
         /// Gets specified image from App/wwwroot folder of local repo
         /// </summary>
         /// <param name="imageFilePath">The file path of the image</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The image as stream</returns>
-        public Stream GetImage(string imageFilePath, CancellationToken cancellationToken = default)
+        public Stream GetImageAsStreamByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string imagePath = GetPathToImage(imageFilePath);
             return OpenStreamByRelativePath(imagePath);
+        }
+
+        /// <summary>
+        /// Delete specified image from App/wwwroot folder of local repo
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The image as stream</returns>
+        public Task DeleteImageByImageFilePath(string imageFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string imagePath = GetPathToImage(imageFilePath);
+            DeleteFileByRelativePath(imagePath);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Gets all image filePathNames from App/wwwroot folder of local repo
+        /// </summary>
+        /// <returns>Array of file paths to all images in App/wwwroot</returns>
+        public List<string> GetAllImageFileNames()
+        {
+            List<string> allFilePaths = new List<string>();
+            if (!DirectoryExistsByRelativePath(ImagesFolderName))
+            {
+                return allFilePaths;
+            }
+
+            // Make sure to sync this list of fileExtensions in frontend if changed until the below issue is done:
+            // ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
+            string[] allowedExtensions =
+            {
+                ".png", ".jpg", ".jpeg", ".svg", ".gif",
+                ".bmp", ".webp", ".tiff", ".ico", ".heif", ".heic"
+            };
+
+            IEnumerable<string> files = GetFilesByRelativeDirectory(ImagesFolderName, "*.*", true)
+                .Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLower())).Select(file => Path.GetRelativePath(GetAbsoluteFileOrDirectoryPathSanitized(ImagesFolderName), file));
+
+            allFilePaths.AddRange(files);
+
+            return allFilePaths;
         }
 
         /// <summary>
@@ -825,11 +896,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private string GetPathToModelJsonSchema(string modelName)
         {
             return Path.Combine(ModelFolderPath, $"{modelName}.schema.json");
-        }
-
-        private string GetPathToModelMetadata(string modelName)
-        {
-            return Path.Combine(ModelFolderPath, $"{modelName}.metadata.json");
         }
 
         private static string GetPathToTexts()

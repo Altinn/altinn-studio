@@ -24,17 +24,17 @@ describe('SchemaTree', () => {
   });
 
   it("Renders the definition node's children when a pointer to a definition is provided", async () => {
-    const { pointer } = definitionNodeMock;
-    const childPointer = childOfDefinitionNodeMock.pointer;
+    const { schemaPointer } = definitionNodeMock;
+    const childPointer = childOfDefinitionNodeMock.schemaPointer;
     const childName = extractNameFromPointer(childPointer);
-    render(pointer);
+    render(schemaPointer);
     expect(screen.getByRole('treeitem', { name: childName })).toBeInTheDocument();
   });
 });
 
-const render = (pointer?: string) =>
+const render = (schemaPointer?: string) =>
   renderWithProviders()(
     <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
-      <SchemaTree pointer={pointer} />
+      <SchemaTree schemaPointer={schemaPointer} />
     </DragAndDropTree.Provider>,
   );

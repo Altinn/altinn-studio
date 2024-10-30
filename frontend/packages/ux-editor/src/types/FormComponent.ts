@@ -1,7 +1,6 @@
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IDataModelBindings, ITextResourceBindings, IOption } from './global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
-import type { FormComponent } from '../components/FormComponent';
 import type { SimpleComponentType } from './SimpleComponentType';
 import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
 import type { BooleanExpression } from '@studio/components';
@@ -45,3 +44,10 @@ export type FormComponent<T extends SimpleComponentType = SimpleComponentType> =
   [componentType in ComponentType]: FormComponentBase<componentType> &
     ComponentSpecificConfig<componentType>;
 }[T];
+
+export type SelectionComponentType =
+  | ComponentType.Checkboxes
+  | ComponentType.Dropdown
+  | ComponentType.Likert
+  | ComponentType.MultipleSelect
+  | ComponentType.RadioButtons;

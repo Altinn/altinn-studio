@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../../utils/configPanelUtils';
-import { Combobox } from '@digdir/designsystemet-react';
+import { StudioCombobox } from '@studio/components';
 
 export type SelectCustomReceiptDataModelIdProps = {
   error: string;
@@ -21,32 +21,24 @@ export const SelectCustomReceiptDataModelId = ({
     existingCustomReceiptLayoutSetId,
   );
 
-  const [value, setValue] = useState(existingDataModelId ? [existingDataModelId] : []);
-
   return (
-    <Combobox
+    <StudioCombobox
       label={t('process_editor.configuration_panel_custom_receipt_select_data_model_label')}
       size='small'
       name='customReceiptDataModel'
       id='customReceiptDataModelSelect'
       error={error}
-      value={value}
+      value={existingDataModelId && [existingDataModelId]}
+      onValueChange={() => onChange()}
     >
-      <Combobox.Empty>
+      <StudioCombobox.Empty>
         {t('process_editor.configuration_panel_no_data_model_to_select')}
-      </Combobox.Empty>
+      </StudioCombobox.Empty>
       {allDataModelIds.map((option) => (
-        <Combobox.Option
-          value={option}
-          key={option}
-          onClick={() => {
-            setValue([option]);
-            onChange();
-          }}
-        >
+        <StudioCombobox.Option value={option} key={option}>
           {option}
-        </Combobox.Option>
+        </StudioCombobox.Option>
       ))}
-    </Combobox>
+    </StudioCombobox>
   );
 };

@@ -9,6 +9,7 @@ import { useOrgListQuery } from '../hooks/queries';
 import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
+import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';
 
 /**
  * Displays the layout for the app development pages
@@ -35,7 +36,7 @@ export const PageLayout = (): React.ReactNode => {
   if (isRepoStatusPending || isUserPending) {
     return (
       <StudioCenter>
-        <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('repo_status.loading')} />
+        <StudioPageSpinner spinnerTitle={t('repo_status.loading')} />
       </StudioCenter>
     );
   }
@@ -56,12 +57,12 @@ export const PageLayout = (): React.ReactNode => {
 
   return (
     <>
-      <PageHeader
-        showSubMenu={!repoStatus?.hasMergeConflict}
-        user={user}
-        repoOwnerIsOrg={repoOwnerIsOrg}
-        isRepoError={repoStatusError !== null}
-      />
+      <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
+        <PageHeader
+          showSubMenu={!repoStatus?.hasMergeConflict}
+          isRepoError={repoStatusError !== null}
+        />
+      </PageHeaderContextProvider>
       {renderPages()}
     </>
   );

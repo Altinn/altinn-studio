@@ -23,19 +23,19 @@ export function ReferenceSelectionComponent({
 }: IReferenceSelectionProps) {
   const { schemaModel } = useSchemaEditorAppContext();
   const definitions: UiSchemaNode[] = schemaModel.getDefinitions();
-  const selectId = makeDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
+  const selectId = makeDomFriendlyID(selectedNode.schemaPointer, { suffix: 'ref-select' });
   return (
     <div>
       <StudioNativeSelect
         id={selectId}
         label={label}
-        onChange={(event) => onChangeRef(selectedNode.pointer, event.target.value)}
+        onChange={(event) => onChangeRef(selectedNode.schemaPointer, event.target.value)}
         value={selectedNode.reference || ''}
         size='sm'
       >
-        {definitions.map(({ pointer }) => (
-          <option key={pointer} value={pointer}>
-            {pointer.replace(`#/${Keyword.Definitions}/`, '')}
+        {definitions.map(({ schemaPointer }) => (
+          <option key={schemaPointer} value={schemaPointer}>
+            {schemaPointer.replace(`#/${Keyword.Definitions}/`, '')}
           </option>
         ))}
       </StudioNativeSelect>

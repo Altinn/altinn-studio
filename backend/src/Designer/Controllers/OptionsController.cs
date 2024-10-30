@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -50,6 +51,34 @@ public class OptionsController : ControllerBase
     }
 
     /// <summary>
+    /// Fetches the contents of all the options lists belonging to the app.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <returns>Dictionary of all option lists belonging to the app</returns>
+    [HttpGet]
+    [Route("option-lists")]
+    public async Task<ActionResult<Dictionary<string, List<Option>>>> GetOptionLists(string org, string repo)
+    {
+        try
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            string[] optionListIds = _optionsService.GetOptionsListIds(org, repo, developer);
+            Dictionary<string, List<Option>> optionLists = [];
+            foreach (string optionListId in optionListIds)
+            {
+                List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
+                optionLists.Add(optionListId, optionList);
+            }
+            return Ok(optionLists);
+        }
+        catch (NotFoundException)
+        {
+            return NoContent();
+        }
+    }
+
+    /// <summary>
     /// Fetches a specific option list.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -98,6 +127,32 @@ public class OptionsController : ControllerBase
         var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, payload, cancellationToken);
 
         return Ok(newOptionsList);
+    }
+
+    /// <summary>
+    /// Create new options list.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="file">File being uploaded.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPost]
+    [Route("upload")]
+    public async Task<IActionResult> UploadFile(string org, string repo, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string fileName = file.FileName.Replace(".json", "");
+
+        try
+        {
+            List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+            return Ok(newOptionsList);
+        }
+        catch (JsonException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     /// <summary>

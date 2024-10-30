@@ -1,7 +1,9 @@
 import type { MutableRefObject } from 'react';
-import React, { useMemo, useRef, createContext, useCallback } from 'react';
+import React, { createContext, useCallback, useMemo, useRef } from 'react';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { useSelectedFormLayoutName, useSelectedFormLayoutSetName } from './hooks';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -13,9 +15,9 @@ export interface AppContextProps {
   setSelectedFormLayoutSetName: (selectedFormLayoutSetName: string) => void;
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
-  refetchLayouts: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  refetchLayoutSettings: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  refetchTexts: (language: string, resetQueries?: boolean) => Promise<void>;
+  updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
+  updateLayoutSettingsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
+  updateTextsForPreview: (language: string, resetQueries?: boolean) => Promise<void>;
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
@@ -57,23 +59,23 @@ export const AppContextProvider = ({
     [],
   );
 
-  const refetchLayouts = useCallback(
+  const updateLayoutsForPreview = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch(['formLayouts', layoutSetName], resetQueries);
+      return await refetch([AppsQueryKey.AppLayouts, layoutSetName], resetQueries);
     },
     [refetch],
   );
 
-  const refetchLayoutSettings = useCallback(
+  const updateLayoutSettingsForPreview = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch(['layoutSettings', layoutSetName], resetQueries);
+      return await refetch([AppsQueryKey.AppLayoutSettings, layoutSetName], resetQueries);
     },
     [refetch],
   );
 
-  const refetchTexts = useCallback(
+  const updateTextsForPreview = useCallback(
     async (language: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch(['fetchTextResources', language], resetQueries);
+      return await refetch([AppsQueryKey.AppTextResources, language], resetQueries);
     },
     [refetch],
   );
@@ -85,9 +87,9 @@ export const AppContextProvider = ({
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
-      refetchLayouts,
-      refetchLayoutSettings,
-      refetchTexts,
+      updateLayoutsForPreview,
+      updateLayoutSettingsForPreview,
+      updateTextsForPreview,
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
@@ -97,9 +99,9 @@ export const AppContextProvider = ({
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
-      refetchLayouts,
-      refetchLayoutSettings,
-      refetchTexts,
+      updateLayoutsForPreview,
+      updateLayoutSettingsForPreview,
+      updateTextsForPreview,
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,

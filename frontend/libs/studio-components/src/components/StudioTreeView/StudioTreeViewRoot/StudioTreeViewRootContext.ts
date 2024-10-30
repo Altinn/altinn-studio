@@ -4,8 +4,8 @@ export interface TreeViewRootContextProps {
   focusableId: string | null;
   focusedId?: string;
   rootId: string;
-  selectedId?: string;
   setFocusedId: (id?: string) => void;
+  selectedId?: string;
   setSelectedId: (id?: string) => void;
 }
 

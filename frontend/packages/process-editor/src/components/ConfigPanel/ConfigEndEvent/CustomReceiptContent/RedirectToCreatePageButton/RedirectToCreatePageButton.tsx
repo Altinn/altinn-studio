@@ -7,7 +7,7 @@ import { StudioButton } from '@studio/components';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { RedirectBox } from '../../../../RedirectBox';
+import { RedirectBox } from 'app-shared/components/RedirectBox';
 import { Link } from '@digdir/designsystemet-react';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
@@ -16,7 +16,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
   const packagesRouter = new PackagesRouter({ org, app });
   const { existingCustomReceiptLayoutSetId } = useBpmnApiContext();
 
-  const [, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app, null);
+  const [, setSelectedLayoutSet] = useLocalStorage<string>('layoutSet/' + app);
 
   const handleClick = () => {
     setSelectedLayoutSet(existingCustomReceiptLayoutSetId);
@@ -25,7 +25,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
   return (
     <div className={classes.goToCreatePageWrapper}>
       <RedirectBox
-        title={t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_title')}
+        title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
         <StudioButton asChild variant='primary' color='second' onClick={handleClick}>
           <Link
@@ -33,7 +33,7 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
             className={classes.link}
           >
             <PencilWritingIcon />
-            {t('process_editor.configuration_panel_custom_receipt_navigate_to_lage_button')}
+            {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_button')}
           </Link>
         </StudioButton>
       </RedirectBox>

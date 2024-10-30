@@ -13,7 +13,7 @@ const PreviewComponent = (args): React.ReactElement => (
 type Story = StoryFn<typeof PreviewComponent>;
 
 const meta: Meta = {
-  title: 'Studio/StudioTreeView',
+  title: 'Components/StudioTreeView',
   component: PreviewComponent,
 };
 export const Preview: Story = (args): React.ReactElement => <PreviewComponent {...args} />;

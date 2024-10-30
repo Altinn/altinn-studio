@@ -21,6 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<IActionResult> Index(string org, string repo)
         {
             await _sourceControl.VerifyCloneExists(org, repo);
+            ViewBag.App = "resourceadm";
             return View();
         }
     }

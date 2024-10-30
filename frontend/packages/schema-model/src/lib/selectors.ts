@@ -26,20 +26,20 @@ const getNodePointerCache = (uiSchemaNodes: UiSchemaNodes): Map<string, UiSchema
   ) {
     nodePointers.uiSchemaNodes = uiSchemaNodes;
     nodePointers.cache = new Map();
-    uiSchemaNodes.forEach((node) => nodePointers.cache.set(node.pointer, node));
+    uiSchemaNodes.forEach((node) => nodePointers.cache.set(node.schemaPointer, node));
   }
   return nodePointers.cache;
 };
 
-export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
-  getNodePointerCache(uiSchemaNodes).has(pointer);
+export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, schemaPointer: string): boolean =>
+  getNodePointerCache(uiSchemaNodes).has(schemaPointer);
 
 export const getNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
+  schemaPointer: string,
 ): UiSchemaNode | undefined => {
   try {
-    return SchemaModel.fromArray(uiSchemaNodes).getNode(pointer);
+    return SchemaModel.fromArray(uiSchemaNodes).getNodeBySchemaPointer(schemaPointer);
   } catch {
     return undefined;
   }
@@ -49,30 +49,30 @@ export const getNodeByPointer = (
  * Returns the index or undefined.
  *
  * @param uiSchemaNodes
- * @param pointer
+ * @param schemaPointer
  */
 export const getNodeIndexByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
+  schemaPointer: string,
 ): number | undefined => {
-  const index = uiSchemaNodes.findIndex((node) => node.pointer === pointer);
+  const index = uiSchemaNodes.findIndex((node) => node.schemaPointer === schemaPointer);
   return index > -1 ? index : undefined;
 };
 
 export const getChildNodesByFieldPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
+  schemaPointer: string,
 ): UiSchemaNode[] => {
-  const node = getNodeByPointer(uiSchemaNodes, pointer);
+  const node = getNodeByPointer(uiSchemaNodes, schemaPointer);
   if (!isFieldOrCombination(node)) return [];
   return node.children.map((childPointer) => getNodeByPointer(uiSchemaNodes, childPointer));
 };
 
 export const getParentNodeByPointer = (
   uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
+  schemaPointer: string,
 ): CombinationNode | FieldNode | undefined => {
-  const pointerParts = pointer.split('/');
+  const pointerParts = schemaPointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
     const pointerCandidate = pointerParts.join('/');

@@ -16,7 +16,7 @@ describe('TypeItem', () => {
     isNillable: false,
     isRequired: false,
     objectKind: ObjectKind.Field,
-    pointer: '#/$defs/MyTestType',
+    schemaPointer: '#/$defs/MyTestType',
     restrictions: null,
   };
   it('should render the component', () => {

@@ -44,6 +44,11 @@ const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
 };
 const imageComponent: FormComponent<ComponentType.Image> = {
   ...commonProps(ComponentType.Image),
+  image: {
+    src: {},
+    width: '100%',
+    align: 'center',
+  },
 };
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),
@@ -59,6 +64,18 @@ const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
 const textareaComponent: FormComponent<ComponentType.TextArea> = {
   ...commonProps(ComponentType.TextArea),
   dataModelBindings: { simpleBinding: '' },
+};
+const subformComponent: FormComponent<ComponentType.Subform> = {
+  ...commonProps(ComponentType.Subform),
+  tableColumns: [
+    {
+      headerContent: 'header content',
+      cellContent: {
+        query: 'query',
+        default: 'default',
+      },
+    },
+  ],
 };
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
@@ -142,6 +159,12 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
   itemType: 'CONTAINER',
   dataModelBindings: { group: '' },
 };
+const summary2Component: FormComponent<ComponentType.Summary2> = {
+  ...commonProps(ComponentType.Summary2),
+  target: {
+    type: 'component',
+  },
+};
 
 export const componentMocks = {
   [ComponentType.AccordionGroup]: accordionGroupContainer,
@@ -165,6 +188,8 @@ export const componentMocks = {
   [ComponentType.Paragraph]: paragraphComponent,
   [ComponentType.RadioButtons]: radiosComponent,
   [ComponentType.RepeatingGroup]: repeatingGroupContainer,
+  [ComponentType.Subform]: subformComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
+  [ComponentType.Summary2]: summary2Component,
 };

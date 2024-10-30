@@ -1,7 +1,6 @@
 import type { UiSchemaNodes } from '../src';
 import { FieldType, ObjectKind, ROOT_POINTER } from '../src';
 import { getPointers } from '../src/lib/mappers/getPointers';
-import { areItemsUnique, mapByKey } from 'app-shared/utils/arrayUtils';
 import {
   isField,
   isFieldOrCombination,
@@ -20,7 +19,7 @@ export const hasRootNode = (uiSchema: UiSchemaNodes) =>
 
 /** Verifies that all pointers are unique */
 export const pointersAreUnique = (uiSchema: UiSchemaNodes) =>
-  expect(areItemsUnique(getPointers(uiSchema))).toBe(true);
+  expect(ArrayUtils.areItemsUnique(getPointers(uiSchema))).toBe(true);
 
 /** Verifies that all pointers referenced to as children exist */
 export const allPointersExist = (uiSchema: UiSchemaNodes) => {
@@ -33,9 +32,12 @@ export const allPointersExist = (uiSchema: UiSchemaNodes) => {
 
 /** Verifies that all nodes except the root node have a parent */
 export const nodesHaveParent = (uiSchema: UiSchemaNodes) => {
-  const allChildPointers = mapByKey(uiSchema.filter(isFieldOrCombination), 'children').flat();
-  ArrayUtils.removeItemByValue(getPointers(uiSchema), ROOT_POINTER).forEach((pointer) => {
-    expect(allChildPointers).toContain(pointer);
+  const allChildPointers = ArrayUtils.mapByKey(
+    uiSchema.filter(isFieldOrCombination),
+    'children',
+  ).flat();
+  ArrayUtils.removeItemByValue(getPointers(uiSchema), ROOT_POINTER).forEach((schemaPointer) => {
+    expect(allChildPointers).toContain(schemaPointer);
   });
 };
 
@@ -49,9 +51,9 @@ export const referencedNodesExist = (uiSchema: UiSchemaNodes) => {
 
 /** Verifies that all child pointers start with the parent pointer */
 export const childPointersStartWithParentPointer = (uiSchema: UiSchemaNodes) => {
-  uiSchema.filter(isFieldOrCombination).forEach(({ pointer, children }) => {
+  uiSchema.filter(isFieldOrCombination).forEach(({ schemaPointer, children }) => {
     children.forEach((childPointer) => {
-      expect(childPointer.startsWith(pointer + '/')).toBe(true);
+      expect(childPointer.startsWith(schemaPointer + '/')).toBe(true);
     });
   });
 };
@@ -62,9 +64,9 @@ export const childPointersOfObjectsHavePropertyPointer = (uiSchema: UiSchemaNode
     .filter(isField)
     .filter((node) => isObject(node) && !isArray(node))
     .filter(isNotTheRootNode)
-    .forEach(({ pointer, children }) => {
+    .forEach(({ schemaPointer, children }) => {
       children.forEach((childPointer) => {
-        expect(childPointer.startsWith(pointer + '/properties/')).toBe(true);
+        expect(childPointer.startsWith(schemaPointer + '/properties/')).toBe(true);
       });
     });
 };
@@ -85,9 +87,9 @@ export const childPointersOfArraysHaveItemsPointer = (uiSchema: UiSchemaNodes) =
   uiSchema
     .filter(isFieldOrCombination)
     .filter(isArray)
-    .forEach(({ pointer, children }) => {
+    .forEach(({ schemaPointer, children }) => {
       children.forEach((childPointer) => {
-        expect(childPointer.startsWith(pointer + '/items/')).toBe(true);
+        expect(childPointer.startsWith(schemaPointer + '/items/')).toBe(true);
       });
     });
 };
@@ -97,8 +99,8 @@ export const childPointerOfCombinationsHaveCombinationPointer = (uiSchema: UiSch
   uiSchema
     .filter(isCombination)
     .filter(isNotTheRootNode)
-    .forEach(({ pointer, children, combinationType, isArray }) => {
-      const base = isArray ? `${pointer}/items` : pointer;
+    .forEach(({ schemaPointer, children, combinationType, isArray }) => {
+      const base = isArray ? `${schemaPointer}/items` : schemaPointer;
       children.forEach((childPointer) => {
         expect(childPointer.startsWith(base + '/' + combinationType + '/')).toBe(true);
       });

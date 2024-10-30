@@ -1,16 +1,14 @@
-export type BpmnTaskType = 'data' | 'confirmation' | 'feedback' | 'signing' | 'payment';
-
-export interface LayoutSets {
+export type LayoutSets = {
   sets: LayoutSetConfig[];
-}
+};
 
-export interface LayoutSetConfig {
+export type LayoutSet = {
   id: string;
   dataType?: string;
-  tasks: string[];
-}
+  tasks?: string[];
+  type?: LayoutSetType;
+};
 
-export interface LayoutSetPayload {
-  taskType: BpmnTaskType;
-  layoutSetConfig: LayoutSetConfig;
-}
+export type LayoutSetConfig = LayoutSet;
+
+export type LayoutSetType = 'subform';

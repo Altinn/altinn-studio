@@ -24,6 +24,10 @@ on:
         required: false
         type: string
         default: ''
+      checkout-repository:
+        required: false
+        type: string
+        default: ''
 
     secrets:
       client-id:
@@ -42,6 +46,8 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.checkout-repository }}
 
       - name: 'Azure login'
         uses: azure/login@v2

@@ -6,10 +6,10 @@ import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
 import { getDataTypeFromLayoutSetsWithExistingId } from '../../../../../utils/configPanelUtils';
 import { RedirectToCreatePageButton } from '../RedirectToCreatePageButton';
 import { useTranslation } from 'react-i18next';
-import { EditDataTypes } from '../../../EditDataTypes';
+import { EditDataTypes } from '../../../ConfigContent/EditDataTypes';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
-import { getLayoutSetIdValidationErrorKey } from 'app-shared/utils/layoutSetsUtils';
 import { Paragraph } from '@digdir/designsystemet-react';
+import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 
 export const CustomReceipt = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -20,6 +20,7 @@ export const CustomReceipt = (): React.ReactElement => {
     deleteLayoutSet,
     mutateLayoutSetId,
   } = useBpmnApiContext();
+  const { validateLayoutSetName } = useValidateLayoutSetName();
 
   const existingDataModelId: string = getDataTypeFromLayoutSetsWithExistingId(
     layoutSets,
@@ -41,20 +42,13 @@ export const CustomReceipt = (): React.ReactElement => {
     });
   };
 
-  const handleValidation = (newLayoutSetId: string): string => {
-    const validationResult = getLayoutSetIdValidationErrorKey(
-      layoutSets,
-      existingCustomReceiptLayoutSetId,
-      newLayoutSetId,
-    );
-    return validationResult ? t(validationResult) : undefined;
-  };
-
   return (
     <div className={classes.wrapper}>
       <div className={classes.inputFields}>
         <StudioToggleableTextfield
-          customValidation={handleValidation}
+          customValidation={(newLayoutSetName: string) =>
+            validateLayoutSetName(newLayoutSetName, layoutSets, existingCustomReceiptLayoutSetId)
+          }
           inputProps={{
             className: classes.textfield,
             icon: <KeyVerticalIcon />,

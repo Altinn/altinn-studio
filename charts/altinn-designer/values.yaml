@@ -7,6 +7,10 @@ image:
   containerPort: 5000
   imagePullSecret: acrsecret
 
+dbMigrationsJob:
+  image:
+    repository: altinntjenestercontainerregistry.azurecr.io/altinn-designer-db-migrations
+
 hosts:
   dev: dev.altinn.studio
   staging: staging.altinn.studio
@@ -48,6 +52,10 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+    - name: FeatureManagement__AnsattPorten
+      value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -79,6 +87,10 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+    - name: FeatureManagement__AnsattPorten
+      value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
   prod:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -108,6 +120,12 @@ environmentVariables:
       value: "true"
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
+    - name: FeatureManagement__AnsattPorten
+      value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
+
+dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 
 volumeMounts:
   - name: altinn-repo-storage

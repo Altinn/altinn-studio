@@ -22,6 +22,9 @@ import {
   updateContainer,
   validateDepth,
   findLayoutsContainingDuplicateComponents,
+  getAllDescendants,
+  getAllFormItemIds,
+  getAllLayoutComponents,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { IInternalLayout } from '../types/global';
@@ -559,6 +562,16 @@ describe('formLayoutUtils', () => {
     });
   });
 
+  describe('getDescendants', () => {
+    it('Returns the ids of the descendants of the given container', () => {
+      expect(getAllDescendants(mockInternal, groupId)).toEqual([
+        paragraphInGroupId,
+        groupInGroupId,
+        paragraphInGroupInGroupId,
+      ]);
+    });
+  });
+
   describe('getItem', () => {
     it('Returns the item with the given id when it is a component', () => {
       expect(getItem(mockInternal, paragraphId)).toEqual(paragraphComponent);
@@ -654,6 +667,36 @@ describe('formLayoutUtils', () => {
         duplicateLayouts: ['page2', 'page1'],
         duplicateComponents: ['component1'],
       });
+    });
+  });
+
+  describe('getAllFormItemIds', () => {
+    const layout = { ...mockInternal };
+    expect(getAllFormItemIds(layout)).toEqual([
+      headerId,
+      paragraphId,
+      groupId,
+      paragraphInGroupId,
+      groupInGroupId,
+      paragraphInGroupInGroupId,
+    ]);
+  });
+
+  describe('getAllLayoutComponents', () => {
+    it('Returns all components in the given layout, excluding types in the exclude list', () => {
+      const layout = { ...mockInternal };
+      expect(getAllLayoutComponents(layout, [ComponentType.Paragraph])).toEqual([
+        ...Object.values(mockInternal.containers),
+        mockInternal.components[headerId],
+      ]);
+    });
+
+    it('Returns all components in the given layout', () => {
+      const layout = { ...mockInternal };
+      expect(getAllLayoutComponents(layout)).toEqual([
+        ...Object.values(mockInternal.containers),
+        ...Object.values(mockInternal.components),
+      ]);
     });
   });
 });

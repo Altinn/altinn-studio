@@ -9,7 +9,7 @@ import { getRowsToRender } from './utils';
 type Story = StoryFn<typeof StudioTableRemotePagination>;
 
 const meta: Meta = {
-  title: 'Studio/StudioTableRemotePagination',
+  title: 'Components/StudioTableRemotePagination',
   component: StudioTableRemotePagination,
   argTypes: {
     columns: {

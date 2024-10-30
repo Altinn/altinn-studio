@@ -82,6 +82,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("/preview/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/{*AllValues}")]
         public IActionResult Index(string org, string app)
         {
+            ViewBag.App = "app-preview";
             return View();
         }
 
@@ -131,7 +132,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-            Stream imageStream = altinnAppGitRepository.GetImage(imageFilePath);
+            Stream imageStream = altinnAppGitRepository.GetImageAsStreamByFilePath(imageFilePath);
             return new FileStreamResult(imageStream, MimeTypeMap.GetMimeType(Path.GetExtension(imageFilePath).ToLower()));
         }
 
@@ -193,6 +194,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>layoutsets file, or an OK response if app does not use layoutsets</returns>
         [HttpGet]
+        [UseSystemTextJson]
         [Route("api/layoutsets")]
         public async Task<ActionResult<LayoutSets>> LayoutSets(string org, string app, CancellationToken cancellationToken)
         {
@@ -1028,7 +1030,7 @@ namespace Altinn.Studio.Designer.Controllers
             LayoutSets layoutSetsWithMockedDataTypesIfMissing = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
             layoutSetsWithMockedDataTypesIfMissing.Sets.ForEach(set =>
             {
-                if (set.Tasks[0] == Constants.General.CustomReceiptId)
+                if (set.Tasks?[0] == Constants.General.CustomReceiptId)
                 {
                     return;
                 }
@@ -1042,7 +1044,7 @@ namespace Altinn.Studio.Designer.Controllers
                         {
                             ClassRef = $"Altinn.App.Models.model.{set.DataType}"
                         },
-                        TaskId = set.Tasks[0]
+                        TaskId = set.Tasks?[0]
                     });
                 }
             });

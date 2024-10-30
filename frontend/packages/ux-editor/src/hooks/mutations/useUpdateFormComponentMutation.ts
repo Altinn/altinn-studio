@@ -4,15 +4,13 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import { useDeleteAppAttachmentMetadataMutation } from './useDeleteAppAttachmentMetadataMutation';
 import { useUpdateAppAttachmentMetadataMutation } from './useUpdateAppAttachmentMetadataMutation';
-import { switchSelectedFieldId } from '../../utils/ruleConfigUtils';
-import { useRuleConfigQuery } from '../queries/useRuleConfigQuery';
-import { useRuleConfigMutation } from './useRuleConfigMutation';
-import { useFormLayout, useSelectedTaskId } from '../';
+import { useFormLayout } from '../';
 import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormComponent, FormFileUploaderComponent } from '../../types/FormComponent';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -27,12 +25,10 @@ export const useUpdateFormComponentMutation = (
 ) => {
   const layout = useFormLayout(layoutName);
   const { mutateAsync: saveLayout } = useFormLayoutMutation(org, app, layoutName, layoutSetName);
-  const { data: ruleConfig } = useRuleConfigQuery(org, app, layoutSetName);
   const addAppAttachmentMetadataMutation = useAddAppAttachmentMetadataMutation(org, app);
   const deleteAppAttachmentMetadataMutation = useDeleteAppAttachmentMetadataMutation(org, app);
   const updateAppAttachmentMetadata = useUpdateAppAttachmentMetadataMutation(org, app);
   const taskId = useSelectedTaskId(layoutSetName);
-  const { mutateAsync: saveRuleConfig } = useRuleConfigMutation(org, app, layoutSetName);
   const updateBpmn = useUpdateBpmn(org, app);
   return useMutation({
     mutationFn: ({ updatedComponent, id }: UpdateFormComponentMutationArgs) => {
@@ -112,9 +108,6 @@ export const useUpdateFormComponentMutation = (
           }
         })
         .then(() => ({ currentId, newId }));
-    },
-    onSuccess: async ({ currentId, newId }) => {
-      await switchSelectedFieldId(ruleConfig, currentId, newId, saveRuleConfig);
     },
   });
 };

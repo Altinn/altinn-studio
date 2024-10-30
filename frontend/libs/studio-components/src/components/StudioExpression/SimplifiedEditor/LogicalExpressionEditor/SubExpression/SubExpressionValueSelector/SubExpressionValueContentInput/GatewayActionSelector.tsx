@@ -1,5 +1,5 @@
 import React, { type ChangeEvent } from 'react';
-import { StudioNativeSelect } from '@studio/components';
+import { StudioNativeSelect } from '../../../../../../StudioNativeSelect';
 import type { Props } from './Props';
 import { GatewayActionContext } from '../../../../../enums/GatewayActionContext';
 import { useStudioExpressionContext } from '../../../../../StudioExpressionContext';

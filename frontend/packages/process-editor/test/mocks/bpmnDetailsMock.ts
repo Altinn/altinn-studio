@@ -3,8 +3,8 @@ import { BpmnTypeEnum } from '../../src/enum/BpmnTypeEnum';
 import type { ModdleElement } from 'bpmn-js/lib/model/Types';
 import type { BpmnTaskType } from '@altinn/process-editor/types/BpmnTaskType';
 
-export const mockBpmnId: string = 'testId';
-export const mockBpmnName: string = 'testName';
+export const mockBpmnId: string = 'testTaskId';
+export const mockBpmnName: string = 'testTaskName';
 
 export const mockBpmnElementForDataTask: ModdleElement = {
   id: 'testElementId',

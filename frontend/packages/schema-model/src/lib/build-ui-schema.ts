@@ -58,15 +58,15 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
     const uiSchemaNodes: UiSchemaNode[] = [uiNode];
 
     const pointerBase = uiNode.isArray
-      ? makePointerFromArray([uiNode.pointer, Keyword.Items])
-      : uiNode.pointer;
+      ? makePointerFromArray([uiNode.schemaPointer, Keyword.Items])
+      : uiNode.schemaPointer;
 
     // Combinations
     if (uiNode.objectKind === ObjectKind.Combination) {
       const kind = getCombinationKind(schemaNode);
       schemaNode[kind].forEach((childNode: KeyValuePairs, index: number) => {
         const child = createNodeBase(pointerBase, kind, index.toString());
-        uiNode.children.push(child.pointer);
+        uiNode.children.push(child.schemaPointer);
         uiSchemaNodes.push(...createUiNode(childNode, child));
       });
     }
@@ -77,7 +77,7 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
         schemaNode[Keyword.Definitions] ?? schemaNode[Keyword.DeprecatedDefinitions] ?? {};
       Object.keys(definitionsNodes).forEach((key) => {
         const child = createNodeBase(pointerBase, Keyword.Definitions, key);
-        uiNode.children.push(child.pointer);
+        uiNode.children.push(child.schemaPointer);
         uiSchemaNodes.push(...createUiNode(definitionsNodes[key], child));
       });
 
@@ -85,7 +85,7 @@ const createUiNode = (schemaNode: KeyValuePairs, uiNode: UiSchemaNode): UiSchema
       Object.keys(schemaNode[Keyword.Properties] ?? {}).forEach((key) => {
         const child = createNodeBase(pointerBase, Keyword.Properties, key);
         child.isRequired = !!schemaNode.required?.includes(key);
-        uiNode.children.push(child.pointer);
+        uiNode.children.push(child.schemaPointer);
         uiSchemaNodes.push(...createUiNode(schemaNode[Keyword.Properties][key], child));
       });
     }

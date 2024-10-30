@@ -17,11 +17,11 @@ describe('selectors', () => {
   test('getParentNodeByPointer', () => {
     const uiSchemaNodes = buildUiSchema(testSchema);
     uiSchemaNodes.forEach((uiNode) => {
-      const parentNode = getParentNodeByPointer(uiSchemaNodes, uiNode.pointer);
+      const parentNode = getParentNodeByPointer(uiSchemaNodes, uiNode.schemaPointer);
       if (parentNode) {
-        expect(parentNode.children).toContain(uiNode.pointer);
+        expect(parentNode.children).toContain(uiNode.schemaPointer);
       } else {
-        expect(uiNode.pointer).toEqual(ROOT_POINTER);
+        expect(uiNode.schemaPointer).toEqual(ROOT_POINTER);
       }
     });
   });
@@ -31,7 +31,7 @@ describe('selectors', () => {
       const uiSchemaNodes = buildUiSchema(testSchema);
       const rootNode = getRootNode(uiSchemaNodes);
       expect(typeof rootNode).toBe('object');
-      expect(rootNode.pointer).toBe(ROOT_POINTER);
+      expect(rootNode.schemaPointer).toBe(ROOT_POINTER);
     });
 
     it('Returns undefined if it cannot find node by pointer', () => {
@@ -42,8 +42,8 @@ describe('selectors', () => {
   describe('getNodeByPointer', () => {
     test('Returns undefined if it cannot find node by pointer', () => {
       const uiSchemaNodes = buildUiSchema(testSchema);
-      const pointer = makePointerFromArray(['badPointer']);
-      const node = getNodeByPointer(uiSchemaNodes, pointer);
+      const schemaPointer = makePointerFromArray(['badPointer']);
+      const node = getNodeByPointer(uiSchemaNodes, schemaPointer);
       expect(node).toBeUndefined();
     });
   });
@@ -52,6 +52,6 @@ describe('selectors', () => {
     const uiSchemaNodes = buildUiSchema(dataMock);
     const referedNodes = getReferredNodes(uiSchemaNodes, '#/$defs/RA-0678_M');
     expect(referedNodes).toHaveLength(1);
-    expect(referedNodes[0].pointer).toBe('#/properties/melding');
+    expect(referedNodes[0].schemaPointer).toBe('#/properties/melding');
   });
 });

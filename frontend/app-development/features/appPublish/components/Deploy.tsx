@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { toast } from 'react-toastify';
 import { Alert, Link } from '@digdir/designsystemet-react';
 import { useDeployPermissionsQuery } from 'app-development/hooks/queries';
-import { StudioSpinner } from '@studio/components';
+import { StudioError, StudioSpinner } from '@studio/components';
 
 export interface DeployProps {
   appDeployedVersion: string;
@@ -47,8 +47,7 @@ export const Deploy = ({
     );
   }
 
-  if (permissionsIsError)
-    return <Alert severity='danger'>{t('app_deployment.permission_error')}</Alert>;
+  if (permissionsIsError) return <StudioError>{t('app_deployment.permission_error')}</StudioError>;
 
   const deployPermission =
     permissions.findIndex((e) => e.toLowerCase() === envName.toLowerCase()) > -1;

@@ -6,7 +6,7 @@ import { PencilIcon } from '@studio/icons';
 type Story = StoryFn<typeof StudioSectionHeader>;
 
 const meta: Meta = {
-  title: 'Studio/StudioSectionHeader',
+  title: 'Components/StudioSectionHeader',
   component: StudioSectionHeader,
   argTypes: {
     icon: {

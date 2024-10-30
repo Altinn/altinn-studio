@@ -17,20 +17,20 @@ import userEvent from '@testing-library/user-event';
 
 const initialModel = SchemaModel.fromArray(uiSchemaNodesMock);
 const createSchemaModel = () => initialModel.deepClone();
-const setSelectedNodePointer = jest.fn();
+const setSelectedUniquePointer = jest.fn();
 const setSelectedTypePointer = jest.fn();
 const save = jest.fn();
 const name = 'Test';
 
 const defaultProps: NodePanelProps = {
-  pointer: undefined,
+  schemaPointer: undefined,
 };
 
 const defaultAppContextProps: SchemaEditorAppContextProps = {
   schemaModel: initialModel,
-  selectedNodePointer: null,
+  selectedUniquePointer: null,
   selectedTypePointer: null,
-  setSelectedNodePointer,
+  setSelectedUniquePointer,
   setSelectedTypePointer,
   save,
   name,
@@ -69,7 +69,7 @@ describe('NodePanel', () => {
 
     const renderNodePanelWithRootNode = () => {
       const props: Partial<NodePanelProps> = {
-        pointer: undefined,
+        schemaPointer: undefined,
       };
       const appContextProps: Partial<SchemaEditorAppContextProps> = {
         schemaModel: createSchemaModel(),
@@ -81,7 +81,7 @@ describe('NodePanel', () => {
   describe('When an object definition is selected', () => {
     it('Renders the name as the heading', () => {
       renderNodePanelWithObjectDefinition();
-      const definitionName = extractNameFromPointer(definitionNodeMock.pointer);
+      const definitionName = extractNameFromPointer(definitionNodeMock.schemaPointer);
       const heading = screen.getByRole('heading', { level: 1 });
       expect(heading).toHaveAccessibleName(definitionName);
     });
@@ -105,17 +105,17 @@ describe('NodePanel', () => {
       await user.click(backButton);
       expect(setSelectedTypePointer).toHaveBeenCalledTimes(1);
       expect(setSelectedTypePointer).toHaveBeenCalledWith(undefined);
-      expect(setSelectedNodePointer).toHaveBeenCalledTimes(1);
-      expect(setSelectedNodePointer).toHaveBeenCalledWith(undefined);
+      expect(setSelectedUniquePointer).toHaveBeenCalledTimes(1);
+      expect(setSelectedUniquePointer).toHaveBeenCalledWith(undefined);
     });
 
     const renderNodePanelWithObjectDefinition = () => {
       const props: Partial<NodePanelProps> = {
-        pointer: definitionNodeMock.pointer,
+        schemaPointer: definitionNodeMock.schemaPointer,
       };
       const appContextProps: Partial<SchemaEditorAppContextProps> = {
         schemaModel: createSchemaModel(),
-        selectedTypePointer: definitionNodeMock.pointer,
+        selectedTypePointer: definitionNodeMock.schemaPointer,
       };
       return renderNodePanel({ props, appContextProps });
     };
@@ -124,7 +124,7 @@ describe('NodePanel', () => {
   describe('When a string definition is selected', () => {
     it('Renders the name as the heading', () => {
       renderNodePanelWithStringDefinition();
-      const definitionName = extractNameFromPointer(stringDefinitionNodeMock.pointer);
+      const definitionName = extractNameFromPointer(stringDefinitionNodeMock.schemaPointer);
       const heading = screen.getByRole('heading', { level: 1 });
       expect(heading).toHaveAccessibleName(definitionName);
     });
@@ -137,11 +137,11 @@ describe('NodePanel', () => {
 
     const renderNodePanelWithStringDefinition = () => {
       const props: Partial<NodePanelProps> = {
-        pointer: stringDefinitionNodeMock.pointer,
+        schemaPointer: stringDefinitionNodeMock.schemaPointer,
       };
       const appContextProps: Partial<SchemaEditorAppContextProps> = {
         schemaModel: createSchemaModel(),
-        selectedTypePointer: stringDefinitionNodeMock.pointer,
+        selectedTypePointer: stringDefinitionNodeMock.schemaPointer,
       };
       return renderNodePanel({ props, appContextProps });
     };

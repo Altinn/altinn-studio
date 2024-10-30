@@ -8,17 +8,30 @@ export const useUploadDataModelMutation = (modelPath?: string, meta?: MutationMe
   const { uploadDataModel } = useServicesContext();
   const { org, app } = useStudioEnvironmentParams();
   const queryClient = useQueryClient();
+
+  const mutationFn = (file: File) => {
+    const formData = createFormDataWithFile(file);
+    return uploadDataModel(org, app, formData);
+  };
+
   return useMutation({
-    mutationFn: (file: FormData) => uploadDataModel(org, app, file),
+    mutationFn,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsJson, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.DataModelsXsd, org, app] }),
         queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadataModelIds, org, app] }),
+        queryClient.invalidateQueries({ queryKey: [QueryKey.AppMetadata, org, app] }),
         modelPath &&
           queryClient.invalidateQueries({ queryKey: [QueryKey.JsonSchema, org, app, modelPath] }),
       ]);
     },
     meta,
   });
+};
+
+const createFormDataWithFile = (file: File): FormData => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return formData;
 };

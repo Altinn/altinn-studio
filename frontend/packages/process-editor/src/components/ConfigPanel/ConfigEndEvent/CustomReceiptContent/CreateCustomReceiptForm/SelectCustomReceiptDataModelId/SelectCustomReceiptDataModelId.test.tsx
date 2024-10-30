@@ -3,7 +3,7 @@ import {
   SelectCustomReceiptDataModelId,
   type SelectCustomReceiptDataModelIdProps,
 } from './SelectCustomReceiptDataModelId';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContext } from '../../../../../../contexts/BpmnContext';
 import userEvent from '@testing-library/user-event';
@@ -43,7 +43,7 @@ describe('SelectCustomReceiptDataModelId', () => {
     const optionElement = screen.getByRole('option', { name: mockAllDataModelIds[0] });
     await user.click(optionElement);
 
-    expect(mockOnChange).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockOnChange).toHaveBeenCalledTimes(1));
   });
 
   it('should display a combobox without value and an empty combobox element informing that data models are missing when clicking "add data model" when there are no data models', async () => {

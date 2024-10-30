@@ -5,12 +5,12 @@ import { useAppContext } from '..';
 
 export const useUpsertTextResourceMutation = (owner: string, app: string) => {
   const { mutateAsync: upsertTextResource } = useUpsertSingleTextResourceMutation(owner, app);
-  const { refetchTexts } = useAppContext();
+  const { updateTextsForPreview } = useAppContext();
   return useMutation({
     mutationFn: ({ textId, language, translation }: UpsertTextResourceMutation) =>
       upsertTextResource({ textId, language, translation }),
     onSuccess: async ({ language }) => {
-      await refetchTexts(language);
+      await updateTextsForPreview(language);
     },
   });
 };

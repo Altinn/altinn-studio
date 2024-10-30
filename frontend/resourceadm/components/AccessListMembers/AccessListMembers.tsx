@@ -10,7 +10,8 @@ import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAcce
 import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
-import { StudioButton, useDebounce } from '@studio/components';
+import { StudioButton } from '@studio/components';
+import { useDebounce } from '@studio/hooks';
 import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
@@ -46,9 +47,9 @@ export const AccessListMembers = ({
   const [isAddMode, setIsAddMode] = useState<boolean>(false);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
   const { debounce } = useDebounce({ debounceTimeInMs: 500 });
-  debounce(() => setSearchUrl(searchText ? getPartiesQueryUrl(searchText, isSubPartySearch) : ''));
 
   const { mutate: removeListMember, isPending: isRemovingMember } =
     useRemoveAccessListMemberMutation(org, list.identifier, env);
@@ -65,6 +66,12 @@ export const AccessListMembers = ({
     isFetchingNextPage,
     fetchNextPage,
   } = useGetAccessListMembersQuery(org, list.identifier, env);
+
+  useEffect(() => {
+    setSearchUrl(
+      debouncedSearchText ? getPartiesQueryUrl(debouncedSearchText, isSubPartySearch) : '',
+    );
+  }, [debouncedSearchText, isSubPartySearch]);
 
   useEffect(() => {
     if (members?.pages?.length === 0) {
@@ -130,9 +137,9 @@ export const AccessListMembers = ({
           },
         ],
       };
-    } else if (partiesSearchData) {
+    } else if (partiesSearchData && !isSubPartySearch) {
       return partiesSearchData;
-    } else if (subPartiesSearchData) {
+    } else if (subPartiesSearchData && isSubPartySearch) {
       return subPartiesSearchData;
     } else {
       return undefined;
@@ -185,7 +192,10 @@ export const AccessListMembers = ({
               <Textfield
                 id='party-search'
                 value={searchText}
-                onChange={(event) => setSearchText(event.target.value)}
+                onChange={(event) => {
+                  debounce(() => setDebouncedSearchText(event.target.value));
+                  setSearchText(event.target.value);
+                }}
               />
               <div className={classes.noSearchResults} aria-live='polite'>
                 {resultData?.parties?.length === 0 && (

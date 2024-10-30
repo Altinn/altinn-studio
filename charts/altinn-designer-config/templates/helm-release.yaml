@@ -25,4 +25,7 @@ spec:
   values:
     image:
       tag: "{{ .Values.imageTag }}"
+    dbMigrationsJob:
+      image:
+        tag: "{{ .Values.dbMigrationsTag }}"
     environment: "{{ .Values.environmentName }}"

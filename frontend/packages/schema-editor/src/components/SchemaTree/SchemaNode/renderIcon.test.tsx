@@ -24,17 +24,17 @@ const render = (node: UiSchemaNode) => {
     ...nodeMockBase,
     objectKind: ObjectKind.Field,
     fieldType: FieldType.Object,
-    pointer: ROOT_POINTER,
-    children: [node.pointer, definitionNodePointer],
+    schemaPointer: ROOT_POINTER,
+    children: [node.schemaPointer, definitionNodePointer],
   };
   const definitionNode: FieldNode = {
     ...nodeMockBase,
-    pointer: definitionNodePointer,
+    schemaPointer: definitionNodePointer,
   };
   const nodes: UiSchemaNodes = [rootNode, definitionNode, node];
   validateTestUiSchema(nodes);
   const schemaModel = SchemaModel.fromArray(nodes);
-  return renderRtl(renderIcon(schemaModel, node.pointer));
+  return renderRtl(renderIcon(schemaModel, node.schemaPointer));
 };
 
 describe('renderIcon', () => {
@@ -43,7 +43,7 @@ describe('renderIcon', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Combination,
       combinationType: CombinationKind.AnyOf,
-      pointer: testNodePointer,
+      schemaPointer: testNodePointer,
     };
     render(node);
     expect(screen.getByRole('img')).toBeInTheDocument();
@@ -54,7 +54,7 @@ describe('renderIcon', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Reference,
       reference: definitionNodePointer,
-      pointer: testNodePointer,
+      schemaPointer: testNodePointer,
     };
     render(node);
     expect(screen.getByRole('img')).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe('renderIcon', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Field,
       fieldType,
-      pointer: testNodePointer,
+      schemaPointer: testNodePointer,
     };
     render(node);
     expect(screen.getByRole('img')).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe('renderIcon', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Field,
       fieldType: FieldType.Object,
-      pointer: testNodePointer,
+      schemaPointer: testNodePointer,
     };
     render(node);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();

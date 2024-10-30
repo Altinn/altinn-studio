@@ -4,6 +4,7 @@ import type {
   FormCheckboxesComponent,
   FormComponent,
   FormRadioButtonsComponent,
+  SelectionComponentType,
 } from '../types/FormComponent';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
@@ -58,8 +59,11 @@ export const propertyTypeMatcher = (property: KeyValuePairs, propertyType: Prope
 
   switch (propertyType) {
     case PropertyTypes.string:
-      // Not all schemas with enum value explicitly specifies type as string
-      return baseMatch || !!property.enum;
+      // Not all schemas with enum value explicitly specify type as string
+      return baseMatch || (!!property.enum && typeof property.enum[0] === 'string');
+    case PropertyTypes.number:
+      // Not all schemas with enum value explicitly specify type as number
+      return baseMatch || (!!property.enum && typeof property.enum[0] === 'number');
     case PropertyTypes.array:
       // Currently only supporting array of strings with specified enum values
       return baseMatch && !!property.items?.enum;
@@ -104,12 +108,12 @@ export const changeDescriptionBinding = (
   resourceKey: string,
 ): FormComponent => changeTextResourceBinding(component, 'description', resourceKey);
 
-export const addOptionToComponent = <T extends FormCheckboxesComponent | FormRadioButtonsComponent>(
+export const addOptionToComponent = <T extends FormComponent<SelectionComponentType>>(
   component: T,
   option: IOption,
 ): T => ({
   ...component,
-  options: [...component.options, option],
+  options: [...(component.options || []), option],
 });
 
 export const changeComponentOptionLabel = <

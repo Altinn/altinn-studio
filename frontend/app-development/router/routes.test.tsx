@@ -11,6 +11,8 @@ import { app, org } from '@studio/testing/testids';
 import { SettingsModalContextProvider } from '../contexts/SettingsModalContext';
 import { PreviewContextProvider } from '../contexts/PreviewContext';
 import { AppDevelopmentContextProvider } from '../contexts/AppDevelopmentContext';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { QueryClient } from '@tanstack/react-query';
 
 // Mocks:
 jest.mock('@altinn/ux-editor-v3/SubApp', () => ({
@@ -35,24 +37,30 @@ describe('routes', () => {
     it.each(testCases)(
       'Renders the %s schema editor page when the app frontend version is %s',
       (expectedPackage, frontendVersion) => {
-        renderUiEditor(frontendVersion);
+        const appVersion: AppVersion = {
+          frontendVersion,
+          backendVersion: '7.0.0',
+        };
+        const queryClient = createQueryClientMock();
+        queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
+        renderUiEditor(queryClient);
         expect(screen.getByTestId(expectedPackage)).toBeInTheDocument();
       },
     );
 
-    const renderUiEditor = (frontendVersion: string | null) =>
-      renderSubapp(RoutePaths.UIEditor, frontendVersion);
+    it('renders a loading spinner while fetching frontend version', () => {
+      renderUiEditor();
+      expect(screen.getByText(textMock('ux_editor.loading_page'))).toBeInTheDocument();
+    });
+
+    const renderUiEditor = (queryClient: QueryClient = createQueryClientMock()) =>
+      renderSubapp(RoutePaths.UIEditor, queryClient);
   });
 });
 
-const renderSubapp = (path: RoutePaths, frontendVersion: string = null) => {
+const renderSubapp = (path: RoutePaths, queryClient: QueryClient) => {
   const Subapp = routerRoutes.find((route) => route.path === path)!.subapp;
-  const appVersion: AppVersion = {
-    frontendVersion,
-    backendVersion: '7.0.0',
-  };
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.AppVersion, org, app], appVersion);
+
   return render(
     <ServicesContextProvider {...queriesMock} client={queryClient}>
       <SettingsModalContextProvider>

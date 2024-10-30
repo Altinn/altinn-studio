@@ -3,6 +3,7 @@ import React from 'react';
 import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
 import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
@@ -15,19 +16,25 @@ export interface TypesInspectorProps {
 
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
-  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer, setSelectedNodePointer } =
-    useSchemaEditorAppContext();
+  const {
+    schemaModel,
+    save,
+    selectedTypePointer,
+    setSelectedTypePointer,
+    setSelectedUniquePointer,
+  } = useSchemaEditorAppContext();
 
-  const setSelectedType = (pointer: string) => {
-    setSelectedTypePointer(pointer);
-    setSelectedNodePointer(pointer);
+  const setSelectedType = (schemaPointer: string) => {
+    setSelectedTypePointer(schemaPointer);
+    const uniquePointer = SchemaModel.getUniquePointer(schemaPointer);
+    setSelectedUniquePointer(uniquePointer);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
     const name = schemaModel.generateUniqueDefinitionName('name');
     const newNode = schemaModel.addFieldType(name);
-    setSelectedType(newNode.pointer);
+    setSelectedType(newNode.schemaPointer);
     save(schemaModel);
   };
 
@@ -52,14 +59,15 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
             variant='tertiary'
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
+            title={t('schema_editor.add_type')}
           />
         </div>
 
         {schemaItems.map((item) => (
           <TypeItem
             uiSchemaNode={item}
-            key={item.pointer}
-            selected={item.pointer === selectedTypePointer}
+            key={item.schemaPointer}
+            selected={item.schemaPointer === selectedTypePointer}
             setSelectedTypePointer={setSelectedType}
           />
         ))}

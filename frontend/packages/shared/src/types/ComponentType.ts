@@ -37,6 +37,8 @@ export enum ComponentType {
   PrintButton = 'PrintButton',
   RadioButtons = 'RadioButtons',
   RepeatingGroup = 'RepeatingGroup',
+  Subform = 'Subform',
   Summary = 'Summary',
+  Summary2 = 'Summary2',
   TextArea = 'TextArea',
 }

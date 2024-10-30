@@ -5,7 +5,7 @@ import { StudioTextfield } from './StudioTextfield';
 type Story = StoryFn<typeof StudioTextfield>;
 
 const meta: Meta = {
-  title: 'Forms/StudioTextfield',
+  title: 'Components/StudioTextfield',
   component: StudioTextfield,
   argTypes: {
     size: {

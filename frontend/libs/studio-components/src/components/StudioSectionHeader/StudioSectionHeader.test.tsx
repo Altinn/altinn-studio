@@ -1,6 +1,8 @@
 import React, { type ForwardedRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import { StudioSectionHeader, type StudioSectionHeaderProps } from './StudioSectionHeader';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioSectionHeader', () => {
   it('should display icon if provided', () => {
@@ -24,14 +26,11 @@ describe('StudioSectionHeader', () => {
   });
 
   it('should be able to pass HTMLDivElement attributes', () => {
-    renderStudioSectionHeader({ className: 'test-class-name' });
-    expect(screen.getByTestId('headerTestId')).toHaveClass('test-class-name');
+    testCustomAttributes<HTMLDivElement>(renderStudioSectionHeader);
   });
 
   it('should be possible to use the ref-api to get the underlying HTMLDivElement', () => {
-    const ref = React.createRef<HTMLDivElement>();
-    renderStudioSectionHeader({ ref });
-    expect(ref.current).toBeInTheDocument();
+    testRefForwarding<HTMLDivElement>((ref) => renderStudioSectionHeader({ ref }));
   });
 });
 

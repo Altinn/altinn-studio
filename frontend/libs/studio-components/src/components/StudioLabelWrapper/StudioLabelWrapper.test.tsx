@@ -1,6 +1,8 @@
 import React from 'react';
 import { StudioLabelWrapper } from './StudioLabelWrapper';
 import { render, screen } from '@testing-library/react';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 jest.mock('./StudioLabelWrapper.module.css', () => ({
   studioLabelWrapper: 'studioLabelWrapper',
@@ -31,17 +33,10 @@ describe('StudioLabelWrapper', () => {
   );
 
   it('Appends given classname to internal classname', () => {
-    const className = 'test-class';
-    const { container } = render(
-      <StudioLabelWrapper className={className}>Test</StudioLabelWrapper>,
-    );
-    expect(container.firstChild).toHaveClass(className);
-    expect(container.firstChild).toHaveClass('studioLabelWrapper');
+    testRootClassNameAppending((className) => render(<StudioLabelWrapper className={className} />));
   });
 
   it('Forwards the ref object to the span element if given', () => {
-    const ref = React.createRef<HTMLSpanElement>();
-    const { container } = render(<StudioLabelWrapper ref={ref}>Test</StudioLabelWrapper>);
-    expect(ref.current).toBe(container.firstChild);
+    testRefForwarding<HTMLSpanElement>((ref) => render(<StudioLabelWrapper ref={ref} />));
   });
 });

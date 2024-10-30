@@ -1,0 +1,11 @@
+.landingPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-5);
+}
+
+.image {
+  min-width: 10rem;
+  width: 40%;
+  max-width: 30rem;
+}

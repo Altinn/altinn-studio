@@ -3,17 +3,29 @@
   "extends": ["local>Altinn/renovate-config"],
   "packageRules": [
     {
-      "groupName": "LibGit2Sharp dependency",
+      "groupName": "LibGit2Sharp dependencies",
       "groupSlug": "LibGit2Sharp",
       "matchPackageNames": ["LibGit2Sharp"]
     },
     {
-      "groupName": "gitea dependency",
+      "groupName": "gitea dependencies",
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
+    },
+    {
+      "groupName": "ResourceAdm dependencies",
+      "groupSlug": "resourceadm",
+      "paths": ["frontend/resourceadm/*"],
+      "labels": ["area/resource-adm"]
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
-  "ignoreDeps": ["Moq", "Altinn.App.Core"],
+  "ignoreDeps": [
+    "Moq",
+    "Altinn.App.Core",
+    "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.Common",
+    "Basic.Reference.Assemblies"
+  ],
   "schedule": ["before 07:00 on Monday"]
 }

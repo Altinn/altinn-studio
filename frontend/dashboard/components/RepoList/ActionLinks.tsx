@@ -21,16 +21,14 @@ type ActionLinksProps = {
 export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   const { t } = useTranslation();
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const copyModalAnchorRef = useRef(null);
+  const copyModalRef = useRef<HTMLDialogElement>(null);
 
   const handleOpenCopyModal = (repoFullName: string) => {
-    setModalOpen(true);
+    copyModalRef.current?.showModal();
     setCopyCurrentRepoName(repoFullName);
   };
 
   const handleCloseCopyModal = () => {
-    setModalOpen(false);
     setCopyCurrentRepoName(null);
   };
 
@@ -59,7 +57,7 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
   };
 
   return (
-    <div className={classes.actionLinksContainer} ref={copyModalAnchorRef}>
+    <div className={classes.actionLinksContainer}>
       <StudioButton
         title={t('dashboard.show_repo', {
           appName: repoName,
@@ -79,23 +77,24 @@ export const ActionLinks = ({ repo }: ActionLinksProps): React.ReactElement => {
         size='medium'
       />
       <StudioDropdownMenu size='small' anchorButtonProps={dropdownAnchorButtonProps}>
-        <StudioDropdownMenu.Item onClick={() => handleOpenCopyModal(repoFullName)}>
-          <FilesIcon />
+        <StudioDropdownMenu.Item
+          onClick={() => handleOpenCopyModal(repoFullName)}
+          icon={<FilesIcon />}
+        >
           {t('dashboard.make_copy')}
         </StudioDropdownMenu.Item>
-        <StudioDropdownMenu.Item onClick={() => window.open(editUrl, '_blank')}>
-          <ExternalLinkIcon />
+        <StudioDropdownMenu.Item
+          onClick={() => window.open(editUrl, '_blank')}
+          icon={<ExternalLinkIcon />}
+        >
           {t('dashboard.open_in_new')}
         </StudioDropdownMenu.Item>
       </StudioDropdownMenu>
-      {copyCurrentRepoName && (
-        <MakeCopyModal
-          ref={copyModalAnchorRef}
-          open={modalOpen}
-          onClose={handleCloseCopyModal}
-          serviceFullName={copyCurrentRepoName}
-        />
-      )}
+      <MakeCopyModal
+        onClose={handleCloseCopyModal}
+        ref={copyModalRef}
+        serviceFullName={copyCurrentRepoName}
+      />
     </div>
   );
 };

@@ -5,19 +5,19 @@ import type {
   IToolbarElement,
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
-import { insertArrayElementAtPos, areItemsUnique } from 'app-shared/utils/arrayUtils';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
-import { formItemConfigs } from '../data/formItemConfig';
+import { formItemConfigs, allComponents } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { flattenObjectValues } from 'app-shared/utils/objectUtils';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 export const mapComponentToToolbarElement = <T extends ComponentType>(
   c: FormItemConfigs[T],
@@ -291,7 +291,7 @@ export const moveLayoutItem = (
       newLayout.order[oldContainerId],
       id,
     );
-    newLayout.order[newContainerId] = insertArrayElementAtPos(
+    newLayout.order[newContainerId] = ArrayUtils.insertArrayElementAtPos(
       newLayout.order[newContainerId],
       id,
       newPosition,
@@ -386,6 +386,17 @@ export const isComponentTypeValidChild = (
 export const getChildIds = (layout: IInternalLayout, parentId: string): string[] =>
   layout.order?.[parentId] || [];
 
+/**
+ * Recursively finds all the children of a container.
+ * @param layout The layout to search in.
+ * @param parentId The id of the container to find all children of.
+ * @returns An array of all the children of the container.
+ */
+export const getAllDescendants = (layout: IInternalLayout, parentId: string): string[] =>
+  getChildIds(layout, parentId).flatMap((id) =>
+    ArrayUtils.prepend(getAllDescendants(layout, id), id),
+  );
+
 export const getItem = (layout: IInternalLayout, itemId: string): FormComponent | FormContainer =>
   layout.components[itemId] || layout.containers[itemId];
 
@@ -423,7 +434,7 @@ export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =
 export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean => {
   if (!layout?.order) return false;
   const idsInLayout = flattenObjectValues(layout.order);
-  return !areItemsUnique(idsInLayout);
+  return !ArrayUtils.areItemsUnique(idsInLayout);
 };
 
 /**
@@ -470,4 +481,52 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
   const duplicatedIds = idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
   const uniqueDuplicatedIds = Array.from(new Set(duplicatedIds));
   return uniqueDuplicatedIds;
+};
+
+/**
+ * Get all (valid) ids in the layout
+ * @param layout The layout
+ * @returns An array of all ids in the layout
+ * */
+export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
+  flattenObjectValues(layout.order);
+
+/**
+ * Gets all available componenent types to add for a given container
+ * @param layout
+ * @param containerId
+ * @returns
+ */
+export const getAvailableChildComponentsForContainer = (
+  layout: IInternalLayout,
+  containerId: string,
+): KeyValuePairs<IToolbarElement[]> => {
+  if (containerId !== BASE_CONTAINER_ID) return {};
+  const allComponentLists: KeyValuePairs<IToolbarElement[]> = {};
+  Object.keys(allComponents).forEach((key) => {
+    allComponentLists[key] = allComponents[key].map((element: ComponentType) =>
+      mapComponentToToolbarElement(formItemConfigs[element]),
+    );
+  });
+  return allComponentLists;
+};
+
+/**
+ * Get all components in the given layout
+ * @param layout The layout
+ * @param excludeTypes Optional array to exclude certain component types
+ * @returns An array of all components in the layout, excluding the types in the excludeTypes array
+ * */
+export const getAllLayoutComponents = (
+  layout: IInternalLayout,
+  excludeTypes?: ComponentType[],
+): (FormComponent | FormContainer)[] => {
+  const components = Object.values(layout.components).filter(
+    (component) => !excludeTypes || !excludeTypes.includes(component.type),
+  );
+  const containers = Object.values(layout.containers).filter(
+    (container) =>
+      container.type !== undefined && (!excludeTypes || !excludeTypes.includes(container.type)),
+  );
+  return [...containers, ...components];
 };

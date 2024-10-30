@@ -16,7 +16,7 @@ export type SchemaEditorAppProps = {
 
 export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps) {
   const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
-  const [selectedNodePointer, setSelectedNodePointer] = useState<string>(null);
+  const [selectedUniquePointer, setSelectedUniquePointer] = useState<string>(null);
 
   const value = useMemo<SchemaEditorAppContextProps>(
     () => ({
@@ -24,11 +24,11 @@ export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps
       save: (model: SchemaModel) => save(convertInternalModelToJsonSchema(model)),
       selectedTypePointer,
       setSelectedTypePointer,
-      selectedNodePointer,
-      setSelectedNodePointer,
+      selectedUniquePointer,
+      setSelectedUniquePointer,
       name,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedNodePointer, name],
+    [jsonSchema, save, selectedTypePointer, selectedUniquePointer, name],
   );
 
   return (

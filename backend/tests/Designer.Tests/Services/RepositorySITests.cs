@@ -16,7 +16,6 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
-using AltinnCore.Authentication.Constants;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
@@ -261,7 +260,6 @@ namespace Designer.Tests.Services
         private static HttpContext GetHttpContextForTestUser(string userName)
         {
             List<Claim> claims = new();
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
             claims.Add(new Claim(ClaimTypes.Name, userName));
             ClaimsIdentity identity = new("TestUserLogin");
             identity.AddClaims(claims);
@@ -332,8 +330,9 @@ namespace Designer.Tests.Services
 
             ISchemaModelService schemaModelService = new Mock<ISchemaModelService>().Object;
             AppDevelopmentService appDevelopmentService = new(altinnGitRepositoryFactory, schemaModelService);
+            IOptionsService optionsService = new OptionsService(altinnGitRepositoryFactory);
 
-            TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService);
+            TextsService textsService = new(altinnGitRepositoryFactory, applicationInformationService, optionsService);
 
             ResourceRegistryService resourceRegistryService = new();
 

@@ -5,7 +5,7 @@ import { StudioNotFoundPage } from './StudioNotFoundPage';
 type Story = StoryFn<typeof StudioNotFoundPage>;
 
 const meta: Meta = {
-  title: 'Studio/StudioNotFoundPage',
+  title: 'Components/StudioNotFoundPage',
   component: StudioNotFoundPage,
 };
 export const Preview: Story = (args): React.ReactElement => <StudioNotFoundPage {...args} />;

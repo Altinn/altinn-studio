@@ -6,7 +6,7 @@ import { type GridSize } from './types/GridSize';
 type Story = StoryFn<typeof StudioGridSelector>;
 
 const meta: Meta = {
-  title: 'Studio/StudioGridSelector',
+  title: 'Components/StudioGridSelector',
   component: StudioGridSelector,
   argTypes: {
     sliderValue: {

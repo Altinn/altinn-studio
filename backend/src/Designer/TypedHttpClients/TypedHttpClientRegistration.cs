@@ -5,7 +5,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration;
+using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
@@ -14,10 +14,12 @@ using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.EidLogger;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients
 {
@@ -46,14 +48,13 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 <IAltinnAuthorizationPolicyClient, AltinnAuthorizationPolicyClient>();
             services.AddAuthenticatedAltinnPlatformTypedHttpClient
                 <IAltinnStorageTextResourceClient, AltinnStorageTextResourceClient>();
-            services.AddAuthenticatedAltinnPlatformTypedHttpClient
-                <IAltinn2DelegationMigrationClient, Altinn2DelegationMigrationClient>();
             services.AddKubernetesWrapperTypedHttpClient();
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
             services.AddEidLoggerTypedHttpClient(config);
             services.AddTransient<GiteaTokenDelegatingHandler>();
+            services.AddMaskinportenHttpClient();
 
             return services;
         }
@@ -121,6 +122,18 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             {
                 client.BaseAddress = new Uri(eidLoggerClientSettings.BaseUrl);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
+        }
+
+        private static IHttpClientBuilder AddMaskinportenHttpClient(this IServiceCollection services)
+        {
+            services.AddScoped<AnsattPortenTokenDelegatingHandler>();
+            return services.AddHttpClient<IMaskinPortenHttpClient, MaskinPortenHttpClient>((serviceProvider, client) =>
+                    {
+                        var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
+                        client.BaseAddress = new Uri(options.BaseUrl);
+                    })
+            .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+
         }
     }
 }

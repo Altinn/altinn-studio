@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useRef, useState } from 'react';
 import type { BooleanExpression } from './types/Expression';
 import { isExpressionValid } from './validators/isExpressionValid';
-import { Alert, Tabs } from '@digdir/designsystemet-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import { SimplifiedEditor } from './SimplifiedEditor';
 import { ManualEditor } from './ManualEditor';
 import { isExpressionSimple } from './validators/isExpressionSimple';
@@ -9,6 +9,7 @@ import { StudioExpressionContext } from './StudioExpressionContext';
 import type { DataLookupOptions } from './types/DataLookupOptions';
 import classes from './StudioExpression.module.css';
 import type { ExpressionTexts } from './types/ExpressionTexts';
+import { StudioError } from '../StudioError';
 
 export type StudioExpressionProps = {
   expression: BooleanExpression;
@@ -33,7 +34,7 @@ export const StudioExpression = ({
   showAddSubexpression,
 }: StudioExpressionProps) => {
   if (!isExpressionValid(expression)) {
-    return <Alert severity='danger'>{texts.invalidExpression}</Alert>;
+    return <StudioError>{texts.invalidExpression}</StudioError>;
   }
 
   return (

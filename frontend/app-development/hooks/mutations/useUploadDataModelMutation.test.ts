@@ -6,6 +6,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
+import Mock = jest.Mock;
 
 // Test data:
 const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
@@ -30,7 +31,12 @@ describe('useUploadDataModelMutation', () => {
     await renderHook();
 
     expect(queriesMock.uploadDataModel).toHaveBeenCalledTimes(1);
-    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, file);
+    const parameters = (queriesMock.uploadDataModel as Mock).mock.calls[0];
+    const [orgParam, appParam, formDataParam] = parameters;
+    expect(orgParam).toBe(org);
+    expect(appParam).toBe(app);
+    expect(formDataParam).toBeInstanceOf(FormData);
+    expect(formDataParam.get('file')).toBe(file);
   });
 
   it('invalidates metadata queries when upload is successful', async () => {
@@ -39,7 +45,7 @@ describe('useUploadDataModelMutation', () => {
 
     await renderHook({ queryClient });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(3);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.DataModelsJson, org, app],
     });
@@ -48,6 +54,9 @@ describe('useUploadDataModelMutation', () => {
     });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppMetadataModelIds, org, app],
+    });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.AppMetadata, org, app],
     });
   });
 
@@ -58,7 +67,7 @@ describe('useUploadDataModelMutation', () => {
 
     await renderHook({ queryClient, modelPath: mockModelPath });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(5);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.JsonSchema, org, app, mockModelPath],
     });

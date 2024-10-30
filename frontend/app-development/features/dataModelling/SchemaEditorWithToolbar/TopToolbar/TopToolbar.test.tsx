@@ -65,6 +65,14 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
   });
 
+  it('renders upload xsd button with correct text', () => {
+    renderToolbar();
+    const uploadButton = screen.getByRole('button', {
+      name: textMock('app_data_modelling.upload_xsd'),
+    });
+    expect(uploadButton).toBeInTheDocument();
+  });
+
   it('handles a click on the generate button', async () => {
     renderToolbar({}, {});
     const topToolbar = screen.getByRole('toolbar');

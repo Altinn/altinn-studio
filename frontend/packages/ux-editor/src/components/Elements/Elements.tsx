@@ -1,17 +1,19 @@
 import React from 'react';
-import { useAppContext } from '../../hooks';
+import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
 
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
 
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioButton, StudioError, StudioSpinner } from '@studio/components';
 import { ShrinkIcon } from '@studio/icons';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
 import { useTranslation } from 'react-i18next';
 import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
-import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { ElementsUtils } from './ElementsUtils';
+import type { ConfPageType } from './types/ConfigPageType';
 
 export interface ElementsProps {
   collapsed: boolean;
@@ -22,6 +24,11 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const selectedLayoutSet = useGetLayoutSetByName({
+    name: selectedFormLayoutSetName,
+    org,
+    app,
+  });
 
   const {
     data: processTaskType,
@@ -48,22 +55,28 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
     return (
       <div>
         <div className={classes.errorMessage}>
-          <Alert severity='danger'>
+          <StudioError>
             <Heading level={3} size='xsmall' spacing>
               {t('schema_editor.error_could_not_detect_taskType', {
                 layout: selectedFormLayoutSetName,
               })}
             </Heading>
             <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
-          </Alert>
+          </StudioError>
         </div>
       </div>
     );
   }
 
   const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
-  const shouldShowConfPageToolbar = selectedLayoutIsCustomReceipt || processTaskType === 'payment';
-  const confPageToolbarMode = selectedLayoutIsCustomReceipt ? 'receipt' : 'payment';
+
+  const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
+    selectedLayoutIsCustomReceipt,
+    processTaskType,
+    selectedLayoutSetType: selectedLayoutSet?.type,
+  });
+
+  const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
 
   if (collapsed) {
     return (
@@ -72,6 +85,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
         className={classes.openElementsButton}
         onClick={onCollapseToggle}
         title={t('left_menu.open_components')}
+        fullWidth
       >
         {t('left_menu.open_components')}
       </StudioButton>
@@ -94,7 +108,7 @@ export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.
           {t('left_menu.no_components_selected')}
         </Paragraph>
       ) : shouldShowConfPageToolbar ? (
-        <ConfPageToolbar confPageType={confPageToolbarMode} />
+        <ConfPageToolbar confPageType={configToolbarMode} />
       ) : (
         <DefaultToolbar />
       )}

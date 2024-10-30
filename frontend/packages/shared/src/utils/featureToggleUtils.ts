@@ -8,7 +8,11 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
   | 'resourceMigration'
-  | 'multipleDataModelsPerTask';
+  | 'multipleDataModelsPerTask'
+  | 'exportForm'
+  | 'addComponentModal'
+  | 'subform'
+  | 'summary2';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

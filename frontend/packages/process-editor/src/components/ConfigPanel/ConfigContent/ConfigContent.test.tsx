@@ -14,6 +14,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../test/mocks/bpmnContextMock';
+import { useStudioRecommendedNextActionContext } from '@studio/components';
 
 const tasks = [
   {
@@ -43,6 +44,19 @@ jest.mock('../../../utils/bpmnModeler/StudioModeler', () => {
     }),
   };
 });
+
+(useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+  removeAction: jest.fn(),
+  addAction: jest.fn(),
+  shouldDisplayAction: jest.fn(),
+});
+
+jest.mock(
+  '@studio/components/src/components/StudioRecommendedNextAction/context/useStudioRecommendedNextActionContext.ts',
+  () => ({
+    useStudioRecommendedNextActionContext: jest.fn(),
+  }),
+);
 
 describe('ConfigContent', () => {
   afterEach(() => {
@@ -152,6 +166,14 @@ describe('ConfigContent', () => {
     expect(editPolicyButton).toBeInTheDocument();
   });
 
+  it('should render the Design accordion when a task has a connected layoutset', () => {
+    renderConfigContent();
+    const designAccordion = screen.getByRole('button', {
+      name: textMock('process_editor.configuration_panel_design_title'),
+    });
+    expect(designAccordion).toBeInTheDocument();
+  });
+
   describe('Unique signature', () => {
     const element = getMockBpmnElementForTask('signing');
     element.businessObject.extensionElements.values[0].signatureConfig.uniqueFromSignaturesInDataTypes =
@@ -197,6 +219,24 @@ describe('ConfigContent', () => {
           name: textMock(
             'process_editor.configuration_panel_set_unique_from_signatures_in_data_types_link',
           ),
+        }),
+      ).toBeInTheDocument();
+    });
+
+    it('should show recommended action when task is data and is in recommended action queue', async () => {
+      const shouldDisplayAction = jest.fn().mockReturnValue(true);
+      (useStudioRecommendedNextActionContext as jest.Mock).mockReturnValue({
+        removeAction: jest.fn(),
+        addAction: jest.fn(),
+        shouldDisplayAction,
+      });
+      renderConfigContent();
+
+      expect(shouldDisplayAction).toHaveBeenCalledWith(mockBpmnDetails.id);
+
+      expect(
+        screen.getByRole('textbox', {
+          name: textMock('process_editor.recommended_action.new_name_label'),
         }),
       ).toBeInTheDocument();
     });

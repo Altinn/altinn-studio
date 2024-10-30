@@ -12,6 +12,8 @@ COPY ./frontend/app-preview/package.json ./frontend/app-preview/
 COPY ./frontend/dashboard/package.json ./frontend/dashboard/
 COPY ./frontend/language/package.json ./frontend/language/
 COPY ./frontend/libs/studio-components/package.json ./frontend/libs/studio-components/
+COPY ./frontend/libs/studio-content-library/package.json ./frontend/libs/studio-content-library/
+COPY ./frontend/libs/studio-hooks/package.json ./frontend/libs/studio-hooks/
 COPY ./frontend/libs/studio-icons/package.json ./frontend/libs/studio-icons/
 COPY ./frontend/libs/studio-pure-functions/package.json ./frontend/libs/studio-pure-functions/
 COPY ./frontend/packages/policy-editor/package.json ./frontend/packages/policy-editor/
@@ -26,7 +28,6 @@ COPY ./frontend/resourceadm/package.json ./frontend/resourceadm/
 COPY ./frontend/resourceadm/testing/playwright/package.json ./frontend/resourceadm/testing/playwright/
 COPY ./frontend/studio-root/package.json ./frontend/studio-root/
 COPY ./frontend/testing/cypress/package.json ./frontend/testing/cypress/
-COPY ./frontend/testing/mockend/package.json ./frontend/testing/mockend/
 COPY ./frontend/testing/playwright/package.json ./frontend/testing/playwright/
 
 RUN yarn --immutable
@@ -63,7 +64,6 @@ COPY --from=generate-studio-frontend /build/frontend/dist/app-development ./wwwr
 COPY --from=generate-studio-frontend /build/frontend/dist/app-preview ./wwwroot/designer/frontend/app-preview
 COPY --from=generate-studio-frontend /build/frontend/dist/dashboard ./wwwroot/designer/frontend/dashboard
 COPY --from=generate-studio-frontend /build/frontend/dist/resourceadm ./wwwroot/designer/frontend/resourceadm
-COPY --from=generate-studio-frontend /build/frontend/dist/language ./wwwroot/designer/frontend/lang
 COPY --from=generate-studio-frontend /build/frontend/dist/studio-root ./wwwroot/designer/frontend/studio-root
 COPY --from=generate-studio-backend /version/version.json ./wwwroot/designer/version.json
 

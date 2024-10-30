@@ -8,7 +8,6 @@ import {
 import { FormDesigner } from './FormDesigner';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useWidgetsQuery } from '../hooks/queries/useWidgetsQuery';
-import ruleHandlerMock from '../testing/ruleHandlerMock';
 import type { ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -36,7 +35,6 @@ const render = () => {
     getFormLayoutSettings: jest
       .fn()
       .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve<string>(ruleHandlerMock)),
     getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('test')),
   };
   queryClient.setQueryData(
@@ -109,8 +107,8 @@ describe('FormDesigner', () => {
       'test-layout-set',
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set');
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set');
   });
 
   it('should move a component', async () => {
@@ -129,8 +127,8 @@ describe('FormDesigner', () => {
       'test-layout-set',
       expect.any(Object),
     );
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchLayouts).toHaveBeenCalledWith('test-layout-set');
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateLayoutsForPreview).toHaveBeenCalledWith('test-layout-set');
   });
 
   it('should be able to collapse and uncollapse components', async () => {

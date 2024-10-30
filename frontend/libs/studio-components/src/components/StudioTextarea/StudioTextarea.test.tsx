@@ -1,9 +1,11 @@
 import type { StudioTextareaProps } from './StudioTextarea';
 import { StudioTextarea } from './StudioTextarea';
+import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
-import type { RefObject } from 'react';
+import type { ForwardedRef } from 'react';
 import React from 'react';
 import userEvent from '@testing-library/user-event';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioTextarea', () => {
   it('Renders a textarea', () => {
@@ -105,7 +107,7 @@ describe('StudioTextarea', () => {
     expect(screen.getByText(errorAfterBlur)).toBeInTheDocument();
   });
 
-  it('Diplays the message provided through the errorAfterBlur prop when the user types something after blurring', async () => {
+  it('Displays the message provided through the errorAfterBlur prop when the user types something after blurring', async () => {
     const user = userEvent.setup();
     const errorAfterBlur = 'error message';
     renderTextarea({ errorAfterBlur });
@@ -142,14 +144,18 @@ describe('StudioTextarea', () => {
     expect(screen.getByText(error)).toBeInTheDocument();
   });
 
-  it('Forwards the ref object to the textarea element if given', () => {
-    const ref = React.createRef<HTMLTextAreaElement>();
-    renderTextarea({}, ref);
-    expect(ref.current).toBe(screen.getByRole('textbox'));
+  describe('Ref forwarding', () => {
+    testRefForwarding<HTMLTextAreaElement>((ref) => renderTextarea({}, ref), getTextarea);
   });
 });
 
-const renderTextarea = (
+function renderTextarea(
   props: Partial<StudioTextareaProps> = {},
-  ref?: RefObject<HTMLTextAreaElement>,
-) => render(<StudioTextarea {...props} ref={ref} />);
+  ref?: ForwardedRef<HTMLTextAreaElement>,
+): RenderResult {
+  return render(<StudioTextarea {...props} ref={ref} />);
+}
+
+function getTextarea(): HTMLTextAreaElement {
+  return screen.getByRole('textbox');
+}

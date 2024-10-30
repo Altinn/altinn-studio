@@ -5,7 +5,7 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 export type CombinationNode = {
   objectKind: ObjectKind.Combination;
   combinationType: CombinationKind;
-  pointer: string;
+  schemaPointer: string;
   custom: KeyValuePairs;
   children: string[];
   description?: string;

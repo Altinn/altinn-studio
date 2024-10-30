@@ -49,7 +49,13 @@
     },
     "renderAsSummary": {
       "title": "Render as summary",
-      "description": "Boolean value or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
+    },
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
       "default": false,
       "$ref": "expression.schema.v1.json#/definitions/boolean"
     },
@@ -118,6 +124,74 @@
         }
       }
     },
+    "children": {
+      "title": "Children",
+      "description": "List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rowsBefore": {
+      "title": "Rows in Grid or Grid-like component",
+      "description": "The list of rows in this grid",
+      "examples": [
+        [
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
+          }
+        ]
+      ],
+      "type": "array",
+      "items": {
+        "title": "GridRow",
+        "type": "object",
+        "properties": {
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
+          "cells": {
+            "title": "Cells in table row",
+            "description": "The list of cells in this row",
+            "type": "array",
+            "items": { "$ref": "#/definitions/GridCell" }
+          }
+        },
+        "required": ["cells"],
+        "additionalProperties": false
+      }
+    },
+    "rowsAfter": {
+      "title": "Rows in Grid or Grid-like component",
+      "description": "The list of rows in this grid",
+      "examples": [
+        [
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
+          }
+        ]
+      ],
+      "type": "array",
+      "items": {
+        "title": "GridRow",
+        "type": "object",
+        "properties": {
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
+          "cells": {
+            "title": "Cells in table row",
+            "description": "The list of cells in this row",
+            "type": "array",
+            "items": { "$ref": "#/definitions/GridCell" }
+          }
+        },
+        "required": ["cells"],
+        "additionalProperties": false
+      }
+    },
     "dataModelBindings": {
       "title": "IDataModelBindingsForGroup",
       "type": "object",
@@ -130,12 +204,6 @@
       },
       "required": ["group"],
       "additionalProperties": false
-    },
-    "children": {
-      "title": "Children",
-      "description": "Array of component IDs that should be displayed in the repeating group",
-      "type": "array",
-      "items": { "type": "string" }
     },
     "showValidations": {
       "title": "Validation types",
@@ -281,68 +349,6 @@
       "default": false,
       "type": "boolean"
     },
-    "rowsBefore": {
-      "title": "Rows in Grid or Grid-like component",
-      "description": "The list of rows in this grid",
-      "examples": [
-        [
-          {
-            "header": false,
-            "readOnly": false,
-            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
-          }
-        ]
-      ],
-      "type": "array",
-      "items": {
-        "title": "GridRow",
-        "type": "object",
-        "properties": {
-          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
-          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
-          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
-          "cells": {
-            "title": "Cells in table row",
-            "description": "The list of cells in this row",
-            "type": "array",
-            "items": { "$ref": "#/definitions/GridCell" }
-          }
-        },
-        "required": ["cells"],
-        "additionalProperties": false
-      }
-    },
-    "rowsAfter": {
-      "title": "Rows in Grid or Grid-like component",
-      "description": "The list of rows in this grid",
-      "examples": [
-        [
-          {
-            "header": false,
-            "readOnly": false,
-            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
-          }
-        ]
-      ],
-      "type": "array",
-      "items": {
-        "title": "GridRow",
-        "type": "object",
-        "properties": {
-          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
-          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
-          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
-          "cells": {
-            "title": "Cells in table row",
-            "description": "The list of cells in this row",
-            "type": "array",
-            "items": { "$ref": "#/definitions/GridCell" }
-          }
-        },
-        "required": ["cells"],
-        "additionalProperties": false
-      }
-    },
     "labelSettings": {
       "title": "ILabelSettings",
       "type": "object",
@@ -356,6 +362,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["id", "type", "dataModelBindings", "children"],
+  "required": ["id", "type", "children", "dataModelBindings"],
   "title": "RepeatingGroup component schema"
 }

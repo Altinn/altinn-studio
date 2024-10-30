@@ -5,7 +5,7 @@ import { StudioPageError } from './StudioPageError';
 type Story = StoryFn<typeof StudioPageError>;
 
 const meta: Meta = {
-  title: 'Studio/StudioPageError',
+  title: 'Components/StudioPageError',
   component: StudioPageError,
 };
 export const Preview: Story = (args): React.ReactElement => {

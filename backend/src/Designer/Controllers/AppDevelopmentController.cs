@@ -35,6 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ApplicationInsightsSettings _applicationInsightsSettings;
         private readonly IMediator _mediator;
+        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
 
         /// <summary>
@@ -45,7 +46,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
+        /// <param name="mediator"></param>
+        /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator, IUserRequestsSynchronizationService userRequestsSynchronizationService)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
@@ -53,6 +56,7 @@ namespace Altinn.Studio.Designer.Controllers
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationInsightsSettings = applicationInsightsSettings;
             _mediator = mediator;
+            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         /// <summary>
@@ -64,6 +68,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             await _sourceControl.VerifyCloneExists(org, app);
             ViewBag.AiConnectionString = _applicationInsightsSettings.ConnectionString;
+            ViewBag.App = "app-development";
             return View();
         }
 
@@ -116,6 +121,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+                Dictionary<string, JsonNode> formLayouts = await _appDevelopmentService.GetFormLayouts(editingContext, layoutSetName, cancellationToken);
                 await _appDevelopmentService.SaveFormLayout(editingContext, layoutSetName, layoutName, formLayoutPayload.Layout, cancellationToken);
 
                 if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
@@ -130,6 +136,13 @@ namespace Altinn.Studio.Designer.Controllers
                             EditingContext = editingContext
                         }, cancellationToken);
                     }
+                }
+                if (!formLayouts.ContainsKey(layoutName))
+                {
+                    await _mediator.Publish(new LayoutPageAddedEvent
+                    {
+                        EditingContext = editingContext,
+                    }, cancellationToken);
                 }
                 return Ok();
             }
@@ -204,9 +217,11 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("layout-settings")]
         public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings, CancellationToken cancellationToken)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, app, developer);
+            await semaphore.WaitAsync();
             try
             {
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettings, layoutSetName, cancellationToken);
                 return Ok();
@@ -214,6 +229,10 @@ namespace Altinn.Studio.Designer.Controllers
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
+            }
+            finally
+            {
+                semaphore.Release();
             }
         }
 
@@ -374,6 +393,12 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+
+            await _mediator.Publish(new LayoutSetDeletedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSetId = layoutSetIdToUpdate
+            }, cancellationToken);
             return Ok(layoutSets);
         }
 

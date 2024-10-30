@@ -8,7 +8,7 @@ export const findRequiredProps = (
   const childNodes = getChildNodesByFieldPointer(uiSchemaNodes, parentPointer);
   const required: string[] = [];
   childNodes.forEach((child) => {
-    const childName = child.pointer.split('/').pop();
+    const childName = child.schemaPointer.split('/').pop();
     if (child.isRequired && childName) {
       required.push(childName);
     }
