@@ -2,7 +2,6 @@ import React from 'react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { LibraryHeader } from './LibraryHeader';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { RouterContext } from '../../contexts/RouterContext';
 
 const navigateMock = jest.fn();

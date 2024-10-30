@@ -1,5 +1,5 @@
 import React from 'react';
-import classes from '../ContentLibrary.module.css';
+import classes from './LibraryContent.module.css';
 import { PagesRouter } from './PagesRouter';
 import { InfoBox } from './InfoBox';
 import type { PagePropsMap, PagesConfig } from '../../types/PagesProps';
