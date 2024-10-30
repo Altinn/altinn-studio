@@ -143,13 +143,13 @@ describe('EditLayoutSetForSubform', () => {
     });
     await user.click(createNewLayoutSetButton);
     const input = screen.getByRole('textbox');
-    await user.type(input, 'NewSubForm');
+    await user.type(input, 'NewSubform');
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(saveButton);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
     expect(handleComponentChangeMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        layoutSet: 'NewSubForm',
+        layoutSet: 'NewSubform',
       }),
     );
   });
@@ -237,7 +237,7 @@ const renderEditLayoutSetForSubform = (
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <AppContext.Provider
-      value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
+      value={{ ...appContextMock, setSelectedformLayoutSetName: setSelectedFormLayoutSetMock }}
     >
       <EditLayoutSetForSubform
         component={{ ...componentMocks[ComponentType.Subform], ...componentProps }}

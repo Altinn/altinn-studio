@@ -14,9 +14,9 @@ import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
 
-const mockSubFormLayoutValidation = jest.fn();
-jest.mock('./hooks/useSubFormLayoutValidation', () => ({
-  useSubFormLayoutValidation: () => mockSubFormLayoutValidation(),
+const mockSubformLayoutValidation = jest.fn();
+jest.mock('./hooks/useSubformLayoutValidation', () => ({
+  useSubformLayoutValidation: () => mockSubformLayoutValidation(),
 }));
 
 const defaultProps: EditSubformTableColumnsProps = {
@@ -120,7 +120,7 @@ describe('EditSubformTableColumns', () => {
   });
 
   it('should show warning if subform validation is false', () => {
-    renderEditSubformTableColumns({ isSubFormLayoutConfigured: false });
+    renderEditSubformTableColumns({ isSubformLayoutConfigured: false });
     expect(
       screen.getByText(
         textMock('ux_editor.component_properties.subform.layout_set_is_missing_content_heading'),
@@ -137,15 +137,15 @@ describe('EditSubformTableColumns', () => {
 
 type renderEditSubformTableColumnsParameters = {
   props?: Partial<EditSubformTableColumnsProps>;
-  isSubFormLayoutConfigured?: boolean;
+  isSubformLayoutConfigured?: boolean;
 };
 
 const renderEditSubformTableColumns = (
-  { props, isSubFormLayoutConfigured }: renderEditSubformTableColumnsParameters = {
-    isSubFormLayoutConfigured: true,
+  { props, isSubformLayoutConfigured }: renderEditSubformTableColumnsParameters = {
+    isSubformLayoutConfigured: true,
   },
 ) => {
-  mockSubFormLayoutValidation.mockReturnValue(isSubFormLayoutConfigured);
+  mockSubformLayoutValidation.mockReturnValue(isSubformLayoutConfigured);
   const queryClient = createQueryClientMock();
   return renderWithProviders(<EditSubformTableColumns {...defaultProps} {...props} />, {
     ...queriesMock,

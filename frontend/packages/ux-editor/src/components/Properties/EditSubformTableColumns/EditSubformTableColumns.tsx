@@ -8,8 +8,8 @@ import { type TableColumn } from './types/TableColumn';
 import { filterOutTableColumn, updateComponentWithSubform } from './utils';
 import { useUniqueKeys } from '@studio/hooks';
 import { ColumnElement } from './ColumnElement';
-import { useSubFormLayoutValidation } from './hooks/useSubFormLayoutValidation';
-import { SubFormMissingContentWarning } from './SubFormMissingContentWarning/SubFormMissingContentWarning';
+import { useSubformLayoutValidation } from './hooks/useSubformLayoutValidation';
+import { SubformMissingContentWarning } from './SubformMissingContentWarning/SubformMissingContentWarning';
 
 export type EditSubformTableColumnsProps = IGenericEditComponent<ComponentType.Subform>;
 
@@ -18,7 +18,7 @@ export const EditSubformTableColumns = ({
   handleComponentChange,
 }: EditSubformTableColumnsProps): ReactElement => {
   const { t } = useTranslation();
-  var subFormLayoutIsConfigured = useSubFormLayoutValidation(component.layoutSet);
+  var subformLayoutIsConfigured = useSubformLayoutValidation(component.layoutSet);
 
   const tableColumns: TableColumn[] = component?.tableColumns ?? [];
   const { getUniqueKey, addUniqueKey, removeUniqueKey } = useUniqueKeys({
@@ -45,16 +45,16 @@ export const EditSubformTableColumns = ({
     handleComponentChange({ ...component, tableColumns: updatedColumns });
   };
 
-  if (subFormLayoutIsConfigured === false) {
+  if (subformLayoutIsConfigured === false) {
     return (
-      <EditSubFormTableColumnsWrapper>
-        <SubFormMissingContentWarning subFormLayoutSetName={component.layoutSet} />
-      </EditSubFormTableColumnsWrapper>
+      <EditSubformTableColumnsWrapper>
+        <SubformMissingContentWarning subformLayoutSetName={component.layoutSet} />
+      </EditSubformTableColumnsWrapper>
     );
   }
 
   return (
-    <EditSubFormTableColumnsWrapper>
+    <EditSubformTableColumnsWrapper>
       {tableColumns.length > 0 &&
         tableColumns.map((tableColum: TableColumn, index: number) => (
           <ColumnElement
@@ -68,15 +68,15 @@ export const EditSubformTableColumns = ({
       <StudioButton color='second' className={classes.addColumnButton} onClick={handleAddColumn}>
         {t('ux_editor.properties_panel.subform_table_columns.add_column')}
       </StudioButton>
-    </EditSubFormTableColumnsWrapper>
+    </EditSubformTableColumnsWrapper>
   );
 };
 
-type EditSubFormTableColumnsWrapperProps = {
+type EditSubformTableColumnsWrapperProps = {
   children: ReactNode;
 };
 
-const EditSubFormTableColumnsWrapper = ({ children }: EditSubFormTableColumnsWrapperProps) => {
+const EditSubformTableColumnsWrapper = ({ children }: EditSubformTableColumnsWrapperProps) => {
   const { t } = useTranslation();
   return (
     <div className={classes.wrapper}>

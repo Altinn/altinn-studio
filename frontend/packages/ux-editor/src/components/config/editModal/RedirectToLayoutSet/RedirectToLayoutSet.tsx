@@ -13,7 +13,8 @@ type RedirectToLayoutSetProps = {
 export const RedirectToLayoutSet = ({
   selectedSubform,
 }: RedirectToLayoutSetProps): React.ReactElement => {
-  const { setSelectedFormLayoutName, setSelectedFormLayoutSetName } = useAppContext();
+  const { setSelectedFormLayoutName, setSelectedformLayoutSetName: setSelectedFormLayoutSetName } =
+    useAppContext();
   const { t } = useTranslation();
 
   const handleOnRedirectClick = (): void => {

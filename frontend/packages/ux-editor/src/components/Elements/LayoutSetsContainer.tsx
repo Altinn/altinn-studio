@@ -15,7 +15,7 @@ export function LayoutSetsContainer() {
   const t = useText();
   const {
     selectedFormLayoutSetName,
-    setSelectedFormLayoutSetName,
+    setSelectedformLayoutSetName: setSelectedFormLayoutSetName,
     setSelectedFormLayoutName,
     updateLayoutsForPreview,
     updateLayoutSettingsForPreview,

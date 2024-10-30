@@ -4,20 +4,20 @@ import type { ReactElement } from 'react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAppContext } from '@altinn/ux-editor/hooks';
-import classes from './SubFormMissingContentWarning.module.css';
+import classes from './SubformMissingContentWarning.module.css';
 
-type SubFormMissingContentWarningProps = {
-  subFormLayoutSetName: string;
+type SubformMissingContentWarningProps = {
+  subformLayoutSetName: string;
 };
 
-export const SubFormMissingContentWarning = ({
-  subFormLayoutSetName,
-}: SubFormMissingContentWarningProps): ReactElement => {
+export const SubformMissingContentWarning = ({
+  subformLayoutSetName: subformLayoutSetName,
+}: SubformMissingContentWarningProps): ReactElement => {
   const { setSelectedFormLayoutName, setSelectedFormLayoutSetName } = useAppContext();
   const { t } = useTranslation();
 
   const handleOnRedirectClick = (): void => {
-    setSelectedFormLayoutSetName(subFormLayoutSetName);
+    setSelectedFormLayoutSetName(subformLayoutSetName);
     setSelectedFormLayoutName(undefined);
   };
 
@@ -35,7 +35,7 @@ export const SubFormMissingContentWarning = ({
         color='second'
         icon={<PencilIcon />}
         iconPlacement='left'
-        disabled={!subFormLayoutSetName}
+        disabled={!subformLayoutSetName}
         className={classes.redirectButton}
       >
         {t('top_menu.create')}

@@ -1,5 +1,5 @@
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { SubFormMissingContentWarning } from './SubFormMissingContentWarning';
+import { SubformMissingContentWarning } from './SubformMissingContentWarning';
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -14,9 +14,9 @@ jest.mock('@altinn/ux-editor/hooks', () => ({
   }),
 }));
 
-describe('SubFormMissingContentWarning', () => {
+describe('SubformMissingContentWarning', () => {
   it('renders without crashing', () => {
-    renderWithProviders(<SubFormMissingContentWarning subFormLayoutSetName='' />);
+    renderWithProviders(<SubformMissingContentWarning subformLayoutSetName='' />);
     expect(
       screen.getByText(
         textMock('ux_editor.component_properties.subform.layout_set_is_missing_content_heading'),
@@ -31,9 +31,9 @@ describe('SubFormMissingContentWarning', () => {
   });
   it('calls redirect/state change functions on redirect button click', async () => {
     const user = userEvent.setup();
-    const subFormLayoutSetName = 'test';
+    const subformLayoutSetName = 'test';
     renderWithProviders(
-      <SubFormMissingContentWarning subFormLayoutSetName={subFormLayoutSetName} />,
+      <SubformMissingContentWarning subformLayoutSetName={subformLayoutSetName} />,
     );
 
     await user.click(screen.getByRole('button', { name: textMock('top_menu.create') }));
@@ -41,6 +41,6 @@ describe('SubFormMissingContentWarning', () => {
     expect(setSelectedFormLayoutName).toHaveBeenCalledTimes(1);
     expect(setSelectedFormLayoutName).toHaveBeenCalledWith(undefined);
     expect(setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1);
-    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith(subFormLayoutSetName);
+    expect(setSelectedFormLayoutSetName).toHaveBeenCalledWith(subformLayoutSetName);
   });
 });

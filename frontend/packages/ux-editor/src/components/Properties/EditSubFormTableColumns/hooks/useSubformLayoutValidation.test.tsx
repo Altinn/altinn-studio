@@ -1,4 +1,4 @@
-import { useSubFormLayoutValidation } from './useSubFormLayoutValidation';
+import { useSubformLayoutValidation } from './useSubformLayoutValidation';
 import { renderHookWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -33,7 +33,7 @@ const nonEmptyLayout: IFormLayouts = {
   },
 };
 
-describe('useSubFormLayoutValidation', () => {
+describe('useSubformLayoutValidation', () => {
   it('should return true if form layout has components', () => {
     const { result } = renderHook({
       layout: nonEmptyLayout,
@@ -55,7 +55,7 @@ type renderHookArgs = {
 const renderHook = ({ layout }: renderHookArgs) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, ''], layout);
-  return renderHookWithProviders(() => useSubFormLayoutValidation(''), {
+  return renderHookWithProviders(() => useSubformLayoutValidation(''), {
     queryClient: queryClient,
   });
 };

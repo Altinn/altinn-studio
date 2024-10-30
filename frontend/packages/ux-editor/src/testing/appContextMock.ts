@@ -10,7 +10,7 @@ const previewIframeRefMock: RefObject<HTMLIFrameElement> = {
 export const appContextMock: AppContextProps = {
   previewIframeRef: previewIframeRefMock,
   selectedFormLayoutSetName: layoutSet1NameMock,
-  setSelectedFormLayoutSetName: jest.fn(),
+  setSelectedformLayoutSetName: jest.fn(),
   selectedFormLayoutName: layout1NameMock,
   setSelectedFormLayoutName: jest.fn(),
   updateLayoutsForPreview: jest.fn(),
