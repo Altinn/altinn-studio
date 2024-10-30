@@ -1,5 +1,6 @@
 .tabHeaderContent {
   display: flex;
+  align-items: flex-start;
   gap: var(--fds-spacing-2);
 }
 

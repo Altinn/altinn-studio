@@ -50,7 +50,7 @@ export const AccessControlTab = (): ReactNode => {
     <TabContent>
       <div className={classes.tabHeaderContent}>
         <TabHeader text={t('settings_modal.access_control_tab_heading')} />
-        <HelpText title={t('settings_modal.access_control_tab_help_text_title')} placement='top'>
+        <HelpText size='small' title={t('settings_modal.access_control_tab_help_text_title')}>
           {t('settings_modal.access_control_tab_help_text_heading')}
         </HelpText>
       </div>
