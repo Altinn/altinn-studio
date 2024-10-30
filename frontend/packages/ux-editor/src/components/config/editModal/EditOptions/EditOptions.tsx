@@ -10,6 +10,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useTranslation } from 'react-i18next';
 import { EditManualOptions } from './EditManualOptions/EditManualOptions';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { EditManualOptionsWithEditor } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditManualOptionsWithEditor';
 
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {
@@ -101,11 +103,19 @@ export function EditOptions<T extends SelectionComponentType>({
             value={SelectedOptionsType.Manual}
             className={classes.manualTabContent}
           >
-            <EditManualOptions
-              component={component}
-              handleComponentChange={handleComponentChange}
-              onlyCodeListOptions={renderOptions.onlyCodeListOptions}
-            />
+            {shouldDisplayFeature('codeListEditor') ? (
+              <EditManualOptionsWithEditor
+                component={component}
+                handleComponentChange={handleComponentChange}
+                onlyCodeListOptions={renderOptions.onlyCodeListOptions}
+              />
+            ) : (
+              <EditManualOptions
+                component={component}
+                handleComponentChange={handleComponentChange}
+                onlyCodeListOptions={renderOptions.onlyCodeListOptions}
+              />
+            )}
           </StudioTabs.Content>
           <StudioTabs.Content
             value={SelectedOptionsType.ReferenceId}

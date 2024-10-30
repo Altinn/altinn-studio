@@ -1,13 +1,15 @@
-import React, { useRef } from 'react';
-import { Alert } from '@digdir/designsystemet-react';
-import classes from './EditManualOptions.module.css';
-import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
+import React, { useMemo } from 'react';
+import { Alert, ErrorMessage } from '@digdir/designsystemet-react';
+import classes from '../EditOptions.module.css';
+import type { IGenericEditComponent } from '../../../componentConfig';
+import { useComponentErrorMessage } from '../../../../../hooks';
+import { addOptionToComponent, generateRandomOption } from '../../../../../utils/component';
+import { StudioProperty } from '@studio/components';
+import type { SelectionComponentType } from '../../../../../types/FormComponent';
+import { EditOption } from '../../EditOption';
+import { ArrayUtils } from '@studio/pure-functions';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
-import type { IGenericEditComponent } from '../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../types/FormComponent';
-import { useCodeListButtonValue, useCodeListEditorTexts } from '../hooks';
-import { useDebounce } from '@studio/hooks';
 
 export type EditManualOptionsProps = {
   onlyCodeListOptions?: boolean;
@@ -19,22 +21,38 @@ export function EditManualOptions({
   onlyCodeListOptions,
 }: EditManualOptionsProps) {
   const { t } = useTranslation();
-  const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
-  const buttonValue = useCodeListButtonValue(component.options);
-  const editorTexts = useCodeListEditorTexts();
-  const { debounce } = useDebounce({ debounceTimeInMs: 500 });
+
+  const mappedOptionIds = useMemo(
+    () => component.options?.map((_, index) => `option_${index}`),
+    [component.options],
+  );
+
+  const errorMessage = useComponentErrorMessage(component);
 
   const handleOptionsChange = (options: Option[]) => {
+    handleComponentChange({
+      ...component,
+      options,
+    });
+  };
+
+  const handleOptionChange = (index: number) => (newOption: Option) => {
+    const newOptions = ArrayUtils.replaceByIndex(component.options || [], index, newOption);
+    return handleOptionsChange(newOptions);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    const options = [...(component.options || [])];
+    options.splice(index, 1);
+    handleOptionsChange(options);
+  };
+
+  const handleAddOption = () => {
     if (component.optionsId) {
       delete component.optionsId;
     }
 
-    debounce(() => {
-      handleComponentChange({
-        ...component,
-        options,
-      });
-    });
+    handleComponentChange(addOptionToComponent(component, generateRandomOption()));
   };
 
   if (onlyCodeListOptions) {
@@ -43,25 +61,37 @@ export function EditManualOptions({
 
   return (
     <>
-      <StudioProperty.Button
-        onClick={() => manualOptionsModalRef.current.showModal()}
-        property={t('ux_editor.modal_properties_code_list_custom_list')}
-        value={buttonValue}
-      />
-      <StudioModal.Root>
-        <StudioModal.Dialog
-          ref={manualOptionsModalRef}
-          className={classes.manualTabModal}
-          closeButtonTitle={t('general.close')}
-          heading={t('ux_editor.modal_add_options_codelist')}
-        >
-          <StudioCodeListEditor
-            codeList={component.options ?? []}
-            onChange={(codeList) => handleOptionsChange(codeList)}
-            texts={editorTexts}
-          />
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+      <StudioProperty.Group>
+        {component.options?.map((option, index) => {
+          const removeItem = () => handleRemoveOption(index);
+          const key = mappedOptionIds[index];
+          const optionNumber = index + 1;
+          const legend =
+            component.type === 'RadioButtons'
+              ? t('ux_editor.radios_option', { optionNumber })
+              : t('ux_editor.checkboxes_option', { optionNumber });
+          return (
+            <EditOption
+              key={key}
+              legend={legend}
+              onChange={handleOptionChange(index)}
+              onDelete={removeItem}
+              option={option}
+            />
+          );
+        })}
+        <StudioProperty.Button
+          disabled={component.options?.some(({ label }) => !label)}
+          onClick={handleAddOption}
+          property={t('ux_editor.modal_new_option')}
+        />
+      </StudioProperty.Group>
+
+      {errorMessage && (
+        <ErrorMessage className={classes.errorMessage} size='small'>
+          {errorMessage}
+        </ErrorMessage>
+      )}
     </>
   );
 }
