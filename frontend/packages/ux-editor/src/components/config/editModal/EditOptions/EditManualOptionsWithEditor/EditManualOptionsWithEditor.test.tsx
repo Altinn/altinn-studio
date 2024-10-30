@@ -154,4 +154,40 @@ describe('EditManualOptionsWithEditor', () => {
       });
     });
   });
+
+  it('should display an alert if trying to use the manual tab with an unsupported component', () => {
+    renderEditManualOptionsWithEditor({ isLayoutOptionsUnsupported: true });
+
+    expect(screen.getByText(textMock('ux_editor.options.codelist_only'))).toBeInTheDocument();
+  });
+
+  it('should delete optionsId from the layout when using the manual editor', async () => {
+    const user = userEvent.setup();
+    const mockHandleComponentChange = jest.fn();
+    renderEditManualOptionsWithEditor({
+      componentProps: {
+        optionsId: 'somePredefinedOptionsList',
+      },
+      handleComponentChange: mockHandleComponentChange,
+    });
+
+    const modalButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
+    });
+
+    await user.click(modalButton);
+
+    const addNewButton = screen.getByRole('button', {
+      name: textMock('ux_editor.modal_new_option'),
+    });
+
+    await user.click(addNewButton);
+
+    await waitFor(() => {
+      expect(mockHandleComponentChange).toHaveBeenCalledWith({
+        ...mockComponent, // does not contain optionsId
+        options: [{ label: '', value: '' }],
+      });
+    });
+  });
 });

@@ -83,7 +83,7 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
       <StudioProperty.Group className={classes.textResources}>
         <TextResource
           compact
-          label={t('ux_editor.options_text_label')}
+          label={t('ux_editor.modal_properties_textResourceBindings_title')}
           handleIdChange={handleLabelChange}
           textResourceId={option.label}
         />
@@ -91,14 +91,14 @@ const OpenOption = ({ legend, onChange, option, onDelete, onClose }: OpenOptionP
           compact
           handleIdChange={handleDescriptionChange}
           handleRemoveTextResource={handleDeleteDescription}
-          label={t('ux_editor.options_text_description')}
+          label={t('general.description')}
           textResourceId={option.description}
         />
         <TextResource
           compact
           handleIdChange={handleHelpTextChange}
           handleRemoveTextResource={handleDeleteHelpText}
-          label={t('ux_editor.options_text_help_text')}
+          label={t('ux_editor.modal_properties_textResourceBindings_help')}
           textResourceId={option.helpText}
         />
       </StudioProperty.Group>

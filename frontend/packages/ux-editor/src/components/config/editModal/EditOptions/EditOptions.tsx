@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
@@ -28,37 +28,29 @@ export enum SelectedOptionsType {
 }
 
 export function EditOptions<T extends SelectionComponentType>({
-  editFormId,
   component,
   handleComponentChange,
   renderOptions,
 }: ISelectionEditComponentProvidedProps<T>) {
-  const previousEditFormId = useRef(editFormId);
   const { org, app } = useStudioEnvironmentParams();
-  const { data: staticOptionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const { t } = useTranslation();
   const initialSelectedOptionsType = getSelectedOptionsType(
     component.optionsId,
     component.options,
-    staticOptionListIds || [],
+    optionListIds || [],
   );
   const [selectedOptionsType, setSelectedOptionsType] = React.useState(initialSelectedOptionsType);
 
   useEffect(() => {
-    if (editFormId !== previousEditFormId.current) {
-      previousEditFormId.current = editFormId;
-    }
-  }, [editFormId]);
-
-  useEffect(() => {
-    if (!staticOptionListIds) return;
+    if (!optionListIds) return;
     const updatedSelectedOptionsType = getSelectedOptionsType(
       component.optionsId,
       component.options,
-      staticOptionListIds,
+      optionListIds,
     );
     setSelectedOptionsType(updatedSelectedOptionsType);
-  }, [staticOptionListIds, component.optionsId, component.options, setSelectedOptionsType]);
+  }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
     <div className={classes.root}>
