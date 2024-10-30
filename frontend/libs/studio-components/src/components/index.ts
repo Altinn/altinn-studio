@@ -12,6 +12,7 @@ export * from './StudioCheckbox';
 export * from './StudioCodeFragment';
 export * from './StudioCodelistEditor';
 export * from './StudioCombobox';
+export * from './StudioContentMenu';
 export * from './StudioDecimalInput';
 export * from './StudioDeleteButton';
 export * from './StudioDisplayTile';
