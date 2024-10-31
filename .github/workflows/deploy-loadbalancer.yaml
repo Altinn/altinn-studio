@@ -28,6 +28,7 @@ jobs:
       tag: 0.1.0+${{ needs.get-short-sha.outputs.short-sha }} # Helm version needs to be valid sematic version
       chart-name: altinn-loadbalancer
       registry-name: altinntjenestercontainerregistry.azurecr.io
+      environment: dev # dev environment has push access and doesn't require review
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
