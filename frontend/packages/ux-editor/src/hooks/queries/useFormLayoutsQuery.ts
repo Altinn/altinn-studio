@@ -19,6 +19,5 @@ export const useFormLayoutsQuery = (
       }),
     enabled: Boolean(layoutSetName),
     staleTime: Infinity,
-    enabled: Boolean(layoutSetName),
   });
 };
