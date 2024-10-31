@@ -1,0 +1,98 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": false,
+    "layout": [
+      {
+        "id": "DatePage-NavigationBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "DatePage-Header",
+        "type": "Header",
+        "size": "h2",
+        "textResourceBindings": {
+          "title": "Date"
+        }
+      },
+      {
+        "id": "date1",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato"
+        },
+        "value": "2022-09-27 18:00:00.000",
+        "format": "dd.MM.yyyy",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date2",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med tid"
+        },
+        "value": "2022-09-27 18:00:00.000",
+        "format": "dd.MM.yyyy HH:mm:ss",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date3",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med annet format"
+        },
+        "value": "2022-09-27",
+        "format": "dd/MM/yyyy",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date4",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med tid på et annet format"
+        },
+        "value": "2022-09-27 18:00:00.000",
+        "format": "dd/MM/yyyy HH:mm:ss",
+        "direction": "vertical",
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "date5",
+        "type": "Date",
+        "textResourceBindings": {
+          "title": "Dato med tid og input fra en annen tidssone"
+        },
+        "direction": "vertical",
+        "value": "2007-04-05T14:30Z",
+        "format": "yyyy-MM-dd HH:mm:ss z",
+        "grid": { "xs": 6 }
+      },
+      {
+        "type": "Cards",
+        "id": "date-Card",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Datokort",
+            "description": "",
+            "children": ["date1", "date2", "date3", "date4", "date5"]
+          }
+        ]
+      },
+      {
+        "id": "Date-NavigationButtons",
+        "type": "NavigationButtons",
+        "showBackButton": true,
+        "textResourceBindings": {}
+      }
+    ]
+  }
+}

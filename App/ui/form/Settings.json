@@ -18,6 +18,9 @@
       "RepeatingGroupPage",
       "TabsPage",
       "DatepickerPage",
+      "TextPage",
+      "NumberPage",
+      "DatePage",
       "SummaryPage"
     ]
   }
