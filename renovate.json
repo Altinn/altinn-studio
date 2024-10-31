@@ -15,11 +15,17 @@
     {
       "groupName": "ResourceAdm dependencies",
       "groupSlug": "resourceadm",
-      "paths": ["frontend/resourceadm/*"],
+      "matchFileNames": ["frontend/resourceadm/*"],
       "labels": ["area/resource-adm"]
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
-  "ignoreDeps": ["Moq", "Altinn.App.Core"],
+  "ignoreDeps": [
+    "Moq",
+    "Altinn.App.Core",
+    "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.Common",
+    "Basic.Reference.Assemblies"
+  ],
   "schedule": ["before 07:00 on Monday"]
 }

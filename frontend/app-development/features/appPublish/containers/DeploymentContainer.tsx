@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import classes from './DeploymentContainer.module.css';
-import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
+import { AltinnContentLoader } from '../components/AltinnContentLoader';
 import {
   useOrgListQuery,
   useEnvironmentsQuery,

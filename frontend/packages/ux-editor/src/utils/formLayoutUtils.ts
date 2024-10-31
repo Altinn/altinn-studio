@@ -15,7 +15,6 @@ import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
 import type { ContainerComponentType } from '../types/ContainerComponent';
-import { flattenObjectValues } from 'app-shared/utils/objectUtils';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
@@ -433,7 +432,7 @@ export const idExistsInLayout = (id: string, layout: IInternalLayout): boolean =
  */
 export const duplicatedIdsExistsInLayout = (layout: IInternalLayout): boolean => {
   if (!layout?.order) return false;
-  const idsInLayout = flattenObjectValues(layout.order);
+  const idsInLayout = ObjectUtils.flattenObjectValues(layout.order);
   return !ArrayUtils.areItemsUnique(idsInLayout);
 };
 
@@ -454,7 +453,7 @@ export const findLayoutsContainingDuplicateComponents = (
     data: layouts[key],
   }));
   layoutPages.forEach(({ page, data }) => {
-    const components = flattenObjectValues(data.order);
+    const components = ObjectUtils.flattenObjectValues(data.order);
     components.forEach((component) => {
       if (componentMap.has(component)) {
         duplicateLayouts.add(page);
@@ -477,7 +476,7 @@ export const findLayoutsContainingDuplicateComponents = (
  * @returns An array of unique duplicated ids
  */
 export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
-  const idsInLayout = flattenObjectValues(layout.order);
+  const idsInLayout = ObjectUtils.flattenObjectValues(layout.order);
   const duplicatedIds = idsInLayout.filter((id, index) => idsInLayout.indexOf(id) !== index);
   const uniqueDuplicatedIds = Array.from(new Set(duplicatedIds));
   return uniqueDuplicatedIds;
@@ -489,7 +488,7 @@ export const getDuplicatedIds = (layout: IInternalLayout): string[] => {
  * @returns An array of all ids in the layout
  * */
 export const getAllFormItemIds = (layout: IInternalLayout): string[] =>
-  flattenObjectValues(layout.order);
+  ObjectUtils.flattenObjectValues(layout.order);
 
 /**
  * Gets all available componenent types to add for a given container

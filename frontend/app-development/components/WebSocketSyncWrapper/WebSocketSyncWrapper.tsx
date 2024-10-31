@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import React, { useEffect } from 'react';
-import { useWebSocket } from 'app-shared/hooks/useWebSocket';
+import { useWebSocket } from 'app-development/hooks/useWebSocket';
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 import { toast } from 'react-toastify';
 import { SyncSuccessQueriesInvalidator } from 'app-shared/queryInvalidator/SyncSuccessQueriesInvalidator';

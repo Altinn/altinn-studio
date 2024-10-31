@@ -1,0 +1,24 @@
+.pagesRouterContainer {
+  background-color: var(--fds-semantic-surface-action-second-subtle);
+}
+
+.pageIsSelected,
+.pageNavigation {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  border: solid 1px var(--fds-semantic-border-action-second-subtle);
+  padding: var(--fds-spacing-3);
+  cursor: pointer;
+}
+
+.pageIsSelected {
+  border-left: 3px solid var(--semantic-surface-action-default, #0062ba);
+  background-color: white;
+}
+
+.pageNavigation:hover,
+.pageIsSelected:hover {
+  border-left: 3px solid var(--semantic-surface-action-default, #0062ba);
+  background-color: white;
+}

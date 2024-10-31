@@ -25,7 +25,7 @@ namespace Designer.Tests.Fixtures
 
         }
 
-        private static int GetRandomAvailablePort()
+        public static int GetRandomAvailablePort()
         {
             using var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
