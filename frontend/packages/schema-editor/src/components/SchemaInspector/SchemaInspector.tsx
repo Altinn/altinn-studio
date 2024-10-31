@@ -5,10 +5,10 @@ import { isField, isObject } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
+import { StudioLabelAsParagraph } from '@studio/components';
 
 export const SchemaInspector = () => {
   const { t } = useTranslation();
@@ -17,10 +17,9 @@ export const SchemaInspector = () => {
 
   if (!selectedUniquePointer) {
     return (
-      <div>
-        <p className={classes.noItem}>{t('schema_editor.no_item_selected')}</p>
-        <Divider />
-      </div>
+      <StudioLabelAsParagraph size='sm' className={classes.noItem}>
+        {t('schema_editor.no_item_selected')}
+      </StudioLabelAsParagraph>
     );
   }
 

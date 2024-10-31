@@ -32,6 +32,9 @@
 }
 
 .noItem {
-  font-weight: 500;
-  margin: 18px;
+  margin: 0;
+  border-bottom: var(--studio-border-divider);
+  width: 100%;
+  padding-block: var(--fds-spacing-5);
+  text-align: center;
 }

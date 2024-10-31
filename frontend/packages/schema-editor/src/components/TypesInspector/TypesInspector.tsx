@@ -1,11 +1,10 @@
 import type { MouseEvent } from 'react';
 import React from 'react';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypeItem';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
@@ -40,12 +39,9 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
 
   if (!schemaItems) {
     return (
-      <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {t('schema_editor.no_item_selected')}
-        </p>
-        <Divider />
-      </div>
+      <StudioLabelAsParagraph size='sm' className={classes.noItem} id='no-item-paragraph'>
+        {t('schema_editor.no_item_selected')}
+      </StudioLabelAsParagraph>
     );
   }
 
