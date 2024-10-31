@@ -34,6 +34,12 @@ describe('CreateNewSubformLayoutSet ', () => {
     expect(input).toBeInTheDocument();
   });
 
+  it('displays the data model select', async () => {
+    renderCreateNewSubformLayoutSet();
+    const dataModelSelect = screen.getByRole('combobox');
+    expect(dataModelSelect).toBeInTheDocument();
+  });
+
   it('displays the save button', () => {
     renderCreateNewSubformLayoutSet();
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });

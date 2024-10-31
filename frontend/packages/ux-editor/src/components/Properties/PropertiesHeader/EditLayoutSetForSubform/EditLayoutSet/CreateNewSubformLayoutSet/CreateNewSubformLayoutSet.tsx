@@ -24,13 +24,12 @@ export const CreateNewSubformLayoutSet = ({
   const jsonQuery = useDataModelsJsonQuery(org, app);
 
   const createNewSubform = () => {
-    if (!newSubForm || !selectedOption) return;
+    if (!newSubForm) return;
     addLayoutSet({
       layoutSetIdToUpdate: newSubForm,
       layoutSetConfig: {
         id: newSubForm,
         type: 'subform',
-        dataType: selectedOption.label,
       },
     });
     onSubFormCreated(newSubForm);
