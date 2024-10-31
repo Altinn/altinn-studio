@@ -132,6 +132,24 @@ describe('ArrayUtils', () => {
     });
   });
 
+  describe('hasIntersection', () => {
+    it('Returns true when arrays have one common element', () => {
+      expect(ArrayUtils.hasIntersection([1, 2, 3], [3, 4, 5])).toBe(true);
+    });
+
+    it('Returns true when arrays have multiple common elements', () => {
+      expect(ArrayUtils.hasIntersection([1, 2, 3], [3, 2, 5])).toBe(true);
+    });
+
+    it('Returns false when arrays have no common elements', () => {
+      expect(ArrayUtils.hasIntersection([1, 2, 3], [4, 5, 6])).toBe(false);
+    });
+
+    it('Returns false when the arrays are empty', () => {
+      expect(ArrayUtils.hasIntersection([], [])).toBe(false);
+    });
+  });
+
   describe('replaceLastItem', () => {
     it('should replace the last item in an array and return the modified array', () => {
       expect(ArrayUtils.replaceLastItem([1, 2, 3], 99)).toEqual([1, 2, 99]);

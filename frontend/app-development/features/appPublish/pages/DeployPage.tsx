@@ -5,7 +5,7 @@ import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/ReleaseContainer';
 import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
-import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
+import { AltinnContentLoader } from '../components/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from '@digdir/designsystemet-react';
