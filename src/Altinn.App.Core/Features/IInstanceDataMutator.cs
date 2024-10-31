@@ -1,4 +1,7 @@
+using Altinn.App.Core.Features.FileAnalysis;
+using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Features;
@@ -59,4 +62,12 @@ public interface IInstanceDataMutator : IInstanceDataAccessor
     /// Actual removal from storage is not done until the instance is saved.
     /// </summary>
     void RemoveDataElement(DataElementIdentifier dataElementIdentifier);
+
+    /// <summary>
+    /// Stop processing the request with current changes and return a BadRequest with the following issues
+    /// This is intended to be an alternative to a <see cref="IFileAnalyser"/> <see cref="IFileValidator"/>
+    /// pair to ensure that new binary data is not saved if the data is not valid.
+    /// </summary>
+    /// <param name="validationIssues"></param>
+    void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues);
 }

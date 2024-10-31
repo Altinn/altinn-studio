@@ -6,6 +6,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Internal.Data;
@@ -258,8 +259,23 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         }
     }
 
+    internal List<ValidationIssue> AbandonIssues { get; } = [];
+
+    public void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues)
+    {
+        AbandonIssues.AddRange(validationIssues);
+        if (AbandonIssues.Count == 0)
+        {
+            throw new InvalidOperationException("AbandonAllChanges called without any validation issues");
+        }
+    }
+
     public DataElementChanges GetDataElementChanges(bool initializeAltinnRowId)
     {
+        if (AbandonIssues.Count > 0)
+        {
+            throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
+        }
         var changes = new List<DataElementChange>();
 
         // Add form data where the CurrentFormData serializes to a different binary than the PreviousBinaryData
@@ -380,6 +396,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task UpdateInstanceData(DataElementChanges changes)
     {
+        if (AbandonIssues.Count > 0)
+        {
+            throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
+        }
         if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
         {
             throw new InvalidOperationException("Cannot access instance data before it has been created");
@@ -449,6 +469,10 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task SaveChanges(DataElementChanges changes)
     {
+        if (AbandonIssues.Count > 0)
+        {
+            throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
+        }
         var tasks = new List<Task>();
 
         foreach (var change in changes.FormDataChanges)

@@ -172,6 +172,13 @@ public class ActionsController : ControllerBase
             );
         }
 
+        if (dataMutator.AbandonIssues.Count > 0)
+        {
+            throw new NotImplementedException(
+                "return an error response from UserActions instead of abandoning the dataMutator"
+            );
+        }
+
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
         await dataMutator.UpdateInstanceData(changes);

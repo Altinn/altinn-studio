@@ -254,6 +254,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .ContainSingle(p => p.Source == "Required")
             .Which.Issues.Should()
             .BeEmpty();
+        parsedResponse.Instance.Data.Should().ContainSingle(d => d.DataType == prefillDataType);
 
         parsedResponse.NewDataModels.Should().HaveCount(2);
         var newData = parsedResponse

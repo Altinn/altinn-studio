@@ -25,7 +25,7 @@ public sealed class DataElementChanges
     /// <summary>
     /// Get changes to attachments elements
     /// </summary>
-    public IEnumerable<BinaryDataChange> BinaryChanges => AllChanges.OfType<BinaryDataChange>();
+    public IEnumerable<BinaryDataChange> BinaryDataChanges => AllChanges.OfType<BinaryDataChange>();
 }
 
 /// <summary>

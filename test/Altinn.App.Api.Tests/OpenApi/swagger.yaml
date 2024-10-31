@@ -825,6 +825,10 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: ignoredValidators
+          in: query
+          schema:
+            type: string
         - name: language
           in: query
           schema:
@@ -832,6 +836,16 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            text/plain:
+              schema:
+                $ref: '#/components/schemas/DataPostResponse'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPostResponse'
+            text/json:
+              schema:
+                $ref: '#/components/schemas/DataPostResponse'
   '/{org}/{app}/api/datalists/{id}':
     get:
       tags:

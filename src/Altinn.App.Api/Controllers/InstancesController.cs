@@ -1193,6 +1193,25 @@ public class InstancesController : ControllerBase
             var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
             await _patchService.RunDataProcessors(dataMutator, changes, taskId, language);
 
+            if (dataMutator.AbandonIssues.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Data processing failed for one or more data elements, the instance was created, but we try to delete the instance"
+                );
+                await _instanceClient.DeleteInstance(
+                    int.Parse(instance.Id.Split("/")[0], CultureInfo.InvariantCulture),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    hard: true
+                );
+                return new ProblemDetails
+                {
+                    Title = "Data processing failed",
+                    Detail =
+                        "Data processing failed for one or more data elements, the instance was created, but the data was ignored",
+                    Extensions = { { "issues", dataMutator.AbandonIssues }, { "instance", instance } }
+                };
+            }
+
             // Update the changes list if it changed in data processors
             changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
             await dataMutator.UpdateInstanceData(changes);

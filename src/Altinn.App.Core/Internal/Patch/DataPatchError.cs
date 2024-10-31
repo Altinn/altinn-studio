@@ -1,3 +1,5 @@
+using Altinn.App.Core.Features;
+
 namespace Altinn.App.Core.Internal.Patch;
 
 /// <summary>
@@ -40,4 +42,9 @@ public enum DataPatchErrorType
     /// The patch operation lead to an invalid data model.
     /// </summary>
     DeserializationFailed,
+
+    /// <summary>
+    /// The request was abandoned using <see cref="IInstanceDataMutator.AbandonAllChanges"/>
+    /// </summary>
+    AbandonedRequest,
 }

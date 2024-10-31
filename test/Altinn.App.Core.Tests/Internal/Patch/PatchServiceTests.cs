@@ -47,7 +47,6 @@ public sealed class PatchServiceTests : IDisposable
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModelMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
-    private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Strict);
     private readonly TelemetrySink _telemetrySink = new();
     private readonly Mock<IWebHostEnvironment> _webHostEnvironment = new(MockBehavior.Strict);
 
@@ -173,14 +172,9 @@ public sealed class PatchServiceTests : IDisposable
         response.Success.Should().BeTrue();
         response.Ok.Should().NotBeNull();
         var res = response.Ok!;
-        var change = res
-            .UpdatedData.Should()
-            .ContainSingle()
-            .Which.Should()
-            .BeOfType<DataPatchResult.DataModelPair>()
-            .Which;
-        change.Identifier.Id.Should().Be(_dataGuid.ToString());
-        change.Data.Should().BeOfType<MyModel>().Subject.Name.Should().Be("Test Testesen");
+        var change = res.FormDataChanges.FormDataChanges.Should().ContainSingle().Which;
+        change.DataElementIdentifier.Id.Should().Be(_dataGuid.ToString());
+        change.CurrentFormData.Should().BeOfType<MyModel>().Subject.Name.Should().Be("Test Testesen");
         var validator = res.ValidationIssues.Should().ContainSingle().Which;
         validator.Source.Should().Be("formDataValidator");
         var issue = validator.Issues.Should().ContainSingle().Which;

@@ -22,7 +22,7 @@ public class DataPatchResult
     /// <summary>
     /// Get updated data elements that have app logic in a dictionary with the data element id as key.
     /// </summary>
-    public required List<DataModelPair> UpdatedData { get; init; }
+    public required DataElementChanges FormDataChanges { get; init; }
 
     /// <summary>
     /// Store a pair with Id and Data
