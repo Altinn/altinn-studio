@@ -51,7 +51,7 @@
         }
       },
       {
-        "id": "TabsPage-NavigationButtons",
+        "id": "Datepicker-NavigationButtons",
         "type": "NavigationButtons",
         "showBackButton": true,
         "textResourceBindings": {}

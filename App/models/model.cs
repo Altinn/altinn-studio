@@ -143,6 +143,11 @@ namespace Altinn.App.Models.Model
     [JsonPropertyName("checkboxForCard")]
     public string checkboxForCard { get; set; }
 
+    [XmlElement("Numbers", Order = 26)]
+    [JsonProperty("Numbers")]
+    [JsonPropertyName("Numbers")]
+    public Numbers Numbers { get; set; }
+
   }
 
   public class GridExample
@@ -331,6 +336,40 @@ namespace Altinn.App.Models.Model
     [JsonProperty("Answer")]
     [JsonPropertyName("Answer")]
     public string Answer { get; set; }
+
+  }
+
+  public class Numbers
+  {
+    [XmlElement("TotalGjeld", Order = 1)]
+    [JsonProperty("TotalGjeld")]
+    [JsonPropertyName("TotalGjeld")]
+    public decimal? TotalGjeld { get; set; }
+
+    public bool ShouldSerializeTotalGjeld() => TotalGjeld.HasValue;
+
+    [XmlElement("Gjeldsfordeling", Order = 2)]
+    [JsonProperty("Gjeldsfordeling")]
+    [JsonPropertyName("Gjeldsfordeling")]
+    public Gjeldsfordeling Gjeldsfordeling { get; set; }
+
+  }
+
+  public class Gjeldsfordeling
+  {
+    [XmlElement("Prosent", Order = 1)]
+    [JsonProperty("Prosent")]
+    [JsonPropertyName("Prosent")]
+    public decimal? Prosent { get; set; }
+
+    public bool ShouldSerializeProsent() => Prosent.HasValue;
+
+    [XmlElement("Belop", Order = 2)]
+    [JsonProperty("Belop")]
+    [JsonPropertyName("Belop")]
+    public decimal? Belop { get; set; }
+
+    public bool ShouldSerializeBelop() => Belop.HasValue;
 
   }
 }

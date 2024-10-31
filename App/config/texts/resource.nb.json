@@ -245,6 +245,10 @@
       "id": "LikertPage",
       "value": "Likert"
     },
+    { "id": "DatepickerPage", "value": "Datepicker" },
+    { "id": "NumberPage", "value": "Number" },
+    { "id": "TextPage", "value": "Text" },
+    { "id": "DatePage", "value": "Date" },
     { "id": "question-1", "value": "Gjør du leksene dine?" },
     { "id": "question-2", "value": "Fungerer kalkulatoren din?" },
     { "id": "question-3", "value": "Er pulten din ryddig?" },
