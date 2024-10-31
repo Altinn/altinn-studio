@@ -4,7 +4,7 @@ import { SvgTemplate } from './SvgTemplate';
 
 export const DocsResourceIcon = (props: IconProps): React.ReactElement => {
   return (
-    <SvgTemplate width='60' height='60' viewBox='0 0 60 60' {...props}>
+    <SvgTemplate viewBox='0 0 60 60' {...props}>
       <circle cx='30' cy='30' r='30' fill='#022F51' />
       <path
         d='M41 44H20V16H41V44ZM21.2353 42.7826H39.7647V17.2174H21.2353V42.7826Z'

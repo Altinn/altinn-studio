@@ -20,37 +20,37 @@ const resources: Resource[] = [
     label: 'dashboard.resource_docs_label',
     description: 'dashboard.resource_docs_description',
     url: altinnDocsUrl(),
-    icon: <DocsResourceIcon />,
+    icon: <DocsResourceIcon width='60' height='60' />,
   },
   {
     label: 'dashboard.resource_organisations_label',
     description: 'dashboard.resource_organisations_description',
     url: `${window.location.origin}/repos/explore/organizations`,
-    icon: <OrgResourceIcon />,
+    icon: <OrgResourceIcon width='60' height='60' />,
   },
   {
     label: 'dashboard.resource_contact_label',
     description: 'dashboard.resource_contact_description',
     url: 'https://altinn.studio/contact',
-    icon: <ContactResourceIcon />,
+    icon: <ContactResourceIcon width='60' height='60' />,
   },
   {
     label: 'dashboard.resource_design_label',
     description: 'dashboard.resource_design_description',
     url: 'https://www.figma.com/file/wnBveAG2ikUspFsQwM3GNE/Prototyping-av-skjematjenester?node-id=47%3A4068',
-    icon: <DesignResourceIcon />,
+    icon: <DesignResourceIcon width='60' height='60' />,
   },
   {
     label: 'dashboard.resource_roadmap_label',
     description: 'dashboard.resource_roadmap_description',
     url: altinnDocsUrl({ relativeUrl: 'community/roadmap/' }),
-    icon: <RoadmapResourceIcon />,
+    icon: <RoadmapResourceIcon width='60' height='60' />,
   },
   {
     label: 'dashboard.resource_status_label',
     description: 'dashboard.resource_status_description',
     url: 'https://status.digdir.no/',
-    icon: <OperationStatusResourceIcon />,
+    icon: <OperationStatusResourceIcon width='60' height='60' />,
   },
 ];
 

@@ -4,7 +4,7 @@ import { SvgTemplate } from './SvgTemplate';
 
 export const ContactResourceIcon = (props: IconProps): React.ReactElement => {
   return (
-    <SvgTemplate width='60' height='60' viewBox='0 0 60 60' {...props}>
+    <SvgTemplate viewBox='0 0 60 60' {...props}>
       <circle cx='30' cy='30' r='30' fill='#022F51' />
       <path
         d='M21.303 33.9574C21.303 35.6919 19.886 37.1089 18.1515 37.1089C16.4169 37.1089 15 35.6919 15 33.9574C15 32.2229 16.4169 30.8059 18.1515 30.8059H21.303V33.9574Z'
