@@ -2,65 +2,46 @@ import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './v
 import type { CodeList } from '../types/CodeList';
 import type { ValueErrorMap } from '../types/ValueErrorMap';
 
+const validCodeList: CodeList = [
+  {
+    value: 'value1',
+    label: 'Label 1',
+  },
+  {
+    value: 'value2',
+    label: 'Label 2',
+  },
+];
+const codeListWithDuplicateValues: CodeList = [
+  {
+    value: 'value1',
+    label: 'Label 1',
+  },
+  {
+    value: 'value1',
+    label: 'Label 2',
+  },
+];
+
 describe('validation', () => {
   describe('isCodeListValid', () => {
     it('Returns true when there are no errors', () => {
-      const codeList: CodeList = [
-        {
-          value: 'value1',
-          label: 'Label 1',
-        },
-        {
-          value: 'value2',
-          label: 'Label 2',
-        },
-      ];
-      expect(isCodeListValid(codeList)).toBe(true);
+      expect(isCodeListValid(validCodeList)).toBe(true);
     });
 
     it('Returns false when there are errors', () => {
-      const codeListWithEmptyValue: CodeList = [
-        {
-          value: 'value2',
-          label: 'Label 1',
-        },
-        {
-          value: 'value2',
-          label: 'Label 2',
-        },
-      ];
-      expect(isCodeListValid(codeListWithEmptyValue)).toBe(false);
+      expect(isCodeListValid(codeListWithDuplicateValues)).toBe(false);
     });
   });
 
   describe('findCodeListErrors', () => {
     it('Returns a corresponding array with null values only when there are no errors', () => {
-      const codeList: CodeList = [
-        {
-          value: 'value1',
-          label: 'Label 1',
-        },
-        {
-          value: 'value2',
-          label: 'Label 2',
-        },
-      ];
-      const errors = findCodeListErrors(codeList);
+      const errors = findCodeListErrors(validCodeList);
       expect(errors).toEqual([null, null] satisfies ValueErrorMap);
     });
 
     it('Returns an array with code word "duplicateValue" corresponding to duplicate values', () => {
-      const codeList: CodeList = [
-        {
-          value: 'value1',
-          label: 'label1',
-        },
-        {
-          value: 'value1',
-          label: 'label2',
-        },
-      ];
-      const errors = findCodeListErrors(codeList);
+      const errors = findCodeListErrors(codeListWithDuplicateValues);
       expect(errors).toEqual(['duplicateValue', 'duplicateValue'] satisfies ValueErrorMap);
     });
   });
