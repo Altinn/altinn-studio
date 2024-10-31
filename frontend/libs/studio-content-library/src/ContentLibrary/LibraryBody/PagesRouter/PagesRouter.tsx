@@ -10,7 +10,7 @@ type PagesRouterProps = {
 
 export function PagesRouter({ pageNames }: PagesRouterProps): React.ReactElement {
   const { navigate, currentPage } = useRouterContext();
-  const { getContentTabs } = useContentTabs();
+  const contentTabs = useContentTabs();
 
   const handleNavigation = (pageToNavigateTo: PageName) => {
     navigate(pageToNavigateTo);
@@ -20,11 +20,11 @@ export function PagesRouter({ pageNames }: PagesRouterProps): React.ReactElement
     <StudioContentMenu selectedTabId={currentPage} onChangeTab={handleNavigation}>
       {pageNames.map((pageName) => (
         <StudioContentMenu.LinkTab
-          key={getContentTabs()[pageName].tabId}
-          icon={getContentTabs()[pageName].icon}
-          tabId={getContentTabs()[pageName].tabId}
-          tabName={getContentTabs()[pageName].tabName}
-          renderTab={getContentTabs()[pageName].renderTab}
+          key={contentTabs[pageName].tabId}
+          icon={contentTabs[pageName].icon}
+          tabId={contentTabs[pageName].tabId}
+          tabName={contentTabs[pageName].tabName}
+          renderTab={contentTabs[pageName].renderTab}
         />
       ))}
     </StudioContentMenu>

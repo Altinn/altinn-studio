@@ -8,14 +8,10 @@ import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
 
 type TabDictionary<T extends string> = Record<T, StudioContentMenuLinkTabProps<T>>;
 
-type useContentTabsReturnType = {
-  getContentTabs: () => TabDictionary<PageName>;
-};
-
-export const useContentTabs = (): useContentTabsReturnType => {
+export const useContentTabs = (): TabDictionary<PageName> => {
   const { t } = useTranslation();
 
-  const getContentTabs = (): TabDictionary<PageName> => ({
+  return {
     landingPage: {
       tabName: t('app_content_library.landing_page.page_name'),
       tabId: 'landingPage',
@@ -34,7 +30,5 @@ export const useContentTabs = (): useContentTabsReturnType => {
       icon: <ImageIcon />,
       renderTab: (props) => <Link to={`?${pageRouterQueryParamKey}=images`} {...props} />,
     },
-  });
-
-  return { getContentTabs };
+  };
 };
