@@ -21,7 +21,7 @@ describe('readonly data models', () => {
     const today = new Date();
     const age1 = 36;
     const y1 = today.getFullYear() - age1;
-    const m = today.getMonth().toString().padStart(2, '0');
+    const m = (today.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
     const d = today.getDate().toString().padStart(2, '0');
     const age2 = 25;
     const y2 = today.getFullYear() - age2;
@@ -42,13 +42,14 @@ describe('readonly data models', () => {
       .first()
       .click();
 
+    const errorReportTitle = /Du må rette disse feilene før du kan gå videre/i;
     cy.gotoNavPage('Side6');
     cy.findByRole('radio', { name: /kåre/i }).dsCheck();
-    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByText(errorReportTitle).should('not.exist');
     cy.findByRole('button', { name: /send inn/i }).click();
 
     cy.findByRole('heading', { name: /fra forrige steg/i }).should('be.visible');
-    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByText(errorReportTitle).should('not.exist');
 
     cy.get(appFrontend.multipleDatamodelsTest.textField1Summary).should('contain.text', 'første');
     cy.get(appFrontend.multipleDatamodelsTest.textField2Summary).should('contain.text', 'andre');
@@ -93,7 +94,7 @@ describe('readonly data models', () => {
     cy.waitUntilSaved();
     cy.then(() => expect(formDataRequests.length).to.be.eq(4));
 
-    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByText(errorReportTitle).should('not.exist');
 
     // Test with autoSaveBehavior onChangePage in order to test that requestManualSave works as expected
     cy.interceptLayoutSetsUiSettings({ autoSaveBehavior: 'onChangePage' });
@@ -119,7 +120,7 @@ describe('readonly data models', () => {
     cy.waitUntilSaved();
 
     cy.then(() => expect(formDataRequests.length).to.be.eq(1));
-    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByText(errorReportTitle).should('not.exist');
 
     cy.findByRole('button', { name: /tilbake/i }).click();
     cy.findByRole('button', { name: /send inn/i }).click();
@@ -129,6 +130,6 @@ describe('readonly data models', () => {
     cy.get(appFrontend.multipleDatamodelsTest.textField2Paragraph).should('contain.text', 'andre');
     cy.get(appFrontend.multipleDatamodelsTest.textField3Summary).should('contain.text', 'Noe annet denne gangen');
 
-    cy.get(appFrontend.errorReport).should('not.exist');
+    cy.findByText(errorReportTitle).should('not.exist');
   });
 });

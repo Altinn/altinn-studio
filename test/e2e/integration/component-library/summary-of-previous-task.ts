@@ -26,7 +26,10 @@ describe('Render summary of previous task', () => {
     uploadFileAndVerify(fileName);
     uploadFileWithTagAndVerify(fileName, fileType);
 
-    cy.get('#navigation-menu').find('button').contains('16. Oppsummering 2.0').click();
+    cy.findByRole('button', { name: /Datepicker/i }).click();
+    cy.findByRole('textbox', { name: /datofeltet/i }).type('01.01.2022');
+
+    cy.get('#navigation-menu').find('button').contains('Oppsummering 2.0').click();
 
     cy.contains('button', 'Send inn').click();
 
@@ -42,7 +45,7 @@ describe('Render summary of previous task', () => {
     cy.contains(fileName);
     cy.contains(fileType);
 
-    cy.get('#navigation-menu').find('button').contains('2. Oppsummering av side fra tidligere Task').click();
+    cy.get('#navigation-menu').find('button').contains('Oppsummering av side fra tidligere Task').click();
 
     // Assert that the address data is rendered on the next page as we are showing the Address page.
     // None of the other data should be shown
@@ -60,7 +63,7 @@ describe('Render summary of previous task', () => {
 
     // Assert that the input field data is rendered on the next page as we are showing the Input component.
     // None of the other data should be shown
-    cy.get('#navigation-menu').find('button').contains('3. Oppsummering av komponent fra tidligere Task').click();
+    cy.get('#navigation-menu').find('button').contains('Oppsummering av komponent fra tidligere Task').click();
 
     cy.get('body').should('not.contain', inputText);
     cy.contains(address);
