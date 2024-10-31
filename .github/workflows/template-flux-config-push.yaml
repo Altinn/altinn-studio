@@ -41,10 +41,10 @@ on:
         required: true
       subscription-id:
         required: true
-      trace-connetion-string:
-        required: false
+      trace-connection-string:
+        required: true
       trace-repo-token:
-        required: false
+        required: true
 
 jobs:
   config-oci-artifact-push:
@@ -103,7 +103,7 @@ jobs:
         if: ${{ inputs.trace-workflow }}
         uses: altinn/altinn-platform/actions/send-ci-cd-trace@v1.0.0
         with:
-            connection_string: ${{ secrets.trace-connetion-string }}
+            connection_string: ${{ secrets.trace-connection-string }}
             app: "${{ inputs.artifact-name }}"
             team: "${{ inputs.trace-team-name }}"
             repo_token: ${{ secrets.trace-repo-token }}

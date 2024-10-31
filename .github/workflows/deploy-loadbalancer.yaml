@@ -53,5 +53,6 @@ jobs:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
-      trace-connetion-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
+      trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
       trace-repo-token: ${{ secrets.GITHUB_TOKEN }}
+      environment: ${{ matrix.environment }}
