@@ -38,6 +38,7 @@ export const SubformDataModelSelect = ({
       value={selectedOption?.value.repositoryRelativeUrl || ''}
       size='small'
     >
+      <option value='' hidden></option>
       {options.map((option) => (
         <option value={option.value.repositoryRelativeUrl} key={option.value.repositoryRelativeUrl}>
           {option.label}
