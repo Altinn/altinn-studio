@@ -7,11 +7,10 @@ using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Instances;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using AltinnCore.Authentication.Utils;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,32 +25,28 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage;
 public class InstanceClient : IInstanceClient
 {
     private readonly ILogger _logger;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserTokenProvider _userTokenProvider;
     private readonly HttpClient _client;
     private readonly Telemetry? _telemetry;
-    private readonly AppSettings _settings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="InstanceClient"/> class.
     /// </summary>
     /// <param name="platformSettings">the platform settings</param>
     /// <param name="logger">the logger</param>
-    /// <param name="httpContextAccessor">The http context accessor </param>
+    /// <param name="userTokenProvider">Get user token from httpContext</param>
     /// <param name="httpClient">A HttpClient that can be used to perform HTTP requests against the platform.</param>
-    /// <param name="settings">The application settings.</param>
     /// <param name="telemetry">Telemetry for traces and metrics.</param>
     public InstanceClient(
         IOptions<PlatformSettings> platformSettings,
         ILogger<InstanceClient> logger,
-        IHttpContextAccessor httpContextAccessor,
+        IUserTokenProvider userTokenProvider,
         HttpClient httpClient,
-        IOptionsMonitor<AppSettings> settings,
         Telemetry? telemetry = null
     )
     {
         _logger = logger;
-        _httpContextAccessor = httpContextAccessor;
-        _settings = settings.CurrentValue;
+        _userTokenProvider = userTokenProvider;
         httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
         httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -67,7 +62,7 @@ public class InstanceClient : IInstanceClient
         string instanceIdentifier = $"{instanceOwnerPartyId}/{instanceId}";
 
         string apiUrl = $"instances/{instanceIdentifier}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
         if (response.StatusCode == HttpStatusCode.OK)
@@ -102,7 +97,7 @@ public class InstanceClient : IInstanceClient
         using var activity = _telemetry?.StartGetInstancesActivity();
         var apiUrl = QueryHelpers.AddQueryString("instances", queryParams);
 
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
         QueryResponse<Instance> queryResponse = await QueryInstances(token, apiUrl);
 
         if (queryResponse.Count == 0)
@@ -146,7 +141,7 @@ public class InstanceClient : IInstanceClient
         ProcessState processState = instance.Process;
 
         string apiUrl = $"instances/{instance.Id}/process";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         string processStateString = JsonConvert.SerializeObject(processState);
         _logger.LogInformation($"update process state: {processStateString}");
@@ -172,7 +167,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartCreateInstanceActivity();
         string apiUrl = $"instances?appId={org}/{app}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         StringContent content = new(JsonConvert.SerializeObject(instanceTemplate), Encoding.UTF8, "application/json");
         HttpResponseMessage response = await _client.PostAsync(token, apiUrl, content);
@@ -198,7 +193,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartCompleteConfirmationActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/complete";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.PostAsync(token, apiUrl, new StringContent(string.Empty));
 
@@ -219,7 +214,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartUpdateReadStatusActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/readstatus?status={readStatus}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.PutAsync(token, apiUrl, new StringContent(string.Empty));
 
@@ -244,7 +239,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartUpdateSubStatusActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/substatus";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.PutAsync(
             token,
@@ -272,7 +267,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartUpdatePresentationTextActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/presentationtexts";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.PutAsync(
             token,
@@ -296,7 +291,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartUpdateDataValuesActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/datavalues";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.PutAsync(
             token,
@@ -320,7 +315,7 @@ public class InstanceClient : IInstanceClient
     {
         using var activity = _telemetry?.StartDeleteInstanceActivity(instanceGuid, instanceOwnerPartyId);
         string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}?hard={hard}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+        string token = _userTokenProvider.GetUserToken();
 
         HttpResponseMessage response = await _client.DeleteAsync(token, apiUrl);
 

@@ -1,13 +1,12 @@
-#nullable disable
 using System.Net;
 using System.Text;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -19,21 +18,18 @@ namespace Altinn.App.PlatformServices.Tests.Implementation;
 
 public sealed class InstanceClientTests : IDisposable
 {
-    private readonly Mock<IOptions<PlatformSettings>> platformSettingsOptions;
-    private readonly Mock<IOptionsMonitor<AppSettings>> appSettingsOptions;
-    private readonly Mock<HttpMessageHandler> handlerMock;
-    private readonly Mock<IHttpContextAccessor> contextAccessor;
-    private readonly Mock<ILogger<InstanceClient>> logger;
-    private readonly TelemetrySink telemetry;
+    private readonly Mock<IOptions<PlatformSettings>> _platformSettingsOptions;
+    private readonly Mock<HttpMessageHandler> _handlerMock;
+    private readonly Mock<IUserTokenProvider> _userTokenProvider = new(MockBehavior.Strict);
+    private readonly Mock<ILogger<InstanceClient>> _logger;
+    private readonly TelemetrySink _telemetry;
 
     public InstanceClientTests()
     {
-        platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
-        appSettingsOptions = new Mock<IOptionsMonitor<AppSettings>>();
-        handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-        contextAccessor = new Mock<IHttpContextAccessor>();
-        logger = new Mock<ILogger<InstanceClient>>();
-        telemetry = new TelemetrySink();
+        _platformSettingsOptions = new Mock<IOptions<PlatformSettings>>();
+        _handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+        _logger = new Mock<ILogger<InstanceClient>>();
+        _telemetry = new TelemetrySink();
     }
 
     [Fact]
@@ -56,24 +52,23 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["complete"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
         // Act
         await target.AddCompleteConfirmation(1337, Guid.NewGuid());
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
 
-        await Verify(telemetry.GetSnapshot());
+        await Verify(_telemetry.GetSnapshot());
     }
 
     [Fact]
@@ -88,18 +83,17 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["complete"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
-        PlatformHttpException actualException = null;
+        PlatformHttpException? actualException = null;
 
         // Act
         try
@@ -112,7 +106,7 @@ public sealed class InstanceClientTests : IDisposable
         }
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
 
         Assert.NotNull(actualException);
     }
@@ -129,18 +123,17 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["read"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
-        PlatformHttpException actualException = null;
+        PlatformHttpException? actualException = null;
 
         // Act
         try
@@ -153,7 +146,7 @@ public sealed class InstanceClientTests : IDisposable
         }
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
 
         Assert.Null(actualException);
     }
@@ -172,15 +165,14 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["read"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
         // Act
@@ -188,7 +180,7 @@ public sealed class InstanceClientTests : IDisposable
 
         // Assert
         Assert.Equal(expected.Status.ReadStatus, actual.Status.ReadStatus);
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
     }
 
     [Fact]
@@ -211,15 +203,14 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["substatus"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
         // Act
@@ -232,7 +223,7 @@ public sealed class InstanceClientTests : IDisposable
         // Assert
         Assert.Equal(expected.Status.Substatus.Label, actual.Status.Substatus.Label);
         Assert.Equal(expected.Status.Substatus.Description, actual.Status.Substatus.Description);
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
     }
 
     [Fact]
@@ -247,18 +238,17 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["substatus"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
-        PlatformHttpException actualException = null;
+        PlatformHttpException? actualException = null;
 
         // Act
         try
@@ -271,7 +261,7 @@ public sealed class InstanceClientTests : IDisposable
         }
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
 
         Assert.NotNull(actualException);
     }
@@ -297,15 +287,14 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["1337"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
         // Act
@@ -313,7 +302,7 @@ public sealed class InstanceClientTests : IDisposable
 
         // Assert
         Assert.Equal("1337", actual.InstanceOwner.PartyId);
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
     }
 
     [Fact]
@@ -330,18 +319,17 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["1337"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
-        PlatformHttpException actualException = null;
+        PlatformHttpException? actualException = null;
 
         // Act
         try
@@ -354,7 +342,7 @@ public sealed class InstanceClientTests : IDisposable
         }
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
 
         Assert.NotNull(actualException);
     }
@@ -373,18 +361,17 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["1337"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
-        PlatformHttpException actualException = null;
+        PlatformHttpException? actualException = null;
 
         // Act
         try
@@ -397,7 +384,7 @@ public sealed class InstanceClientTests : IDisposable
         }
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
 
         Assert.NotNull(actualException);
     }
@@ -423,22 +410,21 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage], ["presentationtexts"]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
         // Act
         await target.UpdatePresentationTexts(instanceOwnerId, instanceGuid, new PresentationTexts());
 
         // Assert
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
     }
 
     [Fact]
@@ -480,15 +466,14 @@ public sealed class InstanceClientTests : IDisposable
 
         InitializeMocks([httpResponseMessage1, httpResponseMessage2], [urlPart1, urlPart2]);
 
-        HttpClient httpClient = new HttpClient(handlerMock.Object);
+        HttpClient httpClient = new HttpClient(_handlerMock.Object);
 
         InstanceClient target = new InstanceClient(
-            platformSettingsOptions.Object,
-            logger.Object,
-            contextAccessor.Object,
+            _platformSettingsOptions.Object,
+            _logger.Object,
+            _userTokenProvider.Object,
             httpClient,
-            appSettingsOptions.Object,
-            telemetry.Object
+            _telemetry.Object
         );
 
         Dictionary<string, StringValues> queryParams =
@@ -505,7 +490,7 @@ public sealed class InstanceClientTests : IDisposable
 
         // Assert
         Assert.Equal(2, instances.Count);
-        handlerMock.VerifyAll();
+        _handlerMock.VerifyAll();
     }
 
     private void InitializeMocks(HttpResponseMessage[] httpResponseMessages, string[] urlPart)
@@ -515,21 +500,18 @@ public sealed class InstanceClientTests : IDisposable
             ApiStorageEndpoint = "http://localhost",
             SubscriptionKey = "key"
         };
-        platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
+        _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 
-        AppSettings appSettings = new AppSettings { RuntimeCookieName = "AltinnStudioRuntime" };
-        appSettingsOptions.Setup(s => s.CurrentValue).Returns(appSettings);
-
-        contextAccessor.Setup(s => s.HttpContext).Returns(new DefaultHttpContext());
+        _userTokenProvider.Setup(s => s.GetUserToken()).Returns("userToken");
 
         if (httpResponseMessages.Length == 2)
         {
-            handlerMock
+            _handlerMock
                 .Protected()
                 .SetupSequence<Task<HttpResponseMessage>>(
                     "SendAsync",
                     ItExpr.Is<HttpRequestMessage>(p =>
-                        p.RequestUri.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])
+                        p.RequestUri!.ToString().Contains(urlPart[0]) || p.RequestUri.ToString().Contains(urlPart[1])
                     ),
                     ItExpr.IsAny<CancellationToken>()
                 )
@@ -538,11 +520,11 @@ public sealed class InstanceClientTests : IDisposable
         }
         else
         {
-            handlerMock
+            _handlerMock
                 .Protected()
                 .Setup<Task<HttpResponseMessage>>(
                     "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri.ToString().Contains(urlPart[0])),
+                    ItExpr.Is<HttpRequestMessage>(p => p.RequestUri!.ToString().Contains(urlPart[0])),
                     ItExpr.IsAny<CancellationToken>()
                 )
                 .ReturnsAsync(httpResponseMessages[0])
@@ -552,6 +534,6 @@ public sealed class InstanceClientTests : IDisposable
 
     public void Dispose()
     {
-        telemetry.Dispose();
+        _telemetry.Dispose();
     }
 }
