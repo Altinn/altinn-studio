@@ -12,7 +12,7 @@ import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecific
 import { useAppContext } from '../../hooks';
 import { EditImage } from '../config/editModal/EditImage';
 import classes from './Text.module.css';
-import { EditSubFormTableColumns } from './EditSubFormTableColumns';
+import { EditSubformTableColumns } from './EditSubformTableColumns';
 import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';
 
 export const Text = () => {
@@ -77,8 +77,8 @@ export const Text = () => {
           <EditImage component={form} handleComponentChange={handleComponentChange} />
         </>
       )}
-      {form.type === ComponentType.SubForm && (
-        <EditSubFormTableColumns component={form} handleComponentChange={handleComponentChange} />
+      {form.type === ComponentType.Subform && (
+        <EditSubformTableColumns component={form} handleComponentChange={handleComponentChange} />
       )}
     </>
   );

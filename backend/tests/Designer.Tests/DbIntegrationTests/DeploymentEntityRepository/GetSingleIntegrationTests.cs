@@ -17,7 +17,7 @@ public class GetSingleIntegrationTests : DeploymentEntityIntegrationTestsBase
     [InlineData("ttd")]
     public async Task Get_ShouldReturnRecordFromDatabase(string org)
     {
-        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(org);
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org);
         await PrepareEntityInDatabase(deploymentEntity);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);

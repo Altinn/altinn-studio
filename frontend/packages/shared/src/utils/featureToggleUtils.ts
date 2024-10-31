@@ -10,6 +10,7 @@ export type SupportedFeatureFlags =
   | 'resourceMigration'
   | 'multipleDataModelsPerTask'
   | 'exportForm'
+  | 'addComponentModal'
   | 'subform'
   | 'summary2'
   | 'codeListEditor';

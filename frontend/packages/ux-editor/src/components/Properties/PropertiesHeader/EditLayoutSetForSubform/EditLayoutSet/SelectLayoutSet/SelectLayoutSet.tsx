@@ -5,23 +5,26 @@ import classes from './SelectLayoutSet.module.css';
 import { EditLayoutSetButtons } from './EditLayoutSetButtons/EditLayoutSetButtons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { SubFormUtilsImpl } from '../../../../../../classes/SubFormUtils';
+import { SubformUtilsImpl } from '../../../../../../classes/SubformUtils';
+import cn from 'classnames';
 
 type SelectLayoutSetProps = {
-  existingLayoutSetForSubForm: string;
+  existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
   onSetLayoutSetSelectorVisible: (visible: boolean) => void;
+  showButtons?: boolean;
 };
 
 export const SelectLayoutSet = ({
-  existingLayoutSetForSubForm,
+  existingLayoutSetForSubform,
   onUpdateLayoutSet,
   onSetLayoutSetSelectorVisible,
+  showButtons,
 }: SelectLayoutSetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const subFormUtils = new SubFormUtilsImpl(layoutSets.sets);
+  const subformUtils = new SubformUtilsImpl(layoutSets.sets);
 
   const addLinkToLayoutSet = (layoutSetId: string): void => {
     onUpdateLayoutSet(layoutSetId);
@@ -48,22 +51,29 @@ export const SelectLayoutSet = ({
   };
 
   return (
-    <div className={classes.selectLayoutSet}>
+    <div
+      className={cn(classes.selectLayoutSet, {
+        [classes.selectLayoutSetwithPadding]: existingLayoutSetForSubform,
+      })}
+    >
       <StudioNativeSelect
+        className={classes.layoutSetsOption}
         size='small'
         onChange={handleLayoutSetChange}
         label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
-        defaultValue={existingLayoutSetForSubForm}
+        defaultValue={existingLayoutSetForSubform}
         onBlur={closeLayoutSetSelector}
       >
         <option value=''>{t('ux_editor.component_properties.subform.choose_layout_set')}</option>
-        {subFormUtils.subformLayoutSetsIds.map((option) => (
+        {subformUtils.subformLayoutSetsIds.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>
         ))}
       </StudioNativeSelect>
-      <EditLayoutSetButtons onClose={closeLayoutSetSelector} onDelete={deleteLinkToLayoutSet} />
+      {showButtons && (
+        <EditLayoutSetButtons onClose={closeLayoutSetSelector} onDelete={deleteLinkToLayoutSet} />
+      )}
     </div>
   );
 };
