@@ -141,7 +141,9 @@
           "type": "object",
           "properties": {
             "Prosent": {
-              "type": "number"
+              "type": "number",
+              "maximum": 100,
+              "minimum": 0
             },
             "Belop": {
               "type": "number"
