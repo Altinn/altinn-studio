@@ -22,7 +22,7 @@ import { StudioParagraph } from '../StudioParagraph';
 import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { StudioErrorMessage } from '../StudioErrorMessage';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -173,7 +173,7 @@ function Errors({ errorMap }: ErrorsProps): ReactElement {
     texts: { generalError },
   } = useStudioCodeListEditorContext();
   if (areThereCodeListErrors(errorMap)) {
-    return <ErrorMessage>{generalError}</ErrorMessage>;
+    return <StudioErrorMessage>{generalError}</StudioErrorMessage>;
   } else {
     return null;
   }
