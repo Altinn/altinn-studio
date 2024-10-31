@@ -15,14 +15,35 @@
           "title": "Number"
         }
       },
+
       {
-        "id": "numberPercentageInput",
+        "id": "totalDebt",
         "type": "Input",
-        "dataModelBindings": { "simpleBinding": "numberPercentage" },
-        "textResourceBindings": {
-          "title": "Prosent"
+        "dataModelBindings": {
+          "simpleBinding": "Numbers.TotalGjeld"
         },
-        "hidden": true,
+        "textResourceBindings": {
+          "title": "Total Gjeld"
+        },
+        "formatting": {
+          "currency": "NOK"
+        },
+        "grid": {
+          "xs": 6
+        }
+      },
+      {
+        "id": "creditPercentage",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "Numbers.Gjeldsfordeling.Prosent"
+        },
+        "textResourceBindings": {
+          "title": "Kredittkort prosent"
+        },
+        "formatting": {
+          "unit": "percent"
+        },
         "grid": {
           "xs": 6
         }
@@ -33,7 +54,7 @@
         "textResourceBindings": {
           "title": "Total gjeld"
         },
-        "value": 2500000,
+        "value": ["dataModel", "Numbers.TotalGjeld"],
         "direction": "horizontal",
         "formatting": {
           "currency": "NOK",
@@ -73,7 +94,7 @@
           "description": "",
           "helpText": ""
         },
-        "value": ["dataModel", "numberPercentage"],
+        "value": ["dataModel", "Numbers.Gjeldsfordeling.Prosent"],
         "direction": "horizontal",
         "formatting": {
           "unit": "percent",
