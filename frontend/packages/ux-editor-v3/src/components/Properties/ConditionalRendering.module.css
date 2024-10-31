@@ -22,5 +22,5 @@
 }
 
 .conditionalRenderingWrapper {
-  border-top: var(--studio-border-divider);
+  border-bottom: var(--studio-border-divider);
 }
