@@ -1711,6 +1711,7 @@
   "ux_editor.properties_panel.subform_table_columns.add_column": "Legg til kolonne",
   "ux_editor.properties_panel.subform_table_columns.cell_content_default_label": "Default",
   "ux_editor.properties_panel.subform_table_columns.cell_content_query_label": "Query",
+  "ux_editor.properties_panel.subform_table_columns.choose_component": "Velg komponenten fra underskjemaet som skal vises her",
   "ux_editor.properties_panel.subform_table_columns.column_header": "Kolonne {{columnNumber}}",
   "ux_editor.properties_panel.subform_table_columns.delete_column": "Slett kolonne {{columnNumber}}",
   "ux_editor.properties_panel.subform_table_columns.header_content_label": "Header Content",
