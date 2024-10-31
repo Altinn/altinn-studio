@@ -1,6 +1,11 @@
+.header {
+  border-bottom: var(--studio-border-divider);
+  padding-bottom: var(--fds-spacing-5);
+}
+
 .resourcesContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  padding-top: 20px;
+  gap: var(--fds-spacing-5);
+  padding-top: var(--fds-spacing-5);
 }
