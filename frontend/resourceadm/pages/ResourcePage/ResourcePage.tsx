@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
@@ -17,21 +17,21 @@ import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
 import {
+  ArrowLeftIcon,
   GavelSoundBlockIcon,
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
+import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { StudioContentMenu } from '@studio/components';
 
 /**
  * @component
@@ -144,8 +144,8 @@ export const ResourcePage = (): React.JSX.Element => {
   };
 
   const closeNavigationModals = (): void => {
-    policyErrorModalRef.current.close();
-    resourceErrorModalRef.current.close();
+    policyErrorModalRef.current?.close();
+    resourceErrorModalRef.current?.close();
   };
 
   /**
@@ -184,48 +184,6 @@ export const ResourcePage = (): React.JSX.Element => {
   const migrationPageId = 'migration';
   const accessListsPageId = 'accesslists';
 
-  const leftNavigationTabs: LeftNavigationTab[] = [
-    createNavigationTab(
-      <InformationSquareIcon className={classes.icon} />,
-      aboutPageId,
-      () => navigateToPage(aboutPageId),
-      currentPage,
-      getResourcePageURL(org, app, resourceId, 'about'),
-    ),
-    createNavigationTab(
-      <GavelSoundBlockIcon className={classes.icon} />,
-      policyPageId,
-      () => navigateToPage(policyPageId),
-      currentPage,
-      getResourcePageURL(org, app, resourceId, 'policy'),
-    ),
-    createNavigationTab(
-      <UploadIcon className={classes.icon} />,
-      deployPageId,
-      () => navigateToPage(deployPageId),
-      currentPage,
-      getResourcePageURL(org, app, resourceId, 'deploy'),
-    ),
-  ];
-
-  const migrationTab: LeftNavigationTab = createNavigationTab(
-    <MigrationIcon className={classes.icon} />,
-    migrationPageId,
-    () => navigateToPage(migrationPageId),
-    currentPage,
-    getResourcePageURL(org, app, resourceId, 'migration'),
-  );
-
-  /**
-   * Gets the tabs to display. If showMigrate is true, the migration tab
-   * is added, otherwise it displays the three initial tabs.
-   *
-   * @returns the tabs to display in the LeftNavigationBar
-   */
-  const getTabs = (): LeftNavigationTab[] => {
-    return isMigrateEnabled() ? [...leftNavigationTabs, migrationTab] : leftNavigationTabs;
-  };
-
   /**
    * Saves the resource
    */
@@ -239,15 +197,47 @@ export const ResourcePage = (): React.JSX.Element => {
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
-        <LeftNavigationBar
-          upperTab='backButton'
-          tabs={getTabs()}
-          backLink={getResourceDashboardURL(org, app)}
-          backLinkText={t('resourceadm.left_nav_bar_back')}
-          selectedTab={
+        <StudioContentMenu
+          onChangeTab={(tabId: NavigationBarPage) => {
+            if (tabId !== 'back') {
+              navigateToPage(tabId);
+            }
+          }}
+          selectedTabId={
             currentPage === migrationPageId && !isMigrateEnabled() ? aboutPageId : currentPage
           }
-        />
+        >
+          <StudioContentMenu.LinkTab
+            tabId={'back'}
+            tabName={t('resourceadm.left_nav_bar_back')}
+            icon={<ArrowLeftIcon className={classes.icon} />}
+            renderTab={(props) => {
+              return <Link to={getResourceDashboardURL(org, app)} {...props} />;
+            }}
+          />
+          <StudioContentMenu.ButtonTab
+            tabId={'about'}
+            tabName={t('resourceadm.left_nav_bar_about')}
+            icon={<InformationSquareIcon className={classes.icon} />}
+          />
+          <StudioContentMenu.ButtonTab
+            tabId={'policy'}
+            tabName={t('resourceadm.left_nav_bar_policy')}
+            icon={<GavelSoundBlockIcon className={classes.icon} />}
+          />
+          <StudioContentMenu.ButtonTab
+            tabId={'deploy'}
+            tabName={t('resourceadm.left_nav_bar_deploy')}
+            icon={<UploadIcon className={classes.icon} />}
+          />
+          {isMigrateEnabled() && (
+            <StudioContentMenu.ButtonTab
+              tabId={'migration'}
+              tabName={t('resourceadm.left_nav_bar_migration')}
+              icon={<MigrationIcon className={classes.icon} />}
+            />
+          )}
+        </StudioContentMenu>
       </div>
       {resourcePending || !resourceData ? (
         <div className={classes.spinnerWrapper}>
