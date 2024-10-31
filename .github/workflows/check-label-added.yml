@@ -1,7 +1,7 @@
-name: "Label Check"
+name: 'Label Check'
 on:
   pull_request:
-    types: [opened, edited, labeled, unlabeled, synchronize]
+    types: [opened, labeled, unlabeled]
 
 jobs:
   check-label:
@@ -12,10 +12,8 @@ jobs:
         with:
           script: |
             const labels = context.payload.pull_request.labels;
-            const hasIgnoreLabel = labels.some(label => label.name === 'ignore-for-release');
-            if (!hasIgnoreLabel) {
-              const hasMatchingLabel = labels.some(label => /^kind\/.*/.test(label.name));
-              if (!hasMatchingLabel) {
-                core.setFailed('The PR must have at least one label matching the pattern "kind/*", unless it has the "ignore-for-release" label.');
-              }
+            const required_labels = ['kind/breaking-change', 'kind/product-feature', 'kind/bug', 'kind/other', 'kind/dependencies', 'ignore-for-release'];
+            const hasMatchingLabel = labels.some((label) => required_labels.includes(label.name));
+            if (!hasMatchingLabel) {
+              core.setFailed('The PR must have one of the following labels:\n- ' + required_labels.join('\n- '));
             }
