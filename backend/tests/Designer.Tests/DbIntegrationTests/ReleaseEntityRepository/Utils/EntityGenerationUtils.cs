@@ -8,23 +8,26 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityGenerationUtils
 {
-    public static ReleaseEntity GenerateReleaseEntity(string org, string app = null, string buildId = null, string body = "build message", string targetCommitish = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
+    public static class Release
     {
-        BuildEntity build = GenerateBuildEntity(buildId, buildStatus, buildResult);
-
-        return new ReleaseEntity
+        public static ReleaseEntity GenerateReleaseEntity(string org, string app = null, string buildId = null, string body = "build message", string targetCommitish = null, string tagname = null, BuildStatus buildStatus = BuildStatus.Completed, BuildResult buildResult = BuildResult.Succeeded)
         {
-            Org = org,
-            App = app ?? Guid.NewGuid().ToString(),
-            Build = build,
-            TagName = tagname ?? Guid.NewGuid().ToString(),
-            Created = DateTime.UtcNow,
-            TargetCommitish = targetCommitish ?? Guid.NewGuid().ToString(),
-            Body = body
-        };
-    }
+            BuildEntity build = Build.GenerateBuildEntity(buildId, buildStatus, buildResult);
 
-    public static IEnumerable<ReleaseEntity> GenerateReleaseEntities(string org, string app, int count) =>
-        Enumerable.Range(0, count)
-            .Select(x => GenerateReleaseEntity(org, app)).ToList();
+            return new ReleaseEntity
+            {
+                Org = org,
+                App = app ?? Guid.NewGuid().ToString(),
+                Build = build,
+                TagName = tagname ?? Guid.NewGuid().ToString(),
+                Created = DateTime.UtcNow,
+                TargetCommitish = targetCommitish ?? Guid.NewGuid().ToString(),
+                Body = body
+            };
+        }
+
+        public static IEnumerable<ReleaseEntity> GenerateReleaseEntities(string org, string app, int count) =>
+            Enumerable.Range(0, count)
+                .Select(x => GenerateReleaseEntity(org, app)).ToList();
+    }
 }

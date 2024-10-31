@@ -5,14 +5,19 @@ import {
   type EditSubformTableColumnsProps,
 } from './EditSubformTableColumns';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from 'dashboard/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 const subformComponentMock = componentMocks[ComponentType.Subform];
+
+const mockSubformLayoutValidation = jest.fn();
+jest.mock('./hooks/useSubformLayoutValidation', () => ({
+  useSubformLayoutValidation: () => mockSubformLayoutValidation(),
+}));
 
 const defaultProps: EditSubformTableColumnsProps = {
   component: subformComponentMock,
@@ -29,8 +34,10 @@ describe('EditSubformTableColumns', () => {
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
-      component: { ...subformComponentMock, tableColumns: undefined },
-      handleComponentChange: handleComponentChangeMock,
+      props: {
+        component: { ...subformComponentMock, tableColumns: undefined },
+        handleComponentChange: handleComponentChangeMock,
+      },
     });
 
     const addColumnButton = screen.getByRole('button', {
@@ -49,7 +56,7 @@ describe('EditSubformTableColumns', () => {
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
-      handleComponentChange: handleComponentChangeMock,
+      props: { handleComponentChange: handleComponentChangeMock },
     });
 
     const addColumnButton = screen.getByRole('button', {
@@ -68,7 +75,7 @@ describe('EditSubformTableColumns', () => {
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
-      handleComponentChange: handleComponentChangeMock,
+      props: { handleComponentChange: handleComponentChangeMock },
     });
 
     const headerInputbutton = screen.getByRole('button', {
@@ -96,7 +103,7 @@ describe('EditSubformTableColumns', () => {
     const user = userEvent.setup();
 
     renderEditSubformTableColumns({
-      handleComponentChange: handleComponentChangeMock,
+      props: { handleComponentChange: handleComponentChangeMock },
     });
 
     const deleteButton = screen.getByRole('button', {
@@ -111,9 +118,34 @@ describe('EditSubformTableColumns', () => {
     const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
     expect(updatedComponent.tableColumns.length).toBe(0);
   });
+
+  it('should show warning if subform validation is false', () => {
+    renderEditSubformTableColumns({ isSubformLayoutConfigured: false });
+    expect(
+      screen.getByText(
+        textMock('ux_editor.component_properties.subform.layout_set_is_missing_content_heading'),
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        textMock('ux_editor.component_properties.subform.layout_set_is_missing_content_paragraph'),
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: textMock('top_menu.create') })).toBeInTheDocument();
+  });
 });
 
-const renderEditSubformTableColumns = (props: Partial<EditSubformTableColumnsProps> = {}) => {
+type renderEditSubformTableColumnsParameters = {
+  props?: Partial<EditSubformTableColumnsProps>;
+  isSubformLayoutConfigured?: boolean;
+};
+
+const renderEditSubformTableColumns = (
+  { props, isSubformLayoutConfigured }: renderEditSubformTableColumnsParameters = {
+    isSubformLayoutConfigured: true,
+  },
+) => {
+  mockSubformLayoutValidation.mockReturnValue(isSubformLayoutConfigured);
   const queryClient = createQueryClientMock();
   return renderWithProviders(<EditSubformTableColumns {...defaultProps} {...props} />, {
     ...queriesMock,

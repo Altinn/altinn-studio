@@ -10,13 +10,13 @@ import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
-  onSubFormCreated: (layoutSetName: string) => void;
+  onSubformCreated: (layoutSetName: string) => void;
 };
 
 export const EditLayoutSet = ({
   existingLayoutSetForSubform,
   onUpdateLayoutSet,
-  onSubFormCreated,
+  onSubformCreated,
 }: EditLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
@@ -62,7 +62,7 @@ export const EditLayoutSet = ({
             onClick={handleClick}
           />
         </StudioRecommendedNextAction>
-        {showCreateSubform && <CreateNewSubformLayoutSet onSubFormCreated={onSubFormCreated} />}
+        {showCreateSubform && <CreateNewSubformLayoutSet onSubformCreated={onSubformCreated} />}
       </>
     );
   }
