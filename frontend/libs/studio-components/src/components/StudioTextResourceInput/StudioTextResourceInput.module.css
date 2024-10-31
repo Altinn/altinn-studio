@@ -1,0 +1,34 @@
+.container {
+  display: grid;
+  gap: var(--fds-spacing-1);
+  grid-template-areas:
+    'inputbox toggle'
+    'id toggle';
+  grid-template-columns: 1fr auto;
+}
+
+.inputbox {
+  grid-area: inputbox;
+}
+
+.id {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+  grid-area: id;
+}
+
+.id code {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+}
+
+.toggle {
+  grid-area: toggle;
+}
+
+.toggle [role='radiogroup'] {
+  box-sizing: border-box;
+  height: 100%;
+}
