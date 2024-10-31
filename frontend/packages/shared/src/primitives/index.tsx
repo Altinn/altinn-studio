@@ -1,4 +1,3 @@
-export { Divider } from './Divider';
 import type { ReactNode } from 'react';
 import React from 'react';
 import classes from './Primitives.module.css';

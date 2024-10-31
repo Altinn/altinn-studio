@@ -11,8 +11,10 @@
 .lengthFields {
   display: flex;
   flex-direction: row;
-  gap: 2rem;
+  gap: var(--fds-spacing-8);
   justify-content: space-between;
+  border-bottom: var(--studio-border-divider);
+  padding-bottom: var(--fds-spacing-8);
 }
 
 .lengthField {
