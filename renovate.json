@@ -15,7 +15,7 @@
     {
       "groupName": "ResourceAdm dependencies",
       "groupSlug": "resourceadm",
-      "paths": ["frontend/resourceadm/*"],
+      "matchFileNames": ["frontend/resourceadm/*"],
       "labels": ["area/resource-adm"]
     }
   ],
