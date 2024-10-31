@@ -201,7 +201,7 @@
         },
         "image": {
           "src": {
-            "nb": "/ttd/component-library/images/altinn-logo.svg"
+            "nb": "assets/altinn-logo.svg"
           },
           "width": "100%",
           "align": "flex-start"

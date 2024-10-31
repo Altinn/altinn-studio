@@ -223,7 +223,7 @@
     { "id": "reasons.other", "value": "Annen begrunnelse " },
     {
       "id": "appLogo.url",
-      "value": "/ttd/component-library/altinn-logo.svg"
+      "value": "assets/altinn-logo.svg"
     },
     {
       "id": "MultipleSelectPage",
@@ -270,6 +270,34 @@
           "dataSource": "dataModel.default"
         }
       ]
+    },
+    {
+      "id": "CardsPage",
+      "value": "Cards"
+    },
+    {
+      "id": "CardsPage-image-alt-text",
+      "value": "Bilde av et varemerke"
+    },
+    {
+      "id": "CardsPage-Lydmerke-alt-text",
+      "value": "Lyd av et varemerke"
+    },
+    {
+      "id": "CardsPage-Videomerke-alt-text",
+      "value": "Video av et varemerke"
+    },
+    {
+      "id": "CardsPage-Number-Input",
+      "value": "Skriv et tall"
+    },
+    {
+      "id": "CardsPage-Percentage-Input",
+      "value": "Skriv en prosent"
+    },
+    {
+      "id": "CardsPage-text-Input",
+      "value": "Skriv et navn"
     }
   ]
 }
