@@ -17,6 +17,7 @@ export const useFormLayoutsQuery = (
       getFormLayouts(org, app, layoutSetName).then((formLayouts) => {
         return convertExternalLayoutsToInternalFormat(formLayouts);
       }),
+    enabled: Boolean(layoutSetName),
     staleTime: Infinity,
     enabled: Boolean(layoutSetName),
   });
