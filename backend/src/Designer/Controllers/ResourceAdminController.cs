@@ -438,21 +438,61 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetAccessPackages(string org, CancellationToken cancellationToken)
         {
             // 1. GET accesspackages (mocked for now)
-            AccessPackageArea transportArea = new()
-            {
-                Id = "589217CF-6070-474F-9989-8C5359C740F4",
-                Name = "Transport og lagring",
-                Description = "Denne tilgangspakken er relevant for alle tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
-                ShortDescription = "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
-                IconName = "TruckIcon"
-            };
             AccessPackageArea skattArea = new()
             {
                 Id = "F52ADD40-6748-4E89-875A-63D3E153605D",
-                Name = "Skatt og Merverdiavgift",
+                Name = "Skatt, avgift, regnskap og toll",
                 Description = "Denne tilgangspakken er relevant for alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll",
-                ShortDescription = "Tjenester som angår skatt, avgift, regnskap og toll",
+                ShortDescription = "For alle virksomheter som betaler eller rapporterer inn informasjon knyttet til skatt, avgift regnskap og toll",
                 IconName = "BankNoteIcon"
+            };
+            AccessPackageArea personaleArea = new()
+            {
+                Id = "area_personale",
+                Name = "Personale",
+                Description = "",
+                ShortDescription = "For alle virksomheter som har ansatte",
+                IconName = "PersonSuitIcon"
+            };
+            AccessPackageArea miljoArea = new()
+            {
+                Id = "area_miljo",
+                Name = "Miljø, ulykke og sikkerhet",
+                Description = "",
+                ShortDescription = "For alle virksomheter som skal utføre tjenester relatert til mlijø, ulykke og sikkerhet",
+                IconName = "EarthIcon"
+            };
+            AccessPackageArea postArea = new()
+            {
+                Id = "area_post",
+                Name = "Post og arkiv",
+                Description = "",
+                ShortDescription = "For alle virksomheter som mottar post fra det offentlige.",
+                IconName = "EnvelopeClosedIcon"
+            };
+            AccessPackageArea forholdArea = new()
+            {
+                Id = "area_forhold",
+                Name = "Forhold ved virksomheten",
+                Description = "",
+                ShortDescription = "For alle virksomheter",
+                IconName = "Buildings3Icon"
+            };
+            AccessPackageArea integationArea = new()
+            {
+                Id = "area_integration",
+                Name = "Integrasjoner og API-er",
+                Description = "",
+                ShortDescription = "For alle virksomheter som har dataintegrasjoner mot og benytter API",
+                IconName = "CloudUpIcon"
+            };
+            AccessPackageArea tilgangerArea = new()
+            {
+                Id = "area_tilganger",
+                Name = "Administrere tilganger",
+                Description = "",
+                ShortDescription = "For alle virksomheter. Det skal ikke knyttes tjenester til disse gruppene da de er rene administrasjonsgrupper.",
+                IconName = "PadlockLockedIcon"
             };
             AccessPackageArea jordbrukArea = new()
             {
@@ -462,13 +502,101 @@ namespace Altinn.Studio.Designer.Controllers
                 Name = "Jordbruk, skogbruk, jakt, fiske og akvakultur",
                 Description = "Denne tilgangspakken er relevant for tjenester rettet mot virksomheter med aktivitet innen jordbruk, skogbruk, jakt, fiske og akvakultur.",
             };
+            AccessPackageArea byggArea = new()
+            {
+                Id = "area_bygg",
+                Name = "Bygg, anlegg og eiendom",
+                Description = "",
+                ShortDescription = "For tjenester rettet mot virksomheter med aktivitet innen bygg, anlegg og eiendom.",
+                IconName = "HardHatIcon"
+            };
+            AccessPackageArea transportArea = new()
+            {
+                Id = "589217CF-6070-474F-9989-8C5359C740F4",
+                Name = "Transport og lagring",
+                Description = "Denne tilgangspakken er relevant for alle tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
+                ShortDescription = "Tjenester rettet mot virksomheter med aktivitet innen transport og lagring",
+                IconName = "TruckIcon"
+            };
+            AccessPackageArea helseArea = new()
+            {
+                Id = "area_helse",
+                Name = "Helse, pleie, omsorg og vern",
+                Description = "",
+                ShortDescription = "For alle tjenester rettet mot virksomheter med aktivitet innen Helse, pleie, omsorg og vern",
+                IconName = "FirstAidIcon"
+            };
+            AccessPackageArea utdanningArea = new()
+            {
+                Id = "area_utdanning",
+                Name = "Oppvekst og utdanning",
+                Description = "",
+                ShortDescription = "For alle tjenester rettet mot virksomheter med aktivitet innen oppvekst, skole og høyere utdanning",
+                IconName = "HatSchoolIcon"
+            };
+            AccessPackageArea energyArea = new()
+            {
+                Id = "area_energy",
+                Name = "Energi, vann, avløp og avfall",
+                Description = "",
+                ShortDescription = "For alle virksomheter",
+                IconName = "LightningIcon"
+            };
+            AccessPackageArea industryArea = new()
+            {
+                Id = "area_industry",
+                Name = "Industrier",
+                Description = "",
+                ShortDescription = "For alle virksomheter",
+                IconName = "CogIcon"
+            };
+            AccessPackageArea cultureArea = new()
+            {
+                Id = "area_culture",
+                Name = "Kultur og frivillighet",
+                Description = "",
+                ShortDescription = "For alle virksomheter",
+                IconName = "PresentationIcon"
+            };
+            AccessPackageArea handelArea = new()
+            {
+                Id = "area_handel",
+                Name = "Handel, overnatting og servering",
+                Description = "",
+                ShortDescription = "For alle virksomheter",
+                IconName = "WalletIcon"
+            };
+            AccessPackageArea andreArea = new()
+            {
+                Id = "area_andre",
+                Name = "Andre tjenesteytende næringer",
+                Description = "",
+                ShortDescription = "For alle virksomheter",
+                IconName = "ReceptionIcon"
+            };
+            AccessPackageArea regnArea = new()
+            {
+                Id = "area_regn",
+                Name = "Regnskapsførere",
+                Description = "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder",
+                ShortDescription = "For alle virksomheter",
+                IconName = "AreaChartIcon"
+            };
             AccessPackageArea revisorArea = new()
             {
                 Id = "tag_regnskapsforer",
                 IconName = "ReceiptIcon",
-                ShortDescription = "Tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder",
-                Name = "Regnskapsførere",
+                ShortDescription = "Tjenester som det er naturlig at en revisor utfører på vegne av sine kunder",
+                Name = "Revisor",
                 Description = "Denne fullmakten gir tilgang til alle tjenester som det er naturlig at en regnskapsfører utfører på vegne av sine kunder",
+            };
+            AccessPackageArea konkursArea = new()
+            {
+                Id = "area_konkurs",
+                Name = "Konkursbo",
+                Description = "",
+                ShortDescription = "For alle konkurser, tvangsoppløsninger og tvangsavviklinger som har fått registrert et tilhørende konkursbo i Enhetsregisteret",
+                IconName = "TrendDownIcon"
             };
 
             List<AccessPackage> accessPackages =
@@ -502,6 +630,132 @@ namespace Altinn.Studio.Designer.Controllers
                 },
                 new()
                 {
+                    Id = "urn:altinn:accesspackage:personal",
+                    Urn = "urn:altinn:accesspackage:personal",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = personaleArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:miljo",
+                    Urn = "urn:altinn:accesspackage:miljo",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = miljoArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:post",
+                    Urn = "urn:altinn:accesspackage:post",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = postArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:forhold",
+                    Urn = "urn:altinn:accesspackage:forhold",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = forholdArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:integationArea",
+                    Urn = "urn:altinn:accesspackage:integationArea",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = integationArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:tilgangerArea",
+                    Urn = "urn:altinn:accesspackage:tilgangerArea",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = tilgangerArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:jordbruk",
+                    Urn = "urn:altinn:accesspackage:jordbruk",
+                    Name = "Jordbruk",
+                    Description = "Gir tilgang til tjenester knyttet til jordbruk.",
+                    Tags = [],
+                    Area = jordbrukArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:dyrehold",
+                    Urn = "urn:altinn:accesspackage:dyrehold",
+                    Name = "Dyrehold",
+                    Description = "Gir tilgang til tjenester knyttet til dyrehold. ",
+                    Tags = [],
+                    Area = jordbrukArea
+                },      
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:reindrift",
+                    Urn = "urn:altinn:accesspackage:reindrift",
+                    Name = "Reindrift",
+                    Description = "Denne tilgangspakken gir tilgang til tjenester knyttet til reindrift.",
+                    Tags = [],
+                    Area = jordbrukArea
+                },   
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:jaktogviltstell",
+                    Urn = "urn:altinn:accesspackage:jaktogviltstell",
+                    Name = "Jakt og viltstell",
+                    Description = "Gir fullmakter til tjenester knyttet til jakt og viltstell",
+                    Tags = [],
+                    Area = jordbrukArea
+                },   
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:skogbruk",
+                    Urn = "urn:altinn:accesspackage:skogbruk",
+                    Name = "Skogbruk",
+                    Description = "Gir fullmakter til tjenester knyttet til skogbruk",
+                    Tags = [],
+                    Area = jordbrukArea
+                },   
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:fiske",
+                    Urn = "urn:altinn:accesspackage:fiske",
+                    Name = "Fiske",
+                    Description = "Gir fullmakter til tjenester knyttet til fiske",
+                    Tags = [],
+                    Area = jordbrukArea
+                },      
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:akvakultur",
+                    Urn = "urn:altinn:accesspackage:akvakultur",
+                    Name = "Akvakultur",
+                    Description = "Gir fullmakter til tjenester knyttet til akvakultur og fiskeoppdrett.",
+                    Tags = [],
+                    Area = jordbrukArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:byggArea",
+                    Urn = "urn:altinn:accesspackage:byggArea",
+                    Name = "Merverdiavgift",
+                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
+                    Tags = [],
+                    Area = byggArea
+                },
+                new()
+                {
                     Id = "urn:altinn:accesspackage:sjofart",
                     Urn = "urn:altinn:accesspackage:sjofart",
                     Name = "Sjøfart",
@@ -520,21 +774,75 @@ namespace Altinn.Studio.Designer.Controllers
                 },
                 new()
                 {
-                    Id = "urn:altinn:accesspackage:jordbruk",
-                    Urn = "urn:altinn:accesspackage:jordbruk",
-                    Name = "Jordbruk",
-                    Description = "Denne tilgangspakken gir tilgang til tjenester knyttet til jordbruk. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir",
+                    Id = "urn:altinn:accesspackage:helseArea",
+                    Urn = "urn:altinn:accesspackage:helseArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
                     Tags = [],
-                    Area = jordbrukArea
+                    Area = helseArea
                 },
                 new()
                 {
-                    Id = "urn:altinn:accesspackage:fiske",
-                    Urn = "urn:altinn:accesspackage:fiske",
-                    Name = "Fiske",
-                    Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til fiske. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir",
+                    Id = "urn:altinn:accesspackage:utdanningArea",
+                    Urn = "urn:altinn:accesspackage:utdanningArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
                     Tags = [],
-                    Area = jordbrukArea
+                    Area = utdanningArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:energyArea",
+                    Urn = "urn:altinn:accesspackage:energyArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = energyArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:industryArea",
+                    Urn = "urn:altinn:accesspackage:industryArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = industryArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:cultureArea",
+                    Urn = "urn:altinn:accesspackage:cultureArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = cultureArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:handelArea",
+                    Urn = "urn:altinn:accesspackage:handelArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = handelArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:andreArea",
+                    Urn = "urn:altinn:accesspackage:andreArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = andreArea
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:regnArea",
+                    Urn = "urn:altinn:accesspackage:regnArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = regnArea
                 },
                 new()
                 {
@@ -562,7 +870,16 @@ namespace Altinn.Studio.Designer.Controllers
                     Description = "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
                     Tags = [],
                     Area = revisorArea
-                }
+                },
+                new()
+                {
+                    Id = "urn:altinn:accesspackage:konkursArea",
+                    Urn = "urn:altinn:accesspackage:konkursArea",
+                    Name = "Lufttransport",
+                    Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
+                    Tags = [],
+                    Area = konkursArea
+                },
             ];
 
             string env = "tt02";
@@ -610,7 +927,33 @@ namespace Altinn.Studio.Designer.Controllers
                         Type = "",
                         Value = "svv-maskinportenschemaid-249",
                         Urn = ""
-                    }
+                    },
+                }
+            });
+            subjectResources.Add(new SubjectResources()
+            {
+                Subject = new AttributeMatchV2()
+                {
+                    Type = "",
+                    Value = "",
+                    Urn = "urn:altinn:accesspackage:akvakultur"
+                },
+                Resources = new List<AttributeMatchV2>() {
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "innsyn-i-driftsplaner-for-akvakulturanlegg-i-sj-vann",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "ske-innrapportering-omsetning-raafisk",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "mat-maskinportenschema-lakselusrapportering",
+                        Urn = ""
+                    },
                 }
             });
 

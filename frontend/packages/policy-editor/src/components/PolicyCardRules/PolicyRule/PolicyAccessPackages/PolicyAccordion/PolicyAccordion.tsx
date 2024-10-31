@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
-import { Tag } from '@digdir/designsystemet-react';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import * as StudioIcons from '@studio/icons';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
@@ -11,8 +9,8 @@ interface PolicyAccordion {
   icon?: string;
   title: string;
   subTitle: string;
-  selectedCount?: number;
   extraHeaderContent?: React.ReactNode;
+  collapsedChildren?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -20,23 +18,16 @@ export const PolicyAccordion = ({
   icon,
   title,
   subTitle,
-  selectedCount,
   extraHeaderContent,
+  collapsedChildren,
   children,
 }: PolicyAccordion): React.ReactNode => {
-  const { t } = useTranslation();
-
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const IconComponent = StudioIcons[icon];
 
   return (
     <div className={classes.accordion}>
-      <div
-        className={cn(
-          classes.accordionHeader,
-          selectedCount > 0 ? classes.selectedAccordionHeader : '',
-        )}
-      >
+      <div className={classes.accordionHeader}>
         <StudioButton
           fullWidth
           variant='tertiary'
@@ -54,15 +45,6 @@ export const PolicyAccordion = ({
               <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
               <div className={classes.accordionSubTitle}>{subTitle}</div>
             </div>
-            {selectedCount > 0 && (
-              <Tag size='sm' color='neutral'>
-                {selectedCount}
-                <div className={classes.visuallyHidden}>
-                  {' '}
-                  {t('policy_editor.access_package_selected_count')}
-                </div>
-              </Tag>
-            )}
           </div>
           {isExpanded ? (
             <ChevronUpIcon className={classes.accordionIcon} aria-hidden />
@@ -72,6 +54,9 @@ export const PolicyAccordion = ({
         </StudioButton>
         {extraHeaderContent}
       </div>
+      {!isExpanded && collapsedChildren && (
+        <div className={classes.accordionContent}>{collapsedChildren}</div>
+      )}
       {isExpanded && <div className={classes.accordionContent}>{children}</div>}
     </div>
   );

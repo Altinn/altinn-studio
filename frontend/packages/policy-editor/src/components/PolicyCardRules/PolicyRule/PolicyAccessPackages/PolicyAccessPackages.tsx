@@ -64,6 +64,36 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     savePolicy(updatedRules);
   };
 
+  const renderAccessPackageAccordion = (accessPackage: PolicyAccessPackage): React.ReactNode => {
+    const isChecked = chosenAccessPackages.includes(accessPackage.urn);
+    const checkboxLabel = t(
+      isChecked ? 'policy_editor.access_package_remove' : 'policy_editor.access_package_add',
+      {
+        packageName: accessPackage.name,
+      },
+    );
+    const packageCheckbox = (
+      <CheckboxGroup
+        legend=''
+        className={classes.accordionCheckbox}
+        value={isChecked ? [CHECKED_VALUE] : []}
+        onChange={() => onPackageSelectChange(accessPackage)}
+      >
+        <Checkbox value={CHECKED_VALUE} aria-label={checkboxLabel} />
+      </CheckboxGroup>
+    );
+    return (
+      <PolicyAccessPackageAccordion
+        key={accessPackage.urn}
+        accessPackage={accessPackage}
+        selectedLanguage={selectedLanguage}
+        selectPackageElement={packageCheckbox}
+      />
+    );
+  };
+
+  const PROTO_VERSION = 2;
+
   return (
     <div className={classes.accessPackages}>
       <Alert severity='warning' size='sm'>
@@ -75,10 +105,23 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='sm'>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
+      {PROTO_VERSION === 1 && (
+        <>
+          {accessPackages
+            .filter((accessPackage) => chosenAccessPackages.includes(accessPackage.urn))
+            .map(renderAccessPackageAccordion)}
+          <br />
+        </>
+      )}
       {groupedAccessPackagesByArea.map(({ area, packages }) => {
-        const numberChosenInArea = packages.filter((pack) =>
+        const chosenPackagesInArea = packages.filter((pack) =>
           chosenAccessPackages.includes(pack.urn),
-        ).length;
+        );
+
+        const collapsedChildren =
+          chosenPackagesInArea.length > 0 && PROTO_VERSION === 2
+            ? chosenPackagesInArea.map(renderAccessPackageAccordion)
+            : undefined;
 
         return (
           <PolicyAccordion
@@ -86,38 +129,9 @@ export const PolicyAccessPackages = (): React.ReactElement => {
             icon={area.iconName}
             title={area.name}
             subTitle={area.shortDescription}
-            selectedCount={numberChosenInArea}
+            collapsedChildren={collapsedChildren}
           >
-            <Paragraph size='xs'>{area.description}</Paragraph>
-            {packages.map((accessPackage) => {
-              const isChecked = chosenAccessPackages.includes(accessPackage.urn);
-              const checkboxLabel = t(
-                isChecked
-                  ? 'policy_editor.access_package_remove'
-                  : 'policy_editor.access_package_add',
-                {
-                  packageName: accessPackage.name,
-                },
-              );
-              const packageCheckbox = (
-                <CheckboxGroup
-                  legend=''
-                  className={classes.accordionCheckbox}
-                  value={isChecked ? [CHECKED_VALUE] : []}
-                  onChange={() => onPackageSelectChange(accessPackage)}
-                >
-                  <Checkbox value={CHECKED_VALUE} aria-label={checkboxLabel} />
-                </CheckboxGroup>
-              );
-              return (
-                <PolicyAccessPackageAccordion
-                  key={accessPackage.urn}
-                  accessPackage={accessPackage}
-                  selectedLanguage={selectedLanguage}
-                  selectPackageElement={packageCheckbox}
-                />
-              );
-            })}
+            {packages.map(renderAccessPackageAccordion)}
           </PolicyAccordion>
         );
       })}
