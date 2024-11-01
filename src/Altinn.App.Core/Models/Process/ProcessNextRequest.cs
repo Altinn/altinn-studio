@@ -8,21 +8,23 @@ namespace Altinn.App.Core.Models.Process;
 /// </summary>
 public class ProcessNextRequest
 {
-#nullable disable
     /// <summary>
     /// The instance to be moved to the next task
     /// </summary>
-    public Instance Instance { get; set; }
+    public required Instance Instance { get; init; }
 
     /// <summary>
     /// The user that is performing the action
     /// </summary>
-    public ClaimsPrincipal User { get; set; }
-
-#nullable restore
+    public required ClaimsPrincipal User { get; init; }
 
     /// <summary>
     /// The action that is performed
     /// </summary>
-    public string? Action { get; set; }
+    public required string? Action { get; init; }
+
+    /// <summary>
+    /// The language the user sent with process/next (not required)
+    /// </summary>
+    public required string? Language { get; init; }
 }

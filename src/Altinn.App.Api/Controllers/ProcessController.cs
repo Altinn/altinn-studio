@@ -370,7 +370,8 @@ public class ProcessController : ControllerBase
             {
                 Instance = instance,
                 User = User,
-                Action = checkedAction
+                Action = checkedAction,
+                Language = language
             };
             var validationProblem = await GetValidationProblemDetails(instance, currentTaskId, language);
             if (validationProblem is not null)
@@ -546,7 +547,8 @@ public class ProcessController : ControllerBase
                 {
                     Instance = instance,
                     User = User,
-                    Action = altinnTaskType
+                    Action = altinnTaskType,
+                    Language = language,
                 };
                 var result = await _processEngine.Next(request);
 

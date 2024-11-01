@@ -181,7 +181,9 @@ public class ProcessEngine : IProcessEngine
 
         UserActionResult actionResult = actionHandler is null
             ? UserActionResult.SuccessResult()
-            : await actionHandler.HandleAction(new UserActionContext(cachedDataMutator, userId));
+            : await actionHandler.HandleAction(
+                new UserActionContext(cachedDataMutator, userId, language: request.Language)
+            );
 
         if (actionResult.ResultType != ResultType.Success)
         {
