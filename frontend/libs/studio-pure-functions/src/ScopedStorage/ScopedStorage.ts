@@ -2,6 +2,12 @@ type StorageKey = string;
 
 export interface ScopedStorage extends Pick<Storage, 'setItem' | 'getItem' | 'removeItem'> {}
 
+export interface ScopedStorageResult extends ScopedStorage {
+  setItem: <T>(key: string, value: T) => void;
+  getItem: <T>(key: string) => T;
+  removeItem: (key: string) => void;
+}
+
 export class ScopedStorageImpl implements ScopedStorage {
   private readonly storageKey: StorageKey;
   private readonly scopedStorage: ScopedStorage;
@@ -12,6 +18,9 @@ export class ScopedStorageImpl implements ScopedStorage {
   ) {
     this.storageKey = this.key;
     this.scopedStorage = this.storage;
+    this.setItem = this.setItem.bind(this);
+    this.getItem = this.getItem.bind(this);
+    this.removeItem = this.removeItem.bind(this);
   }
 
   public setItem<T>(key: string, value: T): void {

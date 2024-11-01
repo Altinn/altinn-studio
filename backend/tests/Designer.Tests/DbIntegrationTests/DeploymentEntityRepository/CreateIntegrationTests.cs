@@ -20,7 +20,7 @@ public class CreateIntegrationTests : DeploymentEntityIntegrationTestsBase
     {
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(org, buildId: buildId.ToString());
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, buildId: buildId.ToString());
         await repository.Create(deploymentEntity);
         var dbRecord = await DbFixture.DbContext.Deployments.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&
