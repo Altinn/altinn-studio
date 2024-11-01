@@ -1,13 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { toast } from 'react-toastify';
 
 export const useDeleteAppAttachmentMetadataMutation = (org: string, app: string) => {
   const queryClient = useQueryClient();
   const { deleteAppAttachmentMetadata } = useServicesContext();
   return useMutation({
     mutationFn: async (id: string) => {
-      await deleteAppAttachmentMetadata(org, app, id);
+      await deleteAppAttachmentMetadata(org, app, id).catch((error) => {
+        toast.error('useDeleteAppAttachmentMetadataMutation --- ', error);
+
+        return error;
+      });
       return id;
     },
     onSuccess: () => {

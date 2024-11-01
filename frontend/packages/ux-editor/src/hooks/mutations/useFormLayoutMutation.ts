@@ -6,6 +6,7 @@ import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionCont
 import type { ExternalFormLayout } from 'app-shared/types/api/FormLayoutsResponse';
 import { internalLayoutToExternal } from '../../converters/formLayoutConverters';
 import type { ComponentIdsChange, FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import { toast } from 'react-toastify';
 
 type useFormLayoutMutationPayload = {
   internalLayout: IInternalLayout;
@@ -29,7 +30,11 @@ export const useFormLayoutMutation = (
         layout: convertedLayout,
         componentIdsChange: payload.componentIdsChange,
       };
-      await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload);
+      await saveFormLayout(org, app, layoutName, layoutSetName, requestPayload).catch((error) => {
+        toast.error('saveFormLayout --- ', error);
+
+        return error;
+      });
       return payload.internalLayout;
     },
     onSuccess: async (savedLayout) => {

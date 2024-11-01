@@ -4,7 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import type { FormContainer } from '../../types/FormContainer';
 import { updateContainer } from '../../utils/formLayoutUtils';
-
+import { toast } from 'react-toastify';
 export interface UpdateFormContainerMutationArgs {
   updatedContainer: FormContainer;
   id: string;
@@ -27,7 +27,13 @@ export const useUpdateFormContainerMutation = (
       const newId = updatedContainer.id || currentId;
 
       // Save:
-      return saveLayout({ internalLayout: newLayout }).then(() => ({ currentId, newId }));
+      return saveLayout({ internalLayout: newLayout })
+        .then(() => ({ currentId, newId }))
+        .catch((error) => {
+          toast.error('useUpdateFormContainerMutation --- ', error);
+
+          return error;
+        });
     },
   });
 };

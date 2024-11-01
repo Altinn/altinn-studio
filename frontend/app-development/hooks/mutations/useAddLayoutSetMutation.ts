@@ -8,6 +8,7 @@ import type {
   LayoutSetsResponse,
 } from 'app-shared/types/api/AddLayoutSetResponse';
 import type { LayoutSetConfig, LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
+import { toast } from 'react-toastify';
 
 export type AddLayoutSetMutationPayload = {
   layoutSetIdToUpdate: string;
@@ -34,12 +35,16 @@ export const useAddLayoutSetMutation = (org: string, app: string) => {
 
   return useMutation({
     mutationFn: ({ layoutSetIdToUpdate, taskType, layoutSetConfig }: AddLayoutSetMutationPayload) =>
-      addLayoutSet(org, app, layoutSetIdToUpdate, { taskType, layoutSetConfig }).then(
-        (layoutSets) => ({
+      addLayoutSet(org, app, layoutSetIdToUpdate, { taskType, layoutSetConfig })
+        .then((layoutSets) => ({
           layoutSets,
           layoutSetConfig,
+        }))
+        .catch((error) => {
+          toast.error('useAddLayoutSetMutation --- ', error);
+
+          return error;
         }),
-      ),
     onSuccess: ({ layoutSets, layoutSetConfig }) => {
       setSelectedLayoutSet(layoutSetConfig.id);
       // Need this check since endpoint might return 200 OK, but with info details
