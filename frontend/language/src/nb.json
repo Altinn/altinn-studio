@@ -651,6 +651,7 @@
   "process_editor.configuration_panel_custom_receipt_spinner_title": "Laster inn kvittering",
   "process_editor.configuration_panel_custom_receipt_textfield_label": "Navn på kvittering",
   "process_editor.configuration_panel_data_model_selection_description": "Velg en datamodell å knytte til prosessteget",
+  "process_editor.configuration_panel_data_model_selection_description_existing_model": "Du har allerede valgt en datamodell. Hvis du har brukt denne datamodellen i et skjema, kan du få ugyldige knytninger til datamodellfelt i skjemaet. Du får en feilmelding om hvilke felter det gjelder, i forhåndsvisningen",
   "process_editor.configuration_panel_data_task": "Oppgave: Utfylling",
   "process_editor.configuration_panel_data_types_to_sign_required": "Du må velge minst én datatype",
   "process_editor.configuration_panel_design_title": "Utforming",
