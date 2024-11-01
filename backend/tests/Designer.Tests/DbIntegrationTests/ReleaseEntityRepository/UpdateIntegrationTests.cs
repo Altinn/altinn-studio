@@ -22,7 +22,7 @@ public class UpdateIntegrationTests : ReleaseEntityIntegrationTestsBase
     {
         var repository = new ORMReleaseRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var releaseEntity = EntityGenerationUtils.GenerateReleaseEntity(releaseName, buildId: buildId.ToString());
+        var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(releaseName, buildId: buildId.ToString());
         await PrepareEntityInDatabase(releaseEntity);
 
         releaseEntity.Build.Finished = DateTime.UtcNow;
