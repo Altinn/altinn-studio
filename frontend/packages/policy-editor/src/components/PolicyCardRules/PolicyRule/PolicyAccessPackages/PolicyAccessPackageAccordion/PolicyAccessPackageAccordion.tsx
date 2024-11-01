@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioLabelAsParagraph } from '@studio/components';
 import { PolicyAccordion } from '../PolicyAccordion/PolicyAccordion';
 
 interface PolicyAccessPackageAccordionProps {
@@ -27,30 +26,31 @@ export const PolicyAccessPackageAccordion = ({
         extraHeaderContent={selectPackageElement}
       >
         {accessPackage.services.length > 0 ? (
-          accessPackage.services.map((resource) => {
-            return (
-              <div key={resource.identifier} className={classes.serviceContainer}>
-                {resource.logoUrl ? (
-                  <img
-                    className={classes.logo}
-                    src={resource.logoUrl}
-                    alt={resource.hasCompetentAuthority.name[selectedLanguage]}
-                    title={resource.hasCompetentAuthority.name[selectedLanguage]}
-                  />
-                ) : (
-                  <div className={classes.emptyLogo} />
-                )}
-                <StudioLabelAsParagraph size='sm' className={classes.serviceLabel}>
-                  {resource.title[selectedLanguage]}
-                </StudioLabelAsParagraph>
-                <Paragraph size='xs'>
-                  {resource.hasCompetentAuthority.name[selectedLanguage]}
-                </Paragraph>
-              </div>
-            );
-          })
+          <>
+            <div className={classes.serviceContainerHeader}>
+              {t('policy_editor.policy_editor.access_package_services')}
+            </div>
+            {accessPackage.services.map((resource) => {
+              return (
+                <div key={resource.identifier} className={classes.serviceContainer}>
+                  {resource.logoUrl ? (
+                    <img
+                      className={classes.logo}
+                      src={resource.logoUrl}
+                      alt={resource.hasCompetentAuthority.name[selectedLanguage]}
+                      title={resource.hasCompetentAuthority.name[selectedLanguage]}
+                    />
+                  ) : (
+                    <div className={classes.emptyLogo} />
+                  )}
+                  <div className={classes.serviceLabel}>{resource.title[selectedLanguage]}</div>
+                  <div>{resource.hasCompetentAuthority.name[selectedLanguage]}</div>
+                </div>
+              );
+            })}
+          </>
         ) : (
-          <Paragraph size='sm'>{t('policy_editor.access_package_no_services')}</Paragraph>
+          <Paragraph size='xs'>{t('policy_editor.access_package_no_services')}</Paragraph>
         )}
       </PolicyAccordion>
     </div>

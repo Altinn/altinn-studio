@@ -10,7 +10,6 @@ interface PolicyAccordion {
   title: string;
   subTitle: string;
   extraHeaderContent?: React.ReactNode;
-  collapsedChildren?: React.ReactNode;
   children: React.ReactNode;
 }
 
@@ -19,7 +18,6 @@ export const PolicyAccordion = ({
   title,
   subTitle,
   extraHeaderContent,
-  collapsedChildren,
   children,
 }: PolicyAccordion): React.ReactNode => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -54,9 +52,6 @@ export const PolicyAccordion = ({
         </StudioButton>
         {extraHeaderContent}
       </div>
-      {!isExpanded && collapsedChildren && (
-        <div className={classes.accordionContent}>{collapsedChildren}</div>
-      )}
       {isExpanded && <div className={classes.accordionContent}>{children}</div>}
     </div>
   );

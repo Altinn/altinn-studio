@@ -1,5 +1,5 @@
 :root {
-  --logo-size: 30px;
+  --logo-size: 20px;
 }
 
 .accessPackageAccordion {
@@ -12,9 +12,9 @@
   align-items: center;
   gap: var(--fds-spacing-2);
   background-color: #fff;
-  padding: var(--fds-spacing-2);
-  margin-top: var(--fds-spacing-2);
+  padding: 0 var(--fds-spacing-2);
   min-height: var(--fds-spacing-8);
+  font-size: 12px;
   box-shadow:
     0px 1px 2px 0px #0000001f,
     0px 0px 1px 0px #00000029;
@@ -22,6 +22,7 @@
 
 .serviceLabel {
   flex: 1;
+  font-weight: 500;
 }
 
 .logo {
@@ -32,4 +33,11 @@
 .emptyLogo {
   height: var(--logo-size);
   width: var(--logo-size);
+}
+
+.serviceContainerHeader {
+  color: #5d6470;
+  font-size: 12px;
+  padding-top: var(--fds-spacing-2);
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }

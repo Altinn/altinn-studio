@@ -92,8 +92,6 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     );
   };
 
-  const PROTO_VERSION = 2;
-
   return (
     <div className={classes.accessPackages}>
       <Alert severity='warning' size='sm'>
@@ -102,34 +100,29 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         </StudioLabelAsParagraph>
         <Paragraph size='sm'>{t('policy_editor.access_package_warning_body')}</Paragraph>
       </Alert>
-      <StudioLabelAsParagraph size='sm'>
+      <StudioLabelAsParagraph size='sm' spacing>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
-      {PROTO_VERSION === 1 && (
+      {chosenAccessPackages.length > 0 && (
         <>
+          <StudioLabelAsParagraph size='xs' spacing>
+            {t('policy_editor.access_package_chosen_packages')}
+          </StudioLabelAsParagraph>
           {accessPackages
             .filter((accessPackage) => chosenAccessPackages.includes(accessPackage.urn))
             .map(renderAccessPackageAccordion)}
-          <br />
         </>
       )}
+      <StudioLabelAsParagraph size='xs' spacing>
+        {t('policy_editor.access_package_all_packages')}
+      </StudioLabelAsParagraph>
       {groupedAccessPackagesByArea.map(({ area, packages }) => {
-        const chosenPackagesInArea = packages.filter((pack) =>
-          chosenAccessPackages.includes(pack.urn),
-        );
-
-        const collapsedChildren =
-          chosenPackagesInArea.length > 0 && PROTO_VERSION === 2
-            ? chosenPackagesInArea.map(renderAccessPackageAccordion)
-            : undefined;
-
         return (
           <PolicyAccordion
             key={area.id}
             icon={area.iconName}
             title={area.name}
             subTitle={area.shortDescription}
-            collapsedChildren={collapsedChildren}
           >
             {packages.map(renderAccessPackageAccordion)}
           </PolicyAccordion>
