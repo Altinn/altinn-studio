@@ -32,7 +32,6 @@ import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation'
 import { Preview } from '../components/Preview';
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { toast } from 'react-toastify';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -54,17 +53,6 @@ export const FormDesigner = (): JSX.Element => {
     org,
     app,
     selectedFormLayoutSetName,
-  );
-
-  toast.error(
-    'isRuleConfigFetched: ' +
-      isRuleConfigFetched +
-      ', org: ' +
-      org +
-      ', app: ' +
-      app +
-      ', selectedFormLayoutSetName: ' +
-      selectedFormLayoutSetName,
   );
 
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
