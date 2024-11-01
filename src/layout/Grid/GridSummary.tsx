@@ -421,13 +421,15 @@ function getComponentCellData(
   } else if (textResourceBindings && 'title' in textResourceBindings) {
     return <Lang id={textResourceBindings.title} />;
   } else {
-    <GenericComponent
-      node={node}
-      overrideDisplay={{
-        renderLabel: false,
-        renderLegend: false,
-        renderedInTable: true,
-      }}
-    />;
+    return (
+      <GenericComponent
+        node={node}
+        overrideDisplay={{
+          renderLabel: false,
+          renderLegend: false,
+          renderedInTable: true,
+        }}
+      />
+    );
   }
 }
