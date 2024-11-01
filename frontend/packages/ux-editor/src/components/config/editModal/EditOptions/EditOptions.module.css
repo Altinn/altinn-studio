@@ -21,7 +21,9 @@
   padding-inline: 0;
 }
 
-.manualTabDialog {
+.manualTabDialog[open] {
+  margin-top: 30vh;
+  max-height: 50vh;
   width: max(50vw, 64rem);
   max-width: 100%;
 }
