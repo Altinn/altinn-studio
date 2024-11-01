@@ -28,7 +28,7 @@ export const PolicyAccessPackageAccordion = ({
         {accessPackage.services.length > 0 ? (
           <>
             <div className={classes.serviceContainerHeader}>
-              {t('policy_editor.policy_editor.access_package_services')}
+              {t('policy_editor.access_package_services')}
             </div>
             {accessPackage.services.map((resource) => {
               return (
