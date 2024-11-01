@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -141,14 +141,12 @@ describe('EditManualOptionsWithEditor', () => {
     await user.click(addNewButton);
     await user.click(addNewButton);
 
-    await waitFor(() => {
-      expect(mockHandleComponentChange).toHaveBeenCalledWith({
-        ...mockComponent,
-        options: [
-          { label: '', value: '' },
-          { label: '', value: '' },
-        ],
-      });
+    expect(mockHandleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [
+        { label: '', value: '' },
+        { label: '', value: '' },
+      ],
     });
   });
 
@@ -174,11 +172,9 @@ describe('EditManualOptionsWithEditor', () => {
 
     await user.click(addNewButton);
 
-    await waitFor(() => {
-      expect(mockHandleComponentChange).toHaveBeenCalledWith({
-        ...mockComponent, // does not contain optionsId
-        options: [{ label: '', value: '' }],
-      });
+    expect(mockHandleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent, // does not contain optionsId
+      options: [{ label: '', value: '' }],
     });
   });
 });
