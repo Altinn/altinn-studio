@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CodeListEditorTexts } from '@studio/components';
+import type { CodeListEditorTexts } from '@studio/components';
 
 export const useCodeListEditorTexts = (): CodeListEditorTexts => {
   const { t } = useTranslation();

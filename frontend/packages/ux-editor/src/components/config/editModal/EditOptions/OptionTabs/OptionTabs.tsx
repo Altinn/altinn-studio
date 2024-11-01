@@ -1,5 +1,5 @@
 import { getSelectedOptionsType } from '@altinn/ux-editor/utils/optionsUtils';
-import React, { ReactElement, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions.module.css';
 import { EditCodeList, EditCodeListReference } from './EditCodeList';
@@ -9,13 +9,22 @@ import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
 import { EditManualOptions } from './EditManualOptions';
 import { StudioTabs, StudioAlert, StudioErrorMessage } from '@studio/components';
 import { useComponentErrorMessage } from '@altinn/ux-editor/hooks';
+import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
+import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+
+type OptionTabsProps = {
+  optionListIds: string[];
+  renderOptions?: {
+    isLayoutOptionsUnsupported?: boolean;
+  };
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export const OptionTabs = ({
-  optionListIds,
   component,
   handleComponentChange,
+  optionListIds,
   renderOptions,
-}): ReactElement => {
+}: OptionTabsProps) => {
   const initialSelectedOptionsType = getSelectedOptionsType(
     component.optionsId,
     component.options,
@@ -79,11 +88,15 @@ export const OptionTabs = ({
   );
 };
 
+type RenderManualOptionsProps = {
+  isLayoutOptionsUnsupported: boolean;
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+
 const RenderManualOptions = ({
   component,
   handleComponentChange,
   isLayoutOptionsUnsupported,
-}): ReactElement => {
+}: RenderManualOptionsProps) => {
   const errorMessage = useComponentErrorMessage(component);
   const { t } = useTranslation();
 
