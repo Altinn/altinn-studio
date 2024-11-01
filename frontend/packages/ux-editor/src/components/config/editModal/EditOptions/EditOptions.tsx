@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { EditCodeList, EditCodeListReference } from './EditCodeList';
-import { getSelectedOptionsType } from '../../../../utils/optionsUtils';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
-import { StudioSpinner, StudioTabs } from '@studio/components';
+import { StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
-import { EditManualOptions } from './EditManualOptions/EditManualOptions';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { EditManualOptionsWithEditor } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditManualOptionsWithEditor';
+import { OptionTabs } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/OptionTabs';
 
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {
@@ -35,22 +31,6 @@ export function EditOptions<T extends SelectionComponentType>({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
   const { t } = useTranslation();
-  const initialSelectedOptionsType = getSelectedOptionsType(
-    component.optionsId,
-    component.options,
-    optionListIds || [],
-  );
-  const [selectedOptionsType, setSelectedOptionsType] = React.useState(initialSelectedOptionsType);
-
-  useEffect(() => {
-    if (!optionListIds) return;
-    const updatedSelectedOptionsType = getSelectedOptionsType(
-      component.optionsId,
-      component.options,
-      optionListIds,
-    );
-    setSelectedOptionsType(updatedSelectedOptionsType);
-  }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
     <div className={classes.root}>
@@ -67,58 +47,12 @@ export function EditOptions<T extends SelectionComponentType>({
           {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
         </ErrorMessage>
       ) : (
-        <StudioTabs
-          value={selectedOptionsType}
-          size='small'
-          onChange={(value) => {
-            setSelectedOptionsType(value as SelectedOptionsType);
-          }}
-        >
-          <StudioTabs.List>
-            <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
-              {t('ux_editor.options.tab_codelist')}
-            </StudioTabs.Tab>
-            <StudioTabs.Tab value={SelectedOptionsType.Manual}>
-              {t('ux_editor.options.tab_manual')}
-            </StudioTabs.Tab>
-            <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
-              {t('ux_editor.options.tab_referenceId')}
-            </StudioTabs.Tab>
-          </StudioTabs.List>
-          <StudioTabs.Content
-            className={classes.codelistTabContent}
-            value={SelectedOptionsType.CodeList}
-          >
-            <EditCodeList component={component} handleComponentChange={handleComponentChange} />
-          </StudioTabs.Content>
-          <StudioTabs.Content
-            value={SelectedOptionsType.Manual}
-            className={classes.manualTabContent}
-          >
-            {shouldDisplayFeature('codeListEditor') ? (
-              <EditManualOptionsWithEditor
-                component={component}
-                handleComponentChange={handleComponentChange}
-                isLayoutOptionsUnsupported={renderOptions.isLayoutOptionsUnsupported}
-              />
-            ) : (
-              <EditManualOptions
-                component={component}
-                handleComponentChange={handleComponentChange}
-                isLayoutOptionsUnsupported={renderOptions.isLayoutOptionsUnsupported}
-              />
-            )}
-          </StudioTabs.Content>
-          <StudioTabs.Content
-            value={SelectedOptionsType.ReferenceId}
-            className={classes.codelistTabContent}
-          >
-            <EditCodeListReference
-              component={component}
-              handleComponentChange={handleComponentChange}
-            />
-          </StudioTabs.Content>
-        </StudioTabs>
+        <OptionTabs
+          component={component}
+          handleComponentChange={handleComponentChange}
+          renderOptions={renderOptions}
+          optionListIds={optionListIds}
+        />
       )}
     </div>
   );

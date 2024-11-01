@@ -1,26 +1,17 @@
 import React, { useRef } from 'react';
-import classes from '../EditOptions.module.css';
-import {
-  StudioCodeListEditor,
-  StudioModal,
-  StudioProperty,
-  StudioAlert,
-  StudioErrorMessage,
-} from '@studio/components';
+import classes from '../../EditOptions.module.css';
+import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { useCodeListButtonValue, useCodeListEditorTexts } from '../hooks';
 import type { EditManualOptionsProps } from '../EditManualOptions';
-import { useComponentErrorMessage } from '@altinn/ux-editor/hooks';
 
 export function EditManualOptionsWithEditor({
   component,
   handleComponentChange,
-  isLayoutOptionsUnsupported,
 }: EditManualOptionsProps) {
   const { t } = useTranslation();
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
-  const errorMessage = useComponentErrorMessage(component);
   const buttonValue = useCodeListButtonValue(component.options);
   const editorTexts = useCodeListEditorTexts();
 
@@ -34,10 +25,6 @@ export function EditManualOptionsWithEditor({
       options,
     });
   };
-
-  if (isLayoutOptionsUnsupported) {
-    return <StudioAlert severity='info'>{t('ux_editor.options.codelist_only')}</StudioAlert>;
-  }
 
   return (
     <>
@@ -58,11 +45,6 @@ export function EditManualOptionsWithEditor({
           texts={editorTexts}
         />
       </StudioModal.Dialog>
-      {errorMessage && (
-        <StudioErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </StudioErrorMessage>
-      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderWithProviders } from '../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../../testing/mocks';
 import type { EditOptionProps } from './EditOption';
 import { EditOption } from './EditOption';
 import { screen, within } from '@testing-library/react';

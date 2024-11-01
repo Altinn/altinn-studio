@@ -1,33 +1,25 @@
 import React, { useMemo } from 'react';
-import { Alert, ErrorMessage } from '@digdir/designsystemet-react';
-import classes from '../EditOptions.module.css';
-import type { IGenericEditComponent } from '../../../componentConfig';
-import { useComponentErrorMessage } from '../../../../../hooks';
-import { addOptionToComponent, generateRandomOption } from '../../../../../utils/component';
+import type { IGenericEditComponent } from '../../../../componentConfig';
+import { addOptionToComponent, generateRandomOption } from '../../../../../../utils/component';
 import { StudioProperty } from '@studio/components';
-import type { SelectionComponentType } from '../../../../../types/FormComponent';
-import { EditOption } from '../../EditOption';
+import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import { EditOption } from './EditOption';
 import { ArrayUtils } from '@studio/pure-functions';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 
-export type EditManualOptionsProps = {
-  isLayoutOptionsUnsupported?: boolean;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+export type EditManualOptionsProps = Pick<
+  IGenericEditComponent<SelectionComponentType>,
+  'component' | 'handleComponentChange'
+>;
 
-export function EditManualOptions({
-  component,
-  handleComponentChange,
-  isLayoutOptionsUnsupported,
-}: EditManualOptionsProps) {
+export function EditManualOptions({ component, handleComponentChange }: EditManualOptionsProps) {
   const { t } = useTranslation();
 
   const mappedOptionIds = useMemo(
     () => component.options?.map((_, index) => `option_${index}`),
     [component.options],
   );
-
-  const errorMessage = useComponentErrorMessage(component);
 
   const handleOptionsChange = (options: Option[]) => {
     handleComponentChange({
@@ -54,10 +46,6 @@ export function EditManualOptions({
 
     handleComponentChange(addOptionToComponent(component, generateRandomOption()));
   };
-
-  if (isLayoutOptionsUnsupported) {
-    return <Alert severity='info'>{t('ux_editor.options.codelist_only')}</Alert>;
-  }
 
   return (
     <>
@@ -86,12 +74,6 @@ export function EditManualOptions({
           property={t('ux_editor.modal_new_option')}
         />
       </StudioProperty.Group>
-
-      {errorMessage && (
-        <ErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </ErrorMessage>
-      )}
     </>
   );
 }

@@ -8,7 +8,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import type { Option } from 'app-shared/types/Option';
 import { XMarkIcon } from '@studio/icons';
-import { TextResource } from '../../../TextResource/TextResource';
+import { TextResource } from '../../../../../../TextResource/TextResource';
 import {
   deleteDescription,
   deleteHelpText,

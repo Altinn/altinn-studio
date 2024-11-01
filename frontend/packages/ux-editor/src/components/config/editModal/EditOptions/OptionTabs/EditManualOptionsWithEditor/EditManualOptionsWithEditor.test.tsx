@@ -1,12 +1,12 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
-import { renderWithProviders } from '../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '../../../../../types/FormItem';
+import type { FormItem } from '../../../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import type { FormComponent } from '../../../../../types/FormComponent';
+import type { FormComponent } from '../../../../../../types/FormComponent';
 import userEvent from '@testing-library/user-event';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
@@ -25,12 +25,10 @@ const renderEditManualOptionsWithEditor = <
 >({
   componentProps,
   handleComponentChange = jest.fn(),
-  isLayoutOptionsUnsupported = false,
 }: {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
-  isLayoutOptionsUnsupported?: boolean;
 } = {}) => {
   const component = {
     ...mockComponent,
@@ -40,7 +38,6 @@ const renderEditManualOptionsWithEditor = <
     <EditManualOptionsWithEditor
       handleComponentChange={handleComponentChange}
       component={component}
-      isLayoutOptionsUnsupported={isLayoutOptionsUnsupported}
     />,
   );
 };
@@ -153,12 +150,6 @@ describe('EditManualOptionsWithEditor', () => {
         ],
       });
     });
-  });
-
-  it('should display an alert if trying to use the manual tab with an unsupported component', () => {
-    renderEditManualOptionsWithEditor({ isLayoutOptionsUnsupported: true });
-
-    expect(screen.getByText(textMock('ux_editor.options.codelist_only'))).toBeInTheDocument();
   });
 
   it('should delete optionsId from the layout when using the manual editor', async () => {
