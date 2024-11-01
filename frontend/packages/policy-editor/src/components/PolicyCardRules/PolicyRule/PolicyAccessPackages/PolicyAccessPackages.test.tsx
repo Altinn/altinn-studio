@@ -43,7 +43,7 @@ describe('PolicyAccessPackages', () => {
     const user = userEvent.setup();
     renderAccessPackages();
 
-    const accordionButton = screen.getByRole('button');
+    const accordionButton = screen.getByRole('button', { name: accessPackageAreaTransport.name });
     await user.click(accordionButton);
 
     const packageCheckbox = screen.getByLabelText(
@@ -60,9 +60,6 @@ describe('PolicyAccessPackages', () => {
   it('should call remove service when access package is unchecked', async () => {
     const user = userEvent.setup();
     renderAccessPackages();
-
-    const accordionButton = screen.getByRole('button');
-    await user.click(accordionButton);
 
     const packageCheckbox = screen.getByLabelText(
       textMock('policy_editor.access_package_remove', {

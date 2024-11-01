@@ -699,7 +699,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Description = "Gir tilgang til tjenester knyttet til dyrehold. ",
                     Tags = [],
                     Area = jordbrukArea
-                },      
+                },
                 new()
                 {
                     Id = "urn:altinn:accesspackage:reindrift",
@@ -708,7 +708,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Description = "Denne tilgangspakken gir tilgang til tjenester knyttet til reindrift.",
                     Tags = [],
                     Area = jordbrukArea
-                },   
+                },
                 new()
                 {
                     Id = "urn:altinn:accesspackage:jaktogviltstell",
@@ -717,7 +717,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Description = "Gir fullmakter til tjenester knyttet til jakt og viltstell",
                     Tags = [],
                     Area = jordbrukArea
-                },   
+                },
                 new()
                 {
                     Id = "urn:altinn:accesspackage:skogbruk",
@@ -726,7 +726,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Description = "Gir fullmakter til tjenester knyttet til skogbruk",
                     Tags = [],
                     Area = jordbrukArea
-                },   
+                },
                 new()
                 {
                     Id = "urn:altinn:accesspackage:fiske",
@@ -735,7 +735,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Description = "Gir fullmakter til tjenester knyttet til fiske",
                     Tags = [],
                     Area = jordbrukArea
-                },      
+                },
                 new()
                 {
                     Id = "urn:altinn:accesspackage:akvakultur",
