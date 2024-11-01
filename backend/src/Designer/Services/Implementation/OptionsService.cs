@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -43,37 +44,37 @@ public class OptionsService : IOptionsService
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<List<Option<IOptionValue>>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
-        var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
+        var optionsList = JsonSerializer.Deserialize<List<Option<IOptionValue>>>(optionsListString);
         return optionsList;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option<IOptionValue>>> CreateOrOverwriteOptionsList(string org, string repo, string developer, string optionsListId, List<Option<IOptionValue>> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
         string updatedOptionsString = await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, payload, cancellationToken);
-        var updatedOptions = JsonSerializer.Deserialize<List<Option>>(updatedOptionsString);
+        var updatedOptions = JsonSerializer.Deserialize<List<Option<IOptionValue>>>(updatedOptionsString);
 
         return updatedOptions;
     }
 
     /// <inheritdoc />
-    public async Task<List<Option>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
+    public async Task<List<Option<IOptionValue>>> UploadNewOption(string org, string repo, string developer, string optionsListId, IFormFile payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
+        List<Option<IOptionValue>> deserializedOptions = JsonSerializer.Deserialize<List<Option<IOptionValue>>>(payload.OpenReadStream(),
             new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
 
-        IEnumerable<Option> result = deserializedOptions.Where(option => string.IsNullOrEmpty(option.Value) || string.IsNullOrEmpty(option.Label));
+        IEnumerable<Option<IOptionValue>> result = deserializedOptions.Where(option => IsNullOrEmptyOptionValue(option.Value) || string.IsNullOrEmpty(option.Label));
         if (result.Any())
         {
             throw new JsonException("Uploaded file is missing one of the following attributes for an option: value or label.");
@@ -83,6 +84,16 @@ public class OptionsService : IOptionsService
         await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
 
         return deserializedOptions;
+    }
+
+    bool IsNullOrEmptyOptionValue(IOptionValue value)
+    {
+        if (value == null)
+        {
+            return true;
+        }
+
+        return value is StringOptionValue stringOption && string.IsNullOrEmpty(stringOption.Value);
     }
 
     /// <inheritdoc />

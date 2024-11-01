@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -67,17 +68,19 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
+        var responseList = JsonSerializer.Deserialize<List<Option<IOptionValue>>>(responseBody);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Equal(2, responseList.Count);
 
-        Assert.Equal("label1", responseList[0].Label);
-        Assert.Equal("value1", responseList[0].Value);
+        var stringOptionValue1 = responseList[0]?.Value as StringOptionValue;
+        Assert.NotNull(stringOptionValue1);
+        Assert.Equal("value1", stringOptionValue1.Value);
 
-        Assert.Equal("label2", responseList[1].Label);
-        Assert.Equal("value2", responseList[1].Value);
+        var stringOptionValue2 = responseList[1]?.Value as StringOptionValue;
+        Assert.NotNull(stringOptionValue2);
+        Assert.Equal("value2", stringOptionValue2.Value);
     }
 
     [Fact]

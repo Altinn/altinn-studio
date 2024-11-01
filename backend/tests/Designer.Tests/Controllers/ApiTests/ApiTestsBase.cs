@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using Designer.Tests.Fixtures;
-using DotNet.Testcontainers.Builders;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;

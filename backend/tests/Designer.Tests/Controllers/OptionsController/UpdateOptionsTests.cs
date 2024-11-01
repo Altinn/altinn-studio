@@ -4,8 +4,10 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -31,17 +33,22 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        var newOptionsList = new List<Option>
+        var newOptionsList = new List<Option<IOptionValue>>
         {
-            new Option
+            new()
             {
                 Label = "label1",
-                Value = "value1",
+                Value = new StringOptionValue("value1"),
             },
-            new Option
+            new ()
             {
                 Label = "label2",
-                Value = "value2",
+                Value = new BoolOptionValue(false),
+            },
+            new ()
+            {
+                Label = "label3",
+                Value = new DoubleOptionValue(3.1415),
             }
         };
 
@@ -52,7 +59,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
+        var responseList = JsonSerializer.Deserialize<List<Option<IOptionValue>>>(responseBody);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -77,18 +84,23 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        var newOptionsList = new List<Option>
+        var newOptionsList = new List<Option<IOptionValue>>
         {
-            new Option
+            new ()
             {
                 Label = "aNewLabelThatDidNotExistBefore",
-                Value = "aNewValueThatDidNotExistBefore",
+                Value = new StringOptionValue("aNewValueThatDidNotExistBefore"),
             },
-            new Option
+            new ()
             {
                 Label = "label2",
-                Value = "value2",
-            }
+                Value = new BoolOptionValue(false),
+            },
+            new ()
+            {
+            Label = "label3",
+            Value = new DoubleOptionValue(3.1415),
+        }
         };
 
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
@@ -98,7 +110,7 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
         string responseBody = await response.Content.ReadAsStringAsync();
-        var responseList = JsonSerializer.Deserialize<List<Option>>(responseBody);
+        var responseList = JsonSerializer.Deserialize<List<Option<IOptionValue>>>(responseBody);
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
@@ -127,24 +139,24 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         if (optionsListId == "options-missing-label")
         {
-            var invalidOptionsList = new List<Option>
+            var invalidOptionsList = new List<Option<IOptionValue>>
             {
-                new Option
+                new()
                 {
                     // Missing Label
-                    Value = "value1",
+                    Value = new StringOptionValue("value1"),
                 },
-                new Option
+                new ()
                 {
                     Label = "label2",
-                    Value = "value2",
+                    Value = new StringOptionValue("value2"),
                 }
             };
             httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
         }
         else if (optionsListId == "options-empty-json")
         {
-            httpRequestMessage.Content = JsonContent.Create<List<Option>>(null);
+            httpRequestMessage.Content = JsonContent.Create<List<Option<IOptionValue>>>(null);
         }
 
         // Act

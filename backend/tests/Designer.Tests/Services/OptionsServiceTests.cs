@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Altinn.Studio.Designer.Services.Implementation;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
@@ -51,17 +52,17 @@ public class OptionsServiceTests
     {
         // Arrange
         // This  options list matches the options in 'app-with-options'
-        var expectedOptions = new List<Option>
+        var expectedOptions = new List<Option<IOptionValue>>
         {
-            new Option
+            new ()
             {
                 Label = "label1",
-                Value = "value1",
+                Value = new StringOptionValue("value1"),
             },
-            new Option
+            new ()
             {
                 Label = "label2",
-                Value = "value2",
+                Value = new StringOptionValue("value2"),
             }
         };
 
@@ -106,17 +107,17 @@ public class OptionsServiceTests
     public async Task CreateOrOverwriteOptionsList_ShouldReturnUpdatedOptionsList_WhenOptionsListDoesNotAlreadyExist()
     {
         // Arrange
-        var newOptions = new List<Option>
+        var newOptions = new List<Option<IOptionValue>>
         {
-            new Option
+            new ()
             {
                 Label = "label1",
-                Value = "value1",
+                Value = new StringOptionValue("value1"),
             },
-            new Option
+            new ()
             {
                 Label = "label2",
-                Value = "value2",
+                Value = new StringOptionValue("value2"),
             }
         };
 
@@ -145,17 +146,17 @@ public class OptionsServiceTests
     public async Task CreateOrOverwriteOptionsList_ShouldReturnUpdatedOptionsList_WhenOptionsAlreadyExist()
     {
         // Arrange
-        var newOptions = new List<Option>
+        var newOptions = new List<Option<IOptionValue>>
         {
-            new Option
+            new ()
             {
                 Label = "someNewOption",
-                Value = "someNewValue",
+                Value = new StringOptionValue("someNewValue"),
             },
-            new Option
+            new ()
             {
                 Label = "label2",
-                Value = "value2",
+                Value = new StringOptionValue("value2"),
             }
         };
 

@@ -13,6 +13,7 @@ using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -767,7 +768,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="payload">The contents of the new options list as a string</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The new options list as a string.</returns>
-        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
+        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, List<Option<IOptionValue>> payload, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

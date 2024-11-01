@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -379,7 +380,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             if (layoutObject["options"] is JsonArray optionsArray)
             {
-                List<Option> options = optionsArray.Deserialize<List<Option>>();
+                List<Option<IOptionValue>> options = optionsArray.Deserialize<List<Option<IOptionValue>>>();
                 if (options != null && UpdateOptionListKeys(options, mutation))
                 {
                     layoutObject["options"] = JsonSerializer.SerializeToNode(options);
@@ -412,7 +413,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<string> updatedFiles = [];
             foreach (string optionListId in optionListIds)
             {
-                List<Option> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
+                List<Option<IOptionValue>> options = await _optionsService.GetOptionsList(org, app, developer, optionListId);
                 bool hasMutated = false;
                 foreach (TextIdMutation mutation in keyMutations)
                 {
@@ -428,7 +429,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return updatedFiles;
         }
 
-        private static bool UpdateOptionListKeys(List<Option> options, TextIdMutation keyMutation)
+        private static bool UpdateOptionListKeys(List<Option<IOptionValue>> options, TextIdMutation keyMutation)
         {
             if (!keyMutation.NewId.HasValue)
             {
@@ -436,7 +437,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             bool mutated = false;
-            foreach (Option option in options)
+            foreach (Option<IOptionValue> option in options)
             {
                 if (option.Label == keyMutation.OldId)
                 {

@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Xunit;
@@ -319,17 +320,17 @@ namespace Designer.Tests.Infrastructure.GitRepository
             await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
-            var newOptionsList = new List<Option>
+            var newOptionsList = new List<Option<IOptionValue>>
             {
-                new Option
+                new ()
                 {
                     Label = "label1",
-                    Value = "value1",
+                    Value = new StringOptionValue("value1"),
                 },
-                new Option
+                new ()
                 {
                     Label = "label2",
-                    Value = "value2",
+                    Value = new StringOptionValue("value2"),
                 }
             };
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };
@@ -355,17 +356,17 @@ namespace Designer.Tests.Infrastructure.GitRepository
             await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
             AltinnAppGitRepository altinnAppGitRepository = PrepareRepositoryForTest(org, targetRepository, developer);
 
-            var newOptionsList = new List<Option>
+            var newOptionsList = new List<Option<IOptionValue>>
             {
-                new Option
+                new ()
                 {
                     Label = "label1",
-                    Value = "newValue1",
+                    Value = new StringOptionValue("newValue1"),
                 },
-                new Option
+                new ()
                 {
                     Label = "label2",
-                    Value = "newValue2",
+                    Value = new StringOptionValue("newValue2"),
                 }
             };
             var jsonOptions = new JsonSerializerOptions { WriteIndented = true };

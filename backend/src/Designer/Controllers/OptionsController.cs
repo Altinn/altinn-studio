@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -58,16 +59,16 @@ public class OptionsController : ControllerBase
     /// <returns>Dictionary of all option lists belonging to the app</returns>
     [HttpGet]
     [Route("option-lists")]
-    public async Task<ActionResult<Dictionary<string, List<Option>>>> GetOptionLists(string org, string repo)
+    public async Task<ActionResult<Dictionary<string, List<Option<IOptionValue>>>>> GetOptionLists(string org, string repo)
     {
         try
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             string[] optionListIds = _optionsService.GetOptionsListIds(org, repo, developer);
-            Dictionary<string, List<Option>> optionLists = [];
+            Dictionary<string, List<Option<IOptionValue>>> optionLists = [];
             foreach (string optionListId in optionListIds)
             {
-                List<Option> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
+                List<Option<IOptionValue>> optionList = await _optionsService.GetOptionsList(org, repo, developer, optionListId);
                 optionLists.Add(optionListId, optionList);
             }
             return Ok(optionLists);
@@ -90,14 +91,14 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult<List<Option>>> GetOptionsList(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<Option<IOptionValue>>>> GetOptionsList(string org, string repo, [FromRoute] string optionsListId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         try
         {
-            List<Option> optionsList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId, cancellationToken);
+            List<Option<IOptionValue>> optionsList = await _optionsService.GetOptionsList(org, repo, developer, optionsListId, cancellationToken);
             return Ok(optionsList);
         }
         catch (NotFoundException ex)
@@ -119,7 +120,7 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<ActionResult> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option<IOptionValue>> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -146,7 +147,7 @@ public class OptionsController : ControllerBase
 
         try
         {
-            List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+            List<Option<IOptionValue>> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
             return Ok(newOptionsList);
         }
         catch (JsonException e)
