@@ -56,6 +56,8 @@ test('That it is possible to create a text at the ui-editor page, and that the t
   const header = new Header(page, { app: testAppName });
   const uiEditorPage = new UiEditorPage(page, { app: testAppName });
 
+  page.on('console', (msg) => console.log(msg.text()));
+
   await navigateToUiEditorAndVerifyPage(header, uiEditorPage);
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
 
@@ -102,6 +104,8 @@ test('That it is possible to edit a textkey, and that the key is updated on the 
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextKeyIsVisible(UPDATED_TEXT_KEY);
   await uiEditorPage.verifyThatTextKeyIsHidden(INITIAL_TEXT_KEY);
+
+  page.on('console', (msg) => console.log(msg.text()));
 });
 
 test('That it is possible to add another text key', async ({ page, testAppName }) => {
@@ -116,6 +120,8 @@ test('That it is possible to add another text key', async ({ page, testAppName }
     TEXT_KEY_FIELD_2,
     TEXT_VALUE_IN_TEXTAREA,
   );
+
+  page.on('console', (msg) => console.log(msg.text()));
 });
 
 test('That it is possible to add a new language', async ({ page, testAppName }) => {
@@ -136,6 +142,8 @@ test('That it is possible to add a new language', async ({ page, testAppName }) 
   );
 
   await textEditorPage.openSelectLanguageCombobox(); // Adding this to perform another action to force the API call to be done
+
+  page.on('console', (msg) => console.log(msg.text()));
 });
 
 test('That the newly added language with key is updated on ui-editor page', async ({
@@ -151,6 +159,8 @@ test('That the newly added language with key is updated on ui-editor page', asyn
   await uiEditorPage.clickOnComponentTextConfigAccordion();
   await uiEditorPage.clickOnTitleTextButton();
   await uiEditorPage.verifyThatTextareaIsVisible(LanguageCode.En);
+
+  page.on('console', (msg) => console.log(msg.text()));
 });
 
 test('That it is possible to push the changes to Gitea and verify that the changes are uploaded', async ({
@@ -196,6 +206,8 @@ test('That it is possible to push the changes to Gitea and verify that the chang
   await giteaPage.verifyTextIdAndValue(TEXT_KEY_FIELD_2, TEXT_VALUE_IN_TEXTAREA);
   await giteaPage.verifyTextIdAndValue(UPDATED_TEXT_KEY, ''); // This is never set in the test
   await giteaPage.verifyTextIdAndValue('appName', testAppName);
+
+  page.on('console', (msg) => console.log(msg.text()));
 });
 
 const updateTextKey = async (
