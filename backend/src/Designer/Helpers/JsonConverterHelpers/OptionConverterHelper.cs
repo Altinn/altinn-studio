@@ -8,7 +8,6 @@ public class OptionConverter : JsonConverter<object>
 {
     public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        // Handle JSON token type to convert to either string, bool, or double
         return reader.TokenType switch
         {
             JsonTokenType.String => reader.GetString(),
@@ -21,7 +20,6 @@ public class OptionConverter : JsonConverter<object>
 
     public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
     {
-        // Serialize based on the type of the object
         switch (value)
         {
             case string s:

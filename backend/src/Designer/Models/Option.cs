@@ -37,5 +37,4 @@ public class Option
     [JsonPropertyName("helpText")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string HelpText { get; set; }
-
 }
