@@ -55,3 +55,4 @@ jobs:
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
       trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
       trace-repo-token: ${{ secrets.GITHUB_TOKEN }}
+
