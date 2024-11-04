@@ -3,13 +3,13 @@ import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState }
 import classes from './SettingsModal.module.css';
 import { CogIcon } from '@studio/icons';
 import { StudioModal, StudioContentMenu } from '@studio/components';
-import type { SettingsModalTabId } from 'app-development/types/SettingsModalTabId';
+import type { SettingsModalTabId } from '../../../../../types/SettingsModalTabId';
 import { useTranslation } from 'react-i18next';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AboutTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
-import { type SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
+import { type SettingsModalHandle } from '../../../../../types/SettingsModalHandle';
 import { useSettingsModalMenuTabConfigs } from './hooks/useSettingsModalMenuTabConfigs';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
