@@ -19,7 +19,7 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
 
   const layoutSetExists = layoutSets?.sets.some((set) => set.id === selectedFormLayoutSetName); // Kan det være her????
 
-  !layoutSetExists && toast.error('useSelectedFormLayoutSetName');
+  if (!layoutSetExists) toast.error('useSelectedFormLayoutSetName');
 
   console.log('useSelectedFormLayoutSetName', {
     layoutSetExists,
