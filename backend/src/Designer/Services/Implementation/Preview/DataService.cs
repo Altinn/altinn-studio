@@ -1,8 +1,10 @@
 using System;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
+using Json.Patch;
 using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Services.Implementation.Preview;
@@ -11,6 +13,10 @@ public class DataService(
         IDistributedCache distributedCache
         ) : IDataService
 {
+    readonly DistributedCacheEntryOptions _cacheOptions = new()
+    {
+        SlidingExpiration = TimeSpan.FromMinutes(30),
+    };
 
     public DataElement CreateDataElement(string org, string app, int partyId, Guid instanceGuid, string dataTypeId, CancellationToken cancellationToken = default)
     {
@@ -23,17 +29,30 @@ public class DataService(
             Created = DateTime.Now,
             CreatedBy = partyId.ToString(),
         };
-        Console.WriteLine("Setting data element instance: " + dataElementGuid + " to data type: " + dataTypeId);
 
-        string dataElementJson = JsonSerializer.Serialize(dataElement);
-        distributedCache.SetString(dataElementGuid.ToString(), dataElementJson);
+        distributedCache.SetString(dataElementGuid.ToString(), "{}", _cacheOptions);
         return dataElement;
     }
 
-    public DataElement GetDataElement(string org, string app, int partyId, Guid instanceGuid, Guid dataGuid, CancellationToken cancellationToken = default)
+    public JsonNode GetDataElement(string org, string app, int partyId, Guid instanceGuid, Guid dataGuid, CancellationToken cancellationToken = default)
     {
         string dataElementJson = distributedCache.GetString(dataGuid.ToString());
-        DataElement dataElement = JsonSerializer.Deserialize<DataElement>(dataElementJson);
+        JsonNode dataElement = JsonSerializer.Deserialize<JsonNode>(dataElementJson);
         return dataElement;
     }
+
+    public JsonNode PatchDataElement(string org, string app, int partyId, Guid instanceGuid, Guid dataGuid, JsonPatch patch, CancellationToken cancellationToken)
+    {
+        string dataJson = distributedCache.GetString(dataGuid.ToString());
+        JsonNode dataNode = JsonSerializer.Deserialize<JsonNode>(dataJson);
+        PatchResult patchResult = patch.Apply(dataNode);
+        if (!patchResult.IsSuccess)
+        {
+            throw new InvalidOperationException("Patch operation failed." + patchResult.Error);
+        }
+        dataNode = patchResult.Result;
+        distributedCache.SetString(dataGuid.ToString(), JsonSerializer.Serialize(dataNode), _cacheOptions);
+        return dataNode;
+    }
+
 }

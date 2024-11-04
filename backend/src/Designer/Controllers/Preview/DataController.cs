@@ -1,48 +1,64 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Constants;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Preview;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Controllers.Preview
 {
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
     public class DataController(IHttpContextAccessor httpContextAccessor,
-        IDistributedCache distributedCache,
         IPreviewService previewService,
-        ISchemaModelService schemaModelService
+        ISchemaModelService schemaModelService,
+        IDataService dataService
     ) : Controller
     {
-
-        /// <summary>
-        /// Endpoint to validate a data task for an instance
-        /// </summary>
-        /// <returns>Ok</returns>
         [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}/data/" + PreviewService.MockDataTaskId + "/validate")]
-        public ActionResult ValidateInstanceForDataTask()
+        [Route("{partyId}/{instanceGuid}/data/{dataGuid}")]
+        public ActionResult Get(string org, string app, [FromRoute] int partyId, [FromRoute] Guid instanceGuid, [FromRoute] Guid dataGuid, CancellationToken cancellationToken, [FromQuery] bool includeRowId = false, [FromQuery] string? language = null)
         {
-            return Ok(new List<string>());
+            JsonNode dataItem = dataService.GetDataElement(org, app, partyId, instanceGuid, dataGuid, cancellationToken);
+            return Ok(dataItem);
         }
 
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}/data/{dataGuid}/validate")]
-        public ActionResult ValidateInstanceForData([FromRoute] Guid dataGuid)
+        [HttpPost]
+        [Route("{partyId}/{instanceGuid}/data")]
+        public ActionResult Post(string org, string app, int partyId, Guid instanceGuid, [FromQuery] string dataType)
         {
-            string dataTypeId = distributedCache.GetString(dataGuid.ToString());
-            Console.WriteLine("Validating data element instance: " + dataGuid + " with data type: " + dataTypeId);
-            return Ok(new List<string>());
+            DataElement dataElement = dataService.CreateDataElement(org, app, partyId, instanceGuid, dataType);
+            return Created("link-to-app-placeholder", dataElement);
+        }
+
+        [HttpPatch("{partyId}/{instanceGuid}/data/{dataGuid}")]
+        [UseSystemTextJson]
+        public ActionResult<DataPatchResponse> Patch(string org, string app, [FromRoute] int partyId, [FromRoute] Guid instanceGuid, [FromRoute] Guid dataGuid, [FromBody] DataPatchRequest dataPatch, CancellationToken cancellationToken)
+        {
+            if (instanceGuid == PreviewConstants.MockInstanceGUID && dataGuid == Guid.Empty)
+            {
+                return Ok();
+            }
+
+            JsonNode dataItem = dataService.PatchDataElement(org, app, partyId, instanceGuid, dataGuid, dataPatch.Patch, cancellationToken);
+            return Ok(new DataPatchResponse()
+            {
+                ValidationIssues = [],
+                NewDataModel = dataItem,
+            });
         }
 
         /// <summary>
@@ -55,8 +71,8 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Json schema for datamodel for the current task</returns>
         [HttpGet]
-        [Route("instances/{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
-        public async Task<ActionResult> GetFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
+        [Route("{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
+        public async Task<ActionResult> GetDefaultFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
@@ -74,19 +90,6 @@ namespace Altinn.Studio.Designer.Controllers.Preview
             return Ok(formData);
         }
 
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuid}/data/{dataGuid}")]
-        public async Task<ActionResult> GetData(string org, string app, [FromRoute] int partyId, [FromRoute] Guid instanceGuid, [FromRoute] Guid dataGuid, CancellationToken cancellationToken, [FromQuery] bool includeRowId = false, [FromQuery] string? language = null)
-        {
-            string dataTypeId = distributedCache.GetString(dataGuid.ToString());
-            Console.WriteLine("Getting dataType for instanceGuid " + dataGuid + ": " + dataTypeId);
-            string modelPath = $"/App/models/{dataTypeId}.schema.json";
-            string decodedPath = Uri.UnescapeDataString(modelPath);
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            string formData = await schemaModelService.GetSchema(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), decodedPath, cancellationToken);
-            return Ok(formData);
-        }
-
         /// <summary>
         /// Action for updating the json schema for the datamodel for the current data task in the process
         /// </summary>
@@ -97,28 +100,10 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Json schema for datamodel for the current data task in the process</returns>
         [HttpPut]
-        [Route("instances/{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
+        [Route("{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
         public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
         {
-            return await GetFormData(org, app, partyId, instanceGuid, cancellationToken);
-        }
-
-        /// <summary>
-        /// Action for mocking upload of an attachment to an attachment component
-        /// </summary>
-        /// <param name="dataType">Id of the attachment component in application metadata</param>
-        /// <returns>A 201 Created response with a mocked data element</returns>
-        [HttpPost]
-        [Route("instances/{partyId}/{instanceGuid}/data")]
-        public ActionResult PostAttachment([FromQuery] string dataType)
-        {
-            Guid guid = Guid.NewGuid();
-            Console.WriteLine("Setting data element instance: " + guid + " to data type: " + dataType);
-            distributedCache.SetString(guid.ToString(), dataType);
-
-            // This guid will be the unique id of the uploaded attachment
-            DataElement dataElement = new() { Id = guid.ToString() };
-            return Created("link-to-app-placeholder", dataElement);
+            return await GetDefaultFormData(org, app, partyId, instanceGuid, cancellationToken);
         }
 
         /// <summary>
@@ -127,10 +112,17 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="dataTypeId">Id of the attachment in application metadata</param>
         /// <returns>Ok</returns>
         [HttpDelete]
-        [Route("instances/{partyId}/{instanceGuid}/data/{dataTypeId}")]
+        [Route("{partyId}/{instanceGuid}/data/{dataTypeId}")]
         public ActionResult DeleteAttachment([FromRoute] string dataTypeId)
         {
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("{partyId}/{instanceGuid}/data/{dataGuid}/validate")]
+        public ActionResult ValidateInstanceForData([FromRoute] Guid dataGuid)
+        {
+            return Ok(new List<string>());
         }
 
         /// <summary>
@@ -139,25 +131,10 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="tag">The specific tag from the code list chosen for the attachment</param>
         /// <returns>Ok</returns>
         [HttpPost]
-        [Route("instances/{partyId}/{instanceGuid}/data/{dataTypeId}/tags")]
+        [Route("{partyId}/{instanceGuid}/data/{dataTypeId}/tags")]
         public ActionResult UpdateTagsForAttachment([FromBody] string tag)
         {
             return Created("link-to-app-placeholder", tag);
-        }
-
-
-        /// <summary>
-        /// Action for getting a response from v1/data/anonymous
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Empty object</returns>
-        [HttpGet]
-        [Route("api/v1/data/anonymous")]
-        public IActionResult Anonymous(string org, string app)
-        {
-            string user = "{}";
-            return Content(user);
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)

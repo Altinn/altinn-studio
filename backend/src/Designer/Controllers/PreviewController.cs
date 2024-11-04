@@ -267,6 +267,20 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Action for getting a response from v1/data/anonymous
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>Empty object</returns>
+        [HttpGet]
+        [Route("api/v1/data/anonymous")]
+        public IActionResult Anonymous(string org, string app)
+        {
+            string user = "{}";
+            return Content(user);
+        }
+
+        /// <summary>
         /// Action for mocking a response to the profile user
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
