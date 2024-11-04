@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { defaultAriaLabel, StudioBreadcrumbsProps } from './StudioBreadcrumbs';
+import type { StudioBreadcrumbsProps } from './StudioBreadcrumbs';
+import { defaultAriaLabel } from './StudioBreadcrumbs';
 import {
   StudioBreadcrumbs,
   StudioBreadcrumbsItem,
