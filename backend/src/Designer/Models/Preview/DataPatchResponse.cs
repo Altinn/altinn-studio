@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Altinn.App.Core.Models.Validation;
-using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Models.Preview;
 
 /// <summary>
-/// Represents the response from a data patch operation on the <see cref="DataController"/>.
+/// Represents the response from a data patch operation on the <see cref="Controllers.Preview.DataController"/>.
 /// </summary>
 public class DataPatchResponse
 {

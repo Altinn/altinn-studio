@@ -5,7 +5,7 @@ using Json.Patch;
 namespace Altinn.Studio.Designer.Models.Preview;
 
 /// <summary>
-/// Represents the request to patch data on the <see cref="DataController"/>.
+/// Represents the request to patch data on the <see cref="Controllers.Preview.DataController"/>.
 /// </summary>
 public class DataPatchRequest
 {

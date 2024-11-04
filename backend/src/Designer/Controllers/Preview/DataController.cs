@@ -35,7 +35,11 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         }
 
         [HttpPost]
-        public ActionResult Post(int partyId, Guid instanceGuid, [FromQuery] string dataType)
+        public ActionResult Post(
+                [FromRoute] int partyId,
+                [FromRoute] Guid instanceGuid,
+                [FromQuery] string dataType
+        )
         {
             DataElement dataElement = dataService.CreateDataElement(partyId, instanceGuid, dataType);
             return Created("link-to-app-placeholder", dataElement);
