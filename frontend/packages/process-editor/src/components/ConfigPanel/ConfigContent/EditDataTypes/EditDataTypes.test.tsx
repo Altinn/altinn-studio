@@ -89,7 +89,9 @@ describe('EditDataTypes', () => {
     });
     await user.click(updateDataTypeButton);
     const description = screen.getByText(
-      textMock('process_editor.configuration_panel_data_model_selection_description'),
+      textMock(
+        'process_editor.configuration_panel_data_model_selection_description_existing_model',
+      ),
     );
     expect(description).toBeInTheDocument();
 

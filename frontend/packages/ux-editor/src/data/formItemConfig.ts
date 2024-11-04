@@ -127,7 +127,9 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/buttonGroupComponent',
     icon: FingerButtonIcon,
     validChildTypes: [
+      ComponentType.ActionButton,
       ComponentType.Button,
+      ComponentType.CustomButton,
       ComponentType.NavigationButtons,
       ComponentType.PrintButton,
       ComponentType.InstantiationButton,
