@@ -1,8 +1,5 @@
 using System;
-using System.Runtime.Caching;
-using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Services.Implementation.Preview;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
@@ -10,7 +7,6 @@ using Json.Patch;
 using Json.Pointer;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Xunit;
 
 namespace Designer.Tests.Services.Preview
