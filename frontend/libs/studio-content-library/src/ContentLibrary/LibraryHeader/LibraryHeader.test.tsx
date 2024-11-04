@@ -7,7 +7,7 @@ import { RouterContext } from '../../contexts/RouterContext';
 const navigateMock = jest.fn();
 
 describe('LibraryHeader', () => {
-  it('renders the contentLibrary header', () => {
+  it('renders the content library header', () => {
     renderLibraryHeader();
     const libraryIcon = screen.getByRole('img');
     const libraryHeader = screen.getByRole('heading', {

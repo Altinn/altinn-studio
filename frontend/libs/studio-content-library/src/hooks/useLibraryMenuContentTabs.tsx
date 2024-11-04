@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { pageRouterQueryParamKey } from '../utils/router/QueryParamsRouter';
 
-type TabDictionary<T extends string> = Record<T, StudioContentMenuLinkTabProps<T>>;
+type TabDictionary = {
+  [Key in PageName]: StudioContentMenuLinkTabProps<Key>;
+};
 
-export const useContentTabs = (): TabDictionary<PageName> => {
+export const useContentTabs = (): TabDictionary => {
   const { t } = useTranslation();
 
   return {

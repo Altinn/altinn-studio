@@ -1,6 +1,6 @@
 .libraryContent {
   display: grid;
-  grid-template-columns: 0.7fr 3.3fr 1fr;
+  grid-template-columns: 2fr 8fr 3fr;
   height: 100%;
 }
 
