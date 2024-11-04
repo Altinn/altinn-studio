@@ -14,6 +14,10 @@ const texts: CodeListEditorTexts = {
   deleteItem: (number) => `Delete item number ${number}`,
   description: 'Description',
   emptyCodeList: 'The code list is empty.',
+  valueErrors: {
+    duplicateValue: 'The value must be unique.',
+  },
+  generalError: 'The code list cannot be saved because it is not valid.',
   helpText: 'Help text',
   itemDescription: (number) => `Description for item number ${number}`,
   itemHelpText: (number) => `Help text for item number ${number}`,
@@ -48,6 +52,28 @@ const defaultProps: StudioCodeListEditorProps = {
   texts,
   onChange,
 };
+const duplicatedValue = 'duplicate';
+const codeListWithDuplicatedValues: CodeList = [
+  {
+    label: 'Test 1',
+    value: duplicatedValue,
+    description: 'Test 1 description',
+    helpText: 'Test 1 help text',
+  },
+  {
+    label: 'Test 2',
+    value: duplicatedValue,
+    description: 'Test 2 description',
+    helpText: 'Test 2 help text',
+  },
+  {
+    label: 'Test 3',
+    value: 'unique',
+    description: 'Test 3 description',
+    helpText: 'Test 3 help text',
+  },
+];
+
 const numberOfHeadingRows = 1;
 
 describe('StudioCodeListEditor', () => {
@@ -89,9 +115,10 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
-    const newValue = 'new text';
-    await user.type(labelInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    const additionalText = 'new text';
+    const newValue = codeList[0].label + additionalText;
+    await user.type(labelInput, additionalText);
+    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], label: newValue },
       codeList[1],
@@ -103,9 +130,10 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
-    const newValue = 'new text';
-    await user.type(valueInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    const additionalText = 'new text';
+    const newValue = codeList[0].value + additionalText;
+    await user.type(valueInput, additionalText);
+    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], value: newValue },
       codeList[1],
@@ -117,9 +145,10 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const descriptionInput = screen.getByRole('textbox', { name: texts.itemDescription(1) });
-    const newValue = 'new text';
-    await user.type(descriptionInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    const additionalText = 'new text';
+    const newValue = codeList[0].description + additionalText;
+    await user.type(descriptionInput, additionalText);
+    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], description: newValue },
       codeList[1],
@@ -131,9 +160,10 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const helpTextInput = screen.getByRole('textbox', { name: texts.itemHelpText(1) });
-    const newValue = 'new text';
-    await user.type(helpTextInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    const additionalText = 'new text';
+    const newValue = codeList[0].helpText + additionalText;
+    await user.type(helpTextInput, additionalText);
+    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], helpText: newValue },
       codeList[1],
@@ -195,6 +225,38 @@ describe('StudioCodeListEditor', () => {
     const newNumberOfCodeListItems = newCodeList.length;
     const newExpectedNumberOfRows = newNumberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(newExpectedNumberOfRows);
+  });
+
+  it('Applies invalid state to duplicated values', () => {
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const firstDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+    const secondDuplicateInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
+    expect(firstDuplicateInput).toBeInvalid();
+    expect(secondDuplicateInput).toBeInvalid();
+  });
+
+  it('Does not apply invalid state to unique values when other values are duplicated', () => {
+    renderCodeListEditor();
+    const uniqueValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    expect(uniqueValueInput).toBeValid();
+  });
+
+  it('Renders a general error message when there are errors', () => {
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    expect(screen.getByText(texts.generalError)).toBeInTheDocument();
+  });
+
+  it('Does not render the error message when the code list is valid', () => {
+    renderCodeListEditor();
+    expect(screen.queryByText(texts.generalError)).not.toBeInTheDocument();
+  });
+
+  it('Does not trigger onChange while the code list is invalid', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    await user.type(validValueInput, 'new value');
+    expect(onChange).not.toHaveBeenCalled();
   });
 });
 

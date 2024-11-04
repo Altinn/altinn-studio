@@ -118,6 +118,20 @@ describe('ArrayUtils', () => {
     });
   });
 
+  describe('isDuplicate', () => {
+    it('Returns true when the given value is a duplicate within the array', () => {
+      expect(ArrayUtils.isDuplicate(2, [1, 2, 3, 2])).toBe(true);
+    });
+
+    it('Returns false when the given value is unique within the array', () => {
+      expect(ArrayUtils.isDuplicate(2, [1, 2, 3])).toBe(false);
+    });
+
+    it('Returns false when the given value is not present in the array', () => {
+      expect(ArrayUtils.isDuplicate(4, [1, 2, 3])).toBe(false);
+    });
+  });
+
   describe('hasIntersection', () => {
     it('Returns true when arrays have one common element', () => {
       expect(ArrayUtils.hasIntersection([1, 2, 3], [3, 4, 5])).toBe(true);

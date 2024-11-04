@@ -1,15 +1,15 @@
-import React, { type ReactElement, type ChangeEvent } from 'react';
+import React, { useState, type ReactElement } from 'react';
 import classes from './ColumnElement.module.css';
 import { type TableColumn } from '../types/TableColumn';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioButton,
-  StudioLabelAsParagraph,
-  StudioToggleableTextfield,
-} from '@studio/components';
-import { KeyVerticalFillIcon, TrashFillIcon } from '@studio/icons';
+import { StudioProperty } from '@studio/components';
+import { EditColumnElement } from './EditColumnElement';
+import { useTextResourcesQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
 
 export type ColumnElementProps = {
+  layoutSetName: string;
   tableColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
@@ -21,110 +21,45 @@ export const ColumnElement = ({
   columnNumber,
   onDeleteColumn,
   onEdit,
+  layoutSetName,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
+  const [editing, setEditing] = useState(false);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const handleEditHeaderContent = (event: ChangeEvent<HTMLInputElement>) => {
-    onEdit({ ...tableColumn, headerContent: event.target.value });
+  const textKeyValue = textResourceByLanguageAndIdSelector(
+    'nb',
+    tableColumn.headerContent,
+  )(textResources)?.value;
+
+  if (editing) {
+    return (
+      <EditColumnElement
+        layoutSetName={layoutSetName}
+        sourceColumn={tableColumn}
+        columnNumber={columnNumber}
+        onDeleteColumn={onDeleteColumn}
+        onEdit={(col) => {
+          setEditing(false);
+          onEdit(col);
+        }}
+      />
+    );
+  }
+
+  const handleClickEdit = (): void => {
+    setEditing(true);
   };
 
-  const handleEditQuery = (event: ChangeEvent<HTMLInputElement>) => {
-    onEdit({
-      ...tableColumn,
-      cellContent: { ...tableColumn.cellContent, query: event.target.value },
-    });
-  };
-
-  const handleEditDefault = (event: ChangeEvent<HTMLInputElement>) => {
-    onEdit({
-      ...tableColumn,
-      cellContent: { ...tableColumn.cellContent, default: event.target.value },
-    });
-  };
   return (
-    <div className={classes.wrapper}>
-      <TableColumnHeader columnNumber={columnNumber} onDeleteColumn={onDeleteColumn} />
-      <TableColumnToggleableTextfield
-        label={t('ux_editor.properties_panel.subform_table_columns.header_content_label')}
-        value={tableColumn.headerContent}
-        onBlur={handleEditHeaderContent}
-        required={true}
-      />
-      <TableColumnToggleableTextfield
-        label={t('ux_editor.properties_panel.subform_table_columns.cell_content_query_label')}
-        value={tableColumn.cellContent.query}
-        onBlur={handleEditQuery}
-        required={true}
-      />
-      <TableColumnToggleableTextfield
-        label={t('ux_editor.properties_panel.subform_table_columns.cell_content_default_label')}
-        value={tableColumn.cellContent.default}
-        onBlur={handleEditDefault}
-      />
-    </div>
-  );
-};
-
-type TableColumnHeaderProps = {
-  columnNumber: number;
-  onDeleteColumn: () => void;
-};
-
-const TableColumnHeader = ({
-  columnNumber,
-  onDeleteColumn,
-}: TableColumnHeaderProps): ReactElement => {
-  const { t } = useTranslation();
-
-  return (
-    <div className={classes.headerWrapper}>
-      <StudioLabelAsParagraph size='sm'>
-        {t('ux_editor.properties_panel.subform_table_columns.column_header', { columnNumber })}
-      </StudioLabelAsParagraph>
-      <StudioButton
-        icon={<TrashFillIcon />}
-        title={t('ux_editor.properties_panel.subform_table_columns.delete_column', {
-          columnNumber,
-        })}
-        onClick={onDeleteColumn}
-        color='danger'
-        variant='secondary'
-      />
-    </div>
-  );
-};
-
-type TableColumnToggleableTextfieldProps = {
-  label: string;
-  value: string;
-  onBlur: (event: ChangeEvent<HTMLInputElement>) => void;
-  required?: boolean;
-};
-
-const TableColumnToggleableTextfield = ({
-  label,
-  value,
-  onBlur,
-  required = false,
-}: TableColumnToggleableTextfieldProps): ReactElement => {
-  return (
-    <StudioToggleableTextfield
-      inputProps={{
-        icon: <KeyVerticalFillIcon />,
-        label,
-        value,
-        size: 'sm',
-        required,
-        onBlur,
-      }}
-      viewProps={{
-        children: (
-          <span>
-            <b>{label}:</b> {value}
-          </span>
-        ),
-        variant: 'tertiary',
-      }}
-    />
+    <StudioProperty.Button
+      className={classes.wrapper}
+      onClick={handleClickEdit}
+      property={t('ux_editor.properties_panel.subform_table_columns.column_header', {
+        columnNumber,
+      })}
+      value={textKeyValue}
+    ></StudioProperty.Button>
   );
 };
