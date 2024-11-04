@@ -139,14 +139,10 @@ describe('EditManualOptionsWithEditor', () => {
     });
 
     await user.click(addNewButton);
-    await user.click(addNewButton);
 
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
-      options: [
-        { label: '', value: '' },
-        { label: '', value: '' },
-      ],
+      options: [{ label: '', value: '' }],
     });
   });
 
