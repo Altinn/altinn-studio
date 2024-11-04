@@ -6,8 +6,10 @@ export type StudioBreadcrumbsProps = {
   'aria-label'?: string;
 } & HTMLAttributes<HTMLElement>;
 
+export const defaultAriaLabel = 'You are here:';
+
 const StudioBreadcrumbs = forwardRef<HTMLElement, StudioBreadcrumbsProps>(
-  ({ 'aria-label': ariaLabel = 'You are here:', className, ...rest }, ref) => (
+  ({ 'aria-label': ariaLabel = defaultAriaLabel, className, ...rest }, ref) => (
     <nav
       aria-label={ariaLabel}
       className={`${classes['ds-breadcrumbs']} ${className}`}

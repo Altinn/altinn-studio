@@ -1,12 +1,19 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { StudioBreadcrumbsProps } from './StudioBreadcrumbs';
+import { defaultAriaLabel, StudioBreadcrumbsProps } from './StudioBreadcrumbs';
+import {
+  StudioBreadcrumbs,
+  StudioBreadcrumbsItem,
+  StudioBreadcrumbsLink,
+  StudioBreadcrumbsList,
+} from './';
 
-import { StudioBreadcrumbs } from './';
+// Test data
+const customAriaLabel = 'Custom aria label';
 
 const renderWithRoot = (props?: StudioBreadcrumbsProps) =>
   render(
-    <StudioBreadcrumbs aria-label='Du er her:' {...props}>
+    <StudioBreadcrumbs {...props}>
       <StudioBreadcrumbs.Link href='#' aria-label='Tilbake til Nivå 3'>
         Nivå 3
       </StudioBreadcrumbs.Link>
@@ -28,10 +35,26 @@ const renderWithRoot = (props?: StudioBreadcrumbsProps) =>
   );
 
 describe('StudioBreadcrumbs', () => {
-  it('should render correctly with default props', () => {
+  it('should render with a default aria label', () => {
     renderWithRoot();
 
-    expect(screen.getByRole('navigation')).toBeInTheDocument();
+    const component = screen.getByRole('navigation');
+
+    expect(component).toHaveAttribute('aria-label', defaultAriaLabel);
+  });
+
+  it('should render with a custom aria label', () => {
+    renderWithRoot({ 'aria-label': customAriaLabel });
+
+    const component = screen.getByRole('navigation');
+
+    expect(component).toHaveAttribute('aria-label', customAriaLabel);
+  });
+
+  it('should export StudioBreadcrumbsList, StudioBreadcrumbsItem, and StudioBreadcrumbsLink', () => {
+    expect(StudioBreadcrumbsList).toBeDefined();
+    expect(StudioBreadcrumbsItem).toBeDefined();
+    expect(StudioBreadcrumbsLink).toBeDefined();
   });
 });
 
