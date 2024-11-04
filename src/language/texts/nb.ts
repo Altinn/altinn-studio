@@ -297,7 +297,7 @@ export function nb(): FixedLanguageList {
         org_number: 'Organisasjonsnummer',
         contact_person: 'Kontaktperson',
         contact_phone: 'Kontakttelefon',
-        contact_email: 'Kontakte-post',
+        contact_email: 'Kontakt-e-post',
         address: 'Addresse',
         org_num: 'Organisasjonsnummer',
         account_number: 'Kontonummer',
