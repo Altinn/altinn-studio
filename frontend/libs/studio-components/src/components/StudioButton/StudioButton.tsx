@@ -1,17 +1,16 @@
 import { Button } from '@digdir/designsystemet-react';
 import type { ButtonProps } from '@digdir/designsystemet-react';
-import type { ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioButton.module.css';
 import type { OverridableComponent } from '../../types/OverridableComponent';
-import type { IconPlacement } from '../../types/IconPlacement';
+import type { ValueWithIconProps } from '../internals/ValueWithIcon';
+import { ValueWithIcon } from '../internals/ValueWithIcon';
 
-export type StudioButtonProps = Omit<ButtonProps, 'icon' | 'color'> & {
-  icon?: ReactNode;
-  iconPlacement?: IconPlacement;
-  color?: ButtonProps['color'] | 'inverted';
-};
+export type StudioButtonProps = Omit<ButtonProps, 'icon' | 'color'> &
+  ValueWithIconProps & {
+    color?: ButtonProps['color'] | 'inverted';
+  };
 
 const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef<
   HTMLButtonElement,
@@ -29,12 +28,6 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
     },
     ref,
   ) => {
-    const iconComponent = (
-      <span aria-hidden className={classes.iconWrapper}>
-        {icon}
-      </span>
-    );
-
     // This is a temporary mapping to still support the old inverted prop. This will be removed when migrating to V1.
     // Information can be found here: https://www.designsystemet.no/bloggen/2024/v1rc1#fargemodus
     const classNames = cn(givenClassName, classes.studioButton, {
@@ -52,15 +45,9 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
         size={size}
         ref={ref}
       >
-        {icon ? (
-          <span className={classes.innerContainer}>
-            {iconPlacement === 'left' && iconComponent}
-            {children}
-            {iconPlacement === 'right' && iconComponent}
-          </span>
-        ) : (
-          children
-        )}
+        <ValueWithIcon icon={icon} iconPlacement={iconPlacement}>
+          {children}
+        </ValueWithIcon>
       </Button>
     );
   },
