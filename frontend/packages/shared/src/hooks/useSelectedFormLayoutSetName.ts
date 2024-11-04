@@ -1,17 +1,21 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { toast } from 'react-toastify';
+import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+
+const defaultLayoutSetName: string = 'form';
 
 export type UseSelectedFormLayoutSetNameResult = {
   selectedFormLayoutSetName: string;
   setSelectedFormLayoutSetName: (layoutName: string) => void;
 };
 
-export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResult => {
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
-  const defaultLayoutSet = layoutSets?.sets[0]?.id;
+export const useSelectedFormLayoutSetName = (
+  layoutSets: LayoutSets,
+): UseSelectedFormLayoutSetNameResult => {
+  const { app } = useStudioEnvironmentParams();
+
+  const defaultLayoutSet = layoutSets?.sets[0]?.id ?? defaultLayoutSetName;
 
   const [selectedFormLayoutSetName, setSelectedFormLayoutSetName] = useLocalStorage<string>(
     'layoutSet/' + app,
@@ -28,7 +32,7 @@ export const useSelectedFormLayoutSetName = (): UseSelectedFormLayoutSetNameResu
   });
 
   return {
-    selectedFormLayoutSetName: layoutSetExists ? selectedFormLayoutSetName : defaultLayoutSet,
+    selectedFormLayoutSetName: layoutSetExists ? selectedFormLayoutSetName : defaultLayoutSet, // MÅ FIKSES
     setSelectedFormLayoutSetName,
   };
 };
