@@ -16,7 +16,7 @@ export default defineConfig<ExtendedTestOptions>({
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: 1, //process.env.CI ? 2 : 0,
   workers: 1, // Github actions always use only 1, so we set to 1 locally as well
   reporter: 'html',
 

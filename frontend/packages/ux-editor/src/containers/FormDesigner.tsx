@@ -49,10 +49,12 @@ export const FormDesigner = (): JSX.Element => {
     app,
     selectedFormLayoutSetName,
   );
+
+  // HER ER FEILEN!!!!
   const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
     org,
     app,
-    selectedFormLayoutSetName,
+    selectedFormLayoutSetName, // Denne (tror jeg)
   );
 
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(

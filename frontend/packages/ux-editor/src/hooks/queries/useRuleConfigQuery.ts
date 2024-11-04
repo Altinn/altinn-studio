@@ -25,6 +25,7 @@ export const useRuleConfigQuery = (
             },
         )
         .catch((error) => {
+          console.log('useRuleConfigQuery --- ', error);
           toast.error('useRuleConfigQuery --- ', error);
 
           return error;
