@@ -1462,7 +1462,7 @@
   "ux_editor.modal_properties_code_list_helper": "Velg kodeliste",
   "ux_editor.modal_properties_code_list_id": "Kodeliste-ID",
   "ux_editor.modal_properties_code_list_item_description": "Beskrivelse for alternativ {{number}}",
-  "ux_editor.modal_properties_code_list_item_helpText": "Hjelpetekst for alternativ {{number}}",
+  "ux_editor.modal_properties_code_list_item_help_text": "Hjelpetekst for alternativ {{number}}",
   "ux_editor.modal_properties_code_list_item_label": "Ledetekst for alternativ {{number}}",
   "ux_editor.modal_properties_code_list_item_value": "Verdi for alternativ {{number}}",
   "ux_editor.modal_properties_code_list_open_editor": "Åpne redigeringsverktøy",

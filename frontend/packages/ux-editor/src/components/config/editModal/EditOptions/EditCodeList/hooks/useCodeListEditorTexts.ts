@@ -13,7 +13,7 @@ export const useCodeListEditorTexts = () => {
     helpText: t('ux_editor.options_text_help_text'),
     itemDescription: (number) =>
       t('ux_editor.modal_properties_code_list_item_description', { number }),
-    itemHelpText: (number) => t('ux_editor.modal_properties_code_list_item_helpText', { number }),
+    itemHelpText: (number) => t('ux_editor.modal_properties_code_list_item_help_text', { number }),
     itemLabel: (number) => t('ux_editor.modal_properties_code_list_item_label', { number }),
     itemValue: (number) => t('ux_editor.modal_properties_code_list_item_value', { number }),
     label: t('ux_editor.options_text_label'),

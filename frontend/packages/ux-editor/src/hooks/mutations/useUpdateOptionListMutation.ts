@@ -17,11 +17,9 @@ export const useUpdateOptionListMutation = (org: string, app: string, meta?: Mut
     mutationFn: ({ optionListId, optionsList }: UpdateOptionListMutationArgs) => {
       return updateOptionList(org, app, optionListId, optionsList);
     },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org, app] }),
-      ]);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org, app] });
     },
     meta,
   });

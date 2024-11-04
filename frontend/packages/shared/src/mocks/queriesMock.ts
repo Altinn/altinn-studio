@@ -52,7 +52,6 @@ import {
   createRepoCommitPayload,
   dataModelMetadataResponse,
   layoutSets,
-  optionListResponse,
   orgList,
   policy,
   repoStatus,
@@ -106,7 +105,7 @@ export const queriesMock: ServicesContextProps = {
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionLists: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<Map<string, Option[]>>(optionListResponse)),
+    .mockImplementation(() => Promise.resolve<Map<string, Option[]>>(new Map<string, Option[]>())),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),

@@ -1,36 +1,22 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { optionListIdsMock } from '../../../../../testing/mocks';
+import { optionListIdsMock, renderWithProviders } from '../../../../../testing/mocks';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
-import {
-  type ServicesContextProps,
-  ServicesContextProvider,
-} from 'app-shared/contexts/ServicesContext';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 
 // Test data:
-const mockComponent: FormComponent<ComponentType.Dropdown> = {
-  id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
-  type: ComponentType.Dropdown,
-  textResourceBindings: {
-    title: 'ServiceName',
-  },
-  itemType: 'COMPONENT',
-  dataModelBindings: { simpleBinding: 'some-path' },
+const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
+const handleComponentChangeMock = jest.fn();
+const queriesMock = {
+  getOptionListIds: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
 };
-
-const defaultPreviewContextProps: PreviewContextProps = {
-  shouldReloadPreview: false,
-  doReloadPreview: jest.fn(),
-  previewHasLoaded: jest.fn(),
-};
-
 const queryClientMock = createQueryClientMock();
 
 describe('EditCodeList', () => {
@@ -46,11 +32,8 @@ describe('EditCodeList', () => {
   });
 
   it('should call onChange when option list changes', async () => {
-    const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
-    renderEditCodeList({
-      handleComponentChange: handleComponentChangeMock,
-    });
+    renderEditCodeList();
 
     await waitFor(() => screen.findByRole('combobox'));
 
@@ -59,10 +42,8 @@ describe('EditCodeList', () => {
   });
 
   it('should remove options property (if it exists) when optionsId property changes', async () => {
-    const handleComponentChangeMock = jest.fn();
     const user = userEvent.setup();
     renderEditCodeList({
-      handleComponentChange: handleComponentChangeMock,
       componentProps: {
         options: [{ label: 'option1', value: 'option1' }],
       },
@@ -170,31 +151,18 @@ const userFindFileAndUpload = async (user: UserEvent, file: File) => {
   await user.upload(fileInput, file);
 };
 
-const renderEditCodeList = ({
-  handleComponentChange = jest.fn(),
-  queries = {
-    getOptionListIds: jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
-  },
-  componentProps = {},
-} = {}) => {
-  const allQueries: ServicesContextProps = {
-    ...queriesMock,
-    ...queries,
-  };
-
-  return render(
-    <ServicesContextProvider {...allQueries} client={createQueryClientMock()}>
-      <PreviewContext.Provider value={{ ...defaultPreviewContextProps }}>
-        <EditCodeList
-          component={{
-            ...mockComponent,
-            ...componentProps,
-          }}
-          handleComponentChange={handleComponentChange}
-        />
-      </PreviewContext.Provider>
-    </ServicesContextProvider>,
+const renderEditCodeList = ({ queries = queriesMock, componentProps = {} } = {}) => {
+  return renderWithProviders(
+    <EditCodeList
+      component={{
+        ...mockComponent,
+        ...componentProps,
+      }}
+      handleComponentChange={handleComponentChangeMock}
+    />,
+    {
+      queries: queries,
+      queryClient: queryClientMock,
+    },
   );
 };

@@ -9,16 +9,8 @@ export const useOptionListsQuery = (
   app: string,
 ): UseQueryResult<Map<string, Option[]>> => {
   const { getOptionLists } = useServicesContext();
-
   return useQuery<any>({
     queryKey: [QueryKey.OptionLists, org, app],
-    queryFn: () =>
-      getOptionLists(org, app).then((result) => {
-        const optionLists = {};
-        Object.keys(result).forEach((optionListId) => {
-          optionLists[optionListId] = result[optionListId];
-        });
-        return optionLists;
-      }),
+    queryFn: () => getOptionLists(org, app).then((result) => result || new Map<string, Option[]>()),
   });
 };

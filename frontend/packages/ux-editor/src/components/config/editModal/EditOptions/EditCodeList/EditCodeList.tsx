@@ -16,7 +16,7 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
-import { CodeListTableEditor } from './CodeListTableEditor';
+import { CodeListEditor } from './CodeListEditor';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export function EditCodeList<T extends SelectionComponentType>({
@@ -27,7 +27,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: true,
+    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
   });
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -76,7 +76,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   return (
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('codeListEditor') && <CodeListTableEditor component={component} />}
+      {shouldDisplayFeature('codeListEditor') && <CodeListEditor component={component} />}
       <StudioFileUploader
         className={classes.studioFileUploader}
         accept='.json'
