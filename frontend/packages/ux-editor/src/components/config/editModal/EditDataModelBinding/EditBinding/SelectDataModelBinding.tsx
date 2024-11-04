@@ -4,8 +4,10 @@ import { FormField } from 'app-shared/components/FormField';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioDisplayTile, StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../../../../hooks';
+import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
 
 type SelectDataModelProps = {
   currentDataModel: string;
@@ -19,8 +21,15 @@ export const SelectDataModelBinding = ({
   handleBindingChange,
 }: SelectDataModelProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useAppContext();
   const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
-  const { dataModels, selectedDataModel } = useValidDataModels(currentDataModel);
+
+  const { defaultDataTypeName, bindableDataTypes } = useGetBindableDataTypes(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
 
   const handleDataModelChange = (newDataModel: string) => {
     const dataModelBinding = {
@@ -32,9 +41,9 @@ export const SelectDataModelBinding = ({
 
   return shouldDisplayFeature('multipleDataModelsPerTask') ? (
     <FormField
-      id={selectedDataModel}
+      id={currentDataModel}
       onChange={handleDataModelChange}
-      value={selectedDataModel}
+      value={currentDataModel}
       propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model_binding')}
       renderField={({ fieldProps }) => (
@@ -42,13 +51,16 @@ export const SelectDataModelBinding = ({
           className={classes.selectDataModel}
           {...fieldProps}
           label={t('ux_editor.modal_properties_data_model_binding')}
-          id={selectedDataModel}
+          id={currentDataModel}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           size='small'
         >
-          {dataModels.map((element) => (
-            <option key={element} value={element}>
-              {element}
+          <option key={defaultDataTypeName} value={defaultDataTypeName}>
+            {defaultDataTypeName}
+          </option>
+          {bindableDataTypes.map((dataType) => (
+            <option key={dataType.id} value={dataType.id}>
+              {dataType.id}
             </option>
           ))}
         </StudioNativeSelect>
@@ -57,7 +69,7 @@ export const SelectDataModelBinding = ({
   ) : (
     <StudioDisplayTile
       label={t('ux_editor.modal_properties_data_model_binding')}
-      value={selectedDataModel}
+      value={currentDataModel}
       className={classes.displayTileContainer}
     />
   );
