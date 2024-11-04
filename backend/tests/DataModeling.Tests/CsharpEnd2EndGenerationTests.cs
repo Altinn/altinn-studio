@@ -25,11 +25,8 @@ namespace DataModeling.Tests
         public void Convert_FromXsd_Should_EqualExpected(string xsdSchemaPath, string expectedCsharpClassPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
-                .When.LoadedXsdSchemaConvertedToJsonSchema();
-
-            var jsonschema = SerializeJsonSchema(ConvertedJsonSchema);
-
-                And.ConvertedJsonSchemaConvertedToModelMetadata()
+                .When.LoadedXsdSchemaConvertedToJsonSchema()
+                .And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
                 .And.CSharpClassesCompiledToAssembly()
                 .Then

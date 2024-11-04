@@ -274,7 +274,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             foreach (var (name, property) in keyword.Properties)
             {
-                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name), OrderOblivious = context.OrderOblivious};
+                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name), OrderOblivious = context.OrderOblivious };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
 
                 if (property.TryGetKeyword(out XsdTextKeyword xsdTextKeyword))
