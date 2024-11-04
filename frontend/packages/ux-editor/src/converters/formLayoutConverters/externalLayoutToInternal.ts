@@ -11,7 +11,7 @@ import { externalSimpleComponentToInternal } from '../simpleComponentConverters'
 import type { FormComponent } from '../../types/FormComponent';
 import type { FormContainer } from '../../types/FormContainer';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { mapByProperty } from 'app-shared/utils/objectUtils';
+import { ObjectUtils } from '@studio/pure-functions';
 import type { ExternalContainerComponent } from '../../types/ExternalContainerComponent';
 import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalContainerComponentToInternal } from '../containerComponentConverters';
@@ -74,7 +74,7 @@ const getInternalComponents = (
   const convert = (component: ExternalSimpleComponent) =>
     convertSimpleComponent(externalComponents, component);
   const components: FormComponent[] = findSimpleComponents(externalComponents).map(convert);
-  return mapByProperty(components, 'id');
+  return ObjectUtils.mapByProperty(components, 'id');
 };
 
 const getInternalContainers = (
@@ -89,7 +89,7 @@ const getInternalContainers = (
   };
   const convertedContainers = getConvertedContainers(externalComponents);
   const containers: FormContainer[] = [baseContainer, ...convertedContainers];
-  return mapByProperty(containers, 'id');
+  return ObjectUtils.mapByProperty(containers, 'id');
 };
 
 const getConvertedContainers = (externalComponents: ExternalComponent[]): FormContainer[] => {
