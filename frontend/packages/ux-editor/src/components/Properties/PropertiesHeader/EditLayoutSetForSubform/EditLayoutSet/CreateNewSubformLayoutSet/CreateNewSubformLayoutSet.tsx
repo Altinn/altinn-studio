@@ -28,6 +28,10 @@ export const CreateNewSubformLayoutSet = ({
     setNewSubform(e.target.value);
   }
 
+  function handleCreateSubform() {
+    createSubform({ layoutSetName: newSubform, onSubformCreated });
+  }
+
   return (
     <StudioCard>
       <StudioCard.Content>
@@ -44,7 +48,7 @@ export const CreateNewSubformLayoutSet = ({
         <StudioButton
           className={classes.savelayoutSetButton}
           icon={<CheckmarkIcon />}
-          onClick={() => createSubform({ layoutSetName: newSubform, onSubformCreated })}
+          onClick={handleCreateSubform}
           title={t('general.close')}
           disabled={!newSubform || !!nameError}
           variant='tertiary'
