@@ -6,17 +6,20 @@ import { StudioParagraph, StudioProperty, StudioRecommendedNextAction } from '@s
 import { PlusIcon } from '@studio/icons';
 import classes from './EditLayoutSet.module.css';
 import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 type EditLayoutSetProps = {
   existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
-  onSubFormCreated: (layoutSetName: string) => void;
+  onSubformCreated: (layoutSetName: string) => void;
+  layoutSets: LayoutSets;
 };
 
 export const EditLayoutSet = ({
   existingLayoutSetForSubform,
   onUpdateLayoutSet,
-  onSubFormCreated,
+  onSubformCreated,
+  layoutSets,
 }: EditLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
@@ -62,7 +65,9 @@ export const EditLayoutSet = ({
             onClick={handleClick}
           />
         </StudioRecommendedNextAction>
-        {showCreateSubform && <CreateNewSubformLayoutSet onSubFormCreated={onSubFormCreated} />}
+        {showCreateSubform && (
+          <CreateNewSubformLayoutSet layoutSets={layoutSets} onSubformCreated={onSubformCreated} />
+        )}
       </>
     );
   }

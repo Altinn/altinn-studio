@@ -27,7 +27,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
     handleComponentChange(updatedComponent);
   };
 
-  function handleCreatedSubForm(layoutSetName: string) {
+  function handleCreatedSubform(layoutSetName: string) {
     setSelectedFormLayoutSetName(layoutSetName);
     handleUpdatedLayoutSet(layoutSetName);
   }
@@ -36,7 +36,8 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
     <EditLayoutSet
       existingLayoutSetForSubform={component['layoutSet']}
       onUpdateLayoutSet={handleUpdatedLayoutSet}
-      onSubFormCreated={handleCreatedSubForm}
+      onSubformCreated={handleCreatedSubform}
+      layoutSets={layoutSets}
     />
   );
 };

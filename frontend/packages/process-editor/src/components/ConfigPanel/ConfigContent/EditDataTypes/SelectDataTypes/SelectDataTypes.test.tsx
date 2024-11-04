@@ -132,6 +132,42 @@ describe('SelectDataTypes', () => {
     expect(mutateDataTypesMock).not.toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
   });
+
+  it('should show selected value in combobox when data type is selected', () => {
+    const existingDataType = 'dataModel0';
+    const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
+    renderSelectDataTypes({
+      existingDataType,
+      dataModelIds,
+    });
+    const combobox = screen.getByRole('combobox', {
+      name: textMock('process_editor.configuration_panel_set_data_model_label'),
+    });
+    expect(combobox).toHaveValue(existingDataType);
+  });
+
+  it('should show default description text when no data type is selected', () => {
+    renderSelectDataTypes();
+    const description = screen.getByText(
+      textMock('process_editor.configuration_panel_data_model_selection_description'),
+    );
+    expect(description).toBeInTheDocument();
+  });
+
+  it('should show extended description text when data type is already selected', () => {
+    const existingDataType = 'dataModel0';
+    const dataModelIds = [existingDataType, 'dataModel1', 'dataModel2'];
+    renderSelectDataTypes({
+      existingDataType: 'dataModel0',
+      dataModelIds,
+    });
+    const description = screen.getByText(
+      textMock(
+        'process_editor.configuration_panel_data_model_selection_description_existing_model',
+      ),
+    );
+    expect(description).toBeInTheDocument();
+  });
 });
 
 const renderSelectDataTypes = (

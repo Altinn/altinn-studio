@@ -14,7 +14,7 @@ import type { FormComponent } from '../../../../../../types/FormComponent';
 import { AppContext } from '../../../../../../AppContext';
 import { appContextMock } from '../../../../../../testing/appContextMock';
 
-const onSubFormCreatedMock = jest.fn();
+const onSubformCreatedMock = jest.fn();
 
 describe('CreateNewSubformLayoutSet ', () => {
   afterEach(jest.clearAllMocks);
@@ -40,15 +40,36 @@ describe('CreateNewSubformLayoutSet ', () => {
     expect(saveButton).toBeInTheDocument();
   });
 
-  it('calls onSubFormCreated when save button is clicked', async () => {
+  it('calls onSubformCreated when save button is clicked', async () => {
     const user = userEvent.setup();
     renderCreateNewSubformLayoutSet();
     const input = screen.getByRole('textbox');
-    await user.type(input, 'NewSubForm');
+    await user.type(input, 'NewSubform');
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(saveButton);
-    await waitFor(() => expect(onSubFormCreatedMock).toHaveBeenCalledTimes(1));
-    expect(onSubFormCreatedMock).toHaveBeenCalledWith('NewSubForm');
+    await waitFor(() => expect(onSubformCreatedMock).toHaveBeenCalledTimes(1));
+    expect(onSubformCreatedMock).toHaveBeenCalledWith('NewSubform');
+  });
+
+  it('disables the save button when input is invalid', async () => {
+    const user = userEvent.setup();
+    renderCreateNewSubformLayoutSet();
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    expect(saveButton).toBeDisabled();
+
+    const input = screen.getByRole('textbox');
+
+    await user.type(input, 'æøå');
+    expect(saveButton).toBeDisabled();
+
+    await user.clear(input);
+    await user.type(input, 'e re a');
+    expect(saveButton).toBeDisabled();
+
+    await user.clear(input);
+    await user.type(input, 'NewSubform');
+    expect(saveButton).not.toBeDisabled();
   });
 });
 
@@ -60,7 +81,11 @@ const renderCreateNewSubformLayoutSet = (
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <AppContext.Provider value={{ ...appContextMock }}>
-      <CreateNewSubformLayoutSet onSubFormCreated={onSubFormCreatedMock} {...componentProps} />
+      <CreateNewSubformLayoutSet
+        onSubformCreated={onSubformCreatedMock}
+        layoutSets={layoutSets}
+        {...componentProps}
+      />
     </AppContext.Provider>,
     { queryClient },
   );
