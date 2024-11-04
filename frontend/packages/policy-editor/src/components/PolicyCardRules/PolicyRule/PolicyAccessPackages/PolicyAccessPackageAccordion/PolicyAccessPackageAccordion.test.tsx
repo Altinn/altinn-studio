@@ -11,6 +11,7 @@ const defaultAccessPackageProp = {
   description:
     'Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
   services: [],
+  tags: [],
   area: {
     id: 'transport-id',
     name: 'Transport og lagring',
