@@ -12,6 +12,10 @@ export const useCodeListEditorTexts = (): CodeListEditorTexts => {
       t('ux_editor.modal_properties_code_list_delete_item', { number }),
     description: t('general.description'),
     emptyCodeList: t('ux_editor.modal_properties_code_list_empty'),
+    valueErrors: {
+      duplicateValue: t('ux_editor.radios_error_DuplicateValues'),
+    },
+    generalError: t('ux_editor.modal_properties_code_list_general_error'),
     helpText: t('ux_editor.modal_properties_textResourceBindings_help'),
     itemDescription: (number: number) =>
       t('ux_editor.modal_properties_code_list_item_description', { number }),
