@@ -3,7 +3,6 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ILayoutSettings } from 'app-shared/types/global';
-import { toast } from 'react-toastify';
 
 export const useFormLayoutSettingsQuery = (
   org: string,
@@ -13,12 +12,7 @@ export const useFormLayoutSettingsQuery = (
   const { getFormLayoutSettings } = useServicesContext();
   return useQuery<ILayoutSettings>({
     queryKey: [QueryKey.FormLayoutSettings, org, app, layoutSetName],
-    queryFn: () =>
-      getFormLayoutSettings(org, app, layoutSetName).catch((error) => {
-        toast.error('getFormLayoutSettings --- ', error);
-
-        return error;
-      }),
+    queryFn: () => getFormLayoutSettings(org, app, layoutSetName),
     enabled: !!layoutSetName,
   });
 };

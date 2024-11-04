@@ -3,25 +3,21 @@ import { StudioPageError, StudioParagraph } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
 import { Link } from '@digdir/designsystemet-react';
 
-export const ErrorBoundary = (props: any): ReactElement => {
+export const ErrorBoundary = (): ReactElement => {
   const { t } = useTranslation();
 
-  console.log('props', props);
   return (
     <StudioPageError
       title={t('general.page_error_title')}
       message={
-        <>
-          <StudioParagraph>
-            <Trans
-              i18nKey={'general.page_error_message'}
-              components={{
-                a: <Link href='/contact'> </Link>,
-              }}
-            />
-          </StudioParagraph>
-          <StudioParagraph>HER ER FEILENE!!!!!!!! - {JSON.stringify(props)}</StudioParagraph>
-        </>
+        <StudioParagraph>
+          <Trans
+            i18nKey={'general.page_error_message'}
+            components={{
+              a: <Link href='/contact'> </Link>,
+            }}
+          />
+        </StudioParagraph>
       }
     />
   );

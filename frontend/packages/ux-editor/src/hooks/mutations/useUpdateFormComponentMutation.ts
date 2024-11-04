@@ -11,7 +11,6 @@ import type { FormComponent, FormFileUploaderComponent } from '../../types/FormC
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { updateDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
-import { toast } from 'react-toastify';
 
 export interface UpdateFormComponentMutationArgs {
   updatedComponent: FormComponent;
@@ -108,12 +107,7 @@ export const useUpdateFormComponentMutation = (
             return data;
           }
         })
-        .then(() => ({ currentId, newId }))
-        .catch((error) => {
-          toast.error('useUpdateFormComponentMutation --- ', error);
-
-          return error;
-        });
+        .then(() => ({ currentId, newId }));
     },
   });
 };

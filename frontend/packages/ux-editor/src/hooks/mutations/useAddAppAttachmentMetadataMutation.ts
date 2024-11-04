@@ -1,17 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { toast } from 'react-toastify';
 
 export const useAddAppAttachmentMetadataMutation = (org: string, app: string) => {
   const { addAppAttachmentMetadata } = useServicesContext();
   return useMutation({
     mutationFn: async (metadata: ApplicationAttachmentMetadata) => {
-      await addAppAttachmentMetadata(org, app, metadata).catch((error) => {
-        toast.error('useAddAppAttachmentMetadataMutation --- ', error);
-
-        return error;
-      });
+      await addAppAttachmentMetadata(org, app, metadata);
       return metadata;
     },
   });
