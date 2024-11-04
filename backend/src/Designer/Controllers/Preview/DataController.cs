@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
@@ -84,7 +83,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            string refererHeader = Request.Headers["Referer"];
+            string refererHeader = Request.Headers.Referer;
             string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
             DataType dataType = await previewService.GetDataTypeForLayoutSetName(org, app, developer, layoutSetName, cancellationToken);
             // For apps that does not have a datamodel

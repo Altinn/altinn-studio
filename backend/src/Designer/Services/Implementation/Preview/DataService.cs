@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Json.Patch;

@@ -12,7 +12,6 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 
 namespace Altinn.Studio.Designer.Controllers.Preview
 {
@@ -20,9 +19,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
     [AutoValidateAntiforgeryToken]
     [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
     public class InstancesController(IHttpContextAccessor httpContextAccessor,
-        IDistributedCache distributedCache,
         IPreviewService previewService,
-        ISchemaModelService schemaModelService,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory
     ) : Controller
     {
