@@ -13,10 +13,14 @@
       "matchPackageNames": ["gitea/gitea"]
     },
     {
+      "matchManagers": ["npm"],
       "groupName": "ResourceAdm dependencies",
-      "groupSlug": "resourceadm",
-      "matchFileNames": ["frontend/resourceadm/*"],
-      "labels": ["area/resource-adm"]
+      "matchPackageNames": ["resourceadm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupSlug": "resourceadm npm-minor-patch",
+      "labels": [
+        "area/resource-adm"
+      ]
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
