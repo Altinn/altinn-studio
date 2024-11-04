@@ -25,6 +25,10 @@ export interface PolicyAccessPackage {
   name: string;
   description: string;
   services: AccessPackageResource[];
+  tags: {
+    id: string;
+    name: string;
+  }[];
   area: PolicyAccessPackageArea;
 }
 

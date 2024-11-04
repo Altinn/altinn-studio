@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Paragraph, Alert, CheckboxGroup, Checkbox } from '@digdir/designsystemet-react';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import type { PolicyAccessPackage } from '../../../../types';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
@@ -22,6 +22,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
   const [chosenAccessPackages, setChosenAccessPackages] = useState<string[]>(
     policyRule.accessPackages,
   );
+  const [isAllPackagesVisible, setIsAllPackagesVisible] = useState<boolean>(false);
 
   const groupedAccessPackagesByArea = useMemo(() => {
     return groupAccessPackagesByArea(accessPackages);
@@ -116,18 +117,29 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='xs' spacing>
         {t('policy_editor.access_package_all_packages')}
       </StudioLabelAsParagraph>
-      {groupedAccessPackagesByArea.map(({ area, packages }) => {
-        return (
-          <PolicyAccordion
-            key={area.id}
-            icon={area.iconName}
-            title={area.name}
-            subTitle={area.shortDescription}
-          >
-            {packages.map(renderAccessPackageAccordion)}
-          </PolicyAccordion>
-        );
-      })}
+      {groupedAccessPackagesByArea
+        .filter((area) => {
+          const hasOfteBruktTag =
+            area.packages.filter((p) => p.tags.find((tag) => tag.name === 'Ofte brukt')).length > 0;
+          return hasOfteBruktTag || isAllPackagesVisible;
+        })
+        .map(({ area, packages }) => {
+          return (
+            <PolicyAccordion
+              key={area.id}
+              icon={area.iconName}
+              title={area.name}
+              subTitle={area.shortDescription}
+            >
+              {packages.map(renderAccessPackageAccordion)}
+            </PolicyAccordion>
+          );
+        })}
+      <StudioButton variant='secondary' onClick={() => setIsAllPackagesVisible((old) => !old)}>
+        {isAllPackagesVisible
+          ? t('policy_editor.access_package_hide_specialized')
+          : t('policy_editor.access_package_show_specialized')}
+      </StudioButton>
     </div>
   );
 };

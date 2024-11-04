@@ -220,8 +220,12 @@ export const groupAccessPackagesByArea = (accessPackages: PolicyAccessPackage[])
     };
   } = {};
 
+  const sortedPackages = [...accessPackages].sort((a, b) => {
+    return getTagSortValue(b) - getTagSortValue(a);
+  });
+
   // add each package to corresponding area.id
-  accessPackages.forEach((accessPackage) => {
+  sortedPackages.forEach((accessPackage) => {
     if (!groupedByAreaDict[accessPackage.area.id]) {
       groupedByAreaDict[accessPackage.area.id] = {
         area: accessPackage.area,
@@ -235,6 +239,15 @@ export const groupAccessPackagesByArea = (accessPackages: PolicyAccessPackage[])
   return Object.keys(groupedByAreaDict).map((key) => {
     return { ...groupedByAreaDict[key] };
   });
+};
+
+const getTagSortValue = (accessPackages: PolicyAccessPackage): number => {
+  if (accessPackages.tags.find((x) => x.name === 'Ofte brukt')) {
+    return 2;
+  } else if (accessPackages.tags.find((x) => x.name === 'Bransespesifikke')) {
+    return 1;
+  }
+  return 0;
 };
 
 export const convertSubjectStringToSubjectId = (subjectString: string): string => {

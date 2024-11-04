@@ -22,6 +22,7 @@ const sjofartPackage = {
   name: 'Sjøfart',
   description: '',
   services: [],
+  tags: [],
   area: accessPackageAreaTransport,
 };
 
@@ -31,6 +32,7 @@ const lufttransportPackage = {
   name: 'Lufttransport',
   description: '',
   services: [],
+  tags: [],
   area: accessPackageAreaTransport,
 };
 
@@ -42,6 +44,11 @@ describe('PolicyAccessPackages', () => {
   it('should call add service when access package is checked', async () => {
     const user = userEvent.setup();
     renderAccessPackages();
+
+    const showMoreTilgangspakkerButton = screen.getByRole('button', {
+      name: textMock('policy_editor.access_package_show_specialized'),
+    });
+    await user.click(showMoreTilgangspakkerButton);
 
     const accordionButton = screen.getByRole('button', { name: accessPackageAreaTransport.name });
     await user.click(accordionButton);

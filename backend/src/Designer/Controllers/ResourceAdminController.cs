@@ -599,6 +599,17 @@ namespace Altinn.Studio.Designer.Controllers
                 IconName = "TrendDownIcon"
             };
 
+            AccessPackageTag ofteBruktTag = new()
+            {
+                Id = "oftebrukt",
+                Name = "Ofte brukt"
+            };
+            AccessPackageTag bransjeSpesifikkTag = new()
+            {
+                Id = "bransespesifikk",
+                Name = "Bransespesifikk"
+            };
+
             List<AccessPackage> accessPackages =
             [
                 new()
@@ -607,7 +618,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:foretaksskatt",
                     Name = "Foretaksskatt",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til skatt for foretak.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = skattArea
                 },
                 new()
@@ -616,7 +627,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:skattegrunnlag",
                     Name = "Skattegrunnlag",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til innhenting av skattegrunnlag.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = skattArea
                 },
                 new()
@@ -625,7 +636,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:merverdiavgift",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = skattArea
                 },
                 new()
@@ -634,7 +645,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:personal",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = personaleArea
                 },
                 new()
@@ -643,7 +654,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:miljo",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = miljoArea
                 },
                 new()
@@ -652,7 +663,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:post",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = postArea
                 },
                 new()
@@ -661,7 +672,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:forhold",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = forholdArea
                 },
                 new()
@@ -670,7 +681,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:integationArea",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = integationArea
                 },
                 new()
@@ -679,7 +690,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:tilgangerArea",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [ofteBruktTag],
                     Area = tilgangerArea
                 },
                 new()
@@ -688,7 +699,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:jordbruk",
                     Name = "Jordbruk",
                     Description = "Gir tilgang til tjenester knyttet til jordbruk.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -697,7 +708,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:dyrehold",
                     Name = "Dyrehold",
                     Description = "Gir tilgang til tjenester knyttet til dyrehold. ",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -706,7 +717,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:reindrift",
                     Name = "Reindrift",
                     Description = "Denne tilgangspakken gir tilgang til tjenester knyttet til reindrift.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -715,7 +726,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:jaktogviltstell",
                     Name = "Jakt og viltstell",
                     Description = "Gir fullmakter til tjenester knyttet til jakt og viltstell",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -724,7 +735,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:skogbruk",
                     Name = "Skogbruk",
                     Description = "Gir fullmakter til tjenester knyttet til skogbruk",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -733,7 +744,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:fiske",
                     Name = "Fiske",
                     Description = "Gir fullmakter til tjenester knyttet til fiske",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -742,7 +753,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:akvakultur",
                     Name = "Akvakultur",
                     Description = "Gir fullmakter til tjenester knyttet til akvakultur og fiskeoppdrett.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = jordbrukArea
                 },
                 new()
@@ -751,7 +762,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:byggArea",
                     Name = "Merverdiavgift",
                     Description = "Denne tilgangspakken gir fullmakter til tjenester knyttet til merverdiavgift.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = byggArea
                 },
                 new()
@@ -760,7 +771,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:sjofart",
                     Name = "Sjøfart",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = transportArea
                 },
                 new()
@@ -769,7 +780,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:lufttransport",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = transportArea
                 },
                 new()
@@ -778,7 +789,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:helseArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = helseArea
                 },
                 new()
@@ -787,7 +798,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:utdanningArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = utdanningArea
                 },
                 new()
@@ -796,7 +807,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:energyArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = energyArea
                 },
                 new()
@@ -805,7 +816,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:industryArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = industryArea
                 },
                 new()
@@ -814,7 +825,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:cultureArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = cultureArea
                 },
                 new()
@@ -823,7 +834,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:handelArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = handelArea
                 },
                 new()
@@ -832,7 +843,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:andreArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = andreArea
                 },
                 new()
@@ -841,7 +852,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:regnArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = regnArea
                 },
                 new()
@@ -850,7 +861,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:regnskapsforermedsigneringsrettighet",
                     Name = "Regnskapsfører med signeringsrettighet",
                     Description = "Denne fullmakten gir tilgang til regnskapfører å kunne signere på vegne av kunden for alle tjenester som krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = revisorArea
                 },
                 new()
@@ -859,7 +870,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:regnskapsforerutensigneringsrettighet",
                     Name = "Regnskapsfører uten signeringsrettighet",
                     Description = "Denne fullmakten gir tilgang til å kunne utføre alle tjenester som ikke krever signeringsrett. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = revisorArea
                 },
                 new()
@@ -868,7 +879,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:regnskapsforerlonn",
                     Name = "Regnskapsfører lønn",
                     Description = "Denne fullmakten gir tilgang til regnskapsfører å rapportere lønn for sin kunde. Dette er tjenester som man har vurdert det som naturlig at en regnskapsfører utfører på vegne av sin kunde. Fullmakten gis kun til autoriserte regnskapsførere. Fullmakt hos regnskapfører oppstår når kunden registrerer regnskapsfører i Enhetsregisteret. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = revisorArea
                 },
                 new()
@@ -877,7 +888,7 @@ namespace Altinn.Studio.Designer.Controllers
                     Urn = "urn:altinn:accesspackage:konkursArea",
                     Name = "Lufttransport",
                     Description = "Denne fullmakten gir tilgang til alle tjenester knyttet til luftfartøy og romfartøy.",
-                    Tags = [],
+                    Tags = [bransjeSpesifikkTag],
                     Area = konkursArea
                 },
             ];
