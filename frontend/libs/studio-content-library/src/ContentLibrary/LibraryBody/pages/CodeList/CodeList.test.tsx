@@ -2,13 +2,14 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListProps } from './CodeList';
 import { CodeList } from './CodeList';
-import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onUpdateCodeListMock = jest.fn();
+const onUploadCodeListMock = jest.fn();
+const codeListName = 'codeList';
 const codeListMock: CodeList = {
-  title: 'codeList',
-  codeList: {},
+  title: codeListName,
+  codeList: [{ value: 'value', label: 'label' }],
 };
 
 describe('CodeList', () => {
@@ -20,29 +21,60 @@ describe('CodeList', () => {
     expect(codeListHeading).toBeInTheDocument();
   });
 
-  it('renders an alert when no codeLists are passed', () => {
-    renderCodeList({ codeLists: [], onUpdateCodeList: onUpdateCodeListMock });
-    const noCodeListsExistAlert = screen.getByText(
-      textMock('app_content_library.code_lists.no_content'),
+  it('renders a code list counter message', () => {
+    renderCodeList();
+    const codeListCounterMessage = screen.getByText(
+      textMock('app_content_library.code_lists.amount_code_lists_info_single'),
     );
-    expect(noCodeListsExistAlert).toBeInTheDocument();
+    expect(codeListCounterMessage).toBeInTheDocument();
   });
 
-  it('calls onUpdateCodeListMock when clicking the button to update', async () => {
-    const user = userEvent.setup();
+  it('renders code list actions', () => {
     renderCodeList();
-    const updateCodeListButton = screen.getByRole('button', { name: 'Oppdater kodeliste' });
-    await user.click(updateCodeListButton);
-    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
-    expect(onUpdateCodeListMock).toHaveBeenCalledWith(codeListMock);
+    const codeListSearchField = screen.getByRole('searchbox');
+    const codeListCreatButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.create_new_code_list'),
+    });
+    const codeListUploadButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.upload_code_list'),
+    });
+    expect(codeListSearchField).toBeInTheDocument();
+    expect(codeListCreatButton).toBeInTheDocument();
+    expect(codeListUploadButton).toBeInTheDocument();
+  });
+
+  it('renders the code list as a clickable element', () => {
+    renderCodeList();
+    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    expect(codeListAccordion).toBeInTheDocument();
+  });
+
+  it('renders error message if error fetching option lists occurred', () => {
+    renderCodeList({ fetchDataError: true });
+    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
   });
 });
 
 const defaultCodeListProps: CodeListProps = {
   codeLists: [codeListMock],
   onUpdateCodeList: onUpdateCodeListMock,
+  onUploadCodeList: onUploadCodeListMock,
+  fetchDataError: false,
 };
 
-const renderCodeList = (codeListProps: CodeListProps = defaultCodeListProps) => {
-  render(<CodeList {...codeListProps} />);
+const renderCodeList = ({
+  codeLists,
+  onUpdateCodeList,
+  onUploadCodeList,
+  fetchDataError,
+}: Partial<CodeListProps> = defaultCodeListProps) => {
+  render(
+    <CodeList
+      codeLists={codeLists}
+      onUpdateCodeList={onUpdateCodeList}
+      onUploadCodeList={onUploadCodeList}
+      fetchDataError={fetchDataError}
+    />,
+  );
 };

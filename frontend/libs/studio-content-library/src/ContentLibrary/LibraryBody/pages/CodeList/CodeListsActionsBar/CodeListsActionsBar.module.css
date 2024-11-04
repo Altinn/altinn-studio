@@ -1,0 +1,13 @@
+.actionsBar {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+  justify-content: flex-start;
+}
+
+.searchField {
+  width: 20vw;
+  display: flex;
+  align-self: center;
+}
