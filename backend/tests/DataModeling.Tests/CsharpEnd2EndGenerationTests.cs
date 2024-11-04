@@ -1,11 +1,9 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Xml.Serialization;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using DataModeling.Tests.Assertions;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
-using Designer.Tests.Factories.ModelFactory.DataClasses;
 using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
@@ -27,8 +25,11 @@ namespace DataModeling.Tests
         public void Convert_FromXsd_Should_EqualExpected(string xsdSchemaPath, string expectedCsharpClassPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
-                .When.LoadedXsdSchemaConvertedToJsonSchema()
-                .And.ConvertedJsonSchemaConvertedToModelMetadata()
+                .When.LoadedXsdSchemaConvertedToJsonSchema();
+
+            var jsonschema = SerializeJsonSchema(ConvertedJsonSchema);
+
+                And.ConvertedJsonSchemaConvertedToModelMetadata()
                 .And.ModelMetadataConvertedToCsharpClass()
                 .And.CSharpClassesCompiledToAssembly()
                 .Then
