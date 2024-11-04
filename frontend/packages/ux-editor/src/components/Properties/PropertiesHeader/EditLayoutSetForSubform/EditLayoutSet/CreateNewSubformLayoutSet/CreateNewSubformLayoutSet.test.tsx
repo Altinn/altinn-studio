@@ -50,6 +50,27 @@ describe('CreateNewSubformLayoutSet ', () => {
     await waitFor(() => expect(onSubformCreatedMock).toHaveBeenCalledTimes(1));
     expect(onSubformCreatedMock).toHaveBeenCalledWith('NewSubform');
   });
+
+  it('disables the save button when input is invalid', async () => {
+    const user = userEvent.setup();
+    renderCreateNewSubformLayoutSet();
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    expect(saveButton).toBeDisabled();
+
+    const input = screen.getByRole('textbox');
+
+    await user.type(input, 'æøå');
+    expect(saveButton).toBeDisabled();
+
+    await user.clear(input);
+    await user.type(input, 'e re a');
+    expect(saveButton).toBeDisabled();
+
+    await user.clear(input);
+    await user.type(input, 'NewSubform');
+    expect(saveButton).not.toBeDisabled();
+  });
 });
 
 const renderCreateNewSubformLayoutSet = (
@@ -60,7 +81,11 @@ const renderCreateNewSubformLayoutSet = (
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <AppContext.Provider value={{ ...appContextMock }}>
-      <CreateNewSubformLayoutSet onSubformCreated={onSubformCreatedMock} {...componentProps} />
+      <CreateNewSubformLayoutSet
+        onSubformCreated={onSubformCreatedMock}
+        layoutSets={layoutSets}
+        {...componentProps}
+      />
     </AppContext.Provider>,
     { queryClient },
   );
