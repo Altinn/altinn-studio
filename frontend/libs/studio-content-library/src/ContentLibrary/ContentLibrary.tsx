@@ -29,7 +29,7 @@ function ContentLibraryForPage<T extends PageName = 'landingPage'>({
 }: ContentLibraryForPageProps<T>): React.ReactElement {
   const router = new RouterRouteMapperImpl(pages);
 
-  const Component: PageComponent<Required<PagePropsMap>[T]> =
+  const Component: PageComponent<Required<PagePropsMap<T>>> =
     router.configuredRoutes.get(currentPage);
   if (!Component) return <StudioHeading>404 Page Not Found</StudioHeading>; // Show the NotFound page from app-dev instead
 
