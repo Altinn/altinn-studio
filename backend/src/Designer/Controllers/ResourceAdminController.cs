@@ -606,8 +606,8 @@ namespace Altinn.Studio.Designer.Controllers
             };
             AccessPackageTag bransjeSpesifikkTag = new()
             {
-                Id = "bransespesifikk",
-                Name = "Bransespesifikk"
+                Id = "bransjespesifikk",
+                Name = "Bransjespesifikke"
             };
 
             List<AccessPackage> accessPackages =

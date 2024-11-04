@@ -244,7 +244,7 @@ export const groupAccessPackagesByArea = (accessPackages: PolicyAccessPackage[])
 const getTagSortValue = (accessPackages: PolicyAccessPackage): number => {
   if (accessPackages.tags.find((x) => x.name === 'Ofte brukt')) {
     return 2;
-  } else if (accessPackages.tags.find((x) => x.name === 'Bransespesifikke')) {
+  } else if (accessPackages.tags.find((x) => x.name === 'Bransjespesifikke')) {
     return 1;
   }
   return 0;

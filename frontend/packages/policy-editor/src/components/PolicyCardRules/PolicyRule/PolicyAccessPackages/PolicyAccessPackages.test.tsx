@@ -8,6 +8,14 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
 
+const accessPackageAreaSkatt = {
+  id: 'skatt-area',
+  name: 'Skatt',
+  description: '',
+  iconName: 'BankNoteIcon',
+  shortDescription: '',
+};
+
 const accessPackageAreaTransport = {
   id: 'transport-area',
   name: 'Lagring og transport',
@@ -16,13 +24,23 @@ const accessPackageAreaTransport = {
   shortDescription: '',
 };
 
+const skattPackage = {
+  id: 'urn:altinn:accesspackage:skatt',
+  urn: 'urn:altinn:accesspackage:skatt',
+  name: 'Sjøfart',
+  description: '',
+  services: [],
+  tags: [{ id: 'ofteBrukt', name: 'Ofte brukt' }],
+  area: accessPackageAreaSkatt,
+};
+
 const sjofartPackage = {
   id: 'urn:altinn:accesspackage:sjofart',
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
   services: [],
-  tags: [],
+  tags: [{ id: 'bransjespesifikk', name: 'Bransjespesifikke' }],
   area: accessPackageAreaTransport,
 };
 
@@ -32,11 +50,11 @@ const lufttransportPackage = {
   name: 'Lufttransport',
   description: '',
   services: [],
-  tags: [],
+  tags: [{ id: 'bransjespesifikk', name: 'Bransjespesifikke' }],
   area: accessPackageAreaTransport,
 };
 
-const accessPackages = [sjofartPackage, lufttransportPackage];
+const accessPackages = [sjofartPackage, lufttransportPackage, skattPackage];
 
 describe('PolicyAccessPackages', () => {
   afterEach(jest.clearAllMocks);
