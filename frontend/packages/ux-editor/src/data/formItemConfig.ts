@@ -156,11 +156,17 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.CustomButton]: {
     name: ComponentType.CustomButton,
     itemType: LayoutItemType.Component,
-    getDisplayName: (
-      formItem: ComponentSpecificConfig<ComponentType.CustomButton>,
-    ): ComponentType | CustomComponentType => {
-      const action = formItem?.actions?.length === 1 && formItem?.actions?.[0];
-      return action?.id === 'closeSubform' && action?.type === 'ClientAction'
+    getDisplayName: ({
+      actions,
+    }: ComponentSpecificConfig<ComponentType.CustomButton>):
+      | ComponentType
+      | CustomComponentType => {
+      const isCloseSubformAction =
+        actions?.length === 1 &&
+        actions[0]?.id === 'closeSubform' &&
+        actions[0]?.type === 'ClientAction';
+
+      return isCloseSubformAction
         ? CustomComponentType.CloseSubformButton
         : ComponentType.CustomButton;
     },

@@ -18,8 +18,9 @@ export function useComponentTitle(): (
 
   return useCallback(
     (formItem: FormComponent | FormContainer | IToolbarElement) => {
-      if ('textResourceBindings' in formItem && getTitleByTextResource(formItem))
-        return getTitleByTextResource(formItem);
+      const titleFromResource =
+        'textResourceBindings' in formItem ? getTitleByTextResource(formItem) : null;
+      if (titleFromResource) return titleFromResource;
 
       const getDisplayName = formItemConfigs[formItem.type]?.getDisplayName;
       const componentType = getDisplayName ? getDisplayName(formItem) : formItem.type;
