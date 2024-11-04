@@ -21,39 +21,35 @@ namespace Altinn.Studio.Designer.Controllers.Preview
 {
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
+    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data")]
     public class DataController(IHttpContextAccessor httpContextAccessor,
         IPreviewService previewService,
         ISchemaModelService schemaModelService,
         IDataService dataService
     ) : Controller
     {
-        [HttpGet]
-        [Route("{partyId}/{instanceGuid}/data/{dataGuid}")]
-        public ActionResult Get(string org, string app, [FromRoute] int partyId, [FromRoute] Guid instanceGuid, [FromRoute] Guid dataGuid, CancellationToken cancellationToken, [FromQuery] bool includeRowId = false, [FromQuery] string? language = null)
+        [HttpGet("{dataGuid}")]
+        public ActionResult Get([FromRoute] Guid dataGuid)
         {
-            JsonNode dataItem = dataService.GetDataElement(org, app, partyId, instanceGuid, dataGuid, cancellationToken);
+            JsonNode dataItem = dataService.GetDataElement(dataGuid);
             return Ok(dataItem);
         }
 
         [HttpPost]
-        [Route("{partyId}/{instanceGuid}/data")]
-        public ActionResult Post(string org, string app, int partyId, Guid instanceGuid, [FromQuery] string dataType)
+        public ActionResult Post(int partyId, Guid instanceGuid, [FromQuery] string dataType)
         {
-            DataElement dataElement = dataService.CreateDataElement(org, app, partyId, instanceGuid, dataType);
+            DataElement dataElement = dataService.CreateDataElement(partyId, instanceGuid, dataType);
             return Created("link-to-app-placeholder", dataElement);
         }
 
-        [HttpPatch("{partyId}/{instanceGuid}/data/{dataGuid}")]
+        [HttpPatch("{dataGuid}")]
         [UseSystemTextJson]
-        public ActionResult<DataPatchResponse> Patch(string org, string app, [FromRoute] int partyId, [FromRoute] Guid instanceGuid, [FromRoute] Guid dataGuid, [FromBody] DataPatchRequest dataPatch, CancellationToken cancellationToken)
+        public ActionResult<DataPatchResponse> Patch(
+                [FromRoute] Guid dataGuid,
+                [FromBody] DataPatchRequest dataPatch
+        )
         {
-            if (instanceGuid == PreviewConstants.MockInstanceGUID && dataGuid == Guid.Empty)
-            {
-                return Ok();
-            }
-
-            JsonNode dataItem = dataService.PatchDataElement(org, app, partyId, instanceGuid, dataGuid, dataPatch.Patch, cancellationToken);
+            JsonNode dataItem = dataService.PatchDataElement(dataGuid, dataPatch.Patch);
             return Ok(new DataPatchResponse()
             {
                 ValidationIssues = [],
@@ -61,18 +57,31 @@ namespace Altinn.Studio.Designer.Controllers.Preview
             });
         }
 
-        /// <summary>
-        /// Action for getting the json schema for the datamodel for the default data task test-datatask-id
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="partyId">party id</param>
-        /// <param name="instanceGuid">instance</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>Json schema for datamodel for the current task</returns>
-        [HttpGet]
-        [Route("{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
-        public async Task<ActionResult> GetDefaultFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
+        [HttpDelete("{dataTypeId}")]
+        public ActionResult DeleteAttachment([FromRoute] Guid dataGuid)
+        {
+            return Ok();
+        }
+
+        [HttpGet("{dataGuid}/validate")]
+        public ActionResult ValidateInstanceForData([FromRoute] Guid dataGuid)
+        {
+            return Ok(new List<string>());
+        }
+
+        [HttpPost("{dataTypeId}/tags")]
+        public ActionResult UpdateTagsForAttachment([FromBody] string tag)
+        {
+            return Created("link-to-app-placeholder", tag);
+        }
+
+        [HttpGet(PreviewService.MockDataTaskId)]
+        public async Task<ActionResult> GetDefaultFormData(
+                [FromRoute] string org,
+                [FromRoute] string app,
+                [FromRoute] int partyId,
+                CancellationToken cancellationToken
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string refererHeader = Request.Headers["Referer"];
@@ -90,51 +99,21 @@ namespace Altinn.Studio.Designer.Controllers.Preview
             return Ok(formData);
         }
 
-        /// <summary>
-        /// Action for updating the json schema for the datamodel for the current data task in the process
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="partyId"></param>
-        /// <param name="instanceGuid"></param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>Json schema for datamodel for the current data task in the process</returns>
-        [HttpPut]
-        [Route("{partyId}/{instanceGuid}/data/" + PreviewService.MockDataTaskId)]
-        public async Task<ActionResult> UpdateFormData(string org, string app, [FromRoute] int partyId, [FromRoute] string instanceGuid, CancellationToken cancellationToken)
+        [HttpPut(PreviewService.MockDataTaskId)]
+        public async Task<ActionResult> UpdateFormData(
+                [FromRoute] string org,
+                [FromRoute] string app,
+                [FromRoute] int partyId,
+                CancellationToken cancellationToken
+        )
         {
-            return await GetDefaultFormData(org, app, partyId, instanceGuid, cancellationToken);
+            return await GetDefaultFormData(org, app, partyId, cancellationToken);
         }
 
-        /// <summary>
-        /// Action for mocking deleting an uploaded attachment to an attachment component
-        /// </summary>
-        /// <param name="dataTypeId">Id of the attachment in application metadata</param>
-        /// <returns>Ok</returns>
-        [HttpDelete]
-        [Route("{partyId}/{instanceGuid}/data/{dataTypeId}")]
-        public ActionResult DeleteAttachment([FromRoute] string dataTypeId)
+        [HttpPatch(PreviewService.MockDataTaskId)]
+        public ActionResult PatchFormData()
         {
             return Ok();
-        }
-
-        [HttpGet]
-        [Route("{partyId}/{instanceGuid}/data/{dataGuid}/validate")]
-        public ActionResult ValidateInstanceForData([FromRoute] Guid dataGuid)
-        {
-            return Ok(new List<string>());
-        }
-
-        /// <summary>
-        /// Action for mocking updating tags for an attachment component in the datamodel
-        /// </summary>
-        /// <param name="tag">The specific tag from the code list chosen for the attachment</param>
-        /// <returns>Ok</returns>
-        [HttpPost]
-        [Route("{partyId}/{instanceGuid}/data/{dataTypeId}/tags")]
-        public ActionResult UpdateTagsForAttachment([FromBody] string tag)
-        {
-            return Created("link-to-app-placeholder", tag);
         }
 
         private static string GetSelectedLayoutSetInEditorFromRefererHeader(string refererHeader)

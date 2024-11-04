@@ -18,7 +18,7 @@ public class DataService(
         SlidingExpiration = TimeSpan.FromMinutes(30),
     };
 
-    public DataElement CreateDataElement(string org, string app, int partyId, Guid instanceGuid, string dataTypeId, CancellationToken cancellationToken = default)
+    public DataElement CreateDataElement(int partyId, Guid instanceGuid, string dataTypeId)
     {
         Guid dataElementGuid = Guid.NewGuid();
         DataElement dataElement = new()
@@ -34,14 +34,14 @@ public class DataService(
         return dataElement;
     }
 
-    public JsonNode GetDataElement(string org, string app, int partyId, Guid instanceGuid, Guid dataGuid, CancellationToken cancellationToken = default)
+    public JsonNode GetDataElement(Guid dataGuid)
     {
         string dataElementJson = distributedCache.GetString(dataGuid.ToString());
         JsonNode dataElement = JsonSerializer.Deserialize<JsonNode>(dataElementJson);
         return dataElement;
     }
 
-    public JsonNode PatchDataElement(string org, string app, int partyId, Guid instanceGuid, Guid dataGuid, JsonPatch patch, CancellationToken cancellationToken)
+    public JsonNode PatchDataElement(Guid dataGuid, JsonPatch patch)
     {
         string dataJson = distributedCache.GetString(dataGuid.ToString());
         JsonNode dataNode = JsonSerializer.Deserialize<JsonNode>(dataJson);
