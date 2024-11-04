@@ -1,11 +1,15 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
-import React, { useCallback } from 'react';
+import type { FocusEvent, HTMLInputAutoCompleteAttribute } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
+import type { ValueError } from '../types/ValueError';
+import classes from './StudioCodeListEditorRow.module.css';
 
 type StudioCodeListEditorRowProps = {
+  error: ValueError | null;
   item: CodeListItem;
   number: number;
   onChange: (newItem: CodeListItem) => void;
@@ -13,6 +17,7 @@ type StudioCodeListEditorRowProps = {
 };
 
 export function StudioCodeListEditorRow({
+  error,
   item,
   number,
   onChange,
@@ -55,24 +60,26 @@ export function StudioCodeListEditorRow({
   return (
     <StudioInputTable.Row>
       <TextfieldCell
+        autoComplete='off'
+        error={error && texts.valueErrors[error]}
         label={texts.itemValue(number)}
-        value={item.value}
         onChange={handleValueChange}
+        value={item.value}
       />
       <TextfieldCell
         label={texts.itemLabel(number)}
-        value={item.label}
         onChange={handleLabelChange}
+        value={item.label}
       />
       <TextfieldCell
         label={texts.itemDescription(number)}
-        value={item.description}
         onChange={handleDescriptionChange}
+        value={item.description}
       />
       <TextfieldCell
         label={texts.itemHelpText(number)}
-        value={item.helpText}
         onChange={handleHelpTextChange}
+        value={item.helpText}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
     </StudioInputTable.Row>
@@ -80,21 +87,41 @@ export function StudioCodeListEditorRow({
 }
 
 type TextfieldCellProps = {
-  value: string;
+  error?: string;
   label: string;
   onChange: (newString: string) => void;
+  value: string;
+  autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 
-function TextfieldCell({ label, value, onChange }: TextfieldCellProps) {
+function TextfieldCell({ error, label, value, onChange, autoComplete }: TextfieldCellProps) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect((): void => {
+    ref.current?.setCustomValidity(error || '');
+  }, [error]);
+
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
       onChange(event.target.value);
     },
     [onChange],
   );
 
+  const handleFocus = useCallback((event: FocusEvent<HTMLInputElement>): void => {
+    event.target.reportValidity();
+  }, []);
+
   return (
-    <StudioInputTable.Cell.Textfield aria-label={label} onChange={handleChange} value={value} />
+    <StudioInputTable.Cell.Textfield
+      aria-label={label}
+      autoComplete={autoComplete}
+      className={classes.textfieldCell}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      ref={ref}
+      value={value}
+    />
   );
 }
 

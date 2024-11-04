@@ -10,4 +10,5 @@
 
 .addColumnButton {
   margin-top: var(--fds-spacing-3);
+  margin-left: var(--fds-spacing-5);
 }
