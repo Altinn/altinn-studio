@@ -8,6 +8,7 @@ import {
   StudioCombobox,
   StudioDeleteButton,
   StudioDivider,
+  StudioError,
   StudioParagraph,
   StudioTextfield,
 } from '@studio/components';
@@ -40,6 +41,7 @@ export const EditColumnElement = ({
   const [tableColumn, setTableColumn] = useState(sourceColumn);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
   const { data: textResources } = useTextResourcesQuery(org, app);
+  const [showError, setShowError] = useState(false);
 
   const textKeyValue = textResourceByLanguageAndIdSelector(
     'nb',
@@ -55,12 +57,14 @@ export const EditColumnElement = ({
     const selectedComponentId = values[0];
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
 
+    const selectedComponentTitle = selectedComponent.textResourceBindings?.title;
     const updatedTableColumn = {
       ...sourceColumn,
-      headerContent: selectedComponent.textResourceBindings?.title,
+      headerContent: selectedComponentTitle,
       cellContent: { query: selectedComponent.dataModelBindings?.simpleBinding },
     };
     setTableColumn(updatedTableColumn);
+    setShowError(!selectedComponentTitle);
   };
 
   return (
@@ -71,6 +75,7 @@ export const EditColumnElement = ({
           components={components}
           onSelectComponent={selectComponent}
         />
+        {showError && <StudioError>{'Ledetekst er tomt'}</StudioError>}
         <StudioTextfield
           label={
             <>
