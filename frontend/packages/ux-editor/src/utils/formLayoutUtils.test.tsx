@@ -512,10 +512,15 @@ describe('formLayoutUtils', () => {
   });
 
   describe('isComponentTypeValidChild', () => {
-    it('Returns true if the child is valid to given container', () => {
-      expect(isComponentTypeValidChild(mockInternal, buttonGroupId, ComponentType.Button)).toBe(
-        true,
-      );
+    it.each([
+      ComponentType.ActionButton,
+      ComponentType.Button,
+      ComponentType.CustomButton,
+      ComponentType.NavigationButtons,
+      ComponentType.PrintButton,
+      ComponentType.InstantiationButton,
+    ])('Returns true if the child is valid to given container', (buttonType: ComponentType) => {
+      expect(isComponentTypeValidChild(mockInternal, buttonGroupId, buttonType)).toBe(true);
     });
 
     it('Returns true if the component is not dropped inside a container', () => {
