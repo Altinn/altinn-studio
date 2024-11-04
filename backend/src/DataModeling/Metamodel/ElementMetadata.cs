@@ -170,6 +170,8 @@ namespace Altinn.Studio.DataModeling.Metamodel
         [JsonPropertyName("nillable")]
         public bool? Nillable { get; set; }
 
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         [JsonProperty(PropertyName = "orderOblivious")]
         [JsonPropertyName("orderOblivious")]
         public bool OrderOblivious { get; set; } = false;
