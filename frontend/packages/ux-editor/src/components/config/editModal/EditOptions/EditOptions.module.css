@@ -27,10 +27,8 @@
 
 .manualTabDialog[open] {
   --code-list-modal-min-width: min(80rem, 100%);
-  --code-list-modal-fixed-top-margin: 30vh;
-  --code-list-modal-max-height: 50vh;
+  --code-list-modal-height: min(40rem, 100%);
 
   min-width: var(--code-list-modal-min-width);
-  margin-top: var(--code-list-modal-fixed-top-margin);
-  max-height: var(--code-list-modal-max-height);
+  height: var(--code-list-modal-height);
 }
