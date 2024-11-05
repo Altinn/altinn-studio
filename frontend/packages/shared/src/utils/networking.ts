@@ -2,7 +2,19 @@ import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
 export async function get<T = any>(url: string, options?: AxiosRequestConfig): Promise<T> {
-  const response: AxiosResponse = await axios.get<T>(url, options || undefined);
+  console.log({
+    fire: 'fire',
+    url,
+  });
+  const response: AxiosResponse = await axios
+    .get<T>(url, options || undefined)
+    .catch((err: AxiosError) => {
+      consolel.log({ type: 'error', url, err });
+    });
+  console.log({
+    url,
+    response,
+  });
   return response.data ? response.data : null;
 }
 
