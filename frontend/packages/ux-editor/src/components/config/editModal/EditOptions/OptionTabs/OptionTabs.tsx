@@ -95,7 +95,7 @@ type RenderManualOptionsProps = {
 const RenderManualOptions = ({
   component,
   handleComponentChange,
-  areLayoutOptionsSupported,
+  areLayoutOptionsSupported = true,
 }: RenderManualOptionsProps) => {
   const errorMessage = useComponentErrorMessage(component);
   const { t } = useTranslation();
