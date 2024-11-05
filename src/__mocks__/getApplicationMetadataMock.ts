@@ -67,7 +67,6 @@ export const getIncomingApplicationMetadataMock = (
         allowedContentTypes: ['application/xml'],
         appLogic: {
           classRef: '...',
-          allowInSubform: true,
         },
         taskId: 'Task_1',
         maxCount: 0,

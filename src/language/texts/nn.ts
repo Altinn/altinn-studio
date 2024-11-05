@@ -392,7 +392,6 @@ export function nn(): FixedLanguageList {
         'Medan du har feil i konfigurasjonen kan me ikkje vise komponenten i skjemaet. Rett opp i feila og prøv igjen.',
       subform_no_datatype_layoutset: 'Datatype-spesifikasjon ikkje funnen i layout-sets.json.',
       subform_no_datatype_appmetadata: "Datatype '{0}' vart ikkje funnen i applicationmetadata.json.",
-      subform_datatype_not_allowed: "Datatype '{0}' er ikkje tillaten for bruk i underskjema.",
       subform_misconfigured_add_button:
         "Datatype '{0}' er markert som 'disallowUserCreate=true', men underskjema-komponenten er konfigurert med 'showAddButton=true'. Dette er ei motseiing, Sidan brukaren aldri vil få lov til å utføre handlingane bak legg-til knappen.",
     },

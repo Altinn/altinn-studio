@@ -391,7 +391,6 @@ export function en() {
         'As long as the component has configuration errors, we cannot show it in the form. Fix the errors and try again.',
       subform_no_datatype_layoutset: 'Data type specification not found in layout-sets.json',
       subform_no_datatype_appmetadata: "Data type '{0}' was not found in applicationmetadata.json",
-      subform_datatype_not_allowed: "Data type '{0}' is not allowed for use in subforms",
       subform_misconfigured_add_button:
         "Data type '{0}' is marked as 'disallowUserCreate=true', but the subform component is configured with 'showAddButton=true'. This is a contradiction, as the user will never be permitted to perform the add-button operation.",
     },

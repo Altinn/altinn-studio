@@ -25,8 +25,6 @@ export function SubformValidator(props: NodeValidationProps<'Subform'>) {
       error = langAsString('config_error.subform_no_datatype_layoutset');
     } else if (dataType === undefined) {
       error = langAsString('config_error.subform_no_datatype_appmetadata', [targetType]);
-    } else if (dataType.appLogic?.allowInSubform !== true) {
-      error = langAsString('config_error.subform_datatype_not_allowed', [targetType]);
     } else if (dataType.appLogic?.disallowUserCreate === true && externalItem.showAddButton !== false) {
       error = langAsString('config_error.subform_misconfigured_add_button', [targetType]);
     }
