@@ -9,6 +9,12 @@ jobs:
   release-nugets:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
+    environment: |-
+      ${{
+         contains(github.event.release.tag_name, 'preview') && 'test'
+      || contains(github.event.release.tag_name, 'rc')      && 'staging'
+      ||                                                       'prod'
+      }}
     steps:
       - uses: actions/checkout@v4
         with:
