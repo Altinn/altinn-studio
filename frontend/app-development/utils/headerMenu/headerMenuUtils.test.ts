@@ -14,7 +14,7 @@ import { HeaderMenuItemKey } from 'app-development/enums/HeaderMenuItemKey';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { DatabaseIcon } from '@studio/icons';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
-import { typedLocalStorage } from '@studio/components';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 jest.mock('app-shared/utils/featureToggleUtils');

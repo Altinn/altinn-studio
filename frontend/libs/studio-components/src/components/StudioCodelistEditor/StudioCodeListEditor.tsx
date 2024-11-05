@@ -1,6 +1,6 @@
 import type { CodeList } from './types/CodeList';
 import type { ReactElement } from 'react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
@@ -19,6 +19,10 @@ import {
 import classes from './StudioCodeListEditor.module.css';
 import { PlusIcon } from '@studio/icons';
 import { StudioParagraph } from '../StudioParagraph';
+import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './validation';
+import type { ValueErrorMap } from './types/ValueErrorMap';
+import { StudioFieldset } from '../StudioFieldset';
+import { StudioErrorMessage } from '../StudioErrorMessage';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -53,7 +57,7 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      onChange(newCodeList);
+      if (isCodeListValid(newCodeList)) onChange(newCodeList);
     },
     [onChange],
   );
@@ -66,6 +70,9 @@ function ControlledCodeListEditor({
   onChange,
 }: InternalCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
+  const fieldsetRef = useRef<HTMLFieldSetElement>(null);
+
+  const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addEmptyCodeListItem(codeList);
@@ -73,19 +80,20 @@ function ControlledCodeListEditor({
   }, [codeList, onChange]);
 
   return (
-    <fieldset className={classes.codeListEditor}>
-      <legend>{texts.codeList}</legend>
-      <CodeListTable codeList={codeList} onChange={onChange} />
+    <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
+      <CodeListTable codeList={codeList} errorMap={errorMap} onChange={onChange} />
       <AddButton onClick={handleAddButtonClick} />
-    </fieldset>
+      <Errors errorMap={errorMap} />
+    </StudioFieldset>
   );
 }
+type InternalCodeListEditorWithErrorsProps = InternalCodeListEditorProps & ErrorsProps;
 
-function CodeListTable({ codeList, onChange }: InternalCodeListEditorProps): ReactElement {
-  return isCodeListEmpty(codeList) ? (
+function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactElement {
+  return isCodeListEmpty(props.codeList) ? (
     <EmptyCodeListTable />
   ) : (
-    <CodeListTableWithContent codeList={codeList} onChange={onChange} />
+    <CodeListTableWithContent {...props} />
   );
 }
 
@@ -94,7 +102,7 @@ function EmptyCodeListTable(): ReactElement {
   return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
 }
 
-function CodeListTableWithContent(props: InternalCodeListEditorProps): ReactElement {
+function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {
   return (
     <StudioInputTable>
       <Headings />
@@ -119,7 +127,11 @@ function Headings(): ReactElement {
   );
 }
 
-function CodeLists({ codeList, onChange }: InternalCodeListEditorProps): ReactElement {
+function CodeLists({
+  codeList,
+  onChange,
+  errorMap,
+}: InternalCodeListEditorWithErrorsProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
     (index: number) => {
       const updatedCodeList = removeCodeListItem(codeList, index);
@@ -140,6 +152,7 @@ function CodeLists({ codeList, onChange }: InternalCodeListEditorProps): ReactEl
     <StudioInputTable.Body>
       {codeList.map((item, index) => (
         <StudioCodeListEditorRow
+          error={errorMap[index]}
           item={item}
           key={index}
           number={index + 1}
@@ -149,6 +162,21 @@ function CodeLists({ codeList, onChange }: InternalCodeListEditorProps): ReactEl
       ))}
     </StudioInputTable.Body>
   );
+}
+
+type ErrorsProps = {
+  errorMap: ValueErrorMap;
+};
+
+function Errors({ errorMap }: ErrorsProps): ReactElement {
+  const {
+    texts: { generalError },
+  } = useStudioCodeListEditorContext();
+  if (areThereCodeListErrors(errorMap)) {
+    return <StudioErrorMessage>{generalError}</StudioErrorMessage>;
+  } else {
+    return null;
+  }
 }
 
 type AddButtonProps = {
