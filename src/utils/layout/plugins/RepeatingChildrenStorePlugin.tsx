@@ -150,9 +150,9 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
 
   extraHooks(store: NodesStoreFull): RepeatingChildrenStorePluginConfig['extraHooks'] {
     return {
-      useSetRowExtras: () => store.useSelector((state) => state.setRowExtras),
-      useSetRowUuids: () => store.useSelector((state) => state.setRowUuids),
-      useRemoveRow: () => store.useSelector((state) => state.removeRow),
+      useSetRowExtras: () => store.useStaticSelector((state) => state.setRowExtras),
+      useSetRowUuids: () => store.useStaticSelector((state) => state.setRowUuids),
+      useRemoveRow: () => store.useStaticSelector((state) => state.removeRow),
     };
   }
 }

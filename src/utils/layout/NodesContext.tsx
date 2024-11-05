@@ -1193,15 +1193,15 @@ export const NodesInternal = {
   useHasErrors: () => Store.useSelector((s) => s.hasErrors),
 
   useStore: () => Store.useStore(),
-  useSetNodeProps: () => Store.useSelector((s) => s.setNodeProps),
-  useSetNodes: () => Store.useSelector((s) => s.setNodes),
-  useAddPage: () => Store.useSelector((s) => s.addPage),
-  useSetPageProps: () => Store.useSelector((s) => s.setPageProps),
-  useAddNodes: () => Store.useSelector((s) => s.addNodes),
-  useRemoveNode: () => Store.useSelector((s) => s.removeNode),
-  useAddError: () => Store.useSelector((s) => s.addError),
-  useMarkHiddenViaRule: () => Store.useSelector((s) => s.markHiddenViaRule),
-  useSetWaitForCommits: () => Store.useSelector((s) => s.setWaitForCommits),
+  useSetNodeProps: () => Store.useStaticSelector((s) => s.setNodeProps),
+  useSetNodes: () => Store.useStaticSelector((s) => s.setNodes),
+  useAddPage: () => Store.useStaticSelector((s) => s.addPage),
+  useSetPageProps: () => Store.useStaticSelector((s) => s.setPageProps),
+  useAddNodes: () => Store.useStaticSelector((s) => s.addNodes),
+  useRemoveNode: () => Store.useStaticSelector((s) => s.removeNode),
+  useAddError: () => Store.useStaticSelector((s) => s.addError),
+  useMarkHiddenViaRule: () => Store.useStaticSelector((s) => s.markHiddenViaRule),
+  useSetWaitForCommits: () => Store.useStaticSelector((s) => s.setWaitForCommits),
 
   ...(Object.values(StorePlugins)
     .map((plugin) => plugin.extraHooks(Store))
