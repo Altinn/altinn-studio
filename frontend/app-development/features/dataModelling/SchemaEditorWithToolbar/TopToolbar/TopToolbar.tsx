@@ -82,7 +82,7 @@ export function TopToolbar({
             selectedOption={selectedOption}
             uploadButtonText={t('app_data_modelling.upload_xsd')}
           />
-          <VerticalDivider />
+          {/*<VerticalDivider />*/}
           {/*<DeleteWrapper selectedOption={selectedOption} />*/}
           {modelPath && (
             <GenerateModelsButton
@@ -98,22 +98,12 @@ export function TopToolbar({
   );
 }
 
-const VerticalDivider = () => {
-  return (
-    <div
-      style={{
-        borderLeft: '1px solid lightgray',
-        height: '66.6%',
-      }}
-    />
-  );
-};
-
 const TypeControls = ({ dataModelName }) => {
   const { setSelectedTypePointer, setSelectedUniquePointer, selectedUniquePointer } =
     useDataModelToolbarContext();
 
-  const showBreadcrumbs = false;
+  const showBreadcrumbs = true;
+
   const navigateToDataModelRoot = () => {
     setSelectedUniquePointer(undefined);
     setSelectedTypePointer(undefined);
