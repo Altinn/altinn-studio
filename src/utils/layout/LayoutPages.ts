@@ -50,7 +50,7 @@ export class LayoutPages implements LayoutObject<LayoutPage> {
     return this.objects;
   }
 
-  public allNodes(task: TraversalTask): LayoutNode[] {
+  public allNodes(task?: TraversalTask): LayoutNode[] {
     return Object.values(this.objects).flatMap((layout) => layout.flat(task));
   }
 

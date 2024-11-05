@@ -1,4 +1,4 @@
-import { splitDashedKey } from 'src/utils/splitDashedKey';
+import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -84,8 +84,8 @@ export class LayoutPage implements LayoutObject {
     return children;
   }
 
-  public flat(task: TraversalTask): LayoutNode[] {
-    return [...this.allChildren.values()].filter((n) => task.passes(n));
+  public flat(task?: TraversalTask): LayoutNode[] {
+    return task ? [...this.allChildren.values()].filter((n) => task.passes(n)) : [...this.allChildren.values()];
   }
 
   public findById(task: TraversalTask, id: string | undefined, traversePages = true): LayoutNode | undefined {
@@ -97,7 +97,7 @@ export class LayoutPage implements LayoutObject {
       return this.allChildren.get(id);
     }
 
-    const baseId = splitDashedKey(id).baseComponentId;
+    const baseId = getBaseComponentId(id);
     if (this.allChildren.has(baseId)) {
       return this.allChildren.get(baseId);
     }

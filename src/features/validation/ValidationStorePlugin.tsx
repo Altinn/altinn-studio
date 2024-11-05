@@ -16,7 +16,6 @@ import type {
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { IsHiddenOptions, NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
-import type { NodeData } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export type ValidationsSelector = (
@@ -135,35 +134,30 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           if (!node) {
             return emptyArray;
           }
-          const nodeData = state.nodeData[node.id];
-          return getValidations({ state, nodeData, mask: showAll ? 'showAll' : 'visible' });
+          return getValidations({ state, node, mask: showAll ? 'showAll' : 'visible' });
         }),
       useVisibleValidationsDeep: (node, mask, stopAtDepth, restriction, severity) =>
         store.useMemoSelector((state) => {
           if (!node) {
             return emptyArray;
           }
-          const nodeData = state.nodeData[node.id];
-          return getRecursiveValidations({ state, nodeData, mask, severity, stopAtDepth, restriction });
+          return getRecursiveValidations({ state, node, mask, severity, stopAtDepth, restriction });
         }),
       useValidationsSelector: () =>
         store.useDelayedSelector({
           mode: 'simple',
           selector:
             (node: LayoutNode, mask: NodeVisibility, severity?: ValidationSeverity, includeHidden: boolean = false) =>
-            (state: NodesContext) => {
-              const nodeData = state.nodeData[node.id];
-              return getValidations({ state, nodeData, mask, severity, includeHidden });
-            },
+            (state: NodesContext) =>
+              getValidations({ state, node, mask, severity, includeHidden }),
         }) satisfies ValidationsSelector,
       useAllValidations: (mask, severity, includeHidden) =>
         store.useLaxMemoSelector((state) => {
           const out: NodeRefValidation[] = [];
-          for (const nodeId of Object.keys(state.nodeData)) {
-            const nodeData = state.nodeData[nodeId];
-            const validations = getValidations({ state, nodeData, mask, severity, includeHidden });
+          for (const node of state.nodes?.allNodes() ?? []) {
+            const validations = getValidations({ state, node, mask, severity, includeHidden });
             for (const validation of validations) {
-              out.push({ ...validation, nodeId });
+              out.push({ ...validation, nodeId: node.id });
             }
           }
 
@@ -183,12 +177,10 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
 
             const outNodes: string[] = [];
             const outValidations: AnyValidation[] = [];
-            for (const nodeId of Object.keys(state.nodeData)) {
-              const nodeData = state.nodeData[nodeId];
-
-              const validations = getValidations({ state, nodeData, mask, severity, includeHidden });
+            for (const node of state.nodes?.allNodes() ?? []) {
+              const validations = getValidations({ state, node, mask, severity, includeHidden });
               if (validations.length > 0) {
-                outNodes.push(nodeId);
+                outNodes.push(node.id);
                 outValidations.push(...validations);
               }
             }
@@ -203,13 +195,13 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
             return false;
           }
 
-          for (const nodeId of Object.keys(state.nodeData)) {
-            const nodeData = state.nodeData[nodeId];
+          for (const node of state.nodes?.allNodes() ?? []) {
+            const nodeData = state.nodeData[node.id];
             if (!nodeData || nodeData.pageKey !== pageKey) {
               continue;
             }
 
-            const validations = getValidations({ state, nodeData, mask: 'visible', severity: 'error' });
+            const validations = getValidations({ state, node, mask: 'visible', severity: 'error' });
             for (const validation of validations) {
               if (validation.source === FrontendValidationSource.EmptyField) {
                 return true;
@@ -223,33 +215,20 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
   }
 }
 
-function getNodeFromState(state: NodesContext, nodeId: string): LayoutNode | undefined {
-  if (state.nodes) {
-    return state.nodes.findById(new TraversalTask(state, state.nodes, undefined, undefined), nodeId);
-  }
-  return undefined;
-}
-
 interface GetValidationsProps {
   state: NodesContext;
-  nodeData: NodeData | undefined;
+  node: LayoutNode;
   mask: NodeVisibility;
   severity?: ValidationSeverity;
   includeHidden?: boolean;
 }
 
-function getValidations({
-  state,
-  nodeData,
-  mask,
-  severity,
-  includeHidden = false,
-}: GetValidationsProps): AnyValidation[] {
+function getValidations({ state, node, mask, severity, includeHidden = false }: GetValidationsProps): AnyValidation[] {
+  const nodeData = state.nodeData[node.id];
   if (!nodeData || !('validations' in nodeData) || !('validationVisibility' in nodeData)) {
     return emptyArray;
   }
 
-  const node = getNodeFromState(state, nodeData.layout.id);
   if (!includeHidden && (!node || isHidden(state, node, hiddenOptions))) {
     return emptyArray;
   }
@@ -273,29 +252,23 @@ interface GetDeepValidationsProps extends GetValidationsProps {
 }
 
 function getRecursiveValidations(props: GetDeepValidationsProps): NodeRefValidation[] {
-  const nodeId = props.nodeData?.layout.id;
   const out: NodeRefValidation[] = [];
   const depth = props.depth ?? 0;
-  if (!nodeId) {
-    return emptyArray;
-  }
 
   const nodeValidations = getValidations(props);
   for (const validation of nodeValidations) {
-    out.push({ ...validation, nodeId });
+    out.push({ ...validation, nodeId: props.node.id });
   }
 
   if (props.stopAtDepth !== undefined && depth >= props.stopAtDepth) {
     return out;
   }
 
-  const directChildren = props.state.childrenMap[nodeId];
-  if (directChildren) {
-    for (const childId of directChildren) {
-      const childData = props.state.nodeData[childId];
-      if (childData && childData.rowIndex === props.restriction) {
-        out.push(...getRecursiveValidations({ ...props, nodeData: childData, depth: depth + 1 }));
-      }
+  if (props.state.nodes) {
+    for (const child of props.node.children(
+      new TraversalTask(props.state, props.state.nodes, undefined, props.restriction),
+    )) {
+      out.push(...getRecursiveValidations({ ...props, node: child, depth: depth + 1 }));
     }
   }
 
