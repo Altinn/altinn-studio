@@ -7,7 +7,7 @@ import type { PageName } from '../../types/PageName';
 import type { PageComponent } from '../../utils/router/RouterRouteMapper';
 
 type LibraryBodyProps<T extends PageName = 'landingPage'> = {
-  Component: PageComponent<Required<PagePropsMap<T>>>;
+  Component: PageComponent<PagePropsMap<T>>;
   pages: PagesConfig;
   currentPage: PageName;
 };
@@ -17,9 +17,7 @@ export function LibraryBody<T extends PageName = 'landingPage'>({
   pages,
   currentPage,
 }: LibraryBodyProps) {
-  const componentProps: Required<PagePropsMap<T>> = pages[currentPage]?.props as Required<
-    PagePropsMap<T>
-  >;
+  const componentProps: PagePropsMap<T> = pages[currentPage].props as PagePropsMap<T>;
 
   return (
     <div className={classes.libraryContent}>
