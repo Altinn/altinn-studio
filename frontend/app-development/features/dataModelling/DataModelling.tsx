@@ -40,8 +40,8 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
           <StudioError>
             <Paragraph>{t('general.fetch_error_message')}</Paragraph>
             <Paragraph>{t('general.error_message_with_colon')}</Paragraph>
-            {jsonError && <ErrorMessage>111{jsonError.message}</ErrorMessage>}
-            {xsdError && <ErrorMessage>2222{xsdError.message}</ErrorMessage>}
+            {jsonError && <ErrorMessage>{jsonError.message}</ErrorMessage>}
+            {xsdError && <ErrorMessage>{xsdError.message}</ErrorMessage>}
           </StudioError>
         </StudioCenter>
       );
