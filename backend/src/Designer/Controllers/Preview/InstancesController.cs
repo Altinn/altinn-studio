@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
 {
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}")]
+    [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
     public class InstancesController(IHttpContextAccessor httpContextAccessor,
         IPreviewService previewService,
         IAltinnGitRepositoryFactory altinnGitRepositoryFactory
@@ -32,7 +32,6 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The mocked instance object</returns>
         [HttpPost]
-        [Route("instances")]
         public async Task<ActionResult<Instance>> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
@@ -46,8 +45,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// Action for getting a mocked response for the current task connected to the instance
         /// </summary>
         /// <returns>The processState</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}/process")]
+        [HttpGet("{partyId}/{instanceGuId}/process")]
         public async Task<ActionResult<AppProcessState>> Process(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
@@ -69,8 +67,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// Endpoint to get instance for next process step
         /// </summary>
         /// <returns>A mocked instance object</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}")]
+        [HttpGet("{partyId}/{instanceGuId}")]
         public async Task<ActionResult<Instance>> InstanceForNextTask(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
@@ -84,8 +81,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// Endpoint to get active instances for apps with state/layout sets/multiple processes
         /// </summary>
         /// <returns>A list of a single mocked instance</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/active")]
+        [HttpGet("{partyId}/active")]
         public ActionResult<List<Instance>> ActiveInstancesForAppsWithLayoutSets(string org, string app, [FromRoute] int partyId)
         {
             // Simulate never having any active instances
@@ -97,8 +93,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// Endpoint to validate an instance
         /// </summary>
         /// <returns>Ok</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}/validate")]
+        [HttpGet("{partyId}/{instanceGuId}/validate")]
         public ActionResult ValidateInstance()
         {
             return Ok();
@@ -108,8 +103,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// Action for getting a mocked response for the next task connected to the instance
         /// </summary>
         /// <returns>The processState object on the global mockInstance object</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuId}/process/next")]
+        [HttpGet("{partyId}/{instanceGuId}/process/next")]
         public async Task<ActionResult> ProcessNext(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
@@ -123,8 +117,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// Action for mocking an end to the process in order to get receipt after "send inn" is pressed
         /// </summary>
         /// <returns>Process object where ended is set</returns>
-        [HttpPut]
-        [Route("instances/{partyId}/{instanceGuId}/process/next")]
+        [HttpPut("{partyId}/{instanceGuId}/process/next")]
         public async Task<ActionResult> UpdateProcessNext(string org, string app, [FromRoute] int partyId, [FromQuery] string lang, CancellationToken cancellationToken)
         {
             string refererHeader = Request.Headers["Referer"];
@@ -149,8 +142,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="source">The source of the options list</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list if it exists, otherwise nothing</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuid}/options/{optionListId}")]
+        [HttpGet("{partyId}/{instanceGuid}/options/{optionListId}")]
         public async Task<ActionResult<string>> GetOptionsForInstance(string org, string app, string optionListId, [FromQuery] string language, [FromQuery] string source, CancellationToken cancellationToken)
         {
             try
@@ -178,8 +170,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="size">The number of items to return</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The options list if it exists, otherwise nothing</returns>
-        [HttpGet]
-        [Route("instances/{partyId}/{instanceGuid}/datalists/{dataListId}")]
+        [HttpGet("{partyId}/{instanceGuid}/datalists/{dataListId}")]
         public ActionResult<List<string>> GetDataListsForInstance(string org, string app, string dataListId, [FromQuery] string language, [FromQuery] string size, CancellationToken cancellationToken)
         {
             // TODO: Should look into whether we can get some actual data here, or if we can make an "informed" mock based on the setup.
@@ -196,8 +187,7 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         /// <param name="layoutSetId">Current layout set in running app</param>
         /// <param name="dataTypeId">Connected datatype for that process task</param>
         /// <returns>The options list if it exists, otherwise nothing</returns>
-        [HttpPost]
-        [Route("instances/{partyId}/{instanceGuid}/pages/order")]
+        [HttpPost("{partyId}/{instanceGuid}/pages/order")]
         public IActionResult UpdateAttachmentWithTag(string org, string app, [FromQuery] string currentPage, [FromQuery] string layoutSetId, [FromQuery] string dataTypeId)
         {
             return Ok();
