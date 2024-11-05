@@ -8,6 +8,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
 import userEvent from '@testing-library/user-event';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
+import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 
 const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
@@ -49,6 +50,10 @@ const dataModelMetadata: DataModelMetadataResponse = {
 };
 
 const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
+const getLayoutSets = () =>
+  Promise.resolve({
+    sets: [{ id: layoutSet1NameMock, dataType: 'testModel' }],
+  });
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
   const appData: IAppDataState = {
@@ -60,7 +65,7 @@ const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn(
 
   return renderWithMockStore(
     { appData },
-    { getDataModelMetadata },
+    { getDataModelMetadata, getLayoutSets },
   )(
     <EditDataModelBindings
       handleComponentChange={handleComponentChange}
