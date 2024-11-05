@@ -31,7 +31,7 @@ describe('OptionListEditor', () => {
   });
 
   it('should render a spinner when there is no data', async () => {
-    await renderCodeListTableEditor({
+    await renderOptionListEditor({
       queries: {
         getOptionLists: jest
           .fn()
@@ -47,7 +47,7 @@ describe('OptionListEditor', () => {
   });
 
   it('should render the component', async () => {
-    await renderCodeListTableEditor();
+    await renderOptionListEditor();
     const btnOpen = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_code_list_open_editor'),
     });
@@ -57,7 +57,7 @@ describe('OptionListEditor', () => {
 
   it('should open Dialog', async () => {
     const user = userEvent.setup();
-    await renderCodeListTableEditor();
+    await renderOptionListEditor();
     await openModal(user);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('OptionListEditor', () => {
 
   it('should close Dialog', async () => {
     const user = userEvent.setup();
-    await renderCodeListTableEditor();
+    await renderOptionListEditor();
     await openModal(user);
 
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
@@ -76,7 +76,7 @@ describe('OptionListEditor', () => {
   it('should call handleClose when closing Dialog', async () => {
     const user = userEvent.setup();
     const doReloadPreview = jest.fn();
-    await renderCodeListTableEditor({
+    await renderOptionListEditor({
       previewContextProps: { doReloadPreview },
     });
     await openModal(user);
@@ -95,7 +95,7 @@ const openModal = async (user: UserEvent) => {
   await user.click(btnOpen);
 };
 
-const renderCodeListTableEditor = async ({
+const renderOptionListEditor = async ({
   previewContextProps = {},
   queries = {
     getOptionLists: jest
