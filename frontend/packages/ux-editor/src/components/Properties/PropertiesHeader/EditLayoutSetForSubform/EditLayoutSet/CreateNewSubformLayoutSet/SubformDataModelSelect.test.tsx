@@ -38,13 +38,6 @@ describe('SubformDataModelSelect', () => {
     ).toBeInTheDocument();
   });
 
-  it('Renders empty select when there are no provided options', () => {
-    renderSubformDataModelSelect({ dataModels: [] });
-    const selectElement = screen.getByRole('combobox');
-    expect(selectElement).toHaveValue('');
-    expect(selectElement[0]).toHaveAttribute('hidden');
-  });
-
   it('Renders all options', () => {
     renderSubformDataModelSelect();
     expect(screen.getAllByRole('option')).toHaveLength(metadata.length);

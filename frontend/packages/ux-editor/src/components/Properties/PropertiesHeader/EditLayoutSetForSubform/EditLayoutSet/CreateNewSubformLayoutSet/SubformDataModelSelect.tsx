@@ -4,7 +4,6 @@ import {
   findMetadataOptionByRelativeUrl,
 } from 'app-development/utils/metadataUtils';
 import type { MetadataOption } from 'app-development/types/MetadataOption';
-import classes from './SubformDataModelSelect.module.css';
 import type { DataModelMetadataJson } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect } from '@studio/components';
@@ -32,18 +31,25 @@ export const SubformDataModelSelect = ({
   return (
     <StudioNativeSelect
       label={t('ux_editor.component_properties.subform.data_model_binding_label')}
-      className={classes.select}
       disabled={disabled}
       onChange={handleChange}
       value={selectedOption?.value.repositoryRelativeUrl || ''}
       size='small'
     >
-      <option value='' hidden></option>
-      {options.map((option) => (
-        <option value={option.value.repositoryRelativeUrl} key={option.value.repositoryRelativeUrl}>
-          {option.label}
+      {options.length === 0 ? (
+        <option disabled>
+          {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
         </option>
-      ))}
+      ) : (
+        options.map((option) => (
+          <option
+            value={option.value.repositoryRelativeUrl}
+            key={option.value.repositoryRelativeUrl}
+          >
+            {option.label}
+          </option>
+        ))
+      )}
     </StudioNativeSelect>
   );
 };

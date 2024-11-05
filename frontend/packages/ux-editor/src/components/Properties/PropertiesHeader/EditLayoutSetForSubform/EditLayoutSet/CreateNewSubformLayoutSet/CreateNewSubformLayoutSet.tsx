@@ -30,6 +30,7 @@ export const CreateNewSubformLayoutSet = ({
       layoutSetConfig: {
         id: newSubform,
         type: 'subform',
+        dataType: selectedOption?.value?.fileName,
       },
     });
     onSubformCreated(newSubform);
