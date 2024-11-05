@@ -8,7 +8,7 @@ import classes from './SchemaInspector.module.css';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
-import { StudioLabelAsParagraph } from '@studio/components';
+import { NoItemSelectedMessage } from '../NoItemSelectedMessage';
 
 export const SchemaInspector = () => {
   const { t } = useTranslation();
@@ -16,11 +16,7 @@ export const SchemaInspector = () => {
   const savableModel = useSavableSchemaModel();
 
   if (!selectedUniquePointer) {
-    return (
-      <StudioLabelAsParagraph size='sm' className={classes.noItem}>
-        {t('schema_editor.no_item_selected')}
-      </StudioLabelAsParagraph>
-    );
+    return <NoItemSelectedMessage />;
   }
 
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
