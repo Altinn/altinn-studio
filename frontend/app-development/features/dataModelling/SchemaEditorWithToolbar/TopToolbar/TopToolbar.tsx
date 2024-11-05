@@ -3,7 +3,7 @@ import classes from './TopToolbar.module.css';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
-import { DeleteWrapper } from './DeleteWrapper';
+// import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
 import type { CreateDataModelMutationArgs } from '../../../../hooks/mutations/useCreateDataModelMutation';
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Label, Link } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ChevronRightIcon } from '@studio/icons';
 import cn from 'classnames';
+import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
@@ -41,6 +42,8 @@ export function TopToolbar({
   const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
 
+  const { selectedTypePointer } = useDataModelToolbarContext();
+
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
   }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
@@ -50,7 +53,7 @@ export function TopToolbar({
     setCreateNewOpen(false);
   };
 
-  const showTypeToolbar = false;
+  const showTypeToolbar = !!selectedTypePointer;
 
   return (
     <section
@@ -107,7 +110,14 @@ const VerticalDivider = () => {
 };
 
 const TypeControls = () => {
+  const { setSelectedTypePointer, setSelectedUniquePointer, selectedUniquePointer } =
+    useDataModelToolbarContext();
+
   const showBreadcrumbs = true;
+  const navigateToDataModelRoot = () => {
+    setSelectedUniquePointer(undefined);
+    setSelectedTypePointer(undefined);
+  };
 
   return (
     <div
@@ -128,12 +138,12 @@ const TypeControls = () => {
               gap: 'var(--fds-spacing-4)',
             }}
           >
-            <Link>
-              Datamodell: <b>model</b>
+            <Link onClick={() => navigateToDataModelRoot()}>
+              Datamodell: <b>{selectedUniquePointer}</b>
             </Link>
             <ChevronRightIcon />
             <StudioParagraph size='sm'>
-              Type: <b>name0</b>
+              Type: <b>{selectedUniquePointer}</b>
             </StudioParagraph>
           </div>
           {/*<StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>*/}

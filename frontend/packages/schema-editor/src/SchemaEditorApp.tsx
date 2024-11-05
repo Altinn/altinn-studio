@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import './App.css';
 
 import '@digdir/design-system-tokens/brand/altinn/tokens.css';
@@ -7,6 +7,7 @@ import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 import { SchemaEditor } from './components/SchemaEditor';
+import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export type SchemaEditorAppProps = {
   jsonSchema: JsonSchema;
@@ -15,8 +16,14 @@ export type SchemaEditorAppProps = {
 };
 
 export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps) {
-  const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
-  const [selectedUniquePointer, setSelectedUniquePointer] = useState<string>(null);
+  // const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
+  // const [selectedUniquePointer, setSelectedUniquePointer] = useState<string>(null);
+  const {
+    selectedTypePointer,
+    setSelectedTypePointer,
+    selectedUniquePointer,
+    setSelectedUniquePointer,
+  } = useDataModelToolbarContext();
 
   const value = useMemo<SchemaEditorAppContextProps>(
     () => ({
