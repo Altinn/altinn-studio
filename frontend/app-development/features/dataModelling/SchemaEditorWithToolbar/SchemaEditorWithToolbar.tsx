@@ -2,13 +2,15 @@ import classes from './SchemaEditorWithToolbar.module.css';
 import { TopToolbar } from './TopToolbar';
 import { LandingPagePanel } from './LandingPagePanel';
 import React, { useEffect, useState } from 'react';
-import type { MetadataOption } from '../../../types/MetadataOption';
 import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
-import { DataModelToolbarContextProvider } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import {
+  DataModelToolbarContextProvider,
+  useDataModelToolbarContext,
+} from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
@@ -20,7 +22,8 @@ export const SchemaEditorWithToolbar = ({
   dataModels,
 }: SchemaEditorWithToolbarProps) => {
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
-  const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
+  // const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
+  const { selectedOption, setSelectedOption } = useDataModelToolbarContext();
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
 
@@ -40,30 +43,28 @@ export const SchemaEditorWithToolbar = ({
   }, [dataModels, addXsdFromRepo]);
 
   return (
-    <DataModelToolbarContextProvider>
-      <div className={classes.root}>
-        <TopToolbar
-          createNewOpen={createNewOpen}
-          createPathOption={createPathOption}
-          dataModels={dataModels}
-          selectedOption={existingSelectedOption}
-          setCreateNewOpen={setCreateNewOpen}
-          setSelectedOption={setSelectedOption}
-          onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
-            setSchemaGenerationErrorMessages(errorMessages)
-          }
+    <div className={classes.root}>
+      <TopToolbar
+        createNewOpen={createNewOpen}
+        createPathOption={createPathOption}
+        dataModels={dataModels}
+        selectedOption={existingSelectedOption}
+        setCreateNewOpen={setCreateNewOpen}
+        setSelectedOption={setSelectedOption}
+        onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+          setSchemaGenerationErrorMessages(errorMessages)
+        }
+      />
+      {schemaGenerationErrorMessages.length > 0 && (
+        <SchemaGenerationErrorsPanel
+          onCloseErrorsPanel={() => setSchemaGenerationErrorMessages([])}
+          schemaGenerationErrorMessages={schemaGenerationErrorMessages}
         />
-        {schemaGenerationErrorMessages.length > 0 && (
-          <SchemaGenerationErrorsPanel
-            onCloseErrorsPanel={() => setSchemaGenerationErrorMessages([])}
-            schemaGenerationErrorMessages={schemaGenerationErrorMessages}
-          />
-        )}
-        <main className={classes.main}>
-          {!dataModels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
-          {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
-        </main>
-      </div>
-    </DataModelToolbarContextProvider>
+      )}
+      <main className={classes.main}>
+        {!dataModels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
+        {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
+      </main>
+    </div>
   );
 };

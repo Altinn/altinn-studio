@@ -3,6 +3,7 @@ import { NodeIcon } from '../../NodeIcon';
 import type { ReactNode } from 'react';
 import React from 'react';
 import { useSchemaEditorAppContext } from '../../../hooks/useSchemaEditorAppContext';
+import { useDeleteDataModelMutation } from '../../../../../../app-development/hooks/mutations';
 import {
   extractNameFromPointer,
   FieldType,
@@ -30,6 +31,10 @@ import { useSavableSchemaModel } from '../../../hooks/useSavableSchemaModel';
 import type { TranslationKey } from '@altinn-studio/language/type';
 import { useAddProperty } from '../../../hooks/useAddProperty';
 import cn from 'classnames';
+import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
+import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 
 export interface HeadingRowProps {
   schemaPointer?: string;
@@ -155,15 +160,38 @@ const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
   const { t } = useTranslation();
   const savableModel = useSavableSchemaModel();
   const { setSelectedUniquePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
+  const { selectedOption } = useDataModelToolbarContext();
+  const { mutate } = useDeleteDataModelMutation();
+  const { org, app } = useStudioEnvironmentParams();
+  const updateBpmn = useUpdateBpmn(org, app);
 
   const isInUse = savableModel.hasReferringNodes(schemaPointer);
+  const modelPath = selectedOption?.value.repositoryRelativeUrl;
+  const schemaName = selectedOption?.value && selectedOption?.label;
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    if (schemaPointer) {
+      deleteType();
+    } else {
+      await deleteModel();
+    }
+  };
+
+  const deleteType = () => {
     setSelectedUniquePointer(null);
     setSelectedTypePointer(null);
     savableModel.deleteNode(schemaPointer);
   };
 
+  const deleteModel = async () => {
+    mutate(modelPath, {
+      onSuccess: async () => {
+        await updateBpmn(removeDataTypeIdsToSign([schemaName]));
+      },
+    });
+  };
+
+  // Needs if checks and custom texts for deleting data models
   return (
     <StudioDeleteButton
       disabled={isInUse}

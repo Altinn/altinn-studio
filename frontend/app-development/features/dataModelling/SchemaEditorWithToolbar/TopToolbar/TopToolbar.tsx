@@ -36,8 +36,6 @@ export function TopToolbar({
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
-  const modelPath = selectedOption?.value.repositoryRelativeUrl;
-
   const { t } = useTranslation();
   const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
@@ -53,6 +51,7 @@ export function TopToolbar({
     setCreateNewOpen(false);
   };
 
+  const modelPath = selectedOption?.value.repositoryRelativeUrl;
   const showTypeToolbar = !!selectedTypePointer;
 
   return (
