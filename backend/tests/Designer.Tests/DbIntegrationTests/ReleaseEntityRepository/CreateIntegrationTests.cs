@@ -20,7 +20,7 @@ public class CreateIntegrationTests : ReleaseEntityIntegrationTestsBase
     {
         var repository = new ORMReleaseRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var releaseEntity = EntityGenerationUtils.GenerateReleaseEntity(org, buildId: buildId.ToString());
+        var releaseEntity = EntityGenerationUtils.Release.GenerateReleaseEntity(org, buildId: buildId.ToString());
         await repository.Create(releaseEntity);
         var dbRecord = await DbFixture.DbContext.Releases.AsNoTracking().FirstOrDefaultAsync(d =>
             d.Org == org &&

@@ -21,7 +21,7 @@ public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
     {
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
-        var deploymentEntity = EntityGenerationUtils.GenerateDeploymentEntity(
+        var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
             org,
             buildId: buildId.ToString(),
             buildStatus: BuildStatus.InProgress,

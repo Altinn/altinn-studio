@@ -13,7 +13,7 @@ import {
   mockBpmnApiContextValue,
   mockBpmnContextValue,
 } from '../../../../../../test/mocks/bpmnContextMock';
-import { queryOptionMock } from 'app-shared/mocks/queryOptionMock';
+import { queryOptionMock } from '../../../../../../test/mocks/queryOptionMock';
 import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from 'app-shared/constants';
 
 const mockAddLayoutSet = jest.fn().mockImplementation(queryOptionMock);
