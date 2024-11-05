@@ -1,8 +1,0 @@
-.panelPadding > div {
-  --panel-x-padding: var(--modal-padding-x);
-}
-
-.panelBodyText {
-  padding: 12px;
-  width: 100%;
-}

@@ -6,7 +6,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { useSetReturnToView, useSetSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useLaxLayoutSettings, usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
-import { useGetTaskType, useLaxProcessData } from 'src/features/instance/ProcessContext';
+import { useGetTaskTypeById, useLaxProcessData } from 'src/features/instance/ProcessContext';
 import {
   useAllNavigationParamsAsRef,
   useNavigate as useCtxNavigate,
@@ -129,7 +129,7 @@ export const useStartUrl = (forcedTaskId?: string) => {
   // so it does not make a difference here.
   const { partyId, instanceGuid, taskId, isSubformPage, mainPageKey, componentId, dataElementId } =
     useNavigationParams();
-  const taskType = useGetTaskType()(taskId);
+  const taskType = useGetTaskTypeById()(taskId);
   const isStateless = useApplicationMetadata().isStatelessApp;
 
   return useMemo(() => {
@@ -179,7 +179,7 @@ export function useNavigatePage() {
   const navigate = useNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useQueryKeysAsStringAsRef();
-  const getTaskType = useGetTaskType();
+  const getTaskType = useGetTaskTypeById();
   const refetchInitialValidations = useRefetchInitialValidations(true);
 
   const { autoSaveBehavior } = usePageSettings();

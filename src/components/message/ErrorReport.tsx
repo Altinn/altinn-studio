@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { Grid } from '@material-ui/core';
 
+import { PANEL_VARIANT } from 'src/app-components/panel/constants';
+import { Panel } from 'src/app-components/panel/Panel';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';
@@ -36,8 +37,7 @@ export const ErrorReport = ({ renderIds, formErrors, taskErrors }: IErrorReportP
       <FullWidthWrapper isOnBottom={true}>
         <Panel
           title={<Lang id={'form_filler.error_report_header'} />}
-          showIcon={false}
-          variant={PanelVariant.Error}
+          variant={PANEL_VARIANT.Error}
         >
           <Grid
             container={true}

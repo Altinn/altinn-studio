@@ -10,4 +10,9 @@ describe('ErrorPaper', () => {
     const item = await screen.findByText('mock message');
     expect(item).not.toBe(null);
   });
+
+  it('should not render icon in panel', async () => {
+    render(<ErrorPaper message='mock message' />);
+    expect(screen.queryByRole('img', { name: 'error' })).not.toBeInTheDocument();
+  });
 });

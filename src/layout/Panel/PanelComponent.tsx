@@ -1,17 +1,16 @@
 import React from 'react';
 
-import { Panel } from '@altinn/altinn-design-system';
-
+import { PANEL_VARIANT } from 'src/app-components/panel/constants';
+import { Panel } from 'src/app-components/panel/Panel';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
-import { getVariant } from 'src/components/form/Panel';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import classes from 'src/layout/Panel/Panel.module.css';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
 import type { PropsFromGenericComponent } from 'src/layout';
+
 type IPanelProps = PropsFromGenericComponent<'Panel'>;
 
 export const PanelComponent = ({ node }: IPanelProps) => {
@@ -26,7 +25,8 @@ export const PanelComponent = ({ node }: IPanelProps) => {
     return { isOnBottom, isOnTop };
   }, node);
 
-  if (!textResourceBindings) {
+  if (!textResourceBindings?.body && !textResourceBindings?.title) {
+    window.logWarn('Unable to render panel component: no text resource binding found.');
     return null;
   }
 
@@ -36,7 +36,6 @@ export const PanelComponent = ({ node }: IPanelProps) => {
         condition={fullWidth}
         wrapper={(child) => (
           <FullWidthWrapper
-            className={classes.panelPadding}
             isOnBottom={isOnBottom}
             isOnTop={isOnTop}
           >
@@ -45,9 +44,9 @@ export const PanelComponent = ({ node }: IPanelProps) => {
         )}
       >
         <Panel
-          title={textResourceBindings.title ? <Lang id={textResourceBindings.title} /> : null}
-          showIcon={showIcon}
-          variant={getVariant({ variant })}
+          title={<Lang id={textResourceBindings.title} />}
+          showIcon={showIcon ?? true}
+          variant={variant ?? PANEL_VARIANT.Info}
           forceMobileLayout={!fullWidth}
         >
           <Lang id={textResourceBindings.body} />

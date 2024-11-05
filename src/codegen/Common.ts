@@ -112,22 +112,6 @@ const common = {
       .setTitle('Grid')
       .setDescription('Settings for the components grid. Used for controlling horizontal alignment'),
 
-  // Panel display mode:
-  IPanelBase: () =>
-    new CG.obj(
-      new CG.prop(
-        'variant',
-        new CG.enum('info', 'warning', 'error', 'success')
-          .optional()
-          .setTitle('Panel variant')
-          .setDescription('Change the look of the panel'),
-      ),
-      new CG.prop(
-        'showIcon',
-        new CG.bool().optional({ default: true }).setTitle('Show icon').setDescription('Show icon in the panel header'),
-      ),
-    ),
-
   IDataModelReference: () =>
     new CG.obj(
       new CG.prop(

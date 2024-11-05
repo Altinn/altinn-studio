@@ -1,8 +1,8 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-
+import { PANEL_VARIANT } from 'src/app-components/panel/constants';
+import { Panel } from 'src/app-components/panel/Panel';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -24,7 +24,8 @@ export const IFrameComponent = ({ node }: IFrameComponentProps): JSX.Element => 
   if (isSrcDocUnsupported) {
     return (
       <Panel
-        variant={PanelVariant.Error}
+        variant={PANEL_VARIANT.Error}
+        showIcon={true}
         title={<Lang id={'iframe_component.unsupported_browser_title'} />}
       >
         <p>

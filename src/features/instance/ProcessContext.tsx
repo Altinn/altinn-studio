@@ -107,7 +107,7 @@ export function useRealTaskType() {
  * taskType of the currentTask if the currentTask matches
  * the taskId provided.
  */
-export function useGetTaskType() {
+export function useGetTaskTypeById() {
   const processData = useLaxProcessData();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const layoutSets = useLayoutSets();
