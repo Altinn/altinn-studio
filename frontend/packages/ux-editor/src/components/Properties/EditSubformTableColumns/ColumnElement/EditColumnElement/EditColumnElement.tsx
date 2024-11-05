@@ -126,6 +126,9 @@ const EditColumnElementComponentSelect = ({
   return (
     <StudioCombobox
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+      description={t(
+        'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+      )}
       size='sm'
       onValueChange={onSelectComponent}
       id='columncomponentselect'
