@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
-import { useAddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import classes from './CreateSubformWrapper.module.css';
+import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 
 type CreateSubformWrapperProps = {
   layoutSets: LayoutSets;
@@ -22,20 +21,11 @@ export const CreateSubformWrapper = ({
   const [nameError, setNameError] = useState('');
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const { org, app } = useStudioEnvironmentParams();
-  const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
+  const { createSubform } = useCreateSubform();
 
   const onCreateConfirmClick = () => {
     setCreateNewOpen(false);
-
-    addLayoutSet({
-      layoutSetIdToUpdate: newSubformName,
-      layoutSetConfig: {
-        id: newSubformName,
-        type: 'subform',
-      },
-    });
-    onSubformCreated(newSubformName);
+    createSubform({ layoutSetName: newSubformName, onSubformCreated });
   };
 
   const onNameChange = (subformName: string) => {
