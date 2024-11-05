@@ -95,12 +95,12 @@ type RenderManualOptionsProps = {
 const RenderManualOptions = ({
   component,
   handleComponentChange,
-  areLayoutOptionsSupported = true,
+  areLayoutOptionsSupported,
 }: RenderManualOptionsProps) => {
   const errorMessage = useComponentErrorMessage(component);
   const { t } = useTranslation();
 
-  if (!areLayoutOptionsSupported) {
+  if (areLayoutOptionsSupported === false) {
     return (
       <StudioAlert className={classes.manualTabAlert} severity='info'>
         {t('ux_editor.options.codelist_only')}
