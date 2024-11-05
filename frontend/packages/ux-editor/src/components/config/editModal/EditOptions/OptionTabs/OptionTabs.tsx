@@ -15,7 +15,7 @@ import type { SelectionComponentType } from '@altinn/ux-editor/types/FormCompone
 type OptionTabsProps = {
   optionListIds: string[];
   renderOptions?: {
-    isLayoutOptionsUnsupported?: boolean;
+    areLayoutOptionsSupported?: boolean;
   };
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 

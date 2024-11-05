@@ -34,7 +34,7 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
   renderOptions?: {
-    isLayoutOptionsUnsupported?: boolean;
+    areLayoutOptionsSupported?: boolean;
   };
 } = {}) => {
   const component = {
