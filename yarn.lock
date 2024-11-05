@@ -6413,6 +6413,7 @@ __metadata:
     "@microsoft/applicationinsights-react-js": "npm:17.3.3"
     "@microsoft/applicationinsights-web": "npm:3.3.3"
     "@microsoft/signalr": "npm:8.0.7"
+    "@studio/pure-functions": "workspace:^"
     "@svgr/webpack": "npm:8.1.0"
     "@swc/core": "npm:1.7.26"
     "@swc/jest": "npm:0.2.36"
