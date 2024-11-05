@@ -1,3 +1,5 @@
+import { type KeyValuePairs } from '../types/KeyValuePairs';
+
 export class ObjectUtils {
   static deepCopy = <T>(value: T) => JSON.parse(JSON.stringify(value)) as T;
 
@@ -15,5 +17,31 @@ export class ObjectUtils {
       }
     }
     return true;
+  };
+
+  /**
+   * Maps an array of objects to a key-value pair object, where the key is the value of the given property.
+   * @param objectList
+   * @param property
+   * @returns An object with the values of the given property as keys and the objects as values.
+   */
+  static mapByProperty = <T extends object>(
+    objectList: T[],
+    property: keyof T,
+  ): KeyValuePairs<T> => {
+    return Object.fromEntries(objectList.map((object) => [object[property], object]));
+  };
+
+  /**
+   * Flattens the values of an object.
+   * @param object The object to flatten.
+   * @returns An array of the values of the object.
+   */
+  static flattenObjectValues = <T extends object>(object: T): string[] => {
+    return Object.entries(object)
+      .map(([, value]) => {
+        return value;
+      })
+      .flat();
   };
 }

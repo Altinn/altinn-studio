@@ -33,6 +33,7 @@ import {
 } from '../../config/default-nodes';
 import { convertPropToType } from '../mutations/convert-node';
 import { SchemaModelBase } from './SchemaModelBase';
+import { CircularReferenceDetector } from './CircularReferenceDetector';
 
 export class SchemaModel extends SchemaModelBase {
   constructor(nodes: NodeMap) {
@@ -472,6 +473,14 @@ export class SchemaModel extends SchemaModelBase {
     this.nodeMap.clear();
     newModel.getNodeMap().forEach((node) => this.nodeMap.set(node.schemaPointer, node));
     return this;
+  }
+
+  public willResultInCircularReferences(
+    childSchemaPointer: string,
+    parentSchemaPointer: string,
+  ): boolean {
+    const detector = new CircularReferenceDetector(this.nodeMap);
+    return detector.willResultInCircularReferences(childSchemaPointer, parentSchemaPointer);
   }
 }
 
