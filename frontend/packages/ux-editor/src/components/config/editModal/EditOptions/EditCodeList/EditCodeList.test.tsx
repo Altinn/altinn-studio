@@ -1,6 +1,6 @@
 import React from 'react';
 import { EditCodeList } from './EditCodeList';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { optionListIdsMock, renderWithProviders } from '../../../../../testing/mocks';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
@@ -156,7 +156,9 @@ describe('EditCodeList', () => {
     };
     renderEditCodeList({ queries: queries });
 
-    // await waitFor(() => screen.findByText(textMock('ux_editor.modal_properties_loading')));
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+    );
     expect(
       screen.getByRole('button', {
         name: textMock('ux_editor.modal_properties_code_list_open_editor'),

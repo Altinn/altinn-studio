@@ -103,7 +103,7 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getOptionLists = (owner: string, app: string) => get<Map<string, Option[]>>(optionListsPath(owner, app));
+export const getOptionLists = (owner: string, app: string) => get<Record<string, Option[]>>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());

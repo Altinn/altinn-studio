@@ -24,7 +24,7 @@ export const Text = () => {
 
   const handleComponentChange = async (updatedComponent: FormContainer | FormComponent) => {
     handleUpdate(updatedComponent);
-    debounceSave(formId, updatedComponent);
+    await debounceSave(formId, updatedComponent);
   };
 
   if (!schema) {

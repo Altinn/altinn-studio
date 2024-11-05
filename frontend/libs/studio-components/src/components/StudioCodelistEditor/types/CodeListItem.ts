@@ -1,4 +1,6 @@
-export type CodeListItem<T extends string | boolean | number = string | boolean | number> = {
+import type { CodeListItemValue } from './CodeListItemValue';
+
+export type CodeListItem<T extends CodeListItemValue = CodeListItemValue> = {
   description?: string;
   helpText?: string;
   label: string;

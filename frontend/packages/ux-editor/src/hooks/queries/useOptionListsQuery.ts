@@ -9,8 +9,27 @@ export const useOptionListsQuery = (
   app: string,
 ): UseQueryResult<Map<string, Option[]>> => {
   const { getOptionLists } = useServicesContext();
-  return useQuery<any>({
+  return useQuery<Map<string, Option[]>>({
     queryKey: [QueryKey.OptionLists, org, app],
-    queryFn: () => getOptionLists(org, app).then((result) => result || new Map<string, Option[]>()),
+    queryFn: () =>
+      getOptionLists(org, app).then((result) => {
+        return convertToMap(result);
+      }),
   });
 };
+
+function convertToMap(result: Record<string, Option[]>): Map<string, Option[]> {
+  const optionsMap = new Map<string, Option[]>();
+
+  Object.entries(result).forEach(([key, value]) => {
+    const mappedOptions = value.map((option) => ({
+      ...option,
+      description: option?.description ?? '',
+      helpText: option?.helpText ?? '',
+    }));
+
+    optionsMap.set(key, mappedOptions);
+  });
+
+  return optionsMap;
+}

@@ -1,4 +1,3 @@
-import type { CodeListItem } from '@studio/components';
+import type { CodeListItem, CodeListItemValue } from '@studio/components';
 
-export type Option<T extends string | boolean | number = string | boolean | number> =
-  CodeListItem<T>;
+export type Option<T extends CodeListItemValue = CodeListItemValue> = CodeListItem<T>;

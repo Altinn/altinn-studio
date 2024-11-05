@@ -1,8 +1,6 @@
 import React, { createRef, useState } from 'react';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
-import type { ApiError } from 'app-shared/types/api/ApiError';
-import type { AxiosError } from 'axios';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import {
@@ -26,9 +24,6 @@ export function OptionListEditor({ component }: OptionListEditorProps): React.Re
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionsListMap, status } = useOptionListsQuery(org, app);
 
-  // console.log(status);
-  // console.log(component.optionsId);
-  // console.log(optionsListMap);
   switch (status) {
     case 'pending':
       return (
@@ -39,10 +34,9 @@ export function OptionListEditor({ component }: OptionListEditorProps): React.Re
         <StudioErrorMessage>{t('ux_editor.modal_properties_error_message')}</StudioErrorMessage>
       );
     case 'success': {
-      console.log(optionsListMap[component.optionsId]);
       return (
         <OptionListEditorModal
-          optionList={optionsListMap[component.optionsId]}
+          optionList={optionsListMap.get(component.optionsId)}
           component={component}
         />
       );
@@ -61,9 +55,7 @@ function OptionListEditorModal({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { doReloadPreview } = usePreviewContext();
-  const { mutate: uploadOptionList } = useUpdateOptionListMutation(org, app, {
-    hideDefaultError: (apiError: AxiosError<ApiError>) => !apiError.response.data.errorCode,
-  });
+  const { mutate: uploadOptionList } = useUpdateOptionListMutation(org, app);
   const [currentOptionList, setCurrentOptionList] = useState<Option[]>(optionList);
   const editorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
@@ -78,9 +70,18 @@ function OptionListEditorModal({
     modalRef.current?.close();
   };
 
+  const handleClick = () => {
+    setCurrentOptionList(optionList);
+  };
+
   return (
     <StudioModal.Root>
-      <StudioModal.Trigger className={classes.modalTrigger} variant='tertiary' icon={<TableIcon />}>
+      <StudioModal.Trigger
+        onClick={handleClick}
+        className={classes.modalTrigger}
+        variant='tertiary'
+        icon={<TableIcon />}
+      >
         {t('ux_editor.modal_properties_code_list_open_editor')}
       </StudioModal.Trigger>
       <StudioModal.Dialog
