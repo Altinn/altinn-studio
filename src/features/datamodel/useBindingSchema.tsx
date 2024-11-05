@@ -10,7 +10,7 @@ import {
 } from 'src/features/applicationMetadata/appMetadataUtils';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { useLaxInstanceAllDataElements, useLaxInstanceId } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceData, useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useProcessTaskId } from 'src/features/instance/useProcessTaskId';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useAllowAnonymous } from 'src/features/stateless/getAllowAnonymous';
@@ -29,17 +29,21 @@ export type AsSchema<T> = {
 };
 
 export function useCurrentDataModelGuid() {
-  const dataElements = useLaxInstanceAllDataElements();
   const application = useApplicationMetadata();
   const layoutSets = useLayoutSets();
   const taskId = useProcessTaskId();
 
   const overriddenDataModelGuid = useTaskStore((s) => s.overriddenDataModelUuid);
-  if (overriddenDataModelGuid) {
-    return overriddenDataModelGuid;
-  }
 
-  return getCurrentTaskDataElementId({ application, dataElements, taskId, layoutSets });
+  // Instance data elements will update often (after each save), so we have to use a selector to make
+  // sure components don't re-render too often.
+  return useLaxInstanceData((data) => {
+    if (overriddenDataModelGuid) {
+      return overriddenDataModelGuid;
+    }
+
+    return getCurrentTaskDataElementId({ application, dataElements: data.data, taskId, layoutSets });
+  });
 }
 
 type DataModelDeps = {

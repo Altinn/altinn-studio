@@ -1,11 +1,11 @@
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsStorePlugin';
 import type { Expression, ExprValToActual } from 'src/features/expressions/types';
+import type { DataElementSelector } from 'src/features/instance/InstanceContext';
 import type { TextReference, ValidLangParam } from 'src/features/language/useLanguage';
 import type { DataElementHasErrorsSelector } from 'src/features/validation/validationContext';
 import type { FormDataSelector } from 'src/layout';
 import type { ILayoutSets } from 'src/layout/common.generated';
-import type { IData } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 
@@ -225,7 +225,7 @@ export type ValidationDataSources = {
   attachmentsSelector: AttachmentsSelector;
   nodeDataSelector: NodeDataSelector;
   applicationMetadata: ApplicationMetadata;
-  dataElements: IData[];
+  dataElementsSelector: DataElementSelector;
   layoutSets: ILayoutSets;
   dataElementHasErrorsSelector: DataElementHasErrorsSelector;
 };

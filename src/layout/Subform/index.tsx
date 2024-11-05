@@ -86,7 +86,7 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
     node: LayoutNode<'Subform'>,
     {
       applicationMetadata,
-      dataElements,
+      dataElementsSelector,
       nodeDataSelector,
       layoutSets,
       dataElementHasErrorsSelector,
@@ -107,8 +107,8 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
 
     const validations: ComponentValidation[] = [];
 
-    const elements = dataElements.filter((x) => x.dataType === targetType);
-    const numDataElements = elements?.length ?? 0;
+    const elements = dataElementsSelector((d) => d.filter((x) => x.dataType === targetType), [targetType]);
+    const numDataElements = Array.isArray(elements) ? elements.length : 0;
     const { minCount, maxCount } = dataTypeDefinition;
 
     if (minCount > 0 && numDataElements < minCount) {
@@ -129,7 +129,9 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
       });
     }
 
-    const subformIdsWithError = elements?.map((dE) => dE.id).filter((id) => dataElementHasErrorsSelector(id));
+    const subformIdsWithError = Array.isArray(elements)
+      ? elements?.map((dE) => dE.id).filter((id) => dataElementHasErrorsSelector(id))
+      : [];
     if (subformIdsWithError?.length) {
       const validation: SubformValidation = {
         subformDataElementIds: subformIdsWithError,

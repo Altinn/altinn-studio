@@ -23,7 +23,7 @@ import {
 } from 'src/features/datamodel/utils';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
-import { useLaxInstanceAllDataElements, useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
+import { useLaxInstanceAllDataElementsNow, useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
 import { useIsPdf } from 'src/hooks/useIsPdf';
 import { isAxiosError } from 'src/utils/isAxiosError';
@@ -136,7 +136,7 @@ function DataModelsLoader() {
   const layouts = useLayouts();
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
-  const dataElements = useLaxInstanceAllDataElements();
+  const dataElements = useLaxInstanceAllDataElementsNow();
 
   // Subform
   const overriddenDataElement = useTaskStore((state) => state.overriddenDataModelUuid);
