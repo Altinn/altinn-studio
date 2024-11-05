@@ -90,7 +90,7 @@ type TextfieldCellProps = {
   error?: string;
   label: string;
   onChange: (newString: string) => void;
-  value: string;
+  value: string | number | boolean;
   autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 
@@ -120,7 +120,7 @@ function TextfieldCell({ error, label, value, onChange, autoComplete }: Textfiel
       onChange={handleChange}
       onFocus={handleFocus}
       ref={ref}
-      value={value}
+      value={value as string}
     />
   );
 }

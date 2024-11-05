@@ -8,9 +8,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import type { Option } from 'app-shared/types/Option';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
+mockComponent.optionsId = 'text';
 const handleComponentChangeMock = jest.fn();
 const queriesMock = {
   getOptionListIds: jest
@@ -135,6 +138,30 @@ describe('EditCodeList', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       textMock('ux_editor.model_properties_code_list_filename_error'),
     );
+  });
+
+  it('should render OptionListEditor when featureFlag is active', async () => {
+    addFeatureFlagToLocalStorage('codeListEditor');
+    const queries = {
+      getOptionListIds: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
+      getOptionLists: jest
+        .fn()
+        .mockImplementation(() =>
+          Promise.resolve<Map<string, Option[]>>(
+            new Map<string, Option[]>([['text', [{ value: 'test', label: 'label text' }]]]),
+          ),
+        ),
+    };
+    renderEditCodeList({ queries: queries });
+
+    // await waitFor(() => screen.findByText(textMock('ux_editor.modal_properties_loading')));
+    expect(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.modal_properties_code_list_open_editor'),
+      }),
+    ).toBeInTheDocument();
   });
 });
 

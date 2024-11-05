@@ -16,7 +16,7 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditCodeList.module.css';
-import { CodeListEditor } from './CodeListEditor';
+import { OptionListEditor } from './OptionListEditor';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export function EditCodeList<T extends SelectionComponentType>({
@@ -73,10 +73,15 @@ export function EditCodeList<T extends SelectionComponentType>({
     }
   };
 
+  const shouldDisplayCodeListEditor =
+    component.optionsId !== undefined && component.optionsId !== '';
+
   return (
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('codeListEditor') && <CodeListEditor component={component} />}
+      {shouldDisplayFeature('codeListEditor') && shouldDisplayCodeListEditor && (
+        <OptionListEditor component={component} />
+      )}
       <StudioFileUploader
         className={classes.studioFileUploader}
         accept='.json'
