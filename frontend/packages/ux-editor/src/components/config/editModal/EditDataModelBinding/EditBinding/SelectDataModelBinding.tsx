@@ -8,6 +8,7 @@ import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUti
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppContext } from '../../../../../hooks';
 import { useGetBindableDataTypes } from '../../../../../hooks/useGetBindableDataTypes';
+import { useValidDataModels } from '../../../../../hooks/useValidDataModels';
 
 type SelectDataModelProps = {
   currentDataModel: string;
@@ -23,13 +24,13 @@ export const SelectDataModelBinding = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
-  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
-
+  const { selectedDataModel } = useValidDataModels(currentDataModel);
   const { defaultDataTypeName, bindableDataTypes } = useGetBindableDataTypes(
     org,
     app,
     selectedFormLayoutSetName,
   );
+  const propertyPath = `definitions/component/properties/dataModelBindings/properties/${bindingKey}/dataType`;
 
   const handleDataModelChange = (newDataModel: string) => {
     const dataModelBinding = {
@@ -69,7 +70,7 @@ export const SelectDataModelBinding = ({
   ) : (
     <StudioDisplayTile
       label={t('ux_editor.modal_properties_data_model_binding')}
-      value={currentDataModel}
+      value={selectedDataModel}
       className={classes.displayTileContainer}
     />
   );

@@ -17,7 +17,8 @@ export const useGetBindableDataTypes = (
   const defaultDataTypeName = layoutSet?.dataType;
 
   const bindableDataTypes = appMetadata.dataTypes.filter(
-    (dataType) => dataType.maxCount === 1 && dataType.id !== defaultDataTypeName,
+    (dataType) =>
+      dataType.appLogic && dataType.maxCount === 1 && dataType.id !== defaultDataTypeName,
   );
   return { defaultDataTypeName, bindableDataTypes };
 };
