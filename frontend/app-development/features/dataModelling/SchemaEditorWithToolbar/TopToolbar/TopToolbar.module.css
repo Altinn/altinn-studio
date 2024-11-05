@@ -9,7 +9,8 @@
 }
 
 .blueBackground {
-  background: var(--fds-colors-blue-100);
+  background: var(--fds-colors-grey-100);
+  /*background: var(--fds-colors-yellow-200);*/
 }
 
 .modelName {

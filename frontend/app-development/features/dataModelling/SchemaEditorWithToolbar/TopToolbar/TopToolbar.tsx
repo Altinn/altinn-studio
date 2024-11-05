@@ -61,7 +61,7 @@ export function TopToolbar({
       role='toolbar'
     >
       {showTypeToolbar ? (
-        <TypeControls />
+        <TypeControls dataModelName={selectedOption.label} />
       ) : (
         <>
           <SchemaSelect
@@ -109,15 +109,17 @@ const VerticalDivider = () => {
   );
 };
 
-const TypeControls = () => {
+const TypeControls = ({ dataModelName }) => {
   const { setSelectedTypePointer, setSelectedUniquePointer, selectedUniquePointer } =
     useDataModelToolbarContext();
 
-  const showBreadcrumbs = true;
+  const showBreadcrumbs = false;
   const navigateToDataModelRoot = () => {
     setSelectedUniquePointer(undefined);
     setSelectedTypePointer(undefined);
   };
+
+  const typeName = selectedUniquePointer.substring(selectedUniquePointer.lastIndexOf('/') + 1);
 
   return (
     <div
@@ -139,11 +141,11 @@ const TypeControls = () => {
             }}
           >
             <Link onClick={() => navigateToDataModelRoot()}>
-              Datamodell: <b>{selectedUniquePointer}</b>
+              Datamodell: <b>{dataModelName}</b>
             </Link>
             <ChevronRightIcon />
             <StudioParagraph size='sm'>
-              Type: <b>{selectedUniquePointer}</b>
+              Type: <b>{typeName}</b>
             </StudioParagraph>
           </div>
           {/*<StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>*/}
@@ -151,12 +153,12 @@ const TypeControls = () => {
       ) : (
         <>
           <div>
-            <Label>
-              Viser type: <b>name0</b>
+            <Label size='sm'>
+              Type: <b>{typeName}</b>
             </Label>
           </div>
-          <StudioButton icon={<ArrowLeftIcon />}>
-            Tilbake til datamodell <b>model</b>
+          <StudioButton onClick={() => navigateToDataModelRoot()} icon={<ArrowLeftIcon />}>
+            Tilbake til datamodell <b>{dataModelName}</b>
           </StudioButton>
         </>
       )}
