@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { Alert } from '@digdir/designsystemet-react';
 import { XMarkIcon } from '@studio/icons';
-import { typedLocalStorage } from '@studio-pure-functions';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { StudioButton, StudioPopover } from '@studio/components';
 
 export const PreviewLimitationsInfo = () => {
