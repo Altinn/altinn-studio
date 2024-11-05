@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="https://skjema.ft.dibk.no/ferdigattest/v4"
+  xmlns="https://skjema.ft.dibk.no/ferdigattest/v4" elementFormDefault="qualified">
+  <xs:element name="ferdigattest" type="FerdigattestType" />
+  <xs:complexType name="FerdigattestType">
+    <xs:all>
+      <xs:element name="eiendomByggested" minOccurs="0" maxOccurs="1" nillable="true" type="EiendomListe" />
+      <xs:element name="kommunensSaksnummer" minOccurs="0" maxOccurs="1" nillable="true" type="SaksnummerType" />
+      <xs:element name="metadata" minOccurs="0" maxOccurs="1" nillable="true" type="MetadataType" />
+      <xs:element name="generelleVilkaar" minOccurs="0" maxOccurs="1" nillable="true" type="GenerelleVilkaarType" />
+      <xs:element name="soeknadGjelder" minOccurs="0" maxOccurs="1" nillable="true" type="BeskrivelseAvTiltakType" />
+      <xs:element name="utfallBesvarelse" minOccurs="0" maxOccurs="1" nillable="true" type="UtfallSvarListe" />
+      <xs:element name="kravFerdigattest" minOccurs="0" maxOccurs="1" nillable="true" type="KravFerdigattestType" />
+      <xs:element name="foretattIkkeSoeknadspliktigeJusteringer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+      <xs:element name="tilstrekkeligDokumentasjonOverlevertEier" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+      <xs:element name="varmesystem" minOccurs="0" maxOccurs="1" nillable="true" type="VarmesystemType" />
+      <xs:element name="tiltakshaver" minOccurs="0" maxOccurs="1" nillable="true" type="PartType" />
+      <xs:element name="ansvarligSoeker" minOccurs="0" maxOccurs="1" nillable="true" type="PartType" />
+      <xs:element name="ansvarForByggesaken" minOccurs="0" maxOccurs="1" nillable="true" type="KodeType" />
+    </xs:all>
+    <xs:attribute name="dataFormatProvider" type="xs:string" use="required" fixed="DIBK"/>
+    <xs:attribute name="dataFormatId" type="xs:string" use="required" fixed="10005"/>
+    <xs:attribute name="dataFormatVersion" type="xs:string" use="required" fixed="4"/>
+  </xs:complexType>
+  <xs:element name="Eiendom" type="EiendomType" />
+  <xs:complexType name="EiendomListe">
+    <xs:sequence>
+      <xs:element name="eiendom" type="EiendomType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="EiendomType">
+    <xs:all>
+      <xs:element name="eiendomsidentifikasjon" minOccurs="0" maxOccurs="1" nillable="true" type="MatrikkelnummerType" />
+      <xs:element name="adresse" minOccurs="0" maxOccurs="1" nillable="true" type="EiendommensAdresseType" />
+      <xs:element name="bygningsnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="bolignummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="kommunenavn" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Matrikkelnummer" type="MatrikkelnummerType" />
+  <xs:complexType name="MatrikkelnummerType">
+    <xs:all>
+      <xs:element name="kommunenummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="gaardsnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:int" />
+      <xs:element name="bruksnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:int" />
+      <xs:element name="festenummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:int" />
+      <xs:element name="seksjonsnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:int" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="EiendommensAdresse" type="EiendommensAdresseType" />
+  <xs:complexType name="EiendommensAdresseType">
+    <xs:all>
+      <xs:element name="adresselinje1" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="adresselinje2" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="adresselinje3" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="postnr" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="poststed" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="landkode" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="gatenavn" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="husnr" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="bokstav" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Saksnummer" type="SaksnummerType" />
+  <xs:complexType name="SaksnummerType">
+    <xs:all>
+      <xs:element name="saksaar" minOccurs="0" maxOccurs="1" nillable="true" type="xs:int" />
+      <xs:element name="sakssekvensnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:int" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Metadata" type="MetadataType" />
+  <xs:complexType name="MetadataType">
+    <xs:all>
+      <xs:element name="fraSluttbrukersystem" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="ftbId" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="prosjektnavn" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="prosjektnr" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="foretrukketSpraak" minOccurs="0" maxOccurs="1" nillable="true" type="KodeType" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Part" type="PartType" />
+  <xs:complexType name="PartType">
+    <xs:all>
+      <xs:element name="partstype" minOccurs="0" maxOccurs="1" nillable="true" type="KodeType" />
+      <xs:element name="foedselsnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="organisasjonsnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="navn" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="adresse" minOccurs="0" maxOccurs="1" nillable="true" type="EnkelAdresseType" />
+      <xs:element name="telefonnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="mobilnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="epost" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="kontaktperson" minOccurs="0" maxOccurs="1" nillable="true" type="KontaktpersonType" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Kontaktperson" type="KontaktpersonType" />
+  <xs:complexType name="KontaktpersonType">
+    <xs:all>
+      <xs:element name="navn" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="telefonnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="mobilnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="epost" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="EnkelAdresse" type="EnkelAdresseType" />
+  <xs:complexType name="EnkelAdresseType">
+    <xs:all>
+      <xs:element name="adresselinje1" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="adresselinje2" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="adresselinje3" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="postnr" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="poststed" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="landkode" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="BeskrivelseAvTiltak" type="BeskrivelseAvTiltakType" />
+  <xs:complexType name="BeskrivelseAvTiltakType">
+    <xs:all>
+      <xs:element name="type" minOccurs="0" maxOccurs="1" nillable="true" type="KodeListe" />
+      <xs:element name="foelgebrev" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="GenerelleVilkaar" type="GenerelleVilkaarType" />
+  <xs:complexType name="GenerelleVilkaarType">
+    <xs:all>
+      <xs:element name="norskSvenskDansk" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="UtfallSvar" type="UtfallSvarType" />
+  <xs:complexType name="UtfallSvarListe">
+    <xs:sequence>
+      <xs:element name="utfallSvar" type="UtfallSvarType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="UtfallSvarType">
+    <xs:all>
+      <xs:element name="utfallId" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="utfallType" minOccurs="0" maxOccurs="1" nillable="true" type="KodeType" />
+      <xs:element name="utloestFraSjekkpunkt" minOccurs="0" maxOccurs="1" nillable="true" type="SjekkpunktType" />
+      <xs:element name="tema" minOccurs="0" maxOccurs="1" nillable="true" type="KodeType" />
+      <xs:element name="tittel" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="beskrivelse" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="erUtfallBesvaresSenere" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+      <xs:element name="erUtfallBesvart" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+      <xs:element name="kommentar" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="vedleggsliste" minOccurs="0" maxOccurs="1" nillable="true" type="VedleggListe" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Sjekkpunkt" type="SjekkpunktType" />
+  <xs:complexType name="SjekkpunktType">
+    <xs:all>
+      <xs:element name="sjekkpunktId" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="sjekkpunktEier" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Vedlegg" type="VedleggType" />
+  <xs:complexType name="VedleggListe">
+    <xs:sequence>
+      <xs:element name="vedlegg" type="VedleggType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="VedleggType">
+    <xs:all>
+      <xs:element name="versjonsnummer" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="vedleggstype" minOccurs="0" maxOccurs="1" nillable="true" type="KodeType" />
+      <xs:element name="versjonsdato" minOccurs="0" maxOccurs="1" nillable="true" type="xs:date" />
+      <xs:element name="filnavn" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="KravFerdigattest" type="KravFerdigattestType" />
+  <xs:complexType name="KravFerdigattestType">
+    <xs:all>
+      <xs:element name="tilfredsstillerTiltaketKraveneFerdigattest" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+      <xs:element name="utfoertInnen" minOccurs="0" maxOccurs="1" nillable="true" type="xs:date" />
+      <xs:element name="typeArbeider" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="bekreftelseInnen" minOccurs="0" maxOccurs="1" nillable="true" type="xs:date" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Varmesystem" type="VarmesystemType" />
+  <xs:complexType name="VarmesystemType">
+    <xs:all>
+      <xs:element name="varmefordeling" minOccurs="0" maxOccurs="1" nillable="true" type="KodeListe" />
+      <xs:element name="energiforsyning" minOccurs="0" maxOccurs="1" nillable="true" type="KodeListe" />
+      <xs:element name="relevant" minOccurs="0" maxOccurs="1" nillable="true" type="xs:boolean" />
+    </xs:all>
+  </xs:complexType>
+  <xs:element name="Kode" type="KodeType" />
+  <xs:complexType name="KodeListe">
+    <xs:sequence>
+      <xs:element name="kode" type="KodeType" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="KodeType">
+    <xs:all>
+      <xs:element name="kodeverdi" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+      <xs:element name="kodebeskrivelse" minOccurs="0" maxOccurs="1" nillable="true" type="xs:string" />
+    </xs:all>
+  </xs:complexType>
+</xs:schema>
