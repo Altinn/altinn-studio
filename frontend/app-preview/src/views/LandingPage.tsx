@@ -62,15 +62,6 @@ export const LandingPage = () => {
   if (isPendingUser || pendingLayoutsets)
     return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
-  console.log({
-    url: previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName),
-    org,
-    app,
-    selectedFormLayoutSetName: selectedFormLayoutSetName ?? 'mangler',
-    taskId,
-    selectedFormLayoutName,
-  });
-
   return (
     <>
       <StudioPageHeader variant='preview'>

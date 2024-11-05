@@ -5,7 +5,6 @@ import { Link } from '@digdir/designsystemet-react';
 
 export const ErrorBoundary = (): ReactElement => {
   const { t } = useTranslation();
-
   return (
     <StudioPageError
       title={t('general.page_error_title')}
