@@ -20,6 +20,7 @@
 export class ShallowArrayMap<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private data: Map<any, any>[] = [];
+  private _values: T[] = [];
 
   public has(key: unknown[]): boolean {
     const keyLength = key.length;
@@ -52,7 +53,8 @@ export class ShallowArrayMap<T> {
       }
     }
 
-    return map.get(key[keyLength - 1]);
+    const index = map.get(key[keyLength - 1]);
+    return this._values[index];
   }
 
   public set(key: unknown[], value: T): void {
@@ -69,28 +71,13 @@ export class ShallowArrayMap<T> {
       map = map.get(key[i]);
     }
 
-    map.set(key[keyLength - 1], value);
-  }
-
-  public delete(key: unknown[]): void {
-    const keyLength = key.length;
-    if (this.data[keyLength] === undefined) {
-      return;
-    }
-
-    let map = this.data[keyLength];
-    for (let i = 0; i < keyLength - 1; i++) {
-      map = map.get(key[i]);
-      if (!map) {
-        return;
-      }
-    }
-
-    map.delete(key[keyLength - 1]);
+    const index = this._values.length;
+    map.set(key[keyLength - 1], index);
+    this._values.push(value);
   }
 
   public values(): T[] {
-    return this.entries().map(([, value]) => value);
+    return this._values;
   }
 
   public entries(): [unknown[], T][] {
@@ -100,8 +87,8 @@ export class ShallowArrayMap<T> {
         continue;
       }
 
-      this.recurseMap(map, (key, value: T) => {
-        out.push([key, value]);
+      this.recurseMap(map, (key, value: number) => {
+        out.push([key, this._values[value]]);
       });
     }
 

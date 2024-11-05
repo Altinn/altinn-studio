@@ -36,43 +36,47 @@ export function useDelayedSelector<C extends DSConfig>({
   equalityFn = deepEqual,
   onlyReRenderWhen,
 }: DSProps<C>): DSReturn<C> {
-  const selectorsCalled = useRef<SelectorMap<C>>(new ShallowArrayMap());
+  const selectorsCalled = useRef<SelectorMap<C>>();
   const [renderCount, forceRerender] = useState(0);
   const lastReRenderValue = useRef<unknown>(undefined);
+  const unsubscribe = useRef<() => void>();
 
-  useEffect(
-    () => {
-      if (store === ContextNotProvided) {
-        return;
-      }
+  useEffect(() => () => unsubscribe.current?.(), []);
 
-      return store.subscribe((state) => {
-        let stateChanged = true;
-        if (onlyReRenderWhen) {
-          stateChanged = onlyReRenderWhen(state, lastReRenderValue.current, (v) => {
-            lastReRenderValue.current = v;
-          });
-        }
-        if (!stateChanged) {
-          return;
-        }
+  const subscribe = useCallback(
+    () =>
+      store !== ContextNotProvided
+        ? store.subscribe((state) => {
+            if (!selectorsCalled.current) {
+              return;
+            }
 
-        // When the state changes, we run all the known selectors again to figure out if anything changed. If it
-        // did change, we'll clear the list of selectors to force a re-render.
-        const selectors = selectorsCalled.current.values();
-        let changed = false;
-        for (const { fullSelector, value } of selectors) {
-          if (!equalityFn(value, fullSelector(state))) {
-            changed = true;
-            break;
-          }
-        }
-        if (changed) {
-          selectorsCalled.current = new ShallowArrayMap();
-          forceRerender((prev) => prev + 1);
-        }
-      });
-    },
+            let stateChanged = true;
+            if (onlyReRenderWhen) {
+              stateChanged = onlyReRenderWhen(state, lastReRenderValue.current, (v) => {
+                lastReRenderValue.current = v;
+              });
+            }
+            if (!stateChanged) {
+              return;
+            }
+
+            // When the state changes, we run all the known selectors again to figure out if anything changed. If it
+            // did change, we'll clear the list of selectors to force a re-render.
+            const selectors = selectorsCalled.current.values();
+            let changed = false;
+            for (const { fullSelector, value } of selectors) {
+              if (!equalityFn(value, fullSelector(state))) {
+                changed = true;
+                break;
+              }
+            }
+            if (changed) {
+              selectorsCalled.current = undefined;
+              forceRerender((prev) => prev + 1);
+            }
+          })
+        : undefined,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [store],
   );
@@ -93,13 +97,22 @@ export function useDelayedSelector<C extends DSConfig>({
       }
 
       const cacheKey = makeCacheKey(args);
-      const prev = selectorsCalled.current.get(cacheKey);
+      const prev = selectorsCalled.current?.get(cacheKey);
       if (prev) {
         // Performance-wise we could also just have called the selector here, it doesn't really matter. What is
         // important however, is that we let developers know as early as possible if they forgot to include a dependency
         // or otherwise used the hook incorrectly, so we'll make sure to return the value to them here even if it
         // could be stale (but only when improperly used).
         return prev.value;
+      }
+
+      // We don't need to initialize the arraymap before checking for the previous value,
+      // since we know it would not exist if we just created it.
+      if (!selectorsCalled.current) {
+        selectorsCalled.current = new ShallowArrayMap();
+      }
+      if (!unsubscribe.current) {
+        unsubscribe.current = subscribe();
       }
 
       const state = store.getState();

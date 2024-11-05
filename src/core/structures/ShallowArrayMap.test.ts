@@ -8,9 +8,6 @@ describe('ShallowArrayMap', () => {
     map.set([1], 'a');
     expect(map.has([1])).toBe(true);
     expect(map.get([1])).toBe('a');
-    map.delete([1]);
-    expect(map.has([1])).toBe(false);
-    expect(map.get([1])).toBe(undefined);
   });
 
   it('should work with zero-length arrays', () => {
@@ -20,9 +17,6 @@ describe('ShallowArrayMap', () => {
     map.set([], 'a');
     expect(map.has([])).toBe(true);
     expect(map.get([])).toBe('a');
-    map.delete([]);
-    expect(map.has([])).toBe(false);
-    expect(map.get([])).toBe(undefined);
   });
 
   it('should work with a two-item array', () => {
@@ -32,9 +26,6 @@ describe('ShallowArrayMap', () => {
     map.set([1, 2], 'a');
     expect(map.has([1, 2])).toBe(true);
     expect(map.get([1, 2])).toBe('a');
-    map.delete([1, 2]);
-    expect(map.has([1, 2])).toBe(false);
-    expect(map.get([1, 2])).toBe(undefined);
   });
 
   it('should work with complex object as keys', () => {
@@ -49,10 +40,6 @@ describe('ShallowArrayMap', () => {
     // Looking it up with a new object reference should not work
     expect(map.has([{ a: 1 }])).toBe(false);
     expect(map.get([{ a: 1 }])).toBe(undefined);
-
-    map.delete([key1]);
-    expect(map.has([key1])).toBe(false);
-    expect(map.get([key1])).toBe(undefined);
   });
 
   it('should return a flat values[] array even if the keys have multiple lengths', () => {
