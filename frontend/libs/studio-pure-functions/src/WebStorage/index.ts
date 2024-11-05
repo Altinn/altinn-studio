@@ -1,1 +1,1 @@
-export * from './webStorage';
+export { typedLocalStorage, typedSessionStorage } from './webStorage';
