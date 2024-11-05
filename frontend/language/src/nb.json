@@ -1491,7 +1491,7 @@
   "ux_editor.modal_properties_code_list_custom_list": "Egendefinert kodeliste",
   "ux_editor.modal_properties_code_list_delete_item": "Slett alternativ {{number}}",
   "ux_editor.modal_properties_code_list_empty": "Kodelisten er tom.",
-  "ux_editor.modal_properties_code_list_general_error": "Kodelisten inneholder feil og kan ikke lagres.",
+  "ux_editor.modal_properties_code_list_general_error": "Kan ikke lagre kodelisten, den inneholder feil.",
   "ux_editor.modal_properties_code_list_helper": "Velg kodeliste",
   "ux_editor.modal_properties_code_list_id": "Kodeliste-ID",
   "ux_editor.modal_properties_code_list_item_description": "Beskrivelse for alternativ {{number}}",
