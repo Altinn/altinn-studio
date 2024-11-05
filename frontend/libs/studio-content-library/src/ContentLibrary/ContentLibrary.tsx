@@ -18,26 +18,25 @@ export function ContentLibrary({ pages }: ContentLibraryProps): React.ReactEleme
   return <ContentLibraryForPage pages={pages} currentPage={currentPage} />;
 }
 
-type ContentLibraryForPageProps<T extends PageName = 'landingPage'> = {
+type ContentLibraryForPageProps<T extends PageName> = {
   pages: PagesConfig;
   currentPage: T;
 };
 
-function ContentLibraryForPage<T extends PageName = 'landingPage'>({
+function ContentLibraryForPage<T extends PageName>({
   pages,
   currentPage,
 }: ContentLibraryForPageProps<T>): React.ReactElement {
   const router = new RouterRouteMapperImpl(pages);
 
-  const Component: PageComponent<Required<PagePropsMap<T>>> =
-    router.configuredRoutes.get(currentPage);
+  const Component: PageComponent<PagePropsMap<T>> = router.configuredRoutes.get(currentPage);
   if (!Component) return <StudioHeading>404 Page Not Found</StudioHeading>; // Show the NotFound page from app-dev instead
 
   return (
     <div className={classes.libraryBackground}>
       <div className={classes.libraryContainer}>
         <LibraryHeader />
-        <LibraryBody Component={Component} pages={pages} currentPage={currentPage} />
+        <LibraryBody<T> Component={Component} pages={pages} currentPage={currentPage} />
       </div>
     </div>
   );
