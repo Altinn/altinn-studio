@@ -21,12 +21,16 @@
   padding-inline: 0;
 }
 
-.manualTabDialog[open] {
-  --codeListModalMinWidth: min(80rem, 100%);
-  --codeListModalFixedTopMargin: 30vh;
-  --codeListModalMaxHeight: 50vh;
+.manualTabAlert {
+  margin-inline: var(--fds-spacing-5);
+}
 
-  min-width: var(--codeListModalMinWidth);
-  margin-top: var(--codeListModalFixedTopMargin);
-  max-height: var(--codeListModalMaxHeight);
+.manualTabDialog[open] {
+  --code-list-modal-min-width: min(80rem, 100%);
+  --code-list-modal-fixed-top-margin: 30vh;
+  --code-list-modal-max-height: 50vh;
+
+  min-width: var(--code-list-modal-min-width);
+  margin-top: var(--code-list-modal-fixed-top-margin);
+  max-height: var(--code-list-modal-max-height);
 }

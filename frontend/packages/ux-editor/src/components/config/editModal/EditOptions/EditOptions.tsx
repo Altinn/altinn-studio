@@ -12,7 +12,7 @@ import { OptionTabs } from '@altinn/ux-editor/components/config/editModal/EditOp
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {
   renderOptions?: {
-    isLayoutOptionsUnsupported?: boolean;
+    areLayoutOptionsSupported?: boolean;
   };
 }
 

@@ -72,7 +72,7 @@ export const OptionTabs = ({
         <RenderManualOptions
           component={component}
           handleComponentChange={handleComponentChange}
-          isLayoutOptionsUnsupported={renderOptions.isLayoutOptionsUnsupported}
+          areLayoutOptionsSupported={renderOptions.areLayoutOptionsSupported}
         />
       </StudioTabs.Content>
       <StudioTabs.Content
@@ -89,19 +89,23 @@ export const OptionTabs = ({
 };
 
 type RenderManualOptionsProps = {
-  isLayoutOptionsUnsupported: boolean;
+  areLayoutOptionsSupported: boolean;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 const RenderManualOptions = ({
   component,
   handleComponentChange,
-  isLayoutOptionsUnsupported,
+  areLayoutOptionsSupported,
 }: RenderManualOptionsProps) => {
   const errorMessage = useComponentErrorMessage(component);
   const { t } = useTranslation();
 
-  if (isLayoutOptionsUnsupported) {
-    return <StudioAlert severity='info'>{t('ux_editor.options.codelist_only')}</StudioAlert>;
+  if (!areLayoutOptionsSupported) {
+    return (
+      <StudioAlert className={classes.manualTabAlert} severity='info'>
+        {t('ux_editor.options.codelist_only')}
+      </StudioAlert>
+    );
   }
 
   return (
