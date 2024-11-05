@@ -8,6 +8,11 @@
   flex: 1;
 }
 
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
 .dataTypeSelectAndButtons {
   display: flex;
   flex-direction: row;

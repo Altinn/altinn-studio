@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { useEventListener } from './useEventListener';
 
