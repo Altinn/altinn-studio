@@ -89,9 +89,6 @@ export const AppContextProvider = ({
     [refetch],
   );
 
-  if (pendingLayoutsets) {
-  }
-
   const value = useMemo(
     () => ({
       previewIframeRef,

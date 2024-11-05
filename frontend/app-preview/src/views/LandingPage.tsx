@@ -15,6 +15,7 @@ import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
@@ -25,8 +26,11 @@ export const LandingPage = () => {
   const previewConnection = usePreviewConnection();
   const { data: user, isPending: isPendingUser } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
+
+  const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName();
+    useSelectedFormLayoutSetName(layoutSets);
+
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
@@ -55,7 +59,17 @@ export const LandingPage = () => {
     });
   }
 
-  if (isPendingUser) return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
+  if (isPendingUser || pendingLayoutsets)
+    return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
+
+  console.log({
+    url: previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName),
+    org,
+    app,
+    selectedFormLayoutSetName: selectedFormLayoutSetName ?? 'mangler',
+    taskId,
+    selectedFormLayoutName,
+  });
 
   return (
     <>
@@ -82,11 +96,22 @@ export const LandingPage = () => {
           <iframe
             title={t('preview.title')}
             id='app-frontend-react-iframe'
-            src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
+            src={previewPage(
+              org,
+              app,
+              getSelectedFormLayoutSetName(selectedFormLayoutSetName),
+              taskId,
+              selectedFormLayoutName,
+            )}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
         </div>
       </div>
     </>
   );
+};
+
+const getSelectedFormLayoutSetName = (selectedFormLayoutSetName: string): string => {
+  if (selectedFormLayoutSetName === '') return undefined;
+  return selectedFormLayoutSetName;
 };
