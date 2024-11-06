@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import classes from './SelectDataModelBinding.module.css';
 import { FormField } from 'app-shared/components/FormField';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
@@ -22,6 +22,7 @@ export const SelectDataModelBinding = ({
   handleBindingChange,
 }: SelectDataModelProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const id = useId();
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { selectedDataModel } = useValidDataModels(currentDataModel);
@@ -42,7 +43,7 @@ export const SelectDataModelBinding = ({
 
   return shouldDisplayFeature('multipleDataModelsPerTask') ? (
     <FormField
-      id={currentDataModel}
+      id={id}
       onChange={handleDataModelChange}
       value={currentDataModel}
       propertyPath={propertyPath}
@@ -52,7 +53,7 @@ export const SelectDataModelBinding = ({
           className={classes.selectDataModel}
           {...fieldProps}
           label={t('ux_editor.modal_properties_data_model_binding')}
-          id={currentDataModel}
+          id={id}
           onChange={(e) => fieldProps.onChange(e.target.value)}
           size='small'
         >
