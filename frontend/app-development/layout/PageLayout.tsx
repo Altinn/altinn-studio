@@ -60,7 +60,6 @@ type PagesToRenderProps = {
   repoStatusError: AxiosError;
   repoStatus: RepoStatus;
 };
-
 const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   // Listen to URL-search params and opens settings-modal if params matches.
   useOpenSettingsModalBasedQueryParam();
