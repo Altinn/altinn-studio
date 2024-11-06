@@ -10,9 +10,10 @@ import userEvent from '@testing-library/user-event';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { layoutSet1NameMock } from '../../../testing/layoutSetsMock';
 
+const defaultDataModel = 'testModel';
 const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
-    testModel: {
+    [defaultDataModel]: {
       id: 'testModel',
       type: 'ComplexType',
       dataBindingName: 'testModel',
@@ -52,7 +53,7 @@ const dataModelMetadata: DataModelMetadataResponse = {
 const getDataModelMetadata = () => Promise.resolve(dataModelMetadata);
 const getLayoutSets = () =>
   Promise.resolve({
-    sets: [{ id: layoutSet1NameMock, dataType: 'testModel' }],
+    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
   });
 
 const render = async ({ dataModelBindings = {}, handleComponentChange = jest.fn() } = {}) => {
