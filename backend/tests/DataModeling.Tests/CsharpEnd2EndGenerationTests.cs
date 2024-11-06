@@ -65,6 +65,17 @@ namespace DataModeling.Tests
                 .Then.ConvertedXsdSchema.Should().NotBeNull();
         }
 
+        [Theory]
+        [InlineData("Model/JsonSchema/General/StringUriFormat.json")]
+        public void JsonSchemaWithStringFieldInUriFormatShouldConvertToCSharp(string jsonSchemaPath)
+        {
+            Given.That.JsonSchemaLoaded(jsonSchemaPath)
+                .When.LoadedJsonSchemaConvertedToModelMetadata()
+                .And.ModelMetadataConvertedToCsharpClass()
+                .And.CSharpClassesCompiledToAssembly()
+                .Then.CompiledAssembly.Should().NotBeNull();
+        }
+
         private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath)
         {
             string expectedClasses = SharedResourcesHelper.LoadTestDataAsString(expectedCsharpClassPath);

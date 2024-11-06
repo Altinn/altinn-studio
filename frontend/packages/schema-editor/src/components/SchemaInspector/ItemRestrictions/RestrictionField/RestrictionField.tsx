@@ -39,6 +39,7 @@ export const RestrictionField = ({
         onChange={handleChange}
         readOnly={readOnly}
         value={value ?? ''}
+        size='sm'
       />
     </div>
   );

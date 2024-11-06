@@ -2,10 +2,10 @@ import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKey } from '@altinn/schema-model';
 import { Switch } from '@digdir/designsystemet-react';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './ArrayRestrictions.module.css';
 import { StudioTextfield } from '@studio/components';
+import { ItemWrapper } from '../ItemWrapper';
 
 export function ArrayRestrictions({
   restrictions,
@@ -14,8 +14,7 @@ export function ArrayRestrictions({
 }: RestrictionItemProps) {
   const { t } = useTranslation();
   return (
-    <>
-      <Divider marginless />
+    <ItemWrapper>
       <div className={classes.items}>
         <div className={classes.item}>
           <StudioTextfield
@@ -59,6 +58,6 @@ export function ArrayRestrictions({
           {t('schema_editor.' + ArrRestrictionKey.uniqueItems)}
         </Switch>
       </div>
-    </>
+    </ItemWrapper>
   );
 }
