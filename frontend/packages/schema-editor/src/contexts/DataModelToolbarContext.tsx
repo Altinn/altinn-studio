@@ -43,20 +43,18 @@ export const DataModelContextProvider = ({ children }: DataModelToolbarContextPr
   return <DataModelContext.Provider value={value}>{children}</DataModelContext.Provider>;
 };
 
+const getTypeName = (uniquePointer?: string | undefined): string | undefined => {
+  if (uniquePointer) {
+    const indexOfLastDash = uniquePointer.lastIndexOf('/');
+    return uniquePointer.substring(indexOfLastDash + 1);
+  }
+  return undefined;
+};
+
 export const useDataModelContext = (): Partial<DataModelContextProps> => {
   const context = useContext(DataModelContext);
   if (context === undefined) {
-    throw new Error(
-      'useDataModelToolbarContext must be used within a useDataModelToolbarContextProvider',
-    );
+    throw new Error('useDataModelToolbarContext must be used within a useDataModelContextProvider');
   }
   return context;
-};
-
-const getTypeName = (selectedUniquePointer?: string | undefined): string | undefined => {
-  if (selectedUniquePointer) {
-    const indexOfLastDash = selectedUniquePointer.lastIndexOf('/');
-    return selectedUniquePointer.substring(indexOfLastDash + 1);
-  }
-  return undefined;
 };
