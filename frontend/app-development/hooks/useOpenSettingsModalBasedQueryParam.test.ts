@@ -46,7 +46,7 @@ function buildSearchParams(queryParamValue: string): URLSearchParams {
   return searchParams;
 }
 
-function setupUseSettingsModalContextMock(openSettingsMock: jest.fn): jest.Mock {
+function setupUseSettingsModalContextMock(openSettingsMock: typeof jest.fn): jest.Mock {
   return (useSettingsModalContext as jest.Mock).mockReturnValue({
     settingsRef: {
       current: {
