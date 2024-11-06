@@ -8,11 +8,6 @@
   gap: var(--fds-spacing-2);
 }
 
-.blueBackground {
-  background: var(--fds-colors-grey-100);
-  /*background: var(--fds-colors-yellow-200);*/
-}
-
 .modelName {
   /*font-weight: 400;*/
 }
@@ -34,4 +29,23 @@
 
 .statusPopover.success {
   animation: fadeOut 1.5s;
+}
+
+.typeToolbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.typeToolbarBackground {
+  background: var(--fds-colors-grey-100);
+  /*background: var(--fds-colors-yellow-200);*/
+}
+
+.breadcrumbs {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-4);
 }

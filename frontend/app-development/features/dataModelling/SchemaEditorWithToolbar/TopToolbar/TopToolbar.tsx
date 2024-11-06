@@ -36,11 +36,10 @@ export function TopToolbar({
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
-  const { t } = useTranslation();
   const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
-
   const { selectedTypePointer } = useDataModelToolbarContext();
+  const showTypeToolbar: boolean = !!selectedTypePointer;
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
@@ -51,57 +50,30 @@ export function TopToolbar({
     setCreateNewOpen(false);
   };
 
-  const modelPath = selectedOption?.value.repositoryRelativeUrl;
-  const showTypeToolbar = !!selectedTypePointer;
-
   return (
     <section
-      className={cn(classes.toolbar, showTypeToolbar && classes.blueBackground)}
+      className={cn(classes.toolbar, showTypeToolbar && classes.typeToolbarBackground)}
       role='toolbar'
     >
       {showTypeToolbar ? (
-        <TypeControls dataModelName={selectedOption.label} />
+        <TypeToolbar dataModelName={selectedOption.label} />
       ) : (
-        <>
-          <SchemaSelect
-            dataModels={dataModels}
-            disabled={false}
-            selectedOption={selectedOption}
-            setSelectedOption={setSelectedOption}
-          />
-          <CreateNewWrapper
-            dataModels={dataModels}
-            disabled={false}
-            createNewOpen={createNewOpen}
-            setCreateNewOpen={setCreateNewOpen}
-            handleCreateSchema={handleCreateSchema}
-            createPathOption={createPathOption}
-          />
-          <XSDUpload
-            selectedOption={selectedOption}
-            uploadButtonText={t('app_data_modelling.upload_xsd')}
-          />
-          {/*<VerticalDivider />*/}
-          {/*<DeleteWrapper selectedOption={selectedOption} />*/}
-          {modelPath && (
-            <GenerateModelsButton
-              modelPath={modelPath}
-              onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
-                onSetSchemaGenerationErrorMessages(errorMessages)
-              }
-            />
-          )}
-        </>
+        <DataModelToolbar
+          dataModels={dataModels}
+          createNewOpen={createNewOpen}
+          setCreateNewOpen={setCreateNewOpen}
+          handleCreateSchema={handleCreateSchema}
+          createPathOption={createPathOption}
+          onSetSchemaGenerationErrorMessages={onSetSchemaGenerationErrorMessages}
+        />
       )}
     </section>
   );
 }
 
-const TypeControls = ({ dataModelName }) => {
+const TypeToolbar = ({ dataModelName }) => {
   const { setSelectedTypePointer, setSelectedUniquePointer, selectedUniquePointer } =
     useDataModelToolbarContext();
-
-  const showBreadcrumbs = true;
 
   const navigateToDataModelRoot = () => {
     setSelectedUniquePointer(undefined);
@@ -110,47 +82,95 @@ const TypeControls = ({ dataModelName }) => {
 
   const typeName = selectedUniquePointer.substring(selectedUniquePointer.lastIndexOf('/') + 1);
 
+  const showBreadcrumbs = false;
+
   return (
-    <div
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}
-    >
+    <div className={classes.typeToolbar}>
       {showBreadcrumbs ? (
-        <>
-          <div
-            style={{
-              width: 'fit-content',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--fds-spacing-4)',
-            }}
-          >
-            <Link onClick={() => navigateToDataModelRoot()}>
-              Datamodell: <b>{dataModelName}</b>
-            </Link>
-            <ChevronRightIcon />
-            <StudioParagraph size='sm'>
-              Type: <b>{typeName}</b>
-            </StudioParagraph>
-          </div>
-          {/*<StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>*/}
-        </>
+        <BreadcrumbsToolbar
+          navigateToDataModelRoot={navigateToDataModelRoot}
+          dataModelName={dataModelName}
+          typeName={typeName}
+        />
       ) : (
-        <>
-          <div>
-            <Label size='sm'>
-              Type: <b>{typeName}</b>
-            </Label>
-          </div>
-          <StudioButton onClick={() => navigateToDataModelRoot()} icon={<ArrowLeftIcon />}>
-            Tilbake til datamodell <b>{dataModelName}</b>
-          </StudioButton>
-        </>
+        <BackButtonToolbar
+          navigateToDataModelRoot={navigateToDataModelRoot}
+          dataModelName={dataModelName}
+          typeName={typeName}
+        />
       )}
     </div>
+  );
+};
+
+const BreadcrumbsToolbar = ({ navigateToDataModelRoot, dataModelName, typeName }) => {
+  return (
+    <div className={classes.breadcrumbs}>
+      <Link onClick={() => navigateToDataModelRoot()}>
+        Datamodell: <b>{dataModelName}</b>
+      </Link>
+      <ChevronRightIcon />
+      <StudioParagraph size='sm'>
+        Type: <b>{typeName}</b>
+      </StudioParagraph>
+    </div>
+  );
+};
+
+const BackButtonToolbar = ({ navigateToDataModelRoot, dataModelName, typeName }) => {
+  return (
+    <>
+      <Label size='sm'>
+        Type: <b>{typeName}</b>
+      </Label>
+      <StudioButton onClick={() => navigateToDataModelRoot()} icon={<ArrowLeftIcon />}>
+        Tilbake til datamodell <b>{dataModelName}</b>
+      </StudioButton>
+    </>
+  );
+};
+
+const DataModelToolbar = ({
+  dataModels,
+  createNewOpen,
+  setCreateNewOpen,
+  handleCreateSchema,
+  createPathOption,
+  onSetSchemaGenerationErrorMessages,
+}) => {
+  const { selectedOption, setSelectedOption } = useDataModelToolbarContext();
+  const { t } = useTranslation();
+  const modelPath = selectedOption?.value.repositoryRelativeUrl;
+
+  return (
+    <>
+      <SchemaSelect
+        dataModels={dataModels}
+        disabled={false}
+        selectedOption={selectedOption}
+        setSelectedOption={setSelectedOption}
+      />
+      <CreateNewWrapper
+        dataModels={dataModels}
+        disabled={false}
+        createNewOpen={createNewOpen}
+        setCreateNewOpen={setCreateNewOpen}
+        handleCreateSchema={handleCreateSchema}
+        createPathOption={createPathOption}
+      />
+      <XSDUpload
+        selectedOption={selectedOption}
+        uploadButtonText={t('app_data_modelling.upload_xsd')}
+      />
+      {/*<DeleteWrapper selectedOption={selectedOption} />*/}
+      {modelPath && (
+        <GenerateModelsButton
+          modelPath={modelPath}
+          onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
+            onSetSchemaGenerationErrorMessages(errorMessages)
+          }
+        />
+      )}
+    </>
   );
 };
