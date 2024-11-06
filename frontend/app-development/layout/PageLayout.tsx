@@ -51,7 +51,7 @@ export const PageLayout = (): React.ReactNode => {
           isRepoError={repoStatusError !== null}
         />
       </PageHeaderContextProvider>
-      <PagesToRender repoStatus={repoStatus} repoStatusError={repoStatusError} />
+      <Pages repoStatus={repoStatus} repoStatusError={repoStatusError} />
     </>
   );
 };
@@ -60,9 +60,10 @@ type PagesToRenderProps = {
   repoStatusError: AxiosError;
   repoStatus: RepoStatus;
 };
-const PagesToRender = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
+const Pages = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
   // Listen to URL-search params and opens settings-modal if params matches.
   useOpenSettingsModalBasedQueryParam();
+
   if (repoStatusError?.response?.status === ServerCodes.NotFound) {
     return <NotFoundPage />;
   }
