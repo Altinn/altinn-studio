@@ -182,7 +182,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             else
             {
                 elementOrder += 1;
-                classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+                AddXmlElementAnnotation(element, classBuilder, elementOrder);
 
                 // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                 // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -223,7 +223,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
             elementOrder += 1;
-            classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+            AddXmlElementAnnotation(element, classBuilder, elementOrder);
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -262,6 +262,18 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             if (!primitiveType)
             {
                 referredTypes.Add(element);
+            }
+        }
+
+        private void AddXmlElementAnnotation(ElementMetadata element, StringBuilder classBuilder, int elementOrder)
+        {
+            if (element.OrderOblivious)
+            {
+                classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}")]""");
+            }
+            else
+            {
+                classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}", Order = {elementOrder})]""");
             }
         }
 
