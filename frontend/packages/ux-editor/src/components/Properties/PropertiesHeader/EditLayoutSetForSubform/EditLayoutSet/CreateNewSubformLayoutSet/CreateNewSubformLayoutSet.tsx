@@ -9,6 +9,7 @@ import { SubformDataModelSelect } from './SubformDataModelSelect';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 type CreateNewSubformLayoutSetProps = {
   onSubformCreated: (layoutSetName: string) => void;
