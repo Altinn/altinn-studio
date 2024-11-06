@@ -1,5 +1,5 @@
 import { useDeleteDataModelMutation } from 'app-development/hooks/mutations';
-import { useDataModelToolbarContext } from '../../../contexts/DataModelToolbarContext';
+import { useDataModelContext } from '../../../contexts/DataModelToolbarContext';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
@@ -9,12 +9,10 @@ import React from 'react';
 
 export const DeleteModelButton = () => {
   const { t } = useTranslation();
-  const { selectedOption, selectedModelName } = useDataModelToolbarContext();
+  const { selectedModelName, modelPath } = useDataModelContext();
   const { mutate } = useDeleteDataModelMutation();
   const { org, app } = useStudioEnvironmentParams();
   const updateBpmn = useUpdateBpmn(org, app);
-
-  const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
   const handleDeleteModel = async () => {
     mutate(modelPath, {

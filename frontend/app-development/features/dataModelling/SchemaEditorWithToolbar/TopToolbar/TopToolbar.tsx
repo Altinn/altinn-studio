@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Label, Link } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ChevronRightIcon } from '@studio/icons';
 import cn from 'classnames';
-import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import { useDataModelContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export interface TopToolbarProps {
   createNewOpen: boolean;
@@ -37,7 +37,7 @@ export function TopToolbar({
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
   const prevDataModels = usePrevious(dataModels);
-  const { selectedTypePointer } = useDataModelToolbarContext();
+  const { selectedTypePointer } = useDataModelContext();
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
@@ -70,7 +70,7 @@ type TypeToolbarProps = {
 };
 
 const TypeToolbar = ({ dataModelName }: TypeToolbarProps) => {
-  const { setSelectedTypePointer, setSelectedUniquePointer } = useDataModelToolbarContext();
+  const { setSelectedTypePointer, setSelectedUniquePointer } = useDataModelContext();
 
   const navigateToDataModelRoot = () => {
     setSelectedUniquePointer(undefined);
@@ -95,7 +95,7 @@ type BreadcrumbsToolbarProps = {
 };
 
 const BreadcrumbsToolbar = ({ navigateToDataModelRoot }: BreadcrumbsToolbarProps) => {
-  const { selectedModelName, selectedTypeName } = useDataModelToolbarContext();
+  const { selectedModelName, selectedTypeName } = useDataModelContext();
 
   return (
     <div className={classes.breadcrumbs}>
@@ -111,7 +111,7 @@ const BreadcrumbsToolbar = ({ navigateToDataModelRoot }: BreadcrumbsToolbarProps
 };
 
 const BackButtonToolbar = ({ navigateToDataModelRoot }: BreadcrumbsToolbarProps) => {
-  const { selectedModelName, selectedTypeName } = useDataModelToolbarContext();
+  const { selectedModelName, selectedTypeName } = useDataModelContext();
 
   return (
     <>
@@ -140,11 +140,9 @@ const DataModelToolbar = ({
   createPathOption,
   onSetSchemaGenerationErrorMessages,
 }: DataModelToolbarProps) => {
-  const { selectedOption, setSelectedOption } = useDataModelToolbarContext();
+  const { selectedOption, setSelectedOption, modelPath } = useDataModelContext();
   const { t } = useTranslation();
   const { mutate: createDataModel } = useCreateDataModelMutation();
-
-  const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
   const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
     createDataModel(model);

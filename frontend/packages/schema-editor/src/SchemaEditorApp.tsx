@@ -7,7 +7,7 @@ import { SchemaEditorAppContext } from './contexts/SchemaEditorAppContext';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import { buildJsonSchema, buildUiSchema, SchemaModel } from '@altinn/schema-model';
 import { SchemaEditor } from './components/SchemaEditor';
-import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import { useDataModelContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export type SchemaEditorAppProps = {
   jsonSchema: JsonSchema;
@@ -21,7 +21,7 @@ export function SchemaEditorApp({ jsonSchema, save }: SchemaEditorAppProps) {
     selectedUniquePointer,
     setSelectedUniquePointer,
     selectedModelName,
-  } = useDataModelToolbarContext();
+  } = useDataModelContext();
 
   const value = useMemo<SchemaEditorAppContextProps>(
     () => ({

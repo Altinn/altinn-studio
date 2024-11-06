@@ -7,7 +7,7 @@ import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
-import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import { useDataModelContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
@@ -19,7 +19,7 @@ export const SchemaEditorWithToolbar = ({
   dataModels,
 }: SchemaEditorWithToolbarProps) => {
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
-  const { selectedOption, setSelectedOption } = useDataModelToolbarContext();
+  const { selectedOption, setSelectedOption, modelPath } = useDataModelContext();
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
 
@@ -28,7 +28,6 @@ export const SchemaEditorWithToolbar = ({
   )
     ? selectedOption
     : undefined;
-  const modelPath = existingSelectedOption?.value?.repositoryRelativeUrl;
 
   useEffect(() => {
     dataModels.forEach((model) => {

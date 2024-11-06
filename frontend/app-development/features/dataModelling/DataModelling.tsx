@@ -8,7 +8,7 @@ import { useDataModelsJsonQuery, useDataModelsXsdQuery } from 'app-shared/hooks/
 import { useParams } from 'react-router-dom';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { mergeJsonAndXsdData } from '../../utils/metadataUtils';
-import { DataModelToolbarContextProvider } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import { DataModelContextProvider } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 interface DataModellingProps {
   createPathOption?: boolean;
@@ -37,9 +37,9 @@ export function DataModelling({ createPathOption = false }: DataModellingProps):
     case 'success': {
       const data = mergeJsonAndXsdData(jsonData, xsdData);
       return (
-        <DataModelToolbarContextProvider>
+        <DataModelContextProvider>
           <SchemaEditorWithToolbar createPathOption={createPathOption} dataModels={data} />
-        </DataModelToolbarContextProvider>
+        </DataModelContextProvider>
       );
     }
   }
