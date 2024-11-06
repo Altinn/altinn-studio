@@ -36,7 +36,6 @@ export function TopToolbar({
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
-  const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
   const { selectedTypePointer } = useDataModelToolbarContext();
   const showTypeToolbar: boolean = !!selectedTypePointer;
@@ -44,11 +43,6 @@ export function TopToolbar({
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
   }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
-
-  const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
-    createDataModel(model);
-    setCreateNewOpen(false);
-  };
 
   return (
     <section
@@ -62,7 +56,6 @@ export function TopToolbar({
           dataModels={dataModels}
           createNewOpen={createNewOpen}
           setCreateNewOpen={setCreateNewOpen}
-          handleCreateSchema={handleCreateSchema}
           createPathOption={createPathOption}
           onSetSchemaGenerationErrorMessages={onSetSchemaGenerationErrorMessages}
         />
@@ -71,7 +64,11 @@ export function TopToolbar({
   );
 }
 
-const TypeToolbar = ({ dataModelName }) => {
+type TypeToolbarProps = {
+  dataModelName: string;
+};
+
+const TypeToolbar = ({ dataModelName }: TypeToolbarProps) => {
   const { setSelectedTypePointer, setSelectedUniquePointer, selectedUniquePointer } =
     useDataModelToolbarContext();
 
@@ -103,7 +100,17 @@ const TypeToolbar = ({ dataModelName }) => {
   );
 };
 
-const BreadcrumbsToolbar = ({ navigateToDataModelRoot, dataModelName, typeName }) => {
+type BreadcrumbsToolbarProps = {
+  navigateToDataModelRoot: () => void;
+  dataModelName: string;
+  typeName: string;
+};
+
+const BreadcrumbsToolbar = ({
+  navigateToDataModelRoot,
+  dataModelName,
+  typeName,
+}: BreadcrumbsToolbarProps) => {
   return (
     <div className={classes.breadcrumbs}>
       <Link onClick={() => navigateToDataModelRoot()}>
@@ -117,7 +124,11 @@ const BreadcrumbsToolbar = ({ navigateToDataModelRoot, dataModelName, typeName }
   );
 };
 
-const BackButtonToolbar = ({ navigateToDataModelRoot, dataModelName, typeName }) => {
+const BackButtonToolbar = ({
+  navigateToDataModelRoot,
+  dataModelName,
+  typeName,
+}: BreadcrumbsToolbarProps) => {
   return (
     <>
       <Label size='sm'>
@@ -130,17 +141,31 @@ const BackButtonToolbar = ({ navigateToDataModelRoot, dataModelName, typeName })
   );
 };
 
+type DataModelToolbarProps = {
+  dataModels: DataModelMetadata[];
+  createNewOpen: boolean;
+  setCreateNewOpen: (open: boolean) => void;
+  createPathOption?: boolean;
+  onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
+};
+
 const DataModelToolbar = ({
   dataModels,
   createNewOpen,
   setCreateNewOpen,
-  handleCreateSchema,
   createPathOption,
   onSetSchemaGenerationErrorMessages,
-}) => {
+}: DataModelToolbarProps) => {
   const { selectedOption, setSelectedOption } = useDataModelToolbarContext();
   const { t } = useTranslation();
+  const { mutate: createDataModel } = useCreateDataModelMutation();
+
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
+
+  const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
+    createDataModel(model);
+    setCreateNewOpen(false);
+  };
 
   return (
     <>

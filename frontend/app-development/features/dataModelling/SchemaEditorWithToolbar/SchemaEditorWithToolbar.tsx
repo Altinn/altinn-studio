@@ -7,10 +7,7 @@ import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
 import { isXsdFile } from 'app-shared/utils/filenameUtils';
-import {
-  DataModelToolbarContextProvider,
-  useDataModelToolbarContext,
-} from '@altinn/schema-editor/contexts/DataModelToolbarContext';
+import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataModelToolbarContext';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
