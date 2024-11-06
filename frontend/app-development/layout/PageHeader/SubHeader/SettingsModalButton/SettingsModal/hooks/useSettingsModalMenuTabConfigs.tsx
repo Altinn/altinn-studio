@@ -14,6 +14,13 @@ const setupTabId: SettingsModalTabId = 'setup';
 const policyTabId: SettingsModalTabId = 'policy';
 const accessControlTabId: SettingsModalTabId = 'access_control';
 
+export const allSettingsModalTabs: Array<SettingsModalTabId> = [
+  aboutTabId,
+  setupTabId,
+  policyTabId,
+  accessControlTabId,
+];
+
 export const useSettingsModalMenuTabConfigs =
   (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
     const { t } = useTranslation();
