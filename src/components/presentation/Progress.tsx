@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { CircularProgress } from '@altinn/altinn-design-system';
-
+import { getLabelId } from 'src/components/label/Label';
+import classes from 'src/components/presentation/Progress.module.css';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
@@ -21,9 +21,61 @@ export const Progress = () => {
   return (
     <CircularProgress
       value={value}
-      id={'progress'}
+      id='progress'
       label={labelText}
       ariaLabel={langAsString('general.progress', [currentPageNum, numberOfPages])}
     />
   );
 };
+
+type CircularProgressProps = {
+  id: string;
+  value: number;
+  ariaLabel?: string;
+  label?: string;
+};
+
+const CircularProgress = ({ value, ariaLabel, label, id }: CircularProgressProps) => {
+  const labelId = getLabelId(id);
+  const ariaLabelledby = !ariaLabel && label ? labelId : undefined;
+  return (
+    <div
+      id={id}
+      className={classes.container}
+      role='progressbar'
+      aria-labelledby={ariaLabelledby}
+      aria-label={ariaLabel}
+    >
+      {label && (
+        <div
+          id={labelId}
+          className={classes.label}
+        >
+          {label}
+        </div>
+      )}
+      <svg
+        className={classes.svg}
+        viewBox='0 0 35.8 35.8'
+        aria-hidden={true}
+      >
+        <Circle className={classes.circleBackground} />
+        <Circle
+          strokeDashoffset={100 - value}
+          className={classes.circleTransition}
+        />
+      </svg>
+    </div>
+  );
+};
+
+const Circle = (props: React.SVGProps<SVGCircleElement>) => (
+  <circle
+    cx='50%'
+    cy='50%'
+    fill='none'
+    r='15.9155'
+    strokeWidth={2.5}
+    {...props}
+  />
+);
