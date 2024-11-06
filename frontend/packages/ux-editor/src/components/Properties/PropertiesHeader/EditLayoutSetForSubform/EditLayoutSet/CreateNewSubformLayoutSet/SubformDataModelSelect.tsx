@@ -1,52 +1,45 @@
 import React from 'react';
-import {
-  convertMetadataListToOptions,
-  findMetadataOptionByRelativeUrl,
-} from 'app-development/utils/metadataUtils';
-import type { MetadataOption } from 'app-development/types/MetadataOption';
-import type { DataModelMetadataJson } from 'app-shared/types/DataModelMetadata';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect } from '@studio/components';
 
 export interface ISubformDataModelSelectProps {
-  dataModels: DataModelMetadataJson[];
   disabled: boolean;
-  selectedOption: MetadataOption | null;
-  setSelectedOption: (option: MetadataOption) => void;
+  selectedDataType: string;
+  setSelectedDataType: (dataType: string) => void;
 }
 
 export const SubformDataModelSelect = ({
-  dataModels,
   disabled,
-  selectedOption,
-  setSelectedOption,
+  selectedDataType,
+  setSelectedDataType,
 }: ISubformDataModelSelectProps) => {
   const { t } = useTranslation();
-  const options = convertMetadataListToOptions(dataModels);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: dataModelIds = [] } = useAppMetadataModelIdsQuery(org, app, false);
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedOption(findMetadataOptionByRelativeUrl(options, e.target.value));
+  function handleChange(dataType: string) {
+    setSelectedDataType(dataType);
   }
 
   return (
     <StudioNativeSelect
       label={t('ux_editor.component_properties.subform.data_model_binding_label')}
       disabled={disabled}
-      onChange={handleChange}
-      value={selectedOption?.value.repositoryRelativeUrl || ''}
+      onChange={(e) => handleChange(e.target.value)}
+      value={selectedDataType}
       size='small'
     >
-      {options.length === 0 ? (
+      <option value='' hidden></option>
+      {dataModelIds.length === 0 ? (
         <option disabled>
           {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
         </option>
       ) : (
-        options.map((option) => (
-          <option
-            value={option.value.repositoryRelativeUrl}
-            key={option.value.repositoryRelativeUrl}
-          >
-            {option.label}
+        dataModelIds.map((dataModelId) => (
+          <option value={dataModelId} key={dataModelId}>
+            {dataModelId}
           </option>
         ))
       )}

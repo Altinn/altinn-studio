@@ -3,13 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
 import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewSubformLayoutSet.module.css';
-import type { MetadataOption } from 'app-development/types/MetadataOption';
-import { useDataModelsJsonQuery } from 'app-shared/hooks/queries';
 import { SubformDataModelSelect } from './SubformDataModelSelect';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 type CreateNewSubformLayoutSetProps = {
   onSubformCreated: (layoutSetName: string) => void;
@@ -22,9 +19,7 @@ export const CreateNewSubformLayoutSet = ({
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
-  const { org, app } = useStudioEnvironmentParams();
-  const [selectedOption, setSelectedOption] = useState<MetadataOption | null>(null);
-  const jsonQuery = useDataModelsJsonQuery(org, app);
+  const [selectedDataType, setSelectedDataType] = useState<string>();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const { createSubform } = useCreateSubform();
   const [nameError, setNameError] = useState('');
@@ -36,7 +31,7 @@ export const CreateNewSubformLayoutSet = ({
   }
 
   function handleCreateSubform() {
-    createSubform({ layoutSetName: newSubform, onSubformCreated });
+    createSubform({ layoutSetName: newSubform, onSubformCreated, dataType: selectedDataType });
   }
 
   return (
@@ -53,10 +48,9 @@ export const CreateNewSubformLayoutSet = ({
           error={nameError}
         />
         <SubformDataModelSelect
-          dataModels={jsonQuery.data || []}
           disabled={false}
-          selectedOption={selectedOption}
-          setSelectedOption={setSelectedOption}
+          selectedDataType={selectedDataType}
+          setSelectedDataType={setSelectedDataType}
         />
         <StudioButton
           className={classes.savelayoutSetButton}
