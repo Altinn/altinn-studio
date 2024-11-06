@@ -22,6 +22,7 @@ describe('useOpenSettingsModalBasedQueryParam', () => {
 
     renderHookWithProviders()(() => useOpenSettingsModalBasedQueryParam());
     await waitFor(() => expect(openSettingsMock).toHaveBeenCalledWith('about'));
+    expect(openSettingsMock).toHaveBeenCalledTimes(1);
   });
 
   it('should not open "settingsModal" if query params has an invalid tab id', async () => {
@@ -33,6 +34,7 @@ describe('useOpenSettingsModalBasedQueryParam', () => {
 
     renderHookWithProviders()(() => useOpenSettingsModalBasedQueryParam());
     await waitFor(() => expect(openSettingsMock).not.toHaveBeenCalledWith('doestNotExistTab'));
+    expect(openSettingsMock).toHaveBeenCalledTimes(0);
   });
 });
 
