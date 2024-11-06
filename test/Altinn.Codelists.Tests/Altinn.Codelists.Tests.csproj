@@ -21,6 +21,7 @@
     <None Remove="SSB\Testdata\occupations.json" />
     <None Remove="SSB\Testdata\sex.json" />
     <None Remove="SSB\Testdata\smallGame_Variant.json" />
+    <None Remove="SSB\Testdata\units.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +37,7 @@
     <EmbeddedResource Include="SSB\Testdata\maritalStatus.json" />
     <EmbeddedResource Include="SSB\Testdata\occupations.json" />
     <EmbeddedResource Include="SSB\Testdata\smallGame_Variant.json" />
+    <EmbeddedResource Include="SSB\Testdata\units.json" />
   </ItemGroup>
 
   <ItemGroup>

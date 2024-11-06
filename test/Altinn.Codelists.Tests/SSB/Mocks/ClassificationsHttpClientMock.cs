@@ -16,6 +16,7 @@ public class ClassificationsHttpClientMock : IClassificationsClient
     private const string MUNICIPALITIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.municipalities.json";
     private const string COUNTRIES_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.countries.json";
     private const string SMALL_GAME_VARIANT_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.smallGame_Variant.json";
+    private const string UNITS_TESTDATA_RESOURCE = "Altinn.Codelists.Tests.SSB.Testdata.units.json";
     
     private readonly IClassificationsClient _client;
     private readonly IOptions<ClassificationSettings> _options;
@@ -64,6 +65,10 @@ public class ClassificationsHttpClientMock : IClassificationsClient
         HttpMessageHandlerMock
             .When("http://data.ssb.no/api/klass/v1/classifications/74/variantAt*")
             .Respond("application/json", EmbeddedResource.LoadDataAsString(SMALL_GAME_VARIANT_TESTDATA_RESOURCE).Result);
+
+        HttpMessageHandlerMock
+            .When("http://data.ssb.no/api/klass/v1/classifications/303/*")
+            .Respond("application/json", EmbeddedResource.LoadDataAsString(UNITS_TESTDATA_RESOURCE).Result);
 
         _client = new ClassificationsHttpClient(_options, new HttpClient(HttpMessageHandlerMock));
     }

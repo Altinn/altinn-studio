@@ -1,0 +1,81 @@
+{
+  "codes": [
+    {
+      "code": "02.02",
+      "parentCode": "02",
+      "level": "2",
+      "name": "stykk",
+      "shortName": "stk",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "Passer for statistikk der en teller ting, f.eks. så og så mange stykk av en viss varetype"
+    },
+    {
+      "code": "03.01",
+      "parentCode": "03",
+      "level": "2",
+      "name": "kvadratmeter",
+      "shortName": "m²",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "En kvadratmeter er et areal på en ganger en meter."
+    },
+    {
+      "code": "09.03",
+      "parentCode": "09",
+      "level": "2",
+      "name": "meter",
+      "shortName": "m",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "En meter er grunnenheten for lengde i SI-systemet."
+    },
+    {
+      "code": "13.02",
+      "parentCode": "13",
+      "level": "2",
+      "name": "gram",
+      "shortName": "g",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "1 g= 1/1 000 kg."
+    },
+    {
+      "code": "13.03",
+      "parentCode": "13",
+      "level": "2",
+      "name": "kilogram",
+      "shortName": "kg",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "Kilogram er grunnenheten for masse i SI-systemet."
+    },
+    {
+      "code": "13.04",
+      "parentCode": "13",
+      "level": "2",
+      "name": "tonn",
+      "shortName": "t",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "1 t=1 000 kg."
+    },
+    {
+      "code": "15.06",
+      "parentCode": "15",
+      "level": "2",
+      "name": "kubikkmeter",
+      "shortName": "m³",
+      "presentationName": "",
+      "validFrom": null,
+      "validTo": null,
+      "notes": "En kubikkmeter tilsvarer volumet i en kube der alle sidene er en meter."
+    }
+  ]
+}

@@ -62,12 +62,16 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         string level = mergedKeyValuePairs.GetValueOrDefault("level") ?? string.Empty;
         string variant = mergedKeyValuePairs.GetValueOrDefault("variant") ?? string.Empty;
         string selectCodes = mergedKeyValuePairs.GetValueOrDefault("selectCodes") ?? string.Empty;
+        string orderBy = mergedKeyValuePairs.GetValueOrDefault("orderBy")  ?? string.Empty;
+        string orderByDesc = mergedKeyValuePairs.GetValueOrDefault("orderByDesc")  ?? string.Empty;
 
         var classificationCode = await _classificationsClient.GetClassificationCodes(_classificationId, language, dateOnly, level, variant, selectCodes);
 
         string parentCode = mergedKeyValuePairs.GetValueOrDefault("parentCode") ?? string.Empty;
 
         AppOptions appOptions = GetAppOptions(classificationCode, parentCode);
+          //Sorterings funksjon
+        appOptions = SortAppOptions(appOptions,orderBy,orderByDesc,selectCodes);
         appOptions.Parameters = new Dictionary<string, string>(mergedKeyValuePairs);
 
         // Parameters used added to Parameters collection in AppOptions for reference and documentation purposes.
@@ -123,5 +127,38 @@ public class ClassificationCodelistProvider : IAppOptionsProvider
         }
 
         return mergedDictionary;
+    }
+    private static AppOptions SortAppOptions(AppOptions appOptions, string orderBy,string orderByDesc,string selectCodes)
+    {
+        if ((string.IsNullOrEmpty(orderBy) && string.IsNullOrEmpty(orderByDesc)) ||  appOptions?.Options == null || !appOptions.Options.Any())
+        {
+            return appOptions ?? new AppOptions();
+        }
+
+        var orderMappings = new Dictionary<string, Func<AppOption, object>>
+        {
+            { "name", x => x.Label },
+            { "code", x => x.Value },
+            { "description", x => x.Description ?? string.Empty },
+            { "helpText", x => x.HelpText ?? string.Empty }
+        };
+
+        if (orderBy == "selectCodes" && !string.IsNullOrEmpty(selectCodes))
+        {
+            appOptions.Options = appOptions.Options.OrderBy(x => selectCodes.IndexOf(x.Value)).ToList();
+            return appOptions;
+        }
+
+        if (!string.IsNullOrEmpty(orderBy) && orderMappings.TryGetValue(orderBy, out Func<AppOption, object>? orderMapping) && orderMapping != null)
+        {
+            appOptions.Options = appOptions.Options.OrderBy(orderMapping).ToList();
+        }
+        else if (!string.IsNullOrEmpty(orderByDesc) && orderMappings.TryGetValue(orderByDesc, out Func<AppOption, object>? orderMappingDesc) && orderMappingDesc != null)
+        {
+            appOptions.Options = appOptions.Options.OrderByDescending(orderMappingDesc).ToList();
+        }
+       
+        
+        return appOptions;
     }
 }
