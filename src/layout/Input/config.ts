@@ -1,3 +1,4 @@
+import { EXTERNAL_INPUT_TYPE } from 'src/app-components/Input/constants';
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
@@ -43,7 +44,7 @@ export const Config = new CG.component({
   .addProperty(
     new CG.prop(
       'variant',
-      new CG.enum('text', 'search')
+      new CG.enum(...EXTERNAL_INPUT_TYPE)
         .optional({ default: 'text' })
         .setTitle('Input variant')
         .setDescription('The variant of the input field (text or search).'),

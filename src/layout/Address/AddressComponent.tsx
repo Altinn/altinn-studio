@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 
-import { Textfield } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 
+import { Input } from 'src/app-components/Input/Input';
 import { Label } from 'src/components/label/Label';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
@@ -65,11 +65,10 @@ export function AddressComponent({ node }: IAddressProps) {
             id={`form-content-${id}`}
             xs={12}
           >
-            <Textfield
+            <Input
               id={`address_address_${id}`}
               data-bindingkey={bindingKeys.address}
               error={hasValidationErrors(bindingValidations?.address)}
-              size={'small'}
               value={address}
               onChange={(ev) => setValue('address', ev.target.value)}
               onBlur={debounce}
@@ -95,11 +94,10 @@ export function AddressComponent({ node }: IAddressProps) {
               id={`form-content-${id}`}
               xs={12}
             >
-              <Textfield
+              <Input
                 id={`address_care_of_${id}`}
                 data-bindingkey={bindingKeys.careOf}
                 error={hasValidationErrors(bindingValidations?.careOf)}
-                size={'small'}
                 value={careOf}
                 onChange={(ev) => setValue('careOf', ev.target.value)}
                 onBlur={debounce}
@@ -126,11 +124,10 @@ export function AddressComponent({ node }: IAddressProps) {
             renderLabelAs='label'
             textResourceBindings={{ title: textResourceBindings?.zipCodeTitle ?? 'address_component.zip_code' }}
           >
-            <Textfield
+            <Input
               id={`address_zip_code_${id}`}
               data-bindingkey={bindingKeys.zipCode}
               error={hasValidationErrors(bindingValidations?.zipCode)}
-              size='small'
               value={zipCode}
               onChange={(ev) => setValue('zipCode', ev.target.value)}
               onBlur={debounce}
@@ -151,11 +148,10 @@ export function AddressComponent({ node }: IAddressProps) {
             renderLabelAs='label'
             textResourceBindings={{ title: textResourceBindings?.postPlaceTitle ?? 'address_component.post_place' }}
           >
-            <Textfield
+            <Input
               id={`address_post_place_${id}`}
               data-bindingkey={bindingKeys.postPlace}
               error={hasValidationErrors(bindingValidations?.postPlace)}
-              size='small'
               value={postPlace}
               readOnly={true}
               required={required}
@@ -180,11 +176,10 @@ export function AddressComponent({ node }: IAddressProps) {
             }}
           >
             <div className={classes.addressComponentSmallInputs}>
-              <Textfield
+              <Input
                 id={`address_house_number_${id}`}
                 data-bindingkey={bindingKeys.houseNumber}
                 error={hasValidationErrors(bindingValidations?.houseNumber)}
-                size={'small'}
                 value={houseNumber}
                 onChange={(ev) => setValue('houseNumber', ev.target.value)}
                 onBlur={debounce}

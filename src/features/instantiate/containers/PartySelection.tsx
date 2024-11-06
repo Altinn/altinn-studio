@@ -3,10 +3,11 @@ import { Helmet } from 'react-helmet-async';
 import { useMatch } from 'react-router-dom';
 
 import { LegacyCheckbox } from '@digdir/design-system-react';
-import { Button, Textfield } from '@digdir/designsystemet-react';
+import { Button } from '@digdir/designsystemet-react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { PlusIcon } from '@navikt/aksel-icons';
 
+import { Input } from 'src/app-components/Input/Input';
 import { AltinnParty } from 'src/components/altinnParty';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -257,7 +258,8 @@ export const PartySelection = () => {
         direction='column'
         className={classes.partySearchFieldContainer}
       >
-        <Textfield
+        <Input
+          size='md'
           aria-label={langAsString('party_selection.search_placeholder')}
           placeholder={langAsString('party_selection.search_placeholder')}
           onChange={onFilterStringChange}

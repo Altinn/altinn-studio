@@ -34,11 +34,23 @@ describe('Grid component', () => {
 
     // Filling out the form without ending up at 100% total. We reference these fields in their respective rows
     // not because we can't reference them directly, but to verify that they exist inside the grid and not outside.
-    cy.get(appFrontend.grid.totalAmount).type('1000000');
-    cy.get(appFrontend.grid.grid).find('tr').eq(3).find(appFrontend.grid.bolig.percent).type('70');
-    cy.get(appFrontend.grid.grid).find('tr').eq(4).find(appFrontend.grid.studie.percent).type('10');
-    cy.get(appFrontend.grid.grid).find('tr').eq(5).find(appFrontend.grid.kredittkort.percent).type('5');
-    cy.get(appFrontend.grid.grid).find('tr').eq(6).find(appFrontend.grid.totalPercent).should('have.text', '85 %');
+    cy.findByRole('textbox', { name: /hvor mye gjeld har du?/i }).type('1000000');
+    cy.get(appFrontend.grid.grid)
+      .find('tr')
+      .eq(3)
+      .findByRole('textbox', { name: /Prosentandel av gjeld i boliglån/i })
+      .type('70');
+    cy.get(appFrontend.grid.grid)
+      .find('tr')
+      .eq(4)
+      .findByRole('textbox', { name: /Prosentandel av gjeld i studielån/i })
+      .type('10');
+    cy.get(appFrontend.grid.grid)
+      .find('tr')
+      .eq(5)
+      .findByRole('textbox', { name: /Prosentandel av gjeld i kredittkort/i })
+      .type('5');
+    cy.get(appFrontend.grid.grid).find('tr').eq(6).findByText('85 %');
     cy.get(appFrontend.grid.bolig.percentComponent).should('not.contain.text', 'Prosentandel av gjeld i boliglån');
     cy.get(appFrontend.errorReport).should('not.exist');
 

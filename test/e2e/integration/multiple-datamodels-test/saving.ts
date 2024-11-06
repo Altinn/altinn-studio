@@ -173,14 +173,14 @@ describe('saving multiple data models', () => {
 
   it('List component with search', () => {
     cy.gotoNavPage('Side6');
-    cy.findByRole('textbox', { name: /søk/i }).type('Snekker');
+    cy.findByRole('searchbox', { name: /søk/i }).type('Snekker');
     cy.findAllByRole('radio').should('have.length', 1);
-    cy.findByRole('textbox', { name: /søk/i }).clear();
-    cy.findByRole('textbox', { name: /søk/i }).type('Utvikler');
+    cy.findByRole('searchbox', { name: /søk/i }).clear();
+    cy.findByRole('searchbox', { name: /søk/i }).type('Utvikler');
     cy.findAllByRole('radio').should('have.length', 2);
     cy.findByRole('radio', { name: /johanne/i }).dsCheck();
     cy.findByRole('radio', { name: /johanne/i }).should('be.checked');
-    cy.findByRole('textbox', { name: /søk/i }).clear();
+    cy.findByRole('searchbox', { name: /søk/i }).clear();
     cy.findAllByRole('radio').should('have.length', 5);
     cy.findByRole('radio', { name: /johanne/i }).should('be.checked');
   });

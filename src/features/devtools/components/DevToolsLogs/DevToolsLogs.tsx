@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Button, Textfield } from '@digdir/designsystemet-react';
+import { Button } from '@digdir/designsystemet-react';
 import {
   DownloadIcon,
   ExclamationmarkTriangleFillIcon,
@@ -9,6 +9,7 @@ import {
   XMarkOctagonFillIcon,
 } from '@navikt/aksel-icons';
 
+import { Input } from 'src/app-components/Input/Input';
 import classes from 'src/features/devtools/components/DevToolsLogs/DevToolsLogs.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 
@@ -71,8 +72,7 @@ export const DevToolsLogs = () => {
           />
         </Button>
         <div className={classes.filterField}>
-          <Textfield
-            size='small'
+          <Input
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder='Filtrer logger'
