@@ -4,7 +4,7 @@ import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificC
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@digdir/designsystemet-react';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
-import { useAppContext, useComponentTypeName } from '../../../../../hooks';
+import { useAppContext, useComponentTitle } from '@altinn/ux-editor/hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Summmary2ComponentReferenceSelector } from '../Summary2ComponentReferenceSelector';
@@ -26,7 +26,7 @@ export const Summary2OverrideEntry = ({
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
-  const componentTypeName = useComponentTypeName();
+  const getComponentTitle = useComponentTitle();
 
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
@@ -36,7 +36,7 @@ export const Summary2OverrideEntry = ({
 
   const componentOptions = components.map((e) => ({
     id: e.id,
-    description: componentTypeName(e.type),
+    description: getComponentTitle(e),
   }));
 
   const onChangeOverride = (label: keyof Summary2OverrideConfig, value: string | boolean) => {
