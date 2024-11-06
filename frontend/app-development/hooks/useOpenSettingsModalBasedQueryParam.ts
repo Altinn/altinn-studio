@@ -16,11 +16,7 @@ export function useOpenSettingsModalBasedQueryParam(): void {
     if (shouldOpenModal) {
       settingsRef.current.openSettings(tabToOpen);
     }
-<<<<<<< HEAD
   }, [searchParams, settingsRef]);
-=======
-  }, [searchParams]);
->>>>>>> 34520cd0d (feat(settings): make it possible to open settings modal based on query-params)
 }
 
 function isValidTab(tabId: SettingsModalTabId): boolean {
