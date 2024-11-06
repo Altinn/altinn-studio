@@ -55,7 +55,7 @@ function OptionListEditorModal({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { doReloadPreview } = usePreviewContext();
-  const { mutate: uploadOptionList } = useUpdateOptionListMutation(org, app);
+  const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const [currentOptionList, setCurrentOptionList] = useState<Option[]>(optionList);
   const editorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
@@ -65,7 +65,7 @@ function OptionListEditorModal({
   };
 
   const handleClose = () => {
-    uploadOptionList({ optionListId: component.optionsId, optionsList: currentOptionList });
+    updateOptionList({ optionListId: component.optionsId, optionsList: currentOptionList });
     doReloadPreview();
     modalRef.current?.close();
   };
@@ -93,7 +93,7 @@ function OptionListEditorModal({
         onInteractOutside={handleClose}
       >
         <StudioCodeListEditor
-          codeList={currentOptionList}
+          codeList={optionList}
           onChange={handleOptionsChange}
           texts={editorTexts}
         />

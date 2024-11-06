@@ -1,4 +1,5 @@
 import type { CodeListItem } from '../types/CodeListItem';
+import type { CodeListItemValue } from '../types/CodeListItemValue';
 import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
 import type { FocusEvent, HTMLInputAutoCompleteAttribute } from 'react';
@@ -90,7 +91,7 @@ type TextfieldCellProps = {
   error?: string;
   label: string;
   onChange: (newString: string) => void;
-  value: string | number | boolean;
+  value: CodeListItemValue;
   autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 

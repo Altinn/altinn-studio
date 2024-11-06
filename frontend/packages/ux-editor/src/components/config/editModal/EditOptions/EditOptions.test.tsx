@@ -46,7 +46,7 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
       renderOptions={renderOptions}
     />,
     {
-      queries: queries,
+      queries,
       queryClient: queryClientMock,
     },
   );

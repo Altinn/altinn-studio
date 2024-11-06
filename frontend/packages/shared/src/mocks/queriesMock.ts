@@ -68,7 +68,7 @@ import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResp
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
-import type { Option } from 'app-shared/types/Option';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -103,9 +103,7 @@ export const queriesMock: ServicesContextProps = {
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getOptionLists: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<Map<string, Option[]>>(new Map<string, Option[]>())),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),

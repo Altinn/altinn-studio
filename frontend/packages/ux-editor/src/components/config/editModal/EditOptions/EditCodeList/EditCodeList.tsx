@@ -73,13 +73,12 @@ export function EditCodeList<T extends SelectionComponentType>({
     }
   };
 
-  const shouldDisplayCodeListEditor =
-    component.optionsId !== undefined && component.optionsId !== '';
+  const componentHasConnectedCodeListToEdit = !!component.optionsId;
 
   return (
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('codeListEditor') && shouldDisplayCodeListEditor && (
+      {shouldDisplayFeature('optionListEditor') && componentHasConnectedCodeListToEdit && (
         <OptionListEditor component={component} />
       )}
       <StudioFileUploader

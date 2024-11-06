@@ -3,6 +3,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { Option } from 'app-shared/types/Option';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
 export const useOptionListsQuery = (
   org: string,
@@ -18,7 +19,7 @@ export const useOptionListsQuery = (
   });
 };
 
-function convertToMap(result: Record<string, Option[]>): Map<string, Option[]> {
+function convertToMap(result: OptionsLists): Map<string, Option[]> {
   const optionsMap = new Map<string, Option[]>();
 
   Object.entries(result).forEach(([key, value]) => {

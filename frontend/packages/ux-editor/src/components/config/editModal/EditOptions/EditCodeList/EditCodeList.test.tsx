@@ -9,24 +9,21 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
-import type { Option } from 'app-shared/types/Option';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
-mockComponent.optionsId = 'text';
+const optionsIdMock = optionListIdsMock[0];
+mockComponent.optionsId = optionsIdMock;
+
 const handleComponentChangeMock = jest.fn();
 const queriesMock = {
   getOptionListIds: jest
     .fn()
     .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
 };
-const queryClientMock = createQueryClientMock();
 
 describe('EditCodeList', () => {
-  afterEach(() => {
-    queryClientMock.clear();
-  });
-
   it('should render the component', async () => {
     renderEditCodeList();
     expect(
@@ -141,18 +138,16 @@ describe('EditCodeList', () => {
   });
 
   it('should render OptionListEditor when featureFlag is active', async () => {
-    addFeatureFlagToLocalStorage('codeListEditor');
+    addFeatureFlagToLocalStorage('optionListEditor');
     const queries = {
       getOptionListIds: jest
         .fn()
         .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
-      getOptionLists: jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve<Map<string, Option[]>>(
-            new Map<string, Option[]>([['text', [{ value: 'test', label: 'label text' }]]]),
-          ),
-        ),
+      getOptionLists: jest.fn().mockImplementation(() =>
+        Promise.resolve<OptionsLists>({
+          optionsIdMock: [{ value: 'test', label: 'label text' }],
+        }),
+      ),
     };
     renderEditCodeList({ queries: queries });
 
@@ -180,7 +175,7 @@ const userFindFileAndUpload = async (user: UserEvent, file: File) => {
   await user.upload(fileInput, file);
 };
 
-const renderEditCodeList = ({ queries = queriesMock, componentProps = {} } = {}) => {
+const renderEditCodeList = ({ queries = {}, componentProps = {} } = {}) => {
   return renderWithProviders(
     <EditCodeList
       component={{
@@ -190,8 +185,8 @@ const renderEditCodeList = ({ queries = queriesMock, componentProps = {} } = {})
       handleComponentChange={handleComponentChangeMock}
     />,
     {
-      queries: queries,
-      queryClient: queryClientMock,
+      queries: { ...queriesMock, ...queries },
+      queryClient: createQueryClientMock(),
     },
   );
 };

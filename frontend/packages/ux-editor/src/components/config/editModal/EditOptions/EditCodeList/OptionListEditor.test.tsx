@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { Option } from 'app-shared/types/Option';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { FormComponent } from '../../../../../types/FormComponent';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -14,7 +14,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
 mockComponent.optionsId = 'options';
 
-const apiResult = {
+const apiResult: OptionsLists = {
   options: [
     { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
     { value: 2, label: 'label number', description: null, helpText: null },
@@ -22,19 +22,11 @@ const apiResult = {
   ],
 };
 
-const queryClientMock = createQueryClientMock();
-
 describe('OptionListEditor', () => {
-  afterEach(() => {
-    queryClientMock.clear();
-  });
-
   it('should render a spinner when there is no data', () => {
     renderOptionListEditor({
       queries: {
-        getOptionLists: jest
-          .fn()
-          .mockImplementation(() => Promise.resolve<Record<string, Option[]>>({})),
+        getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
       },
     });
 
@@ -43,14 +35,11 @@ describe('OptionListEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render a error message when api throws an error', async () => {
-    renderOptionListEditor({
+  it('should render an error message when api throws an error', async () => {
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
       queries: {
         getOptionLists: jest.fn().mockRejectedValueOnce(new Error('Error')),
       },
-    });
-    await waitForElementToBeRemoved(() => {
-      return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
     });
 
     expect(
@@ -59,10 +48,7 @@ describe('OptionListEditor', () => {
   });
 
   it('should render the open Dialog button', async () => {
-    renderOptionListEditor();
-    await waitForElementToBeRemoved(() => {
-      return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-    });
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
     const btnOpen = screen.getByRole('button', {
       name: textMock('ux_editor.modal_properties_code_list_open_editor'),
@@ -73,10 +59,7 @@ describe('OptionListEditor', () => {
 
   it('should open Dialog', async () => {
     const user = userEvent.setup();
-    renderOptionListEditor();
-    await waitForElementToBeRemoved(() => {
-      return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-    });
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
     await openModal(user);
 
@@ -85,45 +68,31 @@ describe('OptionListEditor', () => {
 
   it('should close Dialog', async () => {
     const user = userEvent.setup();
-    renderOptionListEditor();
-    await waitForElementToBeRemoved(() => {
-      return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-    });
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
     await openModal(user);
-
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
-  it('should call handleClose when closing Dialog', async () => {
+  it('should call doReloadPreview when closing Dialog', async () => {
     const user = userEvent.setup();
     const doReloadPreview = jest.fn();
-    renderOptionListEditor({
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
       previewContextProps: { doReloadPreview },
-    });
-    await waitForElementToBeRemoved(() => {
-      return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
     });
 
     await openModal(user);
-
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(doReloadPreview).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onChange when changing value in a textField', async () => {
+  it('should call handleOptionsChange when updating a value in a textField', async () => {
     const user = userEvent.setup();
-    const doReloadPreview = jest.fn();
-    renderOptionListEditor({
-      previewContextProps: { doReloadPreview },
-    });
-    await waitForElementToBeRemoved(() => {
-      return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-    });
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
     await openModal(user);
 
@@ -138,6 +107,8 @@ describe('OptionListEditor', () => {
         name: textMock('ux_editor.modal_properties_code_list_item_description', { number: 2 }),
       }),
     ).toHaveValue('test');
+
+    // Todo: Add a expect for function to have been called.
   });
 });
 
@@ -148,14 +119,7 @@ const openModal = async (user: UserEvent) => {
   await user.click(btnOpen);
 };
 
-const renderOptionListEditor = ({
-  previewContextProps = {},
-  queries = {
-    getOptionLists: jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<Record<string, Option[]>>(apiResult)),
-  },
-} = {}) => {
+const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {}) => {
   return renderWithProviders(
     <OptionListEditor
       component={{
@@ -163,9 +127,27 @@ const renderOptionListEditor = ({
       }}
     />,
     {
-      queries: queries,
-      queryClient: queryClientMock,
-      previewContextProps: previewContextProps,
+      queries: {
+        getOptionLists: jest
+          .fn()
+          .mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
+        ...queries,
+      },
+      queryClient: createQueryClientMock(),
+      previewContextProps,
     },
   );
+};
+
+const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({
+  previewContextProps = {},
+  queries = {
+    getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
+  },
+} = {}) => {
+  const view = renderOptionListEditor({ previewContextProps, queries });
+  await waitForElementToBeRemoved(() => {
+    return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
+  });
+  return view;
 };
