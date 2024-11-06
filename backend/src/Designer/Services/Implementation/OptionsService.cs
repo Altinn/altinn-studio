@@ -73,7 +73,7 @@ public class OptionsService : IOptionsService
         List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
             new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
 
-        IEnumerable<Option> result = deserializedOptions.Where(option => string.IsNullOrEmpty(option.Value) || string.IsNullOrEmpty(option.Label));
+        IEnumerable<Option> result = deserializedOptions.Where(option => IsNullOrEmptyOptionValue(option) || string.IsNullOrEmpty(option.Label));
         if (result.Any())
         {
             throw new JsonException("Uploaded file is missing one of the following attributes for an option: value or label.");
@@ -83,6 +83,16 @@ public class OptionsService : IOptionsService
         await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
 
         return deserializedOptions;
+    }
+
+    bool IsNullOrEmptyOptionValue(object value)
+    {
+        if (value == null)
+        {
+            return true;
+        }
+
+        return value is string stringOption && string.IsNullOrEmpty(stringOption);
     }
 
     /// <inheritdoc />
