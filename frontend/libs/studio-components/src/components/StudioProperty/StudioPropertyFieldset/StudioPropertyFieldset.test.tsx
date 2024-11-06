@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import { StudioPropertyFieldset } from './StudioPropertyFieldset';
 import { testRootClassNameAppending } from '../../../test-utils/testRootClassNameAppending';
 import { testRefForwarding } from '../../../test-utils/testRefForwarding';
+import { FieldsetContent } from './test-data/FieldsetContent';
 
 jest.mock('./StudioPropertyFieldset.module.css', () => ({
   propertyFieldset: 'propertyFieldset',
@@ -43,6 +44,16 @@ describe('StudioPropertyFieldset', () => {
   it('Renders a compact fieldset when the compact prop is true', () => {
     render(<StudioPropertyFieldset legend='Test' compact />);
     expect(getGroup()).toHaveClass('compact');
+  });
+
+  it('Renders children', () => {
+    render(
+      <StudioPropertyFieldset legend='Test'>
+        <FieldsetContent />
+      </StudioPropertyFieldset>,
+    );
+    expect(within(getGroup()).getByRole('textbox', { name: 'Name' })).toBeInTheDocument();
+    expect(within(getGroup()).getByRole('textbox', { name: 'Address' })).toBeInTheDocument();
   });
 });
 
