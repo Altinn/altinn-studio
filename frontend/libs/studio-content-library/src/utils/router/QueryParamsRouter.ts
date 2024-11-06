@@ -1,6 +1,6 @@
 import type { PageName } from '../../types/PageName';
 
-const pageRouterQueryParamKey: string = 'currentLibraryRoute';
+export const pageRouterQueryParamKey: string = 'currentLibraryRoute';
 
 export interface QueryParamsRouter {
   currentRoute: PageName;

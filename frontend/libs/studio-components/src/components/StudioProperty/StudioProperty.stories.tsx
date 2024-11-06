@@ -1,89 +1,34 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import {
-  StudioProperty,
-  type StudioPropertyButtonProps,
-  type StudioPropertyGroupProps,
-  type StudioPropertyFieldsetProps,
-} from './index';
-import { type StudioPropertyGroup } from './StudioPropertyGroup';
-
-type PreviewProps = {
-  withoutNegativeMargin: StudioPropertyGroupProps['withoutNegativeMargin'];
-  legend: StudioPropertyFieldsetProps['legend'];
-  buttons: StudioPropertyButtonProps[];
-};
-
-type PreviewStory = StoryFn<PreviewProps>;
-
-const ComposedPreviewComponent = ({ withoutNegativeMargin, legend, buttons }: PreviewProps) => {
-  return (
-    <StudioProperty.Group withoutNegativeMargin={withoutNegativeMargin}>
-      <StudioProperty.Fieldset legend={legend}>
-        {buttons.map((button) => (
-          <StudioProperty.Button key={button.property} {...button} />
-        ))}
-      </StudioProperty.Fieldset>
-    </StudioProperty.Group>
-  );
-};
+import { ComposedComponent } from './test-data/ComposedComponent';
+import { buttons } from './test-data/buttons';
+import { Decorator } from './storybook-utils/Decorator';
 
 const meta: Meta = {
   title: 'Components/StudioProperty',
-  component: ComposedPreviewComponent,
-};
-export const Preview: PreviewStory = (args): React.ReactElement => (
-  <ComposedPreviewComponent {...args} />
-);
-
-Preview.args = {
-  buttons: [
-    {
-      property: 'Home',
-      value: 'Sweet Home 41, 0000 No Where',
-    },
-    {
-      property: 'Cabin',
-      value: 'Mountain Street, 99999 Snow Place',
-    },
-    {
-      property: 'Work',
-      value: 'Workstation 1, 12345 Office Town',
-    },
+  component: ComposedComponent,
+  decorators: [
+    (Story) => (
+      <Decorator>
+        <Story />
+      </Decorator>
+    ),
   ],
-  withoutNegativeMargin: false,
-  legend: 'My addresses',
 };
 
-type GroupStory = StoryFn<typeof StudioPropertyGroup>;
-export const Group: GroupStory = (args): React.ReactElement => (
-  <StudioProperty.Group withoutNegativeMargin={args.withoutNegativeMargin}>
-    {args.children}
-  </StudioProperty.Group>
-);
+export const Preview: PreviewStory = (args): React.ReactElement => <ComposedComponent {...args} />;
 
-Group.args = {
-  withoutNegativeMargin: false,
-  children: "StudioPropertyGroup's children should be StudioProperty.Fieldset component",
+Preview.args = { buttons };
+
+type PreviewProps = {
+  buttons: PreviewButtonProps[];
 };
 
-type FieldsetStory = StoryFn<StudioPropertyFieldsetProps>;
-export const Fieldset: FieldsetStory = (args): React.ReactElement => (
-  <StudioProperty.Fieldset {...args}>{args.children}</StudioProperty.Fieldset>
-);
-
-Fieldset.args = {
-  legend: 'My addresses',
-  children: 'StudioProperty.Fieldset children should be StudioProperty.Button components',
+type PreviewButtonProps = {
+  property: string;
+  value: string;
 };
 
-type ButtonStory = StoryFn<StudioPropertyButtonProps>;
-export const Button: ButtonStory = (args): React.ReactElement => (
-  <StudioProperty.Button {...args} />
-);
-Button.args = {
-  property: 'Home',
-  value: 'Sweet Home 41, 0000 No Where',
-};
+type PreviewStory = StoryFn<PreviewProps>;
 
 export default meta;
