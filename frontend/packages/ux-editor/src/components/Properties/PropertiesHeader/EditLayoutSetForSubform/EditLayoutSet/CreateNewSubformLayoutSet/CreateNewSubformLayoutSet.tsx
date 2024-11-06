@@ -36,7 +36,7 @@ export const CreateNewSubformLayoutSet = ({
   }
 
   function handleCreateSubform() {
-    createSubform({ layoutSetName: newSubform, onSubformCreated });
+    createSubform({ layoutSetName: newSubform, onSubformCreated, selectedOption });
   }
 
   return (
