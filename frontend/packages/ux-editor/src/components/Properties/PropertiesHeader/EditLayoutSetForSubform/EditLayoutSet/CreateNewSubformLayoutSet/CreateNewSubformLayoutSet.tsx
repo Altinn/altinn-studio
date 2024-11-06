@@ -19,17 +19,13 @@ export const CreateNewSubformLayoutSet = ({
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const { createSubform } = useCreateSubform();
+  const { createSubform } = useCreateSubform({ layoutSetName: newSubform, onSubformCreated });
   const [nameError, setNameError] = useState('');
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const subformNameValidation = validateLayoutSetName(e.target.value, layoutSets);
     setNameError(subformNameValidation);
     setNewSubform(e.target.value);
-  }
-
-  function handleCreateSubform() {
-    createSubform({ layoutSetName: newSubform, onSubformCreated });
   }
 
   return (
@@ -48,7 +44,7 @@ export const CreateNewSubformLayoutSet = ({
         <StudioButton
           className={classes.savelayoutSetButton}
           icon={<CheckmarkIcon />}
-          onClick={handleCreateSubform}
+          onClick={createSubform}
           title={t('general.close')}
           disabled={!newSubform || !!nameError}
           variant='tertiary'

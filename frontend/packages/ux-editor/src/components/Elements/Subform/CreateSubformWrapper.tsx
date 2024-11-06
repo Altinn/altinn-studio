@@ -21,11 +21,11 @@ export const CreateSubformWrapper = ({
   const [nameError, setNameError] = useState('');
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const { createSubform } = useCreateSubform();
+  const { createSubform } = useCreateSubform({ layoutSetName: newSubformName, onSubformCreated });
 
   const onCreateConfirmClick = () => {
     setCreateNewOpen(false);
-    createSubform({ layoutSetName: newSubformName, onSubformCreated });
+    createSubform();
   };
 
   const onNameChange = (subformName: string) => {
