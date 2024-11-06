@@ -84,6 +84,35 @@ describe('CreateSubformWrapper', () => {
       layoutSetConfig: { id: subformName, type: 'subform' },
     });
   });
+
+  it('should show spinner when adding subform', async () => {
+    const user = userEvent.setup();
+
+    const addLayoutSetMock = jest.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        }),
+    );
+
+    renderCreateSubformWrapper(undefined, { addLayoutSet: addLayoutSetMock });
+
+    const createSubformButton = screen.getByRole('button', {
+      name: textMock('ux_editor.create.subform'),
+    });
+    await user.click(createSubformButton);
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, subformName);
+
+    const confirmButton = screen.getByRole('button', {
+      name: textMock('ux_editor.create.subform.confirm_button'),
+    });
+    await user.click(confirmButton);
+
+    const spinner = await screen.findByText(textMock('general.loading'));
+    expect(spinner).toBeInTheDocument();
+  });
 });
 
 const renderCreateSubformWrapper = (
