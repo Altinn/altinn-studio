@@ -261,6 +261,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal List<ValidationIssue> AbandonIssues { get; } = [];
 
+    public bool HasAbandonIssues => AbandonIssues.Count > 0;
+
     public void AbandonAllChanges(IEnumerable<ValidationIssue> validationIssues)
     {
         AbandonIssues.AddRange(validationIssues);
@@ -272,7 +274,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     public DataElementChanges GetDataElementChanges(bool initializeAltinnRowId)
     {
-        if (AbandonIssues.Count > 0)
+        if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }
@@ -396,7 +398,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task UpdateInstanceData(DataElementChanges changes)
     {
-        if (AbandonIssues.Count > 0)
+        if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }
@@ -469,7 +471,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
     internal async Task SaveChanges(DataElementChanges changes)
     {
-        if (AbandonIssues.Count > 0)
+        if (HasAbandonIssues)
         {
             throw new InvalidOperationException("AbandonAllChanges has been called, and no changes should be saved");
         }

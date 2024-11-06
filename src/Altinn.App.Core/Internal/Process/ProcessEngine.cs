@@ -197,7 +197,7 @@ public class ProcessEngine : IProcessEngine
             return result;
         }
 
-        if (cachedDataMutator.AbandonIssues.Count > 0)
+        if (cachedDataMutator.HasAbandonIssues)
         {
             throw new Exception(
                 "Abandon issues found in data elements. Abandon issues should be handled by the action handler."

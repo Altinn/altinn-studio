@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
+using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Models;
@@ -16,7 +18,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
@@ -52,7 +53,7 @@ public class DataController : ControllerBase
     private readonly IFileAnalysisService _fileAnalyserService;
     private readonly IFileValidationService _fileValidationService;
     private readonly IFeatureManager _featureManager;
-    private readonly IPatchService _patchService;
+    private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelDeserializer;
 
     private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -85,7 +86,7 @@ public class DataController : ControllerBase
         IFileValidationService fileValidationService,
         IAppMetadata appMetadata,
         IFeatureManager featureManager,
-        IPatchService patchService,
+        InternalPatchService patchService,
         ModelSerializationService modelDeserializer
     )
     {
@@ -366,14 +367,9 @@ public class DataController : ControllerBase
                 language
             );
 
-            if (dataMutator.AbandonIssues.Count > 1)
+            if (dataMutator.GetAbandonResponse() is { } abandonResponse)
             {
-                return new DataPostErrorResponse(
-                    "Data Processing abandoned",
-                    dataMutator
-                        .AbandonIssues.Select(i => ValidationIssueWithSource.FromIssue(i, "dataProcessing", true))
-                        .ToList()
-                );
+                return abandonResponse;
             }
 
             var finalChanges = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
@@ -715,7 +711,7 @@ public class DataController : ControllerBase
                 }
             }
 
-            ServiceResult<DataPatchResult, DataPatchError> res = await _patchService.ApplyPatches(
+            ServiceResult<DataPatchResult, ProblemDetails> res = await _patchService.ApplyPatches(
                 instance,
                 dataPatchRequest.Patches.ToDictionary(i => i.DataElementId, i => i.Patch),
                 language,
@@ -800,16 +796,9 @@ public class DataController : ControllerBase
             var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: false);
             await _patchService.RunDataProcessors(dataMutator, changes, taskId, language);
 
-            if (dataMutator.AbandonIssues.Count > 1)
+            if (dataMutator.GetAbandonResponse() is { } abandonResponse)
             {
-                return BadRequest(
-                    new DataPostErrorResponse(
-                        "DataProcessing abandoned",
-                        dataMutator
-                            .AbandonIssues.Select(i => ValidationIssueWithSource.FromIssue(i, "dataProcessing", true))
-                            .ToList()
-                    )
-                );
+                return Problem(abandonResponse);
             }
             // Get the updated changes for saving
             changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: false);
@@ -1105,16 +1094,9 @@ public class DataController : ControllerBase
         );
         var jsonAfterDataProcessors = JsonSerializer.Serialize(serviceModel);
 
-        if (dataMutator.AbandonIssues.Count > 1)
+        if (dataMutator.GetAbandonResponse() is { } abandonResponse)
         {
-            return BadRequest(
-                new DataPostErrorResponse(
-                    "DataProcessing abandoned",
-                    dataMutator
-                        .AbandonIssues.Select(i => ValidationIssueWithSource.FromIssue(i, "dataProcessing", true))
-                        .ToList()
-                )
-            );
+            return Problem(abandonResponse);
         }
 
         // Save changes
@@ -1151,29 +1133,6 @@ public class DataController : ControllerBase
             HttpStatusCode.Conflict => Conflict(),
             _ => ExceptionResponse(e, defaultMessage)
         };
-    }
-
-    private ObjectResult Problem(DataPatchError error)
-    {
-        var code = error.ErrorType switch
-        {
-            DataPatchErrorType.PatchTestFailed => HttpStatusCode.Conflict,
-            DataPatchErrorType.DeserializationFailed => HttpStatusCode.UnprocessableContent,
-            DataPatchErrorType.AbandonedRequest => HttpStatusCode.BadRequest,
-            _ => HttpStatusCode.InternalServerError
-        };
-
-        return StatusCode(
-            (int)code,
-            new ProblemDetails()
-            {
-                Title = error.Title,
-                Detail = error.Detail,
-                Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
-                Status = (int)code,
-                Extensions = error.Extensions ?? new Dictionary<string, object?>(StringComparer.Ordinal)
-            }
-        );
     }
 
     private ObjectResult Problem(ProblemDetails error)

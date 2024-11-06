@@ -1,4 +1,5 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -9,7 +10,6 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -58,7 +58,7 @@ public class InstancesController_CopyInstanceTests
         ControllerContext controllerContext = new ControllerContext() { HttpContext = _httpContextMock.Object };
 
         var modelSerializationService = new ModelSerializationService(_appModel.Object);
-        var patchService = new PatchService(
+        var patchService = new InternalPatchService(
             _appMetadata.Object,
             _data.Object,
             _instanceClient.Object,

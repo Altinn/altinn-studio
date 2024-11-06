@@ -19,6 +19,17 @@ public interface IInstanceDataAccessor
     IEnumerable<DataElement> DataElements => Instance.Data;
 
     /// <summary>
+    /// Data elements of the instance that has appLogic (form data elements).
+    /// </summary>
+    IEnumerable<DataElement> FormDataElements =>
+        Instance.Data.Where(d => GetDataType(d).AppLogic?.ClassRef is not null);
+
+    /// <summary>
+    /// Data elements of the instance that represents attachments/binary data (no appLogic).
+    /// </summary>
+    IEnumerable<DataElement> BinaryDataElements => Instance.Data.Where(d => GetDataType(d).AppLogic?.ClassRef is null);
+
+    /// <summary>
     /// Get the actual data represented in the data element.
     /// </summary>
     /// <returns>The deserialized data model for this data element or an exception for non-form data elements</returns>

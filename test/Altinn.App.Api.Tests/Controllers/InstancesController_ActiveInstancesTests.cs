@@ -1,4 +1,5 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Models;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -8,7 +9,6 @@ using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Prefill;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
@@ -70,7 +70,7 @@ public class InstancesController_ActiveInstancesTest
             _oarganizationClientMock.Object,
             _envMock.Object,
             _modelSerializationService,
-            new PatchService(
+            new InternalPatchService(
                 _appMetadata.Object,
                 _data.Object,
                 _instanceClient.Object,

@@ -1,6 +1,8 @@
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Altinn.App.Api.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Internal.App;
@@ -12,15 +14,14 @@ using Altinn.App.Core.Models.Result;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using Json.Patch;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.App.Core.Internal.Patch;
+namespace Altinn.App.Api.Helpers.Patch;
 
 /// <summary>
 /// Service for applying patches to form data elements
 /// </summary>
-internal class PatchService : IPatchService
+public class InternalPatchService
 {
     private readonly IAppMetadata _appMetadata;
     private readonly IDataClient _dataClient;
@@ -36,9 +37,9 @@ internal class PatchService : IPatchService
         new() { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, PropertyNameCaseInsensitive = true, };
 
     /// <summary>
-    /// Creates a new instance of the <see cref="PatchService"/> class
+    /// Creates a new instance of the <see cref="InternalPatchService"/> class
     /// </summary>
-    public PatchService(
+    public InternalPatchService(
         IAppMetadata appMetadata,
         IDataClient dataClient,
         IInstanceClient instanceClient,
@@ -61,8 +62,10 @@ internal class PatchService : IPatchService
         _telemetry = telemetry;
     }
 
-    /// <inheritdoc />
-    public async Task<ServiceResult<DataPatchResult, DataPatchError>> ApplyPatches(
+    /// <summary>
+    /// Applies a patch to a Form Data element
+    /// </summary>
+    public async Task<ServiceResult<DataPatchResult, ProblemDetails>> ApplyPatches(
         Instance instance,
         Dictionary<Guid, JsonPatch> patches,
         string? language,
@@ -87,10 +90,11 @@ internal class PatchService : IPatchService
 
             if (dataElement is null)
             {
-                return new DataPatchError()
+                return new ProblemDetails()
                 {
                     Title = "Unknown data element to patch",
                     Detail = $"Data element with id {dataElementGuid} not found in instance",
+                    Status = (int)HttpStatusCode.NotFound,
                 };
             }
 
@@ -103,13 +107,14 @@ internal class PatchService : IPatchService
             if (!patchResult.IsSuccess)
             {
                 bool testOperationFailed = patchResult.Error.Contains("is not equal to the indicated value.");
-                return new DataPatchError()
+                return new ProblemDetails()
                 {
                     Title = testOperationFailed ? "Precondition in patch failed" : "Patch Operation Failed",
                     Detail = patchResult.Error,
-                    ErrorType = testOperationFailed
-                        ? DataPatchErrorType.PatchTestFailed
-                        : DataPatchErrorType.DeserializationFailed,
+                    Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
+                    Status = testOperationFailed
+                        ? (int)HttpStatusCode.Conflict
+                        : (int)HttpStatusCode.UnprocessableContent,
                     Extensions = new Dictionary<string, object?>()
                     {
                         { "previousModel", oldModel },
@@ -121,11 +126,12 @@ internal class PatchService : IPatchService
             var newModelResult = DeserializeModel(oldModel.GetType(), patchResult.Result);
             if (!newModelResult.Success)
             {
-                return new DataPatchError()
+                return new ProblemDetails()
                 {
                     Title = "Patch operation did not deserialize",
+                    Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
                     Detail = newModelResult.Error,
-                    ErrorType = DataPatchErrorType.DeserializationFailed
+                    Status = (int)HttpStatusCode.UnprocessableContent
                 };
             }
 
@@ -155,18 +161,9 @@ internal class PatchService : IPatchService
             language
         );
 
-        if (dataAccessor.AbandonIssues.Count > 0)
+        if (dataAccessor.GetAbandonResponse() is { } abandonResponse)
         {
-            return new DataPatchError()
-            {
-                Title = "Data processors abandoned the patch",
-                Detail = "Data processors abandoned the patch",
-                ErrorType = DataPatchErrorType.AbandonedRequest,
-                Extensions = new Dictionary<string, object?>()
-                {
-                    { "uploadValidationIssues", dataAccessor.AbandonIssues },
-                } // use same key as in DataPostErrorResponse
-            };
+            return abandonResponse;
         }
 
         // Get all changes to data elements by comparing the serialized values
@@ -232,6 +229,9 @@ internal class PatchService : IPatchService
         };
     }
 
+    /// <summary>
+    /// Runs incremental validation on the changes.
+    /// </summary>
     public async Task<List<ValidationSourcePair>> RunIncrementalValidation(
         IInstanceDataAccessor dataAccessor,
         string taskId,
@@ -249,6 +249,9 @@ internal class PatchService : IPatchService
         );
     }
 
+    /// <summary>
+    /// Runs <see cref="IDataProcessor.ProcessDataWrite"/> and <see cref="IDataWriteProcessor.ProcessDataWrite"/> on the changes.
+    /// </summary>
     public async Task RunDataProcessors(
         IInstanceDataMutator dataMutator,
         DataElementChanges changes,

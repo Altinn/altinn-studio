@@ -3,6 +3,7 @@ using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Controllers.Attributes;
 using Altinn.App.Api.Controllers.Conventions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Infrastructure.Health;
 using Altinn.App.Api.Infrastructure.Middleware;
@@ -101,6 +102,7 @@ public static class ServiceCollectionExtensions
         AddAntiforgery(services);
 
         services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
+        services.AddTransient<InternalPatchService>();
 
         services.Configure<KestrelServerOptions>(options =>
         {

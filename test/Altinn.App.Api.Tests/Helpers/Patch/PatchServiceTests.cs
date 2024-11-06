@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net;
+using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -7,7 +9,6 @@ using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Internal.Instances;
-using Altinn.App.Core.Internal.Patch;
 using Altinn.App.Core.Internal.Validation;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
@@ -16,7 +17,6 @@ using FluentAssertions;
 using Json.Patch;
 using Json.Pointer;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -55,7 +55,7 @@ public sealed class PatchServiceTests : IDisposable
     private readonly Mock<IDataElementValidator> _dataElementValidator = new(MockBehavior.Strict);
 
     // System under test
-    private readonly PatchService _patchService;
+    private readonly InternalPatchService _patchService;
     private readonly ModelSerializationService _modelSerializationService;
 
     public PatchServiceTests()
@@ -100,7 +100,7 @@ public sealed class PatchServiceTests : IDisposable
 
         _modelSerializationService = new ModelSerializationService(_appModelMock.Object);
 
-        _patchService = new PatchService(
+        _patchService = new InternalPatchService(
             _appMetadataMock.Object,
             _dataClientMock.Object,
             _instanceClientMock.Object,
@@ -234,7 +234,7 @@ public sealed class PatchServiceTests : IDisposable
         err.Should().NotBeNull();
         err!.Title.Should().Be("Precondition in patch failed");
         err.Detail.Should().Be("Path `/Name` is not equal to the indicated value.");
-        err.ErrorType.Should().Be(DataPatchErrorType.PatchTestFailed);
+        err.Status.Should().Be((int)HttpStatusCode.Conflict);
         err.Extensions.Should().ContainKey("previousModel");
         err.Extensions.Should().ContainKey("patchOperationIndex");
     }
@@ -286,7 +286,7 @@ public sealed class PatchServiceTests : IDisposable
             .Be(
                 "The JSON property 'Age' could not be mapped to any .NET member contained in type 'Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel'."
             );
-        err.ErrorType.Should().Be(DataPatchErrorType.DeserializationFailed);
+        err.Status.Should().Be((int)HttpStatusCode.UnprocessableEntity);
     }
 
     private void SetupDataClient(MyModel oldModel)
