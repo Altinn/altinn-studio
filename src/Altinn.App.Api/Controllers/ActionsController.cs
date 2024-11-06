@@ -179,6 +179,25 @@ public class ActionsController : ControllerBase
             );
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
+
+        // Ensure that the data mutator has the previous binary data for the data elements
+        // that were updated so that it shows up in diff for validation
+        // and ensures that it gets saved to storage
+        if (result.UpdatedDataModels is { Count: > 0 })
+        {
+            await Task.WhenAll(
+                result.UpdatedDataModels.Select(row => dataMutator.GetFormData(new DataElementIdentifier(row.Key)))
+            );
+            foreach (var (elementId, data) in result.UpdatedDataModels)
+            {
+                // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
+                // we still need to return it to the frontend, but we assume it was already saved to storage
+                dataMutator.SetFormData(new DataElementIdentifier(elementId), data);
+            }
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+
         var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
 
         await dataMutator.UpdateInstanceData(changes);
@@ -198,17 +217,6 @@ public class ActionsController : ControllerBase
             c => c.CurrentFormData
         );
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        if (result.UpdatedDataModels is { Count: > 0 })
-        {
-            foreach (var (elementId, data) in result.UpdatedDataModels)
-            {
-                // If the data mutator missed a that was returned with the deprecated UpdatedDataModels
-                // we still need to return it to the frontend, but we assume it was already saved to storage
-                updatedDataModels.TryAdd(elementId, data);
-            }
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
         return Ok(
             new UserActionResponse()
             {
