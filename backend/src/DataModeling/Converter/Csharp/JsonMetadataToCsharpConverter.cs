@@ -514,6 +514,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     or BaseValueType.Time
                     or BaseValueType.TimePeriod
                     or BaseValueType.Date
+                    or BaseValueType.AnyURI
                     or null => ("string", false),
                 BaseValueType.Int => ("int", true),
                 BaseValueType.Short => ("short", true),

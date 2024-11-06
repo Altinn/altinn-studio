@@ -33,12 +33,12 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         var newOptionsList = new List<Option>
         {
-            new Option
+            new ()
             {
                 Label = "label1",
                 Value = "value1",
             },
-            new Option
+            new ()
             {
                 Label = "label2",
                 Value = "value2",
@@ -68,6 +68,45 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
     }
 
     [Fact]
+    public async Task Put_Returns_200OK_When_Option_Values_Are_Bool_String_Double()
+    {
+        string repo = "app-with-options";
+        string optionsListId = "test-options";
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+
+        var stringBoolDoubleOptionsList = new List<Option>
+        {
+            new ()
+            {
+                Label = "StringValue",
+                Value = "value1",
+            },
+            new ()
+            {
+                Label = "BoolValue",
+                Value = true,
+            },
+            new ()
+            {
+                Label = "DoubleValue",
+                Value = 3.1415,
+            }
+        };
+        httpRequestMessage.Content = JsonContent.Create(stringBoolDoubleOptionsList);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Fact]
     public async Task Put_Returns_200OK_And_Overwrites_Existing_OptionsList()
     {
         // Arrange
@@ -79,12 +118,12 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         var newOptionsList = new List<Option>
         {
-            new Option
+            new ()
             {
                 Label = "aNewLabelThatDidNotExistBefore",
                 Value = "aNewValueThatDidNotExistBefore",
             },
-            new Option
+            new ()
             {
                 Label = "label2",
                 Value = "value2",
@@ -129,12 +168,12 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         {
             var invalidOptionsList = new List<Option>
             {
-                new Option
+                new ()
                 {
                     // Missing Label
                     Value = "value1",
                 },
-                new Option
+                new ()
                 {
                     Label = "label2",
                     Value = "value2",
@@ -146,6 +185,35 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         {
             httpRequestMessage.Content = JsonContent.Create<List<Option>>(null);
         }
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_Returns_400BadRequest_When_Option_Value_Is_Invalid()
+    {
+        string repo = "app-with-options";
+        string optionsListId = "test-options";
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+
+        var invalidOptionsList = new List<Option>
+        {
+            new ()
+            {
+                Label = "ObjectValue",
+                Value = { },
+            },
+        };
+        httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
