@@ -1,6 +1,6 @@
 import React from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { Divider, SimpleContainer } from 'app-shared/primitives';
+import { Divider } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
 interface Resource {
@@ -215,7 +215,7 @@ const resources: Resource[] = [
 export function Resources() {
   const { t } = useTranslation();
   return (
-    <SimpleContainer>
+    <div className={classes.wrapper}>
       <h2>{t('dashboard.resources')}</h2>
       <Divider marginless />
       <div className={classes.resourcesContainer}>
@@ -229,6 +229,6 @@ export function Resources() {
           />
         ))}
       </div>
-    </SimpleContainer>
+    </div>
   );
 }
