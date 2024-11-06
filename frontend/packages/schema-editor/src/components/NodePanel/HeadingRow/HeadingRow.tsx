@@ -65,8 +65,7 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
         </StudioButton>
       </StudioHeading>
       {isValidParent && <AddNodeMenu schemaPointer={schemaPointer} />}
-      <DeleteButton schemaPointer={schemaPointer} />
-      {/*{!isDataModelRoot && <BackButton />}*/}
+      {isDataModelRoot ? <DeleteModelButton /> : <DeleteTypeButton schemaPointer={schemaPointer} />}
     </div>
   );
 };
@@ -154,48 +153,23 @@ const AddNodeMenuItem = ({ titleKey, icon, action }: AddNodeMenuItemProps) => {
   );
 };
 
-type DeleteButtonProps = HeadingRowProps;
-
-const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
+const DeleteTypeButton = ({ schemaPointer }: HeadingRowProps) => {
   const { t } = useTranslation();
   const savableModel = useSavableSchemaModel();
   const { setSelectedUniquePointer, setSelectedTypePointer } = useSchemaEditorAppContext();
-  const { selectedOption } = useDataModelToolbarContext();
-  const { mutate } = useDeleteDataModelMutation();
-  const { org, app } = useStudioEnvironmentParams();
-  const updateBpmn = useUpdateBpmn(org, app);
 
   const isInUse = savableModel.hasReferringNodes(schemaPointer);
-  const modelPath = selectedOption?.value.repositoryRelativeUrl;
-  const schemaName = selectedOption?.value && selectedOption?.label;
 
-  const handleDelete = async () => {
-    if (schemaPointer) {
-      deleteType();
-    } else {
-      await deleteModel();
-    }
-  };
-
-  const deleteType = () => {
+  const handleDeleteType = () => {
     setSelectedUniquePointer(null);
     setSelectedTypePointer(null);
     savableModel.deleteNode(schemaPointer);
   };
 
-  const deleteModel = async () => {
-    mutate(modelPath, {
-      onSuccess: async () => {
-        await updateBpmn(removeDataTypeIdsToSign([schemaName]));
-      },
-    });
-  };
-
-  // Needs if checks and custom texts for deleting data models
   return (
     <StudioDeleteButton
       disabled={isInUse}
-      onDelete={handleDelete}
+      onDelete={handleDeleteType}
       confirmMessage={t('schema_editor.confirm_type_deletion')}
       size='small'
       title={isInUse ? t('schema_editor.cannot_delete_definition_in_use') : t('general.delete')}
@@ -205,12 +179,32 @@ const DeleteButton = ({ schemaPointer }: DeleteButtonProps) => {
   );
 };
 
-// const BackButton = () => (
-//   <div
-//     style={{
-//       marginInline: 'auto 16px',
-//     }}
-//   >
-//     <StudioButton icon={<ArrowLeftIcon />}>Tilbake til datamodell</StudioButton>
-//   </div>
-// );
+const DeleteModelButton = () => {
+  const { t } = useTranslation();
+  const { selectedOption } = useDataModelToolbarContext();
+  const { mutate } = useDeleteDataModelMutation();
+  const { org, app } = useStudioEnvironmentParams();
+  const updateBpmn = useUpdateBpmn(org, app);
+
+  const modelPath = selectedOption?.value.repositoryRelativeUrl;
+  const schemaName = selectedOption?.value && selectedOption?.label;
+
+  const handleDeleteModel = async () => {
+    mutate(modelPath, {
+      onSuccess: async () => {
+        await updateBpmn(removeDataTypeIdsToSign([schemaName]));
+      },
+    });
+  };
+
+  return (
+    <StudioDeleteButton
+      onDelete={handleDeleteModel}
+      confirmMessage={t('schema_editor.delete_model_confirm', { schemaName })}
+      size='small'
+      title={t('general.delete')}
+    >
+      {t('general.delete')}
+    </StudioDeleteButton>
+  );
+};

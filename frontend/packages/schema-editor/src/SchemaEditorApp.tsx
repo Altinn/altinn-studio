@@ -16,8 +16,6 @@ export type SchemaEditorAppProps = {
 };
 
 export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps) {
-  // const [selectedTypePointer, setSelectedTypePointer] = useState<string>(null);
-  // const [selectedUniquePointer, setSelectedUniquePointer] = useState<string>(null);
   const {
     selectedTypePointer,
     setSelectedTypePointer,
@@ -35,7 +33,15 @@ export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps
       setSelectedUniquePointer,
       name,
     }),
-    [jsonSchema, save, selectedTypePointer, selectedUniquePointer, name],
+    [
+      jsonSchema,
+      selectedTypePointer,
+      setSelectedTypePointer,
+      selectedUniquePointer,
+      setSelectedUniquePointer,
+      name,
+      save,
+    ],
   );
 
   return (
