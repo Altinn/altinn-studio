@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioPopover, StudioSpinner, StudioTextfield } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
@@ -21,11 +21,11 @@ export const CreateSubformWrapper = ({
   const [nameError, setNameError] = useState('');
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const { createSubform } = useCreateSubform({ layoutSetName: newSubformName, onSubformCreated });
+  const { createSubform, isPendingLayoutSetMutation } = useCreateSubform();
 
   const onCreateConfirmClick = () => {
     setCreateNewOpen(false);
-    createSubform();
+    onSubformCreated(newSubformName);
   };
 
   const onNameChange = (subformName: string) => {
@@ -34,8 +34,17 @@ export const CreateSubformWrapper = ({
     setNewSubformName(subformName);
   };
 
+  const createSubformButtonContent = isPendingLayoutSetMutation ? (
+    <StudioSpinner spinnerTitle={t('general.loading')} />
+  ) : (
+    t('ux_editor.create.subform.confirm_button')
+  );
+
   return (
-    <StudioPopover open={createNewOpen} onOpenChange={setCreateNewOpen}>
+    <StudioPopover
+      open={createNewOpen}
+      onOpenChange={!isPendingLayoutSetMutation && setCreateNewOpen}
+    >
       <StudioPopover.Trigger asChild>
         <StudioButton
           icon={<PlusIcon />}
@@ -52,14 +61,17 @@ export const CreateSubformWrapper = ({
           value={newSubformName}
           onChange={(e) => onNameChange(e.target.value)}
           error={nameError}
+          disabled={isPendingLayoutSetMutation}
         />
         <StudioButton
           className={classes.confirmCreateButton}
           variant='secondary'
-          onClick={onCreateConfirmClick}
+          onClick={() =>
+            createSubform({ layoutSetName: newSubformName, onSubformCreated: onCreateConfirmClick })
+          }
           disabled={!newSubformName || !!nameError}
         >
-          {t('ux_editor.create.subform.confirm_button')}
+          {createSubformButtonContent}
         </StudioButton>
       </StudioPopover.Content>
     </StudioPopover>

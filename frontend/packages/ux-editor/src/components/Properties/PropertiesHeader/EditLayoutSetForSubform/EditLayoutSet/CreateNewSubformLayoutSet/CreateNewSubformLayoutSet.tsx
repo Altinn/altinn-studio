@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioCard, StudioSpinner, StudioTextfield } from '@studio/components';
 import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewSubformLayoutSet.module.css';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
@@ -19,14 +19,20 @@ export const CreateNewSubformLayoutSet = ({
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const { createSubform } = useCreateSubform({ layoutSetName: newSubform, onSubformCreated });
+  const { createSubform, isPendingLayoutSetMutation } = useCreateSubform();
   const [nameError, setNameError] = useState('');
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const subformNameValidation = validateLayoutSetName(e.target.value, layoutSets);
+  function handleChange(subformName: string) {
+    const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
     setNameError(subformNameValidation);
-    setNewSubform(e.target.value);
+    setNewSubform(subformName);
   }
+
+  const saveIcon = isPendingLayoutSetMutation ? (
+    <StudioSpinner spinnerTitle={t('general.loading')} />
+  ) : (
+    <CheckmarkIcon />
+  );
 
   return (
     <StudioCard>
@@ -38,13 +44,14 @@ export const CreateNewSubformLayoutSet = ({
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
           value={newSubform}
           size='sm'
-          onChange={handleChange}
+          disabled={isPendingLayoutSetMutation}
+          onChange={(e) => handleChange(e.target.value)}
           error={nameError}
         />
         <StudioButton
           className={classes.savelayoutSetButton}
-          icon={<CheckmarkIcon />}
-          onClick={createSubform}
+          icon={saveIcon}
+          onClick={() => createSubform({ layoutSetName: newSubform, onSubformCreated })}
           title={t('general.close')}
           disabled={!newSubform || !!nameError}
           variant='tertiary'
