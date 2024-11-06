@@ -11,16 +11,16 @@ import { useDataModelToolbarContext } from '@altinn/schema-editor/contexts/DataM
 
 export type SchemaEditorAppProps = {
   jsonSchema: JsonSchema;
-  name: string;
   save: (model: JsonSchema) => void;
 };
 
-export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps) {
+export function SchemaEditorApp({ jsonSchema, save }: SchemaEditorAppProps) {
   const {
     selectedTypePointer,
     setSelectedTypePointer,
     selectedUniquePointer,
     setSelectedUniquePointer,
+    selectedModelName,
   } = useDataModelToolbarContext();
 
   const value = useMemo<SchemaEditorAppContextProps>(
@@ -31,7 +31,7 @@ export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps
       setSelectedTypePointer,
       selectedUniquePointer,
       setSelectedUniquePointer,
-      name,
+      name: selectedModelName,
     }),
     [
       jsonSchema,
@@ -39,7 +39,7 @@ export function SchemaEditorApp({ jsonSchema, name, save }: SchemaEditorAppProps
       setSelectedTypePointer,
       selectedUniquePointer,
       setSelectedUniquePointer,
-      name,
+      selectedModelName,
       save,
     ],
   );

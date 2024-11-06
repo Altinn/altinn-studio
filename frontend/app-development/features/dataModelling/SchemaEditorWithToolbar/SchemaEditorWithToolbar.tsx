@@ -19,7 +19,6 @@ export const SchemaEditorWithToolbar = ({
   dataModels,
 }: SchemaEditorWithToolbarProps) => {
   const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
-  // const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
   const { selectedOption, setSelectedOption } = useDataModelToolbarContext();
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();

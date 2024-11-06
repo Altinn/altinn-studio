@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { MetadataOption } from '../../../../app-development/types/MetadataOption';
+import type { MetadataOption } from '../../../../app-development/types/MetadataOption';
 
 type DataModelToolbarContextProps = {
   selectedTypePointer: string;
@@ -8,6 +8,8 @@ type DataModelToolbarContextProps = {
   setSelectedUniquePointer: React.Dispatch<React.SetStateAction<string>>;
   selectedOption: MetadataOption;
   setSelectedOption: React.Dispatch<React.SetStateAction<MetadataOption>>;
+  selectedModelName: string | undefined;
+  selectedTypeName: string | undefined;
 };
 
 const DataModelToolbarContext = createContext<DataModelToolbarContextProps>(null);
@@ -23,6 +25,9 @@ export const DataModelToolbarContextProvider = ({
   const [selectedUniquePointer, setSelectedUniquePointer] = useState<string>(null);
   const [selectedOption, setSelectedOption] = useState<MetadataOption>(null);
 
+  const selectedModelName: string | undefined = selectedOption?.label ?? undefined;
+  const selectedTypeName: string | undefined = getTypeName(selectedUniquePointer);
+
   const value = {
     selectedTypePointer,
     setSelectedTypePointer,
@@ -30,6 +35,8 @@ export const DataModelToolbarContextProvider = ({
     setSelectedUniquePointer,
     selectedOption,
     setSelectedOption,
+    selectedModelName,
+    selectedTypeName,
   };
 
   return (
@@ -45,4 +52,12 @@ export const useDataModelToolbarContext = (): Partial<DataModelToolbarContextPro
     );
   }
   return context;
+};
+
+const getTypeName = (selectedUniquePointer?: string | undefined): string | undefined => {
+  if (selectedUniquePointer) {
+    const indexOfLastDash = selectedUniquePointer.lastIndexOf('/');
+    return selectedUniquePointer.substring(indexOfLastDash + 1);
+  }
+  return undefined;
 };

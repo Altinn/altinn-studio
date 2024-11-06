@@ -16,7 +16,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { mergeJsonAndXsdData } from 'app-development/utils/metadataUtils';
-import { extractFilename, removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 export interface SelectedSchemaEditorProps {
   modelPath: string;
 }
@@ -101,16 +100,5 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
     if (doesModelExist()) saveFunction();
   });
 
-  return (
-    <SchemaEditorApp
-      jsonSchema={model}
-      save={saveSchema}
-      name={extractModelNameFromPath(modelPath)}
-    />
-  );
-};
-
-const extractModelNameFromPath = (path: string): string => {
-  const filename = extractFilename(path);
-  return removeSchemaExtension(filename);
+  return <SchemaEditorApp jsonSchema={model} save={saveSchema} />;
 };

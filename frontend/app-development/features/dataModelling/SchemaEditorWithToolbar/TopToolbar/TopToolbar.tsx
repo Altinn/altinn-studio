@@ -38,11 +38,12 @@ export function TopToolbar({
 }: TopToolbarProps) {
   const prevDataModels = usePrevious(dataModels);
   const { selectedTypePointer } = useDataModelToolbarContext();
-  const showTypeToolbar: boolean = !!selectedTypePointer;
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
   }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
+
+  const showTypeToolbar: boolean = !!selectedTypePointer;
 
   return (
     <section
@@ -69,32 +70,21 @@ type TypeToolbarProps = {
 };
 
 const TypeToolbar = ({ dataModelName }: TypeToolbarProps) => {
-  const { setSelectedTypePointer, setSelectedUniquePointer, selectedUniquePointer } =
-    useDataModelToolbarContext();
+  const { setSelectedTypePointer, setSelectedUniquePointer } = useDataModelToolbarContext();
 
   const navigateToDataModelRoot = () => {
     setSelectedUniquePointer(undefined);
     setSelectedTypePointer(undefined);
   };
 
-  const typeName = selectedUniquePointer.substring(selectedUniquePointer.lastIndexOf('/') + 1);
-
   const showBreadcrumbs = false;
 
   return (
     <div className={classes.typeToolbar}>
       {showBreadcrumbs ? (
-        <BreadcrumbsToolbar
-          navigateToDataModelRoot={navigateToDataModelRoot}
-          dataModelName={dataModelName}
-          typeName={typeName}
-        />
+        <BreadcrumbsToolbar navigateToDataModelRoot={navigateToDataModelRoot} />
       ) : (
-        <BackButtonToolbar
-          navigateToDataModelRoot={navigateToDataModelRoot}
-          dataModelName={dataModelName}
-          typeName={typeName}
-        />
+        <BackButtonToolbar navigateToDataModelRoot={navigateToDataModelRoot} />
       )}
     </div>
   );
@@ -102,40 +92,34 @@ const TypeToolbar = ({ dataModelName }: TypeToolbarProps) => {
 
 type BreadcrumbsToolbarProps = {
   navigateToDataModelRoot: () => void;
-  dataModelName: string;
-  typeName: string;
 };
 
-const BreadcrumbsToolbar = ({
-  navigateToDataModelRoot,
-  dataModelName,
-  typeName,
-}: BreadcrumbsToolbarProps) => {
+const BreadcrumbsToolbar = ({ navigateToDataModelRoot }: BreadcrumbsToolbarProps) => {
+  const { selectedModelName, selectedTypeName } = useDataModelToolbarContext();
+
   return (
     <div className={classes.breadcrumbs}>
       <Link onClick={() => navigateToDataModelRoot()}>
-        Datamodell: <b>{dataModelName}</b>
+        Datamodell: <b>{selectedModelName}</b>
       </Link>
       <ChevronRightIcon />
       <StudioParagraph size='sm'>
-        Type: <b>{typeName}</b>
+        Type: <b>{selectedTypeName}</b>
       </StudioParagraph>
     </div>
   );
 };
 
-const BackButtonToolbar = ({
-  navigateToDataModelRoot,
-  dataModelName,
-  typeName,
-}: BreadcrumbsToolbarProps) => {
+const BackButtonToolbar = ({ navigateToDataModelRoot }: BreadcrumbsToolbarProps) => {
+  const { selectedModelName, selectedTypeName } = useDataModelToolbarContext();
+
   return (
     <>
       <Label size='sm'>
-        Type: <b>{typeName}</b>
+        Type: <b>{selectedTypeName}</b>
       </Label>
       <StudioButton onClick={() => navigateToDataModelRoot()} icon={<ArrowLeftIcon />}>
-        Tilbake til datamodell <b>{dataModelName}</b>
+        Tilbake til datamodell <b>{selectedModelName}</b>
       </StudioButton>
     </>
   );
