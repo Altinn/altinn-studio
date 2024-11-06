@@ -21,12 +21,17 @@ describe('useCreateSubform', () => {
 
     createSubform({ layoutSetName: subformName, onSubformCreated });
 
-    expect(addLayoutSetMock).toHaveBeenCalledWith({
-      layoutSetIdToUpdate: subformName,
-      layoutSetConfig: {
-        id: subformName,
-        type: 'subform',
+    expect(addLayoutSetMock).toHaveBeenCalledWith(
+      {
+        layoutSetIdToUpdate: subformName,
+        layoutSetConfig: {
+          id: subformName,
+          type: 'subform',
+        },
       },
-    });
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
   });
 });
