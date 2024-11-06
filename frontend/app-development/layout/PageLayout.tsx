@@ -10,13 +10,15 @@ import { NotFoundPage } from './NotFoundPage';
 import { useTranslation } from 'react-i18next';
 import { WebSocketSyncWrapper } from '../components';
 import { PageHeaderContextProvider } from 'app-development/contexts/PageHeaderContext';
+import { useOpenSettingsModalBasedQueryParam } from '../hooks/useOpenSettingsModalBasedQueryParam';
+import { type AxiosError } from 'axios';
+import { type RepoStatus } from 'app-shared/types/RepoStatus';
 
 /**
  * Displays the layout for the app development pages
  */
 export const PageLayout = (): React.ReactNode => {
   const { t } = useTranslation();
-
   const { pathname } = useLocation();
   const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
@@ -41,20 +43,6 @@ export const PageLayout = (): React.ReactNode => {
     );
   }
 
-  const renderPages = () => {
-    if (repoStatusError?.response?.status === ServerCodes.NotFound) {
-      return <NotFoundPage />;
-    }
-    if (repoStatus?.hasMergeConflict) {
-      return <MergeConflictWarning />;
-    }
-    return (
-      <WebSocketSyncWrapper>
-        <Outlet />
-      </WebSocketSyncWrapper>
-    );
-  };
-
   return (
     <>
       <PageHeaderContextProvider user={user} repoOwnerIsOrg={repoOwnerIsOrg}>
@@ -63,7 +51,27 @@ export const PageLayout = (): React.ReactNode => {
           isRepoError={repoStatusError !== null}
         />
       </PageHeaderContextProvider>
-      {renderPages()}
+      <PagesToRender repoStatus={repoStatus} repoStatusError={repoStatusError} />
     </>
+  );
+};
+
+type PagesToRenderProps = {
+  repoStatusError: AxiosError;
+  repoStatus: RepoStatus;
+};
+const PagesToRender = ({ repoStatusError, repoStatus }: PagesToRenderProps) => {
+  // Listen to URL-search params and opens settings-modal if params matches.
+  useOpenSettingsModalBasedQueryParam();
+  if (repoStatusError?.response?.status === ServerCodes.NotFound) {
+    return <NotFoundPage />;
+  }
+  if (repoStatus?.hasMergeConflict) {
+    return <MergeConflictWarning />;
+  }
+  return (
+    <WebSocketSyncWrapper>
+      <Outlet />
+    </WebSocketSyncWrapper>
   );
 };
