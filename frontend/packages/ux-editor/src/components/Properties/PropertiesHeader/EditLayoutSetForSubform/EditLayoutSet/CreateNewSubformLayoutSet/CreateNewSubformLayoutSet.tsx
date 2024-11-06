@@ -2,44 +2,40 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
 import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
-import { useAddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './CreateNewSubformLayoutSet.module.css';
 import type { MetadataOption } from 'app-development/types/MetadataOption';
 import { useDataModelsJsonQuery } from 'app-shared/hooks/queries';
 import { SubformDataModelSelect } from './SubformDataModelSelect';
+import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
+import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 type CreateNewSubformLayoutSetProps = {
   onSubformCreated: (layoutSetName: string) => void;
+  layoutSets: LayoutSets;
 };
 
 export const CreateNewSubformLayoutSet = ({
   onSubformCreated,
+  layoutSets,
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | null>(null);
   const jsonQuery = useDataModelsJsonQuery(org, app);
-
-  const createNewSubform = () => {
-    if (!newSubform) return;
-    addLayoutSet({
-      layoutSetIdToUpdate: newSubform,
-      layoutSetConfig: {
-        id: newSubform,
-        type: 'subform',
-        dataType: selectedOption?.value?.fileName,
-      },
-    });
-    onSubformCreated(newSubform);
-    setNewSubform('');
-    setSelectedOption(null);
-  };
+  const { validateLayoutSetName } = useValidateLayoutSetName();
+  const { createSubform } = useCreateSubform();
+  const [nameError, setNameError] = useState('');
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const subformNameValidation = validateLayoutSetName(e.target.value, layoutSets);
+    setNameError(subformNameValidation);
     setNewSubform(e.target.value);
+  }
+
+  function handleCreateSubform() {
+    createSubform({ layoutSetName: newSubform, onSubformCreated });
   }
 
   return (
@@ -53,6 +49,7 @@ export const CreateNewSubformLayoutSet = ({
           value={newSubform}
           size='sm'
           onChange={handleChange}
+          error={nameError}
         />
         <SubformDataModelSelect
           dataModels={jsonQuery.data || []}
@@ -63,8 +60,9 @@ export const CreateNewSubformLayoutSet = ({
         <StudioButton
           className={classes.savelayoutSetButton}
           icon={<CheckmarkIcon />}
-          onClick={createNewSubform}
+          onClick={handleCreateSubform}
           title={t('general.close')}
+          disabled={!newSubform || !!nameError}
           variant='tertiary'
           color='success'
         />

@@ -7,9 +7,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { MemoryRouter } from 'react-router-dom';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { QueryClient } from '@tanstack/react-query';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { app, org } from '@studio/testing/testids';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { useSelectedFormLayoutSetName } from './useSelectedFormLayoutSetName';
 import { type LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
@@ -56,18 +53,15 @@ const wrapper = ({
 describe('useSelectedFormLayoutSetName', () => {
   afterEach(jest.clearAllMocks);
 
-  it('should return undefined when there are no layout sets', async () => {
-    const { result } = renderHook(() => useSelectedFormLayoutSetName(), { wrapper });
-    expect(result.current.selectedFormLayoutSetName).toEqual(undefined);
+  it('should return empty string when there are no layout sets', async () => {
+    const { result } = renderHook(() => useSelectedFormLayoutSetName(undefined), { wrapper });
+    expect(result.current.selectedFormLayoutSetName).toEqual('');
   });
 
   it('should return default layout set when selected does not exist', async () => {
     const client = createQueryClientMock();
-    const storageKey = 'layoutSet/' + app;
-    typedLocalStorage.setItem(storageKey, 'nonExistingLayoutSet');
 
-    client.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
-    const { result } = renderHook(() => useSelectedFormLayoutSetName(), {
+    const { result } = renderHook(() => useSelectedFormLayoutSetName(layoutSetsMock), {
       wrapper: ({ children }) => {
         return wrapper({ children, client });
       },
@@ -77,9 +71,8 @@ describe('useSelectedFormLayoutSetName', () => {
 
   it('should return selected layout set when selected does exist', async () => {
     const client = createQueryClientMock();
-    client.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
 
-    const { result } = renderHook(() => useSelectedFormLayoutSetName(), {
+    const { result } = renderHook(() => useSelectedFormLayoutSetName(layoutSetsMock), {
       wrapper: ({ children }) => {
         return wrapper({ children, client });
       },

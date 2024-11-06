@@ -1,0 +1,9 @@
+.libraryContent {
+  display: grid;
+  grid-template-columns: 2fr 7fr 3fr;
+  height: 100%;
+}
+
+.component {
+  padding: var(--fds-spacing-10);
+}
