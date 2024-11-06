@@ -13,7 +13,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('useOpenSettingsModalBasedQueryParam', () => {
-  it('should open dialog if query params has valid tab id', async () => {
+  it('should open "settingsModal" if query params has valid tab id', async () => {
     const searchParams = buildSearchParams('about');
     setupSearchParamMock(searchParams);
 
@@ -24,7 +24,7 @@ describe('useOpenSettingsModalBasedQueryParam', () => {
     await waitFor(() => expect(openSettingsMock).toHaveBeenCalledWith('about'));
   });
 
-  it('should not open dialog of query params has invalid tab id', async () => {
+  it('should not open "settingsModal" if query params has an invalid tab id', async () => {
     const searchParams = buildSearchParams('doestNotExistTab');
     setupSearchParamMock(searchParams);
 
