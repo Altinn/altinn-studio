@@ -5,7 +5,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 type CreateSubformProps = {
   layoutSetName: string;
   onSubformCreated: (layoutSetName: string) => void;
-  selectedOption: MetadataOption | null;
+  selectedOption?: MetadataOption | null;
 };
 
 export const useCreateSubform = () => {
