@@ -1,5 +1,5 @@
-import type { PageName } from '../../types/PageName';
-import type { InfoBoxProps } from '../../types/InfoBoxProps';
+import type { PageName } from '../../../types/PageName';
+import type { InfoBoxProps } from '../../../types/InfoBoxProps';
 
 export type InfoBoxConfigs = Partial<{ [T in PageName]: InfoBoxProps }>;
 

@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { RefAttributes, SVGProps } from 'react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import {
   AccordionIcon,
@@ -41,16 +41,20 @@ import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
-export type FormItemConfig<T extends ComponentType = ComponentType> = {
-  name: T;
+export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
+  name: ComponentType | CustomComponentType;
+  getDisplayName?: (
+    formItem: ComponentSpecificConfig<ComponentType>,
+  ) => ComponentType | CustomComponentType;
+  componentRef?: ComponentType;
   itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
-  defaultProperties: ComponentSpecificConfig<T>;
+  defaultProperties: ComponentSpecificConfig;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
+export type FormItemConfigs = { [T in ComponentType | CustomComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -154,12 +158,45 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.CustomButton]: {
     name: ComponentType.CustomButton,
     itemType: LayoutItemType.Component,
+    getDisplayName: ({
+      actions,
+    }: ComponentSpecificConfig<ComponentType.CustomButton>):
+      | ComponentType
+      | CustomComponentType => {
+      const isCloseSubformAction =
+        actions?.length === 1 &&
+        actions[0]?.id === 'closeSubform' &&
+        actions[0]?.type === 'ClientAction';
+
+      return isCloseSubformAction
+        ? CustomComponentType.CloseSubformButton
+        : ComponentType.CustomButton;
+    },
     defaultProperties: {
       actions: [],
       buttonStyle: 'primary',
     },
     icon: FingerButtonIcon,
   },
+  [CustomComponentType.CloseSubformButton]: {
+    name: CustomComponentType.CloseSubformButton,
+    componentRef: ComponentType.CustomButton,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      actions: [
+        {
+          type: 'ClientAction',
+          id: 'closeSubform',
+          validation: {
+            page: 'all',
+            show: ['All'],
+          },
+        },
+      ],
+    },
+    icon: FingerButtonIcon,
+  },
+
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
     itemType: LayoutItemType.Component,
@@ -587,4 +624,5 @@ export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
+  formItemConfigs[CustomComponentType.CloseSubformButton],
 ].filter(FilterUtils.filterUnsupportedSubformComponents);
