@@ -1,7 +1,7 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
-import { renderHookWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { useAddOptionListMutation } from '@altinn/ux-editor/hooks/mutations/useAddOptionListMutation';
+import { useAddOptionListMutation } from './useAddOptionListMutation';
+import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 
 // Test data:
 const file = new File(['hello'], 'hello.json', { type: 'text/json' });

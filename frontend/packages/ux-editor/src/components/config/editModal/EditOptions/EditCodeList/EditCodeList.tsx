@@ -2,7 +2,7 @@ import React from 'react';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../../hooks/queries/useOptionListIdsQuery';
-import { useAddOptionListMutation } from '../../../../../hooks/mutations/useAddOptionListMutation';
+import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';

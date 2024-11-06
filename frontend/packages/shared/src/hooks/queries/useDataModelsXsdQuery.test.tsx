@@ -1,32 +1,18 @@
-import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
 import { useDataModelsXsdQuery } from 'app-shared/hooks/queries/useDataModelsXsdQuery';
-import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { DataModelMetadataXsd } from 'app-shared/types/DataModelMetadata';
 import { xsdMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 import { app, org } from '@studio/testing/testids';
+import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 
 describe('useDataModelsXsdQuery', () => {
   it('Calls getDataModelsXsd with correct arguments and returns the data', async () => {
     const dataModels: DataModelMetadataXsd[] = [xsdMetadataMock];
     const getDataModelsXsd = jest.fn().mockImplementation(() => Promise.resolve(dataModels));
-    const client = createQueryClientMock();
 
-    const { result } = renderHook(() => useDataModelsXsdQuery(org, app), {
-      wrapper: ({ children }) => (
-        <ServicesContextProvider
-          {...{
-            ...queriesMock,
-            getDataModelsXsd,
-            client,
-          }}
-        >
-          {children}
-        </ServicesContextProvider>
-      ),
-    });
+    const result = renderHookWithProviders(() => useDataModelsXsdQuery(org, app), {
+      queries: { getDataModelsXsd },
+    }).result;
 
     await waitFor(() => result.current.isPending);
     expect(getDataModelsXsd).toHaveBeenCalledWith(org, app);
