@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Utils
@@ -184,6 +185,17 @@ namespace Altinn.Studio.DataModeling.Utils
             }
 
             return builder;
+        }
+
+        /// <summary>
+        /// Orders the keywords by priority.
+        /// Currently the only keyword that should be prioritized is <see cref="XsdStructureKeyword"/>.
+        /// </summary>
+        /// <param name="keywords"></param>
+        /// <returns></returns>
+        public static IEnumerable<IJsonSchemaKeyword> OrderByPriority(this IEnumerable<IJsonSchemaKeyword> keywords)
+        {
+            return keywords.OrderBy(item => item.GetType() != typeof(XsdStructureKeyword));
         }
     }
 }

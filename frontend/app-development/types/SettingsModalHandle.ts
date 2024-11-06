@@ -1,5 +1,5 @@
-import type { SettingsModalTab } from './SettingsModalTab';
+import type { SettingsModalTabId } from './SettingsModalTabId';
 
 export type SettingsModalHandle = {
-  openSettings: (tab?: SettingsModalTab) => void;
+  openSettings: (tab?: SettingsModalTabId) => void;
 };
