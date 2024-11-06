@@ -17,6 +17,8 @@ using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
+using Medallion.Threading;
+using Medallion.Threading.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +56,15 @@ namespace Altinn.Studio.Designer.Infrastructure
                     postgresSettings.ConnectionString,
                     postgresSettings.DesignerDbPwd);
                 options.UseNpgsql(connectionString);
+            });
+
+            services.AddSingleton<IDistributedLockProvider>(_ =>
+            {
+                PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+                string connectionString = string.Format(
+                    postgresSettings.ConnectionString,
+                    postgresSettings.DesignerDbPwd);
+                return new PostgresDistributedSynchronizationProvider(connectionString);
             });
 
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
