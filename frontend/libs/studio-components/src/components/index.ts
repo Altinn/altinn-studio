@@ -36,6 +36,7 @@ export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';
 export * from './StudioPageError';
 export * from './StudioPageHeader';
+export * from './StudioPageImageBackgroundContainer';
 export * from './StudioPageSpinner';
 export * from './StudioParagraph';
 export * from './StudioPopover';
