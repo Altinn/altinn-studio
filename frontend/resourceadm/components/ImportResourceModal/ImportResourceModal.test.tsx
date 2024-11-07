@@ -54,10 +54,10 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     await waitFor(() =>
-      expect(environmentSelect).toHaveValue(textMock('resourceadm.deploy_at21_env')),
+      expect(environmentSelect).toHaveValue(textMock('resourceadm.deploy_at22_env')),
     );
     expect(importButton).toHaveAttribute('aria-disabled', 'true');
 
@@ -103,7 +103,7 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -137,7 +137,7 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -183,7 +183,7 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -215,7 +215,7 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -247,7 +247,7 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
@@ -286,7 +286,7 @@ describe('ImportResourceModal', () => {
       textMock('resourceadm.dashboard_import_modal_select_env'),
     );
     await user.click(environmentSelect);
-    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at21_env') }));
+    await user.click(screen.getByRole('option', { name: textMock('resourceadm.deploy_at22_env') }));
 
     // wait for the second combobox to appear, instead of waiting for the spinner to disappear.
     // (sometimes the spinner disappears) too quick and the test will fail
