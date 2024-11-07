@@ -195,5 +195,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="version">Version of the frontend used in app.</param>
         /// <returns>A <see cref="bool"/> representing if frontend version if successfully found.</returns>
         public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version);
+
+        /// <summary>
+        /// Add a component to layout
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetName">The name of the layout set.</param>
+        /// <param name="layoutName">The name of the layout.</param>
+        /// <param name="component">The component to add.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public Task AddComponentToLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName, object component, CancellationToken cancellationToken = default);
     }
 }

@@ -139,8 +139,11 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 if (!formLayouts.ContainsKey(layoutName))
                 {
+                    LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetName, cancellationToken);
                     await _mediator.Publish(new LayoutPageAddedEvent
                     {
+                        LayoutSetConfig = layoutSetConfig,
+                        LayoutName = layoutName,
                         EditingContext = editingContext,
                     }, cancellationToken);
                 }
@@ -356,6 +359,11 @@ namespace Altinn.Studio.Designer.Controllers
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == TaskType.Payment;
             LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutIsInitialForPaymentTask, cancellationToken);
+            await _mediator.Publish(new LayoutSetCreatedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSet = layoutSetPayload.LayoutSetConfig
+            }, cancellationToken);
             return Ok(layoutSets);
         }
 
