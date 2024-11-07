@@ -1,0 +1,28 @@
+using System.Collections.Generic;
+using System.Linq;
+using Altinn.Studio.Designer.Models;
+using Microsoft.AspNetCore.Http;
+
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+
+public class RequestSyncResolver : IRequestSyncResolver
+{
+    IEnumerable<IRequestSyncEvaluator> _requestSyncEvaluators;
+    IEditingContextResolver _editingContextResolver;
+
+    public RequestSyncResolver(IEnumerable<IRequestSyncEvaluator> requestSyncEvaluators, IEditingContextResolver editingContextResolver)
+    {
+        _requestSyncEvaluators = requestSyncEvaluators;
+        _editingContextResolver = editingContextResolver;
+    }
+
+    public bool TryResolveSyncRequest(HttpContext httpContext, out AltinnRepoEditingContext editingContext)
+    {
+        if (!_editingContextResolver.TryResolveContext(httpContext, out editingContext))
+        {
+            return false;
+        }
+
+        return _requestSyncEvaluators.Any(e => e.EvaluateSyncRequest(httpContext));
+    }
+}

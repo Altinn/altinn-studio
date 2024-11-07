@@ -8,12 +8,10 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Medallion.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +35,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
         private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
-        private readonly IDistributedLockProvider _synchronizationProvider;
 
         /// <summary>
         /// This is the API controller for functionality related to repositories.
@@ -49,14 +46,12 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="syncHub">websocket syncHub</param>
-        /// <param name="synchronizationProvider">Provides distributed locks.</param>
-        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub, IDistributedLockProvider synchronizationProvider)
+        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
         {
             _giteaApi = giteaWrapper;
             _sourceControl = sourceControl;
             _repository = repository;
             _syncHub = syncHub;
-            _synchronizationProvider = synchronizationProvider;
         }
 
         /// <summary>
@@ -220,13 +215,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
-            {
-                await _sourceControl.FetchRemoteChanges(org, repository);
-                return _sourceControl.RepositoryStatus(org, repository);
-            }
+            await _sourceControl.FetchRemoteChanges(org, repository);
+            return _sourceControl.RepositoryStatus(org, repository);
         }
 
         /// <summary>
@@ -239,13 +229,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
-            {
-                await _sourceControl.FetchRemoteChanges(org, repository);
-                return await _sourceControl.GetChangedContent(org, repository);
-            }
+            await _sourceControl.FetchRemoteChanges(org, repository);
+            return await _sourceControl.GetChangedContent(org, repository);
         }
 
         /// <summary>
@@ -258,22 +243,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
         public async Task<RepoStatus> Pull(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
 
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
+            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
+
+            if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
             {
-                RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
-
-                RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
-
-                if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
-                {
-                    status.RepositoryStatus = pullStatus.RepositoryStatus;
-                }
-
-                return status;
+                status.RepositoryStatus = pullStatus.RepositoryStatus;
             }
+
+            return status;
         }
 
         /// <summary>
@@ -289,18 +268,14 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
+            try
             {
-                try
-                {
-                    await _repository.ResetLocalRepository(editingContext);
-                    return Ok();
-                }
-                catch (Exception)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError);
-                }
+                await _repository.ResetLocalRepository(editingContext);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -315,23 +290,19 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task CommitAndPushRepo(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
+            try
             {
-                try
+                await _sourceControl.PushChangesForRepository(commitInfo);
+            }
+            catch (LibGit2Sharp.NonFastForwardException)
+            {
+                RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository);
+                await _sourceControl.Push(commitInfo.Org, commitInfo.Repository);
+                foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
                 {
-                    await _sourceControl.PushChangesForRepository(commitInfo);
-                }
-                catch (LibGit2Sharp.NonFastForwardException)
-                {
-                    RepoStatus repoStatus = await _sourceControl.PullRemoteChanges(commitInfo.Org, commitInfo.Repository);
-                    await _sourceControl.Push(commitInfo.Org, commitInfo.Repository);
-                    foreach (RepositoryContent repoContent in repoStatus?.ContentStatus)
-                    {
-                        Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
-                        SyncSuccess syncSuccess = new(source);
-                        await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
-                    }
+                    Source source = new(Path.GetFileName(repoContent.FilePath), repoContent.FilePath);
+                    SyncSuccess syncSuccess = new(source);
+                    await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
                 }
             }
         }
@@ -347,20 +318,15 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
         public async Task<ActionResult> Commit(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
+            await Task.CompletedTask;
+            try
             {
-                try
-                {
-                    _sourceControl.Commit(commitInfo);
-                    return Ok();
-                }
-                catch (Exception)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError);
-                }
+                _sourceControl.Commit(commitInfo);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
 
@@ -373,14 +339,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            await using (await _synchronizationProvider.AcquireLockAsync(
-                             AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
-            {
-                bool pushSuccess = await _sourceControl.Push(org, repository);
-                return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            bool pushSuccess = await _sourceControl.Push(org, repository);
+            return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         /// <summary>
