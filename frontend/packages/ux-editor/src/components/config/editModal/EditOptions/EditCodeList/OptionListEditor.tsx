@@ -8,6 +8,7 @@ import {
   StudioModal,
   StudioSpinner,
   StudioErrorMessage,
+  type CodeListEditorTexts,
 } from '@studio/components';
 import { TableIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -57,7 +58,7 @@ function OptionListEditorModal({
   const { doReloadPreview } = usePreviewContext();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const [currentOptionList, setCurrentOptionList] = useState<Option[]>(optionList);
-  const editorTexts = useOptionListEditorTexts();
+  const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
   const handleOptionsChange = (options: Option[]) => {

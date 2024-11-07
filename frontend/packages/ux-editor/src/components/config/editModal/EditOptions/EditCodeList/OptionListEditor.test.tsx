@@ -9,6 +9,9 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { Option } from 'app-shared/types/Option';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
@@ -90,9 +93,17 @@ describe('OptionListEditor', () => {
     expect(doReloadPreview).toHaveBeenCalledTimes(1);
   });
 
-  it('should call handleOptionsChange when updating a value in a textField', async () => {
+  it('should call updateOptionList when closing Dialog with correct parameters', async () => {
     const user = userEvent.setup();
-    await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+    const doReloadPreview = jest.fn();
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+      previewContextProps: { doReloadPreview },
+    });
+    const expectedResultAfterEdit: Option[] = [
+      { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
+      { value: 2, label: 'label number', description: 'test', helpText: '' },
+      { value: true, label: 'label boolean', description: '', helpText: '' },
+    ];
 
     await openModal(user);
 
@@ -108,7 +119,16 @@ describe('OptionListEditor', () => {
       }),
     ).toHaveValue('test');
 
-    // Todo: Add a expect for function to have been called.
+    await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
+      org,
+      app,
+      mockComponent.optionsId,
+      expectedResultAfterEdit,
+    );
   });
 });
 
