@@ -1,8 +1,9 @@
 import React from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { Divider } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
+import { StudioHeading } from '@studio/components';
+
 interface Resource {
   label: string;
   description: string;
@@ -216,8 +217,9 @@ export function Resources() {
   const { t } = useTranslation();
   return (
     <div className={classes.wrapper}>
-      <h2>{t('dashboard.resources')}</h2>
-      <Divider marginless />
+      <StudioHeading level={2} size='sm' className={classes.header}>
+        {t('dashboard.resources')}
+      </StudioHeading>
       <div className={classes.resourcesContainer}>
         {resources.map((resource, index) => (
           <ResourceItem
