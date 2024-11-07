@@ -57,7 +57,7 @@ export const CreateNewSubformLayoutSet = ({
           icon={<CheckmarkIcon />}
           onClick={handleCreateSubform}
           title={t('general.close')}
-          disabled={!newSubform || !!nameError}
+          disabled={!newSubform || !!nameError || !selectedDataType}
           variant='tertiary'
           color='success'
         />
