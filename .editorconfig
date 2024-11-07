@@ -105,6 +105,7 @@ csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 csharp_indent_labels = one_less_than_current
 csharp_style_prefer_primary_constructors = false:suggestion
+resharper_convert_to_primary_constructor_highlighting = none
 csharp_style_namespace_declarations = file_scoped:error
 
 # Naming rule violation
@@ -112,6 +113,8 @@ dotnet_diagnostic.IDE1006.severity = error
 
 # Unused usings
 dotnet_diagnostic.IDE0005.severity = warning
+
+dotnet_diagnostic.CA1825.severity = warning
 
 # CA1848: Use the LoggerMessage delegates
 dotnet_diagnostic.CA1848.severity = none
