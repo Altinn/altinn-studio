@@ -45,7 +45,7 @@ export const SelectDataModelBinding = ({
     <FormField
       id={id}
       onChange={handleDataModelChange}
-      value={currentDataModel}
+      value={selectedDataModel}
       propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model_binding')}
       renderField={({ fieldProps }) => (
@@ -57,9 +57,11 @@ export const SelectDataModelBinding = ({
           onChange={(e) => fieldProps.onChange(e.target.value)}
           size='small'
         >
-          <option key={defaultDataTypeName} value={defaultDataTypeName}>
-            {defaultDataTypeName}
-          </option>
+          {defaultDataTypeName && (
+            <option key={defaultDataTypeName} value={defaultDataTypeName}>
+              {defaultDataTypeName}
+            </option>
+          )}
           {bindableDataTypes.map((dataType) => (
             <option key={dataType.id} value={dataType.id}>
               {dataType.id}
