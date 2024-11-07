@@ -93,7 +93,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.AddTransient<IImagesService, ImagesService>();
             services.RegisterDatamodeling(configuration);
-            services.RegisterUserRequestSynchronization(configuration);
 
             return services;
         }
@@ -108,14 +107,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
             services.AddTransient<IModelNameValidator, ModelNameValidator>();
             RegisterXsdKeywords();
-            return services;
-        }
-
-        public static IServiceCollection RegisterUserRequestSynchronization(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.Configure<UserRequestSynchronizationSettings>(configuration.GetSection(nameof(UserRequestSynchronizationSettings)));
-            services.TryAddSingleton(typeof(UserRequestSynchronizationSettings), svc => ((IOptions<object>)svc.GetService(typeof(IOptions<UserRequestSynchronizationSettings>)))!.Value);
-            services.TryAddSingleton<IUserRequestsSynchronizationService, UserRequestsSynchronizationService>();
             return services;
         }
     }
