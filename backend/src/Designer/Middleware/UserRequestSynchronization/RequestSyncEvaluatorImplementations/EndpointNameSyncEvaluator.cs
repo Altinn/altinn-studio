@@ -38,6 +38,12 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
                 nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata)
             ]
+        },
+        {
+            nameof(ResourceAdminController).Replace("Controller", string.Empty),
+            [
+                nameof(ResourceAdminController.UpdateResource)
+            ]
         }
     };
 
