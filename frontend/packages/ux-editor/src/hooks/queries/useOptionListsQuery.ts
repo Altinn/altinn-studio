@@ -25,8 +25,6 @@ function convertToMap(result: OptionsLists): Map<string, Option[]> {
   Object.entries(result).forEach(([key, value]) => {
     const mappedOptions = value.map((option) => ({
       ...option,
-      description: option?.description ?? '',
-      helpText: option?.helpText ?? '',
     }));
 
     optionsMap.set(key, mappedOptions);

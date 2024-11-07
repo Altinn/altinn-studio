@@ -1,5 +1,5 @@
 import React from 'react';
-import { EditCodeList } from './EditCodeList';
+import { EditOptionList } from './EditOptionList';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { optionListIdsMock, renderWithProviders } from '../../../../../testing/mocks';
@@ -17,15 +17,15 @@ const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
 const handleComponentChangeMock = jest.fn();
-const queriesMock = {
+const getOptionListIds = {
   getOptionListIds: jest
     .fn()
     .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
 };
 
-describe('EditCodeList', () => {
+describe('EditOptionList', () => {
   it('should render the component', async () => {
-    renderEditCodeList();
+    renderEditOptionList();
     expect(
       await screen.findByText(textMock('ux_editor.modal_properties_code_list_helper')),
     ).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('EditCodeList', () => {
 
   it('should call onChange when option list changes', async () => {
     const user = userEvent.setup();
-    renderEditCodeList();
+    renderEditOptionList();
 
     await waitFor(() => screen.findByRole('combobox'));
 
@@ -43,7 +43,7 @@ describe('EditCodeList', () => {
 
   it('should remove options property (if it exists) when optionsId property changes', async () => {
     const user = userEvent.setup();
-    renderEditCodeList({
+    renderEditOptionList({
       componentProps: {
         options: [{ label: 'option1', value: 'option1' }],
       },
@@ -62,7 +62,7 @@ describe('EditCodeList', () => {
   });
 
   it('should render the selected option list item upon component initialization', async () => {
-    renderEditCodeList({
+    renderEditOptionList({
       componentProps: {
         optionsId: 'test-2',
       },
@@ -72,7 +72,7 @@ describe('EditCodeList', () => {
   });
 
   it('should render returned error message if option list endpoint returns an error', async () => {
-    renderEditCodeList({
+    renderEditOptionList({
       queries: {
         getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
       },
@@ -82,7 +82,7 @@ describe('EditCodeList', () => {
   });
 
   it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
-    renderEditCodeList({
+    renderEditOptionList({
       queries: {
         getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
       },
@@ -97,7 +97,7 @@ describe('EditCodeList', () => {
     const user = userEvent.setup();
     const file = new File(['hello'], 'hello.json', { type: 'text/json' });
 
-    renderEditCodeList();
+    renderEditOptionList();
     await userFindUploadButtonAndClick(user);
     await userFindFileAndUpload(user, file);
 
@@ -112,7 +112,7 @@ describe('EditCodeList', () => {
       type: 'text/json',
     });
 
-    renderEditCodeList();
+    renderEditOptionList();
     await userFindUploadButtonAndClick(user);
     await userFindFileAndUpload(user, file);
 
@@ -128,7 +128,7 @@ describe('EditCodeList', () => {
       type: 'text/json',
     });
 
-    renderEditCodeList();
+    renderEditOptionList();
     await userFindUploadButtonAndClick(user);
     await userFindFileAndUpload(user, file);
 
@@ -140,16 +140,13 @@ describe('EditCodeList', () => {
   it('should render OptionListEditor when featureFlag is active', async () => {
     addFeatureFlagToLocalStorage('optionListEditor');
     const queries = {
-      getOptionListIds: jest
-        .fn()
-        .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
       getOptionLists: jest.fn().mockImplementation(() =>
         Promise.resolve<OptionsLists>({
           optionsIdMock: [{ value: 'test', label: 'label text' }],
         }),
       ),
     };
-    renderEditCodeList({ queries: queries });
+    renderEditOptionList({ queries: queries });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
@@ -175,9 +172,9 @@ const userFindFileAndUpload = async (user: UserEvent, file: File) => {
   await user.upload(fileInput, file);
 };
 
-const renderEditCodeList = ({ queries = {}, componentProps = {} } = {}) => {
+const renderEditOptionList = ({ queries = {}, componentProps = {} } = {}) => {
   return renderWithProviders(
-    <EditCodeList
+    <EditOptionList
       component={{
         ...mockComponent,
         ...componentProps,
@@ -185,7 +182,7 @@ const renderEditCodeList = ({ queries = {}, componentProps = {} } = {}) => {
       handleComponentChange={handleComponentChangeMock}
     />,
     {
-      queries: { ...queriesMock, ...queries },
+      queries: { ...getOptionListIds, ...queries },
       queryClient: createQueryClientMock(),
     },
   );

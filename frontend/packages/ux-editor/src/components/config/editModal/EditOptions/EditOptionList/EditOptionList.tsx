@@ -15,11 +15,11 @@ import type { FileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
-import classes from './EditCodeList.module.css';
+import classes from './EditOptionList.module.css';
 import { OptionListEditor } from './OptionListEditor';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
-export function EditCodeList<T extends SelectionComponentType>({
+export function EditOptionList<T extends SelectionComponentType>({
   component,
   handleComponentChange,
 }: IGenericEditComponent<T>) {
@@ -73,12 +73,12 @@ export function EditCodeList<T extends SelectionComponentType>({
     }
   };
 
-  const componentHasConnectedCodeListToEdit = !!component.optionsId;
+  const componentHasConnectedOptionListToEdit = !!component.optionsId;
 
   return (
     <>
-      <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('optionListEditor') && componentHasConnectedCodeListToEdit && (
+      <OptionListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
+      {shouldDisplayFeature('optionListEditor') && componentHasConnectedOptionListToEdit && (
         <OptionListEditor component={component} />
       )}
       <StudioFileUploader
@@ -102,14 +102,14 @@ export function EditCodeList<T extends SelectionComponentType>({
   );
 }
 
-type CodeListSelectorProps<T extends SelectionComponentType> = {
+type OptionListSelectorProps<T extends SelectionComponentType> = {
   handleOptionsIdChange: (optionsId: string) => void;
 } & Pick<IGenericEditComponent<T>, 'component'>;
 
-function CodeListSelector<T extends SelectionComponentType>({
+function OptionListSelector<T extends SelectionComponentType>({
   component,
   handleOptionsIdChange,
-}: CodeListSelectorProps<T>): React.ReactNode {
+}: OptionListSelectorProps<T>): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
@@ -130,7 +130,7 @@ function CodeListSelector<T extends SelectionComponentType>({
       );
     case 'success':
       return (
-        <CodeListSelectorWithData
+        <OptionListSelectorWithData
           optionListIds={optionListIds}
           component={component}
           handleOptionsIdChange={handleOptionsIdChange}
@@ -139,16 +139,16 @@ function CodeListSelector<T extends SelectionComponentType>({
   }
 }
 
-type CodeListSelectorWithDataProps<T extends SelectionComponentType> = {
+type OptionListSelectorWithDataProps<T extends SelectionComponentType> = {
   optionListIds: string[];
   handleOptionsIdChange: (optionsId: string) => void;
 } & Pick<IGenericEditComponent<T>, 'component'>;
 
-function CodeListSelectorWithData<T extends SelectionComponentType>({
+function OptionListSelectorWithData<T extends SelectionComponentType>({
   optionListIds,
   component,
   handleOptionsIdChange,
-}: CodeListSelectorWithDataProps<T>): React.ReactNode {
+}: OptionListSelectorWithDataProps<T>): React.ReactNode {
   const { t } = useTranslation();
 
   if (!optionListIds.length) return null;

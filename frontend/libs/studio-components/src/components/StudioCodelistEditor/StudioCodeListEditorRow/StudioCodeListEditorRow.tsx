@@ -121,7 +121,7 @@ function TextfieldCell({ error, label, value, onChange, autoComplete }: Textfiel
       onChange={handleChange}
       onFocus={handleFocus}
       ref={ref}
-      value={value as string}
+      value={(value as string) ?? ''}
     />
   );
 }

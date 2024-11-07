@@ -8,10 +8,10 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { Option } from 'app-shared/types/Option';
 import { app, org } from '@studio/testing/testids';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
@@ -26,6 +26,9 @@ const apiResult: OptionsLists = {
 };
 
 describe('OptionListEditor', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
   it('should render a spinner when there is no data', () => {
     renderOptionListEditor({
       queries: {
@@ -77,7 +80,6 @@ describe('OptionListEditor', () => {
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
   });
 
   it('should call doReloadPreview when closing Dialog', async () => {
@@ -92,19 +94,15 @@ describe('OptionListEditor', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(doReloadPreview).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(2);
   });
 
   it('should call updateOptionList when closing Dialog with correct parameters', async () => {
     const user = userEvent.setup();
-    const doReloadPreview = jest.fn();
-    await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
-      previewContextProps: { doReloadPreview },
-    });
+    await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
     const expectedResultAfterEdit: Option[] = [
       { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-      { value: 2, label: 'label number', description: 'test', helpText: '' },
-      { value: true, label: 'label boolean', description: '', helpText: '' },
+      { value: 2, label: 'label number', description: 'test', helpText: null },
+      { value: true, label: 'label boolean', description: null, helpText: null },
     ];
 
     await openModal(user);
@@ -123,8 +121,7 @@ describe('OptionListEditor', () => {
 
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(3);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
       org,
       app,

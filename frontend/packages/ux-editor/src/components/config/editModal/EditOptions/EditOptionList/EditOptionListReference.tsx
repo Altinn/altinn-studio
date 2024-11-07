@@ -6,7 +6,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { StudioParagraph, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
 
-export function EditCodeListReference<T extends SelectionComponentType>({
+export function EditOptionListReference<T extends SelectionComponentType>({
   component,
   handleComponentChange,
 }: IGenericEditComponent<T>) {

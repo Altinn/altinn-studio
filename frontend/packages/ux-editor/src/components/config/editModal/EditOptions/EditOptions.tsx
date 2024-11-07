@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { ErrorMessage, Heading, Alert } from '@digdir/designsystemet-react';
 import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
-import { EditCodeList, EditCodeListReference } from './EditCodeList';
+import { EditOptionList, EditOptionListReference } from './EditOptionList';
 import { getSelectedOptionsType } from '../../../../utils/optionsUtils';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
 
@@ -91,7 +91,7 @@ export function EditOptions<T extends SelectionComponentType>({
             className={classes.codelistTabContent}
             value={SelectedOptionsType.CodeList}
           >
-            <EditCodeList component={component} handleComponentChange={handleComponentChange} />
+            <EditOptionList component={component} handleComponentChange={handleComponentChange} />
           </StudioTabs.Content>
           <StudioTabs.Content
             className={classes.manualTabContent}
@@ -107,7 +107,7 @@ export function EditOptions<T extends SelectionComponentType>({
             )}
           </StudioTabs.Content>
           <StudioTabs.Content value={SelectedOptionsType.ReferenceId}>
-            <EditCodeListReference
+            <EditOptionListReference
               component={component}
               handleComponentChange={handleComponentChange}
             />
