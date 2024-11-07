@@ -7,8 +7,8 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 
 public class RequestSyncResolver : IRequestSyncResolver
 {
-    IEnumerable<IRequestSyncEvaluator> _requestSyncEvaluators;
-    IEditingContextResolver _editingContextResolver;
+    private readonly IEnumerable<IRequestSyncEvaluator> _requestSyncEvaluators;
+    private readonly IEditingContextResolver _editingContextResolver;
 
     public RequestSyncResolver(IEnumerable<IRequestSyncEvaluator> requestSyncEvaluators, IEditingContextResolver editingContextResolver)
     {
