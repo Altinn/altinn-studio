@@ -1,6 +1,13 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-spacing-4);
+  padding-bottom: var(--ds-spacing-4);
+}
+
 .resourcesContainer {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  padding-top: 20px;
+  gap: var(--ds-spacing-5);
+  padding-top: var(--ds-spacing-5);
 }
