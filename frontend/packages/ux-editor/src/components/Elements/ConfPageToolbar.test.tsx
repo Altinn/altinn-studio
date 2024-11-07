@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import {
   confOnScreenComponents,
@@ -9,6 +9,7 @@ import {
 import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ConfPageType } from './types/ConfigPageType';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 describe('ConfPageToolbar', () => {
   it('should render', () => {
@@ -50,7 +51,7 @@ describe('ConfPageToolbar', () => {
 });
 
 const renderConfPageToolbar = (confPageType: ConfPageType) => {
-  return render(
+  return renderWithProviders(
     <DragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
       <ConfPageToolbar confPageType={confPageType} />
     </DragAndDropTree.Provider>,

@@ -1,6 +1,6 @@
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 
 export type AddedItem = {
-  componentType: ComponentType;
+  componentType: ComponentType | CustomComponentType;
   componentId: string;
 };

@@ -1,3 +1,5 @@
+import type { ValueError } from './ValueError';
+
 export type CodeListEditorTexts = {
   add: string;
   codeList: string;
@@ -5,6 +7,8 @@ export type CodeListEditorTexts = {
   deleteItem: (number: number) => string;
   description: string;
   emptyCodeList: string;
+  valueErrors: ValueErrorMessages;
+  generalError: string;
   helpText: string;
   itemDescription: (number: number) => string;
   itemHelpText: (number: number) => string;
@@ -13,3 +17,5 @@ export type CodeListEditorTexts = {
   label: string;
   value: string;
 };
+
+type ValueErrorMessages = Record<ValueError, string>;

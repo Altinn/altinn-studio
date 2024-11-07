@@ -4,13 +4,13 @@ import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';
 import type { AddedItem } from '../types';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import { getComponentTitleByComponentType } from '../../../../utils/language';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { getTitleByComponentType } from '../../../../utils/language';
 
 export type ItemCategoryProps = {
   items: IToolbarElement[];
   category: string;
-  selectedItemType: ComponentType;
+  selectedItemType: ComponentType | CustomComponentType;
   setAddedItem(addedItem: AddedItem): void;
   generateComponentId: (type: string) => string;
 };
@@ -32,7 +32,7 @@ export const ItemCategory = ({
       <div className={classes.componentsWrapper}>
         {items.map((item: IToolbarElement) => (
           <ComponentButton
-            tooltipContent={getComponentTitleByComponentType(item.type, t) || item.label}
+            tooltipContent={getTitleByComponentType(item.type, t) || item.label}
             selected={selectedItemType === item.type}
             key={item.type}
             icon={item.icon}

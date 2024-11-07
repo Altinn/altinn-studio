@@ -1,6 +1,6 @@
 import React, { type ReactElement } from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { Divider, SimpleContainer } from 'app-shared/primitives';
+import { Divider } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
 import {
@@ -57,7 +57,7 @@ const resources: Resource[] = [
 export function Resources(): ReactElement {
   const { t } = useTranslation();
   return (
-    <SimpleContainer>
+    <div>
       <StudioHeading level={2} size='small'>
         {t('dashboard.resources')}
       </StudioHeading>
@@ -67,6 +67,6 @@ export function Resources(): ReactElement {
           <ResourceItem key={`resource-item-${index}`} resource={resource} />
         ))}
       </div>
-    </SimpleContainer>
+    </div>
   );
 }
