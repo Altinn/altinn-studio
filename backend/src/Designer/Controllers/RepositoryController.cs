@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Medallion.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -224,8 +224,8 @@ namespace Altinn.Studio.Designer.Controllers
             await using (await _synchronizationProvider.AcquireLockAsync(
                              AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
             {
-                 await _sourceControl.FetchRemoteChanges(org, repository);
-                 return _sourceControl.RepositoryStatus(org, repository);
+                await _sourceControl.FetchRemoteChanges(org, repository);
+                return _sourceControl.RepositoryStatus(org, repository);
             }
         }
 
@@ -240,7 +240,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await using(await _synchronizationProvider.AcquireLockAsync(
+            await using (await _synchronizationProvider.AcquireLockAsync(
                              AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
             {
                 await _sourceControl.FetchRemoteChanges(org, repository);
@@ -260,7 +260,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            await using(await _synchronizationProvider.AcquireLockAsync(
+            await using (await _synchronizationProvider.AcquireLockAsync(
                              AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer)))
             {
                 RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);

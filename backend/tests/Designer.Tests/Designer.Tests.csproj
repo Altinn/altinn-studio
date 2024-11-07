@@ -17,6 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Altinn.ApiClients.Maskinporten" />
     <PackageReference Include="Basic.Reference.Assemblies" />
+    <PackageReference Include="DistributedLock.FileSystem" />
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" />
