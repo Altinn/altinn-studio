@@ -114,11 +114,11 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
   );
 };
 
-type EditColumnElementComponentSelectProps = {
+export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
 };
-const EditColumnElementComponentSelect = ({
+export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
 }: EditColumnElementComponentSelectProps) => {

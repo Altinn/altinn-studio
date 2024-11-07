@@ -11,6 +11,10 @@ import { layoutSet3SubformNameMock } from '../../../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import { subformLayoutMock } from '../../../../testing/subformLayoutMock';
+import {
+  EditColumnElementComponentSelect,
+  type EditColumnElementComponentSelectProps,
+} from '../ColumnElement/EditColumnElement/EditColumnElement';
 
 const headerContentMock: string = 'Header';
 const cellContentQueryMock: string = 'Query';
@@ -76,6 +80,22 @@ describe('ColumnElement', () => {
     });
   });
 
+  it('should render comobox with description', async () => {
+    const user = userEvent.setup();
+    renderColumnElement();
+
+    const editButton = screen.getByRole('button', {
+      name: /ux_editor.properties_panel.subform_table_columns.column_header/,
+    });
+    await user.click(editButton);
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+  });
+
   it('should call onDeleteColumn when delete button is clicked', async () => {
     const onDeleteColumnMock = jest.fn();
 
@@ -107,4 +127,100 @@ const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
     ...queriesMock,
     queryClient,
   });
+};
+
+describe('EditColumnElementComponentSelect', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render combobox with no components message when no components are available', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElementComponentSelect({
+      components: [],
+    });
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+    expect(
+      screen.getByRole('option', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.empty_columns_message'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render no components message when components are available', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElementComponentSelect();
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+    expect(
+      screen.queryByRole('option', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.empty_columns_message'),
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render just components with labels', async () => {
+    const user = userEvent.setup();
+    renderEditColumnElementComponentSelect();
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+    await user.click(componentSelect);
+    expect(
+      screen.getByRole('option', {
+        name: new RegExp(`${subformLayoutMock.component1Id}`),
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', {
+        name: new RegExp(`${subformLayoutMock.component2Id}`),
+      }),
+    ).toBeInTheDocument();
+  });
+});
+
+const renderEditColumnElementComponentSelect = (
+  props: Partial<EditColumnElementComponentSelectProps> = {},
+) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData(
+    [QueryKey.FormLayouts, org, app, layoutSet3SubformNameMock],
+    subformLayoutMock.layoutSet,
+  );
+  return renderWithProviders(
+    <EditColumnElementComponentSelect
+      components={[
+        {
+          id: subformLayoutMock.component1Id,
+          type: subformLayoutMock.component1.type,
+          itemType: subformLayoutMock.component1.itemType,
+          dataModelBindings: subformLayoutMock.component1.dataModelBindings,
+        },
+        {
+          id: subformLayoutMock.component2Id,
+          type: subformLayoutMock.component2.type,
+          itemType: subformLayoutMock.component2.itemType,
+        },
+      ]}
+      onSelectComponent={jest.fn()}
+      {...defaultProps}
+      {...props}
+    />,
+    {
+      ...queriesMock,
+      queryClient,
+    },
+  );
 };
