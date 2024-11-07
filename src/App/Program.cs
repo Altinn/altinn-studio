@@ -52,7 +52,7 @@ void ConfigureWebHostBuilder(IWebHostBuilder builder)
 }
 
 void Configure()
-    {
+{
     string applicationId = StartupHelper.GetApplicationId();
     if (!string.IsNullOrEmpty(applicationId))
     {

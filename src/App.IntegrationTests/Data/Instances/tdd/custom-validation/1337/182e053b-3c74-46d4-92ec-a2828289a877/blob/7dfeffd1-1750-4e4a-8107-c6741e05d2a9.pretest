@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" skjemanummer="1472" spesifikasjonsnummer="9812" blankettnummer="AFP-01" tittel="Arbeidsgiverskjema AFP" gruppeid="8818">
-  <OpplysningerOmArbeidstakeren-grp-8819 gruppeid="8819">
-    <Skjemainstans-grp-8854 gruppeid="8854">
-      <Journalnummer-datadef-33316 orid="33316">1000</Journalnummer-datadef-33316>
-    </Skjemainstans-grp-8854>
-  </OpplysningerOmArbeidstakeren-grp-8819>
-</Skjema>

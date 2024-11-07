@@ -1,9 +1,0 @@
-﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
-  <xsd:element name="Simpel" type="Skjema" />
-  <xsd:complexType name="Skjema">
-    <xsd:sequence>
-      <xsd:element name="Felt1" nillable="true" type="xsd:string" />
-      <xsd:element name="Felt2" nillable="true" type="xsd:string" />
-    </xsd:sequence>
-  </xsd:complexType>
-</xsd:schema>
