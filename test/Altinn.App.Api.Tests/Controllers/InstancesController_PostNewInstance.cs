@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -271,6 +272,56 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         );
         var createResponseContent = await createResponse.Content.ReadAsStringAsync();
         createResponse.StatusCode.Should().Be(HttpStatusCode.Forbidden, createResponseContent);
+    }
+
+    [Fact]
+    public async Task PostNewInstanceWithInstanceTemplate()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        int userId = 1337;
+        HttpClient client = GetRootedClient(org, app, userId, null);
+
+        using var content = JsonContent.Create(
+            new Instance() { InstanceOwner = new InstanceOwner() { PartyId = instanceOwnerPartyId.ToString() }, }
+        );
+
+        var response = await client.PostAsync($"{org}/{app}/instances", content);
+        response.Should().HaveStatusCode(HttpStatusCode.Created);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var instance = JsonSerializer.Deserialize<Instance>(responseContent, JsonSerializerOptions);
+        instance.Should().NotBeNull();
+        instance!.Id.Should().NotBeNullOrEmpty();
+
+        TestData.DeleteInstanceAndData(org, app, instance.Id);
+    }
+
+    [Fact]
+    public async Task PostNewInstanceWithMissingTemplate()
+    {
+        string org = "tdd";
+        string app = "contributer-restriction";
+        int instanceOwnerPartyId = 501337;
+        int userId = 1337;
+        HttpClient client = GetRootedClient(org, app, userId, null);
+
+        using var content = new ByteArrayContent([])
+        {
+            Headers = { ContentType = new MediaTypeHeaderValue("application/json") }
+        };
+
+        var response = await client.PostAsync(
+            $"{org}/{app}/instances?instanceOwnerPartyId={instanceOwnerPartyId}",
+            content
+        );
+        response.Should().HaveStatusCode(HttpStatusCode.Created);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var instance = JsonSerializer.Deserialize<Instance>(responseContent, JsonSerializerOptions);
+        instance.Should().NotBeNull();
+        instance!.Id.Should().NotBeNullOrEmpty();
+
+        TestData.DeleteInstanceAndData(org, app, instance.Id);
     }
 
     [Fact]
