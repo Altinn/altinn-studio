@@ -5,7 +5,7 @@ import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
 import { NodesInternal, useNodesLax } from 'src/utils/layout/NodesContext';
-import type { CompTypes, ParentNode } from 'src/layout/layout';
+import type { ParentNode } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext, PageData, PagesData } from 'src/utils/layout/NodesContext';
 import type { NodeData } from 'src/utils/layout/types';
@@ -95,21 +95,6 @@ export class NodeTraversal<T extends Node = LayoutPages> {
     return new NodeTraversal(this.state, this.rootNode, node) as any;
   }
 
-  targetIsRoot(): this is NodeTraversalFromRoot {
-    return this.target === this.rootNode;
-  }
-
-  targetIsPage(): this is NodeTraversalFromPage {
-    return this.target instanceof LayoutPage;
-  }
-
-  targetIsNode<T extends CompTypes | undefined>(
-    ofType?: T,
-  ): this is NodeTraversalFromNode<T extends CompTypes ? LayoutNode<T> : LayoutNode> {
-    const target = this.target;
-    return target instanceof BaseLayoutNode && (!ofType || target.isType(ofType));
-  }
-
   /**
    * Looks for a matching component upwards in the hierarchy, returning the first one (or undefined if
    * none can be found).
@@ -146,15 +131,6 @@ export class NodeTraversal<T extends Node = LayoutPages> {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return target.parents(new TraversalTask(this.state, this.rootNode, matching, undefined)) as any;
-  }
-
-  /**
-   * Looks for a matching component inside the (direct) children of this node (only makes sense for
-   * a group/container node or a page). This will only return the first match.
-   */
-  firstChild(matching?: TraversalMatcher, restriction?: TraversalRestriction): ChildFrom<T> | undefined {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return this.target.firstChild(new TraversalTask(this.state, this.rootNode, matching, restriction)) as any;
   }
 
   /**
@@ -203,10 +179,7 @@ export class NodeTraversal<T extends Node = LayoutPages> {
       throw new Error('Cannot call findById() on a LayoutNode object');
     }
 
-    return (this.target as LayoutPage | LayoutPages).findById(
-      new TraversalTask(this.state, this.rootNode, undefined, undefined),
-      id,
-    );
+    return this.rootNode.findById(id);
   }
 }
 

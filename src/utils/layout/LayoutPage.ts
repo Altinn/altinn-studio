@@ -1,4 +1,3 @@
-import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -20,10 +19,12 @@ export class LayoutPage implements LayoutObject {
    */
   public _addChild(child: LayoutNode) {
     this.allChildren.set(child.id, child);
+    this.layoutSet.registerNode(child);
   }
 
   public _removeChild(child: LayoutNode) {
     this.allChildren.delete(child.id);
+    this.layoutSet.unregisterNode(child);
   }
 
   /**
@@ -88,27 +89,6 @@ export class LayoutPage implements LayoutObject {
     return task ? [...this.allChildren.values()].filter((n) => task.passes(n)) : [...this.allChildren.values()];
   }
 
-  public findById(task: TraversalTask, id: string | undefined, traversePages = true): LayoutNode | undefined {
-    if (!id) {
-      return undefined;
-    }
-
-    if (this.allChildren.has(id)) {
-      return this.allChildren.get(id);
-    }
-
-    const baseId = getBaseComponentId(id);
-    if (this.allChildren.has(baseId)) {
-      return this.allChildren.get(baseId);
-    }
-
-    if (traversePages && this.layoutSet) {
-      return this.layoutSet.findById(task, id, this.pageKey);
-    }
-
-    return undefined;
-  }
-
   public isRegisteredInCollection(layoutSet: LayoutPages): boolean {
     return this.pageKey !== undefined && layoutSet.isPageRegistered(this.pageKey, this);
   }
@@ -117,5 +97,9 @@ export class LayoutPage implements LayoutObject {
     this.pageKey = pageKey;
     this.layoutSet = layoutSet;
     layoutSet.replacePage(this);
+
+    for (const node of this.allChildren.values()) {
+      layoutSet.registerNode(node);
+    }
   }
 }

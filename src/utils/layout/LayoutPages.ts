@@ -1,3 +1,4 @@
+import { getBaseComponentId } from 'src/utils/splitDashedKey';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutObject } from 'src/utils/layout/LayoutObject';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -13,6 +14,7 @@ interface Collection {
  */
 export class LayoutPages implements LayoutObject<LayoutPage> {
   private readonly objects: Collection = {};
+  private readonly nodes: Map<string, LayoutNode> = new Map();
 
   public constructor() {
     for (const layoutKey of Object.keys(this.objects)) {
@@ -21,19 +23,27 @@ export class LayoutPages implements LayoutObject<LayoutPage> {
     }
   }
 
-  public findById(task: TraversalTask, id: string | undefined, exceptInPage?: string): LayoutNode | undefined {
+  public registerNode(node: LayoutNode) {
+    this.nodes.set(node.id, node);
+  }
+
+  public unregisterNode(node: LayoutNode) {
+    this.nodes.delete(node.id);
+  }
+
+  public findById(id: string | undefined): LayoutNode | undefined {
     if (!id) {
       return undefined;
     }
 
-    for (const pageKey of Object.keys(this.objects)) {
-      if (pageKey === exceptInPage) {
-        continue;
-      }
-      const node = this.objects[pageKey].findById(task, id, false);
-      if (node) {
-        return node;
-      }
+    const node = this.nodes.get(id);
+    if (node) {
+      return node;
+    }
+
+    const baseNode = this.nodes.get(getBaseComponentId(id));
+    if (baseNode) {
+      return baseNode;
     }
 
     return undefined;
@@ -51,13 +61,11 @@ export class LayoutPages implements LayoutObject<LayoutPage> {
   }
 
   public allNodes(task?: TraversalTask): LayoutNode[] {
-    return Object.values(this.objects).flatMap((layout) => layout.flat(task));
+    return [...this.nodes.values()].filter((n) => !task || task.passes(n));
   }
 
   public closest(task: TraversalTask, passedFrom?: LayoutPage | LayoutNode | LayoutPages): LayoutNode | undefined {
-    return this.flat(task)
-      .filter((n) => n.page !== passedFrom)
-      .find((n) => task.passes(n));
+    return [...this.nodes.values()].filter((n) => n.page !== passedFrom).find((n) => task.passes(n));
   }
 
   public firstChild(task: TraversalTask): LayoutPage | undefined {
@@ -69,8 +77,7 @@ export class LayoutPages implements LayoutObject<LayoutPage> {
   }
 
   public flat(task: TraversalTask): LayoutNode[] {
-    const pages = Object.values(this.objects) as LayoutPage[];
-    return pages.map((p) => p.flat(task)).flat();
+    return this.allNodes().filter((n) => task.passes(n));
   }
 
   public replacePage(page: LayoutPage) {

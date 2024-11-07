@@ -805,7 +805,7 @@ export function useNode<T extends string | undefined | LayoutNode>(id: T): RetVa
       return id;
     }
 
-    return state.nodes.findById(new TraversalTask(state, state.nodes, undefined, undefined), id);
+    return state.nodes.findById(id);
   });
   return node as RetValFromNode<T>;
 }
