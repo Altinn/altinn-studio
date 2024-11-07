@@ -81,14 +81,14 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
             services.TryAddScoped(typeof(TOption), svc => ((IOptionsSnapshot<object>)svc.GetService(typeof(IOptionsSnapshot<TOption>)))!.Value);
         }
 
-        public static IServiceCollection RegisterTransientServicesByBaseType<TMarker>(this IServiceCollection services)
+        public static IServiceCollection RegisterSingletonServicesByBaseType<TMarker>(this IServiceCollection services)
         {
             var typesToRegister = AltinnAssembliesScanner.GetTypesAssignedFrom<TMarker>()
                 .Where(type => !type.IsInterface && !type.IsAbstract);
 
             foreach (var serviceType in typesToRegister)
             {
-                services.AddTransient(typeof(TMarker), serviceType);
+                services.TryAddSingleton(typeof(TMarker), serviceType);
             }
 
             return services;

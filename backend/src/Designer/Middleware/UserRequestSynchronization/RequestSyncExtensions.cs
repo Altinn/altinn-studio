@@ -7,9 +7,9 @@ public static class RequestSyncExtensions
 {
     public static IServiceCollection RegisterSynchronizationServices(this IServiceCollection services)
     {
-        services.AddTransient<IRequestSyncResolver, RequestSyncResolver>();
-        services.AddTransient<IEditingContextResolver, EditingContextResolver>();
-        services.RegisterTransientServicesByBaseType<IRequestSyncEvaluator>();
+        services.AddSingleton<IRequestSyncResolver, RequestSyncResolver>();
+        services.AddSingleton<IEditingContextResolver, EditingContextResolver>();
+        services.RegisterSingletonServicesByBaseType<IRequestSyncEvaluator>();
         return services;
     }
 

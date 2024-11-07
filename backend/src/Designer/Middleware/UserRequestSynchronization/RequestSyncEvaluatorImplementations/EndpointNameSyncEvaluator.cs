@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using Altinn.Studio.Designer.Controllers;
 using Microsoft.AspNetCore.Http;
@@ -7,10 +8,12 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RequestSy
 
 public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
 {
-    private readonly Dictionary<string, List<string>> _endpointsWhiteList = new()
+    private const string RemoveControllerSuffix = "Controller";
+    private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<string, FrozenSet<string>>
     {
-        {  nameof(RepositoryController).Replace("Controller", string.Empty),
-            [
+        {
+            nameof(RepositoryController).Replace(RemoveControllerSuffix, string.Empty),
+            GenerateFrozenSet(
                 nameof(RepositoryController.RepoStatus),
                 nameof(RepositoryController.RepoDiff),
                 nameof(RepositoryController.Pull),
@@ -18,34 +21,39 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
                 nameof(RepositoryController.CommitAndPushRepo),
                 nameof(RepositoryController.Commit),
                 nameof(RepositoryController.Push)
-            ]
+            )
         },
         {
-            nameof(AppDevelopmentController).Replace("Controller", string.Empty),
-            [
+            nameof(AppDevelopmentController).Replace(RemoveControllerSuffix, string.Empty),
+            GenerateFrozenSet(
                 nameof(AppDevelopmentController.SaveLayoutSettings)
-            ]
+            )
         },
         {
-            nameof(ApplicationMetadataController).Replace("Controller", string.Empty),
-            [
+            nameof(ApplicationMetadataController).Replace(RemoveControllerSuffix, string.Empty),
+            GenerateFrozenSet(
                 nameof(ApplicationMetadataController.DeleteMetadataForAttachment)
-            ]
+            )
         },
         {
-            nameof(ProcessModelingController).Replace("Controller", string.Empty),
-            [
+            nameof(ProcessModelingController).Replace(RemoveControllerSuffix, string.Empty),
+            GenerateFrozenSet(
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
                 nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata)
-            ]
+            )
         },
         {
-            nameof(ResourceAdminController).Replace("Controller", string.Empty),
-            [
+            nameof(ResourceAdminController).Replace(RemoveControllerSuffix, string.Empty),
+            GenerateFrozenSet(
                 nameof(ResourceAdminController.UpdateResource)
-            ]
+            )
         }
-    };
+    }.ToFrozenDictionary();
+
+    private static FrozenSet<string> GenerateFrozenSet(params string[] actions)
+    {
+        return new HashSet<string>(actions).ToFrozenSet();
+    }
 
     public bool EvaluateSyncRequest(HttpContext httpContext)
     {
@@ -61,7 +69,7 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         string controllerName = controllerActionDescriptor.ControllerName;
         string actionName = controllerActionDescriptor.ActionName;
 
-        if (_endpointsWhiteList.TryGetValue(controllerName, out List<string> actionList) && actionList.Contains(actionName))
+        if (_endpointsWhiteList.TryGetValue(controllerName, out FrozenSet<string> actionSet) && actionSet.Contains(actionName))
         {
             return true;
         }
