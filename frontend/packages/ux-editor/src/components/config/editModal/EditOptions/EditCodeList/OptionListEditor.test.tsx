@@ -77,6 +77,7 @@ describe('OptionListEditor', () => {
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
   });
 
   it('should call doReloadPreview when closing Dialog', async () => {
@@ -91,6 +92,7 @@ describe('OptionListEditor', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(doReloadPreview).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(2);
   });
 
   it('should call updateOptionList when closing Dialog with correct parameters', async () => {
@@ -122,7 +124,7 @@ describe('OptionListEditor', () => {
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(3);
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
       org,
       app,
