@@ -1,6 +1,5 @@
 import React from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { SimpleContainer } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioHeading } from '@studio/components';
@@ -217,7 +216,7 @@ const resources: Resource[] = [
 export function Resources() {
   const { t } = useTranslation();
   return (
-    <SimpleContainer>
+    <div className={classes.wrapper}>
       <StudioHeading level={2} size='sm' className={classes.header}>
         {t('dashboard.resources')}
       </StudioHeading>
@@ -232,6 +231,6 @@ export function Resources() {
           />
         ))}
       </div>
-    </SimpleContainer>
+    </div>
   );
 }
