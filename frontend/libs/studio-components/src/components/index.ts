@@ -5,6 +5,7 @@ export * from './StudioAvatar';
 export * from './StudioBetaTag';
 export * from './StudioBlobDownloader';
 export * from './StudioBooleanToggleGroup';
+export * from './StudioBreadcrumbs';
 export * from './StudioButton';
 export * from './StudioCard';
 export * from './StudioCenter';
