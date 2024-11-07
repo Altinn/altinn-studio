@@ -65,7 +65,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   const handleInvalidFileName = (fileNameError: FileNameError) => {
     switch (fileNameError) {
       case 'invalidFileName':
-        return toast.error(t('ux_editor.model_properties_code_list_filename_error'));
+        return toast.error(t('ux_editor.modal_properties_code_list_filename_error'));
       case 'fileExists':
         return toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
     }
