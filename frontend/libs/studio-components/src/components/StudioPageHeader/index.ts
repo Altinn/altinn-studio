@@ -13,6 +13,7 @@ import { StudioPageHeaderLeft } from './StudioPageHeaderLeft';
 import { StudioPageHeaderMain } from './StudioPageHeaderMain';
 import { StudioPageHeaderRight } from './StudioPageHeaderRight';
 import { StudioPageHeaderSub } from './StudioPageHeaderSub';
+import { StudioPageHeaderLink } from './StudioPageHeaderLink';
 
 type StudioPageHeaderComponent = typeof StudioPageHeaderParent & {
   Main: typeof StudioPageHeaderMain;
@@ -21,6 +22,7 @@ type StudioPageHeaderComponent = typeof StudioPageHeaderParent & {
   Right: typeof StudioPageHeaderRight;
   Sub: typeof StudioPageHeaderSub;
   HeaderButton: typeof StudioPageHeaderButton;
+  HeaderLink: typeof StudioPageHeaderLink;
   ProfileMenu: typeof StudioPageHeaderProfileMenu;
 };
 
@@ -32,6 +34,7 @@ StudioPageHeader.Center = StudioPageHeaderCenter;
 StudioPageHeader.Right = StudioPageHeaderRight;
 StudioPageHeader.Sub = StudioPageHeaderSub;
 StudioPageHeader.HeaderButton = StudioPageHeaderButton;
+StudioPageHeader.HeaderLink = StudioPageHeaderLink;
 StudioPageHeader.ProfileMenu = StudioPageHeaderProfileMenu;
 
 export {
