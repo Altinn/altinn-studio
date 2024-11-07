@@ -1,6 +1,5 @@
 import React, { type ReactElement } from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { Divider } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
 import {
@@ -57,11 +56,10 @@ const resources: Resource[] = [
 export function Resources(): ReactElement {
   const { t } = useTranslation();
   return (
-    <div>
-      <StudioHeading level={2} size='small'>
+    <div className={classes.wrapper}>
+      <StudioHeading level={2} size='sm' className={classes.header}>
         {t('dashboard.resources')}
       </StudioHeading>
-      <Divider marginless />
       <div className={classes.resourcesContainer}>
         {resources.map((resource: Resource, index: number) => (
           <ResourceItem key={`resource-item-${index}`} resource={resource} />
