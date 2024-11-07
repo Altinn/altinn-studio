@@ -4,7 +4,7 @@ using Altinn.Studio.Designer.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.RequestSyncEvaluatorImplementations;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services.RequestSyncEvaluators;
 
 public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
 {
@@ -55,7 +55,7 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         return new HashSet<string>(actions).ToFrozenSet();
     }
 
-    public bool EvaluateSyncRequest(HttpContext httpContext)
+    public bool IsEligibleForSynchronization(HttpContext httpContext)
     {
         var endpoint = httpContext.GetEndpoint();
 

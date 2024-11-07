@@ -1,4 +1,5 @@
 using Altinn.Studio.Designer.Configuration.Extensions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;

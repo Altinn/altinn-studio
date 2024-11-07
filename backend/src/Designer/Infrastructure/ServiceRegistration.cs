@@ -22,8 +22,6 @@ using Medallion.Threading.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure

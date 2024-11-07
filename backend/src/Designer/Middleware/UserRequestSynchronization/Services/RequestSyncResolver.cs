@@ -3,7 +3,7 @@ using System.Linq;
 using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 
 public class RequestSyncResolver : IRequestSyncResolver
 {
@@ -23,6 +23,6 @@ public class RequestSyncResolver : IRequestSyncResolver
             return false;
         }
 
-        return _requestSyncEvaluators.Any(e => e.EvaluateSyncRequest(httpContext));
+        return _requestSyncEvaluators.Any(e => e.IsEligibleForSynchronization(httpContext));
     }
 }

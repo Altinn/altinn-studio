@@ -5,7 +5,7 @@ using Altinn.Studio.Designer.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 
-namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 
 public class EditingContextResolver : IEditingContextResolver
 {

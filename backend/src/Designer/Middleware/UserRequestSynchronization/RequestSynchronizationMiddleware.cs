@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers.Extensions;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
 using Altinn.Studio.Designer.Models;
 using Medallion.Threading;
 using Microsoft.AspNetCore.Http;
