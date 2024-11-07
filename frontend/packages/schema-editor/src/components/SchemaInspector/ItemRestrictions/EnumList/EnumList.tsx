@@ -55,6 +55,8 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
     <Fieldset
       legend={t('schema_editor.enum_legend')}
       description={!schemaNode.enum?.length && t('schema_editor.enum_empty')}
+      size='sm'
+      className={classes.enumListFieldsset}
     >
       {duplicateValues !== null && (
         <ErrorMessage>{t('schema_editor.enum_error_duplicate')}</ErrorMessage>
