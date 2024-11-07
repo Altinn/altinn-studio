@@ -133,11 +133,17 @@ const EditColumnElementComponentSelect = ({
       onValueChange={onSelectComponent}
       id='columncomponentselect'
     >
-      {components.map((comp: FormItem) => (
-        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-          {comp.id}
+      {components.length > 0 ? (
+        components.map((comp: FormItem) => (
+          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+            {comp.id}
+          </StudioCombobox.Option>
+        ))
+      ) : (
+        <StudioCombobox.Option value='' key={'noComponentsWithLabel'} disabled>
+          {t('ux_editor.properties_panel.subform_table_columns.empty_columns_message')}
         </StudioCombobox.Option>
-      ))}
+      )}
     </StudioCombobox>
   );
 };
