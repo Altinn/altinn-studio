@@ -28,7 +28,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-CURRENT_VERSION=$(git describe --abbrev=0 --tags 2>/dev/null)
+CURRENT_VERSION=$(curl -s https://api.github.com/repos/Altinn/altinn-studio/releases/latest | jq -r .tag_name)
 CURRENT_VERSION_PARTS=(${CURRENT_VERSION//./ })
 FIRST_PART=${CURRENT_VERSION_PARTS[0]:1}
 SECOND_PART=${CURRENT_VERSION_PARTS[1]}
