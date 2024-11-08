@@ -1,15 +1,16 @@
 name: Generate release for Altinn Studio
 on:
-  # schedule:
-  #   # run every friday at 15:00
-  #   - cron: '0 9 * * 5'
+  schedule:
+    # run every friday at 14:45
+    - cron: '45 14 * * 5'
 
-  # workflow_dispatch:
-
-  # For testing purposes, remove before merge
-  push:
-    branches:
-      - chore/auto-generate-release
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: 'Create a draft release'
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   generate-release:
@@ -28,4 +29,4 @@ jobs:
         run: |
           bash .github/scripts/release.sh \
             --github-token ${{ secrets.GITHUB_TOKEN }} \
-
+            --draft ${{ github.event.inputs.draft || false }} # cron job will always be a full release
