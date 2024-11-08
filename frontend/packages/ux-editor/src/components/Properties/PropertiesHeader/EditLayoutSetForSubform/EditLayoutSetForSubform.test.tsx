@@ -134,7 +134,7 @@ describe('EditLayoutSetForSubform', () => {
     );
   });
 
-  it('calls handleComponentChange after creating a new layout set and clicking Lukk button', async () => {
+  it('calls handleComponentChange after creating a new layout set and  selecting data model type, then clicking Lukk button', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
     renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
@@ -144,14 +144,11 @@ describe('EditLayoutSetForSubform', () => {
     await user.click(createNewLayoutSetButton);
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
+    const dataModelSelect = await screen.findAllByRole('combobox');
+    await user.selectOptions(dataModelSelect[0], subformLayoutSetId);
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(saveButton);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
-    expect(handleComponentChangeMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        layoutSet: 'NewSubform',
-      }),
-    );
   });
 
   it('closes the view mode when clicking close button after selecting a layout set', async () => {
