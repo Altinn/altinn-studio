@@ -21,7 +21,7 @@ jobs:
         with:
           path: altinn-studio
           fetch-tags: true
-          ref: main
+          fetch-depth: 0
 
       - name: Run release script
         working-directory: altinn-studio
