@@ -7,6 +7,10 @@ using Medallion.Threading;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 
+/// <summary>
+/// Extension methods for <see cref="IDistributedLockProvider"/>.
+/// Enriches the provider with methods that create locks based on <see cref="AltinnRepoEditingContext"/>.
+/// </summary>
 public static class DistributedLockProviderExtensions
 {
     private static string GenerateKey(AltinnRepoEditingContext editingContext)
