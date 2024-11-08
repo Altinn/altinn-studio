@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { FormComponent } from '../../../../../types/FormComponent';
@@ -113,7 +113,7 @@ describe('OptionListEditor', () => {
     await user.type(textBox, 'test');
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
-    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1));
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
       org,
       app,
@@ -129,6 +129,12 @@ const openModal = async (user: UserEvent) => {
   });
   await user.click(btnOpen);
 };
+
+// function wait(milliseconds) {
+//   return new Promise((resolve) => {
+//     setTimeout(resolve, milliseconds);
+//   });
+// }
 
 const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {}) => {
   return renderWithProviders(
