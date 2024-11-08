@@ -69,7 +69,7 @@ export const RepoList = ({
     },
     {
       accessor: 'description',
-      heading: t('dashboard.description'),
+      heading: t('general.description'),
       sortable: true,
     },
     {

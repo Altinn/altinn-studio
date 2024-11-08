@@ -2,11 +2,11 @@ import React from 'react';
 import { EditCodeList } from './EditCodeList';
 import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { renderWithProviders, optionListIdsMock } from '../../../../../testing/mocks';
+import { renderWithProviders, optionListIdsMock } from '../../../../../../testing/mocks';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { FormComponent } from '../../../../../types/FormComponent';
+import type { FormComponent } from '../../../../../../types/FormComponent';
 
 const mockComponent: FormComponent<ComponentType.Dropdown> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
