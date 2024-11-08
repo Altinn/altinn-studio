@@ -68,12 +68,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         // Should we check if node is string to avoid unnecessary upcoming checks?
         if (node is JsonObject jsonObject)
         {
-            if (jsonObject[oldComponentId] is not null)
-            {
-                // When componentId is the propertyName
-                UpdateComponentIdActingAsPropertyName(jsonObject, oldComponentId, newComponentId);
-            }
-            else if (jsonObject["component"] is not null)
+            if (jsonObject["component"] is not null)
             {
                 // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
                 UpdateComponentIdActingAsCellMemberInRepeatingGroup(jsonObject, oldComponentId, newComponentId);
@@ -107,17 +102,6 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                     FindIdOccurrencesRecursive(item, oldComponentId, newComponentId);
                 }
             }
-        }
-    }
-
-    private void UpdateComponentIdActingAsPropertyName(JsonObject jsonObject, string oldComponentId, string newComponentId)
-    {
-        // Might need to make this stricter in case app-dev are calling components keys that already are used in the schema
-        JsonNode value = jsonObject[oldComponentId];
-        jsonObject.Remove(oldComponentId);
-        if (!string.IsNullOrEmpty(newComponentId))
-        {
-            jsonObject[newComponentId] = value;
         }
     }
 
@@ -159,5 +143,4 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             jsonNode["componentRef"] = newComponentId;
         }
     }
-
 }
