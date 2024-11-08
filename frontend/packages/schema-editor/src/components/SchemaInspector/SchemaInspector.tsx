@@ -5,10 +5,10 @@ import { isField, isObject } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
+import { NoItemSelectedMessage } from '../NoItemSelectedMessage';
 
 export const SchemaInspector = () => {
   const { t } = useTranslation();
@@ -16,12 +16,7 @@ export const SchemaInspector = () => {
   const savableModel = useSavableSchemaModel();
 
   if (!selectedUniquePointer) {
-    return (
-      <div>
-        <p className={classes.noItem}>{t('schema_editor.no_item_selected')}</p>
-        <Divider />
-      </div>
-    );
+    return <NoItemSelectedMessage />;
   }
 
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
