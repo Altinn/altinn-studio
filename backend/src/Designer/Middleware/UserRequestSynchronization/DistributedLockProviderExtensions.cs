@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
 using Medallion.Threading;
 
-namespace Altinn.Studio.Designer.Helpers.Extensions;
+namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 
 public static class DistributedLockProviderExtensions
 {
