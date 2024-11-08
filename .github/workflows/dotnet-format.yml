@@ -2,8 +2,6 @@ name: Verify dotnet format
 
 on:
   pull_request:
-    branches:
-      - "main"
 
 jobs:
   verify-no-changes:
