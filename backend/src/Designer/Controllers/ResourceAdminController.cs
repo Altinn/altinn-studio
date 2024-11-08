@@ -183,7 +183,7 @@ namespace Altinn.Studio.Designer.Controllers
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                     {
                         environmentResources = await _resourceRegistry.GetResourceList(environment, false);
-                        
+
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
