@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,10 +35,10 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly CacheSettings _cacheSettings;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
-        private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
+        private readonly IEnvironmentsService _environmentsService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService, IEnvironmentsService environmentsService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -45,9 +46,9 @@ namespace Altinn.Studio.Designer.Controllers
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
             _orgService = orgService;
-            _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
             _userRequestsSynchronizationService = userRequestsSynchronizationService;
+            _environmentsService = environmentsService;
         }
 
         [HttpPost]
@@ -177,7 +178,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (includeEnvResources)
             {
-                foreach (string environment in _resourceRegistrySettings.Keys)
+                IEnumerable<string> environments = await GetEnvironmentsForOrg(org);
+                foreach (string environment in environments)
                 {
                     string cacheKey = $"resourcelist_${environment}";
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
@@ -241,7 +243,8 @@ namespace Altinn.Studio.Designer.Controllers
                 PublishedVersions = []
             };
 
-            foreach (string envir in _resourceRegistrySettings.Keys)
+            IEnumerable<string> environments = await GetEnvironmentsForOrg(org);
+            foreach (string envir in environments)
             {
                 resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
             }
@@ -638,6 +641,12 @@ namespace Altinn.Studio.Designer.Controllers
         private string GetRepositoryName(string org)
         {
             return string.Format("{0}-resources", org);
+        }
+
+        private async Task<IEnumerable<string>> GetEnvironmentsForOrg(string org)
+        {
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            return environments.Select(environment => environment.Name == "production" ? "prod" : environment.Name);
         }
     }
 }
