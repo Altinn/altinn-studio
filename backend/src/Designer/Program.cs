@@ -262,7 +262,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
     services.AddFeatureManagement();
-    services.RegisterSynchronizationServices();
+    services.RegisterSynchronizationServices(configuration);
 
 
     if (!env.IsDevelopment())
