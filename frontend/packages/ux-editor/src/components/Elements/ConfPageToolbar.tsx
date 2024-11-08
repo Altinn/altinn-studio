@@ -7,10 +7,9 @@ import {
   paymentLayoutComponents,
   subformLayoutComponents,
 } from '../../data/formItemConfig';
-import { getComponentTitleByComponentType } from '../../utils/language';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
-import { useTranslation } from 'react-i18next';
 import type { ConfPageType } from './types/ConfigPageType';
+import { useComponentTitle } from '@altinn/ux-editor/hooks';
 
 const getAvailableComponentList = (confPageType: ConfPageType) => {
   switch (confPageType) {
@@ -30,7 +29,7 @@ export type ConfPageToolbarProps = {
 };
 
 export const ConfPageToolbar = ({ confPageType }: ConfPageToolbarProps) => {
-  const { t } = useTranslation();
+  const getComponentTitle = useComponentTitle();
 
   const componentList: IToolbarElement[] = getAvailableComponentList(confPageType).map(
     mapComponentToToolbarElement,
@@ -40,7 +39,7 @@ export const ConfPageToolbar = ({ confPageType }: ConfPageToolbarProps) => {
     <div className={classes.customComponentList}>
       {componentList.map((component: IToolbarElement) => (
         <ToolbarItem
-          text={getComponentTitleByComponentType(component.type, t) || component.label}
+          componentTitle={getComponentTitle(component)}
           icon={component.icon}
           componentType={component.type}
           key={component.type}

@@ -1,8 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
-import { RedirectBox } from 'app-shared/components/RedirectBox';
+import { StudioButton, StudioRedirectBox } from '@studio/components';
 import classes from './RedirectToLayoutSet.module.css';
 import { useAppContext } from '../../../../hooks';
 
@@ -22,7 +21,7 @@ export const RedirectToLayoutSet = ({
   };
 
   return (
-    <RedirectBox
+    <StudioRedirectBox
       title={t('ux_editor.component_properties.subform.go_to_layout_set')}
       className={classes.redirectContainer}
     >
@@ -35,6 +34,6 @@ export const RedirectToLayoutSet = ({
       >
         {t('top_menu.create')}
       </StudioButton>
-    </RedirectBox>
+    </StudioRedirectBox>
   );
 };

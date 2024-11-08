@@ -6,7 +6,6 @@ import classes from './StringRestrictions.module.css';
 import { Fieldset, Label, Switch, Textfield } from '@digdir/designsystemet-react';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { StringFormat, StrRestrictionKey } from '@altinn/schema-model';
-import { Divider } from 'app-shared/primitives';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
@@ -15,6 +14,7 @@ import {
 } from './StringRestrictionsReducer';
 import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect, StudioTextfield } from '@studio/components';
+import { ItemWrapper } from '../ItemWrapper';
 
 export function StringRestrictions({
   onChangeRestrictionValue,
@@ -73,8 +73,7 @@ export function StringRestrictions({
   const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
 
   return (
-    <>
-      <Divider marginless />
+    <ItemWrapper>
       <StudioNativeSelect
         id='format-select-input'
         label={t('format')}
@@ -101,6 +100,7 @@ export function StringRestrictions({
                   dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
                 }
                 value={formatState.earliest}
+                size='sm'
               />
               <Switch
                 size='small'
@@ -121,6 +121,7 @@ export function StringRestrictions({
                   dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
                 }
                 value={formatState.latest}
+                size='sm'
               />
               <Switch
                 size='small'
@@ -159,7 +160,6 @@ export function StringRestrictions({
           />
         </div>
       </div>
-      <Divider marginless />
       <Fieldset legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKey.pattern}
@@ -202,7 +202,7 @@ export function StringRestrictions({
           </div>
         </div>
       </Fieldset>
-    </>
+    </ItemWrapper>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useSelectedFormLayoutWithName } from '../';
 import { useMutation } from '@tanstack/react-query';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import { useFormLayoutMutation } from './useFormLayoutMutation';
 import { useAddAppAttachmentMetadataMutation } from './useAddAppAttachmentMetadataMutation';
 import type { FormFileUploaderComponent } from '../../types/FormComponent';
@@ -8,7 +8,7 @@ import { addItemOfType } from '../../utils/formLayoutUtils';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 
 export interface AddFormItemMutationArgs {
-  componentType: ComponentType;
+  componentType: ComponentType | CustomComponentType;
   newId: string;
   parentId: string;
   index: number;
