@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services.RequestSyncEvaluators;
 
+/// <summary>
+/// Evaluates if a request is eligible for synchronization based on the endpoint name.
+/// Contains a whitelist of endpoints that are eligible for synchronization.
+/// </summary>
 public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
 {
     private const string RemoveControllerSuffix = "Controller";

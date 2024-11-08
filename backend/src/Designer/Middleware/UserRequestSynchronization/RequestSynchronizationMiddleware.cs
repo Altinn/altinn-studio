@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 
+/// <summary>
+/// Middleware that synchronizes requests in a distributed environment.
+/// </summary>
 public class RequestSynchronizationMiddleware
 {
     private readonly RequestDelegate _next;
