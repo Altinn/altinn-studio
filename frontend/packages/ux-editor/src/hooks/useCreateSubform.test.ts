@@ -19,7 +19,7 @@ describe('useCreateSubform', () => {
     const subformName = 'underskjema';
     const onSubformCreated = jest.fn();
 
-    createSubform({ layoutSetName: subformName, onSubformCreated });
+    createSubform({ layoutSetName: subformName, onSubformCreated, dataType: 'dataModel1' });
 
     expect(addLayoutSetMock).toHaveBeenCalledWith(
       {
@@ -27,6 +27,7 @@ describe('useCreateSubform', () => {
         layoutSetConfig: {
           id: subformName,
           type: 'subform',
+          dataType: 'dataModel1',
         },
       },
       {
