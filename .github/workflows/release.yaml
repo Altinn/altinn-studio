@@ -1,16 +1,15 @@
 name: Generate release for Altinn Studio
 on:
-  schedule:
-    # run every friday at 15:00
-    - cron: '0 9 * * 5'
+  # schedule:
+  #   # run every friday at 15:00
+  #   - cron: '0 9 * * 5'
 
-  workflow_dispatch:
+  # workflow_dispatch:
 
   # For testing purposes, remove before merge
-  pull_request:
-    types: [edited]
+  push:
     branches:
-      - main
+      - chore/auto-generate-release
 
 jobs:
   generate-release:
