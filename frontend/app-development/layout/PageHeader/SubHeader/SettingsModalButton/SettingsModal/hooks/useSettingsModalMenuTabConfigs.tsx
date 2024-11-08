@@ -24,13 +24,6 @@ export const allSettingsModalTabs: Array<SettingsModalTabId> = [
   maskinportenTabId,
 ];
 
-export const allSettingsModalTabs: Array<SettingsModalTabId> = [
-  aboutTabId,
-  setupTabId,
-  policyTabId,
-  accessControlTabId,
-];
-
 export const useSettingsModalMenuTabConfigs =
   (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
     const { t } = useTranslation();
