@@ -143,25 +143,29 @@ public abstract class GiteaIntegrationTestsBase<TControllerTest> : ApiTestsBase<
                         ""AppLocation"": ""{templateLocation}/App""
                     }},
                     ""OidcLoginSettings"": {{
-                    ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
-                    ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
-                    ""Authority"": ""{TestUrlsProvider.Instance.GiteaUrl}"",
-                    ""Scopes"": [
-                        ""openid"",
-                        ""profile"",
-                        ""write:activitypub"",
-                        ""write:admin"",
-                        ""write:issue"",
-                        ""write:misc"",
-                        ""write:notification"",
-                        ""write:organization"",
-                        ""write:package"",
-                        ""write:repository"",
-                        ""write:user""
-                    ],
-                    ""RequireHttpsMetadata"": false,
-                    ""CookieExpiryTimeInMinutes"" : 59
-                }}
+                        ""ClientId"": ""{GiteaFixture.OAuthApplicationClientId}"",
+                        ""ClientSecret"": ""{GiteaFixture.OAuthApplicationClientSecret}"",
+                        ""Authority"": ""{TestUrlsProvider.Instance.GiteaUrl}"",
+                        ""Scopes"": [
+                            ""openid"",
+                            ""profile"",
+                            ""write:activitypub"",
+                            ""write:admin"",
+                            ""write:issue"",
+                            ""write:misc"",
+                            ""write:notification"",
+                            ""write:organization"",
+                            ""write:package"",
+                            ""write:repository"",
+                            ""write:user""
+                        ],
+                        ""RequireHttpsMetadata"": false,
+                        ""CookieExpiryTimeInMinutes"" : 59
+                    }},
+                    ""PostgreSQLSettings"": {{
+                        ""ConnectionString"": ""{GiteaFixture.DbConnectionString}"",
+                        ""DesignerDbPwd"": """"
+                    }}
               }}
             ";
         var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));

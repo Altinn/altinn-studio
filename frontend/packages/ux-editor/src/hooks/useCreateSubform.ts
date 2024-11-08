@@ -4,18 +4,20 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 type CreateSubformProps = {
   layoutSetName: string;
   onSubformCreated: (layoutSetName: string) => void;
+  dataType?: string;
 };
 
 export const useCreateSubform = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
 
-  const createSubform = ({ layoutSetName, onSubformCreated }: CreateSubformProps) => {
+  const createSubform = ({ layoutSetName, onSubformCreated, dataType }: CreateSubformProps) => {
     addLayoutSet({
       layoutSetIdToUpdate: layoutSetName,
       layoutSetConfig: {
         id: layoutSetName,
         type: 'subform',
+        dataType,
       },
     });
     onSubformCreated(layoutSetName);
