@@ -29,7 +29,7 @@ export const CreateNewSubformLayoutSet = ({
   }
 
   const saveIcon = isPendingLayoutSetMutation ? (
-    <StudioSpinner spinnerTitle={t('general.loading')} />
+    <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
   ) : (
     <CheckmarkIcon />
   );
@@ -43,7 +43,6 @@ export const CreateNewSubformLayoutSet = ({
         <StudioTextfield
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
           value={newSubform}
-          size='sm'
           disabled={isPendingLayoutSetMutation}
           onChange={(e) => handleChange(e.target.value)}
           error={nameError}
