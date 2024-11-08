@@ -6,6 +6,7 @@ import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
 import { StudioNativeSelect } from '@studio/components';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({
   component,
@@ -133,7 +134,7 @@ export const ImageComponent = ({
           <a
             target='_blank'
             rel='noopener noreferrer'
-            href='https://docs.altinn.studio/nb/app/development/ux/components/images/'
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/ux/components/images/' })}
           >
             {t('ux_editor.modal_properties_image_read_more')}
           </a>
