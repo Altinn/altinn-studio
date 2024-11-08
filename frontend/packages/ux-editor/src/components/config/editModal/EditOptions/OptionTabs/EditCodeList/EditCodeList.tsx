@@ -75,7 +75,6 @@ export function EditCodeList<T extends SelectionComponentType>({
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
       <StudioFileUploader
-        className={classes.studioFileUploader}
         accept='.json'
         variant={'tertiary'}
         uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}

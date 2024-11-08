@@ -34,7 +34,6 @@ export const OptionTabs = ({
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (!optionListIds) return;
     const updatedSelectedOptionsType = getSelectedOptionsType(
       component.optionsId,
       component.options,
