@@ -3,20 +3,20 @@ import commonClasses from '../common.module.css';
 import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import cn from 'classnames';
 import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
-import linkClasses from './StudioPageHeaderLink.module.css';
+import linkClasses from './StudioPageHeaderHeaderLink.module.css';
 
-export type StudioPageHeaderLinkProps = {
+export type StudioPageHeaderHeaderLinkProps = {
   color: StudioPageHeaderColor;
   variant: StudioPageHeaderVariant;
   renderLink: (props: HTMLAttributes<HTMLAnchorElement>) => ReactElement;
 } & HTMLAttributes<HTMLAnchorElement>;
 
-export function StudioPageHeaderLink({
+export function StudioPageHeaderHeaderLink({
   color,
   variant,
   className: givenClass,
   renderLink,
-}: StudioPageHeaderLinkProps): ReactElement {
+}: StudioPageHeaderHeaderLinkProps): ReactElement {
   const className = cn(
     commonClasses.linkOrButton,
     commonClasses[variant],
@@ -28,4 +28,4 @@ export function StudioPageHeaderLink({
   return renderLink(props);
 }
 
-StudioPageHeaderLink.displayName = 'StudioPageHeader.HeaderLink';
+StudioPageHeaderHeaderLink.displayName = 'StudioPageHeader.HeaderLink';

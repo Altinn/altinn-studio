@@ -1,17 +1,20 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { StudioPageHeaderButton, type StudioPageHeaderButtonProps } from './StudioPageHeaderButton';
+import {
+  StudioPageHeaderHeaderButton,
+  type StudioPageHeaderHeaderButtonProps,
+} from './StudioPageHeaderHeaderButton';
 import userEvent from '@testing-library/user-event';
 
 const buttonText: string = 'Button';
-const defaultProps: StudioPageHeaderButtonProps = {
+const defaultProps: StudioPageHeaderHeaderButtonProps = {
   color: 'dark',
   variant: 'regular',
 };
 
-describe('StudioPageHeaderButton', () => {
+describe('StudioPageHeaderHeaderButton', () => {
   it('Passes the colour and variant classes to the button', () => {
-    renderStudioPageHeaderButton();
+    renderStudioPageHeaderHeaderButton();
     const button = screen.getByRole('button');
     expect(button).toHaveClass(defaultProps.color);
     expect(button).toHaveClass(defaultProps.variant);
@@ -19,7 +22,7 @@ describe('StudioPageHeaderButton', () => {
 
   it('should forward ref to the button element', () => {
     const ref = React.createRef<HTMLButtonElement>();
-    renderStudioPageHeaderButton({ color: 'dark' }, ref);
+    renderStudioPageHeaderHeaderButton({ color: 'dark' }, ref);
 
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
@@ -28,7 +31,7 @@ describe('StudioPageHeaderButton', () => {
     const user = userEvent.setup();
 
     const mockOnClick = jest.fn();
-    renderStudioPageHeaderButton({ onClick: mockOnClick });
+    renderStudioPageHeaderHeaderButton({ onClick: mockOnClick });
 
     const button = screen.getByRole('button', { name: buttonText });
     await user.click(button);
@@ -37,13 +40,13 @@ describe('StudioPageHeaderButton', () => {
   });
 });
 
-const renderStudioPageHeaderButton = (
-  props: Partial<StudioPageHeaderButtonProps> = {},
+const renderStudioPageHeaderHeaderButton = (
+  props: Partial<StudioPageHeaderHeaderButtonProps> = {},
   ref?: React.Ref<HTMLButtonElement>,
 ) => {
   return render(
-    <StudioPageHeaderButton ref={ref} {...defaultProps} {...props}>
+    <StudioPageHeaderHeaderButton ref={ref} {...defaultProps} {...props}>
       {buttonText}
-    </StudioPageHeaderButton>,
+    </StudioPageHeaderHeaderButton>,
   );
 };

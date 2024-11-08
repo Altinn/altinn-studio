@@ -2,8 +2,8 @@ import type { HTMLAttributes } from 'react';
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
-import type { StudioPageHeaderLinkProps } from './StudioPageHeaderLink';
-import { StudioPageHeaderLink } from './StudioPageHeaderLink';
+import type { StudioPageHeaderHeaderLinkProps } from './StudioPageHeaderHeaderLink';
+import { StudioPageHeaderHeaderLink } from './StudioPageHeaderHeaderLink';
 
 // Test data:
 const linkText: string = 'Text';
@@ -12,26 +12,28 @@ const renderLink = (props: HTMLAttributes<HTMLAnchorElement>) => (
     {linkText}
   </a>
 );
-const defaultProps: StudioPageHeaderLinkProps = {
+const defaultProps: StudioPageHeaderHeaderLinkProps = {
   color: 'dark',
   variant: 'regular',
   renderLink,
 };
 
-describe('StudioPageHeaderLink', () => {
+describe('StudioPageHeaderHeaderLink', () => {
   it('Renders the link', () => {
-    renderStudioPageHeaderLink();
+    renderStudioPageHeaderHeaderLink();
     expect(screen.getByRole('link', { name: linkText })).toBeInTheDocument();
   });
 
   it('Passes the colour and variant classes to the link', () => {
-    renderStudioPageHeaderLink();
+    renderStudioPageHeaderHeaderLink();
     const link = screen.getByRole('link');
     expect(link).toHaveClass(defaultProps.color);
     expect(link).toHaveClass(defaultProps.variant);
   });
 });
 
-function renderStudioPageHeaderLink(props: Partial<StudioPageHeaderLinkProps> = {}): RenderResult {
-  return render(<StudioPageHeaderLink {...defaultProps} {...props} />);
+function renderStudioPageHeaderHeaderLink(
+  props: Partial<StudioPageHeaderHeaderLinkProps> = {},
+): RenderResult {
+  return render(<StudioPageHeaderHeaderLink {...defaultProps} {...props} />);
 }
