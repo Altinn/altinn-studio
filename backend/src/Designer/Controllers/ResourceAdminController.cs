@@ -184,7 +184,15 @@ namespace Altinn.Studio.Designer.Controllers
                     string cacheKey = $"resourcelist_${environment}";
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                     {
-                        environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                        try 
+                        {
+                            environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+                        }
+                        catch (ArgumentException ex)
+                        {
+                            environmentResources = [];
+                        }
+                        
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
@@ -621,7 +629,15 @@ namespace Altinn.Studio.Designer.Controllers
 
         private async Task<ResourceVersionInfo> AddEnvironmentResourceStatus(string env, string id)
         {
-            ServiceResource resource = await _resourceRegistry.GetResource(id, env);
+            ServiceResource resource;
+            try 
+            {
+                resource = await _resourceRegistry.GetResource(id, env);
+            }
+            catch (ArgumentException ex)
+            {
+                resource = null;
+            }
             string version;
             if (resource == null)
             {
