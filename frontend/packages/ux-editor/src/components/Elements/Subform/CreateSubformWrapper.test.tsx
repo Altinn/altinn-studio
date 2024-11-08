@@ -81,7 +81,8 @@ describe('CreateSubformWrapper', () => {
     });
     await user.click(confirmButton);
     expect(addLayoutSet).toHaveBeenCalledWith(org, app, subformName, {
-      layoutSetConfig: { id: subformName, type: 'subform', dataType: 'dataModelTest' },
+      layoutSetConfig: { id: subformName, type: 'subform', dataType: '' },
+      taskType: undefined,
     });
   });
 
