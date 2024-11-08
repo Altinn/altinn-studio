@@ -10,7 +10,7 @@ import { ComponentType, type CustomComponentType } from 'app-shared/types/Compon
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
-import { formItemConfigs, allComponents } from '../data/formItemConfig';
+import { formItemConfigs, allComponents, defaultComponents } from '../data/formItemConfig';
 import type { FormContainer } from '../types/FormContainer';
 import type { FormItem } from '../types/FormItem';
 import * as formItemUtils from './formItemUtils';
@@ -508,6 +508,24 @@ export const getAvailableChildComponentsForContainer = (
     );
   });
   return allComponentLists;
+};
+
+/**
+ * Gets all default componenent types to add for a given container
+ * @param layout
+ * @param containerId
+ * @returns
+ */
+export const getDefaultChildComponentsForContainer = (
+  layout: IInternalLayout,
+  containerId: string,
+): IToolbarElement[] => {
+  if (containerId !== BASE_CONTAINER_ID) return [];
+  const defaultComponentLists: IToolbarElement[] = [];
+  defaultComponents.forEach((element) => {
+    defaultComponentLists.push(mapComponentToToolbarElement(formItemConfigs[element]));
+  });
+  return defaultComponentLists;
 };
 
 /**

@@ -2,6 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import {
   addItemOfType,
   getAvailableChildComponentsForContainer,
+  getDefaultChildComponentsForContainer,
   getItem,
 } from '../../../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../../../hooks/mutations/useAddItemToLayoutMutation';
@@ -14,8 +15,9 @@ import { StudioButton, StudioModal } from '@studio/components';
 import type { AddedItem } from './types';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { AddItemContent } from './AddItemContent';
-import { PlusCircleIcon } from '@studio/icons';
+import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { DefaultItems } from './DefaultItems';
 
 export type AddItemProps = {
   containerId: string;
@@ -24,6 +26,7 @@ export type AddItemProps = {
 
 export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
   const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
+  const [showDefaultComponents, setShowDefaultComponents] = React.useState(false);
 
   const { doReloadPreview } = usePreviewContext();
   const handleCloseModal = () => {
@@ -76,33 +79,83 @@ export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
     modalRef.current?.showModal();
   }, []);
 
+  const handleShowDefaultComponents = () => {
+    setShowDefaultComponents(true);
+  };
+
+  const handleHideDefaultComponents = () => {
+    setShowDefaultComponents(false);
+  };
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', marginLeft: 12, marginRight: 12 }}>
-      <StudioModal.Root>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        marginLeft: 12,
+        marginRight: 12,
+      }}
+    >
+      {!showDefaultComponents && (
         <StudioButton
           icon={<PlusCircleIcon />}
-          onClick={handleOpenModal}
+          onClick={handleShowDefaultComponents}
           variant='tertiary'
           fullWidth
         >
           Legg til komponent
         </StudioButton>
-        <StudioModal.Dialog
-          onClose={handleCloseModal}
-          heading={'Velg komponent'}
-          closeButtonTitle='Lukk'
-          style={{ minWidth: '80vw', overflowY: 'hidden' }}
-          ref={modalRef}
-        >
-          <AddItemContent
+      )}
+      {showDefaultComponents && (
+        <div>
+          <StudioButton
+            icon={<XMarkIcon />}
+            onClick={handleHideDefaultComponents}
+            variant='tertiary'
+            fullWidth
+            color='success'
+          >
+            Lukk
+          </StudioButton>
+          <DefaultItems
             item={selectedItem}
             setItem={setSelectedItem}
             onAddItem={onAddComponent}
             onCancel={handleCloseModal}
-            availableComponents={getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID)}
+            availableComponents={getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID)}
           />
-        </StudioModal.Dialog>
-      </StudioModal.Root>
+
+          <StudioModal.Root>
+            <StudioButton
+              icon={<PlusCircleIcon />}
+              onClick={handleOpenModal}
+              variant='tertiary'
+              fullWidth
+            >
+              Vis alle komponenter
+            </StudioButton>
+            <StudioModal.Dialog
+              onClose={handleCloseModal}
+              heading={'Velg komponent'}
+              closeButtonTitle='Lukk'
+              style={{ minWidth: '80vw', overflowY: 'hidden' }}
+              ref={modalRef}
+            >
+              <AddItemContent
+                item={selectedItem}
+                setItem={setSelectedItem}
+                onAddItem={onAddComponent}
+                onCancel={handleCloseModal}
+                availableComponents={getAvailableChildComponentsForContainer(
+                  layout,
+                  BASE_CONTAINER_ID,
+                )}
+              />
+            </StudioModal.Dialog>
+          </StudioModal.Root>
+        </div>
+      )}
     </div>
   );
 };
