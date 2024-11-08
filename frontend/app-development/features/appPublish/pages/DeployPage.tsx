@@ -5,13 +5,12 @@ import { InfoCard } from '../components/InfoCard';
 import { ReleaseContainer } from '../containers/ReleaseContainer';
 import { useDeployPermissionsQuery, useOrgListQuery } from '../../../hooks/queries';
 import { Trans, useTranslation } from 'react-i18next';
-import { AltinnContentLoader } from '../components/AltinnContentLoader';
 import { useInvalidator } from '../../../hooks/useInvalidator';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Link } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
-import { StudioError } from '@studio/components';
+import { StudioError, StudioPageSpinner } from '@studio/components';
 
 export function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
@@ -25,13 +24,7 @@ export function DeployPage() {
   useInvalidator();
 
   if (orgsIsPending || permissionsIsPending) {
-    return (
-      <AltinnContentLoader width={1200} height={600} title={t('app_deployment.loading')}>
-        <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
-        <rect x='1' y='1' rx='0' ry='0' width='800' height='200' />
-        <rect x='1' y='220' rx='0' ry='0' width='800' height='200' />
-      </AltinnContentLoader>
-    );
+    return <StudioPageSpinner spinnerTitle={t('app_deployment.loading')} />;
   }
 
   if (orgsIsError || permissionsIsError)
