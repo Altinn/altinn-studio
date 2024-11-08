@@ -56,7 +56,7 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
 
     private static FrozenSet<string> GenerateFrozenSet(params string[] actions)
     {
-        return new HashSet<string>(actions).ToFrozenSet();
+        return actions.ToFrozenSet();
     }
 
     public bool IsEligibleForSynchronization(HttpContext httpContext)
