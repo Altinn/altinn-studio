@@ -3,7 +3,6 @@ import classes from './ContactPage.module.css';
 import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
-import { PageContainer } from 'app-shared/components/PageContainer/PageContainer';
 import classNames from 'classnames';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
@@ -11,6 +10,7 @@ import {
   GitHubIssueContactProvider,
   SlackContactProvider,
 } from 'app-shared/getInTouch/providers';
+import { StudioPageImageBackgroundContainer } from '@studio/components';
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export const ContactPage = (): React.ReactElement => {
   const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
   return (
-    <PageContainer>
+    <StudioPageImageBackgroundContainer image='/designer/img/page-background.svg'>
       <div className={classes.container}>
         <div className={classes.content}>
           <div>
@@ -78,6 +78,6 @@ export const ContactPage = (): React.ReactElement => {
           </section>
         </div>
       </div>
-    </PageContainer>
+    </StudioPageImageBackgroundContainer>
   );
 };

@@ -17,7 +17,6 @@ import { ObjectRestrictions } from './ObjectRestrictions';
 import { StringRestrictions } from './StringRestrictions';
 import classes from './ItemRestrictions.module.css';
 import { Switch } from '@digdir/designsystemet-react';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
@@ -82,10 +81,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       {isArray && <ArrayRestrictions {...restrictionProps} />}
       {isField(schemaNode) &&
         [FieldType.String, FieldType.Integer, FieldType.Number].includes(schemaNode.fieldType) && (
-          <>
-            <Divider marginless />
-            <EnumList schemaNode={schemaNode} />
-          </>
+          <EnumList schemaNode={schemaNode} />
         )}
     </>
   );

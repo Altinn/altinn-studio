@@ -15,7 +15,7 @@ import type {
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
 import type { FormComponent } from '../../../../../types/FormComponent';
-import { useAppContext, useComponentTypeName } from '../../../../../hooks';
+import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { useTargetTypes } from './useTargetTypes';
@@ -48,7 +48,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
 
   const targetTypes = useTargetTypes();
-  const componentTypeName = useComponentTypeName();
+  const getComponentTitle = useComponentTitle();
 
   const excludedComponents = [
     ComponentType.Summary2,
@@ -62,7 +62,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
     : [];
   const componentOptions = components.map((formComponent: FormComponent) => ({
     id: formComponent.id,
-    description: componentTypeName(formComponent.type),
+    description: getComponentTitle(formComponent),
   }));
 
   const pageOptions = formLayoutsData
