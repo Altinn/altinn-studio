@@ -1,6 +1,7 @@
 .subExpressionTop {
   display: flex;
   justify-content: space-between;
+  border-top: var(--studio-border-divider);
 }
 
 .subExpression {

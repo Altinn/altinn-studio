@@ -1,6 +1,6 @@
 import type { PageName } from '../../types/PageName';
 
-const pageRouterQueryParamKey: string = 'currentLibraryRoute';
+export const pageRouterQueryParamKey: string = 'currentLibraryRoute';
 
 export interface QueryParamsRouter {
   currentRoute: PageName;
@@ -22,7 +22,7 @@ export class QueryParamsRouterImpl implements QueryParamsRouter {
 
   public get currentRoute(): PageName {
     const searchParams = new URLSearchParams(window.location.search);
-    return searchParams.get(pageRouterQueryParamKey) as string as PageName;
+    return (searchParams.get(pageRouterQueryParamKey) as PageName) ?? 'landingPage';
   }
 
   public navigate(queryParam: string): void {

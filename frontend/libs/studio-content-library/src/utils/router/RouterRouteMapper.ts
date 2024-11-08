@@ -1,11 +1,16 @@
 import { type ComponentProps, type ReactElement } from 'react';
-import { Root } from '../../pages/Root';
-import { CodeList } from '../../pages/CodeList';
-import type { PageConfig } from '../../types/PagesProps';
+import { CodeList } from '../../ContentLibrary/LibraryBody/pages/CodeList';
+import type { PageName } from '../../types/PageName';
+import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
+import type { PagesConfig } from '../../types/PagesProps';
+import { Images } from '../../ContentLibrary/LibraryBody/pages/Images';
 
-type PageProps = ComponentProps<typeof Root | typeof CodeList>;
+type PageProps =
+  | ComponentProps<typeof LandingPage>
+  | ComponentProps<typeof CodeList>
+  | ComponentProps<typeof Images>;
 
-type PageComponent<P = PageProps> = (props: P) => ReactElement;
+export type PageComponent<P = PageProps> = (props: P) => ReactElement;
 
 type PageMap = Map<string, PageComponent>;
 
@@ -20,20 +25,21 @@ export class RouterRouteMapperImpl implements RouterRouteMapper {
     return this._configuredRoutes;
   }
 
-  constructor(private pages: PageConfig) {
+  constructor(private pages: PagesConfig) {
     this._configuredRoutes = this.getConfiguredRoutes(this.pages);
   }
 
-  private getConfiguredRoutes(pages: PageConfig): PageMap {
-    const pageMap = new Map<string, (props: PageProps) => ReactElement>();
+  private getConfiguredRoutes(pages: PagesConfig): PageMap {
+    const pageMap = new Map<string, PageComponent>();
 
-    Object.keys(pages).forEach((page) => {
-      if (page === 'root') {
-        pageMap.set('root', Root);
-      }
+    pageMap.set('landingPage', LandingPage);
 
+    Object.keys(pages).forEach((page: PageName) => {
       if (page === 'codeList') {
         pageMap.set('codeList', CodeList);
+      }
+      if (page === 'images') {
+        pageMap.set('images', Images);
       }
     });
 

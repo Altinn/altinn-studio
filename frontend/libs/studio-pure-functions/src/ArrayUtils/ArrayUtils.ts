@@ -31,6 +31,10 @@ export class ArrayUtils {
   /** Returns the last item of the given array */
   public static last = <T>(array: T[]): T => array[array.length - 1];
 
+  public static hasIntersection = <T>(arrA: T[], arrB: T[]): boolean => {
+    return arrA.some((x) => arrB.includes(x));
+  };
+
   /**
    * Returns an array of which the element of arrA are either present or not present in arrB based on the include param.
    * @param arrA The first array.
@@ -66,6 +70,10 @@ export class ArrayUtils {
    */
   public static prepend<T>(array: T[], item: T): T[] {
     return [item, ...array];
+  }
+
+  public static isDuplicate<T>(value: T, valueList: T[]): boolean {
+    return valueList.filter((item) => item === value).length > 1;
   }
 
   /**

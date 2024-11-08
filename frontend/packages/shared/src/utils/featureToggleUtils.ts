@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
 
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';
@@ -10,6 +10,7 @@ export type SupportedFeatureFlags =
   | 'resourceMigration'
   | 'multipleDataModelsPerTask'
   | 'exportForm'
+  | 'addComponentModal'
   | 'subform'
   | 'summary2';
 

@@ -119,7 +119,7 @@ type LabelSettings = {
 type ButtonStyle = 'primary' | 'secondary';
 type LayoutStyle = 'column' | 'row' | 'table';
 
-type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage';
+type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage' | 'closeSubform';
 type ClientAction<T extends ClientActionId = ClientActionId> = {
   id: T;
   type: 'ClientAction';
@@ -376,7 +376,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
   };
-  [ComponentType.SubForm]: FormComponentProps;
+  [ComponentType.Subform]: FormComponentProps;
   [ComponentType.Summary]: SummarizableComponentProps & {
     componentRef: string;
     largeGroup?: boolean;

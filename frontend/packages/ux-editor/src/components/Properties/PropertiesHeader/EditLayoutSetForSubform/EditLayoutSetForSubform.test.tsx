@@ -18,20 +18,20 @@ import { appContextMock } from '../../../../testing/appContextMock';
 const handleComponentChangeMock = jest.fn();
 const setSelectedFormLayoutSetMock = jest.fn();
 
-describe('EditLayoutSetForSubForm', () => {
+describe('EditLayoutSetForSubform', () => {
   afterEach(jest.clearAllMocks);
 
   it('displays "no existing subform layout sets" message if no subform layout set exist', () => {
-    renderEditLayoutSetForSubForm();
-    const noExistingSubFormForLayoutSet = screen.getByText(
+    renderEditLayoutSetForSubform();
+    const noExistingSubformForLayoutSet = screen.getByText(
       textMock('ux_editor.component_properties.subform.no_layout_sets_acting_as_subform'),
     );
-    expect(noExistingSubFormForLayoutSet).toBeInTheDocument();
+    expect(noExistingSubformForLayoutSet).toBeInTheDocument();
   });
 
   it('displays the headers for recommendNextAction if subform layout sets exists', () => {
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const setLayoutSetButton = screen.getByRole('heading', {
       name: textMock('ux_editor.component_properties.subform.choose_layout_set_header'),
     });
@@ -40,16 +40,39 @@ describe('EditLayoutSetForSubForm', () => {
 
   it('displays the description for recommendNextAction if subform layout sets exists', () => {
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const setLayoutSetButton = screen.getByText(
       textMock('ux_editor.component_properties.subform.choose_layout_set_description'),
     );
     expect(setLayoutSetButton).toBeInTheDocument();
   });
 
+  it('displays a button(Opprett et nytt skjema) to set a layout set for the subform', async () => {
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    const createNewLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
+    });
+    expect(createNewLayoutSetButton).toBeInTheDocument();
+  });
+
+  it('renders CreateNewLayoutSet component when clicking the create new layout set button', async () => {
+    const user = userEvent.setup();
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    const createNewLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
+    });
+    await user.click(createNewLayoutSetButton);
+    const createNewLayoutSetComponent = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.created_layout_set_name'),
+    });
+    expect(createNewLayoutSetComponent).toBeInTheDocument();
+  });
+
   it('displays a select to choose a layout set for the subform', async () => {
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const selectLayoutSet = getSelectForLayoutSet();
     const options = within(selectLayoutSet).getAllByRole('option');
     expect(options).toHaveLength(2);
@@ -62,7 +85,7 @@ describe('EditLayoutSetForSubForm', () => {
   it('calls handleComponentChange when setting a layout set for the subform', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const selectLayoutSet = getSelectForLayoutSet();
     await user.selectOptions(selectLayoutSet, subformLayoutSetId);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
@@ -76,7 +99,7 @@ describe('EditLayoutSetForSubForm', () => {
   it('should display the selected layout set in document after the user choose it', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const selectLayoutSet = getSelectForLayoutSet();
     await user.selectOptions(selectLayoutSet, subformLayoutSetId);
     expect(screen.getByText(subformLayoutSetId)).toBeInTheDocument();
@@ -85,7 +108,7 @@ describe('EditLayoutSetForSubForm', () => {
   it('should display the select again  with its buttons when the user clicks on the seleced layoutset', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm(
+    renderEditLayoutSetForSubform(
       { sets: [{ id: subformLayoutSetId, type: 'subform' }] },
       { layoutSet: subformLayoutSetId },
     );
@@ -99,7 +122,7 @@ describe('EditLayoutSetForSubForm', () => {
   it('calls handleComponentChange with no layout set for component if selecting the empty option', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
     const selectLayoutSet = getSelectForLayoutSet();
     const emptyOptionText = textMock('ux_editor.component_properties.subform.choose_layout_set');
     await user.selectOptions(selectLayoutSet, emptyOptionText);
@@ -111,10 +134,30 @@ describe('EditLayoutSetForSubForm', () => {
     );
   });
 
+  it('calls handleComponentChange after creating a new layout set and clicking Lukk button', async () => {
+    const user = userEvent.setup();
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderEditLayoutSetForSubform({ sets: [{ id: subformLayoutSetId, type: 'subform' }] });
+    const createNewLayoutSetButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
+    });
+    await user.click(createNewLayoutSetButton);
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'NewSubform');
+    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(saveButton);
+    expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+    expect(handleComponentChangeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        layoutSet: 'NewSubform',
+      }),
+    );
+  });
+
   it('closes the view mode when clicking close button after selecting a layout set', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm(
+    renderEditLayoutSetForSubform(
       { sets: [{ id: subformLayoutSetId, type: 'subform' }] },
       { layoutSet: subformLayoutSetId },
     );
@@ -132,7 +175,7 @@ describe('EditLayoutSetForSubForm', () => {
   it('calls handleComponentChange with no layout set for component when clicking delete button', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm(
+    renderEditLayoutSetForSubform(
       { sets: [{ id: subformLayoutSetId, type: 'subform' }] },
       { layoutSet: subformLayoutSetId },
     );
@@ -151,7 +194,7 @@ describe('EditLayoutSetForSubForm', () => {
 
   it('displays a button with the existing layout set for the subform if set', () => {
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm(
+    renderEditLayoutSetForSubform(
       { sets: [{ id: subformLayoutSetId, type: 'subform' }] },
       { layoutSet: subformLayoutSetId },
     );
@@ -166,7 +209,7 @@ describe('EditLayoutSetForSubForm', () => {
   it('opens view mode when a layout set for the subform is set', async () => {
     const user = userEvent.setup();
     const subformLayoutSetId = 'subformLayoutSetId';
-    renderEditLayoutSetForSubForm(
+    renderEditLayoutSetForSubform(
       { sets: [{ id: subformLayoutSetId, type: 'subform' }] },
       { layoutSet: subformLayoutSetId },
     );
@@ -186,9 +229,9 @@ const getSelectForLayoutSet = () =>
     name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
   });
 
-const renderEditLayoutSetForSubForm = (
+const renderEditLayoutSetForSubform = (
   layoutSetsMock: LayoutSets = layoutSets,
-  componentProps: Partial<FormComponent<ComponentType.SubForm>> = {},
+  componentProps: Partial<FormComponent<ComponentType.Subform>> = {},
 ) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
@@ -197,7 +240,7 @@ const renderEditLayoutSetForSubForm = (
       value={{ ...appContextMock, setSelectedFormLayoutSetName: setSelectedFormLayoutSetMock }}
     >
       <EditLayoutSetForSubform
-        component={{ ...componentMocks[ComponentType.SubForm], ...componentProps }}
+        component={{ ...componentMocks[ComponentType.Subform], ...componentProps }}
         handleComponentChange={handleComponentChangeMock}
       />
     </AppContext.Provider>,
