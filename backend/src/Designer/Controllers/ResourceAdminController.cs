@@ -35,10 +35,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly CacheSettings _cacheSettings;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
         private readonly IEnvironmentsService _environmentsService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService, IEnvironmentsService environmentsService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -47,7 +46,6 @@ namespace Altinn.Studio.Designer.Controllers
             _cacheSettings = cacheSettings.Value;
             _orgService = orgService;
             _resourceRegistry = resourceRegistry;
-            _userRequestsSynchronizationService = userRequestsSynchronizationService;
             _environmentsService = environmentsService;
         }
 
@@ -278,20 +276,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/updateresource/{id}")]
         public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
-            string repository = GetRepositoryName(org);
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            await semaphore.WaitAsync(cancellationToken);
-            try
-            {
-                resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-                return _repository.UpdateServiceResource(org, id, resource);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-
+            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+            return _repository.UpdateServiceResource(org, id, resource);
         }
 
         [HttpPost]

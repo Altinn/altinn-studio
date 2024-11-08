@@ -21,10 +21,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            base.ConfigureTestServices(services);
             services.AddTransient(_ => RepositoryMock.Object);
             services.AddTransient(_ => ResourceRegistryMock.Object);
             services.AddTransient(_ => Altinn2MetadataClientMock.Object);

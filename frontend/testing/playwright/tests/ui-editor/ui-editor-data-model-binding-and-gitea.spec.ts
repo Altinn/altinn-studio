@@ -10,21 +10,21 @@ import { Header } from '../../components/Header';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { GiteaPage } from '../../pages/GiteaPage';
 
-const getAppTestName = (app: string) => `bindings-${app}`;
+// This line must be there to ensure that the tests do not run in parallell, and
+// that the before all call is being executed before we start the tests
+test.describe.configure({ mode: 'serial' });
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
   // Create a new app
-  const designerApi = new DesignerApi({ app: getAppTestName(testAppName) });
+  const designerApi = new DesignerApi({ app: testAppName });
   const response = await designerApi.createApp(request, storageState as StorageState);
   expect(response.ok()).toBeTruthy();
 });
 
 test.afterAll(async ({ request, testAppName }) => {
   const gitea = new Gitea();
-  const response = await request.delete(
-    gitea.getDeleteAppEndpoint({ app: getAppTestName(testAppName) }),
-  );
+  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
   expect(response.ok()).toBeTruthy();
 });
 
@@ -41,31 +41,44 @@ const setupAndVerifyUiEditorPage = async (
       localStorage.setItem('featureFlags', JSON.stringify(flag));
     }, featureFlag);
   }
+
+  await uiEditorPage.clickOnPageAccordion(pageName);
+  await uiEditorPage.verifyUiEditorPage(pageName);
+
   return uiEditorPage;
 };
 
-test('That it is possible to add a data model binding, and that the files are updated accordingly in Gitea', async ({
+test('That it is possible to drag in a new component, add a title to the newly added component and add a data model binding', async ({
   page,
   testAppName,
 }): Promise<void> => {
-  const app = getAppTestName(testAppName);
-  const header = new Header(page, { app });
-  const dataModelPage = new DataModelPage(page, { app });
-  const giteaPage = new GiteaPage(page, { app });
-  const uiEditorPage = await setupAndVerifyUiEditorPage(page, app);
-
-  const pageName: string = 'Side1';
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   await uiEditorPage.verifyThatPageIsEmpty();
 
-  const newInputLabel: string = 'Input Label 1';
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
-  await addNewLabelToTreeItemComponent(uiEditorPage, newInputLabel);
+
+  await uiEditorPage.clickOnComponentTextConfigAccordion();
+  await uiEditorPage.clickOnTitleTextButton();
+  await uiEditorPage.writeTitleTextInTextarea(newInputLabel);
+  await uiEditorPage.clickOnSaveNewLabelName();
+  await uiEditorPage.waitForTreeItemToGetNewLabel(newInputLabel);
+
+  await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
+  await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
   await uiEditorPage.clickOnAddDataModelButton(ComponentType.Input);
   await uiEditorPage.clickOnDataModelFieldBindingCombobox();
+});
+
+test('That it is possible to navigate to Gitea and that data model bindings are not present', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnThreeDotsMenu();
   await header.clickOnGoToGiteaRepository();
@@ -75,23 +88,34 @@ test('That it is possible to add a data model binding, and that the files are up
   await giteaPage.goBackNPages(6); // 5 because of: Gitea -> App -> ui -> layoutsSet -> layouts -> page1.json
 
   await uiEditorPage.verifyUiEditorPage(pageName);
+});
+
+test('That it is possible to navigate to datamodel page and create a new data model', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
 
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
   await dataModelPage.verifyDataModelPage();
 
-  // Add data model
-  await dataModelPage.clickOnCreateNewDataModelButton();
   const dataModelName: string = 'testDataModel';
-  await dataModelPage.typeDataModelName(dataModelName);
-  await dataModelPage.clickOnCreateModelButton();
-  await dataModelPage.waitForDataModelToAppear(dataModelName);
-  await dataModelPage.clickOnGenerateDataModelButton();
-  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
-  await dataModelPage.waitForSuccessAlertToDisappear();
+  await createNewDataModel(dataModelPage, dataModelName);
+});
+
+test('That it is possible to navigate back to ui-editor page and add the data model', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
+  await uiEditorPage.clickOnPageAccordion(pageName);
+  await uiEditorPage.verifyUiEditorPage(pageName);
   await uiEditorPage.clickOnTreeItem(newInputLabel);
 
   await uiEditorPage.clickOnComponentDataModelBindingConfigAccordion();
@@ -99,10 +123,18 @@ test('That it is possible to add a data model binding, and that the files are up
   await uiEditorPage.clickOnDataModelFieldBindingCombobox();
   await uiEditorPage.verifyThatThereAreOptionsInTheDataModelFieldList();
 
-  const dataModelBindingName = 'property1';
   await uiEditorPage.clickOnDataModelFieldPropertyOption(dataModelBindingName);
   await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
+});
+
+test('That it is possible to upload the changes to Gitea and view the changes in Gitea', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
@@ -117,31 +149,31 @@ test('That it is possible to add a data model binding, and that the files are up
   );
 });
 
-test('That is possible to select a different data model binding, and that the files are updated accordingly in Gitea', async ({
+test('That it is possible to navigate to data model page and create another data model', async ({
   page,
   testAppName,
 }): Promise<void> => {
-  const app = getAppTestName(testAppName);
-  const header = new Header(page, { app });
-  const dataModelPage = new DataModelPage(page, { app });
-  const uiEditorPage = await setupAndVerifyUiEditorPage(page, app, ['multipleDataModelsPerTask']);
-  const pageName: string = 'Side1';
-  const giteaPage = new GiteaPage(page, { app });
+  await setupAndVerifyUiEditorPage(page, testAppName, ['multipleDataModelsPerTask']);
+  const header = new Header(page, { app: testAppName });
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
 
   await header.clickOnNavigateToPageInTopMenuHeader('data_model');
+  await createNewDataModel(dataModelPage, newDataModel);
+});
 
-  const newDataModel = 'testDataModel2';
-  await dataModelPage.clickOnCreateNewDataModelButton();
-  await dataModelPage.typeDataModelName(newDataModel);
-  await dataModelPage.clickOnCreateModelButton();
-  await dataModelPage.waitForDataModelToAppear(newDataModel);
-  await dataModelPage.clickOnGenerateDataModelButton();
-  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
-  await dataModelPage.waitForSuccessAlertToDisappear();
+test('That it is possible to navigate back to ui-editor page and add the newly added data model using data model binding combobox', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName, [
+    'multipleDataModelsPerTask',
+  ]);
+  const header = new Header(page, { app: testAppName });
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
   await uiEditorPage.verifyUiEditorPage();
-  await openPageAccordionAndVerifyUpdatedUrl(uiEditorPage, pageName);
+  await uiEditorPage.clickOnPageAccordion(pageName);
+  await uiEditorPage.verifyUiEditorPage(pageName);
 
   await uiEditorPage.dragComponentIntoDroppableList(ComponentType.Input);
   await uiEditorPage.waitForComponentTreeItemToBeVisibleInDroppableList(ComponentType.Input);
@@ -152,6 +184,15 @@ test('That is possible to select a different data model binding, and that the fi
   await uiEditorPage.clickOnDataModelPropertyOption(newDataModel);
   await uiEditorPage.clickOnSaveDataModel();
   await uiEditorPage.waitForDataModelToBeSelected();
+});
+
+test('That it is possible to upload to Gitea and that files are updated correctly', async ({
+  page,
+  testAppName,
+}): Promise<void> => {
+  await setupAndVerifyUiEditorPage(page, testAppName);
+  const header = new Header(page, { app: testAppName });
+  const giteaPage = new GiteaPage(page, { app: testAppName });
 
   await header.clickOnUploadLocalChangesButton();
   await header.clickOnValidateChanges();
@@ -166,6 +207,13 @@ test('That is possible to select a different data model binding, and that the fi
   );
 });
 
+// Shared variables
+const pageName: string = 'Side1';
+const newInputLabel: string = 'Input Label 1';
+const dataModelBindingName: string = 'property1';
+const newDataModel: string = 'testDataModel2';
+
+// Helper functions
 const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: string) => {
   await giteaPage.verifyGiteaPage();
   await giteaPage.clickOnAppFilesButton();
@@ -175,24 +223,15 @@ const navigateInToLayoutJsonFile = async (giteaPage: GiteaPage, layoutName: stri
   await giteaPage.clickOnLayoutJsonFile(layoutName);
 };
 
-const addNewLabelToTreeItemComponent = async (
-  uiEditorPage: UiEditorPage,
-  newInputLabel: string,
-) => {
-  await uiEditorPage.clickOnComponentTextConfigAccordion();
-  await uiEditorPage.clickOnTitleTextButton();
-  await uiEditorPage.writeTitleTextInTextarea(newInputLabel);
-  await uiEditorPage.clickOnSaveNewLabelName();
-  await uiEditorPage.waitForTreeItemToGetNewLabel(newInputLabel);
-
-  await uiEditorPage.verifyThatTreeItemByNameIsNotVisibleInDroppableList(ComponentType.Input);
-  await uiEditorPage.verifyThatTreeItemByNameIsVisibleInDroppableList(newInputLabel);
-};
-
-const openPageAccordionAndVerifyUpdatedUrl = async (
-  uiEditorPage: UiEditorPage,
-  pageName: string,
+const createNewDataModel = async (
+  dataModelPage: DataModelPage,
+  dataModelName: string,
 ): Promise<void> => {
-  await uiEditorPage.clickOnPageAccordion(pageName);
-  await uiEditorPage.verifyUiEditorPage(pageName); // When clicking the page, the url is updated to include the layout
+  await dataModelPage.clickOnCreateNewDataModelButton();
+  await dataModelPage.typeDataModelName(dataModelName);
+  await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
+  await dataModelPage.clickOnGenerateDataModelButton();
+  await dataModelPage.checkThatSuccessAlertIsVisibleOnScreen();
+  await dataModelPage.waitForSuccessAlertToDisappear();
 };
