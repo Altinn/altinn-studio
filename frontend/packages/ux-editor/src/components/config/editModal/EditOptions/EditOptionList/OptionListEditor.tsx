@@ -1,4 +1,4 @@
-import React, { createRef, useState } from 'react';
+import React, { createRef } from 'react';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
@@ -11,12 +11,14 @@ import {
   type CodeListEditorTexts,
 } from '@studio/components';
 import { TableIcon } from '@studio/icons';
+import { useDebounce } from '@studio/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useUpdateOptionListMutation } from '../../../../../hooks/mutations/useUpdateOptionListMutation';
-import { useOptionListsQuery } from '../../../../../hooks/queries/useOptionListsQuery';
+import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations/useUpdateOptionListMutation';
+import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
 import { useOptionListEditorTexts } from './hooks/useOptionListEditorTexts';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import classes from './OptionListEditor.module.css';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 type OptionListEditorProps = Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
 
@@ -57,32 +59,24 @@ function OptionListEditorModal({
   const { org, app } = useStudioEnvironmentParams();
   const { doReloadPreview } = usePreviewContext();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
-  const [currentOptionList, setCurrentOptionList] = useState<Option[]>(optionList);
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
   const handleOptionsChange = (options: Option[]) => {
-    setCurrentOptionList(options);
+    debounce(() => {
+      updateOptionList({ optionListId: component.optionsId, optionsList: options });
+    });
   };
 
   const handleClose = () => {
-    updateOptionList({ optionListId: component.optionsId, optionsList: currentOptionList });
     doReloadPreview();
     modalRef.current?.close();
   };
 
-  const handleClick = () => {
-    setCurrentOptionList(optionList);
-  };
-
   return (
     <StudioModal.Root>
-      <StudioModal.Trigger
-        onClick={handleClick}
-        className={classes.modalTrigger}
-        variant='tertiary'
-        icon={<TableIcon />}
-      >
+      <StudioModal.Trigger className={classes.modalTrigger} variant='tertiary' icon={<TableIcon />}>
         {t('ux_editor.modal_properties_code_list_open_editor')}
       </StudioModal.Trigger>
       <StudioModal.Dialog

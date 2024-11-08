@@ -67,6 +67,7 @@ import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResp
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
 const headers = {
   Accept: 'application/json',
@@ -117,7 +118,7 @@ export const updateAppMetadata = (org: string, app: string, payload: Application
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
-export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<void, Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
+export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<OptionsLists>(optionListUpdatePath(org, app, optionsListId), payload);
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 
 // Resourceadm

@@ -5,7 +5,6 @@ import type { IGenericEditComponent } from '../../componentConfig';
 import { EditOptionList, EditOptionListReference } from './EditOptionList';
 import { getSelectedOptionsType } from '../../../../utils/optionsUtils';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
-
 import { StudioSpinner, StudioTabs } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';

@@ -1,6 +1,6 @@
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { renderHookWithProviders } from '../../testing/mocks';
+import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 import {
   type UpdateOptionListMutationArgs,
   useUpdateOptionListMutation,

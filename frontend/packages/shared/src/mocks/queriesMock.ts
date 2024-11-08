@@ -63,6 +63,7 @@ import {
   textResourcesWithLanguage,
   user,
   validation,
+  updateOptionListResponse,
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
@@ -212,7 +213,9 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOptionList: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<OptionsLists>(updateOptionListResponse)),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   upsertTextResources: jest
