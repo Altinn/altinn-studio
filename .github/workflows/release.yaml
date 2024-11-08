@@ -1,0 +1,23 @@
+name: Generate release for Altinn Studio
+on:
+  schedule:
+    # run every friday at 15:00
+    - cron: '0 9 * * 5'
+
+jobs:
+  generate-release:
+    name: Run release script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: altinn-studio
+          fetch-tags: true
+
+      - name: Run release script
+        working-directory: altinn-studio
+        run: |
+          bash .github/scripts/release.sh \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+
