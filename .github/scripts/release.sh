@@ -28,7 +28,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-CURRENT_VERSION=$(git describe --abbrev=0 --tags 2>/dev/null)
+CURRENT_VERSION=$(curl -s https://api.github.com/repos/Altinn/altinn-studio/releases/latest | jq -r .tag_name)
 CURRENT_VERSION_PARTS=(${CURRENT_VERSION//./ })
 FIRST_PART=${CURRENT_VERSION_PARTS[0]:1}
 SECOND_PART=${CURRENT_VERSION_PARTS[1]}
@@ -54,11 +54,11 @@ echo "New git tag:        $NEW_VERSION"
 echo "Draft:              $DRAFT"
 
 # Create the release
-curl -L \
-  -X POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  https://api.github.com/repos/altinn/altinn-studio/releases \
-  -d "{\"tag_name\":\"$NEW_VERSION\",\"name\":\"$NEW_VERSION\",\"draft\":$DRAFT,\"prerelease\":false,\"generate_release_notes\":true}"
+# curl -L \
+  # -X POST \
+  # -H "Accept: application/vnd.github+json" \
+  # -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+  # -H "X-GitHub-Api-Version: 2022-11-28" \
+  # https://api.github.com/repos/altinn/altinn-studio/releases \
+  # -d "{\"tag_name\":\"$NEW_VERSION\",\"name\":\"$NEW_VERSION\",\"draft\":$DRAFT,\"prerelease\":false,\"generate_release_notes\":true}"
 
