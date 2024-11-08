@@ -62,11 +62,13 @@ describe('StudioTextResourceInput', () => {
     const currentResource: TextResource = { id: 'current', value: 'Test 1' };
     const newResource: TextResource = { id: 'another', value: 'Test 2' };
     const textResourceList: TextResource[] = [currentResource, newResource];
+
     renderTextResourceInput({ textResources: textResourceList, currentId: currentResource.id });
     await switchToSearchMode(user);
     await user.click(getTextResourcePicker());
     await user.click(screen.getByRole('option', { name: optionName(newResource) }));
-    await waitFor(expect(onChangeCurrentId).toBeCalled);
+    await waitFor(expect(onChangeCurrentId).toHaveBeenCalled);
+
     expect(onChangeCurrentId).toHaveBeenCalledTimes(1);
     expect(onChangeCurrentId).toHaveBeenCalledWith(newResource.id);
   });

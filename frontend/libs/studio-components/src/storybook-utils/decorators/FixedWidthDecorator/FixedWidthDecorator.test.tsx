@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react';
-import { Decorator } from './Decorator';
+import { FixedWidthDecorator } from './FixedWidthDecorator';
 import React from 'react';
 
-describe('Decorator', () => {
+describe('FixedWidthDecorator', () => {
   it('Renders content', () => {
     const content = 'content';
-    render(<Decorator>{content}</Decorator>);
+    render(<FixedWidthDecorator>{content}</FixedWidthDecorator>);
     expect(screen.getByText(content)).toBeInTheDocument();
   });
 });
