@@ -2,6 +2,7 @@
 
 set -e
 set -u
+set -v
 
 while [[ $# -gt 0 ]]; do
   case $1 in
