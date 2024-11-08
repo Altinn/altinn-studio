@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xs:annotation>
+    <xs:documentation>
+      <xsd:attribute name="rootNode" fixed="" />
+    </xs:documentation>
+  </xs:annotation>
+  <xs:element name="model">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="property1" type="xs:string" />
+        <xs:element name="property2" type="xs:string" />
+        <xs:element minOccurs="0" name="property3" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xsd:schema>
