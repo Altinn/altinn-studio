@@ -1,5 +1,5 @@
 import { cleanupStaleLocalStorageKeys } from './localStorageUtils';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 describe('cleanupStaleLocalStorageKeys', () => {
   it('Removes the selectedFormLayoutSetName key from local storage', () => {

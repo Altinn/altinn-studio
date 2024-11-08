@@ -3,7 +3,6 @@ import React, { useReducer } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
 import { ErrorMessage, Switch, Label } from '@digdir/designsystemet-react';
@@ -18,6 +17,7 @@ import {
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import { valueExists } from '@altinn/schema-editor/utils/value';
 import { StudioTextfield } from '@studio/components';
+import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
@@ -83,8 +83,7 @@ export function NumberRestrictions({
   };
 
   return (
-    <>
-      <Divider marginless />
+    <ItemWrapper>
       <div>
         <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
@@ -152,6 +151,6 @@ export function NumberRestrictions({
           />
         </div>
       </div>
-    </>
+    </ItemWrapper>
   );
 }

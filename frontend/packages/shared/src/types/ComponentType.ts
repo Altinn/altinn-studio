@@ -42,3 +42,7 @@ export enum ComponentType {
   Summary2 = 'Summary2',
   TextArea = 'TextArea',
 }
+
+export enum CustomComponentType {
+  CloseSubformButton = 'CloseSubformButton',
+}

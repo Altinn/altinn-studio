@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -27,21 +26,33 @@ namespace Altinn.Studio.Designer.Controllers
     /// <remarks>
     /// Initializes a new instance of the <see cref="RepositoryController"/> class.
     /// </remarks>
-    /// <param name="giteaWrapper">the gitea wrapper</param>
-    /// <param name="sourceControl">the source control</param>
-    /// <param name="repository">the repository control</param>
-    /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
-    /// <param name="syncHub">websocket syncHub</param>
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/repos")]
-    public class RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IUserRequestsSynchronizationService userRequestsSynchronizationService, IHubContext<SyncHub, ISyncClient> syncHub) : ControllerBase
+    public class RepositoryController : ControllerBase
     {
-        private readonly IGitea _giteaApi = giteaWrapper;
-        private readonly ISourceControl _sourceControl = sourceControl;
-        private readonly IRepository _repository = repository;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService = userRequestsSynchronizationService;
-        private readonly IHubContext<SyncHub, ISyncClient> _syncHub = syncHub;
+        private readonly IGitea _giteaApi;
+        private readonly ISourceControl _sourceControl;
+        private readonly IRepository _repository;
+        private readonly IHubContext<SyncHub, ISyncClient> _syncHub;
+
+        /// <summary>
+        /// This is the API controller for functionality related to repositories.
+        /// </summary>
+        /// <remarks>
+        /// Initializes a new instance of the <see cref="RepositoryController"/> class.
+        /// </remarks>
+        /// <param name="giteaWrapper">the gitea wrapper</param>
+        /// <param name="sourceControl">the source control</param>
+        /// <param name="repository">the repository control</param>
+        /// <param name="syncHub">websocket syncHub</param>
+        public RepositoryController(IGitea giteaWrapper, ISourceControl sourceControl, IRepository repository, IHubContext<SyncHub, ISyncClient> syncHub)
+        {
+            _giteaApi = giteaWrapper;
+            _sourceControl = sourceControl;
+            _repository = repository;
+            _syncHub = syncHub;
+        }
 
         /// <summary>
         /// Returns a list over repositories
@@ -204,18 +215,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/status")]
         public async Task<RepoStatus> RepoStatus(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            await semaphore.WaitAsync();
-            try
-            {
-                await _sourceControl.FetchRemoteChanges(org, repository);
-                return _sourceControl.RepositoryStatus(org, repository);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            await _sourceControl.FetchRemoteChanges(org, repository);
+            return _sourceControl.RepositoryStatus(org, repository);
         }
 
         /// <summary>
@@ -228,18 +229,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/diff")]
         public async Task<Dictionary<string, string>> RepoDiff(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            await semaphore.WaitAsync();
-            try
-            {
-                await _sourceControl.FetchRemoteChanges(org, repository);
-                return await _sourceControl.GetChangedContent(org, repository);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            await _sourceControl.FetchRemoteChanges(org, repository);
+            return await _sourceControl.GetChangedContent(org, repository);
         }
 
         /// <summary>
@@ -252,27 +243,16 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/pull")]
         public async Task<RepoStatus> Pull(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            await semaphore.WaitAsync();
+            RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
 
-            try
+            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
+
+            if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
             {
-                RepoStatus pullStatus = await _sourceControl.PullRemoteChanges(org, repository);
-
-                RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
-
-                if (pullStatus.RepositoryStatus != Enums.RepositoryStatus.Ok)
-                {
-                    status.RepositoryStatus = pullStatus.RepositoryStatus;
-                }
-
-                return status;
+                status.RepositoryStatus = pullStatus.RepositoryStatus;
             }
-            finally
-            {
-                semaphore.Release();
-            }
+
+            return status;
         }
 
         /// <summary>
@@ -283,38 +263,33 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>True if the reset was successful, otherwise false.</returns>
         [HttpGet]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/reset")]
-        public ActionResult ResetLocalRepository(string org, string repository)
+        public async Task<ActionResult> ResetLocalRepository(string org, string repository)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            semaphore.Wait();
+            AltinnRepoEditingContext editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
 
             try
             {
-                _repository.ResetLocalRepository(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer));
+                await _repository.ResetLocalRepository(editingContext);
                 return Ok();
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-            finally
-            {
-                semaphore.Release();
-            }
         }
 
         /// <summary>
         /// Pushes changes for a given repo
         /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">the name of the local repository to reset</param>
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit-and-push")]
-        public async Task CommitAndPushRepo([FromBody] CommitInfo commitInfo)
+        public async Task CommitAndPushRepo(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
-            await semaphore.WaitAsync();
             try
             {
                 await _sourceControl.PushChangesForRepository(commitInfo);
@@ -330,25 +305,20 @@ namespace Altinn.Studio.Designer.Controllers
                     await _syncHub.Clients.Group(developer).FileSyncSuccess(syncSuccess);
                 }
             }
-            finally
-            {
-                semaphore.Release();
-            }
-
         }
 
         /// <summary>
         /// Commit changes
         /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">the name of the local repository to reset</param>
         /// <param name="commitInfo">Info about the commit</param>
         /// <returns>http response message as ok if commit is successful</returns>
         [HttpPost]
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/commit")]
-        public ActionResult Commit([FromBody] CommitInfo commitInfo)
+        public async Task<ActionResult> Commit(string org, string repository, [FromBody] CommitInfo commitInfo)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(commitInfo.Org, commitInfo.Repository, developer);
-            semaphore.Wait();
+            await Task.CompletedTask;
             try
             {
                 _sourceControl.Commit(commitInfo);
@@ -357,10 +327,6 @@ namespace Altinn.Studio.Designer.Controllers
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
@@ -373,18 +339,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("repo/{org}/{repository:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/push")]
         public async Task<ActionResult> Push(string org, string repository)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            await semaphore.WaitAsync();
-            try
-            {
-                bool pushSuccess = await _sourceControl.Push(org, repository);
-                return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            bool pushSuccess = await _sourceControl.Push(org, repository);
+            return pushSuccess ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         /// <summary>

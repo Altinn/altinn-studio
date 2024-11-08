@@ -15,3 +15,12 @@
 .dynamicsVersionCheckBox {
   z-index: 1;
 }
+
+.alert {
+  border-top: var(--studio-border-divider);
+  padding-block: var(--fds-spacing-8);
+}
+
+.conditionalRenderingWrapper {
+  border-bottom: var(--studio-border-divider);
+}
