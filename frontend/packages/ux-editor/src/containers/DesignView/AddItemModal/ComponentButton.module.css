@@ -1,0 +1,11 @@
+.componentButton {
+  margin: 8px;
+  justify-content: start;
+  width: 270px;
+}
+
+.componentButtonInline {
+  height: 40px;
+  width: 30%;
+  margin: 8px;
+}
