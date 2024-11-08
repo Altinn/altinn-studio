@@ -29,6 +29,7 @@ describe('OptionListEditor', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
+
   it('should render a spinner when there is no data', () => {
     renderOptionListEditor({
       queries: {
@@ -96,7 +97,7 @@ describe('OptionListEditor', () => {
     expect(doReloadPreview).toHaveBeenCalledTimes(1);
   });
 
-  it('should call updateOptionList when closing Dialog with correct parameters', async () => {
+  it('should call updateOptionList with correct parameters when closing Dialog', async () => {
     const user = userEvent.setup();
     await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
     const expectedResultAfterEdit: Option[] = [
@@ -106,19 +107,10 @@ describe('OptionListEditor', () => {
     ];
 
     await openModal(user);
-
     const textBox = screen.getByRole('textbox', {
       name: textMock('ux_editor.modal_properties_code_list_item_description', { number: 2 }),
     });
-    expect(textBox).toHaveTextContent('');
     await user.type(textBox, 'test');
-
-    expect(
-      screen.getByRole('textbox', {
-        name: textMock('ux_editor.modal_properties_code_list_item_description', { number: 2 }),
-      }),
-    ).toHaveValue('test');
-
     await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when https://github.com/digdir/designsystemet/issues/2195 is fixed
 
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);

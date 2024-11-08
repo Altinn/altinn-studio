@@ -99,7 +99,7 @@ describe('EditOptionList', () => {
 
     renderEditOptionList();
     await userFindUploadButtonAndClick(user);
-    await userFindFileAndUpload(user, file);
+    await userFindFileInputAndUploadFile(user, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       textMock('ux_editor.modal_properties_code_list_upload_success'),
@@ -114,7 +114,7 @@ describe('EditOptionList', () => {
 
     renderEditOptionList();
     await userFindUploadButtonAndClick(user);
-    await userFindFileAndUpload(user, file);
+    await userFindFileInputAndUploadFile(user, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
@@ -130,7 +130,7 @@ describe('EditOptionList', () => {
 
     renderEditOptionList();
     await userFindUploadButtonAndClick(user);
-    await userFindFileAndUpload(user, file);
+    await userFindFileInputAndUploadFile(user, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       textMock('ux_editor.model_properties_code_list_filename_error'),
@@ -166,7 +166,7 @@ const userFindUploadButtonAndClick = async (user: UserEvent) => {
   await user.click(btn);
 };
 
-const userFindFileAndUpload = async (user: UserEvent, file: File) => {
+const userFindFileInputAndUploadFile = async (user: UserEvent, file: File) => {
   const fileInput = screen.getByLabelText(textMock('ux_editor.modal_properties_code_list_upload'));
 
   await user.upload(fileInput, file);
