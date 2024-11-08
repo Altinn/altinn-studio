@@ -1,0 +1,32 @@
+name: Generate release for Altinn Studio
+on:
+  schedule:
+    # run every friday at 14:45
+    - cron: '45 14 * * 5'
+
+  workflow_dispatch:
+    inputs:
+      draft:
+        description: 'Create a draft release'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  generate-release:
+    name: Run release script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: altinn-studio
+          fetch-tags: true
+          fetch-depth: 0
+
+      - name: Run release script
+        working-directory: altinn-studio
+        run: |
+          bash .github/scripts/release.sh \
+            --github-token ${{ secrets.GITHUB_TOKEN }} \
+            --draft ${{ github.event.inputs.draft || false }} # cron job will always be a full release

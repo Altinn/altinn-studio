@@ -1,14 +1,14 @@
 import React from 'react';
 import { ErrorMessage } from '@digdir/designsystemet-react';
-import type { IGenericEditComponent } from '../../../componentConfig';
-import { useOptionListIdsQuery } from '../../../../../hooks/queries/useOptionListIdsQuery';
+import type { IGenericEditComponent } from '../../../../componentConfig';
+import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { FormField } from '../../../../FormField';
+import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { SelectionComponentType } from '../../../../../types/FormComponent';
+import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import { findFileNameError } from './findFileNameError';
 import type { FileNameError } from './findFileNameError';
@@ -75,7 +75,6 @@ export function EditCodeList<T extends SelectionComponentType>({
     <>
       <CodeListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
       <StudioFileUploader
-        className={classes.studioFileUploader}
         accept='.json'
         variant={'tertiary'}
         uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}
