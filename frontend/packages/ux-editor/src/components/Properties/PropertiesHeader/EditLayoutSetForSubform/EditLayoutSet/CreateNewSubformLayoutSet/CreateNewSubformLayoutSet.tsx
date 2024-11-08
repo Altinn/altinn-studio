@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
-import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
+import { CheckmarkIcon, TrashIcon } from '@studio/icons';
 import classes from './CreateNewSubformLayoutSet.module.css';
 import { SubformDataModelSelect } from './SubformDataModelSelect';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
@@ -11,11 +11,13 @@ import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 type CreateNewSubformLayoutSetProps = {
   onSubformCreated: (layoutSetName: string) => void;
   layoutSets: LayoutSets;
+  setShowCreateSubformCard: (showCreateSubform: boolean) => void;
 };
 
 export const CreateNewSubformLayoutSet = ({
   onSubformCreated,
   layoutSets,
+  setShowCreateSubformCard,
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
@@ -37,9 +39,6 @@ export const CreateNewSubformLayoutSet = ({
   return (
     <StudioCard>
       <StudioCard.Content>
-        <StudioCard.Header>
-          <ClipboardIcon className={classes.headerIcon} />
-        </StudioCard.Header>
         <StudioTextfield
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
           value={newSubform}
@@ -52,15 +51,23 @@ export const CreateNewSubformLayoutSet = ({
           selectedDataType={selectedDataType}
           setSelectedDataType={setSelectedDataType}
         />
-        <StudioButton
-          className={classes.savelayoutSetButton}
-          icon={<CheckmarkIcon />}
-          onClick={handleCreateSubform}
-          title={t('general.close')}
-          disabled={!newSubform || !!nameError || !selectedDataType}
-          variant='tertiary'
-          color='success'
-        />
+        <div className={classes.buttonGroup}>
+          <StudioButton
+            icon={<CheckmarkIcon />}
+            onClick={handleCreateSubform}
+            title={t('general.save')}
+            disabled={!newSubform || !!nameError || !selectedDataType}
+            variant='secondary'
+            color='success'
+          />
+          <StudioButton
+            onClick={() => setShowCreateSubformCard(false)}
+            title={t('general.close')}
+            icon={<TrashIcon />}
+            variant='secondary'
+            color='danger'
+          />
+        </div>
       </StudioCard.Content>
     </StudioCard>
   );

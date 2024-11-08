@@ -6,13 +6,9 @@ import classes from './DefinedLayoutSet.module.css';
 
 type DefinedLayoutSetProps = {
   existingLayoutSetForSubform: string;
-  onClick: () => void;
 };
 
-export const DefinedLayoutSet = ({
-  existingLayoutSetForSubform,
-  onClick,
-}: DefinedLayoutSetProps) => {
+export const DefinedLayoutSet = ({ existingLayoutSetForSubform }: DefinedLayoutSetProps) => {
   const { t } = useTranslation();
 
   const value = (
@@ -26,12 +22,12 @@ export const DefinedLayoutSet = ({
       aria-label={t('ux_editor.component_properties.subform.selected_layout_set_title', {
         subform: existingLayoutSetForSubform,
       })}
-      onClick={onClick}
       property={t('ux_editor.component_properties.subform.selected_layout_set_label')}
       title={t('ux_editor.component_properties.subform.selected_layout_set_title', {
         subform: existingLayoutSetForSubform,
       })}
       value={value}
+      readOnly={true}
     />
   );
 };
