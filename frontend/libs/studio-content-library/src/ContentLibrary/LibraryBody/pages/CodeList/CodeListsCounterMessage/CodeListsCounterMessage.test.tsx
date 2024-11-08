@@ -7,7 +7,7 @@ describe('CodeListsCounterMessage', () => {
   it('renders the code list counter message with correct text for 0 list elements', () => {
     renderCodeListsCounterMessage(0);
     const codeListCounter = screen.getByText(
-      textMock('app_content_library.code_lists.code_lists_count_info_plural'),
+      textMock('app_content_library.code_lists.code_lists_count_info_none'),
     );
     expect(codeListCounter).toBeInTheDocument();
   });
