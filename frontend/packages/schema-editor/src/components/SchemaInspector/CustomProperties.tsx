@@ -92,7 +92,6 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
             <span>{renderInput(key)}</span>
           </span>
           <StudioButton
-            className={classes.deleteButton}
             icon={<TrashIcon />}
             onClick={() => deleteCustomProperty(key)}
             title={t('general.delete')}

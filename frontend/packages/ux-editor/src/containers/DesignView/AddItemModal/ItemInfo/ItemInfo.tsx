@@ -7,7 +7,7 @@ import {
 } from '@studio/components';
 import {
   getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType,
+  getTitleByComponentType,
 } from '../../../../utils/language';
 import type { AddedItem } from '../types';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,7 @@ export const ItemInfo = ({
     <div className={classes.root}>
       <StudioHeading level={2} size='medium' spacing>
         {!item && t('ux_editor.component_add_item.info_heading')}
-        {item && getComponentTitleByComponentType(item.componentType, t)}
+        {item && getTitleByComponentType(item.componentType, t)}
       </StudioHeading>
       {!item && <p>{t('ux_editor.component_add_item.info_no_component_selected')}</p>}
       {item && (
@@ -56,7 +56,7 @@ export const ItemInfo = ({
           }}
           saveButtonText='Legg til'
           skipButtonText='Avbryt'
-          title={`Legg til ${getComponentTitleByComponentType(item.componentType, t)}`}
+          title={`Legg til ${getTitleByComponentType(item.componentType, t)}`}
           description='Vi lager automatisk en unik ID for komponenten. Du kan endre den her til noe du selv ønsker, eller la den være som den er. Du kan også endre denne id-en senere.'
         >
           <StudioIconTextfield

@@ -4,10 +4,7 @@ import type { TextResourceIdMutation, TextResourceVariable, TextTableRowEntry } 
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { TrashIcon, PencilIcon } from '@studio/icons';
 import { Table, Textfield } from '@digdir/designsystemet-react';
-
 import { useTranslation } from 'react-i18next';
-import { ButtonContainer } from 'app-shared/primitives';
-
 import { validateTextId } from './utils';
 import { TextEntry } from './TextEntry';
 import { Variables } from './Variables';
@@ -121,7 +118,7 @@ export const TextRow = ({
         );
       })}
       <Table.Cell className={classes.cellContent}>
-        <ButtonContainer className={classes.textIdContainer}>
+        <div className={classes.textIdContainer}>
           {textIdEditOpen ? (
             <Textfield
               value={textIdValue}
@@ -144,7 +141,7 @@ export const TextRow = ({
               onClick={() => setTextIdEditOpen(!textIdEditOpen)}
             />
           )}
-        </ButtonContainer>
+        </div>
       </Table.Cell>
       <Table.Cell>
         <Variables variables={textVariables} />

@@ -6,7 +6,7 @@ import type {
 } from '../types/global';
 import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
 import { generateFormItem } from './component';
 import type { FormItemConfigs } from '../data/formItemConfig';
@@ -18,7 +18,7 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import type { FormLayoutPage } from '../types/FormLayoutPage';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export const mapComponentToToolbarElement = <T extends ComponentType>(
+export const mapComponentToToolbarElement = <T extends ComponentType | CustomComponentType>(
   c: FormItemConfigs[T],
 ): IToolbarElement => ({
   label: c.name,
@@ -308,7 +308,7 @@ export const moveLayoutItem = (
  * @param position The desired index of the component within its container. Set it to a negative value to add it at the end. Defaults to -1.
  * @returns The new layout.
  */
-export const addItemOfType = <T extends ComponentType>(
+export const addItemOfType = <T extends ComponentType | CustomComponentType>(
   layout: IInternalLayout,
   componentType: T,
   id: string,

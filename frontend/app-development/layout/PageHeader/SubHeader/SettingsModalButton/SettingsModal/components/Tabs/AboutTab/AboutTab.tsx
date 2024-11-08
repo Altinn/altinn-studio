@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { TabHeader } from '../../TabHeader';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import { ErrorMessage } from '@digdir/designsystemet-react';
-import { Divider } from 'app-shared/primitives';
 import { getRepositoryType } from 'app-shared/utils/repository';
 import { useAppConfigMutation } from 'app-development/hooks/mutations';
 import { useAppConfigQuery } from 'app-development/hooks/queries';
@@ -70,7 +69,6 @@ export const AboutTab = (): React.ReactElement => {
         return (
           <>
             <InputFields appConfig={appConfigData} onSave={handleSaveAppConfig} />
-            <Divider marginless />
             <CreatedFor
               repositoryType={repositoryType}
               repository={repositoryData}

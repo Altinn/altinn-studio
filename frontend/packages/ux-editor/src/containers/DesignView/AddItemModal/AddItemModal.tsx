@@ -9,7 +9,7 @@ import { useFormItemContext } from '../../FormItemContext';
 import { useAppContext } from '../../../hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IInternalLayout } from '../../../types/global';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { StudioButton, StudioModal } from '@studio/components';
 import type { AddedItem } from './types';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
@@ -43,7 +43,12 @@ export const AddItemModal = ({ containerId, layout }: AddItemProps) => {
 
   const modalRef = useRef<HTMLDialogElement>(null);
 
-  const addItem = (type: ComponentType, parentId: string, index: number, newId: string) => {
+  const addItem = (
+    type: ComponentType | CustomComponentType,
+    parentId: string,
+    index: number,
+    newId: string,
+  ) => {
     const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
 
     addItemToLayout(

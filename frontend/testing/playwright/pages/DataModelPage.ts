@@ -3,7 +3,8 @@ import type { Locator, Page } from '@playwright/test';
 import type { Environment } from '../helpers/StudioEnvironment';
 import path from 'path';
 import { expect } from '@playwright/test';
-import { droppableListId, typeItemId } from '@studio/testing/testids';
+import { typeItemId } from '@studio/testing/testids';
+import { DataTestId } from '../enum/DataTestId';
 
 export class DataModelPage extends BasePage {
   constructor(page: Page, environment?: Environment) {
@@ -209,7 +210,7 @@ export class DataModelPage extends BasePage {
   }
 
   public getDroppableList(parentName: string): Locator {
-    return this.page.getByTitle(parentName).getByTestId(droppableListId);
+    return this.page.getByTitle(parentName).getByTestId(DataTestId.DroppableList as string);
   }
 
   public async clickOnBackToDataModelButton(): Promise<void> {
