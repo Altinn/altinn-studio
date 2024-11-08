@@ -109,6 +109,12 @@ export interface AddNodeRequest<T extends CompTypes = CompTypes> {
   rowIndex: number | undefined;
 }
 
+export interface RemoveNodeRequest<T extends CompTypes = CompTypes> {
+  node: LayoutNode<T>;
+  claim: ChildClaim;
+  rowIndex: number | undefined;
+}
+
 export interface SetNodePropRequest<T extends CompTypes, K extends keyof NodeData<T>> {
   node: LayoutNode<T>;
   prop: K;
@@ -148,7 +154,7 @@ export type NodesContext = {
 
   setNodes: (nodes: LayoutPages) => void;
   addNodes: (requests: AddNodeRequest[]) => void;
-  removeNode: (node: LayoutNode, claim: ChildClaim, rowIndex: number | undefined) => void;
+  removeNodes: (request: RemoveNodeRequest[]) => void;
   setNodeProps: (requests: SetNodePropRequest<CompTypes, keyof NodeData>[]) => void;
   addError: (error: string, node: LayoutPage | LayoutNode) => void;
   markHiddenViaRule: (hiddenFields: { [nodeId: string]: true }) => void;
@@ -245,33 +251,37 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
           addRemoveCounter: state.addRemoveCounter + 1,
         };
       }),
-    removeNode: (node, claim, rowIndex) =>
+    removeNodes: (requests) =>
       set((state) => {
         const nodeData = { ...state.nodeData };
         const childrenMap = { ...state.childrenMap };
-        if (!nodeData[node.id]) {
-          return {};
+
+        for (const { node, claim, rowIndex } of requests) {
+          if (!nodeData[node.id]) {
+            continue;
+          }
+
+          if (node.parent instanceof BaseLayoutNode && nodeData[node.parent.id]) {
+            const additionalParentState = node.parent.def.removeChild(
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              nodeData[node.parent.id] as any,
+              node,
+              claim,
+              rowIndex,
+            );
+            nodeData[node.parent.id] = {
+              ...nodeData[node.parent.id],
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ...(additionalParentState as any),
+            };
+            childrenMap[node.parent.id] = [...(childrenMap[node.parent.id] || [])];
+            childrenMap[node.parent.id] = childrenMap[node.parent.id]!.filter((id) => id !== node.id);
+          }
+
+          delete nodeData[node.id];
+          node.page._removeChild(node);
         }
 
-        if (node.parent instanceof BaseLayoutNode && nodeData[node.parent.id]) {
-          const additionalParentState = node.parent.def.removeChild(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            nodeData[node.parent.id] as any,
-            node,
-            claim,
-            rowIndex,
-          );
-          nodeData[node.parent.id] = {
-            ...nodeData[node.parent.id],
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ...(additionalParentState as any),
-          };
-          childrenMap[node.parent.id] = [...(childrenMap[node.parent.id] || [])];
-          childrenMap[node.parent.id] = childrenMap[node.parent.id]!.filter((id) => id !== node.id);
-        }
-
-        delete nodeData[node.id];
-        node.page._removeChild(node);
         return {
           nodeData,
           childrenMap,
@@ -1198,7 +1208,7 @@ export const NodesInternal = {
   useAddPage: () => Store.useStaticSelector((s) => s.addPage),
   useSetPageProps: () => Store.useStaticSelector((s) => s.setPageProps),
   useAddNodes: () => Store.useStaticSelector((s) => s.addNodes),
-  useRemoveNode: () => Store.useStaticSelector((s) => s.removeNode),
+  useRemoveNodes: () => Store.useStaticSelector((s) => s.removeNodes),
   useAddError: () => Store.useStaticSelector((s) => s.addError),
   useMarkHiddenViaRule: () => Store.useStaticSelector((s) => s.markHiddenViaRule),
   useSetWaitForCommits: () => Store.useStaticSelector((s) => s.setWaitForCommits),

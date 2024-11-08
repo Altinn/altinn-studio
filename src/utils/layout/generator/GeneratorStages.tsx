@@ -232,6 +232,7 @@ export function useRegistry() {
     toCommitCount: 0,
     toCommit: {
       addNodes: [],
+      removeNodes: [],
       setNodeProps: [],
       setRowExtras: [],
       setRowUuid: [],

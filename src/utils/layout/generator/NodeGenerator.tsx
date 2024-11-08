@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { evalExpr } from 'src/features/expressions';
@@ -119,7 +119,6 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem, claim }: A
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage()?.pageKey ?? '';
   const stateFactoryProps = { item: intermediateItem, parent, rowIndex, pageKey } satisfies StateFactoryProps<T>;
-  const removeNode = NodesInternal.useRemoveNode();
   const isAdded = NodesInternal.useIsAdded(node);
 
   NodesStateQueue.useAddNode(
@@ -133,14 +132,7 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem, claim }: A
     !isAdded,
   );
 
-  const nodeRef = useAsRef(node);
-  const rowIndexRef = useAsRef(rowIndex);
-  useEffect(
-    () => () => {
-      removeNode(nodeRef.current, claim, rowIndexRef.current);
-    },
-    [removeNode, nodeRef, claim, rowIndexRef],
-  );
+  NodesStateQueue.useRemoveNode({ node, claim, rowIndex });
 
   return null;
 }
