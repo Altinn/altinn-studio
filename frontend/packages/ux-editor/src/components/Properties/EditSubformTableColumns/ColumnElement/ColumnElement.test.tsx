@@ -76,7 +76,7 @@ describe('ColumnElement', () => {
     });
   });
 
-  it('should render comobox with description', async () => {
+  it('should render combobox with description', async () => {
     const user = userEvent.setup();
     renderColumnElement();
 

@@ -123,6 +123,20 @@ export const EditColumnElementComponentSelect = ({
   onSelectComponent,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
+
+  const subformComponentOptions =
+    components.length > 0 ? (
+      components.map((comp: FormItem) => (
+        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+          {comp.id}
+        </StudioCombobox.Option>
+      ))
+    ) : (
+      <StudioCombobox.Option value='' key={'noComponentsWithLabel'}>
+        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
+      </StudioCombobox.Option>
+    );
+
   return (
     <StudioCombobox
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
@@ -133,17 +147,7 @@ export const EditColumnElementComponentSelect = ({
       onValueChange={onSelectComponent}
       id='columncomponentselect'
     >
-      {components.length > 0 ? (
-        components.map((comp: FormItem) => (
-          <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-            {comp.id}
-          </StudioCombobox.Option>
-        ))
-      ) : (
-        <StudioCombobox.Option value='' key={'noComponentsWithLabel'} disabled>
-          {t('ux_editor.properties_panel.subform_table_columns.empty_columns_message')}
-        </StudioCombobox.Option>
-      )}
+      {subformComponentOptions}
     </StudioCombobox>
   );
 };
