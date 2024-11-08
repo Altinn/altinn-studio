@@ -201,7 +201,7 @@ describe('EditCodeList', () => {
     await user.upload(fileInput, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      textMock('ux_editor.model_properties_code_list_filename_error'),
+      textMock('ux_editor.modal_properties_code_list_filename_error'),
     );
   });
 });

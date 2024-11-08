@@ -2,7 +2,7 @@ import React from 'react';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
-import { useAddOptionListMutation } from '../../../../../../hooks/mutations/useAddOptionListMutation';
+import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation, Trans } from 'react-i18next';
 import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
@@ -65,7 +65,7 @@ export function EditCodeList<T extends SelectionComponentType>({
   const handleInvalidFileName = (fileNameError: FileNameError) => {
     switch (fileNameError) {
       case 'invalidFileName':
-        return toast.error(t('ux_editor.model_properties_code_list_filename_error'));
+        return toast.error(t('ux_editor.modal_properties_code_list_filename_error'));
       case 'fileExists':
         return toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
     }
