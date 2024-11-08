@@ -11,6 +11,16 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+
+        /// <summary>
+        /// Registers all settings that implement or inherit from the marker type.
+        /// Settings configuration will be read from the configuration, and the settings section name will be the same as the class name.
+        /// It will register the settings as a scoped service.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
+        /// <param name="configuration">An <see cref="IConfiguration"/> holding the configuration of the app.</param>
+        /// <typeparam name="TMarker">The marker type used to identify the services or settings to be registered.</typeparam>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
         public static IServiceCollection RegisterSettingsByBaseType<TMarker>(this IServiceCollection services, IConfiguration configuration)
         {
             var typesToRegister = AltinnAssembliesScanner.GetTypesAssignedFrom<TMarker>()
@@ -79,6 +89,25 @@ namespace Altinn.Studio.Designer.Configuration.Extensions
         {
             services.Configure<TOption>(configuration.GetSection(sectionName));
             services.TryAddScoped(typeof(TOption), svc => ((IOptionsSnapshot<object>)svc.GetService(typeof(IOptionsSnapshot<TOption>)))!.Value);
+        }
+
+        /// <summary>
+        /// Register all the services that implement or inherit from the marker interface.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the service to.</param>
+        /// <typeparam name="TMarker">The marker type used to identify the services or settings to be registered.</typeparam>
+        /// <returns>A reference to this instance after the operation has completed.</returns>
+        public static IServiceCollection RegisterSingletonServicesByBaseType<TMarker>(this IServiceCollection services)
+        {
+            var typesToRegister = AltinnAssembliesScanner.GetTypesAssignedFrom<TMarker>()
+                .Where(type => !type.IsInterface && !type.IsAbstract);
+
+            foreach (var serviceType in typesToRegister)
+            {
+                services.TryAddSingleton(typeof(TMarker), serviceType);
+            }
+
+            return services;
         }
 
     }
