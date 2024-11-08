@@ -10,6 +10,7 @@ import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
 import { AddItemModal } from '../../AddItemModal';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -48,7 +49,9 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
       nodeId={id}
     >
       {renderItemList(layout, duplicateComponents, id)}
-      {isContainer(layout, id) && <AddItemModal containerId={id} layout={layout} />}
+      {isContainer(layout, id) && shouldDisplayFeature('addComponentModal') && (
+        <AddItemModal containerId={id} layout={layout} />
+      )}
     </StudioDragAndDropTree.Item>
   );
 };
