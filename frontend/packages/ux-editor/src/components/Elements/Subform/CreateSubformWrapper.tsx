@@ -28,10 +28,18 @@ export const CreateSubformWrapper = ({
     onSubformCreated(newSubformName);
   };
 
-  const onNameChange = (subformName: string) => {
+  const handleNameChange = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
     setNameError(subformNameValidation);
     setNewSubformName(subformName);
+  };
+  const handleCreateSubform = () => {
+    createSubform({
+      layoutSetName: newSubformName,
+      onSubformCreated: onCreateConfirmClick,
+      //setting datatype to empty string as this createSubform area is only temporary and will be removed in a later PR
+      dataType: '',
+    });
   };
 
   const createSubformButtonContent = isPendingLayoutSetMutation ? (
@@ -59,16 +67,14 @@ export const CreateSubformWrapper = ({
           label={t('ux_editor.create.subform.label')}
           size='small'
           value={newSubformName}
-          onChange={(e) => onNameChange(e.target.value)}
+          onChange={(e) => handleNameChange(e.target.value)}
           error={nameError}
           disabled={isPendingLayoutSetMutation}
         />
         <StudioButton
           className={classes.confirmCreateButton}
           variant='secondary'
-          onClick={() =>
-            createSubform({ layoutSetName: newSubformName, onSubformCreated: onCreateConfirmClick })
-          }
+          onClick={handleCreateSubform}
           disabled={!newSubformName || !!nameError}
         >
           {createSubformButtonContent}
