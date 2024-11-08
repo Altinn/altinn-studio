@@ -3,6 +3,7 @@ export const textHeader = 'Text';
 export const textfieldHeader = 'Textfield';
 export const textareaHeader = 'Textarea';
 export const buttonHeader = 'Button';
+export const textResourceHeader = 'Text Resource';
 export const checkboxValue = (rowNumber: number) => `checkboxValue${rowNumber}`;
 export const checkboxName = (rowNumber: number) => `checkboxName${rowNumber}`;
 export const checkboxLabel = (rowNumber: number) => `Checkbox ${rowNumber}`;

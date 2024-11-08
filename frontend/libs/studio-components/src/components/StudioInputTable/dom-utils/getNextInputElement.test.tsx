@@ -3,6 +3,7 @@ import React from 'react';
 import type { CellCoords } from '../types/CellCoords';
 import { render, screen } from '@testing-library/react';
 import { getNextInputElement } from './getNextInputElement';
+import { HTMLCellInputElement } from '../types/HTMLCellInputElement';
 
 type TestCase = {
   queryCoords: CellCoords;
@@ -279,6 +280,6 @@ function generateInputId(coords: CellCoords): string {
   return `input-${coords.row}-${coords.column}`;
 }
 
-function getInputByCoords(coords: CellCoords): HTMLElement {
+function getInputByCoords(coords: CellCoords): HTMLCellInputElement {
   return screen.getByTestId(generateInputId(coords));
 }

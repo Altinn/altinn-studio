@@ -2,21 +2,20 @@ import type { CellCoords } from '../types/CellCoords';
 import type { HTMLCellInputElement } from '../types/HTMLCellInputElement';
 
 export function getNextInputElement(
-  element: HTMLElement,
+  element: HTMLCellInputElement,
   key: string,
 ): HTMLCellInputElement | null {
-  const currentCoords = getParentCellCoords(element);
   const table = getParentTable(element);
   switch (key) {
     case 'ArrowUp':
-      return getInputElementAboveCoords(table, currentCoords);
+      return getInputElementAbove(table, element);
     case 'ArrowDown':
     case 'Enter':
-      return getInputElementBelowCoords(table, currentCoords);
+      return getInputElementBelow(table, element);
     case 'ArrowLeft':
-      return getInputElementLeftToCoords(table, currentCoords);
+      return getInputElementToTheLeft(table, element);
     case 'ArrowRight':
-      return getInputElementRightToCoords(table, currentCoords);
+      return getInputElementToTheRight(table, element);
     default:
       return null;
   }
@@ -54,6 +53,14 @@ function getParentTable(element: HTMLElement): HTMLTableElement | null {
   return element.closest('table');
 }
 
+function getInputElementBelow(
+  table: HTMLTableElement,
+  element: HTMLCellInputElement,
+): HTMLCellInputElement | null {
+  const coords = getParentCellCoords(element);
+  return getInputElementBelowCoords(table, coords);
+}
+
 function getInputElementBelowCoords(
   table: HTMLTableElement,
   coords: CellCoords,
@@ -64,6 +71,14 @@ function getInputElementBelowCoords(
   return (
     getInputElementByCoords(table, nextCoords) || getInputElementBelowCoords(table, nextCoords)
   );
+}
+
+function getInputElementAbove(
+  table: HTMLTableElement,
+  element: HTMLCellInputElement,
+): HTMLCellInputElement | null {
+  const coords = getParentCellCoords(element);
+  return getInputElementAboveCoords(table, coords);
 }
 
 function getInputElementAboveCoords(
@@ -79,6 +94,26 @@ function getInputElementAboveCoords(
   );
 }
 
+function getInputElementToTheRight(
+  table: HTMLTableElement,
+  element: HTMLCellInputElement,
+): HTMLCellInputElement | null {
+  const nextElementInSameCell = getNextElementInsideCell(table, element);
+  if (nextElementInSameCell) return nextElementInSameCell;
+  const coords = getParentCellCoords(element);
+  return getInputElementRightToCoords(table, coords);
+}
+
+function getNextElementInsideCell(
+  table: HTMLTableElement,
+  element: HTMLCellInputElement,
+): HTMLCellInputElement | null {
+  const coords = getParentCellCoords(element);
+  const elements = getInputElementsByCoords(table, coords);
+  const index = elements.indexOf(element);
+  return elements[index + 1] || null;
+}
+
 function getInputElementRightToCoords(
   table: HTMLTableElement,
   coords: CellCoords,
@@ -89,6 +124,26 @@ function getInputElementRightToCoords(
   return (
     getInputElementByCoords(table, nextCoords) || getInputElementRightToCoords(table, nextCoords)
   );
+}
+
+function getInputElementToTheLeft(
+  table: HTMLTableElement,
+  element: HTMLCellInputElement,
+): HTMLCellInputElement | null {
+  const previousElementInSameCell = getPreviousElementInsideCell(table, element);
+  if (previousElementInSameCell) return previousElementInSameCell;
+  const coords = getParentCellCoords(element);
+  return getInputElementLeftToCoords(table, coords);
+}
+
+function getPreviousElementInsideCell(
+  table: HTMLTableElement,
+  element: HTMLCellInputElement,
+): HTMLCellInputElement | null {
+  const coords = getParentCellCoords(element);
+  const elements = getInputElementsByCoords(table, coords);
+  const index = elements.indexOf(element);
+  return elements[index - 1] || null;
 }
 
 function getInputElementLeftToCoords(
@@ -108,8 +163,16 @@ function getInputElementByCoords(
   table: HTMLTableElement,
   coords: CellCoords,
 ): HTMLCellInputElement | null {
+  const elements = getInputElementsByCoords(table, coords);
+  return elements[0] || null;
+}
+
+function getInputElementsByCoords(
+  table: HTMLTableElement,
+  coords: CellCoords,
+): HTMLCellInputElement[] {
   const cell = getCellByCoords(table, coords);
-  return cell.querySelector(inputElementSelector) || null;
+  return Array.from(cell.querySelectorAll(inputElementSelector));
 }
 
 const inputElementSelector = 'input, textarea, button';

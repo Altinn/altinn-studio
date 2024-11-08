@@ -302,7 +302,7 @@ const placeCaretAtPosition = (
   position: number,
 ): void => element.setSelectionRange(position, position);
 
-const expectedNumberOfColumns = 5;
+const expectedNumberOfColumns = 6;
 const expectedNumberOfHeaderRows = 1;
 const expectedNumberOfBodyRows = 3;
 const expectedNumberOfRows = expectedNumberOfBodyRows + expectedNumberOfHeaderRows;

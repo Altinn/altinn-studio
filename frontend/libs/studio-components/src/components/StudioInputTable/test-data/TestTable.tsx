@@ -9,7 +9,9 @@ import {
   textareaHeader,
   textfieldHeader,
   textHeader,
+  textResourceHeader,
 } from './testTableData';
+import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
 export function TestTable(props: StudioInputTableProps): ReactElement {
   return (
@@ -21,6 +23,7 @@ export function TestTable(props: StudioInputTableProps): ReactElement {
           <StudioInputTable.HeaderCell>{textfieldHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textareaHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{buttonHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{textResourceHeader}</StudioInputTable.HeaderCell>
         </StudioInputTable.Row>
       </StudioInputTable.Head>
       <StudioInputTable.Body>
@@ -54,6 +57,20 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
         label={testData.textareaLabel(rn)}
       />
       <StudioInputTable.Cell.Button>{testData.buttonLabel(rn)}</StudioInputTable.Cell.Button>
+      <StudioInputTable.Cell.TextResource
+        textResources={textResourcesMock}
+        currentId='land.NO'
+        onChangeCurrentId={() => {}}
+        onChangeTextResource={() => {}}
+        texts={{
+          editValue: 'Rediger verdi',
+          emptyResourceList: 'Fant ingen tekstressurser',
+          idLabel: 'ID:',
+          search: 'Søk',
+          textResourcePickerLabel: 'Velg tekstressurs',
+          valueLabel: 'Tekstverdi',
+        }}
+      />
     </StudioInputTable.Row>
   );
 }
