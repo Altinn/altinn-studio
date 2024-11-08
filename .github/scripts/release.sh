@@ -51,6 +51,8 @@ echo "New version:   $NEW_VERSION"
 
 echo "{\"tag_name\":\"$NEW_VERSION\",\"name\":\"${NEW_VERSION}\",\"draft\":true,\"prerelease\":false,\"generate_release_notes\":true}"
 
+
+# TODO: Flip from draft to release when ready and tested.
 curl -L \
   -X POST \
   -H "Accept: application/vnd.github+json" \

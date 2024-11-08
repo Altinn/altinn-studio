@@ -4,6 +4,14 @@ on:
     # run every friday at 15:00
     - cron: '0 9 * * 5'
 
+  workflow_dispatch:
+
+  # For testing purposes, remove before merge
+  pull_request:
+    types: [edited]
+    branches:
+      - main
+
 jobs:
   generate-release:
     name: Run release script
