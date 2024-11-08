@@ -1,11 +1,6 @@
-import type { CodeList as StudioComponentCodeList } from '@studio/components';
+import type { CodeListWithMetadata } from '@studio/content-library';
 
-type CodeList = {
-  codeList: StudioComponentCodeList;
-  title: string;
-};
-
-export function convertOptionListsToCodeLists(optionLists: any): CodeList[] {
+export function convertOptionListsToCodeLists(optionLists: any): CodeListWithMetadata[] {
   // TODO: Update type when correct type is in main
   const codeLists = [];
   Object.entries(optionLists).map((optionList) =>

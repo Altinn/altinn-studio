@@ -7,14 +7,14 @@ import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeList.module.css';
 
-export type CodeList = {
+export type CodeListWithMetadata = {
   codeList: StudioComponentCodeList;
   title: string;
 };
 
 export type CodeListProps = {
-  codeLists: CodeList[];
-  onUpdateCodeList: (updatedCodeList: CodeList) => void;
+  codeLists: CodeListWithMetadata[];
+  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   fetchDataError: boolean;
 };
@@ -32,7 +32,7 @@ export function CodeList({
   return (
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
-      <CodeListsCounterMessage amountCodeLists={codeLists.length} />
+      <CodeListsCounterMessage codeListsCount={codeLists.length} />
       <CodeListsActionsBar onUploadCodeList={onUploadCodeList} />
       <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
     </div>

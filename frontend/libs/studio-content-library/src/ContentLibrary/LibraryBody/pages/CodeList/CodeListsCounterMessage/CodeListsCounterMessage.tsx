@@ -3,22 +3,22 @@ import { StudioParagraph } from '@studio/components';
 import { Trans } from 'react-i18next';
 
 export type CodeListsCounterMessageProps = {
-  amountCodeLists: number;
+  codeListsCount: number;
 };
 
 export function CodeListsCounterMessage({
-  amountCodeLists,
+  codeListsCount,
 }: CodeListsCounterMessageProps): React.ReactElement {
-  const onlyOneCodeListExists = amountCodeLists === 1;
+  const onlyOneCodeListExists = codeListsCount === 1;
   return (
     <StudioParagraph size='sm'>
       <Trans
         i18nKey={
           onlyOneCodeListExists
-            ? 'app_content_library.code_lists.amount_code_lists_info_single'
-            : 'app_content_library.code_lists.amount_code_lists_info_plural'
+            ? 'app_content_library.code_lists.code_lists_count_info_single'
+            : 'app_content_library.code_lists.code_lists_count_info_plural'
         }
-        values={{ amountCodeLists }}
+        values={{ codeListsCount }}
         components={{ bold: <strong /> }}
       />
     </StudioParagraph>

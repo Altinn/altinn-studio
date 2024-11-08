@@ -3,11 +3,11 @@ import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
 import { CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { CodeList } from '../CodeList';
+import type { CodeListWithMetadata } from '../CodeList';
 import userEvent from '@testing-library/user-event';
 
 const codeListName = 'codeList';
-const codeListMock: CodeList = {
+const codeListMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: [{ value: 'value', label: 'label' }],
 };

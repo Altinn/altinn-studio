@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListProps } from './CodeList';
+import type { CodeListProps, CodeListWithMetadata } from './CodeList';
 import { CodeList } from './CodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
 const codeListName = 'codeList';
-const codeListMock: CodeList = {
+const codeListMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: [{ value: 'value', label: 'label' }],
 };
@@ -24,7 +24,7 @@ describe('CodeList', () => {
   it('renders a code list counter message', () => {
     renderCodeList();
     const codeListCounterMessage = screen.getByText(
-      textMock('app_content_library.code_lists.amount_code_lists_info_single'),
+      textMock('app_content_library.code_lists.code_lists_count_info_single'),
     );
     expect(codeListCounterMessage).toBeInTheDocument();
   });

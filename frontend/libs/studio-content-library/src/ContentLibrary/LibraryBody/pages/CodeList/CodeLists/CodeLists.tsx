@@ -1,11 +1,11 @@
 import React from 'react';
-import type { CodeList as CodeListType } from '../../CodeList';
+import type { CodeListWithMetadata } from '../CodeList';
 import { Accordion, Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 export type CodeListsProps = {
-  codeLists: CodeListType[];
-  onUpdateCodeList: (updatedCodeList: CodeListType) => void;
+  codeLists: CodeListWithMetadata[];
+  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
 export function CodeLists({ codeLists, onUpdateCodeList }: CodeListsProps) {
@@ -15,8 +15,8 @@ export function CodeLists({ codeLists, onUpdateCodeList }: CodeListsProps) {
 }
 
 type CodeListProps = {
-  codeList: CodeListType;
-  onUpdateCodeList: (updatedCodeList: CodeListType) => void;
+  codeList: CodeListWithMetadata;
+  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
 function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
