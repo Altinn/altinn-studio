@@ -42,9 +42,9 @@ on:
       subscription-id:
         required: true
       trace-connection-string:
-        required: true
+        required: false
       trace-repo-token:
-        required: true
+        required: false
 
 jobs:
   config-oci-artifact-push:
