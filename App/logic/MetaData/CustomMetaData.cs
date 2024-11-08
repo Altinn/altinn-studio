@@ -1,3 +1,4 @@
+using System;
 using Altinn.App.Core.Internal.App;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
@@ -15,9 +16,10 @@ namespace Altinn.App.logic.MetaData
         public CustomMetaData(
             IOptions<AppSettings> settings,
             IFrontendFeatures frontendFeatures,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IServiceProvider serviceProvider)
         {
-            _internal = new AppMetadata(settings, frontendFeatures);
+            _internal = new AppMetadata(settings, frontendFeatures, serviceProvider);
             _httpContextAccessor = httpContextAccessor;
         }
 
