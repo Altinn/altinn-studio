@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services;
@@ -10,6 +11,7 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 public class RequestSynchronizationMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly TimeSpan _waitTimeout = TimeSpan.FromSeconds(30);
 
     public RequestSynchronizationMiddleware(RequestDelegate next)
     {
@@ -20,7 +22,7 @@ public class RequestSynchronizationMiddleware
     {
         if (requestSyncResolver.TryResolveSyncRequest(httpContext, out AltinnRepoEditingContext editingContext))
         {
-            await using (await synchronizationProvider.AcquireLockAsync(editingContext))
+            await using (await synchronizationProvider.AcquireLockAsync(editingContext, _waitTimeout, httpContext.RequestAborted))
             {
                 await _next(httpContext);
                 return;
