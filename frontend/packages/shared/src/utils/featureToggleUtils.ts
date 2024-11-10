@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
 
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';
@@ -13,7 +13,8 @@ export type SupportedFeatureFlags =
   | 'exportForm'
   | 'addComponentModal'
   | 'subform'
-  | 'summary2';
+  | 'summary2'
+  | 'codeListEditor';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

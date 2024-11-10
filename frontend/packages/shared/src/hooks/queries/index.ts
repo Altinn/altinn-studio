@@ -3,6 +3,7 @@ export { useAppVersionQuery } from './useAppVersionQuery';
 export { useDataModelsJsonQuery } from './useDataModelsJsonQuery';
 export { useDataModelsXsdQuery } from './useDataModelsXsdQuery';
 export { useInstanceIdQuery } from './useInstanceIdQuery';
+export { useOptionListsQuery } from './useOptionListsQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';
 export { useRepoStatusQuery } from './useRepoStatusQuery';

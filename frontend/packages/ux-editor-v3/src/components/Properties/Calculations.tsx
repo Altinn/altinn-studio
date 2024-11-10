@@ -2,7 +2,6 @@ import React from 'react';
 import classes from './Calculations.module.css';
 import { RuleModal } from '../toolbar/RuleModal';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
-import { Divider } from 'app-shared/primitives';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
@@ -17,10 +16,9 @@ export const Calculations = () => {
 
   return (
     <div className={classes.calculations}>
-      <div>
+      <div className={classes.ruleModalWrapper}>
         <RuleModal />
       </div>
-      <Divider marginless />
       <OldDynamicsInfo />
     </div>
   );
