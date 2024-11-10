@@ -24,6 +24,14 @@ const accessPackageAreaTransport = {
   shortDescription: '',
 };
 
+const accessPackageAreaOther = {
+  id: 'other-area',
+  name: 'Annet',
+  description: '',
+  iconName: 'TruckIcon',
+  shortDescription: '',
+};
+
 const skattPackage = {
   id: 'urn:altinn:accesspackage:skatt',
   urn: 'urn:altinn:accesspackage:skatt',
@@ -54,7 +62,17 @@ const lufttransportPackage = {
   area: accessPackageAreaTransport,
 };
 
-const accessPackages = [sjofartPackage, lufttransportPackage, skattPackage];
+const revisorPackage = {
+  id: 'urn:altinn:accesspackage:revisor',
+  urn: 'urn:altinn:accesspackage:revisor',
+  name: 'Revisor',
+  description: '',
+  services: [],
+  tags: [],
+  area: accessPackageAreaOther,
+};
+
+const accessPackages = [sjofartPackage, lufttransportPackage, skattPackage, revisorPackage];
 
 describe('PolicyAccessPackages', () => {
   afterEach(jest.clearAllMocks);
