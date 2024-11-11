@@ -19,20 +19,19 @@
       "enabledFileValidators": []
     },
     {
-      "id": "model",
+      "id": "Skjemadata",
       "allowedContentTypes": [
         "application/xml"
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.model.model",
+        "classRef": "Altinn.App.Models.Skjemadata.Skjemadata",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
         "allowUserCreate": false,
         "allowUserDelete": false,
         "allowInSubform": false
       },
-      "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": true,
