@@ -135,7 +135,6 @@ export const FormComponentConfig = ({
         <>
           <EditBooleanValue
             propertyKey='hasCustomFileEndings'
-            helpText={hasCustomFileEndings.description}
             component={component}
             defaultValue={hasCustomFileEndings.default}
             handleComponentChange={(updatedComponent: FormComponent) => {
@@ -154,7 +153,6 @@ export const FormComponentConfig = ({
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey='validFileEndings'
-              helpText={validFileEndings?.description}
             />
           )}
         </>
