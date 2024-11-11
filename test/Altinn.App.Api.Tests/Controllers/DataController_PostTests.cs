@@ -33,7 +33,6 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
     public DataController_PostTests(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
         : base(factory, outputHelper)
     {
-        TestData.DeleteInstanceAndData(_org, _app, _instanceOwnerPartyId, _instanceGuid);
         TestData.PrepareInstance(_org, _app, _instanceOwnerPartyId, _instanceGuid);
         OverrideServicesForAllTests = (services) =>
         {

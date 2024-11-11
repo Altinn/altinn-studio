@@ -96,6 +96,18 @@ public static class TestData
         return Path.Combine(dataDirectory, $"{dataGuid}.json");
     }
 
+    public static string GetDataElementBlobContnet(
+        string org,
+        string app,
+        int instanceOwnerId,
+        Guid instanceGuid,
+        Guid dataGuid
+    )
+    {
+        string dataElementPath = GetDataBlobPath(org, app, instanceOwnerId, instanceGuid, dataGuid);
+        return File.ReadAllText(dataElementPath);
+    }
+
     public static string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
     {
         string dataDirectory = GetDataDirectory(org, app, instanceOwnerId, instanceGuid);
@@ -142,6 +154,7 @@ public static class TestData
 
     public static void PrepareInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
+        DeleteInstanceAndData(org, app, instanceOwnerId, instanceGuid);
         string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
 
         string preInstancePath = instancePath.Replace(".json", ".pretest.json");
@@ -185,7 +198,7 @@ public static class TestData
         }
     }
 
-    public static void DeleteDataForInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
+    private static void DeleteDataForInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
     {
         string path = GetDataDirectory(org, app, instanceOwnerId, instanceGuid);
 

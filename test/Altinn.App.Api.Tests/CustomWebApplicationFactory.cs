@@ -215,7 +215,8 @@ public class ApiTestBase
     }
 
     /// <summary>
-    /// Set this in your test class constructor
+    /// Helper to quickly verify the status code and deserialize the content of a response.
+    /// and print the content to output helper
     /// </summary>
     protected async Task<T> VerifyStatusAndDeserialize<T>(
         HttpResponseMessage response,
@@ -224,7 +225,10 @@ public class ApiTestBase
     {
         // Deserialize content and log everything if it fails
         var content = await response.Content.ReadAsStringAsync();
-        OutputHelper.WriteLine($"Response content: {content}");
+        OutputHelper.WriteLine(
+            $"{response.RequestMessage?.Method} {response.RequestMessage?.RequestUri?.PathAndQuery}"
+        );
+        OutputHelper.WriteLine(JsonUtils.IndentJson(content));
         // Verify status code
         response.Should().HaveStatusCode(expectedStatusCode);
         try
@@ -239,8 +243,6 @@ public class ApiTestBase
             OutputHelper.WriteLine(
                 $"Failed to deserialize content of {response.RequestMessage?.Method} request to {response.RequestMessage?.RequestUri} as {ReflectionUtils.GetTypeNameWithGenericArguments<T>()}:"
             );
-
-            OutputHelper.WriteLine(JsonUtils.IndentJson(content));
             OutputHelper.WriteLine(string.Empty);
             throw;
         }

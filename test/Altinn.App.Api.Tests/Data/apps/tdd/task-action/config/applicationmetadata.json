@@ -1,6 +1,6 @@
 {
-  "id": "ttd/task-action",
-  "org": "ttd",
+  "id": "tdd/task-action",
+  "org": "tdd",
   "title": {
     "nb": "task-action"
   },
@@ -25,7 +25,7 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Scheme",
+        "classRef": "Altinn.App.Api.Tests.Data.apps.tdd.task_action.config.models.Scheme",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false
       },

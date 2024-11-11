@@ -66,7 +66,6 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             services.AddSingleton(_dataProcessorMock.Object);
             services.AddSingleton(_formDataValidatorMock.Object);
         };
-        TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, _instanceGuid);
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, _instanceGuid);
     }
 

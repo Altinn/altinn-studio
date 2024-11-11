@@ -66,7 +66,7 @@ public class UserActionContext
     /// <summary>
     /// Access dataElements through this accessor to ensure that changes gets saved in storage and returned to frontend
     /// </summary>
-    public IInstanceDataAccessor DataMutator { get; }
+    public IInstanceDataMutator DataMutator { get; }
 
     /// <summary>
     /// The user performing the action

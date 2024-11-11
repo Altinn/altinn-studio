@@ -1,16 +1,20 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Altinn.App.Api.Models;
 using Altinn.App.Api.Tests.Data;
+using Altinn.App.Api.Tests.Data.apps.tdd.task_action.config.models;
 using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Internal.Data;
 using Altinn.App.Core.Models.Process;
 using Altinn.App.Core.Models.UserAction;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Altinn.App.Api.Tests.Controllers;
@@ -35,7 +39,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -61,7 +64,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         using var content = new StringContent(
             "{\"action\":\"lookup_unauthorized\"}",
@@ -85,7 +87,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(null, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -111,7 +112,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -133,7 +133,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef43");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -155,7 +154,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef42");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -181,7 +179,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1000, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -234,7 +231,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(400, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -260,7 +256,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(401, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -286,7 +281,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(409, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -312,7 +306,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(500, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -338,7 +331,6 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var app = "task-action";
         HttpClient client = GetRootedClient(org, app);
         Guid guid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
-        TestData.DeleteInstanceAndData(org, app, 1337, guid);
         TestData.PrepareInstance(org, app, 1337, guid);
         string token = PrincipalUtil.GetToken(1001, null, 3);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -353,6 +345,197 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task PerformFillActionThatMutatesData()
+    {
+        var org = "tdd";
+        var app = "task-action";
+        Guid instanceGuid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        int instanceOwner = 1337;
+        TestData.PrepareInstance(org, app, 1337, instanceGuid);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, FillAction>();
+        };
+        var client = GetRootedClient(org, app, 1337, null);
+        string token = PrincipalUtil.GetToken(1001, null, 3);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Run buttonId "add"
+        using var content = JsonContent.Create(new { action = "fill", buttonId = "add" });
+        using HttpResponseMessage addResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            content
+        );
+
+        var parsedAddResponse = await VerifyStatusAndDeserialize<UserActionResponse>(addResponse, HttpStatusCode.OK);
+        parsedAddResponse.ClientActions.Should().BeEmpty();
+        parsedAddResponse.Instance.Should().NotBeNull();
+        parsedAddResponse.Instance.Id.Should().Be($"{instanceOwner}/{instanceGuid}");
+        var dataElement = parsedAddResponse.Instance.Data.Should().ContainSingle().Which;
+
+        var schemeElement = parsedAddResponse
+            .UpdatedDataModels.Should()
+            .HaveCount(1)
+            .And.ContainKey(dataElement.Id)
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which;
+        var scheme =
+            schemeElement.Deserialize<Scheme>(_jsonSerializerOptions)
+            ?? throw new Exception("Failed to deserialize Scheme");
+        scheme.TestCustomButtonInput.Should().Be("Hello a");
+
+        // Run buttonId "update"
+        using var updateContent = JsonContent.Create(new { action = "fill", buttonId = "update" });
+        using HttpResponseMessage updateResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            updateContent
+        );
+        var parsedUpdateResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            updateResponse,
+            HttpStatusCode.OK
+        );
+        parsedUpdateResponse.ClientActions.Should().BeEmpty();
+        parsedUpdateResponse.Instance.Should().NotBeNull();
+        parsedUpdateResponse.Instance.Id.Should().Be($"{instanceOwner}/{instanceGuid}");
+        var updatedDataElement = parsedUpdateResponse.Instance.Data.Should().ContainSingle().Which;
+        var updatedSchemeElement = parsedUpdateResponse
+            .UpdatedDataModels.Should()
+            .HaveCount(1)
+            .And.ContainKey(updatedDataElement.Id)
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which;
+        var updatedScheme =
+            updatedSchemeElement.Deserialize<Scheme>(_jsonSerializerOptions)
+            ?? throw new Exception("Failed to deserialize Scheme");
+        updatedScheme.TestCustomButtonInput.Should().Be("Hello a");
+        updatedScheme.TestCustomButtonReadOnlyInput.Should().Be("Her kommer det data fra backend");
+
+        TestData
+            .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
+            .Should()
+            .Contain("Her kommer det data fra backend");
+
+        // Run buttonId "updateObsolete"
+        using var updateObsoleteContent = JsonContent.Create(new { action = "fill", buttonId = "updateObsolete" });
+        using HttpResponseMessage updateObsoleteResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            updateObsoleteContent
+        );
+        var parsedUpdateObsoleteResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            updateObsoleteResponse,
+            HttpStatusCode.OK
+        );
+        parsedUpdateObsoleteResponse.ClientActions.Should().BeEmpty();
+        parsedUpdateObsoleteResponse.Instance.Should().NotBeNull();
+        parsedUpdateObsoleteResponse.Instance.Id.Should().Be($"{instanceOwner}/{instanceGuid}");
+        var updatedObsoleteDataElement = parsedUpdateObsoleteResponse.Instance.Data.Should().ContainSingle().Which;
+        var updatedObsoleteSchemeElement = parsedUpdateObsoleteResponse
+            .UpdatedDataModels.Should()
+            .HaveCount(1)
+            .And.ContainKey(updatedObsoleteDataElement.Id)
+            .WhoseValue.Should()
+            .BeOfType<JsonElement>()
+            .Which;
+        var updatedObsoleteScheme =
+            updatedObsoleteSchemeElement.Deserialize<Scheme>(_jsonSerializerOptions)
+            ?? throw new Exception("Failed to deserialize Scheme");
+        updatedObsoleteScheme.description.Should().Be("Obsolete data");
+
+        TestData
+            .GetDataElementBlobContnet(org, app, instanceOwner, instanceGuid, Guid.Parse(updatedDataElement.Id))
+            .Should()
+            .Contain("Obsolete data");
+
+        // Run buttonId "delete"
+        using var deleteContent = JsonContent.Create(new { action = "fill", buttonId = "delete" });
+        using HttpResponseMessage deleteResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            deleteContent
+        );
+        var parsedDeleteResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            deleteResponse,
+            HttpStatusCode.OK
+        );
+        parsedDeleteResponse.ClientActions.Should().BeEmpty();
+        parsedDeleteResponse.Instance.Should().NotBeNull();
+        parsedDeleteResponse.Instance.Id.Should().Be($"{instanceOwner}/{instanceGuid}");
+        parsedDeleteResponse.Instance.Data.Should().BeEmpty();
+        parsedDeleteResponse.UpdatedDataModels.Should().BeEmpty();
+
+        // Cleanup testdata
+        TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+    }
+
+    [Fact]
+    public async Task PerformFillAction_GetClientActions()
+    {
+        var org = "tdd";
+        var app = "task-action";
+        Guid instanceGuid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        int instanceOwner = 1337;
+        TestData.PrepareInstance(org, app, 1337, instanceGuid);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, FillAction>();
+        };
+        var client = GetRootedClient(org, app, 1337, null);
+        string token = PrincipalUtil.GetToken(1001, null, 3);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // run buttonId "getClientActions"
+        using var getClientActionsContent = JsonContent.Create(new { action = "fill", buttonId = "getClientActions" });
+        using HttpResponseMessage getClientActionsResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            getClientActionsContent
+        );
+        var parsedGetClientActionsResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            getClientActionsResponse,
+            HttpStatusCode.OK
+        );
+        parsedGetClientActionsResponse.ClientActions.Should().ContainSingle().Which.Id.Should().Be("nextPage");
+
+        // Cleanup testdata
+        TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+    }
+
+    [Fact]
+    public async Task PerformFillAction_Fail()
+    {
+        var org = "tdd";
+        var app = "task-action";
+        Guid instanceGuid = new Guid("b1135209-628e-4a6e-9efd-e4282068ef41");
+        int instanceOwner = 1337;
+        TestData.PrepareInstance(org, app, 1337, instanceGuid);
+        OverrideServicesForThisTest = (services) =>
+        {
+            services.AddTransient<IUserAction, FillAction>();
+        };
+        var client = GetRootedClient(org, app, 1337, null);
+        string token = PrincipalUtil.GetToken(1001, null, 3);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        // Run buttonId "fail"
+        using var failContent = JsonContent.Create(new { action = "fill", buttonId = "fail" });
+        using HttpResponseMessage failResponse = await client.PostAsync(
+            $"/{org}/{app}/instances/{instanceOwner}/{instanceGuid}/actions",
+            failContent
+        );
+        var parsedFailResponse = await VerifyStatusAndDeserialize<UserActionResponse>(
+            failResponse,
+            HttpStatusCode.Conflict
+        );
+        parsedFailResponse.ClientActions.Should().ContainSingle().Which.Id.Should().Be("nextPage");
+        parsedFailResponse.Error.Should().NotBeNull();
+        parsedFailResponse.Error!.Code.Should().Be("machine-readable-error-code");
+        parsedFailResponse.Error!.Message.Should().Be("Her kommer det en feilmelding");
+
+        // Cleanup testdata
+        TestData.DeleteInstanceAndData(org, app, instanceOwner, instanceGuid);
+    }
+
     //TODO: replace this assertion with a proper one once fluentassertions has a json compare feature scheduled for v7 https://github.com/fluentassertions/fluentassertions/issues/2205
     private void CompareResult<T>(string expectedString, string actualString, Action<T?>? mutator = null)
     {
@@ -363,6 +546,88 @@ public class ActionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         mutator?.Invoke(actual);
         mutator?.Invoke(expected);
         actual.Should().BeEquivalentTo(expected);
+    }
+}
+
+public class FillAction : IUserAction
+{
+    private readonly ILogger<FillAction> _logger;
+    private readonly IDataClient _dataClient;
+
+    public string Id => "fill";
+
+    public FillAction(ILogger<FillAction> logger, IDataClient dataClient)
+    {
+        _logger = logger;
+        _dataClient = dataClient;
+    }
+
+    public async Task<UserActionResult> HandleAction(UserActionContext context)
+    {
+        _logger.LogInformation("FillAction triggered, with button id: {buttonId}", context.ButtonId);
+
+        switch (context.ButtonId)
+        {
+            case "add":
+                context.DataMutator.AddFormDataElement(
+                    "Scheme",
+                    new Scheme()
+                    {
+                        TestCustomButtonReadOnlyInput = "Første runde",
+                        TestCustomButtonInput = "Hello a",
+                        description = "Første runde"
+                    }
+                );
+                break;
+            case "update":
+                var originalDataElement = context.DataMutator.FormDataElements.First(de => de.DataType == "Scheme");
+                var originalData = await context.DataMutator.GetFormData(originalDataElement);
+                var data = (Scheme)originalData;
+
+                data.TestCustomButtonReadOnlyInput = "Her kommer det data fra backend";
+                break;
+            case "updateObsolete":
+                var instanceId = context.Instance.Id;
+                var instanceGuid = Guid.Parse(instanceId.Split('/')[1]);
+                var instanceOwner = int.Parse(instanceId.Split('/')[0]);
+                var dataGuid = Guid.Parse(context.Instance.Data.Single().Id);
+
+                var obsoleteData = (Scheme)
+                    await _dataClient.GetFormData(
+                        instanceGuid,
+                        typeof(Scheme),
+                        context.Instance.Org,
+                        context.Instance.AppId.Split('/')[1],
+                        instanceOwner,
+                        dataGuid
+                    );
+                obsoleteData.description = "Obsolete data";
+                var result = UserActionResult.SuccessResult(new List<ClientAction>());
+                result.AddUpdatedDataModel(dataGuid.ToString(), obsoleteData);
+                return result;
+            case "delete":
+                var elementToDelete = context.DataMutator.FormDataElements.First(de => de.DataType == "Scheme");
+                context.DataMutator.RemoveDataElement(elementToDelete);
+                break;
+            case "getClientActions":
+                return UserActionResult.SuccessResult([new ClientAction() { Id = "nextPage" }]);
+
+            case "fail":
+                return UserActionResult.FailureResult(
+                    new ActionError()
+                    {
+                        Code = "machine-readable-error-code",
+                        Message = "Her kommer det en feilmelding",
+                        Metadata = new Dictionary<string, string>() { { "key1", "value1" }, }
+                    },
+                    [new ClientAction() { Id = "nextPage" }],
+                    errorType: ProcessErrorType.Conflict
+                );
+            default:
+                throw new Exception($"Button id {context.ButtonId} not supported");
+        }
+
+        return UserActionResult.SuccessResult(new List<ClientAction>());
     }
 }
 

@@ -51,7 +51,6 @@ public class ValidateControllerValidateInstanceTests : ApiTestBase, IClassFixtur
             services.AddSingleton(_dataProcessorMock.Object);
             services.AddSingleton(_formDataValidatorMock.Object);
         };
-        TestData.DeleteInstanceAndData(Org, App, InstanceOwnerPartyId, InstanceGuid);
         TestData.PrepareInstance(Org, App, InstanceOwnerPartyId, InstanceGuid);
     }
 

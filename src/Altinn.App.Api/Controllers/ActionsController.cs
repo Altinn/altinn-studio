@@ -213,10 +213,9 @@ public class ActionsController : ControllerBase
         );
         await saveTask;
 
-        var updatedDataModels = changes.FormDataChanges.ToDictionary(
-            c => c.DataElementIdentifier.Id,
-            c => c.CurrentFormData
-        );
+        var updatedDataModels = changes
+            .FormDataChanges.Where(c => c.Type != ChangeType.Deleted)
+            .ToDictionary(c => c.DataElementIdentifier.Id, c => c.CurrentFormData);
 
         return Ok(
             new UserActionResponse()

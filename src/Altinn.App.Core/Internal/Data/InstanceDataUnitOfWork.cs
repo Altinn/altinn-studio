@@ -147,7 +147,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         if (modelType.FullName != classRef)
         {
             throw new InvalidOperationException(
-                $"Data object registered for {dataTypeId} is not of type {classRef} as specified in application metadata"
+                $"Tried to save {modelType.FullName} as {dataTypeId}, but applicationmetadata.json specifies {classRef}"
             );
         }
 
