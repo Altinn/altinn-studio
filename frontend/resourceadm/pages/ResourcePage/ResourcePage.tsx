@@ -17,14 +17,14 @@ import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
 import {
   GavelSoundBlockIcon,
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
+import { LeftNavigationBar } from '../../components/LeftNavigationBar';
 import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
