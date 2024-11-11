@@ -137,18 +137,20 @@ describe('EditOptionList', () => {
 
   it('should render OptionListEditor when featureFlag is active', async () => {
     addFeatureFlagToLocalStorage('optionListEditor');
-    const queries = {
-      getOptionLists: jest.fn().mockImplementation(() =>
-        Promise.resolve<OptionsLists>({
-          optionsIdMock: [{ value: 'test', label: 'label text' }],
-        }),
-      ),
-    };
-    renderEditOptionList({ queries: queries });
+    renderEditOptionList({
+      queries: {
+        getOptionLists: jest.fn().mockImplementation(() =>
+          Promise.resolve<OptionsLists>({
+            optionsIdMock: [{ value: 'test', label: 'label text' }],
+          }),
+        ),
+      },
+    });
 
     await waitForElementToBeRemoved(() =>
       screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
     );
+
     expect(
       screen.getByRole('button', {
         name: textMock('ux_editor.modal_properties_code_list_open_editor'),

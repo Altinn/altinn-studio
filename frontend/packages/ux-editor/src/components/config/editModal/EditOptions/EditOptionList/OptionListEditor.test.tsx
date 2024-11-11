@@ -132,23 +132,14 @@ const openModal = async (user: UserEvent) => {
 };
 
 const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {}) => {
-  return renderWithProviders(
-    <OptionListEditor
-      component={{
-        ...mockComponent,
-      }}
-    />,
-    {
-      queries: {
-        getOptionLists: jest
-          .fn()
-          .mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
-        ...queries,
-      },
-      queryClient: createQueryClientMock(),
-      previewContextProps,
+  return renderWithProviders(<OptionListEditor optionsId={mockComponent.optionsId} />, {
+    queries: {
+      getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
+      ...queries,
     },
-  );
+    queryClient: createQueryClientMock(),
+    previewContextProps,
+  });
 };
 
 const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({

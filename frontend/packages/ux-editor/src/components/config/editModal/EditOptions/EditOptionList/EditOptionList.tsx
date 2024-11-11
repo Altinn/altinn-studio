@@ -79,7 +79,7 @@ export function EditOptionList<T extends SelectionComponentType>({
     <>
       <OptionListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
       {shouldDisplayFeature('optionListEditor') && componentHasConnectedOptionListToEdit && (
-        <OptionListEditor component={component} />
+        <OptionListEditor optionsId={component.optionsId} />
       )}
       <StudioFileUploader
         className={classes.studioFileUploader}

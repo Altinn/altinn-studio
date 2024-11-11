@@ -20,9 +20,11 @@ import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import classes from './OptionListEditor.module.css';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
-type OptionListEditorProps = Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
+type OptionListEditorProps = {
+  optionsId: string;
+};
 
-export function OptionListEditor({ component }: OptionListEditorProps): React.ReactNode {
+export function OptionListEditor({ optionsId }: OptionListEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionsListMap, status } = useOptionListsQuery(org, app);
@@ -38,10 +40,7 @@ export function OptionListEditor({ component }: OptionListEditorProps): React.Re
       );
     case 'success': {
       return (
-        <OptionListEditorModal
-          optionsList={optionsListMap[component.optionsId]}
-          optionsId={component.optionsId}
-        />
+        <OptionListEditorModal optionsList={optionsListMap[optionsId]} optionsId={optionsId} />
       );
     }
   }
