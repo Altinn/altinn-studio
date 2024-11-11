@@ -22,5 +22,6 @@ public interface IPdfService
     /// <param name="instance">The instance details.</param>
     /// <param name="taskId">The task id for witch the pdf is generated</param>
     /// <param name="ct">Cancellation Token for when a request should be stopped before it's completed.</param>
-    Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct);
+    /// <param name="isPreview">If set to true, this will show a text saying that this is a preview PDF.</param>
+    Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct, Boolean? isPreview = false);
 }

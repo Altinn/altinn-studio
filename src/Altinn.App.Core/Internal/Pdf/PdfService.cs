@@ -84,14 +84,19 @@ public class PdfService : IPdfService
 
         TextResource? textResource = await GetTextResource(instance, language);
 
-        var pdfContent = await GeneratePdfContent(instance, taskId, language, textResource, ct);
+        var pdfContent = await GeneratePdfContent(instance, language, ct, textResource, null);
 
         string fileName = GetFileName(instance, textResource);
         await _dataClient.InsertBinaryData(instance.Id, PdfElementType, PdfContentType, fileName, pdfContent, taskId);
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
+    public async Task<Stream> GeneratePdf(
+        Instance instance,
+        string taskId,
+        CancellationToken ct,
+        Boolean? isPreview = false
+    )
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
@@ -103,15 +108,15 @@ public class PdfService : IPdfService
 
         TextResource? textResource = await GetTextResource(instance, language);
 
-        return await GeneratePdfContent(instance, taskId, language, textResource, ct);
+        return await GeneratePdfContent(instance, language, ct, textResource, isPreview);
     }
 
     private async Task<Stream> GeneratePdfContent(
         Instance instance,
-        string taskId,
         string language,
-        TextResource? textResource,
-        CancellationToken ct
+        CancellationToken ct,
+        TextResource? textResource = null,
+        Boolean? isPreview = false
     )
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
@@ -122,7 +127,17 @@ public class PdfService : IPdfService
         Uri uri = BuildUri(baseUrl, pagePath, language);
 
         bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
-        string? footerContent = displayFooter ? GetFooterContent(instance, textResource) : null;
+
+        string? footerContent = null;
+
+        if (isPreview == true)
+        {
+            footerContent = GetPreviewFooter(textResource);
+        }
+        else if (displayFooter)
+        {
+            footerContent = GetFooterContent(instance, textResource);
+        }
 
         Stream pdfContent = await _pdfGeneratorClient.GeneratePdf(uri, footerContent, ct);
 
@@ -249,10 +264,37 @@ public class PdfService : IPdfService
         return null;
     }
 
+    private static string? GetPdfPreviewText(TextResource? textResource)
+    {
+        if (textResource is not null)
+        {
+            TextResourceElement? titleText = textResource.Resources.Find(textResourceElement =>
+                textResourceElement.Id.Equals("pdfPreviewText", StringComparison.Ordinal)
+            );
+
+            if (titleText is not null)
+            {
+                return titleText.Value;
+            }
+        }
+
+        return null;
+    }
+
     private static string GetValidFileName(string fileName)
     {
         fileName = Uri.EscapeDataString(fileName.AsFileName(false));
         return fileName;
+    }
+
+    private static string GetPreviewFooter(TextResource? textResource)
+    {
+        string previewText = GetPdfPreviewText(textResource) ?? "Dette er en forhåndsvisning";
+        return $@"<div style='font-family: Inter; font-size: 12px; width: 100%; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 0 70px 0 70px;'>
+                <div style='display: flex; flex-direction: row; width: 100%; align-items: center'>
+                    <span>{previewText}</span>
+                </div>
+            </div>";
     }
 
     private string GetFooterContent(Instance instance, TextResource? textResource)

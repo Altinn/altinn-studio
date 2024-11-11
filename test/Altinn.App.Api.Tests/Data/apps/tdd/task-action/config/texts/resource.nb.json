@@ -28,6 +28,10 @@
     {
       "id": "Side1.Button-Lj0cYG.title",
       "value": "Avvis"
+    },
+    {
+        "id": "PdfPreviewText",
+        "value": "Dette er en forhåndsvisning"
     }
   ]
 }
