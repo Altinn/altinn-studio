@@ -5,7 +5,6 @@ import classes from './SelectLayoutSet.module.css';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { SubformUtilsImpl } from '../../../../../../classes/SubformUtils';
-// import cn from 'classnames';
 
 type SelectLayoutSetProps = {
   setSelectedSubform: (layoutSetId: string) => void;

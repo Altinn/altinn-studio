@@ -15,9 +15,7 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
   handleComponentChange,
   component,
 }: IGenericEditComponent<T>): React.ReactElement => {
-  const { org, app } = useStudioEnvironmentParams();
   const { setSelectedFormLayoutSetName } = useAppContext();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { t } = useTranslation();
 
   const existingLayoutSetForSubform = component['layoutSet'];
@@ -38,10 +36,5 @@ export const EditLayoutSetForSubform = <T extends ComponentType>({
     );
   }
 
-  const handleUpdatedLayoutSet = (layoutSet: string): void => {
-    const updatedComponent = { ...component, layoutSet };
-    handleComponentChange(updatedComponent);
-  };
-
-  return <EditLayoutSet onUpdateLayoutSet={handleUpdatedLayoutSet} layoutSets={layoutSets} />;
+  return <EditLayoutSet handleComponentChange={handleComponentChange} component={component} />;
 };

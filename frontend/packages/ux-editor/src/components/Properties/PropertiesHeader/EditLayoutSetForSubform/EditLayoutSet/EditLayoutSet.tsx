@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
 import {
   StudioButton,
@@ -11,26 +10,31 @@ import {
 import { CheckmarkIcon, PlusIcon } from '@studio/icons';
 import classes from './EditLayoutSet.module.css';
 import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformUtilsImpl } from '@altinn/ux-editor/classes/SubformUtils';
 import { SubformInstructions } from './SubformInstructions';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-type EditLayoutSetProps = {
-  onUpdateLayoutSet: (layoutSetId: string) => void;
-  layoutSets: LayoutSets;
-};
-
-export const EditLayoutSet = ({
-  onUpdateLayoutSet,
-  layoutSets,
-}: EditLayoutSetProps): React.ReactElement => {
+export const EditLayoutSet = <T extends ComponentType>({
+  handleComponentChange,
+  component,
+}: IGenericEditComponent<T>): React.ReactElement => {
   const { t } = useTranslation();
   const [showCreateSubformCard, setShowCreateSubformCard] = useState<boolean>(false);
   const [selectedSubform, setSelectedSubform] = useState<string>(undefined);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
   const subformUtils = new SubformUtilsImpl(layoutSets.sets);
   const hasSubforms = subformUtils.hasSubforms;
   const { title, description } = subformUtils.recommendedNextActionText;
+
+  const handleUpdatedLayoutSet = (layoutSet: string): void => {
+    const updatedComponent = { ...component, layoutSet };
+    handleComponentChange(updatedComponent);
+  };
 
   return (
     <StudioRecommendedNextAction
@@ -50,7 +54,7 @@ export const EditLayoutSet = ({
       {showCreateSubformCard || !hasSubforms ? (
         <CreateNewSubformLayoutSet
           layoutSets={layoutSets}
-          onUpdateLayoutSet={onUpdateLayoutSet}
+          onUpdateLayoutSet={handleUpdatedLayoutSet}
           setShowCreateSubformCard={setShowCreateSubformCard}
           hasSubforms={hasSubforms}
         />
@@ -66,7 +70,7 @@ export const EditLayoutSet = ({
           <StudioButton
             className={classes.saveSubformButton}
             icon={<CheckmarkIcon />}
-            onClick={() => onUpdateLayoutSet(selectedSubform)}
+            onClick={() => handleUpdatedLayoutSet(selectedSubform)}
             title={t('general.save')}
             disabled={!selectedSubform}
             variant='secondary'
