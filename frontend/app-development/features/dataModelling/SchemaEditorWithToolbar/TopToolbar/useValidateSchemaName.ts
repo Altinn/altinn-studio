@@ -31,7 +31,7 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
       return;
     }
     if (modelNames.includes(name)) {
-      setNameError(t('process_editor.configuration_panel_layout_set_id_not_unique'));
+      setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
       return;
     }
     if (dataTypeWithNameExists(name)) {

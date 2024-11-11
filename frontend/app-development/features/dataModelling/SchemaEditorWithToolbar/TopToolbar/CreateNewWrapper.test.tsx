@@ -16,13 +16,13 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
 const handleCreateSchema = jest.fn();
-const setCreateNewOpen = jest.fn();
+const setIsCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
-  createNewOpen: false,
+  isCreateNewOpen: false,
   dataModels: [],
   disabled: false,
   handleCreateSchema,
-  setCreateNewOpen,
+  setIsCreateNewOpen,
 };
 
 describe('CreateNewWrapper', () => {
@@ -44,13 +44,13 @@ describe('CreateNewWrapper', () => {
     });
     await user.click(newButton);
 
-    expect(setCreateNewOpen).toHaveBeenCalledTimes(1);
-    expect(setCreateNewOpen).toHaveBeenCalledWith(true);
+    expect(setIsCreateNewOpen).toHaveBeenCalledTimes(1);
+    expect(setIsCreateNewOpen).toHaveBeenCalledWith(true);
   });
 
   it('should close the popup when clicking "new" button', async () => {
     const user = userEvent.setup();
-    render({ createNewOpen: true });
+    render({ isCreateNewOpen: true });
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(okButton()).toBeInTheDocument();
 
@@ -59,14 +59,14 @@ describe('CreateNewWrapper', () => {
     });
 
     await user.click(newButton);
-    expect(setCreateNewOpen).toHaveBeenCalledTimes(1);
-    expect(setCreateNewOpen).toHaveBeenCalledWith(false);
+    expect(setIsCreateNewOpen).toHaveBeenCalledTimes(1);
+    expect(setIsCreateNewOpen).toHaveBeenCalledWith(false);
   });
 
   describe('createAction', () => {
     it('should call handleCreateSchema callback when ok button is clicked', async () => {
       const user = userEvent.setup();
-      render({ createNewOpen: true });
+      render({ isCreateNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
       await user.type(textInput, 'new-model');
@@ -79,7 +79,7 @@ describe('CreateNewWrapper', () => {
 
     it('should call handleCreateSchema callback when input is focused and Enter key is pressed', async () => {
       const user = userEvent.setup();
-      render({ createNewOpen: true });
+      render({ isCreateNewOpen: true });
 
       const textInput = screen.getByRole('textbox');
 
@@ -93,7 +93,7 @@ describe('CreateNewWrapper', () => {
 
     it('should call handleCreateSchema callback with relativePath when createPathOption is set and ok button is clicked', async () => {
       const user = userEvent.setup();
-      render({ createNewOpen: true, createPathOption: true });
+      render({ isCreateNewOpen: true, createPathOption: true });
 
       const textInput = screen.getByRole('textbox');
       await user.type(textInput, 'new-model');
@@ -108,7 +108,7 @@ describe('CreateNewWrapper', () => {
       const user = userEvent.setup();
       const newModelName = dataModel1NameMock;
       const errMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
-      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
+      render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       const textInput = screen.getByRole('textbox');
 
@@ -124,7 +124,7 @@ describe('CreateNewWrapper', () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
-      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] });
+      render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
       await userWithNoPointerEventCheck.click(okButton());
 
@@ -139,7 +139,7 @@ describe('CreateNewWrapper', () => {
       queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
         dataTypes: [{ id: dataTypeName }],
       });
-      render({ createNewOpen: true, dataModels: [jsonMetadata1Mock] }, queryClient);
+      render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] }, queryClient);
 
       await user.type(screen.getByRole('textbox'), dataTypeName);
       expect(

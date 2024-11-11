@@ -9,19 +9,19 @@ import { useValidateSchemaName } from './useValidateSchemaName';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
-  createNewOpen: boolean;
+  isCreateNewOpen: boolean;
   createPathOption?: boolean;
   dataModels: DataModelMetadata[];
-  setCreateNewOpen: (open: boolean) => void;
+  setIsCreateNewOpen: (open: boolean) => void;
   handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
 }
 
 export function CreateNewWrapper({
   disabled,
   createPathOption = false,
-  createNewOpen,
+  isCreateNewOpen: createNewOpen,
   dataModels,
-  setCreateNewOpen,
+  setIsCreateNewOpen,
   handleCreateSchema,
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
@@ -51,12 +51,12 @@ export function CreateNewWrapper({
   };
 
   return (
-    <StudioPopover open={createNewOpen} onOpenChange={setCreateNewOpen}>
+    <StudioPopover open={createNewOpen} onOpenChange={setIsCreateNewOpen}>
       <StudioPopover.Trigger
         id='create-new-data-model-button'
         disabled={disabled}
         variant='tertiary'
-        onClick={() => setCreateNewOpen(!createNewOpen)}
+        onClick={() => setIsCreateNewOpen(!createNewOpen)}
         size='small'
       >
         {<PlusIcon />}

@@ -31,10 +31,10 @@ const setSelectedOption = jest.fn();
 const onSetSchemaGenerationErrorMessages = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: TopToolbarProps = {
-  createNewOpen: false,
+  isCreateNewOpen: false,
   dataModels: [jsonMetadata1Mock],
   selectedOption,
-  setCreateNewOpen,
+  setIsCreateNewOpen: setCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 };

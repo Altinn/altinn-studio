@@ -18,7 +18,7 @@ export const SchemaEditorWithToolbar = ({
   createPathOption,
   dataModels,
 }: SchemaEditorWithToolbarProps) => {
-  const [createNewOpen, setCreateNewOpen] = useState<boolean>(false);
+  const [isCreateNewOpen, setIsCreateNewOpen] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<MetadataOption | undefined>(undefined);
   const [schemaGenerationErrorMessages, setSchemaGenerationErrorMessages] = useState<string[]>([]);
   const { mutate: addXsdFromRepo } = useAddXsdMutation();
@@ -41,11 +41,11 @@ export const SchemaEditorWithToolbar = ({
   return (
     <div className={classes.root}>
       <TopToolbar
-        createNewOpen={createNewOpen}
+        isCreateNewOpen={isCreateNewOpen}
         createPathOption={createPathOption}
         dataModels={dataModels}
         selectedOption={existingSelectedOption}
-        setCreateNewOpen={setCreateNewOpen}
+        setIsCreateNewOpen={setIsCreateNewOpen}
         setSelectedOption={setSelectedOption}
         onSetSchemaGenerationErrorMessages={(errorMessages: string[]) =>
           setSchemaGenerationErrorMessages(errorMessages)
@@ -58,7 +58,7 @@ export const SchemaEditorWithToolbar = ({
         />
       )}
       <main className={classes.main}>
-        {!dataModels.length && <LandingPagePanel openCreateNew={() => setCreateNewOpen(true)} />}
+        {!dataModels.length && <LandingPagePanel openCreateNew={() => setIsCreateNewOpen(true)} />}
         {modelPath && <SelectedSchemaEditor modelPath={modelPath} />}
       </main>
     </div>

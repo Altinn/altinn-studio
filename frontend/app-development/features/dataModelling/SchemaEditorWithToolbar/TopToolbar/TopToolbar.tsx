@@ -14,21 +14,21 @@ import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
 
 export interface TopToolbarProps {
-  createNewOpen: boolean;
+  isCreateNewOpen: boolean;
   createPathOption?: boolean;
   dataModels: DataModelMetadata[];
   selectedOption?: MetadataOption;
-  setCreateNewOpen: (open: boolean) => void;
+  setIsCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
   onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
 }
 
 export function TopToolbar({
-  createNewOpen,
+  isCreateNewOpen,
   createPathOption,
   dataModels,
   selectedOption,
-  setCreateNewOpen,
+  setIsCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
@@ -44,7 +44,7 @@ export function TopToolbar({
 
   const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
     createDataModel(model);
-    setCreateNewOpen(false);
+    setIsCreateNewOpen(false);
   };
 
   return (
@@ -52,8 +52,8 @@ export function TopToolbar({
       <CreateNewWrapper
         dataModels={dataModels}
         disabled={false}
-        createNewOpen={createNewOpen}
-        setCreateNewOpen={setCreateNewOpen}
+        isCreateNewOpen={isCreateNewOpen}
+        setIsCreateNewOpen={setIsCreateNewOpen}
         handleCreateSchema={handleCreateSchema}
         createPathOption={createPathOption}
       />
