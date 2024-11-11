@@ -11,8 +11,6 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { t } = useTranslation();
 
-  const nameValidationRegex = /^[a-zA-Z][a-zA-Z0-9_\-æÆøØåÅ]*$/;
-
   const modelNames = extractModelNamesFromMetadataList(dataModels);
 
   const dataTypeWithNameExists = (id: string) => {
@@ -30,8 +28,14 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
       setNameError(t('validation_errors.required'));
       return;
     }
-    if (!name.match(nameValidationRegex)) {
+    if (!name.match(SCHEMA_NAME_REGEX)) {
       setNameError(t('schema_editor.invalid_datamodel_name'));
+      return;
+    }
+    if (name.length > SCHEMA_NAME_MAX_LENGTH) {
+      setNameError(
+        t('schema_editor.error_model_name_max_length', { maxLength: SCHEMA_NAME_MAX_LENGTH }),
+      );
       return;
     }
     if (modelNames.includes(name)) {
@@ -47,3 +51,6 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
 
   return { validateName, nameError, clearError };
 };
+
+const SCHEMA_NAME_MAX_LENGTH: number = 100;
+const SCHEMA_NAME_REGEX: RegExp = /^[a-zA-Z][a-zA-Z0-9_\-æÆøØåÅ]*$/;
