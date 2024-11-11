@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS designer.distribuedcache;
+DROP TABLE IF EXISTS designer.distributedcache;

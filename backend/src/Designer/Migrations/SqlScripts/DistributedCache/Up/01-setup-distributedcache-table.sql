@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS designer.distribuedcache
+CREATE TABLE IF NOT EXISTS designer.distributedcache
 (
     "Id" text COLLATE pg_catalog."default" NOT NULL,
     "Value" bytea,
