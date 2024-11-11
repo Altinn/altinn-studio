@@ -19,6 +19,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
+using Community.Microsoft.Extensions.Caching.PostgreSql;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -264,6 +265,19 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
+    // Override the default distributed cache with a PostgreSQL implementation
+    services.AddDistributedPostgreSqlCache(setup =>
+    {
+        PostgreSQLSettings postgresSettings =
+            configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+
+        setup.ConnectionString = postgresSettings.FormattedConnectionString();
+        setup.SchemaName = "designer";
+        setup.TableName = "distributedcache";
+        setup.DisableRemoveExpired = false;
+        setup.CreateInfrastructure = false;
+        setup.ExpiredItemsDeletionInterval = TimeSpan.FromMinutes(30);
+    });
 
     if (!env.IsDevelopment())
     {
