@@ -1,16 +1,10 @@
 import React, { Children, forwardRef, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import classes from './StudioContentMenu.module.css';
-import { StudioContentMenuContextProvider } from './context/StudioContentMenuContext';
-
-export type StudioContentMenuProps<TabId extends string> = {
-  children: ReactNode;
-  selectedTabId: TabId;
-  onChangeTab: (tabId: TabId) => void;
-};
+import type { StudioContentMenuBaseProps } from './StudioContentMenuBase';
+import { StudioContentMenuBase } from './StudioContentMenuBase';
 
 function StudioContentMenuForwarded<TabId extends string>(
-  { children, selectedTabId, onChangeTab }: StudioContentMenuProps<TabId>,
+  { children, selectedTabId, onChangeTab }: StudioContentMenuBaseProps<TabId>,
   ref: React.Ref<HTMLDivElement>,
 ): ReactElement {
   const firstTabId = getFirstTabId(children);
@@ -21,23 +15,14 @@ function StudioContentMenuForwarded<TabId extends string>(
     setSelectedTab(tabId);
   };
 
-  const isTabSelected = (tabId: TabId) => selectedTab === tabId;
-
   return (
-    <div ref={ref} className={classes.menuContainer}>
-      <div ref={ref} className={classes.tabsContainer} role='tablist'>
-        <StudioContentMenuContextProvider
-          isTabSelected={isTabSelected}
-          onChangeTab={handleChangeTab}
-        >
-          {children}
-        </StudioContentMenuContextProvider>
-      </div>
-    </div>
+    <StudioContentMenuBase ref={ref} selectedTabId={selectedTab} onChangeTab={handleChangeTab}>
+      {children}
+    </StudioContentMenuBase>
   );
 }
 
-export const StudioContentMenu = forwardRef<HTMLDivElement, StudioContentMenuProps<string>>(
+export const StudioContentMenu = forwardRef<HTMLDivElement, StudioContentMenuBaseProps<string>>(
   StudioContentMenuForwarded,
 );
 
