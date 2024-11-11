@@ -24,10 +24,7 @@ public static class RequestSyncExtensions
         services.AddSingleton<IDistributedLockProvider>(_ =>
         {
             PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-            string connectionString = string.Format(
-                postgresSettings.ConnectionString,
-                postgresSettings.DesignerDbPwd);
-            return new PostgresDistributedSynchronizationProvider(connectionString);
+            return new PostgresDistributedSynchronizationProvider(postgresSettings.FormattedConnectionString());
         });
         return services;
     }
