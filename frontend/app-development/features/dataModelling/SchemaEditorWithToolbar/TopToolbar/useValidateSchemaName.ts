@@ -11,7 +11,7 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { t } = useTranslation();
 
-  const nameValidationRegex = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
+  const nameValidationRegex = /^[a-zA-Z][a-zA-Z0-9_\-æÆøØåÅ]*$/;
 
   const modelNames = extractModelNamesFromMetadataList(dataModels);
 
