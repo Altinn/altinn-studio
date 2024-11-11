@@ -5,7 +5,7 @@
     "layout": [
       {
         "dataModelBindings": {
-          "simpleBinding": ""
+          "simpleBinding": "Skjemadata.Selskapsnavn"
         },
         "id": "Input-H0Menv",
         "type": "Input",
