@@ -22,12 +22,16 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
   };
 
   const validateName = (name: string): void => {
-    if (!name || !name.match(nameValidationRegex)) {
+    if (!name) {
+      setNameError(t('validation_errors.required'));
+      return;
+    }
+    if (!name.match(nameValidationRegex)) {
       setNameError(t('schema_editor.invalid_datamodel_name'));
       return;
     }
     if (modelNames.includes(name)) {
-      setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
+      setNameError(t('process_editor.configuration_panel_layout_set_id_not_unique'));
       return;
     }
     if (dataTypeWithNameExists(name)) {
