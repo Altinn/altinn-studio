@@ -3,11 +3,9 @@ import classes from './CreateNewWrapper.module.css';
 import { ErrorMessage, Textfield } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
-import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { StudioButton, StudioPopover } from '@studio/components';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import { useValidateSchemaName } from './useValidateSchemaName';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -28,11 +26,7 @@ export function CreateNewWrapper({
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
   const [newModelName, setNewModelName] = useState('');
-  const [nameError, setNameError] = useState('');
-
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
-  const modelNames = extractModelNamesFromMetadataList(dataModels);
+  const { validateName, nameError } = useValidateSchemaName(dataModels);
 
   const relativePath = createPathOption ? '' : undefined;
 
@@ -42,36 +36,12 @@ export function CreateNewWrapper({
     validateName(name);
   };
 
-  const dataTypeWithNameExists = (id: string) => {
-    return appMetadata?.dataTypes?.find(
-      (dataType) => dataType.id.toLowerCase() === id.toLowerCase(),
-    );
-  };
-
-  const nameValidationRegex = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
-  const validateName = (name: string) => {
-    if (!name || !name.match(nameValidationRegex)) {
-      setNameError(t('schema_editor.invalid_datamodel_name'));
-      return;
-    }
-    if (modelNames.includes(name)) {
-      setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
-      return;
-    }
-    if (dataTypeWithNameExists(name)) {
-      setNameError(t('schema_editor.error_data_type_name_exists'));
-      return;
-    }
-    setNameError('');
-  };
-
   const onCreateConfirmClick = () => {
     handleCreateSchema({
       name: newModelName,
       relativePath,
     });
     setNewModelName('');
-    setNameError('');
   };
 
   const onKeyUp = (e: React.KeyboardEvent) => {
