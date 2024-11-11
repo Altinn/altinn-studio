@@ -3,6 +3,7 @@
   "sets": [
     {
       "id": "form",
+      "dataType": "Skjemadata",
       "tasks": [
         "Task_1"
       ]

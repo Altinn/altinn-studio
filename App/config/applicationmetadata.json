@@ -32,6 +32,7 @@
         "allowUserDelete": false,
         "allowInSubform": false
       },
+      "taskId": "Task_1",
       "maxCount": 1,
       "minCount": 1,
       "enablePdfCreation": true,
