@@ -1,15 +1,10 @@
 import React, { Children, forwardRef, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
+import type { StudioContentMenuBaseProps } from './StudioContentMenuBase';
 import { StudioContentMenuBase } from './StudioContentMenuBase';
 
-export type StudioContentMenuProps<TabId extends string> = {
-  children: ReactNode;
-  selectedTabId: TabId;
-  onChangeTab: (tabId: TabId) => void;
-};
-
 function StudioContentMenuForwarded<TabId extends string>(
-  { children, selectedTabId, onChangeTab }: StudioContentMenuProps<TabId>,
+  { children, selectedTabId, onChangeTab }: StudioContentMenuBaseProps<TabId>,
   ref: React.Ref<HTMLDivElement>,
 ): ReactElement {
   const firstTabId = getFirstTabId(children);
@@ -27,7 +22,7 @@ function StudioContentMenuForwarded<TabId extends string>(
   );
 }
 
-export const StudioContentMenu = forwardRef<HTMLDivElement, StudioContentMenuProps<string>>(
+export const StudioContentMenu = forwardRef<HTMLDivElement, StudioContentMenuBaseProps<string>>(
   StudioContentMenuForwarded,
 );
 
