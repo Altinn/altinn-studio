@@ -1,21 +1,17 @@
 import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
-import type { FormComponent } from '../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { componentMocks } from '../../../../../testing/componentMocks';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
-mockComponent.optionsId = 'options';
+const mockComponentOptionsId = 'options';
 
 const apiResult: OptionsLists = {
   options: [
@@ -118,7 +114,7 @@ describe('OptionListEditor', () => {
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
       org,
       app,
-      mockComponent.optionsId,
+      mockComponentOptionsId,
       expectedResultAfterEdit,
     );
   });
@@ -132,7 +128,7 @@ const openModal = async (user: UserEvent) => {
 };
 
 const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {}) => {
-  return renderWithProviders(<OptionListEditor optionsId={mockComponent.optionsId} />, {
+  return renderWithProviders(<OptionListEditor optionsId={mockComponentOptionsId} />, {
     queries: {
       getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
       ...queries,
