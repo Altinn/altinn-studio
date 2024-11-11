@@ -1,6 +1,4 @@
 import React, { createRef } from 'react';
-import type { IGenericEditComponent } from '../../../../../components/config/componentConfig';
-import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import {
