@@ -12,7 +12,12 @@ jobs:
   revert:
     name: Roll back and deploy
     runs-on: ubuntu-latest
-    environment: prod
+    environment: |-
+      ${{
+         contains(github.event.inputs.tag, 'preview') && 'test'
+      || contains(github.event.inputs.tag, 'rc')      && 'staging'
+      ||                                                 'prod'
+      }}
     permissions:
       id-token: write
     steps:

@@ -7,7 +7,12 @@ jobs:
   build:
     name: Build and deploy
     runs-on: ubuntu-latest
-    environment: prod
+    environment: |-
+      ${{
+         contains(github.event.release.tag_name, 'preview') && 'test'
+      || contains(github.event.release.tag_name, 'rc')      && 'staging'
+      ||                                                       'prod'
+      }}
     permissions:
       id-token: write
     steps:
