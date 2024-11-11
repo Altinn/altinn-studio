@@ -9,7 +9,7 @@ import {
   validateResource,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
 import { TestFlaskIcon } from '@studio/icons';
 import React from 'react';
 import type { Resource, SupportedLanguage } from 'app-shared/types/ResourceAdm';
