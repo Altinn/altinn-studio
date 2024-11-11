@@ -4,26 +4,34 @@
   padding: var(--fds-spacing-5) 0 0;
 }
 
-.codeListSwitchWrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  margin: var(--fds-spacing-5);
+.optionsHeading {
+  padding-left: var(--fds-spacing-5);
 }
 
 .errorMessage {
   margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
 }
 
-.manualTabContent {
-  padding: var(--fds-spacing-5) 0;
-}
-
 .codelistTabContent {
-  padding: var(--fds-spacing-4);
+  padding: var(--fds-spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
 }
 
-.optionsHeading {
-  padding-left: var(--fds-spacing-5);
+.manualTabContent {
+  padding-block: var(--fds-spacing-5);
+  padding-inline: 0;
+}
+
+.manualTabAlert {
+  margin-inline: var(--fds-spacing-5);
+}
+
+.manualTabDialog[open] {
+  --code-list-modal-min-width: min(80rem, 100%);
+  --code-list-modal-height: min(40rem, 100%);
+
+  min-width: var(--code-list-modal-min-width);
+  height: var(--code-list-modal-height);
 }
