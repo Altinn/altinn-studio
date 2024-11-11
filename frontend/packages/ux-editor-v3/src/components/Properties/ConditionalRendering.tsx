@@ -2,7 +2,6 @@ import React from 'react';
 import { Alert } from '@digdir/designsystemet-react';
 import classes from './ConditionalRendering.module.css';
 import { OldDynamicsInfo } from './OldDynamicsInfo';
-import { Divider } from 'app-shared/primitives';
 import { Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
@@ -10,10 +9,9 @@ import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal'
 export const ConditionalRendering = () => {
   return (
     <div className={classes.conditionalRendering}>
-      <div>
+      <div className={classes.conditionalRenderingWrapper}>
         <div className={classes.dynamicsVersionCheckBox}>
-          <Divider />
-          <Alert severity='warning'>
+          <Alert severity='warning' className={classes.alert}>
             <span>
               <Trans i18nKey={'right_menu.warning_dynamics_deprecated'}>
                 <a
@@ -31,7 +29,6 @@ export const ConditionalRendering = () => {
           <ConditionalRenderingModal />
         </div>
       </div>
-      <Divider marginless />
       <OldDynamicsInfo />
     </div>
   );

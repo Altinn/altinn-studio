@@ -7,18 +7,13 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
-using Altinn.Studio.Designer.Filters;
-using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
-using Altinn.Studio.Designer.Services.Implementation;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Npgsql.Replication.PgOutput.Messages;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController

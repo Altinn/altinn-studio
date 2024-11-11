@@ -35,7 +35,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ApplicationInsightsSettings _applicationInsightsSettings;
         private readonly IMediator _mediator;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
 
 
         /// <summary>
@@ -47,8 +46,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
         /// <param name="mediator"></param>
-        /// <param name="userRequestsSynchronizationService">An <see cref="IUserRequestsSynchronizationService"/> used to control parallel execution of user requests.</param>
-        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
             _repository = repositoryService;
@@ -56,7 +54,6 @@ namespace Altinn.Studio.Designer.Controllers
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _applicationInsightsSettings = applicationInsightsSettings;
             _mediator = mediator;
-            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         /// <summary>
@@ -218,8 +215,6 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings, CancellationToken cancellationToken)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, app, developer);
-            await semaphore.WaitAsync();
             try
             {
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
@@ -229,10 +224,6 @@ namespace Altinn.Studio.Designer.Controllers
             catch (FileNotFoundException exception)
             {
                 return NotFound(exception.Message);
-            }
-            finally
-            {
-                semaphore.Release();
             }
         }
 
