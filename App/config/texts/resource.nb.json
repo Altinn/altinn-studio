@@ -2,6 +2,14 @@
   "language": "nb",
   "resources": [
     {
+      "id": "Side1.Input-H0Menv.title",
+      "value": "Selskapsnavn"
+    },
+    {
+      "id": "Side1",
+      "value": "Om selskapet"
+    },
+    {
       "id": "appName",
       "value": "signering-brukerstyrt"
     }
