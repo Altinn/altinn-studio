@@ -23,7 +23,7 @@ export function CodeListsActionsBar({ onUploadCodeList }: CodeListsActionsBarPro
       <StudioFileUploader
         accept='.json'
         size='small'
-        variant={'tertiary'}
+        variant='tertiary'
         uploaderButtonText={t('app_content_library.code_lists.upload_code_list')}
         onSubmit={onUploadCodeList}
       />
