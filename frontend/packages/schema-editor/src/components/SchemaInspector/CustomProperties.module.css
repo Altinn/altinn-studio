@@ -1,6 +1,8 @@
 .root {
   display: flex;
   flex-direction: column;
+  border-top: var(--studio-border-divider);
+  padding-top: var(--fds-spacing-5);
 }
 
 .listItem {
@@ -34,9 +36,6 @@
   display: inline-flex;
   flex-direction: row;
   align-items: center;
-}
-
-.deleteButton {
 }
 
 .unknownFormatValue {

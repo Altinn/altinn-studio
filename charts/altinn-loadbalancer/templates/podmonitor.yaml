@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: altinn-loadbalancer-podmonitor
+  namespace: default
+  labels:
+    app: altinn-loadbalancer
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      run: altinn-loadbalancer
+  namespaceSelector:
+    matchNames:
+      - default
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
