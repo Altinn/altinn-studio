@@ -11,14 +11,11 @@ type DefinedLayoutSetProps = {
 export const DefinedLayoutSet = ({ existingLayoutSetForSubform }: DefinedLayoutSetProps) => {
   const { t } = useTranslation();
 
-  const value = (
-    <span className={classes.selectedLayoutSet}>
-      <ClipboardIcon /> <span>{existingLayoutSetForSubform}</span>
-    </span>
-  );
-
   return (
     <StudioProperty.Button
+      className={classes.selectedLayoutSet}
+      color='second'
+      icon={<ClipboardIcon />}
       aria-label={t('ux_editor.component_properties.subform.selected_layout_set_title', {
         subform: existingLayoutSetForSubform,
       })}
@@ -26,7 +23,7 @@ export const DefinedLayoutSet = ({ existingLayoutSetForSubform }: DefinedLayoutS
       title={t('ux_editor.component_properties.subform.selected_layout_set_title', {
         subform: existingLayoutSetForSubform,
       })}
-      value={value}
+      value={existingLayoutSetForSubform}
       readOnly={true}
     />
   );

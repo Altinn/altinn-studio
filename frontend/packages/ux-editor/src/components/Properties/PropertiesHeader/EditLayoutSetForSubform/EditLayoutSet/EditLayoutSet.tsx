@@ -16,19 +16,17 @@ import { SubformUtilsImpl } from '@altinn/ux-editor/classes/SubformUtils';
 import { SubformInstructions } from './SubformInstructions';
 
 type EditLayoutSetProps = {
-  existingLayoutSetForSubform: string;
   onUpdateLayoutSet: (layoutSetId: string) => void;
   layoutSets: LayoutSets;
 };
 
 export const EditLayoutSet = ({
-  existingLayoutSetForSubform,
   onUpdateLayoutSet,
   layoutSets,
 }: EditLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [showCreateSubformCard, setShowCreateSubformCard] = useState<boolean>(false);
-  const [selectedSubform, setSelectedSubform] = useState<string>(existingLayoutSetForSubform);
+  const [selectedSubform, setSelectedSubform] = useState<string>(undefined);
 
   const subformUtils = new SubformUtilsImpl(layoutSets.sets);
   const hasSubforms = subformUtils.hasSubforms;
@@ -58,10 +56,7 @@ export const EditLayoutSet = ({
         />
       ) : (
         <>
-          <SelectLayoutSet
-            existingLayoutSetForSubform={existingLayoutSetForSubform}
-            setSelectedSubform={setSelectedSubform}
-          />
+          <SelectLayoutSet setSelectedSubform={setSelectedSubform} />
           <StudioProperty.Button
             className={classes.createSubformLinkButton}
             property={t('ux_editor.component_properties.subform.create_layout_set_button')}
