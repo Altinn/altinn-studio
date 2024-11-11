@@ -21,6 +21,10 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
     );
   };
 
+  const clearError = () => {
+    setNameError('');
+  };
+
   const validateName = (name: string): void => {
     if (!name) {
       setNameError(t('validation_errors.required'));
@@ -38,8 +42,8 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
       setNameError(t('schema_editor.error_data_type_name_exists'));
       return;
     }
-    setNameError('');
+    clearError();
   };
 
-  return { validateName, nameError };
+  return { validateName, nameError, clearError };
 };

@@ -20,27 +20,19 @@
   padding-top: 4px;
 }
 
-.generateButtonWrapper {
-  flex: 1;
+.popover {
+  /* This is so that popovers goes above the header which has an z-index of 2000 */
+  z-index: 2001;
 }
 
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.statusPopover {
+.createNewPopover {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--fds-spacing-3);
 }
 
-.statusPopover.success {
-  animation: fadeOut 1.5s;
+.generateButtonWrapper {
+  flex: 1;
 }
 
 .toggleButtonGroupWrapper {

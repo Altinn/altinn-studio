@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import classes from './CreateNewWrapper.module.css';
-import { ErrorMessage, Textfield } from '@digdir/designsystemet-react';
+import classes from './TopToolbar.module.css';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 import { useValidateSchemaName } from './useValidateSchemaName';
+import cn from 'classnames';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -19,14 +19,14 @@ export interface CreateNewWrapperProps {
 export function CreateNewWrapper({
   disabled,
   createPathOption = false,
-  isCreateNewOpen: createNewOpen,
+  isCreateNewOpen,
   dataModels,
   setIsCreateNewOpen,
   handleCreateSchema,
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
   const [newModelName, setNewModelName] = useState('');
-  const { validateName, nameError } = useValidateSchemaName(dataModels);
+  const { validateName, nameError, clearError } = useValidateSchemaName(dataModels);
 
   const relativePath = createPathOption ? '' : undefined;
 
@@ -50,31 +50,37 @@ export function CreateNewWrapper({
     }
   };
 
+  const handleOpenChange = () => {
+    setIsCreateNewOpen(!isCreateNewOpen);
+    setNewModelName('');
+    clearError();
+  };
+
   return (
-    <StudioPopover open={createNewOpen} onOpenChange={setIsCreateNewOpen}>
+    <StudioPopover open={isCreateNewOpen} onClose={handleOpenChange}>
       <StudioPopover.Trigger
         id='create-new-data-model-button'
         disabled={disabled}
         variant='tertiary'
-        onClick={() => setIsCreateNewOpen(!createNewOpen)}
+        onClick={handleOpenChange}
         size='small'
       >
         {<PlusIcon />}
         {t('general.create_new')}
       </StudioPopover.Trigger>
-      <StudioPopover.Content className={classes.popoverContent}>
-        <Textfield
+      <StudioPopover.Content className={cn(classes.popover, classes.createNewPopover)}>
+        <StudioTextfield
           id='newModelInput'
           label={t('schema_editor.create_model_description')}
           onChange={onNameChange}
           onKeyUp={onKeyUp}
-          error={nameError && <ErrorMessage>{nameError}</ErrorMessage>}
+          error={nameError}
+          autoFocus
         />
         <StudioButton
           color='second'
           onClick={onCreateConfirmClick}
           disabled={!newModelName || !!nameError}
-          style={{ marginTop: 22 }}
           variant='secondary'
           size='small'
         >

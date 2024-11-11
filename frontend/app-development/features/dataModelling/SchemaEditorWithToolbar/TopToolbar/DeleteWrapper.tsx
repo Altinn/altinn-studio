@@ -8,6 +8,7 @@ import { AltinnConfirmDialog } from 'app-shared/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
+import classes from './TopToolbar.module.css';
 export interface DeleteWrapperProps {
   selectedOption: MetadataOption | null;
 }
@@ -36,6 +37,7 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
 
   return (
     <AltinnConfirmDialog
+      className={classes.popover}
       open={dialogOpen}
       confirmText={t('schema_editor.confirm_deletion')}
       onConfirm={onDeleteConfirmClick}

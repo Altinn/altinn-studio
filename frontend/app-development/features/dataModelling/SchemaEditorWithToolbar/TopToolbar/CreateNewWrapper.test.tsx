@@ -52,7 +52,7 @@ describe('CreateNewWrapper', () => {
     const user = userEvent.setup();
     render({ isCreateNewOpen: true });
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(okButton()).toBeInTheDocument();
+    expect(confirmButton()).toBeInTheDocument();
 
     const newButton = screen.getByRole('button', {
       name: textMock('general.create_new'),
@@ -70,7 +70,7 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
       await user.type(textInput, 'new-model');
-      await user.click(okButton());
+      await user.click(confirmButton());
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: undefined,
@@ -97,7 +97,7 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
       await user.type(textInput, 'new-model');
-      await user.click(okButton());
+      await user.click(confirmButton());
       expect(handleCreateSchema).toHaveBeenCalledWith({
         name: 'new-model',
         relativePath: '',
@@ -115,7 +115,7 @@ describe('CreateNewWrapper', () => {
       expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
       await user.type(textInput, newModelName);
 
-      expect(okButton()).toBeDisabled();
+      expect(confirmButton()).toBeDisabled();
       expect(handleCreateSchema).not.toHaveBeenCalled();
       expect(screen.getByText(errMessage)).toBeInTheDocument();
     });
@@ -126,7 +126,7 @@ describe('CreateNewWrapper', () => {
       });
       render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
-      await userWithNoPointerEventCheck.click(okButton());
+      await userWithNoPointerEventCheck.click(confirmButton());
 
       expect(handleCreateSchema).not.toHaveBeenCalled();
     });
@@ -146,12 +146,12 @@ describe('CreateNewWrapper', () => {
         screen.getByText(textMock('schema_editor.error_data_type_name_exists')),
       ).toBeInTheDocument();
 
-      expect(okButton()).toBeDisabled();
+      expect(confirmButton()).toBeDisabled();
     });
   });
 });
 
-const okButton = () => {
+const confirmButton = () => {
   return screen.getByRole('button', {
     name: textMock('schema_editor.create_model_confirm_button'),
   });
