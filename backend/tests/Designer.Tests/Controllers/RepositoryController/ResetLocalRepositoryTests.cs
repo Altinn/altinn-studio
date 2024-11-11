@@ -23,9 +23,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         // Do not use mocked repository
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            base.ConfigureTestServices(services);
             services.AddTransient<ISourceControl, ISourceControlMock>();
         }
 

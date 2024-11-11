@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -261,6 +262,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
     services.AddFeatureManagement();
+    services.RegisterSynchronizationServices(configuration);
 
 
     if (!env.IsDevelopment())
@@ -333,6 +335,8 @@ void Configure(IConfiguration configuration)
     app.MapHealthChecks("/health");
     app.MapHub<PreviewHub>("/previewHub");
     app.MapHub<SyncHub>("/sync-hub");
+
+    app.UseMiddleware<RequestSynchronizationMiddleware>();
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }

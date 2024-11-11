@@ -1,1 +1,0 @@
-export { AltinnContentLoader } from './AltinnContentLoader';

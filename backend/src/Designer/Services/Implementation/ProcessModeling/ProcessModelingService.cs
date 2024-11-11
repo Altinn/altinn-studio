@@ -19,12 +19,10 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IAppDevelopmentService _appDevelopmentService;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
-        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _appDevelopmentService = appDevelopmentService;
-            _userRequestsSynchronizationService = userRequestsSynchronizationService;
         }
 
         private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
@@ -65,46 +63,29 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            await semaphore.WaitAsync(cancellationToken);
-            try
+
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
             {
-                ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-                if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
+                applicationMetadata.DataTypes.Add(new DataType
                 {
-                    applicationMetadata.DataTypes.Add(new DataType
-                    {
-                        Id = dataTypeId,
-                        AllowedContentTypes = new List<string> { "application/json" },
-                        MaxCount = 1,
-                        TaskId = taskId,
-                        EnablePdfCreation = false
-                    });
-                }
-                await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+                    Id = dataTypeId,
+                    AllowedContentTypes = new List<string> { "application/json" },
+                    MaxCount = 1,
+                    TaskId = taskId,
+                    EnablePdfCreation = false
+                });
             }
-            finally
-            {
-                semaphore.Release();
-            }
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
         public async Task DeleteDataTypeFromApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            await semaphore.WaitAsync(cancellationToken);
-            try
-            {
-                ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
-                applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
-                await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
         }
 
         public async Task<string> GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId)

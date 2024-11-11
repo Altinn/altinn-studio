@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
 import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewSubformLayoutSet.module.css';
+import { SubformDataModelSelect } from './SubformDataModelSelect';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -18,6 +19,7 @@ export const CreateNewSubformLayoutSet = ({
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
+  const [selectedDataType, setSelectedDataType] = useState<string>();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const { createSubform } = useCreateSubform();
   const [nameError, setNameError] = useState('');
@@ -29,7 +31,7 @@ export const CreateNewSubformLayoutSet = ({
   }
 
   function handleCreateSubform() {
-    createSubform({ layoutSetName: newSubform, onSubformCreated });
+    createSubform({ layoutSetName: newSubform, onSubformCreated, dataType: selectedDataType });
   }
 
   return (
@@ -45,12 +47,17 @@ export const CreateNewSubformLayoutSet = ({
           onChange={handleChange}
           error={nameError}
         />
+        <SubformDataModelSelect
+          disabled={false}
+          selectedDataType={selectedDataType}
+          setSelectedDataType={setSelectedDataType}
+        />
         <StudioButton
           className={classes.savelayoutSetButton}
           icon={<CheckmarkIcon />}
           onClick={handleCreateSubform}
           title={t('general.close')}
-          disabled={!newSubform || !!nameError}
+          disabled={!newSubform || !!nameError || !selectedDataType}
           variant='tertiary'
           color='success'
         />

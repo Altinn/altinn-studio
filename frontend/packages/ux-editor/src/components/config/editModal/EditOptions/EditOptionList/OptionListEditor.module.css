@@ -1,8 +1,0 @@
-.manualTabModal[open] {
-  max-width: unset;
-  width: min(80vw, 64rem);
-}
-
-.modalTrigger {
-  margin-top: var(--fds-spacing-2);
-}

@@ -15,6 +15,21 @@ import { AppContext } from '../../../../../../AppContext';
 import { appContextMock } from '../../../../../../testing/appContextMock';
 
 const onSubformCreatedMock = jest.fn();
+const selectedOptionDataType = 'moped';
+
+jest.mock('./SubformDataModelSelect', () => ({
+  SubformDataModelSelect: ({
+    selectedDataType,
+    setSelectedDataType,
+  }: {
+    selectedDataType: string | undefined;
+    setSelectedDataType: (value: string) => void;
+  }) => (
+    <select onChange={(e) => setSelectedDataType(e.target.value)} value={selectedDataType}>
+      <option value={selectedOptionDataType}>Mock Data Type</option>
+    </select>
+  ),
+}));
 
 describe('CreateNewSubformLayoutSet ', () => {
   afterEach(jest.clearAllMocks);
@@ -34,6 +49,12 @@ describe('CreateNewSubformLayoutSet ', () => {
     expect(input).toBeInTheDocument();
   });
 
+  it('displays the data model select', async () => {
+    renderCreateNewSubformLayoutSet();
+    const dataModelSelect = screen.getByRole('combobox');
+    expect(dataModelSelect).toBeInTheDocument();
+  });
+
   it('displays the save button', () => {
     renderCreateNewSubformLayoutSet();
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
@@ -45,6 +66,8 @@ describe('CreateNewSubformLayoutSet ', () => {
     renderCreateNewSubformLayoutSet();
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
+    const dataModelSelect = screen.getByRole('combobox');
+    await user.selectOptions(dataModelSelect, ['moped']);
     const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     await user.click(saveButton);
     await waitFor(() => expect(onSubformCreatedMock).toHaveBeenCalledTimes(1));
@@ -69,6 +92,34 @@ describe('CreateNewSubformLayoutSet ', () => {
 
     await user.clear(input);
     await user.type(input, 'NewSubform');
+
+    const dataModelSelect = screen.getByRole('combobox');
+    await user.selectOptions(dataModelSelect, ['moped']);
+    expect(saveButton).not.toBeDisabled();
+  });
+
+  it('disables the save button when the input is valid and no data model is selected', async () => {
+    const user = userEvent.setup();
+    renderCreateNewSubformLayoutSet();
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'NewSubform');
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('does not disable the save button when the input is valid and a data model is selected', async () => {
+    const user = userEvent.setup();
+    renderCreateNewSubformLayoutSet();
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'NewSubform');
+
+    const dataModelSelect = screen.getByRole('combobox');
+    await user.selectOptions(dataModelSelect, ['moped']);
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
     expect(saveButton).not.toBeDisabled();
   });
 });
