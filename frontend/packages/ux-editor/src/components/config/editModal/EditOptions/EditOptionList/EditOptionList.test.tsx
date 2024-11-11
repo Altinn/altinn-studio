@@ -17,11 +17,9 @@ const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
 const handleComponentChangeMock = jest.fn();
-const getOptionListIds = {
-  getOptionListIds: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
-};
+const getOptionListIds = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock));
 
 describe('EditOptionList', () => {
   it('should render the component', async () => {
@@ -182,7 +180,7 @@ const renderEditOptionList = ({ queries = {}, componentProps = {} } = {}) => {
       handleComponentChange={handleComponentChangeMock}
     />,
     {
-      queries: { ...getOptionListIds, ...queries },
+      queries: { getOptionListIds, ...queries },
       queryClient: createQueryClientMock(),
     },
   );

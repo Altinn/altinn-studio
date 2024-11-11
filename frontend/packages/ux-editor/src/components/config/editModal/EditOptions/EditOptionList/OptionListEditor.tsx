@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
-import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
-import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+import type { IGenericEditComponent } from '../../../../../components/config/componentConfig';
+import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import {
@@ -39,8 +39,8 @@ export function OptionListEditor({ component }: OptionListEditorProps): React.Re
     case 'success': {
       return (
         <OptionListEditorModal
-          optionList={optionsListMap.get(component.optionsId)}
-          component={component}
+          optionsList={optionsListMap[component.optionsId]}
+          optionsId={component.optionsId}
         />
       );
     }
@@ -48,12 +48,13 @@ export function OptionListEditor({ component }: OptionListEditorProps): React.Re
 }
 
 type OptionListEditorModalProps = {
-  optionList: Option[];
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
+  optionsList: Option[];
+  optionsId: string;
+};
 
 function OptionListEditorModal({
-  optionList,
-  component,
+  optionsList,
+  optionsId,
 }: OptionListEditorModalProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -65,12 +66,12 @@ function OptionListEditorModal({
 
   const handleOptionsChange = (options: Option[]) => {
     debounce(() => {
-      updateOptionList({ optionListId: component.optionsId, optionsList: options });
+      updateOptionList({ optionListId: optionsId, optionsList: options });
+      doReloadPreview();
     });
   };
 
   const handleClose = () => {
-    doReloadPreview();
     modalRef.current?.close();
   };
 
@@ -88,7 +89,7 @@ function OptionListEditorModal({
         onInteractOutside={handleClose}
       >
         <StudioCodeListEditor
-          codeList={optionList}
+          codeList={optionsList}
           onChange={handleOptionsChange}
           texts={editorTexts}
         />

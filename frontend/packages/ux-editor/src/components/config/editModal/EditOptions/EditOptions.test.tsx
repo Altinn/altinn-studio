@@ -8,7 +8,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
+import { renderWithProviders } from '../../../../testing/mocks';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',

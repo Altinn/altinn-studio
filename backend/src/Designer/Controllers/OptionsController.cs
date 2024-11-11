@@ -126,9 +126,8 @@ public class OptionsController : ControllerBase
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
         var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, payload, cancellationToken);
-        var optionListWithId = new Dictionary<string, List<Option>> { {optionsListId, newOptionsList} };
 
-        return Ok(optionListWithId);
+        return Ok(newOptionsList);
     }
 
     /// <summary>
