@@ -9,15 +9,17 @@ import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 type CreateNewSubformLayoutSetProps = {
-  onSubformCreated: (layoutSetName: string) => void;
+  onUpdateLayoutSet: (layoutSetName: string) => void;
   layoutSets: LayoutSets;
   setShowCreateSubformCard: (showCreateSubform: boolean) => void;
+  hasSubforms: boolean;
 };
 
 export const CreateNewSubformLayoutSet = ({
-  onSubformCreated,
+  onUpdateLayoutSet,
   layoutSets,
   setShowCreateSubformCard,
+  hasSubforms,
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
@@ -33,7 +35,11 @@ export const CreateNewSubformLayoutSet = ({
   }
 
   function handleCreateSubform() {
-    createSubform({ layoutSetName: newSubform, onSubformCreated, dataType: selectedDataType });
+    createSubform({
+      layoutSetName: newSubform,
+      onSubformCreated: onUpdateLayoutSet,
+      dataType: selectedDataType,
+    });
   }
 
   return (
@@ -60,13 +66,15 @@ export const CreateNewSubformLayoutSet = ({
             variant='secondary'
             color='success'
           />
-          <StudioButton
-            onClick={() => setShowCreateSubformCard(false)}
-            title={t('general.close')}
-            icon={<TrashIcon />}
-            variant='secondary'
-            color='danger'
-          />
+          {hasSubforms && (
+            <StudioButton
+              onClick={() => setShowCreateSubformCard(false)}
+              title={t('general.close')}
+              icon={<TrashIcon />}
+              variant='secondary'
+              color='danger'
+            />
+          )}
         </div>
       </StudioCard.Content>
     </StudioCard>

@@ -9,12 +9,12 @@ import cn from 'classnames';
 
 type SelectLayoutSetProps = {
   existingLayoutSetForSubform: string;
-  onUpdateLayoutSet: (layoutSetId: string) => void;
+  setSelectedSubform: (layoutSetId: string) => void;
 };
 
 export const SelectLayoutSet = ({
   existingLayoutSetForSubform,
-  onUpdateLayoutSet,
+  setSelectedSubform,
 }: SelectLayoutSetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -30,7 +30,7 @@ export const SelectLayoutSet = ({
       <StudioNativeSelect
         className={classes.layoutSetsOption}
         size='small'
-        onChange={(e) => onUpdateLayoutSet(e.target.value)}
+        onChange={(e) => setSelectedSubform(e.target.value)}
         label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
         defaultValue={existingLayoutSetForSubform}
       >
