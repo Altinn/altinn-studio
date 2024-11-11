@@ -167,7 +167,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Migrations/InitialSqlScripts/*.sql" />
+    <EmbeddedResource Include="Migrations/SqlScripts/**/*.sql" />
   </ItemGroup>
 
   <Target Name="AfterPublishScript" AfterTargets="Publish">
