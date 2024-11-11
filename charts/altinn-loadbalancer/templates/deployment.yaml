@@ -28,17 +28,42 @@ spec:
               mountPath: {{ $mount.mountPath }}
           {{- end }}
           {{- end }}
+        {{- if .Values.sidecar.enabled }}
+        - name: {{ .Values.sidecar.name }}
+          image: "{{ .Values.sidecar.image}}"
+          {{- if .Values.sidecar.args }}
+          args:
+          {{- range $arg := .Values.sidecar.args }}
+            - {{ $arg }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.sidecar.ports }}
+          ports:
+          {{- range $port := .Values.sidecar.ports }}
+            - containerPort: {{ $port.containerPort }}
+              name: {{ $port.name }}
+              protocol: {{ $port.protocol }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.sidecar.volumeMounts }}
+          volumeMounts:
+          {{- range $mount := .Values.sidecar.volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
       {{- if .Values.volumes }}
       volumes:
         {{- range $volume := .Values.volumes }}
         - name: {{ $volume.name }}
-        {{- if $volume.configMap }}
+          {{- if $volume.configMap }}
           configMap:
             name: {{ $volume.configMap.name }}
-        {{- end }}
-        {{- if $volume.secret }}
+          {{- end }}
+          {{- if $volume.secret }}
           secret:
             secretName: {{ $volume.secret.secretName }}
-        {{- end }}
+          {{- end }}
         {{- end }}
       {{- end }}
