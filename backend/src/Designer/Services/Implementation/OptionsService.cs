@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,26 +72,10 @@ public class OptionsService : IOptionsService
         List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
             new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
 
-        IEnumerable<Option> result = deserializedOptions.Where(option => IsNullOrEmptyOptionValue(option) || string.IsNullOrEmpty(option.Label));
-        if (result.Any())
-        {
-            throw new JsonException("Uploaded file is missing one of the following attributes for an option: value or label.");
-        }
-
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
 
         return deserializedOptions;
-    }
-
-    bool IsNullOrEmptyOptionValue(object value)
-    {
-        if (value == null)
-        {
-            return true;
-        }
-
-        return value is string stringOption && string.IsNullOrEmpty(stringOption);
     }
 
     /// <inheritdoc />

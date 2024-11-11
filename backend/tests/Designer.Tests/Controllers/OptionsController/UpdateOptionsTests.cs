@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -31,23 +34,15 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        var newOptionsList = new List<Option>
-        {
-            new ()
-            {
-                Label = "label1",
-                Value = "value1",
-            },
-            new ()
-            {
-                Label = "label2",
-                Value = "value2",
-            }
-        };
+        string optionsJson = @"[
+            { ""label"": ""label1"", ""value"": ""value1"" },
+            { ""label"": ""label2"", ""value"": ""value2"" }
+        ]";
+        List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(optionsJson);
 
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = JsonContent.Create(newOptionsList);
+        httpRequestMessage.Content = new StringContent(optionsJson, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -56,14 +51,14 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(newOptionsList.Count, responseList.Count);
+        Assert.Equal(expectedOptionList.Count, responseList.Count);
 
-        for (int i = 0; i < newOptionsList.Count; i++)
+        for (int i = 0; i < responseList.Count; i++)
         {
-            Assert.Equal(newOptionsList[i].Label, responseList[i].Label);
-            Assert.Equal(newOptionsList[i].Value, responseList[i].Value);
-            Assert.Equal(newOptionsList[i].Description, responseList[i].Description);
-            Assert.Equal(newOptionsList[i].HelpText, responseList[i].HelpText);
+            Assert.Equal(expectedOptionList[i].Label, responseList[i].Label);
+            Assert.Equal(expectedOptionList[i].Value, responseList[i].Value);
+            Assert.Equal(expectedOptionList[i].Description, responseList[i].Description);
+            Assert.Equal(expectedOptionList[i].HelpText, responseList[i].HelpText);
         }
     }
 
@@ -79,25 +74,36 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var stringBoolDoubleOptionsList = new List<Option>
-        {
-            new ()
-            {
-                Label = "StringValue",
-                Value = "value1",
-            },
-            new ()
-            {
-                Label = "BoolValue",
-                Value = true,
-            },
-            new ()
-            {
-                Label = "DoubleValue",
-                Value = 3.1415,
-            }
-        };
-        httpRequestMessage.Content = JsonContent.Create(stringBoolDoubleOptionsList);
+        var stringBoolDoubleOptionsList = @"[
+            { ""label"": ""StringValue"", ""value"": ""value"" },
+            { ""label"": ""BoolValue"", ""value"": true },
+            { ""label"": ""NumberValue"", ""value"": 3.1415 },
+        ]";
+        httpRequestMessage.Content = new StringContent(stringBoolDoubleOptionsList, Encoding.UTF8, "application/json");
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_Returns_200OK_When_Option_Value_And_Label_Are_Empty_Strings()
+    {
+        string repo = "app-with-options";
+        string optionsListId = "test-options";
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+
+        var emptyStringsValueAndLabelOptionsList = @"[
+            { ""label"": """", ""value"": """" },
+        ]";
+        httpRequestMessage.Content = new StringContent(emptyStringsValueAndLabelOptionsList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -116,23 +122,15 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
-        var newOptionsList = new List<Option>
-        {
-            new ()
-            {
-                Label = "aNewLabelThatDidNotExistBefore",
-                Value = "aNewValueThatDidNotExistBefore",
-            },
-            new ()
-            {
-                Label = "label2",
-                Value = "value2",
-            }
-        };
+        var newOptionsList = @"[
+            { ""label"": ""aNewLabelThatDidNotExistBefore"", ""value"": ""aNewValueThatDidNotExistBefore"" },
+            { ""label"": ""label2"", ""value"": ""value2"" }
+        ]";
+        List<Option> expectedOptionList = JsonSerializer.Deserialize<List<Option>>(newOptionsList);
 
         string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
-        httpRequestMessage.Content = JsonContent.Create(newOptionsList);
+        httpRequestMessage.Content = new StringContent(newOptionsList, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -141,84 +139,108 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
 
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-        Assert.Equal(newOptionsList.Count, responseList.Count);
+        Assert.Equal(expectedOptionList.Count, responseList.Count);
 
-        for (int i = 0; i < newOptionsList.Count; i++)
+        for (int i = 0; i < expectedOptionList.Count; i++)
         {
-            Assert.Equal(newOptionsList[i].Label, responseList[i].Label);
-            Assert.Equal(newOptionsList[i].Value, responseList[i].Value);
-            Assert.Equal(newOptionsList[i].Description, responseList[i].Description);
-            Assert.Equal(newOptionsList[i].HelpText, responseList[i].HelpText);
+            Assert.Equal(expectedOptionList[i].Label, responseList[i].Label);
+            Assert.Equal(expectedOptionList[i].Value, responseList[i].Value);
+            Assert.Equal(expectedOptionList[i].Description, responseList[i].Description);
+            Assert.Equal(expectedOptionList[i].HelpText, responseList[i].HelpText);
         }
     }
 
-    [Theory]
-    [InlineData("options-missing-label")]
-    [InlineData("options-empty-json")]
-    public async Task Put_Returns_400BadRequest_When_OptionsList_Format_Is_Invalid(string optionsListId)
+    [Fact]
+    public async Task Put_Returns_400BadRequest_When_Options_Is_Empty()
     {
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await CopyRepositoryForTest(Org, "empty-app", Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/empty-options";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        if (optionsListId == "options-missing-label")
-        {
-            var invalidOptionsList = new List<Option>
-            {
-                new ()
-                {
-                    // Missing Label
-                    Value = "value1",
-                },
-                new ()
-                {
-                    Label = "label2",
-                    Value = "value2",
-                }
-            };
-            httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
-        }
-        else if (optionsListId == "options-empty-json")
-        {
-            httpRequestMessage.Content = JsonContent.Create<List<Option>>(null);
-        }
+
+        httpRequestMessage.Content = new StringContent("null", Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var responseObject = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        Assert.True(responseObject.TryGetProperty("errors", out JsonElement errors));
+        Assert.True(errors.TryGetProperty("", out JsonElement labelErrors));
+        Assert.Contains("A non-empty request body is required.", labelErrors[0].GetString());
     }
 
     [Fact]
     public async Task Put_Returns_400BadRequest_When_Option_Value_Is_Invalid()
     {
-        string repo = "app-with-options";
-        string optionsListId = "test-options";
         // Arrange
         string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+        await CopyRepositoryForTest(Org, "empty-app", Developer, targetRepository);
 
-        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/{optionsListId}";
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/option-invalid-value";
         using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
 
-        var invalidOptionsList = new List<Option>
-        {
-            new ()
-            {
-                Label = "ObjectValue",
-                Value = { },
-            },
-        };
-        httpRequestMessage.Content = JsonContent.Create(invalidOptionsList);
+        string optionsInvalidValue = @"[
+            { ""value"": {}, ""label"": ""label2"" },
+        ]";
+
+        httpRequestMessage.Content = new StringContent(optionsInvalidValue, Encoding.UTF8, "application/json");
 
         // Act
         using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+
+        problemDetails.Should().NotBeNull();
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        errorCode.ToString().Should().Be("InvalidOptionsFormat");
+        JsonElement detail = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.Detail];
+        detail.ToString().Should().Be("{} is an unsupported type for Value field.");
+    }
+
+    [Fact]
+    public async Task Put_Returns_400BadRequest_When_Options_Has_Missing_Required_Fields()
+    {
+        // Arrange
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, "empty-app", Developer, targetRepository);
+
+        string apiUrl = $"/designer/api/{Org}/{targetRepository}/options/options-missing-fields";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, apiUrl);
+
+        string optionsWithMissingFields = @"[
+            { ""value"": ""value1"" },
+            { ""label"": ""label2"" },
+            { ""value"": null, ""label"": null },
+        ]";
+        httpRequestMessage.Content = new StringContent(optionsWithMissingFields, Encoding.UTF8, "application/json");
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var responseObject = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+        Assert.True(responseObject.TryGetProperty("errors", out JsonElement errors));
+
+        Assert.True(errors.TryGetProperty("[0].Label", out JsonElement labelErrors));
+        Assert.Contains("The field is required.", labelErrors[0].GetString());
+
+        Assert.True(errors.TryGetProperty("[1].Value", out JsonElement valueErrors));
+        Assert.Contains("The field is required.", valueErrors[0].GetString());
+
+        Assert.True(errors.TryGetProperty("[2].Value", out JsonElement valueNullErrors));
+        Assert.Contains("The field is required.", valueNullErrors[0].GetString());
+        Assert.True(errors.TryGetProperty("[2].Label", out JsonElement labelNullErrors));
+        Assert.Contains("The field is required.", labelNullErrors[0].GetString());
     }
 }
