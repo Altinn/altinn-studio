@@ -1,7 +1,6 @@
 import React, { Children, forwardRef, useEffect, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-import classes from './StudioContentMenu.module.css';
-import { StudioContentMenuContextProvider } from './context/StudioContentMenuContext';
+import { StudioContentMenuBase } from './StudioContentMenuBase';
 
 export type StudioContentMenuProps<TabId extends string> = {
   children: ReactNode;
@@ -30,19 +29,10 @@ function StudioContentMenuForwarded<TabId extends string>(
     }
   };
 
-  const isTabSelected = (tabId: TabId) => selectedTab === tabId;
-
   return (
-    <div ref={ref} className={classes.menuContainer}>
-      <div ref={ref} className={classes.tabsContainer} role='tablist'>
-        <StudioContentMenuContextProvider
-          isTabSelected={isTabSelected}
-          onChangeTab={handleChangeTab}
-        >
-          {children}
-        </StudioContentMenuContextProvider>
-      </div>
-    </div>
+    <StudioContentMenuBase ref={ref} selectedTabId={selectedTab} onChangeTab={handleChangeTab}>
+      {children}
+    </StudioContentMenuBase>
   );
 }
 

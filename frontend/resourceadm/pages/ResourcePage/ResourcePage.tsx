@@ -197,7 +197,7 @@ export const ResourcePage = (): React.JSX.Element => {
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
-        <StudioContentMenu
+        <StudioContentMenu.Controlled
           onChangeTab={(tabId: NavigationBarPage) => {
             if (tabId !== 'back') {
               navigateToPage(tabId);
@@ -237,7 +237,7 @@ export const ResourcePage = (): React.JSX.Element => {
               icon={<MigrationIcon className={classes.icon} />}
             />
           )}
-        </StudioContentMenu>
+        </StudioContentMenu.Controlled>
       </div>
       {resourcePending || !resourceData ? (
         <div className={classes.spinnerWrapper}>
