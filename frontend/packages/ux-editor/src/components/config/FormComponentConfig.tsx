@@ -153,6 +153,7 @@ export const FormComponentConfig = ({
               component={component}
               handleComponentChange={handleComponentUpdate}
               propertyKey='validFileEndings'
+              helpText={validFileEndings?.description}
             />
           )}
         </>
