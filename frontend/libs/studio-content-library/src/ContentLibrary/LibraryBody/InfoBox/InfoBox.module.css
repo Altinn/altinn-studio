@@ -3,7 +3,7 @@
   border: 1px solid var(--fds-semantic-border-neutral-subtle);
   overflow: hidden;
   height: fit-content;
-  margin: var(--fds-spacing-8);
+  margin: var(--padding-library);
 }
 
 .infoBoxContainer img {
@@ -15,8 +15,7 @@
 .description {
   display: flex;
   flex-direction: column;
-  gap: var(--fds-spacing-6);
-  padding: var(--fds-spacing-6);
+  gap: var(--padding-library);
+  padding: var(--padding-library);
   background-color: var(--fds-semantic-surface-first-light);
-  padding-bottom: var(--fds-spacing-8);
 }

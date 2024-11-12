@@ -5,5 +5,5 @@
 }
 
 .component {
-  padding: var(--fds-spacing-10);
+  padding: var(--padding-library) 0 var(--padding-library) var(--padding-library);
 }
