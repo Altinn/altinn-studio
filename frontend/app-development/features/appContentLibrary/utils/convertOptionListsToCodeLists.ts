@@ -1,7 +1,7 @@
 import type { CodeListWithMetadata } from '@studio/content-library';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
-export function convertOptionListsToCodeLists(optionLists: any): CodeListWithMetadata[] {
-  // TODO: Update type when correct type is in main
+export function convertOptionListsToCodeLists(optionLists: OptionsLists): CodeListWithMetadata[] {
   const codeLists = [];
   Object.entries(optionLists).map((optionList) =>
     codeLists.push({

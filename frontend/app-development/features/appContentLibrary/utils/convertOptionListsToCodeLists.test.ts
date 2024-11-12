@@ -1,9 +1,9 @@
 import { convertOptionListsToCodeLists } from './convertOptionListsToCodeLists';
-import type { Option } from 'app-shared/types/Option';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
 describe('convertOptionListsToCodeLists', () => {
   it('converts option lists map to code lists array correctly', () => {
-    const optionLists: Record<string, Option[]> = {
+    const optionLists: OptionsLists = {
       list1: [
         { label: 'Option 1', value: '1' },
         { label: 'Option 2', value: '2' },
@@ -33,7 +33,7 @@ describe('convertOptionListsToCodeLists', () => {
   });
 
   it('returns an empty array when the input map is empty', () => {
-    const optionLists: Record<string, Option[]> = {};
+    const optionLists: OptionsLists = {};
     const result = convertOptionListsToCodeLists(optionLists);
     expect(result).toEqual([]);
   });
