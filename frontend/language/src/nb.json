@@ -1734,7 +1734,7 @@
   "ux_editor.properties_panel.subform_table_columns.delete_column": "Slett kolonne {{columnNumber}}",
   "ux_editor.properties_panel.subform_table_columns.header_content_label": "Header Content",
   "ux_editor.properties_panel.subform_table_columns.heading": "Valg for tabell",
-  "ux_editor.properties_panel.subform_table_columns.no_components_available_message": "Du har ingen komponenter med ledetekst",
+  "ux_editor.properties_panel.subform_table_columns.no_components_available_message": "Du har ingen komponenter med ledetekst og knyttet til datamodell",
   "ux_editor.properties_panel.texts.loading": "Laster inn tekster",
   "ux_editor.properties_panel.texts.no_properties": "Det er ingen tekster å konfigurere for denne komponenten.",
   "ux_editor.properties_panel.texts.sub_title_images": "Valg for bilde",

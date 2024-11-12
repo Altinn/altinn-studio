@@ -40,11 +40,11 @@ describe('EditColumnElementComponentSelect', () => {
     expect(componentSelect).toBeInTheDocument();
     await user.click(componentSelect);
     expect(
-      screen.getByRole('option', {
-        name: textMock(
+      screen.getByText(
+        textMock(
           'ux_editor.properties_panel.subform_table_columns.no_components_available_message',
         ),
-      }),
+      ),
     ).toBeInTheDocument();
   });
 

@@ -51,7 +51,9 @@ export const EditColumnElement = ({
       })
     : [];
 
-  const componentsWithLabel = components.filter((comp) => comp.textResourceBindings?.title);
+  const componentsWithLabelAndDataModel = components.filter(
+    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings.simpleBinding,
+  );
 
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
@@ -70,7 +72,7 @@ export const EditColumnElement = ({
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
-          components={componentsWithLabel}
+          components={componentsWithLabelAndDataModel}
           onSelectComponent={selectComponent}
         />
         <StudioTextfield
@@ -132,9 +134,9 @@ export const EditColumnElementComponentSelect = ({
         </StudioCombobox.Option>
       ))
     ) : (
-      <StudioCombobox.Option value='' key={'noComponentsWithLabel'}>
+      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
         {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
-      </StudioCombobox.Option>
+      </StudioCombobox.Empty>
     );
 
   return (
