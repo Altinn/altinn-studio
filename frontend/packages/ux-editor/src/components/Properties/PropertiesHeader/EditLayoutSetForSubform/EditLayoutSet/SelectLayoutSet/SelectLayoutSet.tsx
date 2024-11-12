@@ -8,9 +8,10 @@ import { SubformUtilsImpl } from '../../../../../../classes/SubformUtils';
 
 type SelectLayoutSetProps = {
   setSelectedSubform: (layoutSetId: string) => void;
+  selectedSubform: string;
 };
 
-export const SelectLayoutSet = ({ setSelectedSubform }: SelectLayoutSetProps) => {
+export const SelectLayoutSet = ({ setSelectedSubform, selectedSubform }: SelectLayoutSetProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
@@ -22,6 +23,7 @@ export const SelectLayoutSet = ({ setSelectedSubform }: SelectLayoutSetProps) =>
       size='small'
       onChange={(e) => setSelectedSubform(e.target.value)}
       label={t('ux_editor.component_properties.subform.choose_layout_set_label')}
+      value={selectedSubform}
     >
       <option value=''>{t('ux_editor.component_properties.subform.choose_layout_set')}</option>
       {subformUtils.subformLayoutSetsIds.map((option) => (
