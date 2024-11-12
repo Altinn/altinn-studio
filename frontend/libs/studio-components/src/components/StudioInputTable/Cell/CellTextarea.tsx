@@ -1,7 +1,6 @@
 import { StudioTable } from '../../StudioTable';
 import type { FocusEvent, ForwardedRef, ReactElement } from 'react';
 import React, { useCallback } from 'react';
-
 import classes from './Cell.module.css';
 import type { StudioTextareaProps } from '../../StudioTextarea';
 import { StudioTextarea } from '../../StudioTextarea';
