@@ -98,9 +98,6 @@ jobs:
     strategy:
       matrix:
         environment: ${{ fromJSON(needs.construct-environments-array.outputs.environmentsjson) }}
-        replicas:
-          staging: 2
-          default: 1
     uses: ./.github/workflows/template-flux-config-push.yaml
     with:
       tag: ${{ needs.determine-tag.outputs.tag }}
@@ -109,7 +106,7 @@ jobs:
       artifact-environment: ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
       config-chart-name: altinn-designer-config
       artifact-name: altinn-designer
-      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }},replicas=${{ matrix.replicas[matrix.environment] || matrix.replicas.default }}
+      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }},replicas=${{ matrix.environment == 'dev' && 2 || 1 }}
       trace-workflow: true
       trace-team-name: 'team-studio'
     secrets:
