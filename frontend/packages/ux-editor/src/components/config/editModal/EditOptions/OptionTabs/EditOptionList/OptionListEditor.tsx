@@ -79,7 +79,8 @@ function OptionListEditorModal({
       </StudioModal.Trigger>
       <StudioModal.Dialog
         ref={modalRef}
-        className={classes.manualTabModal}
+        className={classes.editOptionTabModal}
+        contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.modal_add_options_codelist')}
         onBeforeClose={handleClose}

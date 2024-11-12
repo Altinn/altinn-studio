@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import classes from '../../EditOptions.module.css';
+import classes from './EditManualOptionsWithEditor.module.css';
 import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,7 @@ export function EditManualOptionsWithEditor({
       <StudioModal.Dialog
         ref={manualOptionsModalRef}
         className={classes.manualTabDialog}
+        contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.modal_add_options_codelist')}
       >

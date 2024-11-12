@@ -1,7 +1,7 @@
 import { getSelectedOptionsType } from '@altinn/ux-editor/utils/optionsUtils';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import classes from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions.module.css';
+import classes from './OptionTabs.module.css';
 import { EditOptionList, EditOptionListReference } from './EditOptionList';
 import { SelectedOptionsType } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
