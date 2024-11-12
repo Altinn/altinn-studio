@@ -75,10 +75,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                 {
                     case "component": // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
                     case "componentRef": // Components that are used in summary components will have this ref
-                        if (property.Value is JsonValue jsonValue
-                            && jsonValue.TryGetValue(out string value)
-                            && value == oldComponentId
-                        )
+                        if (property.Value?.ToString() == oldComponentId)
                         {
                             jsonObject[property.Key] = newComponentId;
                         }
