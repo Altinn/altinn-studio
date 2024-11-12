@@ -2,7 +2,7 @@ import React from 'react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { app, org } from '@studio/testing/testids';
 import { QueryKey } from 'app-shared/types/QueryKey';
