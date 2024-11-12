@@ -104,4 +104,15 @@ describe('StringUtils', () => {
       expect(StringUtils.substringAfterLast('abc/def/', '/')).toBe('');
     });
   });
+
+  describe('capitalize', () => {
+    it('Capitalizes the first letter of the string', () => {
+      expect(StringUtils.capitalize('abc')).toBe('Abc');
+      expect(StringUtils.capitalize('a')).toBe('A');
+    });
+
+    it('Works with empty strings', () => {
+      expect(StringUtils.capitalize('')).toBe('');
+    });
+  });
 });
