@@ -109,7 +109,6 @@ describe('StringUtils', () => {
     it('Capitalizes the first letter of the string', () => {
       expect(StringUtils.capitalize('abc')).toBe('Abc');
       expect(StringUtils.capitalize('a')).toBe('A');
-      expect(StringUtils.capitalize('')).toBe('');
     });
 
     it('Works with empty strings', () => {
