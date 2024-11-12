@@ -81,7 +81,7 @@ export function LayoutSetGenerator() {
     </>
   );
 
-  return GeneratorDebug.displayState ? <div style={style}>{children}</div> : children;
+  return <div style={style}>{children}</div>;
 }
 
 function SaveFinishedNodesToStore({ pages }: { pages: LayoutPages }) {

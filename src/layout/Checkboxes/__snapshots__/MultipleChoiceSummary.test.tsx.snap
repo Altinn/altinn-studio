@@ -3,6 +3,9 @@
 exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
 <DocumentFragment>
   <div
+    style="display: none;"
+  />
+  <div
     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     data-testid="multiple-choice-summary"
   >
