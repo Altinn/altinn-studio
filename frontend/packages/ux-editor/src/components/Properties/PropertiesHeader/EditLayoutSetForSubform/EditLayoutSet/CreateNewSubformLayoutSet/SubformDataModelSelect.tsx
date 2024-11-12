@@ -17,7 +17,7 @@ export const SubformDataModelSelect = ({
 }: ISubformDataModelSelectProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: dataModelIds = [] } = useAppMetadataModelIdsQuery(org, app, false);
+  const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
 
   function handleChange(dataType: string) {
     setSelectedDataType(dataType);
@@ -32,16 +32,16 @@ export const SubformDataModelSelect = ({
       size='small'
     >
       <option value='' hidden></option>
-      {dataModelIds.length === 0 ? (
-        <option disabled>
-          {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
-        </option>
-      ) : (
+      {dataModelIds ? (
         dataModelIds.map((dataModelId) => (
           <option value={dataModelId} key={dataModelId}>
             {dataModelId}
           </option>
         ))
+      ) : (
+        <option disabled>
+          {t('ux_editor.component_properties.subform.data_model_empty_messsage')}
+        </option>
       )}
     </StudioNativeSelect>
   );
