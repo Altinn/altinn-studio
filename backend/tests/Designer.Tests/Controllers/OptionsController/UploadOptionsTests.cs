@@ -4,10 +4,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -135,9 +138,7 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         string optionsFileName = "invalid-value-options.json";
-        string jsonOptions = @"[
-        {""value"": {}, ""label"": """" }
-    ]";
+        string jsonOptions = @"[{""value"": {}, ""label"": """"}]";
 
         byte[] optionsBytes = Encoding.UTF8.GetBytes(jsonOptions);
         string apiUrl = $"{VersionPrefix}/{Org}/{targetRepository}/options/upload";
@@ -155,5 +156,10 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
 
         // Assert
         Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        problemDetails.Should().NotBeNull();
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        errorCode.ToString().Should().Be("InvalidOptionsFormat");
     }
 }

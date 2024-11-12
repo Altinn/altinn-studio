@@ -18,7 +18,7 @@ public class OptionsServiceTests
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
     {
         // Arrange
-        const string repo = "app-with-options"; // Has 2 options lists
+        const string repo = "app-with-options"; // Has 3 options lists
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
@@ -27,7 +27,7 @@ public class OptionsServiceTests
         string[] optionListIds = optionsService.GetOptionsListIds(Org, targetRepository, Developer);
 
         // Assert
-        Assert.Equal(2, optionListIds.Length);
+        Assert.Equal(3, optionListIds.Length);
     }
 
     [Fact]

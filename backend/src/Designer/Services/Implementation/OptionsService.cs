@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
@@ -49,7 +51,24 @@ public class OptionsService : IOptionsService
 
         string optionsListString = await altinnAppGitRepository.GetOptionsList(optionsListId, cancellationToken);
         var optionsList = JsonSerializer.Deserialize<List<Option>>(optionsListString);
+
+        try
+        {
+            optionsList.ForEach(ValidateOption);
+        }
+        catch (ValidationException)
+        {
+            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in file: {optionsListId}.");
+        }
+
+
         return optionsList;
+    }
+
+    private void ValidateOption(Option option)
+    {
+        var validationContext = new ValidationContext(option);
+        Validator.ValidateObject(option, validationContext, validateAllProperties: true);
     }
 
     /// <inheritdoc />

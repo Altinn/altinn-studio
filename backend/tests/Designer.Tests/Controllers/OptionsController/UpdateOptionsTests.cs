@@ -202,8 +202,6 @@ public class UpdateOptionsTests : DesignerEndpointsTestsBase<UpdateOptionsTests>
         problemDetails.Should().NotBeNull();
         JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
         errorCode.ToString().Should().Be("InvalidOptionsFormat");
-        JsonElement detail = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.Detail];
-        detail.ToString().Should().Be("{} is an unsupported type for Value field.");
     }
 
     [Fact]
