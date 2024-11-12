@@ -1,8 +1,8 @@
 name: Generate release for Altinn Studio
 on:
   schedule:
-    # run every friday at 14:45
-    - cron: '45 14 * * 5'
+    # run every friday at 14:15 UTC (15:15 Oslo time)
+    - cron: '15 14 * * 5'
 
   workflow_dispatch:
     inputs:

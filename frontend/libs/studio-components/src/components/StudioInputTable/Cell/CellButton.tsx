@@ -6,6 +6,7 @@ import type { StudioButtonProps } from '../../StudioButton';
 import { StudioButton } from '../../StudioButton';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';
+import { useEventProps } from './useEventProps';
 
 export type CellButtonProps = StudioButtonProps;
 
@@ -14,10 +15,16 @@ export class CellButton extends BaseInputCell<HTMLButtonElement, CellButtonProps
     { className: givenClass, ...rest }: StudioButtonProps,
     ref: ForwardedRef<HTMLButtonElement>,
   ): ReactElement {
+    /* eslint-disable react-hooks/rules-of-hooks */
+    /* Eslint misinterprets this as a class component, while it's really just a functional component within a class */
+
+    const eventProps = useEventProps<HTMLButtonElement>(rest);
+
     const className = cn(classes.buttonCell, givenClass);
+
     return (
       <StudioTable.Cell className={className}>
-        <StudioButton ref={ref} variant='secondary' {...rest} />
+        <StudioButton ref={ref} variant='secondary' {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
   }
