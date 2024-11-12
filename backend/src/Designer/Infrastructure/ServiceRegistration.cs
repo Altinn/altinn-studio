@@ -20,8 +20,6 @@ using Altinn.Studio.Designer.TypedHttpClients.ImageClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure
@@ -50,10 +48,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddDbContext<DesignerdbContext>(options =>
             {
                 PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-                string connectionString = string.Format(
-                    postgresSettings.ConnectionString,
-                    postgresSettings.DesignerDbPwd);
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(postgresSettings.FormattedConnectionString());
             });
 
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
@@ -82,7 +77,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.AddTransient<IImagesService, ImagesService>();
             services.RegisterDatamodeling(configuration);
-            services.RegisterUserRequestSynchronization(configuration);
 
             return services;
         }
@@ -97,14 +91,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IJsonSchemaValidator, AltinnJsonSchemaValidator>();
             services.AddTransient<IModelNameValidator, ModelNameValidator>();
             RegisterXsdKeywords();
-            return services;
-        }
-
-        public static IServiceCollection RegisterUserRequestSynchronization(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.Configure<UserRequestSynchronizationSettings>(configuration.GetSection(nameof(UserRequestSynchronizationSettings)));
-            services.TryAddSingleton(typeof(UserRequestSynchronizationSettings), svc => ((IOptions<object>)svc.GetService(typeof(IOptions<UserRequestSynchronizationSettings>)))!.Value);
-            services.TryAddSingleton<IUserRequestsSynchronizationService, UserRequestsSynchronizationService>();
             return services;
         }
     }

@@ -1,8 +1,10 @@
 import React from 'react';
 import { ResourceItem } from '../ResourceItem';
-import { Divider, SimpleContainer } from 'app-shared/primitives';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
+import { StudioHeading } from '@studio/components';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
+
 interface Resource {
   label: string;
   description: string;
@@ -154,7 +156,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_roadmap_label',
     description: 'dashboard.resource_roadmap_description',
-    url: 'https://docs.altinn.studio/nb/community/roadmap/',
+    url: altinnDocsUrl({ relativeUrl: 'community/roadmap/' }),
     icon: (
       <svg
         width='60'
@@ -215,9 +217,10 @@ const resources: Resource[] = [
 export function Resources() {
   const { t } = useTranslation();
   return (
-    <SimpleContainer>
-      <h2>{t('dashboard.resources')}</h2>
-      <Divider marginless />
+    <div className={classes.wrapper}>
+      <StudioHeading level={2} size='sm' className={classes.header}>
+        {t('dashboard.resources')}
+      </StudioHeading>
       <div className={classes.resourcesContainer}>
         {resources.map((resource, index) => (
           <ResourceItem
@@ -229,6 +232,6 @@ export function Resources() {
           />
         ))}
       </div>
-    </SimpleContainer>
+    </div>
   );
 }

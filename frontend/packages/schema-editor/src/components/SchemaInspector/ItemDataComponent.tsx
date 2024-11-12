@@ -26,7 +26,6 @@ import {
   changeNameInPointer,
 } from '@altinn/schema-model';
 import { makeDomFriendlyID } from '../../utils/ui-schema-utils';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
@@ -174,15 +173,9 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             </Switch>
           )}
           <ItemRestrictions schemaNode={schemaNode} />
-          <Divider marginless />
         </>
       )}
-      {hasCustomProps && (
-        <>
-          <CustomProperties path={schemaPointer} />
-          <Divider marginless />
-        </>
-      )}
+      {hasCustomProps && <CustomProperties path={schemaPointer} />}
       <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
           <Textfield

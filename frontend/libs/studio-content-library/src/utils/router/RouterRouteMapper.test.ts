@@ -27,6 +27,8 @@ describe('RouterRouteMapperImpl', () => {
         props: {
           codeLists: [],
           onUpdateCodeList: () => {},
+          onUploadCodeList: () => {},
+          fetchDataError: false,
         },
       },
     });
