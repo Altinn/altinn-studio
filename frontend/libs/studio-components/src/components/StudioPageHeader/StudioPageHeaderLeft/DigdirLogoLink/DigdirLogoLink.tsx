@@ -16,10 +16,8 @@ export const DigdirLogoLink = ({ title, showTitle }: DigdirLogoLinkProps): React
 
   return (
     <div className={classes.wrapper}>
-      <StudioPageHeaderHeaderButton asChild color={color} variant={variant}>
-        <a href='/' title={title}>
-          <DigdirLogo />
-        </a>
+      <StudioPageHeaderHeaderButton as='a' color={color} variant={variant} href='/' title={title}>
+        <DigdirLogo />
       </StudioPageHeaderHeaderButton>
       {showTitle && (
         <Paragraph size='large' className={classes.titleText}>
