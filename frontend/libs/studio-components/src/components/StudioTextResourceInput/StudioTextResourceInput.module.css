@@ -3,7 +3,7 @@
   gap: var(--fds-spacing-1);
   grid-template-areas:
     'inputbox toggle'
-    'id toggle';
+    'id id';
   grid-template-columns: 1fr auto;
 }
 
@@ -25,10 +25,18 @@
 }
 
 .toggle {
+  border-radius: var(--fds-border_radius-interactive);
+  border-width: 0;
   grid-area: toggle;
+  outline-offset: calc(-1 * var(--fds-border_width-default));
+  outline: var(--fds-semantic-border-neutral-default) solid var(--fds-border_width-default);
 }
 
 .toggle [role='radiogroup'] {
-  box-sizing: border-box;
-  height: 100%;
+  padding: 0;
+  gap: calc(var(--fds-spacing-1) / 2);
+}
+
+.toggle [role='radio'] {
+  scale: 0.9;
 }
