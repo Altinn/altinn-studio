@@ -60,7 +60,10 @@ export const EditLayoutSet = <T extends ComponentType>({
         />
       ) : (
         <>
-          <SelectLayoutSet setSelectedSubform={setSelectedSubform} />
+          <SelectLayoutSet
+            setSelectedSubform={setSelectedSubform}
+            selectedSubform={selectedSubform}
+          />
           <StudioProperty.Button
             className={classes.createSubformLinkButton}
             property={t('ux_editor.component_properties.subform.create_layout_set_button')}
