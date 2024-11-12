@@ -13,19 +13,12 @@ function StudioContentMenuBaseForwarded<TabId extends string>(
   { children, selectedTabId, onChangeTab }: StudioContentMenuBaseProps<TabId>,
   ref: React.Ref<HTMLDivElement>,
 ): ReactElement {
-  const handleChangeTab = (tabId: TabId) => {
-    onChangeTab(tabId);
-  };
-
   const isTabSelected = (tabId: TabId) => selectedTabId === tabId;
 
   return (
     <div ref={ref} className={classes.menuContainer}>
-      <div ref={ref} className={classes.tabsContainer} role='tablist'>
-        <StudioContentMenuContextProvider
-          isTabSelected={isTabSelected}
-          onChangeTab={handleChangeTab}
-        >
+      <div className={classes.tabsContainer} role='tablist'>
+        <StudioContentMenuContextProvider isTabSelected={isTabSelected} onChangeTab={onChangeTab}>
           {children}
         </StudioContentMenuContextProvider>
       </div>

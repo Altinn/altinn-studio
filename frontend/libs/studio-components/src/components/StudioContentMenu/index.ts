@@ -8,11 +8,11 @@ import { StudioContentMenuLinkTab } from './StudioContentMenuLinkTab';
 type StudioContentMenuComponent = typeof StudioContentMenuRoot & {
   ButtonTab: typeof StudioContentMenuButtonTab;
   LinkTab: typeof StudioContentMenuLinkTab;
-  Controlled: typeof StudioContentMenuBase;
+  Static: typeof StudioContentMenuBase;
 };
 
 export const StudioContentMenu = StudioContentMenuRoot as StudioContentMenuComponent;
 
 StudioContentMenu.ButtonTab = StudioContentMenuButtonTab;
 StudioContentMenu.LinkTab = StudioContentMenuLinkTab;
-StudioContentMenu.Controlled = StudioContentMenuBase;
+StudioContentMenu.Static = StudioContentMenuBase;
