@@ -34,7 +34,7 @@
 
 .toggle [role='radiogroup'] {
   padding: 0;
-  gap: calc(var(--fds-spacing-1) / 2);
+  gap: 0;
 }
 
 .toggle [role='radio'] {
