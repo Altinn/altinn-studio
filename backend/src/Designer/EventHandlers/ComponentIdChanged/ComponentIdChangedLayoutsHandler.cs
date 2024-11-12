@@ -73,8 +73,8 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             {
                 switch (property.Key)
                 {
-                    case "component":
-                    case "componentRef":
+                    case "component": // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
+                    case "componentRef": // Components that are used in summary components will have this ref
                         if (property.Value is JsonValue jsonValue
                             && jsonValue.TryGetValue(out string value)
                             && value == oldComponentId
@@ -86,6 +86,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                     case "tableHeaders":
                         if (property.Value is JsonArray tableHeadersArray)
                         {
+                            // Objects that references components in `tableHeaders` in RepeatingGroup
                             UpdateComponentIdActingAsTableHeaderInRepeatingGroup(tableHeadersArray, oldComponentId, newComponentId);
                         }
                         break;
