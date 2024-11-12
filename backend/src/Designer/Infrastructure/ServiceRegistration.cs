@@ -48,10 +48,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddDbContext<DesignerdbContext>(options =>
             {
                 PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-                string connectionString = string.Format(
-                    postgresSettings.ConnectionString,
-                    postgresSettings.DesignerDbPwd);
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(postgresSettings.FormattedConnectionString());
             });
 
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
