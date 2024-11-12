@@ -864,6 +864,7 @@
   "schema_editor.error_data_type_name_exists": "Modellen kan ikke ha samme navn som datatyper i løsningen.",
   "schema_editor.error_model_name_exists": "Modellnavnet {{newModelName}} er allerede i bruk.",
   "schema_editor.error_model_name_max_length": "Modellnavnet kan ikke være lengre enn {{maxLength}} tegn.",
+  "schema_editor.error_reserved_keyword": "Navnet er reservert og kan ikke brukes.",
   "schema_editor.error_upload_data_model_id_exists_override_option": "Det eksisterer allerede en modell med dette navnet. Ønsker du å overskrive den?",
   "schema_editor.field": "Objekt",
   "schema_editor.field_name": "Navn på felt",

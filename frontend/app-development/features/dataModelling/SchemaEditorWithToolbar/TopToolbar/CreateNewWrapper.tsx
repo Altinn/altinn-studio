@@ -26,7 +26,7 @@ export function CreateNewWrapper({
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
   const [newModelName, setNewModelName] = useState('');
-  const { validateName, nameError, clearError } = useValidateSchemaName(dataModels);
+  const { validateName, nameError, setNameError } = useValidateSchemaName(dataModels);
 
   const relativePath = createPathOption ? '' : undefined;
 
@@ -53,7 +53,7 @@ export function CreateNewWrapper({
   const handleOpenChange = () => {
     setIsCreateNewOpen(!isCreateNewOpen);
     setNewModelName('');
-    clearError();
+    setNameError('');
   };
 
   return (
