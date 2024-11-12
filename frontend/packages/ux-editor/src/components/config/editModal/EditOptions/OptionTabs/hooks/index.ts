@@ -1,2 +1,2 @@
-export { useCodeListButtonValue } from './useCodeListButtonValue';
-export { useCodeListEditorTexts } from './useCodeListEditorTexts';
+export { useOptionListButtonValue } from './useOptionListButtonValue';
+export { useOptionListEditorTexts } from './useOptionListEditorTexts';
