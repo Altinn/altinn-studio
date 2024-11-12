@@ -21,6 +21,7 @@ export const allSettingsModalTabs: Array<SettingsModalTabId> = [
   setupTabId,
   policyTabId,
   accessControlTabId,
+  maskinportenTabId,
 ];
 
 export const useSettingsModalMenuTabConfigs =
