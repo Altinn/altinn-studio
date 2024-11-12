@@ -16,6 +16,11 @@ jobs:
       ||                                                       'prod'
       }}
     steps:
+      - name: Validate tag
+        run: |
+          echo "Validating that the tag is in the correct format"
+          echo "${{ github.event.release.tag_name }}" | grep -P '^v(\d+)\.(\d+)\.(\d+)(-(preview|rc)\d+$|$)'
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
