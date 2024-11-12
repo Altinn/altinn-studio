@@ -93,5 +93,9 @@ const renderMaskinporten = ({ queries = queriesMock }: RenderMaskinporten) => {
 };
 
 async function waitForLoggedInStatusCheckIsDone() {
+<<<<<<< HEAD
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+=======
+  await waitForElementToBeRemoved(() => screen.getByTitle(textMock('general.loading')));
+>>>>>>> b328101a5 (frontend with mocks for maskinporten)
 }
