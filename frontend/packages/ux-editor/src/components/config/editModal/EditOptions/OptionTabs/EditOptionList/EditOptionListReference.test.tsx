@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { EditCodeListReference } from './EditCodeListReference';
+import { EditOptionListReference } from './EditOptionListReference';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../../../../types/FormComponent';
@@ -18,7 +18,7 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   dataModelBindings: { simpleBinding: '' },
 };
 
-const renderEditCodeListReference = ({
+const renderEditOptionListReference = ({
   handleComponentChange = jest.fn(),
   componentProps = {},
 }: {
@@ -28,7 +28,7 @@ const renderEditCodeListReference = ({
   >;
 } = {}) => {
   renderWithProviders(
-    <EditCodeListReference
+    <EditOptionListReference
       handleComponentChange={handleComponentChange}
       component={{
         ...mockComponent,
@@ -38,16 +38,16 @@ const renderEditCodeListReference = ({
   );
 };
 
-describe('EditCodeListReference', () => {
+describe('EditOptionListReference', () => {
   it('should render', () => {
-    renderEditCodeListReference();
+    renderEditOptionListReference();
     expect(
       screen.getByText(textMock('ux_editor.options.codelist_referenceId.description')),
     ).toBeInTheDocument();
   });
 
   it('should render value when optionsId is set', () => {
-    renderEditCodeListReference({
+    renderEditOptionListReference({
       componentProps: {
         optionsId: 'some-id',
       },
@@ -57,7 +57,7 @@ describe('EditCodeListReference', () => {
 
   it('should call handleComponentChange when input value changes', async () => {
     const handleComponentChange = jest.fn();
-    renderEditCodeListReference({ handleComponentChange });
+    renderEditOptionListReference({ handleComponentChange });
     const user = userEvent.setup();
     const inputElement = screen.getByRole('textbox');
     await user.type(inputElement, 'new-id');
@@ -69,7 +69,7 @@ describe('EditCodeListReference', () => {
 
   it('should call remove options property (if it exists) when input value changes', async () => {
     const handleComponentChange = jest.fn();
-    renderEditCodeListReference({
+    renderEditOptionListReference({
       handleComponentChange,
       componentProps: {
         options: [

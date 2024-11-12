@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { Option } from 'app-shared/types/Option';
 
-export const useCodeListButtonValue = (options: Option[] | undefined): string | undefined => {
+export const useOptionListButtonValue = (options: Option[] | undefined): string | undefined => {
   const { t } = useTranslation();
 
   if (options?.length > 1) {
