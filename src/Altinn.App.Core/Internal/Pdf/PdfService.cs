@@ -291,7 +291,7 @@ public class PdfService : IPdfService
     {
         string previewText = GetPdfPreviewText(textResource) ?? "Dette er en forhåndsvisning";
         return $@"<div style='font-family: Inter; font-size: 12px; width: 100%; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 0 70px 0 70px;'>
-                <div style='display: flex; flex-direction: row; width: 100%; align-items: center'>
+                <div style='display: flex; flex-direction: row; width: 100%; align-items: center; font-style: italic; color: #e02e49;'>
                     <span>{previewText}</span>
                 </div>
             </div>";
