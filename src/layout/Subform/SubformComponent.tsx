@@ -13,7 +13,7 @@ import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
@@ -35,7 +35,7 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
     showDeleteButton = true,
   } = useNodeItem(node);
 
-  const isSubformPage = useNavigationParam('isSubformPage');
+  const isSubformPage = useIsSubformPage();
   if (isSubformPage) {
     window.logErrorOnce('Cannot use a SubformComponent component within a subform');
     throw new Error('Cannot use a SubformComponent component within a subform');

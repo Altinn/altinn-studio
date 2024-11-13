@@ -8,7 +8,7 @@ import { useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachme
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
 import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/unifiedValidationsForNode';
 import { hasValidationErrors } from 'src/features/validation/utils';
@@ -38,7 +38,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
     textResourceBindings,
     dataModelBindings,
   } = item;
-  const isSubformPage = useNavigationParam('isSubformPage');
+  const isSubformPage = useIsSubformPage();
   if (isSubformPage) {
     throw new Error('Cannot use a FileUpload components within a subform');
   }

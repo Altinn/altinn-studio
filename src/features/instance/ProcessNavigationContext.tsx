@@ -12,7 +12,7 @@ import { useLaxInstanceId, useStrictInstanceRefetch } from 'src/features/instanc
 import { useReFetchProcessData } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { useUpdateInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { appSupportsIncrementalValidationFeatures } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
@@ -174,7 +174,7 @@ export function ProcessNavigationProvider({ children }: React.PropsWithChildren)
 
 export const useProcessNavigation = () => {
   // const { isSubformPage } = useNavigationParams();
-  const isSubformPage = useNavigationParam('isSubformPage');
+  const isSubformPage = useIsSubformPage();
   if (isSubformPage) {
     throw new Error('Cannot use process navigation in a subform');
   }

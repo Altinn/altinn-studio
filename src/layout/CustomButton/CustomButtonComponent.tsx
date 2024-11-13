@@ -9,7 +9,7 @@ import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage, useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useOnPageNavigationValidation } from 'src/features/validation/callbacks/onPageNavigationValidation';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -67,7 +67,7 @@ const isServerAction = (action: CBTypes.CustomAction): action is CBTypes.ServerA
 function useHandleClientActions(): UseHandleClientActions {
   const { navigateToPage, navigateToNextPage, navigateToPreviousPage, exitSubform } = useNavigatePage();
   const mainPageKey = useNavigationParam('mainPageKey');
-  const isSubformPage = useNavigationParam('isSubformPage');
+  const isSubformPage = useIsSubformPage();
 
   const frontendActions: ClientActionHandlers = useMemo(
     () => ({

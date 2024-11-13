@@ -22,6 +22,7 @@ import {
   MissingDataTypeException,
 } from 'src/features/datamodel/utils';
 import { useLayouts } from 'src/features/form/layout/LayoutsContext';
+import { useCurrentLayoutSetId } from 'src/features/form/layoutSets/useCurrentLayoutSet';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useLaxInstanceAllDataElementsNow, useLaxInstanceDataElements } from 'src/features/instance/InstanceContext';
 import { MissingRolesError } from 'src/features/instantiate/containers/MissingRolesError';
@@ -33,6 +34,7 @@ import type { IExpressionValidations } from 'src/features/validation';
 import type { IDataModelReference } from 'src/layout/common.generated';
 
 interface DataModelsState {
+  layoutSetId: string | undefined;
   defaultDataType: string | undefined;
   allDataTypes: string[] | null;
   writableDataTypes: string[] | null;
@@ -45,7 +47,12 @@ interface DataModelsState {
 }
 
 interface DataModelsMethods {
-  setDataTypes: (allDataTypes: string[], writableDataTypes: string[], defaultDataType: string | undefined) => void;
+  setDataTypes: (
+    allDataTypes: string[],
+    writableDataTypes: string[],
+    defaultDataType: string | undefined,
+    layoutSetId: string | undefined,
+  ) => void;
   setInitialData: (dataType: string, initialData: object, dataElementId: string | null) => void;
   setDataModelSchema: (dataType: string, schema: JSONSchema7, lookupTool: SchemaLookupTool) => void;
   setExpressionValidationConfig: (dataType: string, config: IExpressionValidations | null) => void;
@@ -54,6 +61,7 @@ interface DataModelsMethods {
 
 function initialCreateStore() {
   return createStore<DataModelsState & DataModelsMethods>()((set) => ({
+    layoutSetId: undefined,
     defaultDataType: undefined,
     allDataTypes: null,
     writableDataTypes: null,
@@ -65,8 +73,8 @@ function initialCreateStore() {
     expressionValidationConfigs: {},
     error: null,
 
-    setDataTypes: (allDataTypes, writableDataTypes, defaultDataType) => {
-      set(() => ({ allDataTypes, writableDataTypes, defaultDataType }));
+    setDataTypes: (allDataTypes, writableDataTypes, defaultDataType, layoutSetId) => {
+      set(() => ({ allDataTypes, writableDataTypes, defaultDataType, layoutSetId }));
     },
     setInitialData: (dataType, initialData, dataElementId) => {
       set((state) => ({
@@ -137,6 +145,7 @@ function DataModelsLoader() {
   const defaultDataType = useCurrentDataModelName();
   const isStateless = useApplicationMetadata().isStatelessApp;
   const dataElements = useLaxInstanceAllDataElementsNow();
+  const layoutSetId = useCurrentLayoutSetId();
 
   // Subform
   const overriddenDataElement = useTaskStore((state) => state.overriddenDataModelUuid);
@@ -175,8 +184,8 @@ function DataModelsLoader() {
       }
     }
 
-    setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType);
-  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements]);
+    setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
+  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
@@ -201,9 +210,9 @@ function DataModelsLoader() {
 }
 
 function BlockUntilLoaded({ children }: PropsWithChildren) {
-  const { allDataTypes, writableDataTypes, initialData, schemas, expressionValidationConfigs, error } = useSelector(
-    (state) => state,
-  );
+  const { layoutSetId, allDataTypes, writableDataTypes, initialData, schemas, expressionValidationConfigs, error } =
+    useSelector((state) => state);
+  const actualCurrentTask = useCurrentLayoutSetId();
   const isPDF = useIsPdf();
 
   if (error) {
@@ -217,6 +226,12 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
 
   if (!allDataTypes || !writableDataTypes) {
     return <Loader reason='data-types' />;
+  }
+
+  if (layoutSetId !== actualCurrentTask) {
+    // The layout-set has changed since the state was set, so we need to wait for the new layout-set to be loaded
+    // and the relevant data model bindings there to be parsed.
+    return <Loader reason='layout-set-change' />;
   }
 
   // in PDF mode, we do not load schema, or expression validation config. So we should not block loading in that case

@@ -4,7 +4,7 @@ import type { Mutable } from 'utility-types';
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
-import { SearchParams } from 'src/hooks/useNavigatePage';
+import { SearchParams } from 'src/features/routing/AppRoutingContext';
 import { implementsDisplayData } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
 import { isDate } from 'src/utils/dateHelpers';
