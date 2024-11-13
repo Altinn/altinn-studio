@@ -22,6 +22,6 @@
   background: var(--fds-semantic-surface-on_inverted-no_fill-hover);
 }
 
-.small {
+.smallWithIconOnly {
   min-height: var(--fds-sizing-8);
 }

@@ -76,6 +76,22 @@ describe('ColumnElement', () => {
     });
   });
 
+  it('should render combobox with description', async () => {
+    const user = userEvent.setup();
+    renderColumnElement();
+
+    const editButton = screen.getByRole('button', {
+      name: /ux_editor.properties_panel.subform_table_columns.column_header/,
+    });
+    await user.click(editButton);
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+  });
+
   it('should call onDeleteColumn when delete button is clicked', async () => {
     const onDeleteColumnMock = jest.fn();
 
