@@ -61,7 +61,6 @@ export function LayoutSetsContainer() {
       {shouldDisplayFeature('subform') && (
         <SubformWrapper
           layoutSets={layoutSetsResponse}
-          onSubformCreated={handleLayoutSetChange}
           selectedLayoutSet={selectedFormLayoutSetName}
         />
       )}
