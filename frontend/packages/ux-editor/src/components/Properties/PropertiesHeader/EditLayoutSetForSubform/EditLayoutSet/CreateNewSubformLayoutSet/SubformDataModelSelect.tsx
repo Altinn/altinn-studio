@@ -5,13 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { StudioNativeSelect } from '@studio/components';
 
 export interface ISubformDataModelSelectProps {
-  disabled: boolean;
   selectedDataType: string;
   setSelectedDataType: (dataType: string) => void;
 }
 
 export const SubformDataModelSelect = ({
-  disabled,
   selectedDataType,
   setSelectedDataType,
 }: ISubformDataModelSelectProps) => {
@@ -26,7 +24,6 @@ export const SubformDataModelSelect = ({
   return (
     <StudioNativeSelect
       label={t('ux_editor.component_properties.subform.data_model_binding_label')}
-      disabled={disabled}
       onChange={(e) => handleChange(e.target.value)}
       value={selectedDataType}
       size='small'

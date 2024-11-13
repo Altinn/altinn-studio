@@ -53,7 +53,6 @@ export const CreateNewSubformLayoutSet = ({
           error={nameError}
         />
         <SubformDataModelSelect
-          disabled={false}
           selectedDataType={selectedDataType}
           setSelectedDataType={setSelectedDataType}
         />
