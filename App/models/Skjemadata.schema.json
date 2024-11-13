@@ -18,7 +18,8 @@
   "@xsdRootElement": "Skjemadata",
   "type": "object",
   "required": [
-    "Selskapsnavn"
+    "Selskapsnavn",
+    "SelskapetsFormaal"
   ],
   "$defs": {
     "Aksjetegning": {
@@ -95,6 +96,9 @@
           },
           "Aksjetegning": {
             "$ref": "#/$defs/Aksjetegning"
+          },
+          "HarFullmektig": {
+            "type": "string"
           },
           "Fullmektig": {
             "$ref": "#/$defs/Fullmektig"

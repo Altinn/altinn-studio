@@ -2,16 +2,116 @@
   "language": "nb",
   "resources": [
     {
-      "id": "Side1.Input-H0Menv.title",
-      "value": "Selskapsnavn"
+      "id": "di8UgmCpnzKG",
+      "value": "Stifteren er representert ved fullmektig"
     },
     {
-      "id": "Side1",
+      "id": "stiftere-og-aksjetegning.Input-G9nlUc.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-WmFYXj.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Checkboxes-dgmutj.title",
+      "value": ""
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Group-xCsfYx.title",
+      "value": "Fullmektig"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Group-0GS4J3.title",
+      "value": "Aksjetegning"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-f5s6V5.title",
+      "value": "Betalt per aksje"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-Vq1fOU.title",
+      "value": "Antall aksjer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Header-i8RjIf.title",
+      "value": "Aksjetegning"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full",
+      "value": "Legg til person"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full",
+      "value": "Legg til virksomhet"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.organisasjonsnummer.title",
+      "value": "Oranisasjonsnummer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
+      "value": "Virksomheter"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
+      "value": "Personer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Paragraph-vF8Zjw.title",
+      "value": "Stiftere kan være både personer og virksomheter. Alle stifterne må tegne aksjer i selskapet."
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Header-LSgLyT.title",
+      "value": "Stiftere og aksjetegning"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.Input-NQacsF.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "stiftere-og-aksjetegning.etternavn.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "signering-av-stiftelsesdok",
+      "value": "Signering av stiftelsesdokument"
+    },
+    {
+      "id": "styre-og-revisjon",
+      "value": "Styre og revisjon"
+    },
+    {
+      "id": "aksjekapital",
+      "value": "Aksjekapital"
+    },
+    {
+      "id": "stiftere-og-aksjetegning",
+      "value": "Stiftere og aksjetegning"
+    },
+    {
+      "id": "Side1.selskapets-formaal.title",
+      "value": "Vedtektsfestet formål"
+    },
+    {
+      "id": "Side1.Input-H0Menv.title",
+      "value": "Navn"
+    },
+    {
+      "id": "om-selskapet",
       "value": "Om selskapet"
     },
     {
       "id": "appName",
       "value": "Stiftelse av aksjeselskap"
+    },
+    {
+      "id": "next",
+      "value": "Neste"
+    },
+    {
+      "id": "back",
+      "value": "Tilbake"
     }
   ]
 }

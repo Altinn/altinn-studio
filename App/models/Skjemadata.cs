@@ -92,7 +92,12 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Aksjetegning")]
     public Aksjetegning Aksjetegning { get; set; }
 
-    [XmlElement("Fullmektig", Order = 7)]
+    [XmlElement("HarFullmektig", Order = 7)]
+    [JsonProperty("HarFullmektig")]
+    [JsonPropertyName("HarFullmektig")]
+    public string HarFullmektig { get; set; }
+
+    [XmlElement("Fullmektig", Order = 8)]
     [JsonProperty("Fullmektig")]
     [JsonPropertyName("Fullmektig")]
     public Fullmektig Fullmektig { get; set; }

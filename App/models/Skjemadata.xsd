@@ -28,7 +28,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element name="Selskapsnavn" type="xs:string" />
-        <xs:element minOccurs="0" name="SelskapetsFormaal" type="xs:string" />
+        <xs:element name="SelskapetsFormaal" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="StifterPerson">
           <xs:complexType>
             <xs:sequence>
@@ -38,6 +38,7 @@
               <xs:element name="Foedselsnummer" type="xs:long" />
               <xs:element name="Adresse" type="Adresse" />
               <xs:element minOccurs="0" name="Aksjetegning" type="Aksjetegning" />
+              <xs:element minOccurs="0" name="HarFullmektig" type="xs:string" />
               <xs:element minOccurs="0" name="Fullmektig" type="Fullmektig" />
             </xs:sequence>
           </xs:complexType>

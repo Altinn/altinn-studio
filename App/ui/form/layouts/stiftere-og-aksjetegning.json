@@ -1,0 +1,234 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "size": "L",
+        "id": "Header-LSgLyT",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Header-LSgLyT.title"
+        }
+      },
+      {
+        "id": "Paragraph-vF8Zjw",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Paragraph-vF8Zjw.title"
+        }
+      },
+      {
+        "dataModelBindings": {
+          "group": "StifterPerson"
+        },
+        "id": "stifter-personer-repeating-group",
+        "type": "RepeatingGroup",
+        "maxCount": 99999,
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
+          "add_button_full": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
+        },
+        "children": [
+          "Group-vvXQVJ",
+          "Group-0GS4J3",
+          "Group-xCsfYx"
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "group": "StifterVirksomhet"
+        },
+        "id": "stiftere-virksomheter",
+        "type": "RepeatingGroup",
+        "maxCount": 99999,
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.stiftere-virksomheter.title",
+          "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.summaryTitle",
+          "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
+        },
+        "children": [
+          "organisasjonsnummer"
+        ]
+      },
+      {
+        "id": "NavigationButtons-A564Nt",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      },
+      {
+        "id": "Group-vvXQVJ",
+        "type": "Group",
+        "children": [
+          "etternavn",
+          "foedselsnummer",
+          "Address-ORk7vt"
+        ]
+      },
+      {
+        "id": "Group-0GS4J3",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Group-0GS4J3.title"
+        },
+        "children": [
+          "Input-Vq1fOU",
+          "Input-f5s6V5"
+        ]
+      },
+      {
+        "id": "Group-xCsfYx",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Group-xCsfYx.title"
+        },
+        "children": [
+          "fullmektig-checkbox",
+          "Input-WmFYXj",
+          "Input-G9nlUc"
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterVirksomhet.Organisasjonsnummer"
+        },
+        "id": "organisasjonsnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.organisasjonsnummer.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Aksjetegning.AntallAksjer"
+        },
+        "id": "Input-Vq1fOU",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-Vq1fOU.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Aksjetegning.Aksjepris"
+        },
+        "id": "Input-f5s6V5",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-f5s6V5.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.HarFullmektig",
+          "label": "",
+          "metadata": ""
+        },
+        "id": "fullmektig-checkbox",
+        "type": "Checkboxes",
+        "textResourceBindings": {},
+        "options": [
+          {
+            "label": "di8UgmCpnzKG",
+            "value": "Ja"
+          }
+        ]
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Fullmektig.Etternavn"
+        },
+        "id": "Input-WmFYXj",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-WmFYXj.title"
+        },
+        "hidden": [
+          "equals",
+          [
+            "component",
+            "fullmektig-checkbox"
+          ],
+          null
+        ],
+        "grid": {
+          "xl": 6,
+          "xs": 12,
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Fullmektig.Foedselsnummer"
+        },
+        "id": "Input-G9nlUc",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-G9nlUc.title"
+        },
+        "hidden": [
+          "equals",
+          [
+            "component",
+            "fullmektig-checkbox"
+          ],
+          null
+        ],
+        "grid": {
+          "xl": 6,
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Etternavn"
+        },
+        "id": "etternavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.etternavn.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Foedselsnummer"
+        },
+        "id": "foedselsnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-NQacsF.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "address": "StifterPerson.Adresse.Adresselinje",
+          "zipCode": "StifterPerson.Adresse.Postnummer",
+          "postPlace": "StifterPerson.Adresse.Sted"
+        },
+        "simplified": true,
+        "saveWhileTyping": 400,
+        "id": "Address-ORk7vt",
+        "type": "Address",
+        "required": true,
+        "grid": {
+          "md": 6
+        }
+      }
+    ]
+  }
+}
