@@ -34,6 +34,10 @@ export class ValidationPlugin extends NodeDefPlugin<Config> {
     });
   }
 
+  getKey(): string {
+    return 'ValidationPlugin';
+  }
+
   addToComponent(component: ComponentConfig) {
     this.component = component;
     if (!component.isFormLike()) {

@@ -29,6 +29,10 @@ export class AttachmentsPlugin extends NodeDefPlugin<Config> {
     });
   }
 
+  getKey(): string {
+    return 'AttachmentsPlugin';
+  }
+
   stateFactory(_props: DefPluginStateFactoryProps<Config>): Config['extraState'] {
     return {
       attachments: {},

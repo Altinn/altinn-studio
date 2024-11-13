@@ -104,10 +104,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
    * Makes a key that keeps this plugin unique. This is used to make sure that if we're adding the same plugin
    * multiple times to the same component, only uniquely configured plugins are added.
    */
-  getKey(): string {
-    // By default, no duplicate plugins of the same type are allowed.
-    return this.constructor.name;
-  }
+  abstract getKey(): string;
 
   /**
    * Makes constructor arguments (must be a string, most often JSON). This is used to add custom constructor arguments

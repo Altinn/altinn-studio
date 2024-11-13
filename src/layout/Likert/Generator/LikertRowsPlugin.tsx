@@ -36,6 +36,10 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
     });
   }
 
+  getKey(): string {
+    return 'LikertRowsPlugin';
+  }
+
   addToComponent(_component: ComponentConfig): void {}
 
   extraNodeGeneratorChildren(): string {

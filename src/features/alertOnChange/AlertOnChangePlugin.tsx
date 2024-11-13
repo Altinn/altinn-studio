@@ -36,7 +36,7 @@ export class AlertOnChangePlugin<E extends ExternalConfig> extends NodeDefPlugin
   }
 
   getKey(): string {
-    return [this.constructor.name, this.settings.propName].join('/');
+    return ['AlertOnChangePlugin', this.settings.propName].join('/');
   }
 
   makeImport() {

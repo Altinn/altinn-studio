@@ -37,6 +37,10 @@ export class OptionsPlugin<E extends ExternalConfig> extends NodeDefPlugin<ToInt
     });
   }
 
+  getKey(): string {
+    return 'OptionsPlugin';
+  }
+
   stateFactory(_props: DefPluginStateFactoryProps<ToInternal<E>>): DefPluginExtraState<ToInternal<E>> {
     return {
       options: undefined,
