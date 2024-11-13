@@ -54,6 +54,7 @@ export const CreateNewSubformLayoutSet = ({
         <StudioTextfield
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
           value={newSubform}
+          size='sm'
           disabled={isPendingLayoutSetMutation}
           onChange={(e) => handleChange(e.target.value)}
           error={nameError}

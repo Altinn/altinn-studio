@@ -86,7 +86,7 @@ describe('CreateNewSubformLayoutSet ', () => {
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, ['moped']);
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
 
     const spinner = await screen.findByText(textMock('general.loading'));
