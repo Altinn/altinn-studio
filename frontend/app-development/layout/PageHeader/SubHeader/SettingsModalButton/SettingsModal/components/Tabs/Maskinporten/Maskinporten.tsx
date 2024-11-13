@@ -42,7 +42,7 @@ export const Maskinporten = (): React.ReactElement => {
       </StudioButton>
       {scopes && scopes.length === 0 && (
         <StudioAlert severity='info' className={classes.noScopeAlert}>
-          Du har ingen scopes lagt til i Maskinporten, så du kan ikke velge scope her.
+          {t('settings_modal.maskinporten_no_scopes_available')}
         </StudioAlert>
       )}
     </TabContent>

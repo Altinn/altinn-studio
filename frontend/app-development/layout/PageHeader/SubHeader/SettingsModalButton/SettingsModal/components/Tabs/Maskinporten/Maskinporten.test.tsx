@@ -82,6 +82,25 @@ describe('Maskinporten', () => {
       'Will be implemented in next iteration when backend is ready',
     );
   });
+
+  it('should show an alert with text that no scopes are available for user', async () => {
+    const user = userEvent.setup();
+    renderMaskinporten({});
+    await waitForLoggedInStatusCheckIsDone();
+
+    expect(
+      screen.queryByText(textMock('settings_modal.maskinporten_no_scopes_available')),
+    ).not.toBeInTheDocument();
+
+    const loginButton = screen.getByRole('button', {
+      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
+    });
+    await user.click(loginButton);
+
+    expect(
+      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available')),
+    ).toBeInTheDocument();
+  });
 });
 
 type RenderMaskinporten = {
@@ -93,5 +112,5 @@ const renderMaskinporten = ({ queries = queriesMock }: RenderMaskinporten) => {
 };
 
 async function waitForLoggedInStatusCheckIsDone() {
-  await waitForElementToBeRemoved(() => screen.getByTitle(textMock('general.loading')));
+  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
 }
