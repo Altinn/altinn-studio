@@ -278,7 +278,7 @@ public class PdfService : IPdfService
             }
         }
 
-        return "Dette er en forhåndsvisning";
+        return "Dokumentet er en forhåndsvisning";
     }
 
     private static string GetValidFileName(string fileName)
