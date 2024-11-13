@@ -38,7 +38,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
 
 ILogger logger;
 
