@@ -30,11 +30,14 @@ describe('LayoutSetsContainer', () => {
     expect(await screen.findByRole('option', { name: layoutSetName2 })).toBeInTheDocument();
   });
 
-  it('should not render layout set options when layoutSets is null', () => {
-    queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], null);
-    render();
-    expect(screen.queryByRole('option', { name: layoutSetName1 })).not.toBeInTheDocument();
-    expect(screen.queryByRole('option', { name: layoutSetName2 })).not.toBeInTheDocument();
+  it('should not render combobox when  there are no layoutSets', async () => {
+    render({ sets: null });
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('should not render layout set options when there are no layout sets', async () => {
+    render({ sets: null });
+    expect(screen.queryByRole('option')).not.toBeInTheDocument;
   });
 
   it('Should update with selected layout', async () => {
@@ -68,7 +71,7 @@ describe('LayoutSetsContainer', () => {
   });
 });
 
-const render = () => {
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+const render = (layoutSetsData = layoutSetsMock) => {
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsData);
   return renderWithProviders(<LayoutSetsContainer />);
 };
