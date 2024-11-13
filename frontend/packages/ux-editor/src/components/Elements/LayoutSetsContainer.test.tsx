@@ -30,6 +30,13 @@ describe('LayoutSetsContainer', () => {
     expect(await screen.findByRole('option', { name: layoutSetName2 })).toBeInTheDocument();
   });
 
+  it('should not render layout set options when layoutSets is null', () => {
+    queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], null);
+    render();
+    expect(screen.queryByRole('option', { name: layoutSetName1 })).not.toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: layoutSetName2 })).not.toBeInTheDocument();
+  });
+
   it('Should update with selected layout', async () => {
     render();
     const user = userEvent.setup();
