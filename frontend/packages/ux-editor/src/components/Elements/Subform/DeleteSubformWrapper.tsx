@@ -5,6 +5,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { useTranslation } from 'react-i18next';
 import { SubformUtils } from './SubformUtils';
+import classes from './DeleteSubformWrapper.module.css';
 
 type DeleteSubformWrapperProps = {
   layoutSets: LayoutSets;
@@ -30,6 +31,7 @@ export const DeleteSubformWrapper = ({
 
   return (
     <StudioDeleteButton
+      className={classes.button}
       onDelete={onDeleteSubform}
       // Delete is only supported for sub-forms, not regular layout-sets
       variant='tertiary'
