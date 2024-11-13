@@ -106,11 +106,7 @@ jobs:
       artifact-environment: ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
       config-chart-name: altinn-designer-config
       artifact-name: altinn-designer
-<<<<<<< HEAD
       helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }},replicas=${{ matrix.environment == 'dev' && 1 || 2 }}
-=======
-      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }},replicas=${{ matrix.environment == 'preapproved-prod' && 1 || 2 }}
->>>>>>> 70f1511ca (chore: scale designer in dev and staging (#14039))
       trace-workflow: true
       trace-team-name: 'team-studio'
     secrets:
