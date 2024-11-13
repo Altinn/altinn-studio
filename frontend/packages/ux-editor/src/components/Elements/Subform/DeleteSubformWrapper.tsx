@@ -26,12 +26,12 @@ export const DeleteSubformWrapper = ({
   const isRegularLayoutSet = !Boolean(
     SubformUtils.findSubformById(layoutSets.sets, selectedLayoutSet),
   );
+  if (isRegularLayoutSet) return;
 
   return (
     <StudioDeleteButton
       onDelete={onDeleteSubform}
       // Delete is only supported for sub-forms, not regular layout-sets
-      disabled={isRegularLayoutSet}
       variant='tertiary'
       confirmMessage={t('ux_editor.delete.subform.confirm')}
     >
