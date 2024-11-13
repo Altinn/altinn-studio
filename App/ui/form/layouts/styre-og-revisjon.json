@@ -212,7 +212,9 @@
           "ja"
         ],
         "children": [
-          "org-nr-revisor"
+          "org-nr-revisor",
+          "Input-VOCYsx",
+          "Address-zMK6HS"
         ]
       },
       {
@@ -225,6 +227,48 @@
           "title": "styre-og-revisjon.Input-X4c6ij.title"
         },
         "required": true
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "Revisor.Navn"
+        },
+        "id": "Input-VOCYsx",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Input-VOCYsx.title"
+        },
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "Revisor.Navn"
+          ],
+          null
+        ],
+        "readOnly": true
+      },
+      {
+        "dataModelBindings": {
+          "address": "Revisor.Adresse.Adresselinje",
+          "zipCode": "Revisor.Adresse.Postnummer",
+          "postPlace": "Revisor.Adresse.Sted"
+        },
+        "simplified": true,
+        "saveWhileTyping": 400,
+        "id": "Address-zMK6HS",
+        "type": "Address",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.Address-zMK6HS.title"
+        },
+        "hidden": [
+          "equals",
+          [
+            "dataModel",
+            "Revisor.Adresse.Adresselinje"
+          ],
+          null
+        ],
+        "readOnly": true
       }
     ]
   }

@@ -2,6 +2,14 @@
   "language": "nb",
   "resources": [
     {
+      "id": "styre-og-revisjon.Address-zMK6HS.title",
+      "value": "Adresse"
+    },
+    {
+      "id": "styre-og-revisjon.Input-VOCYsx.title",
+      "value": "Navn"
+    },
+    {
       "id": "styre-og-revisjon.Input-X4c6ij.title",
       "value": "Organisasjonsnummer"
     },
