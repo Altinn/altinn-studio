@@ -42,6 +42,7 @@ export function CreateNewWrapper({
       relativePath,
     });
     setNewModelName('');
+    setNameError('');
   };
 
   const onKeyUp = (e: React.KeyboardEvent) => {

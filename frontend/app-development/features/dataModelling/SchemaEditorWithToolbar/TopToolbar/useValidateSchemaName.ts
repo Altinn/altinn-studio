@@ -18,13 +18,11 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
       return;
     }
     if (!name.match(SCHEMA_NAME_REGEX)) {
-      setNameError(t('schema_editor.invalid_datamodel_name'));
+      setNameError(t('schema_editor.error_invalid_datamodel_name'));
       return;
     }
     if (name.length > SCHEMA_NAME_MAX_LENGTH) {
-      setNameError(
-        t('schema_editor.error_model_name_max_length', { maxLength: SCHEMA_NAME_MAX_LENGTH }),
-      );
+      setNameError(t('validation_errors.maxLength', { 0: SCHEMA_NAME_MAX_LENGTH }));
       return;
     }
     if (isExistingModelName(name, dataModels)) {

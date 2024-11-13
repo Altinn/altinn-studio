@@ -60,7 +60,7 @@ describe('useValidateSchemaName', () => {
       result.current.validateName('123InvalidName');
     });
 
-    expect(result.current.nameError).toBe(textMock('schema_editor.invalid_datamodel_name'));
+    expect(result.current.nameError).toBe(textMock('schema_editor.error_invalid_datamodel_name'));
   });
 
   it('should set error when name exceeds max length', () => {
@@ -72,7 +72,7 @@ describe('useValidateSchemaName', () => {
     });
 
     expect(result.current.nameError).toBe(
-      textMock('schema_editor.error_model_name_max_length', { maxLength: SCHEMA_NAME_MAX_LENGTH }),
+      textMock('validation_errors.maxLength', { 0: SCHEMA_NAME_MAX_LENGTH }),
     );
   });
 
