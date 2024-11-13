@@ -1,6 +1,7 @@
 import type {
   ApplicationMetadata,
   CopyInstanceSettings,
+  DataTypeElement,
   HideSettings,
   MessageBoxConfig,
   OnEntry,
@@ -34,9 +35,16 @@ const mockOnEntry: OnEntry = {
   show: 'select-instance',
 };
 
+const mockDataTypes: DataTypeElement[] = [
+  {
+    id: 'dataTypeId',
+  },
+];
+
 export const mockAppMetadata: ApplicationMetadata = {
   id: 'mockId',
   org,
+  dataTypes: mockDataTypes,
   partyTypesAllowed: mockPartyTypesAllowed,
   validFrom: mockValidFrom,
   validTo: mockValidTo,

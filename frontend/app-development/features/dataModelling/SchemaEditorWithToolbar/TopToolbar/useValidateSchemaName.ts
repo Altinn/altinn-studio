@@ -45,7 +45,7 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
   return { validateName, nameError, setNameError };
 };
 
-const SCHEMA_NAME_MAX_LENGTH: number = 100;
+export const SCHEMA_NAME_MAX_LENGTH: number = 100;
 const SCHEMA_NAME_REGEX: RegExp = /^[a-zA-Z][a-zA-Z0-9_\-æÆøØåÅ]*$/;
 
 const isExistingDataTypeName = (id: string, appMetaData: ApplicationMetadata): DataTypeElement => {
