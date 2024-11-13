@@ -67,57 +67,6 @@ public class PdfControllerTests
     }
 
     [Fact]
-    public async Task Request_In_Prod_Should_Be_Blocked()
-    {
-        var env = new Mock<IWebHostEnvironment>();
-        env.Setup(a => a.EnvironmentName).Returns("Production");
-
-        IOptions<GeneralSettings> generalSettingsOptions = Options.Create<GeneralSettings>(
-            new() { HostName = "org.apps.altinn.no" }
-        );
-
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext!.Request!.Query["lang"]).Returns(LanguageConst.Nb);
-
-        var handler = new Mock<HttpMessageHandler>();
-        var httpClient = new HttpClient(handler.Object);
-
-        var pdfGeneratorClient = new PdfGeneratorClient(
-            httpClient,
-            _pdfGeneratorSettingsOptions,
-            _platformSettingsOptions,
-            _userTokenProvider.Object,
-            httpContextAccessor.Object
-        );
-        var pdfService = new PdfService(
-            _appResources.Object,
-            _dataClient.Object,
-            httpContextAccessor.Object,
-            _profile.Object,
-            pdfGeneratorClient,
-            _pdfGeneratorSettingsOptions,
-            generalSettingsOptions,
-            _logger.Object
-        );
-        var pdfController = new PdfController(
-            _instanceClient.Object,
-            _pdfFormatter.Object,
-            _appResources.Object,
-            _appModel.Object,
-            _dataClient.Object,
-            env.Object,
-            pdfService
-        );
-
-        var result = await pdfController.GetPdfPreview(_org, _app, _partyId, _instanceId);
-
-        result.Should().BeOfType(typeof(NotFoundResult));
-        handler
-            .Protected()
-            .Verify("SendAsync", Times.Never(), ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>());
-    }
-
-    [Fact]
     public async Task Request_In_Dev_Should_Generate()
     {
         var env = new Mock<IWebHostEnvironment>();

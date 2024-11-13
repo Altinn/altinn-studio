@@ -95,7 +95,7 @@ public class PdfService : IPdfService
         Instance instance,
         string taskId,
         CancellationToken ct,
-        Boolean? isPreview = false
+        bool? isPreview = false
     )
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
@@ -116,7 +116,7 @@ public class PdfService : IPdfService
         string language,
         CancellationToken ct,
         TextResource? textResource = null,
-        Boolean? isPreview = false
+        bool? isPreview = false
     )
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
@@ -264,7 +264,7 @@ public class PdfService : IPdfService
         return null;
     }
 
-    private static string? GetPdfPreviewText(TextResource? textResource)
+    private static string GetPdfPreviewText(TextResource? textResource)
     {
         if (textResource is not null)
         {
@@ -278,7 +278,7 @@ public class PdfService : IPdfService
             }
         }
 
-        return null;
+        return "Dette er en forhåndsvisning";
     }
 
     private static string GetValidFileName(string fileName)
@@ -289,7 +289,7 @@ public class PdfService : IPdfService
 
     private static string GetPreviewFooter(TextResource? textResource)
     {
-        string previewText = GetPdfPreviewText(textResource) ?? "Dette er en forhåndsvisning";
+        string previewText = GetPdfPreviewText(textResource);
         return $@"<div style='font-family: Inter; font-size: 12px; width: 100%; display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 0 70px 0 70px;'>
                 <div style='display: flex; flex-direction: row; width: 100%; align-items: center; font-style: italic; color: #e02e49;'>
                     <span>{previewText}</span>
