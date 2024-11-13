@@ -81,6 +81,21 @@ describe('EditLayoutSet', () => {
       layoutSet: subformLayoutSetId,
     });
   });
+
+  it('should close create subform card when close button is clicked', async () => {
+    const user = userEvent.setup();
+    renderEditLayoutSet(subformLayoutSet);
+
+    const createSubformButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_layout_set_button'),
+    });
+    await user.click(createSubformButton);
+
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(closeButton);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
 });
 
 const renderEditLayoutSet = (layoutSetsMock: LayoutSets = layoutSets) => {
