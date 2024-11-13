@@ -3,6 +3,14 @@
   "data": {
     "layout": [
       {
+        "size": "L",
+        "id": "Header-NfIrgi",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "signering-av-stiftelsesdok.Header-NfIrgi.title"
+        }
+      },
+      {
         "id": "NavigationButtons-mkFwZY",
         "showBackButton": true,
         "textResourceBindings": {},
