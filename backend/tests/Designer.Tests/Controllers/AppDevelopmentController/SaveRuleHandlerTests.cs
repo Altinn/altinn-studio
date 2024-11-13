@@ -23,13 +23,6 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         {
         }
 
-        protected override void ConfigureTestServices(IServiceCollection services)
-        {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
-        }
-
         [Theory]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/changename/RuleHandler.js")]
         [InlineData("ttd", "app-with-layoutsets", "testUser", "layoutSet1", "TestData/App/ui/datalist/RuleHandler.js")]
