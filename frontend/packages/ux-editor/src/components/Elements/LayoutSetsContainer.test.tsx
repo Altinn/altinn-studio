@@ -12,10 +12,6 @@ import {
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
-import {
-  addFeatureFlagToLocalStorage,
-  removeFeatureFlagFromLocalStorage,
-} from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data
