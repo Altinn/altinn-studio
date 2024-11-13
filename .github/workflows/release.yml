@@ -16,6 +16,14 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Validate tag
+        env:
+          REGEX: "${{ github.event.release.prerelease && '^v(\\d+)\\.(\\d+)\\.(\\d+)-(preview|rc)\\.\\d+$' ||
+                                                         '^v(\\d+)\\.(\\d+)\\.(\\d+)$' }}"
+        run: |
+          echo "Validating that the tag is in the correct format"
+          echo "${{ github.event.release.tag_name }}" | grep -P $REGEX
+
       - name: checkout
         uses: actions/checkout@v4
         with:
@@ -37,6 +45,7 @@ jobs:
 
       - name: Checkout Altinn-CDN repository
         uses: actions/checkout@v4
+        if: '!env.ACT'
         with:
           repository: 'Altinn/altinn-cdn'
           token: ${{secrets.ALTINN_CDN_TOKEN}}
@@ -44,6 +53,7 @@ jobs:
 
       - name: Azure login
         uses: azure/login@v2
+        if: '!env.ACT'
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
@@ -51,7 +61,7 @@ jobs:
 
       - name: Run release script
         working-directory: app-frontend
-        if: '!github.event.release.prerelease'
+        if: '!env.ACT && !github.event.release.prerelease'
         env:
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
           FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
@@ -68,7 +78,7 @@ jobs:
 
       - name: Run release script (pre-release)
         working-directory: app-frontend
-        if: 'github.event.release.prerelease'
+        if: '!env.ACT && github.event.release.prerelease'
         env:
           FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
           FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
@@ -86,4 +96,5 @@ jobs:
 
       - name: Push to CDN
         working-directory: cdn
+        if: '!env.ACT'
         run: git push

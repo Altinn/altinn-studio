@@ -21,6 +21,11 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Validate tag
+        run: |
+          echo "Validating that the tag is in the correct format"
+          echo "${{ github.event.inputs.tag }}" | grep -P '^v(\d+)\.(\d+)\.(\d+)(-(preview|rc)\.\d+$|$)'
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
