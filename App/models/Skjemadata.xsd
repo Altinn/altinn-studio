@@ -56,7 +56,7 @@
           <xs:complexType>
             <xs:sequence>
               <xs:element name="AksjekapitalSum" type="xs:double" />
-              <xs:element name="Paalydende" type="xs:double" />
+              <xs:element minOccurs="0" name="Paalydende" type="xs:double" />
               <xs:element name="FristForInnbetaling" type="xs:date" />
             </xs:sequence>
           </xs:complexType>
@@ -72,12 +72,30 @@
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
+              <xs:element minOccurs="0" name="HarNestleder" type="xs:string" />
+              <xs:element minOccurs="0" name="Nestleder">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Etternavn" type="xs:string" />
+                    <xs:element name="Foedselsnummer" type="xs:long" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="Styremedlem">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Etternavn" type="xs:string" />
+                    <xs:element name="Foedselsnummer" type="xs:long" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
         <xs:element minOccurs="0" name="Revisor">
           <xs:complexType>
             <xs:sequence>
+              <xs:element name="HarRevisor" type="xs:string" />
               <xs:element name="Organisasjonsnummer" type="xs:long" />
               <xs:element name="Navn" type="xs:string" />
               <xs:element name="Adresse" type="Adresse" />

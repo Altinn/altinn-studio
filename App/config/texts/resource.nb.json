@@ -2,6 +2,106 @@
   "language": "nb",
   "resources": [
     {
+      "id": "styre-og-revisjon.Input-X4c6ij.title",
+      "value": "Organisasjonsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Group-hMnQkh.title",
+      "value": "Revisor"
+    },
+    {
+      "id": "styre-og-revisjon.Group-ZQZ86T.title",
+      "value": "Revisjon av årsregnskap"
+    },
+    {
+      "id": "styre-og-revisjon.Header-13sPak.title",
+      "value": "Revisjon av årsregnskap"
+    },
+    {
+      "id": "styre-og-revisjon.har-nestleder-checkbox.title",
+      "value": "Nestleder"
+    },
+    {
+      "id": "styre-og-revisjon.RadioButtons-lupcRJ.title",
+      "value": "Skal selskapets årsregnskap revideres?"
+    },
+    {
+      "id": "dJkCTKVMUIRE",
+      "value": "Årsregnskapene skal revideres og selskapet skal ha revisor."
+    },
+    {
+      "id": "oaCgQfxaJNG1",
+      "value": "Årsregnskapene skal ikke revideres og selskapet skal ikke ha revisor"
+    },
+    {
+      "id": "JnZveKSrltOi",
+      "value": "Skal styret ha nestleder?"
+    },
+    {
+      "id": "styre-og-revisjon.Checkboxes-OFWMMA.title",
+      "value": "Skal styret ha nestleder?"
+    },
+    {
+      "id": "styre-og-revisjon.RepeatingGroup-ThvmON.title",
+      "value": "Styremedlemmer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-apAWap.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-Xsnqfr.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "styre-og-revisjon.Group-7sWmxA.title",
+      "value": "Nestleder"
+    },
+    {
+      "id": "styre-og-revisjon.Input-jrEjP2.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-O3dFrw.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "styre-og-revisjon.Input-quTwIG.title",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "styre-og-revisjon.Input-pwsJeJ.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "styre-og-revisjon.Group-02BCRt.title",
+      "value": "Styreleder"
+    },
+    {
+      "id": "styre-og-revisjon.Paragraph-XHM2lo.title",
+      "value": "Styret skal ha ett eller flere medlemmer. Består styret av bare en person, skal denne være styreleder."
+    },
+    {
+      "id": "styre-og-revisjon.Header-fX9LfC.title",
+      "value": "Styre"
+    },
+    {
+      "id": "aksjekapital.Header-fwRDii.title",
+      "value": "Aksjekapital"
+    },
+    {
+      "id": "aksjekapital.frist-innbetaling.title",
+      "value": "Frist for innbetaling av aksjeinnskuddet"
+    },
+    {
+      "id": "aksjekapital.paalydende-input.title",
+      "value": "Aksjens pålydende"
+    },
+    {
+      "id": "aksjekapital.aksjekapital-input.title",
+      "value": "Aksjekapital"
+    },
+    {
       "id": "di8UgmCpnzKG",
       "value": "Stifteren er representert ved fullmektig"
     },

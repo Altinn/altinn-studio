@@ -199,8 +199,9 @@ namespace Altinn.App.Models.Skjemadata
     [XmlElement("Paalydende", Order = 2)]
     [JsonProperty("Paalydende")]
     [JsonPropertyName("Paalydende")]
-    [Required]
     public decimal? Paalydende { get; set; }
+
+    public bool ShouldSerializePaalydende() => Paalydende.HasValue;
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("FristForInnbetaling", Order = 3)]
@@ -216,6 +217,21 @@ namespace Altinn.App.Models.Skjemadata
     [JsonProperty("Styreleder")]
     [JsonPropertyName("Styreleder")]
     public Styreleder Styreleder { get; set; }
+
+    [XmlElement("HarNestleder", Order = 2)]
+    [JsonProperty("HarNestleder")]
+    [JsonPropertyName("HarNestleder")]
+    public string HarNestleder { get; set; }
+
+    [XmlElement("Nestleder", Order = 3)]
+    [JsonProperty("Nestleder")]
+    [JsonPropertyName("Nestleder")]
+    public Nestleder Nestleder { get; set; }
+
+    [XmlElement("Styremedlem", Order = 4)]
+    [JsonProperty("Styremedlem")]
+    [JsonPropertyName("Styremedlem")]
+    public List<Styremedlem> Styremedlem { get; set; }
 
   }
 
@@ -235,21 +251,67 @@ namespace Altinn.App.Models.Skjemadata
 
   }
 
+  public class Nestleder
+  {
+    [XmlElement("Etternavn", Order = 1)]
+    [JsonProperty("Etternavn")]
+    [JsonPropertyName("Etternavn")]
+    public string Etternavn { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("Foedselsnummer", Order = 2)]
+    [JsonProperty("Foedselsnummer")]
+    [JsonPropertyName("Foedselsnummer")]
+    [Required]
+    public decimal? Foedselsnummer { get; set; }
+
+  }
+
+  public class Styremedlem
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("Etternavn", Order = 1)]
+    [JsonProperty("Etternavn")]
+    [JsonPropertyName("Etternavn")]
+    public string Etternavn { get; set; }
+
+    [Range(Double.MinValue,Double.MaxValue)]
+    [XmlElement("Foedselsnummer", Order = 2)]
+    [JsonProperty("Foedselsnummer")]
+    [JsonPropertyName("Foedselsnummer")]
+    public decimal? Foedselsnummer { get; set; }
+
+    public bool ShouldSerializeFoedselsnummer() => Foedselsnummer.HasValue;
+
+  }
+
   public class Revisor
   {
+    [XmlElement("HarRevisor", Order = 1)]
+    [JsonProperty("HarRevisor")]
+    [JsonPropertyName("HarRevisor")]
+    public string HarRevisor { get; set; }
+
     [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("Organisasjonsnummer", Order = 1)]
+    [XmlElement("Organisasjonsnummer", Order = 2)]
     [JsonProperty("Organisasjonsnummer")]
     [JsonPropertyName("Organisasjonsnummer")]
     [Required]
     public decimal? Organisasjonsnummer { get; set; }
 
-    [XmlElement("Navn", Order = 2)]
+    [XmlElement("Navn", Order = 3)]
     [JsonProperty("Navn")]
     [JsonPropertyName("Navn")]
     public string Navn { get; set; }
 
-    [XmlElement("Adresse", Order = 3)]
+    [XmlElement("Adresse", Order = 4)]
     [JsonProperty("Adresse")]
     [JsonPropertyName("Adresse")]
     public Adresse Adresse { get; set; }

@@ -148,7 +148,6 @@
       },
       "required": [
         "AksjekapitalSum",
-        "Paalydende",
         "FristForInnbetaling"
       ]
     },
@@ -169,6 +168,43 @@
             "Etternavn",
             "Foedselsnummer"
           ]
+        },
+        "HarNestleder": {
+          "type": "string"
+        },
+        "Nestleder": {
+          "type": "object",
+          "properties": {
+            "Etternavn": {
+              "type": "string"
+            },
+            "Foedselsnummer": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "Etternavn",
+            "Foedselsnummer"
+          ]
+        },
+        "Styremedlem": {
+          "type": "array",
+          "uniqueItems": false,
+          "items": {
+            "type": "object",
+            "properties": {
+              "Etternavn": {
+                "type": "string"
+              },
+              "Foedselsnummer": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "Etternavn",
+              "Foedselsnummer"
+            ]
+          }
         }
       },
       "required": [
@@ -178,6 +214,9 @@
     "Revisor": {
       "type": "object",
       "properties": {
+        "HarRevisor": {
+          "type": "string"
+        },
         "Organisasjonsnummer": {
           "type": "integer"
         },
@@ -189,6 +228,7 @@
         }
       },
       "required": [
+        "HarRevisor",
         "Organisasjonsnummer",
         "Navn",
         "Adresse"
