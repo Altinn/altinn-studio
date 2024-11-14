@@ -5,7 +5,11 @@ import { CogIcon } from '@studio/icons';
 import {
   StudioModal,
   StudioContentMenu,
+<<<<<<< HEAD
   type StudioContentMenuButtonTabProps,
+=======
+  StudioContentMenuButtonTabProps,
+>>>>>>> b99c16b37 (hide maskinporten behind featureflag)
 } from '@studio/components';
 import type { SettingsModalTabId } from '../../../../../types/SettingsModalTabId';
 import { useTranslation } from 'react-i18next';
