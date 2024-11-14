@@ -48,6 +48,7 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
         <StudioButton
           className={classes.headingButton}
           color='second'
+          size='small'
           icon={<NodeIcon node={node} />}
           onClick={selectNodeRoot}
           variant='tertiary'

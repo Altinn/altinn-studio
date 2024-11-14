@@ -1,7 +1,6 @@
 import React from 'react';
-import { Alert, Tabs } from '@digdir/designsystemet-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { isField, isObject } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
@@ -20,24 +19,19 @@ export const SchemaInspector = () => {
   }
 
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
-  const shouldDisplayFieldsTab = isField(selectedItem) && isObject(selectedItem);
 
   return (
-    <Tabs defaultValue={t('schema_editor.properties')} className={classes.root}>
+    <Tabs defaultValue='Properties' className={classes.root}>
       <Tabs.List>
-        <Tabs.Tab value={t('schema_editor.properties')}>{t('schema_editor.properties')}</Tabs.Tab>
-        <Tabs.Tab value={t('schema_editor.fields')}>{t('schema_editor.fields')}</Tabs.Tab>
+        <Tabs.Tab value='Properties'>{t('schema_editor.properties')}</Tabs.Tab>
+        <Tabs.Tab value='Fields'>{t('schema_editor.fields')}</Tabs.Tab>
       </Tabs.List>
-      <Tabs.Content value={t('schema_editor.properties')}>
+      <Tabs.Content value='Properties'>
         <ItemPropertiesTab selectedItem={selectedItem} />
       </Tabs.Content>
-      {shouldDisplayFieldsTab ? (
-        <Tabs.Content value={t('schema_editor.fields')}>
-          <ItemFieldsTab selectedItem={selectedItem} />
-        </Tabs.Content>
-      ) : (
-        <Alert severity='info'>{t('app_data_modelling.fields_information')}</Alert>
-      )}
+      <Tabs.Content value='Fields'>
+        <ItemFieldsTab selectedItem={selectedItem} />
+      </Tabs.Content>
     </Tabs>
   );
 };
