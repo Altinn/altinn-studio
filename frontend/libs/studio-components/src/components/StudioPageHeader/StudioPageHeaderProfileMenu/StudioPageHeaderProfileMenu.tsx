@@ -1,7 +1,7 @@
 import React, { type ReactNode, type ReactElement, useState } from 'react';
 import classes from './StudioPageHeaderProfileMenu.module.css';
 import { DropdownMenu, type DropdownMenuItemProps } from '@digdir/designsystemet-react';
-import { StudioPageHeaderButton } from '../StudioPageHeaderButton';
+import { StudioPageHeaderHeaderButton } from '../StudioPageHeaderHeaderButton';
 import { type StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import { type StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 import { type StudioProfileMenuItem } from './types/StudioProfileMenuItem';
@@ -37,7 +37,7 @@ export const StudioPageHeaderProfileMenu = ({
   return (
     <DropdownMenu onClose={close} open={open} size='sm'>
       <DropdownMenu.Trigger asChild>
-        <StudioPageHeaderButton
+        <StudioPageHeaderHeaderButton
           className={classes.triggerButton}
           onClick={toggleMenu}
           color={color}
@@ -47,7 +47,7 @@ export const StudioPageHeaderProfileMenu = ({
         >
           <span className={classes.triggerButtonText}>{triggerButtonText}</span>
           {profileImage}
-        </StudioPageHeaderButton>
+        </StudioPageHeaderHeaderButton>
       </DropdownMenu.Trigger>
       <StudioPageHeaderMenuContent profileMenuGroups={profileMenuGroups} onClickItem={close} />
     </DropdownMenu>

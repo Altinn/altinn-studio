@@ -5,11 +5,13 @@ import classes from './StudioInputTable.module.css';
 import cn from 'classnames';
 import { useForwardedRef } from '@studio/hooks';
 import { activateTabbingOnFirstInputElement } from './dom-utils/activateTabbingOnFirstInputElement';
+import type { StudioInputTableContextValue } from './StudioInputTableContext';
+import { StudioInputTableContext } from './StudioInputTableContext';
 
-export type StudioInputTableProps = StudioTableProps;
+export type StudioInputTableProps = StudioTableProps & StudioInputTableContextValue;
 
 export const StudioInputTable = forwardRef<HTMLTableElement, StudioInputTableProps>(
-  ({ className: givenClass, children, ...rest }, ref) => {
+  ({ onChangeAny, onFocusAny, onBlurAny, className: givenClass, children, ...rest }, ref) => {
     const className = cn(classes.inputTable, givenClass);
     const forwardedRef = useForwardedRef<HTMLTableElement>(ref);
     const internalRef = useCallback(
@@ -20,9 +22,11 @@ export const StudioInputTable = forwardRef<HTMLTableElement, StudioInputTablePro
       [forwardedRef],
     );
     return (
-      <StudioTable ref={internalRef} className={className} {...rest}>
-        {children}
-      </StudioTable>
+      <StudioInputTableContext.Provider value={{ onChangeAny, onBlurAny, onFocusAny }}>
+        <StudioTable ref={internalRef} className={className} {...rest}>
+          {children}
+        </StudioTable>
+      </StudioInputTableContext.Provider>
     );
   },
 );

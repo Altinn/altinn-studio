@@ -67,7 +67,7 @@ public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<We
     [InlineData("test/", "", false)]
     public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
     {
-        string url = $"{VersionPrefix("xyz", "dummyRepo")}/new";
+        string url = $"{VersionPrefix("xyz", "dummyrepo")}/new";
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };

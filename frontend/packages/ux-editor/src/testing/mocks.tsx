@@ -14,6 +14,7 @@ import type { AppContextProps } from '../AppContext';
 import { AppContext } from '../AppContext';
 import { appContextMock } from './appContextMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { PreviewContext, type PreviewContextProps } from 'app-development/contexts/PreviewContext';
 
 export const formLayoutSettingsMock: ILayoutSettings = {
   pages: {
@@ -25,23 +26,35 @@ export const textLanguagesMock = ['nb', 'nn', 'en'];
 
 export const optionListIdsMock: string[] = ['test-1', 'test-2'];
 
+const defaultPreviewContextProps: PreviewContextProps = {
+  shouldReloadPreview: false,
+  doReloadPreview: jest.fn(),
+  previewHasLoaded: jest.fn(),
+};
+
 type WrapperArgs = {
   queries: Partial<ServicesContextProps>;
   queryClient: QueryClient;
   appContextProps: Partial<AppContextProps>;
+  previewContextProps?: Partial<PreviewContextProps>;
 };
 
 const wrapper = ({
   queries = {},
   queryClient = queryClientMock,
   appContextProps = {},
+  previewContextProps = {},
 }: WrapperArgs) => {
   const renderComponent = (component: ReactNode) => (
     <MemoryRouter>
       <ServicesContextProvider {...queriesMock} {...queries} client={queryClient}>
         <PreviewConnectionContextProvider>
           <AppContext.Provider value={{ ...appContextMock, ...appContextProps }}>
-            {component}
+            <PreviewContext.Provider
+              value={{ ...defaultPreviewContextProps, ...previewContextProps }}
+            >
+              {component}
+            </PreviewContext.Provider>
           </AppContext.Provider>
         </PreviewConnectionContextProvider>
       </ServicesContextProvider>
@@ -54,11 +67,17 @@ export interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   queries?: Partial<ServicesContextProps>;
   queryClient?: QueryClient;
   appContextProps?: Partial<AppContextProps>;
+  previewContextProps?: Partial<PreviewContextProps>;
 }
 
 export const renderHookWithProviders = (
   hook: () => any,
-  { queries = {}, queryClient = queryClientMock, appContextProps = {} }: ExtendedRenderOptions = {},
+  {
+    queries = {},
+    queryClient = queryClientMock,
+    appContextProps = {},
+    previewContextProps = {},
+  }: ExtendedRenderOptions = {},
 ) => {
   return renderHook(hook, {
     wrapper: ({ children }) =>
@@ -66,6 +85,7 @@ export const renderHookWithProviders = (
         queries,
         queryClient,
         appContextProps,
+        previewContextProps,
       })(children),
   });
 };
@@ -76,6 +96,7 @@ export const renderWithProviders = (
     queries = {},
     queryClient = queryClientMock,
     appContextProps = {},
+    previewContextProps = {},
     ...renderOptions
   }: Partial<ExtendedRenderOptions> = {},
 ) => {
@@ -86,6 +107,7 @@ export const renderWithProviders = (
           queries,
           queryClient,
           appContextProps,
+          previewContextProps,
         })(children),
       ...renderOptions,
     }),

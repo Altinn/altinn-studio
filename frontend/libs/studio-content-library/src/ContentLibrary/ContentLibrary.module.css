@@ -1,7 +1,7 @@
 .libraryBackground {
   display: flex;
   background-color: var(--fds-semantic-surface-info-subtle);
-  --padding-library: var(--fds-spacing-5);
+  --padding-library: var(--fds-spacing-6);
   padding: var(--padding-library);
   height: calc(100% - 2 * var(--padding-library));
 }

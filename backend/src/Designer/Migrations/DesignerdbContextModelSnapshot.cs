@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Migrations
                         .HasColumnType("character varying")
                         .HasColumnName("app");
 
-                    b.Property<DateTime>("Created")
+                    b.Property<DateTimeOffset>("Created")
                         .HasColumnType("timestamptz")
                         .HasColumnName("created");
 
@@ -57,6 +57,12 @@ namespace Altinn.Studio.Designer.Migrations
                         .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("scopes");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id")
                         .HasName("app_scopes_pkey");
