@@ -1,13 +1,14 @@
-import { StudioTreeView, StudioDragAndDrop } from '@studio/components';
+import { StudioTreeView } from '../../StudioTreeView';
+import { StudioDragAndDrop } from '../../StudioDragAndDrop';
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
-import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
-import { DragAndDropTreeItemContext } from './DragAndDropTreeItemContext';
+import { StudioDragAndDropTreeRootContext } from '../StudioDragAndDropTreeRoot';
+import { StudioDragAndDropTreeItemContext } from './StudioDragAndDropTreeItemContext';
 import classes from './DragAndDropTreeItem.module.css';
 import cn from 'classnames';
-import { EmptyList } from 'app-shared/components/DragAndDropTree/EmptyList/EmptyList';
+import { StudioEmptyList } from '../StudioEmptyList';
 
-export interface DragAndDropTreeItemProps {
+export interface StudioDragAndDropTreeItemProps {
   children?: ReactNode;
   emptyMessage?: string;
   expandable?: boolean;
@@ -18,7 +19,7 @@ export interface DragAndDropTreeItemProps {
   title?: string;
 }
 
-export const DragAndDropTreeItem = ({
+export const StudioDragAndDropTreeItem = ({
   children,
   emptyMessage,
   expandable,
@@ -27,9 +28,9 @@ export const DragAndDropTreeItem = ({
   labelWrapper,
   nodeId,
   title,
-}: DragAndDropTreeItemProps) => {
-  const { hoveredNodeParent, setHoveredNodeParent } = useContext(DragAndDropTreeRootContext);
-  const { nodeId: parentId } = useContext(DragAndDropTreeItemContext);
+}: StudioDragAndDropTreeItemProps) => {
+  const { hoveredNodeParent, setHoveredNodeParent } = useContext(StudioDragAndDropTreeRootContext);
+  const { nodeId: parentId } = useContext(StudioDragAndDropTreeItemContext);
 
   const isExpandable = expandable || Boolean(children);
   const renderLabel = labelWrapper ?? ((node) => node);
@@ -43,7 +44,7 @@ export const DragAndDropTreeItem = ({
       itemId={nodeId}
       onDragOver={handleDragOver}
       renderItem={(dragHandleRef) => (
-        <DragAndDropTreeItemContext.Provider value={{ nodeId }}>
+        <StudioDragAndDropTreeItemContext.Provider value={{ nodeId }}>
           <StudioTreeView.Item
             as='div'
             className={cn(classes.item, hasHoveredItemClass)}
@@ -59,13 +60,13 @@ export const DragAndDropTreeItem = ({
           >
             {isExpandable && renderChildren(children, emptyMessage)}
           </StudioTreeView.Item>
-        </DragAndDropTreeItemContext.Provider>
+        </StudioDragAndDropTreeItemContext.Provider>
       )}
     />
   );
 };
 
 const renderChildren = (children: ReactNode, emptyMessage?: string) => {
-  const content = children || <EmptyList>{emptyMessage}</EmptyList>;
+  const content = children || <StudioEmptyList>{emptyMessage}</StudioEmptyList>;
   return <StudioDragAndDrop.List>{content}</StudioDragAndDrop.List>;
 };
