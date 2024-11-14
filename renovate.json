@@ -22,10 +22,7 @@
   "ignorePaths": ["testdata/**", "src/**"],
   "ignoreDeps": [
     "Moq",
-    "Altinn.App.Core",
-    "Microsoft.CodeAnalysis.CSharp",
-    "Microsoft.CodeAnalysis.Common",
-    "Basic.Reference.Assemblies"
+    "Altinn.App.Core"
   ],
   "schedule": ["before 07:00 on Monday"]
 }
