@@ -41,6 +41,7 @@
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
     <PackageReference Include="Microsoft.Azure.KeyVault" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
@@ -58,7 +59,6 @@
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
-    <PackageReference Include="Swashbuckle.AspNetCore" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(CodeAnalisysCompatibleVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(CodeAnalisysCompatibleVersion)" />
   </ItemGroup>

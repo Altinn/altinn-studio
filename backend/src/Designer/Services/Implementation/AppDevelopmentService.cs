@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -529,6 +530,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             return indexFilePath is not null && AppFrontendVersionHelper.TryGetFrontendVersionFromIndexFile(indexFilePath, out version);
+        }
+
+        public async Task AddComponentToLayout(
+                AltinnRepoEditingContext editingContext,
+                string layoutSetName,
+                string layoutName,
+                object component,
+                CancellationToken cancellationToken = default)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer
+            );
+            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, $"{layoutName}.json", cancellationToken);
+            if (formLayout["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
+            {
+                throw new InvalidOperationException("Invalid form layout structure");
+            }
+            layoutArray.Add(component);
+            await SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
         }
     }
 }
