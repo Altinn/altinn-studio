@@ -1,8 +1,8 @@
 import { getSelectedOptionsType } from '@altinn/ux-editor/utils/optionsUtils';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import classes from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions.module.css';
-import { EditCodeList, EditCodeListReference } from './EditCodeList';
+import classes from './OptionTabs.module.css';
+import { EditOptionList, EditOptionListReference } from './EditOptionList';
 import { SelectedOptionsType } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
@@ -65,7 +65,7 @@ export const OptionTabs = ({
         className={classes.codelistTabContent}
         value={SelectedOptionsType.CodeList}
       >
-        <EditCodeList component={component} handleComponentChange={handleComponentChange} />
+        <EditOptionList component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.Manual} className={classes.manualTabContent}>
         <RenderManualOptions
@@ -78,7 +78,7 @@ export const OptionTabs = ({
         value={SelectedOptionsType.ReferenceId}
         className={classes.codelistTabContent}
       >
-        <EditCodeListReference
+        <EditOptionListReference
           component={component}
           handleComponentChange={handleComponentChange}
         />
@@ -109,7 +109,7 @@ const RenderManualOptions = ({
 
   return (
     <>
-      {shouldDisplayFeature('codeListEditor') ? (
+      {shouldDisplayFeature('optionListEditor') ? (
         <EditManualOptionsWithEditor
           component={component}
           handleComponentChange={handleComponentChange}

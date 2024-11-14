@@ -3,6 +3,7 @@ import { ResourceItem } from '../ResourceItem';
 import classes from './Resources.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioHeading } from '@studio/components';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 interface Resource {
   label: string;
@@ -155,7 +156,7 @@ const resources: Resource[] = [
   {
     label: 'dashboard.resource_roadmap_label',
     description: 'dashboard.resource_roadmap_description',
-    url: 'https://docs.altinn.studio/nb/community/roadmap/',
+    url: altinnDocsUrl({ relativeUrl: 'community/roadmap/' }),
     icon: (
       <svg
         width='60'

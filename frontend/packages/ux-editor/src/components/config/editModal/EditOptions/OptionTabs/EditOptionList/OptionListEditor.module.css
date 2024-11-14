@@ -1,0 +1,16 @@
+.editOptionTabModal[open] {
+  --code-list-modal-min-width: min(80rem, 100%);
+  --code-list-modal-height: min(40rem, 100%);
+
+  min-width: var(--code-list-modal-min-width);
+  height: var(--code-list-modal-height);
+}
+
+.modalTrigger {
+  margin-top: var(--fds-spacing-2);
+  width: fit-content;
+}
+
+.content {
+  height: 100%;
+}
