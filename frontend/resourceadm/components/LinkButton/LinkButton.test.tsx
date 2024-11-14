@@ -8,6 +8,7 @@ describe('LinkButton', () => {
   const mockOnClick = jest.fn();
 
   const defaultProps: LinkButtonProps = {
+    page: 'about',
     onClick: mockOnClick,
     children: 'Click Me',
   };
@@ -16,7 +17,7 @@ describe('LinkButton', () => {
     const user = userEvent.setup();
     render(<LinkButton {...defaultProps} />);
 
-    const linkButton = screen.getByRole('button', { name: /click me/i });
+    const linkButton = screen.getByText(/click me/i);
     await user.click(linkButton);
 
     expect(mockOnClick).toHaveBeenCalled();
