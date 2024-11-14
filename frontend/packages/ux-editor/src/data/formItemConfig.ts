@@ -627,6 +627,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Grid,
     ComponentType.Accordion,
     ComponentType.AccordionGroup,
+    ComponentType.ButtonGroup,
     ComponentType.List,
     ComponentType.RepeatingGroup,
   ],
