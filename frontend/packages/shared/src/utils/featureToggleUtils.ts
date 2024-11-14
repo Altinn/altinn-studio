@@ -13,7 +13,8 @@ export type SupportedFeatureFlags =
   | 'addComponentModal'
   | 'subform'
   | 'summary2'
-  | 'codeListEditor';
+  | 'codeListEditor'
+  | 'maskinporten';
 
 /*
  * Please add all the features that you want to be toggle on by default here.
