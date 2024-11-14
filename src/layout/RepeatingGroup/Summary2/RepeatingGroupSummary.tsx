@@ -10,6 +10,7 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import { useRepeatingGroupRowState } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import classes from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupSummary.module.css';
+import { RepeatingGroupTableSummary } from 'src/layout/RepeatingGroup/Summary2/RepeatingGroupTableSummary/RepeatingGroupTableSummary';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
@@ -18,10 +19,12 @@ import { useNodeItem } from 'src/utils/layout/useNodeItem';
 export const RepeatingGroupSummary = ({
   componentNode,
   isCompact,
+  display,
   emptyFieldText,
 }: {
   componentNode: BaseLayoutNode<'RepeatingGroup'>;
   isCompact?: boolean;
+  display?: 'table' | 'full';
   emptyFieldText?: string;
 }) => {
   const { visibleRows } = useRepeatingGroupRowState();
@@ -42,6 +45,10 @@ export const RepeatingGroupSummary = ({
         emptyFieldText={emptyFieldText}
       />
     );
+  }
+
+  if (display === 'table' && componentNode) {
+    return <RepeatingGroupTableSummary componentNode={componentNode} />;
   }
 
   return (

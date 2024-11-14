@@ -23,6 +23,31 @@ describe('Group summary test', () => {
       });
   });
 
+  it('Displays a summary for a filled repeating group in table', () => {
+    const inputValue = 'Test input for group';
+
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .first()
+      .click();
+    cy.findByRole('textbox', { name: /Navn/ }).type(inputValue);
+    cy.findAllByRole('button', { name: /Lagre og lukk/ })
+      .first()
+      .click();
+    cy.findAllByRole('button', { name: /Legg til ny/ })
+      .first()
+      .click();
+    cy.findByRole('textbox', { name: /Navn/ }).type(inputValue);
+    cy.findAllByRole('button', { name: /Lagre og lukk/ })
+      .first()
+      .click();
+
+    cy.get('div[data-testid="summary-repeating-group-component"] > table').within(() => {
+      cy.findAllByRole('row').should('have.length', 3);
+      cy.findByRole('columnheader', { name: /Navn/ }).should('exist');
+      cy.findAllByRole('cell', { name: inputValue }).first().should('exist');
+    });
+  });
+
   it('Fills in an input in the nested repeating group, the text appears in summary', () => {
     const inputValue = 'Test input inside nested repeating group';
 

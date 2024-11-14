@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import type { JSX } from 'react';
 
+import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { TextDef } from 'src/layout/Text/config.def.generated';
 import { TextComponent } from 'src/layout/Text/TextComponent';
 import type { DisplayDataProps } from 'src/features/displayData';
@@ -15,6 +16,11 @@ export class Text extends TextDef {
       return '';
     }
     return text;
+  }
+
+  useDisplayData(node: LayoutNode<'Text'>): string {
+    const displayDataProps = useDisplayDataProps();
+    return this.getDisplayData(node, displayDataProps);
   }
 
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'Text'>>(

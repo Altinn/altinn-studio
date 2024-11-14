@@ -25,7 +25,7 @@ export const RepeatingGroupTableTitle = ({ node, columnSettings }: IProps) => {
   );
 };
 
-function useTableTitle(node: LayoutNode) {
+export function useTableTitle(node: LayoutNode) {
   const textResourceBindings = useNodeItem(node, (i) => i.textResourceBindings);
 
   if (!textResourceBindings) {

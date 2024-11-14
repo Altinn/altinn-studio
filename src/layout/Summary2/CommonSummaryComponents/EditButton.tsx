@@ -17,7 +17,7 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type EditButtonProps = {
   componentNode: LayoutNode;
-  summaryComponentId: string;
+  summaryComponentId?: string;
   navigationOverride?: (() => Promise<NavigationResult> | void) | null;
 } & React.HTMLAttributes<HTMLButtonElement>;
 

@@ -11,7 +11,9 @@ export function useTableNodes(node: LayoutNode<'RepeatingGroup'>, restriction: T
 
   return useMemo(() => {
     const nodes = children.filter((child) =>
-      tableHeaders ? tableHeaders.includes(child.baseId) : child.isCategory(CompCategory.Form),
+      tableHeaders
+        ? tableHeaders.includes(child.baseId)
+        : child.isCategory(CompCategory.Form) || child.isType('Text') || child.isType('Number') || child.isType('Date'),
     );
 
     // Sort using the order from tableHeaders

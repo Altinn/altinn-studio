@@ -1,0 +1,32 @@
+{
+  "name": "Display value of Date component",
+  "expression": [
+    "displayValue",
+    "dag"
+  ],
+  "context": {
+    "component": "dag",
+    "currentLayout": "Page"
+  },
+  "expects": "21.07.2023",
+  "layouts": {
+    "Page": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "dag",
+            "type": "Date",
+            "value": ["dataModel", "Skjema.Dag"],
+            "format": "dd.MM.yyyy"
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Skjema": {
+      "Dag": "2023-07-21"
+    }
+  }
+}

@@ -14,6 +14,7 @@ import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation
 import type { BaseValidation, ComponentValidation, ValidationDataSources } from 'src/features/validation';
 import type { ExprResolver, SummaryRendererProps } from 'src/layout/LayoutComponent';
 import type { GroupExpressions, RepGroupInternal, RepGroupRowExtras } from 'src/layout/RepeatingGroup/types';
+import type { RepeatingGroupSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
@@ -84,6 +85,7 @@ export class RepeatingGroup extends RepeatingGroupDef implements ValidateCompone
           componentNode={props.target}
           isCompact={props.isCompact}
           emptyFieldText={props.override?.emptyFieldText}
+          display={(props.override as RepeatingGroupSummaryOverrideProps)?.display}
         />
       </RepeatingGroupProvider>
     );
