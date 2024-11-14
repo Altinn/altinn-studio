@@ -58,7 +58,7 @@ public class OptionsService : IOptionsService
         }
         catch (ValidationException)
         {
-            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in file: {optionsListId}.");
+            throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in option list: {optionsListId}.");
         }
 
 

@@ -18,7 +18,7 @@ public class OptionsServiceTests
     public async Task GetOptionsListIds_ShouldReturnOptionsListIds_WhenOptionsListsExist()
     {
         // Arrange
-        const string repo = "app-with-options"; // Has 3 options lists
+        const string repo = "app-with-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
@@ -34,7 +34,7 @@ public class OptionsServiceTests
     public async Task GetOptionsListIds_ShouldReturnEmptyArray_WhenOptionsListsDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app"; // Has no options lists
+        const string repo = "empty-app";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
@@ -50,7 +50,6 @@ public class OptionsServiceTests
     public async Task GetOptionsList_ShouldReturnOptionsList_WhenOptionsExists()
     {
         // Arrange
-        // This  options list matches the options in 'app-with-options'
         var expectedOptions = new List<Option>
         {
             new Option
@@ -90,7 +89,7 @@ public class OptionsServiceTests
     public async Task GetOptionsList_ShouldThrowNotFoundException_WhenOptionsListDoesNotExist()
     {
         // Arrange
-        const string repo = "empty-app"; // Has no options lists
+        const string repo = "empty-app";
         const string optionListId = "test-options";
 
         var optionsService = GetOptionsServiceForTest();
@@ -120,7 +119,7 @@ public class OptionsServiceTests
             }
         };
 
-        const string repo = "empty-app"; // Has no options lists
+        const string repo = "empty-app";
         const string optionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
@@ -160,13 +159,13 @@ public class OptionsServiceTests
         };
 
         const string repo = "app-with-options";
-        const string optionListId = "test-options"; // Name of an existing options list
+        const string existingOptionListId = "test-options";
         string targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         // Act
         var optionsService = GetOptionsServiceForTest();
-        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, optionListId, newOptions);
+        var updatedOptions = await optionsService.CreateOrOverwriteOptionsList(Org, targetRepository, Developer, existingOptionListId, newOptions);
 
         // Assert
         Assert.Equal(updatedOptions.Count, updatedOptions.Count);

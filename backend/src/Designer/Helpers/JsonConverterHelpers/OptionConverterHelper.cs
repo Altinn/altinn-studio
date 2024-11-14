@@ -33,7 +33,7 @@ public class OptionValueConverter : JsonConverter<object>
                 writer.WriteBooleanValue(b);
                 break;
             default:
-                throw new InvalidOptionsFormatException($"{value} is an unsupported type for Value field.");
+                throw new InvalidOptionsFormatException($"{value} is an unsupported type for Value field. Accepted types are string, double and bool.");
         }
     }
 }
