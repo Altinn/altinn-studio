@@ -1,0 +1,13 @@
+.componentButton {
+  margin: 8px;
+  width: 160px;
+  height: 100px;
+  overflow: wrap;
+}
+
+.componentButtonInline {
+  height: 80px;
+  width: 140px;
+  margin: 8px;
+  padding: 2px;
+}
