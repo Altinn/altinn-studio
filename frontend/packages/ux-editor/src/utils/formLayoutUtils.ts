@@ -500,13 +500,31 @@ export const getAvailableChildComponentsForContainer = (
   layout: IInternalLayout,
   containerId: string,
 ): KeyValuePairs<IToolbarElement[]> => {
-  if (containerId !== BASE_CONTAINER_ID) return {};
   const allComponentLists: KeyValuePairs<IToolbarElement[]> = {};
-  Object.keys(allComponents).forEach((key) => {
-    allComponentLists[key] = allComponents[key].map((element: ComponentType) =>
-      mapComponentToToolbarElement(formItemConfigs[element]),
-    );
-  });
+
+  if (containerId !== BASE_CONTAINER_ID) {
+    const containerType = layout.containers[containerId].type;
+    if (formItemConfigs[containerType]?.validChildTypes) {
+      Object.keys(allComponents).forEach((key) => {
+        const componentListForKey = [];
+        allComponents[key].forEach((element: ComponentType) => {
+          if (formItemConfigs[containerType].validChildTypes.includes(element)) {
+            componentListForKey.push(mapComponentToToolbarElement(formItemConfigs[element]));
+          }
+        });
+
+        if (componentListForKey.length > 0) {
+          allComponentLists[key] = componentListForKey;
+        }
+      });
+    }
+  } else {
+    Object.keys(allComponents).forEach((key) => {
+      allComponentLists[key] = allComponents[key].map((element: ComponentType) =>
+        mapComponentToToolbarElement(formItemConfigs[element]),
+      );
+    });
+  }
   return allComponentLists;
 };
 
@@ -520,7 +538,17 @@ export const getDefaultChildComponentsForContainer = (
   layout: IInternalLayout,
   containerId: string,
 ): IToolbarElement[] => {
-  if (containerId !== BASE_CONTAINER_ID) return [];
+  if (containerId !== BASE_CONTAINER_ID) {
+    const containerType = layout.containers[containerId].type;
+    if (
+      formItemConfigs[containerType]?.validChildTypes &&
+      formItemConfigs[containerType].validChildTypes.length < 10
+    ) {
+      return formItemConfigs[containerType].validChildTypes.map((element: ComponentType) =>
+        mapComponentToToolbarElement(formItemConfigs[element]),
+      );
+    }
+  }
   const defaultComponentLists: IToolbarElement[] = [];
   defaultComponents.forEach((element) => {
     defaultComponentLists.push(mapComponentToToolbarElement(formItemConfigs[element]));

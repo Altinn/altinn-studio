@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
-import { AddItemModal } from '../../AddItemModal';
+import { AddItem } from '../../AddItem';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemProps = {
@@ -50,7 +50,7 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
     >
       {renderItemList(layout, duplicateComponents, id)}
       {isContainer(layout, id) && shouldDisplayFeature('addComponentModal') && (
-        <AddItemModal containerId={id} layout={layout} />
+        <AddItem containerId={id} layout={layout} />
       )}
     </StudioDragAndDropTree.Item>
   );
