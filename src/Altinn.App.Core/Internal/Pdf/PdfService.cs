@@ -84,19 +84,19 @@ public class PdfService : IPdfService
 
         TextResource? textResource = await GetTextResource(instance, language);
 
-        var pdfContent = await GeneratePdfContent(instance, language, ct, textResource, null);
+        var pdfContent = await GeneratePdfContent(instance, language, false, ct);
+
+        Console.WriteLine("\n\n\n\n\n\n");
+
+        Console.WriteLine(pdfContent);
+        Console.WriteLine("\n\n\n\n\n\n");
 
         string fileName = GetFileName(instance, textResource);
         await _dataClient.InsertBinaryData(instance.Id, PdfElementType, PdfContentType, fileName, pdfContent, taskId);
     }
 
     /// <inheritdoc/>
-    public async Task<Stream> GeneratePdf(
-        Instance instance,
-        string taskId,
-        CancellationToken ct,
-        bool? isPreview = false
-    )
+    public async Task<Stream> GeneratePdf(Instance instance, string taskId, bool isPreview, CancellationToken ct)
     {
         using var activity = _telemetry?.StartGeneratePdfActivity(instance, taskId);
 
@@ -106,17 +106,14 @@ public class PdfService : IPdfService
 
         var language = GetOverriddenLanguage(queries) ?? await GetLanguage(user);
 
-        TextResource? textResource = await GetTextResource(instance, language);
-
-        return await GeneratePdfContent(instance, language, ct, textResource, isPreview);
+        return await GeneratePdfContent(instance, language, isPreview, ct);
     }
 
     private async Task<Stream> GeneratePdfContent(
         Instance instance,
         string language,
-        CancellationToken ct,
-        TextResource? textResource = null,
-        bool? isPreview = false
+        bool isPreview,
+        CancellationToken ct
     )
     {
         var baseUrl = _generalSettings.FormattedExternalAppBaseUrl(new AppIdentifier(instance));
@@ -127,6 +124,8 @@ public class PdfService : IPdfService
         Uri uri = BuildUri(baseUrl, pagePath, language);
 
         bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
+
+        TextResource? textResource = await GetTextResource(instance, language);
 
         string? footerContent = null;
 
