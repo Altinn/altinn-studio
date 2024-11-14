@@ -4,7 +4,7 @@ import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
-import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
+import { extractModelNamesFromMetadataList } from '../../../utils/metadataUtils';
 
 export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
   const [nameError, setNameError] = useState('');

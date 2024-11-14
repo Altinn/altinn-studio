@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
-import { useValidateSchemaName } from './useValidateSchemaName';
+import { useValidateSchemaName } from '../../hooks/useValidateSchemaName';
 import cn from 'classnames';
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 
@@ -48,7 +48,6 @@ export function CreateNewWrapper({
 
   const handleKeyUp = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && isConfirmButtonActivated) {
-      console.log(!disabled);
       handleConfirm();
     }
   };

@@ -7,9 +7,9 @@ import { renderHook, act } from '@testing-library/react';
 import {
   dataModel1NameMock,
   jsonMetadata1Mock,
-} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+} from '../../../../packages/schema-editor/test/mocks/metadataMocks';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { mockAppMetadata } from '../../../../layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/applicationMetadataMock';
+import { mockAppMetadata } from '../../../layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/mocks/applicationMetadataMock';
 
 //Test data
 const org = 'test-org';
