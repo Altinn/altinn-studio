@@ -1347,7 +1347,6 @@
   "ux_editor.component_properties.subform.no_existing_layout_set_instruction_name": "Gi underskjemaet et godt navn som du husker.",
   "ux_editor.component_properties.subform.no_existing_layout_set_instruction_table_setup": "Gå tilbake til komponenten Tabell for underskjema og sett opp tabellen med de feltene du har utformet i underskjemaet.",
   "ux_editor.component_properties.subform.no_existing_layout_set_instructions_header": "Slik gjør du:",
-  "ux_editor.component_properties.subform.no_layout_sets_acting_as_subform": "Det finnes ingen sidegrupper i løsningen som kan brukes som et underskjema",
   "ux_editor.component_properties.subform.selected_layout_set_label": "Underskjema",
   "ux_editor.component_properties.subform.selected_layout_set_title": "Valgt underskjemakobling er {{subform}}",
   "ux_editor.component_properties.summary.add_override": "Legg til overstyring",
