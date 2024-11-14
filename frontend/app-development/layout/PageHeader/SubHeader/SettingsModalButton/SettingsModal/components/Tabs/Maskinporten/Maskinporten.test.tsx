@@ -63,8 +63,10 @@ describe('Maskinporten', () => {
 
     await waitForLoggedInStatusCheckIsDone();
 
-    const temporaryLoggedInContent = screen.getByText('View when logged in comes here');
-    expect(temporaryLoggedInContent).toBeInTheDocument();
+    const loginButton = screen.queryByRole('button', {
+      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
+    });
+    expect(loginButton).not.toBeInTheDocument();
   });
 
   it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
@@ -84,18 +86,20 @@ describe('Maskinporten', () => {
   });
 
   it('should show an alert with text that no scopes are available for user', async () => {
-    const user = userEvent.setup();
-    renderMaskinporten({});
-    await waitForLoggedInStatusCheckIsDone();
+    const getIsLoggedInWithAnsattportenMock = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(true));
 
-    expect(
-      screen.queryByText(textMock('settings_modal.maskinporten_no_scopes_available')),
-    ).not.toBeInTheDocument();
+    const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
 
-    const loginButton = screen.getByRole('button', {
-      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
+    renderMaskinporten({
+      queries: {
+        getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
+        getMaskinportenScopes: mockGetMaskinportenScopes,
+      },
     });
-    await user.click(loginButton);
+
+    await waitForLoggedInStatusCheckIsDone();
 
     expect(
       screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available')),

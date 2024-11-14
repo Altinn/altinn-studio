@@ -6,7 +6,7 @@ import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 export const useGetScopesQuery = () => {
   const { getMaskinportenScopes } = useServicesContext();
   return useQuery<MaskinportenScope[]>({
-    queryKey: [QueryKey.MaskinportenScopes],
+    queryKey: [QueryKey.AppScopes],
     queryFn: () => getMaskinportenScopes(),
   });
 };

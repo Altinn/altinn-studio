@@ -1,4 +1,4 @@
-import React, { type ReactElement } from 'react';
+import React, { type ReactNode, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
 import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
@@ -19,23 +19,36 @@ export const Maskinporten = (): ReactElement => {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
+  if (isLoggedInWithAnsattporten) {
+    return (
+      <MaskinportenPageTemplate>
+        <ScopeList />
+      </MaskinportenPageTemplate>
+    );
+  }
+
+  return (
+    <MaskinportenPageTemplate>
+      <StudioParagraph spacing>{t('settings_modal.maskinporten_tab_description')}</StudioParagraph>
+      <StudioButton onClick={handleLoginWithAnsattporten}>
+        {t('settings_modal.maskinporten_tab_login_with_ansattporten')}
+      </StudioButton>
+    </MaskinportenPageTemplate>
+  );
+};
+
+type MaskinportenPageTemplateProps = {
+  children: ReactNode;
+};
+
+const MaskinportenPageTemplate = ({ children }: MaskinportenPageTemplateProps): ReactElement => {
+  const { t } = useTranslation();
   return (
     <TabContent>
       <StudioHeading level={2} size='sm' spacing>
         {t('settings_modal.maskinporten_tab_title')}
       </StudioHeading>
-      {!isLoggedInWithAnsattporten && (
-        <>
-          {' '}
-          <StudioParagraph spacing>
-            {t('settings_modal.maskinporten_tab_description')}
-          </StudioParagraph>
-          <StudioButton onClick={handleLoginWithAnsattporten}>
-            {t('settings_modal.maskinporten_tab_login_with_ansattporten')}
-          </StudioButton>
-        </>
-      )}
-      {isLoggedInWithAnsattporten && <ScopeList />}
+      {children}
     </TabContent>
   );
 };
