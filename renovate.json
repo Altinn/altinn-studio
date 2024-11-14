@@ -3,20 +3,14 @@
   "extends": ["local>Altinn/renovate-config"],
   "packageRules": [
     {
-      "groupName": "LibGit2Sharp dependencies",
+      "groupName": "LibGit2Sharp dependency",
       "groupSlug": "LibGit2Sharp",
       "matchPackageNames": ["LibGit2Sharp"]
     },
     {
-      "groupName": "gitea dependencies",
+      "groupName": "gitea dependency",
       "groupSlug": "gitea",
       "matchPackageNames": ["gitea/gitea"]
-    },
-    {
-      "groupName": "ResourceAdm dependencies",
-      "groupSlug": "resourceadm",
-      "matchFileNames": ["frontend/resourceadm/*"],
-      "labels": ["area/resource-adm"]
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
