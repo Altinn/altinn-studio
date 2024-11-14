@@ -14,7 +14,10 @@ export type SupportedFeatureFlags =
   | 'subform'
   | 'summary2'
   | 'codeListEditor'
+<<<<<<< HEAD
   | 'optionListEditor'
+=======
+>>>>>>> b99c16b37 (hide maskinporten behind featureflag)
   | 'maskinporten';
 
 /*

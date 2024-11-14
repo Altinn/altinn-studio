@@ -15,8 +15,8 @@ import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 import { type SettingsModalHandle } from '../../../../../types/SettingsModalHandle';
 import { useSettingsModalMenuTabConfigs } from './hooks/useSettingsModalMenuTabConfigs';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { Maskinporten } from './components/Tabs/Maskinporten';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
