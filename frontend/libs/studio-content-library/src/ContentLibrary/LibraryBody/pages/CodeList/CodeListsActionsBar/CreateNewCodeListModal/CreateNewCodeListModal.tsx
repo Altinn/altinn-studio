@@ -81,7 +81,7 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
     });
   };
 
-  const saveButtonShouldBeDisabled =
+  const isSaveButtonDisabled =
     !currentCodeListWithMetadata.title || currentCodeListWithMetadata.codeList.length == 0;
 
   return (
@@ -105,7 +105,7 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
         icon={<CheckmarkIcon />}
         onClick={handleSaveCodeList}
         variant='secondary'
-        disabled={saveButtonShouldBeDisabled}
+        disabled={isSaveButtonDisabled}
       />
     </div>
   );
