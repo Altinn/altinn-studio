@@ -11,7 +11,7 @@ import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 import { type SettingsModalHandle } from '../../../../../types/SettingsModalHandle';
 import { useSettingsModalMenuTabConfigs } from './hooks/useSettingsModalMenuTabConfigs';
-import { Maskinporten } from './components/Tabs/Maskinporten/Maskinporten';
+import { Maskinporten } from './components/Tabs/Maskinporten';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
