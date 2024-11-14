@@ -39,6 +39,8 @@
     <PackageReference Update="MediatR" Version="12.4.1" />
     <PackageReference Update="DotNetEnv" Version="3.1.1" />
     <PackageReference Update="NuGet.Versioning" Version="6.11.1" />
+    <PackageReference Update="DistributedLock.Postgres" Version="1.2.0" />
+    <PackageReference Update="Community.Microsoft.Extensions.Caching.PostgreSql" Version="4.0.6" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">
@@ -60,5 +62,6 @@
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="8.0.10" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="8.0.2" />
     <PackageReference Update="WireMock.Net" Version="1.6.7" />
+    <PackageReference Update="DistributedLock.FileSystem" Version="1.0.2" />
   </ItemGroup>
 </Project>

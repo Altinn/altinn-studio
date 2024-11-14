@@ -26,6 +26,7 @@ import type { Organization } from 'app-shared/types/Organization';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { AppRelease } from 'app-shared/types/AppRelease';
+import type { Option } from 'app-shared/types/Option';
 
 export const build: Build = {
   id: '',
@@ -244,3 +245,7 @@ export const searchRepositoryResponse: SearchRepositoryResponse = {
   totalCount: 0,
   totalPages: 0,
 };
+
+export const updateOptionListResponse: Option[] = [
+  { value: '', label: '', description: '', helpText: '' },
+];

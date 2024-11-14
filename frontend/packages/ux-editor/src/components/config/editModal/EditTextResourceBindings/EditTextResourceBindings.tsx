@@ -6,7 +6,6 @@ import { StudioProperty } from '@studio/components';
 import classes from './EditTextResourceBindings.module.css';
 
 export interface EditTextResourceBindingBase {
-  editFormId?: string;
   component: FormComponent | FormContainer;
   handleComponentChange: (component: FormComponent | FormContainer) => void;
   layoutName?: string;

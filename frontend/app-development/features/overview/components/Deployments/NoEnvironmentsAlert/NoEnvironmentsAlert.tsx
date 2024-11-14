@@ -5,6 +5,7 @@ import type { AlertProps } from '@digdir/designsystemet-react';
 import { Alert, Heading, Paragraph } from '@digdir/designsystemet-react';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { GetInTouchWith } from 'app-shared/getInTouch';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 type NoEnvironmentsAlertProps = AlertProps;
 export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
@@ -22,7 +23,11 @@ export const NoEnvironmentsAlert = ({ ...rest }: NoEnvironmentsAlertProps) => {
       </Paragraph>
       <Paragraph>
         <Trans i18nKey='app_deployment.no_env_2'>
-          <a target='_new' rel='noopener noreferrer' />
+          <a
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/testing/local/' })}
+            target='_new'
+            rel='noopener noreferrer'
+          />
         </Trans>
       </Paragraph>
     </Alert>

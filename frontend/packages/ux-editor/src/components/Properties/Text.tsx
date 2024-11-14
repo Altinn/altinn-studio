@@ -24,7 +24,7 @@ export const Text = () => {
 
   const handleComponentChange = async (updatedComponent: FormContainer | FormComponent) => {
     handleUpdate(updatedComponent);
-    debounceSave(formId, updatedComponent);
+    await debounceSave(formId, updatedComponent);
   };
 
   if (!schema) {
@@ -50,7 +50,6 @@ export const Text = () => {
           component={form}
           handleComponentChange={handleComponentChange}
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
-          editFormId={formId}
           layoutName={selectedFormLayoutName}
         />
       )}
@@ -64,10 +63,9 @@ export const Text = () => {
                   ComponentSpecificConfig<ComponentType.RadioButtons>)
           }
           handleComponentChange={handleComponentChange}
-          editFormId={formId}
           layoutName={selectedFormLayoutName}
           renderOptions={{
-            onlyCodeListOptions: schema.properties.optionsId && !schema.properties.options,
+            areLayoutOptionsSupported: schema.properties.optionsId! && schema.properties.options,
           }}
         />
       )}

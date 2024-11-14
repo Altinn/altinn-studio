@@ -8,6 +8,8 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+using Medallion.Threading;
+using Medallion.Threading.FileSystem;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,6 +36,11 @@ namespace Designer.Tests.Controllers.ApiTests
             services.Configure<ServiceRepositorySettings>(c =>
                 c.RepositoryLocation = TestRepositoriesLocation);
             services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton<IDistributedLockProvider>(_ =>
+            {
+                var directoryInfo = TestLockPathProvider.Instance.LockFileDirectory;
+                return new FileDistributedSynchronizationProvider(directoryInfo);
+            });
         }
 
         /// <summary>
