@@ -15,12 +15,8 @@ import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
 import { type SettingsModalHandle } from '../../../../../types/SettingsModalHandle';
 import { useSettingsModalMenuTabConfigs } from './hooks/useSettingsModalMenuTabConfigs';
-<<<<<<< HEAD
-import { Maskinporten } from './components/Tabs/Maskinporten';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-=======
-import { Maskinporten } from './components/Tabs/Maskinporten/Maskinporten';
->>>>>>> 1f588e11a (feat: context based login with ansattporten)
+import { Maskinporten } from './components/Tabs/Maskinporten';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
@@ -58,11 +54,7 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
         return <AccessControlTab />;
       }
       case 'maskinporten': {
-<<<<<<< HEAD
         return shouldDisplayFeature('maskinporten') ? <Maskinporten /> : null;
-=======
-        return <Maskinporten />;
->>>>>>> 1f588e11a (feat: context based login with ansattporten)
       }
     }
   };
