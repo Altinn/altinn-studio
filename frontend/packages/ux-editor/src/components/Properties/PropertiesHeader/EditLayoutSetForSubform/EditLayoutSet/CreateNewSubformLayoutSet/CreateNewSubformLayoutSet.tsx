@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioButton, StudioCard, StudioTextfield } from '@studio/components';
+import { StudioButton, StudioCard, StudioSpinner, StudioTextfield } from '@studio/components';
 import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewSubformLayoutSet.module.css';
 import { SubformDataModelSelect } from './SubformDataModelSelect';
@@ -21,18 +21,24 @@ export const CreateNewSubformLayoutSet = ({
   const [newSubform, setNewSubform] = useState('');
   const [selectedDataType, setSelectedDataType] = useState<string>();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const { createSubform } = useCreateSubform();
+  const { createSubform, isPendingLayoutSetMutation } = useCreateSubform();
   const [nameError, setNameError] = useState('');
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const subformNameValidation = validateLayoutSetName(e.target.value, layoutSets);
+  function handleChange(subformName: string) {
+    const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
     setNameError(subformNameValidation);
-    setNewSubform(e.target.value);
+    setNewSubform(subformName);
   }
 
   function handleCreateSubform() {
     createSubform({ layoutSetName: newSubform, onSubformCreated, dataType: selectedDataType });
   }
+
+  const saveIcon = isPendingLayoutSetMutation ? (
+    <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
+  ) : (
+    <CheckmarkIcon />
+  );
 
   return (
     <StudioCard>
@@ -43,8 +49,8 @@ export const CreateNewSubformLayoutSet = ({
         <StudioTextfield
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
           value={newSubform}
-          size='sm'
-          onChange={handleChange}
+          disabled={isPendingLayoutSetMutation}
+          onChange={(e) => handleChange(e.target.value)}
           error={nameError}
         />
         <SubformDataModelSelect
@@ -54,7 +60,7 @@ export const CreateNewSubformLayoutSet = ({
         />
         <StudioButton
           className={classes.savelayoutSetButton}
-          icon={<CheckmarkIcon />}
+          icon={saveIcon}
           onClick={handleCreateSubform}
           title={t('general.close')}
           disabled={!newSubform || !!nameError || !selectedDataType}

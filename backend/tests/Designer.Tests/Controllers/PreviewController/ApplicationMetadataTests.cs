@@ -51,9 +51,9 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, SerializerOptions);
+            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
             expectedApplicationMetadata.AltinnNugetVersion = string.Empty;
-            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, SerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
 
@@ -72,9 +72,9 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, SerializerOptions);
+            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
             expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
-            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, SerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
 
@@ -93,7 +93,7 @@ namespace Designer.Tests.Controllers.PreviewController
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, SerializerOptions);
+            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
             expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
             // Add the mocked data type to expected app metadata
             expectedApplicationMetadata.DataTypes.Add(new DataType()
@@ -110,7 +110,7 @@ namespace Designer.Tests.Controllers.PreviewController
             expectedApplicationMetadata.PartyTypesAllowed.SubUnit = false;
             expectedApplicationMetadata.PartyTypesAllowed.BankruptcyEstate = false;
 
-            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, SerializerOptions);
+            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
             JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
         }
 
@@ -118,7 +118,7 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Get_ApplicationMetadata_WithAllPartyTypesAllowedSetToFalse()
         {
             string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/config/applicationmetadata.json");
-            ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(originalApplicationMetadataString, SerializerOptions);
+            ApplicationMetadata originalApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(originalApplicationMetadataString, JsonSerializerOptions);
             originalApplicationMetadata.PartyTypesAllowed.Person.Should().BeTrue();
             originalApplicationMetadata.PartyTypesAllowed.Organisation.Should().BeTrue();
             originalApplicationMetadata.PartyTypesAllowed.SubUnit.Should().BeTrue();
@@ -137,7 +137,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(responseBody, SerializerOptions);
+            ApplicationMetadata responseApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(responseBody, JsonSerializerOptions);
             responseApplicationMetadata.PartyTypesAllowed.Person.Should().BeFalse();
             responseApplicationMetadata.PartyTypesAllowed.Organisation.Should().BeFalse();
             responseApplicationMetadata.PartyTypesAllowed.SubUnit.Should().BeFalse();

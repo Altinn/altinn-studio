@@ -184,8 +184,8 @@ See also the [list of contributors][26] who participated in this project.
 This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
 
 [1]: https://docs.altinn.studio/
-[2]: https://docs.altinn.studio/app/getting-started/
-[3]: https://docs.altinn.studio/app/app-dev-course/
+[2]: https://docs.altinn.studio/altinn-studio/getting-started/
+[3]: https://docs.altinn.studio/altinn-studio/getting-started/app-dev-course/
 [4]: https://github.com/Altinn/app-localtest
 [5]: https://dotnet.microsoft.com/download/dotnet/8.0
 [6]: https://nodejs.org
