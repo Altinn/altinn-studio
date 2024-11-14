@@ -24,8 +24,6 @@
     "react-toastify": "10.0.5"
   },
   "devDependencies": {
-    "@emotion/react": "11.13.3",
-    "@emotion/styled": "11.13.0",
     "@svgr/webpack": "8.1.0",
     "@swc/core": "1.7.26",
     "@swc/jest": "0.2.36",
