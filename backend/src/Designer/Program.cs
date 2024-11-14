@@ -14,10 +14,12 @@ using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
 using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
+using Community.Microsoft.Extensions.Caching.PostgreSql;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -36,7 +38,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
 
 ILogger logger;
 
@@ -241,18 +242,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureLocalization();
     services.AddPolicyBasedAuthorization();
 
-    services.AddSwaggerGen(c =>
-    {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Designer API", Version = "v1" });
-        try
-        {
-            c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-        }
-        catch
-        {
-            // Catch swashbuckle exception if it doesn't find the generated XML documentation file
-        }
-    });
+    services.AddOpenApi("v1");
 
     // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
@@ -261,7 +251,21 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
     services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
     services.AddFeatureManagement();
+    services.RegisterSynchronizationServices(configuration);
 
+    // Override the default distributed cache with a PostgreSQL implementation
+    services.AddDistributedPostgreSqlCache(setup =>
+    {
+        PostgreSQLSettings postgresSettings =
+            configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
+
+        setup.ConnectionString = postgresSettings.FormattedConnectionString();
+        setup.SchemaName = "designer";
+        setup.TableName = "distributedcache";
+        setup.DisableRemoveExpired = false;
+        setup.CreateInfrastructure = false;
+        setup.ExpiredItemsDeletionInterval = TimeSpan.FromMinutes(30);
+    });
 
     if (!env.IsDevelopment())
     {
@@ -304,16 +308,7 @@ void Configure(IConfiguration configuration)
         }
     });
 
-    const string swaggerRoutePrefix = "designer/swagger";
-    app.UseSwagger(c =>
-    {
-        c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
-    });
-    app.UseSwaggerUI(c =>
-    {
-        c.RoutePrefix = swaggerRoutePrefix;
-        c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
-    });
+    app.MapOpenApi("/designer/openapi/{documentName}/openapi.json");
 
     if (!app.Environment.IsDevelopment())
     {
@@ -333,6 +328,8 @@ void Configure(IConfiguration configuration)
     app.MapHealthChecks("/health");
     app.MapHub<PreviewHub>("/previewHub");
     app.MapHub<SyncHub>("/sync-hub");
+
+    app.UseMiddleware<RequestSynchronizationMiddleware>();
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }

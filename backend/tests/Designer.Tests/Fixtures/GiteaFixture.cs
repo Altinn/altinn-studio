@@ -47,6 +47,8 @@ namespace Designer.Tests.Fixtures
         public string OAuthApplicationClientId { get; private set; }
         public string OAuthApplicationClientSecret { get; private set; }
 
+        public string DbConnectionString => _postgreSqlContainer?.GetConnectionString();
+
         private static AsyncRetryPolicy GiteaClientRetryPolicy => Policy.Handle<HttpRequestException>()
             .Or<SocketException>()
             .WaitAndRetryAsync(4, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
@@ -68,6 +70,7 @@ namespace Designer.Tests.Fixtures
                 .WithUsername("gitea")
                 .WithPassword("gitea")
                 .WithDatabase("gitea")
+                .WithExposedPort(TestUrlsProvider.GetRandomAvailablePort())
                 .Build();
             await _postgreSqlContainer.StartAsync();
         }
