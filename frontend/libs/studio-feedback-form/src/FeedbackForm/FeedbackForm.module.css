@@ -1,0 +1,6 @@
+.fixed {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 99999999; /* Make sure this is on top of everything */
+}

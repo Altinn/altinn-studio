@@ -4210,6 +4210,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@studio/feedback-form@workspace:frontend/libs/studio-feedback-form":
+  version: 0.0.0-use.local
+  resolution: "@studio/feedback-form@workspace:frontend/libs/studio-feedback-form"
+  dependencies:
+    "@studio/components": "workspace:^"
+  languageName: unknown
+  linkType: soft
+
 "@studio/hooks@workspace:^, @studio/hooks@workspace:frontend/libs/studio-hooks":
   version: 0.0.0-use.local
   resolution: "@studio/hooks@workspace:frontend/libs/studio-hooks"
