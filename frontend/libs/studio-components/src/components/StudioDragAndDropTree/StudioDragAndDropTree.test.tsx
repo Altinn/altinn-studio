@@ -38,7 +38,7 @@ const renderDragAndDropTree = () =>
     </StudioDragAndDropTree.Provider>,
   );
 
-describe('DragAndDropTree', () => {
+describe('StudioDragAndDropTree', () => {
   it('Renders root items', () => {
     renderDragAndDropTree();
     expect(
