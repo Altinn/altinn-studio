@@ -4,7 +4,7 @@ import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
+import { StudioDragAndDrop } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -104,10 +104,10 @@ const render = async () => {
     {},
     queryClient,
   )(
-    <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <DesignView />
       </FormItemContextProvider>
-    </DragAndDrop.Provider>,
+    </StudioDragAndDrop.Provider>,
   );
 };
