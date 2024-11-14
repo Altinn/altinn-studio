@@ -1,35 +1,35 @@
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
-import { render as renderRtl, renderHook, screen, waitFor } from '@testing-library/react';
+import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DragAndDropTreeRoot } from './DragAndDropTreeRoot';
-import { StudioDragAndDrop } from '@studio/components';
-import { DragAndDropTreeRootContext } from 'app-shared/components/DragAndDropTree/DragAndDropTreeRoot/DragAndDropTreeRootContext';
-
-const user = userEvent.setup();
+import { StudioDragAndDropTreeRoot } from './StudioDragAndDropTreeRoot';
+import { StudioDragAndDrop } from '../../StudioDragAndDrop';
+import { StudioDragAndDropTreeRootContext } from './StudioDragAndDropTreeRootContext';
 
 // Test data:
 const childrenTestId = 'test';
 const renderComponent = (children?: ReactNode) => (
   <StudioDragAndDrop.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId='rootId'>
-    <DragAndDropTreeRoot>
+    <StudioDragAndDropTreeRoot>
       <div data-testid={childrenTestId}>{children}</div>
-    </DragAndDropTreeRoot>
+    </StudioDragAndDropTreeRoot>
   </StudioDragAndDrop.Provider>
 );
 
-const render = (children?: ReactNode) => renderRtl(renderComponent(children));
+const renderStudioDragAndDropTreeRoot = (children?: ReactNode) => render(renderComponent(children));
 
-describe('DragAndDropTreeRoot', () => {
+describe('StudioDragAndDropTreeRoot', () => {
   afterEach(jest.clearAllMocks);
 
   it('Renders children', () => {
-    render();
+    renderStudioDragAndDropTreeRoot();
     expect(screen.getByTestId(childrenTestId)).toBeInTheDocument();
   });
 
   it('Sets hovered node parent to given value when `setHoveredNodeParent` is called and back to null when mouse leaves', async () => {
-    const { result } = renderHook(() => useContext(DragAndDropTreeRootContext), {
+    const user = userEvent.setup();
+
+    const { result } = renderHook(() => useContext(StudioDragAndDropTreeRootContext), {
       wrapper: ({ children }) => renderComponent(children),
     });
     const item = screen.getByTestId(childrenTestId);
