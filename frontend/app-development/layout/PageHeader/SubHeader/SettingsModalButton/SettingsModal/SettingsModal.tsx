@@ -5,7 +5,7 @@ import { CogIcon } from '@studio/icons';
 import {
   StudioModal,
   StudioContentMenu,
-  StudioContentMenuButtonTabProps,
+  type StudioContentMenuButtonTabProps,
 } from '@studio/components';
 import type { SettingsModalTabId } from '../../../../../types/SettingsModalTabId';
 import { useTranslation } from 'react-i18next';
