@@ -6,6 +6,7 @@ import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 import { useValidateSchemaName } from './useValidateSchemaName';
 import cn from 'classnames';
+import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -13,7 +14,6 @@ export interface CreateNewWrapperProps {
   createPathOption?: boolean;
   dataModels: DataModelMetadata[];
   setIsCreateNewOpen: (open: boolean) => void;
-  handleCreateSchema: (props: { name: string; relativePath: string | undefined }) => void;
 }
 
 export function CreateNewWrapper({
@@ -22,32 +22,34 @@ export function CreateNewWrapper({
   isCreateNewOpen,
   dataModels,
   setIsCreateNewOpen,
-  handleCreateSchema,
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
   const [newModelName, setNewModelName] = useState('');
   const { validateName, nameError, setNameError } = useValidateSchemaName(dataModels);
+  const { mutate: createDataModel } = useCreateDataModelMutation();
 
+  const isConfirmButtonActivated = newModelName && !nameError;
   const relativePath = createPathOption ? '' : undefined;
 
-  const onNameChange = (e: any) => {
+  const handleNameChange = (e: any) => {
     const name = e.target.value || '';
     setNewModelName(name);
     validateName(name);
   };
 
-  const onCreateConfirmClick = () => {
-    handleCreateSchema({
+  const handleConfirm = () => {
+    createDataModel({
       name: newModelName,
       relativePath,
     });
-    setNewModelName('');
-    setNameError('');
+
+    handleOpenChange();
   };
 
-  const onKeyUp = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      onCreateConfirmClick();
+  const handleKeyUp = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && isConfirmButtonActivated) {
+      console.log(!disabled);
+      handleConfirm();
     }
   };
 
@@ -73,15 +75,15 @@ export function CreateNewWrapper({
         <StudioTextfield
           id='newModelInput'
           label={t('schema_editor.create_model_description')}
-          onChange={onNameChange}
-          onKeyUp={onKeyUp}
+          onChange={handleNameChange}
+          onKeyUp={handleKeyUp}
           error={nameError}
           autoFocus
         />
         <StudioButton
           color='second'
-          onClick={onCreateConfirmClick}
-          disabled={!newModelName || !!nameError}
+          onClick={handleConfirm}
+          disabled={!isConfirmButtonActivated}
           variant='secondary'
           size='small'
         >

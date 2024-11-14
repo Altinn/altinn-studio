@@ -5,8 +5,6 @@ import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
-import type { CreateDataModelMutationArgs } from '../../../../hooks/mutations/useCreateDataModelMutation';
-import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from '@studio/components';
@@ -35,17 +33,11 @@ export function TopToolbar({
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
   const { t } = useTranslation();
-  const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
   }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
-
-  const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
-    createDataModel(model);
-    setIsCreateNewOpen(false);
-  };
 
   return (
     <section className={classes.toolbar} role='toolbar'>
@@ -54,7 +46,6 @@ export function TopToolbar({
         disabled={false}
         isCreateNewOpen={isCreateNewOpen}
         setIsCreateNewOpen={setIsCreateNewOpen}
-        handleCreateSchema={handleCreateSchema}
         createPathOption={createPathOption}
       />
       <XSDUpload
