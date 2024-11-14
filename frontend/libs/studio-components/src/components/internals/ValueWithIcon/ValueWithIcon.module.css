@@ -1,0 +1,9 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-2);
+}
+
+.iconWrapper {
+  display: contents;
+}
