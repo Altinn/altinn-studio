@@ -4,7 +4,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { LayoutPages } from 'src/utils/layout/LayoutPages';
-import { NodesInternal, useNodesLax } from 'src/utils/layout/NodesContext';
+import { NodesInternal, NodesReadiness, useNodesLax } from 'src/utils/layout/NodesContext';
 import type { ParentNode } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodesContext, PageData, PagesData } from 'src/utils/layout/NodesContext';
@@ -35,6 +35,14 @@ export class TraversalTask {
 
     if (target instanceof LayoutPages) {
       return this.state.pagesData as DataFrom<T>;
+    }
+
+    if (this.state.readiness !== NodesReadiness.Ready && this.state.prevNodeData?.[target.id]) {
+      return this.state.prevNodeData[target.id] as DataFrom<T>;
+    }
+
+    if (!this.state.nodeData[target.id]) {
+      throw new Error(`Node data for ${target.id} is missing (when matching/getting data in traversal)`);
     }
 
     return this.state.nodeData[target.id] as DataFrom<T>;

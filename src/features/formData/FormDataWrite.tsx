@@ -540,6 +540,23 @@ const useWaitForSave = () => {
   );
 };
 
+function getFreshNumRows(state: FormDataContext, reference: IDataModelReference | undefined) {
+  if (!reference) {
+    return 0;
+  }
+
+  const model = state.dataModels[reference.dataType];
+  if (!model) {
+    return 0;
+  }
+  const rawRows = dot.pick(reference.field, model.currentData);
+  if (!Array.isArray(rawRows) || !rawRows.length) {
+    return 0;
+  }
+
+  return rawRows.length;
+}
+
 const emptyObject = {};
 const emptyArray = [];
 
@@ -832,23 +849,15 @@ export const FD = {
    * Returns the number of rows in a repeating group. This will always be 'fresh', meaning it will update immediately
    * when a new row is added/removed.
    */
-  useFreshNumRows: (reference: IDataModelReference | undefined): number =>
-    useMemoSelector((s) => {
-      if (!reference) {
-        return 0;
-      }
+  useFreshNumRows: (ref: IDataModelReference | undefined) => useMemoSelector((s) => getFreshNumRows(s, ref)),
 
-      const model = s.dataModels[reference.dataType];
-      if (!model) {
-        return 0;
-      }
-      const rawRows = dot.pick(reference.field, model.currentData);
-      if (!Array.isArray(rawRows) || !rawRows.length) {
-        return 0;
-      }
-
-      return rawRows.length;
-    }),
+  /**
+   * Same as the above, but returns a non-reactive function you can call to check the number of rows.
+   */
+  useGetFreshNumRows: (): ((reference: IDataModelReference | undefined) => number) => {
+    const store = useStore();
+    return useCallback((reference) => getFreshNumRows(store.getState(), reference), [store]);
+  },
 
   /**
    * Get the UUID of a row in a repeating group. This will always be 'fresh', meaning it will update immediately when

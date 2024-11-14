@@ -146,7 +146,7 @@ export function SetWaitForCommits() {
  */
 export const NodesStateQueue = {
   useAddNode: (req: AddNodeRequest, condition = true) => useAddToQueue('addNodes', false, req, condition),
-  useRemoveNode: (req: RemoveNodeRequest) => useAddToQueueOnUnmount('removeNodes', true, req),
+  useRemoveNode: (req: Omit<RemoveNodeRequest, 'layouts'>) => useRemoveNode(req),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSetNodeProp: (req: SetNodePropRequest<any, any>, condition = true) =>
     useAddToQueue('setNodeProps', true, req, condition),
@@ -179,11 +179,11 @@ function useAddToQueue<T extends keyof RegistryCommitQueues>(
   }
 }
 
-function useAddToQueueOnUnmount<T extends keyof RegistryCommitQueues>(
-  queue: T,
-  commitAfter: boolean,
-  request: RegistryCommitQueues[T][number],
-) {
+function useRemoveNode(request: Omit<RemoveNodeRequest, 'layouts'>) {
+  // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
+  // so that we don't accidentally remove a node with the same ID from a future/different layout.
+  const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
+
   const registry = GeneratorInternal.useRegistry();
   const toCommit = registry.current.toCommit;
   const ref = useAsRef(request);
@@ -196,14 +196,11 @@ function useAddToQueueOnUnmount<T extends keyof RegistryCommitQueues>(
     return () => {
       reg.toCommitCount += 1;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      toCommit[queue].push(request as any);
+      toCommit.removeNodes.push({ ...request, layouts: layoutsWas });
       updateCommitsPendingInBody(toCommit);
-      if (commitAfter) {
-        commit();
-      }
+      commit();
     };
-  }, [commit, commitAfter, queue, ref, registry, toCommit]);
+  }, [commit, ref, registry, toCommit, layoutsWas]);
 }
 
 /**

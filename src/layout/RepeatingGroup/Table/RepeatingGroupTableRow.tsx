@@ -10,7 +10,6 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
-import { FD } from 'src/features/formData/FormDataWrite';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useDeepValidationsForNode } from 'src/features/validation/selectors/deepValidationsForNode';
@@ -91,8 +90,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
   const id = node.id;
   const group = useNodeItem(node);
   const row = group.rows.find((r) => r && r.uuid === uuid && r.index === index);
-  const freshUuid = FD.useFreshRowUuid(group.dataModelBindings?.group, index);
-  const isFresh = freshUuid === uuid;
   const rowExpressions = row?.groupExpressions;
   const editForRow = rowExpressions?.edit;
   const editForGroup = group.edit;
@@ -252,7 +249,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   aria-label={`${editButtonText} ${firstCellData ?? ''}`}
                   data-testid='edit-button'
                   className={classes.tableButton}
-                  disabled={!isFresh}
                 >
                   {editButtonText}
                   {rowHasErrors ? (
@@ -286,7 +282,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   firstCellData={firstCellData}
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
-                  disabled={!isFresh}
                 >
                   {deleteButtonText}
                 </DeleteElement>
@@ -339,7 +334,6 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   firstCellData={firstCellData}
                   alertOnDeleteProps={alertOnDelete}
                   langAsString={langAsString}
-                  disabled={!isFresh}
                 >
                   {isEditingRow || !mobileViewSmall ? deleteButtonText : null}
                 </DeleteElement>

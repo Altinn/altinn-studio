@@ -388,7 +388,6 @@ function WhenTickIsSet({ children }: PropsWithChildren) {
 export const GeneratorStages = {
   useIsDoneAddingNodes: () => useIsStageAtLeast(StageAddNodes),
   useIsFinished: () => NodesStore.useMemoSelector((state) => state.stages.currentStage === StageFinished),
-  useIsGenerating: () => NodesStore.useHasProvider(),
 };
 
 /**

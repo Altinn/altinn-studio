@@ -1,6 +1,6 @@
 import deepEqual from 'fast-deep-equal';
 
-import { NodesReadiness } from 'src/utils/layout/NodesContext';
+import { NodesReadiness, setReadiness } from 'src/utils/layout/NodesContext';
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { CompTypes } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -72,7 +72,9 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
             }
           }
 
-          return changes ? { nodeData, readiness: NodesReadiness.NotReady } : {};
+          return changes
+            ? { nodeData, ...setReadiness({ state, target: NodesReadiness.NotReady, reason: 'Row extras set' }) }
+            : {};
         });
       },
       setRowUuids: (requests) => {
@@ -109,7 +111,9 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
             }
           }
 
-          return changes ? { nodeData, readiness: NodesReadiness.NotReady } : {};
+          return changes
+            ? { nodeData, ...setReadiness({ state, target: NodesReadiness.NotReady, reason: 'New row UUIDs' }) }
+            : {};
         });
       },
       removeRow: (node, internalProp) => {
@@ -142,7 +146,10 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           nodeData[node.id] = { ...thisNode, item: { ...thisNode.item, [internalProp]: newRows } as any };
 
-          return { nodeData, readiness: NodesReadiness.NotReady, addRemoveCounter: state.addRemoveCounter + 1 };
+          return {
+            nodeData,
+            ...setReadiness({ state, target: NodesReadiness.NotReady, reason: 'Row removed', newNodes: true }),
+          };
         });
       },
     };
