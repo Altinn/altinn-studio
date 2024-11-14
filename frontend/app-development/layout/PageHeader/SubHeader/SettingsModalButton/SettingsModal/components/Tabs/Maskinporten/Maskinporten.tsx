@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
+import classes from './Maskinporten.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
-import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
+import {
+  StudioAlert,
+  StudioButton,
+  StudioHeading,
+  StudioParagraph,
+  StudioSpinner,
+} from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from '../../../../../../../../hooks/queries/useIsLoggedInWithAnsattportenQuery';
 
 export const Maskinporten = (): React.ReactElement => {
+  const [scopes, setScopes] = useState(undefined);
+
   const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
@@ -12,6 +21,7 @@ export const Maskinporten = (): React.ReactElement => {
 
   const handleLoginWithAnsattporten = (): void => {
     console.log('Will be implemented in next iteration when backend is ready');
+    setScopes([]);
   };
 
   if (isPendingAuthStatus) {
@@ -31,6 +41,11 @@ export const Maskinporten = (): React.ReactElement => {
       <StudioButton onClick={handleLoginWithAnsattporten}>
         {t('settings_modal.maskinporten_tab_login_with_ansattporten')}
       </StudioButton>
+      {scopes && scopes.length === 0 && (
+        <StudioAlert severity='info' className={classes.noScopeAlert}>
+          {t('settings_modal.maskinporten_no_scopes_available')}
+        </StudioAlert>
+      )}
     </TabContent>
   );
 };
