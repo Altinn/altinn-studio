@@ -63,11 +63,14 @@ import {
   textResourcesWithLanguage,
   user,
   validation,
+  updateOptionListResponse,
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type { Option } from 'app-shared/types/Option';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -102,7 +105,7 @@ export const queriesMock: ServicesContextProps = {
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -211,6 +214,9 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOptionList: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<Option[]>(updateOptionListResponse)),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   upsertTextResources: jest

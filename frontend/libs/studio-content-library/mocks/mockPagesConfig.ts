@@ -4,10 +4,12 @@ export const mockPagesConfig: PagesConfig = {
   codeList: {
     props: {
       codeLists: [
-        { title: 'CodeList1', codeList: {} },
-        { title: 'CodeList2', codeList: {} },
+        { title: 'CodeList1', codeList: [] },
+        { title: 'CodeList2', codeList: [] },
       ],
       onUpdateCodeList: () => {},
+      onUploadCodeList: () => {},
+      fetchDataError: false,
     },
   },
   images: {

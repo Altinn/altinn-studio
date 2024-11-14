@@ -34,9 +34,7 @@ namespace Altinn.Studio.Designer.Repository
         /// </summary>
         public ReleaseRepository(PostgreSQLSettings postgresSettings, ILogger<ReleaseRepository> logger)
         {
-            _connectionString = string.Format(
-                postgresSettings.ConnectionString,
-                postgresSettings.DesignerDbPwd);
+            _connectionString = postgresSettings.FormattedConnectionString();
             _logger = logger;
         }
 
