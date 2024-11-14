@@ -14,6 +14,7 @@ export type SupportedFeatureFlags =
   | 'subform'
   | 'summary2'
   | 'codeListEditor'
+  | 'optionListEditor'
   | 'maskinporten';
 
 /*
