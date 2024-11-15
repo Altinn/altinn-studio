@@ -79,7 +79,7 @@ export function FeedbackForm({
         {questions.map((question) => {
           return renderQuestion(question);
         })}
-        <StudioButton onClick={handleSubmit} color='success'>
+        <StudioButton className={classes.submit} onClick={handleSubmit} color='success'>
           {buttonTexts.submit}
         </StudioButton>
       </StudioModal.Dialog>

@@ -107,10 +107,10 @@ describe('YesNoQuestion', () => {
       />,
     );
 
-    const yesButton = screen.getByRole('button', { name: 'no' });
+    const noButton = screen.getByRole('button', { name: 'no' });
     expect(onChange).not.toHaveBeenCalled();
 
-    await user.click(yesButton);
+    await user.click(noButton);
 
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith('1', 'no');
