@@ -22,6 +22,18 @@ public interface IPdfService
     /// <param name="instance">The instance details.</param>
     /// <param name="taskId">The task id for witch the pdf is generated</param>
     /// <param name="ct">Cancellation Token for when a request should be stopped before it's completed.</param>
-    /// <param name="isPreview">If set to true, this will show a text saying that this is a preview PDF.</param>
+    Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct);
+
+    // <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" select="summary"/>
+    /// <param name="instance">
+    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='instance']"/>
+    /// </param>
+    /// <param name="taskId">
+    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='taskId']"/>
+    /// </param>
+    /// <param name="ct">
+    ///   <inheritdoc cref="GeneratePdf(Instance, string, CancellationToken)" path="/param[@name='ct']"/>
+    /// </param>
+    /// <param name="isPreview">Indicates whether the PDF is a preview version.</param>
     Task<Stream> GeneratePdf(Instance instance, string taskId, bool isPreview, CancellationToken ct);
 }

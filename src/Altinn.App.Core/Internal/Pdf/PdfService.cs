@@ -106,6 +106,12 @@ public class PdfService : IPdfService
         return await GeneratePdfContent(instance, language, isPreview, textResource, ct);
     }
 
+    /// <inheritdoc/>
+    public async Task<Stream> GeneratePdf(Instance instance, string taskId, CancellationToken ct)
+    {
+        return await GeneratePdf(instance, taskId, false, ct);
+    }
+
     private async Task<Stream> GeneratePdfContent(
         Instance instance,
         string language,
