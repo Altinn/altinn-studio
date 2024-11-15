@@ -4210,7 +4210,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@studio/feedback-form@workspace:frontend/libs/studio-feedback-form":
+"@studio/feedback-form@workspace:^, @studio/feedback-form@workspace:frontend/libs/studio-feedback-form":
   version: 0.0.0-use.local
   resolution: "@studio/feedback-form@workspace:frontend/libs/studio-feedback-form"
   dependencies:
@@ -6405,6 +6405,7 @@ __metadata:
   resolution: "app-development@workspace:frontend/app-development"
   dependencies:
     "@studio/content-library": "workspace:^"
+    "@studio/feedback-form": "workspace:^"
     "@studio/hooks": "workspace:^"
     "@studio/icons": "workspace:^"
     "@studio/pure-functions": "workspace:^"

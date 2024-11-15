@@ -31,6 +31,19 @@ describe('FeedbackForm', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText(heading)).toBeInTheDocument();
   });
+
+  it('should close FeedbackForm modal when submit button is clicked', async () => {
+    const user = userEvent.setup();
+    renderFeedbackForm(mockQuestions);
+
+    const trigger = screen.getByText(buttonTexts.trigger);
+    await user.click(trigger);
+
+    const closeButton = screen.getByText(buttonTexts.submit);
+    await user.click(closeButton);
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
 });
 
 const renderFeedbackForm = (questions: any) => {

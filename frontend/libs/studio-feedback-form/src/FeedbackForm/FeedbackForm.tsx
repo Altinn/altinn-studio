@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { StudioButton, StudioModal } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
@@ -24,9 +24,25 @@ export function FeedbackForm({
 }: FeedbackFormProps): React.ReactElement {
   const { answers, setAnswers } = useFeedbackFormContext();
 
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  const handleCloseModal = () => {
+    setAnswers({});
+    modalRef.current?.close();
+  };
+
+  const handleOpenModal = useCallback(() => {
+    modalRef.current?.showModal();
+  }, []);
+
   const handleAnswerChange = (questionId: string, answer: any) => {
     const newAnswers = { ...answers, [questionId]: answer };
     setAnswers(newAnswers);
+  };
+
+  const handleSubmit = () => {
+    onSubmit(answers);
+    handleCloseModal();
   };
 
   const renderQuestion = (question: QuestionConfig) => {
@@ -48,14 +64,22 @@ export function FeedbackForm({
   };
   return (
     <StudioModal.Root>
-      <StudioModal.Trigger className={position === 'fixed' ? classes.fixed : undefined}>
+      <StudioButton
+        className={position === 'fixed' ? classes.fixed : undefined}
+        onClick={handleOpenModal}
+      >
         {buttonTexts.trigger}
-      </StudioModal.Trigger>
-      <StudioModal.Dialog heading={heading} closeButtonTitle={buttonTexts.close}>
+      </StudioButton>
+      <StudioModal.Dialog
+        onClose={handleCloseModal}
+        heading={heading}
+        closeButtonTitle={buttonTexts.close}
+        ref={modalRef}
+      >
         {questions.map((question) => {
           return renderQuestion(question);
         })}
-        <StudioButton onClick={() => onSubmit(answers)} color='success'>
+        <StudioButton onClick={handleSubmit} color='success'>
           {buttonTexts.submit}
         </StudioButton>
       </StudioModal.Dialog>
