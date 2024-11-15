@@ -72,7 +72,7 @@ describe('YesNoQuestion', () => {
     );
   });
 
-  it('should call onChange when yes button is clicked', async () => {
+  it('should call onChange when yes button is selected', async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
     render(
@@ -92,6 +92,28 @@ describe('YesNoQuestion', () => {
 
     await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
     expect(onChange).toHaveBeenCalledWith('1', 'yes');
+  });
+
+  it('should call onChange when yes button is unselected', async () => {
+    const onChange = jest.fn();
+    const user = userEvent.setup();
+    render(
+      <YesNoQuestion
+        id='1'
+        value='yes'
+        label='Question'
+        buttonLabels={{ yes: 'yes', no: 'no' }}
+        onChange={onChange}
+      />,
+    );
+
+    const yesButton = screen.getByRole('button', { name: 'yes' });
+    expect(onChange).not.toHaveBeenCalled();
+
+    await user.click(yesButton);
+
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+    expect(onChange).toHaveBeenCalledWith('1', '');
   });
 
   it('should call onChange when no button is clicked', async () => {

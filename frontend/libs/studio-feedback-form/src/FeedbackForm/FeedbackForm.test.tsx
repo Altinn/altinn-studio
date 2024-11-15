@@ -44,6 +44,23 @@ describe('FeedbackForm', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('should render all questions of type yesNo and text', async () => {
+    const user = userEvent.setup();
+    renderFeedbackForm(mockQuestions);
+
+    const trigger = screen.getByText(buttonTexts.trigger);
+    await user.click(trigger);
+
+    mockQuestions.forEach((question) => {
+      // Checkbox question type is not yet implemented in form. Once implemented, this test should be updated.
+      if (question.type !== 'checkbox') {
+        expect(screen.getByText(question.questionText)).toBeInTheDocument();
+      } else {
+        expect(screen.queryByText(question.questionText)).not.toBeInTheDocument();
+      }
+    });
+  });
 });
 
 const renderFeedbackForm = (questions: any) => {

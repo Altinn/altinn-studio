@@ -20,4 +20,14 @@ export const mockQuestions: QuestionConfig[] = [
       no: 'No',
     },
   },
+  {
+    questionText: 'Choose your favorite colors',
+    type: 'checkbox',
+    id: 'colors',
+    options: [
+      { label: 'Red', value: 'red' },
+      { label: 'Green', value: 'green' },
+      { label: 'Blue', value: 'blue' },
+    ],
+  },
 ];
