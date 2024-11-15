@@ -42,7 +42,7 @@ describe('FeedbackFormContext', () => {
     expect(screen.getByText('{"test":"test"}')).toBeInTheDocument();
   });
 
-  it('should throw an error when useRouterContext is used outside of a RouterContextProvider', () => {
+  it('should throw an error when useFeedbackFormContext is used outside of a RouterContextProvider', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     const TestComponent = () => {
       useFeedbackFormContext();
