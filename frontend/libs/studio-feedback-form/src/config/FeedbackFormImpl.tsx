@@ -1,26 +1,23 @@
 import React from 'react';
-import type { QuestionConfig } from '../types/QuestionsProps';
+import type { ButtonTexts, QuestionConfig } from '../types/QuestionsProps';
 import { FeedbackFormContextProvider } from '../contexts/FeedbackFormContext';
 import { FeedbackForm } from '../FeedbackForm/FeedbackForm';
 
 export class FeedbackFormImpl {
-  private readonly triggerButtonText: string;
-  private readonly closeButtonText: string;
+  private readonly buttonTexts: ButtonTexts;
   private readonly heading: string;
   private readonly questions: QuestionConfig[];
   private readonly position: 'inline' | 'fixed' = 'inline';
   private readonly onSubmit: (answers: Record<string, any>) => void;
 
   constructor(config: {
-    triggerButtonText: string;
-    closeButtonText: string;
+    buttonTexts: ButtonTexts;
     heading: string;
     questions: QuestionConfig[];
     position?: 'inline' | 'fixed';
     onSubmit: (answers: Record<string, any>) => void;
   }) {
-    this.triggerButtonText = config.triggerButtonText;
-    this.closeButtonText = config.closeButtonText;
+    this.buttonTexts = config.buttonTexts;
     this.heading = config.heading;
     this.questions = config.questions;
     this.getFeedbackForm = this.getFeedbackForm.bind(this);
@@ -32,8 +29,7 @@ export class FeedbackFormImpl {
     return (
       <FeedbackFormContextProvider>
         <FeedbackForm
-          triggerButtonText={this.triggerButtonText}
-          closeButtonText={this.closeButtonText}
+          buttonTexts={this.buttonTexts}
           heading={this.heading}
           questions={this.questions}
           position={this.position}

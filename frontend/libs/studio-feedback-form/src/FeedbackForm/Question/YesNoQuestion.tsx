@@ -3,48 +3,66 @@ import { StudioButton, StudioParagraph } from '@studio/components';
 import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 
-export function YesNoQuestion({ id, label, onChange }: QuestionsProps) {
-  const [yesOrNo, setYesOrNo] = React.useState<'yes' | 'no' | undefined>(undefined);
+type YesNoQuestionProps = QuestionsProps & {
+  buttonLabels: {
+    yes: string;
+    no: string;
+  };
+};
 
+export function YesNoQuestion({ id, label, value, buttonLabels, onChange }: YesNoQuestionProps) {
   const setYes = () => {
-    setYesOrNo('yes');
     onChange(id, 'yes');
   };
 
   const setNo = () => {
-    setYesOrNo('no');
     onChange(id, 'no');
   };
 
   const unsetYesOrNo = () => {
-    setYesOrNo(undefined);
-    onChange(id, undefined);
+    onChange(id, '');
   };
 
   return (
     <div>
       <StudioParagraph>{label}</StudioParagraph>
       <div style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
-        {yesOrNo !== 'yes' && (
-          <StudioButton variant='tertiary' size='lg' icon={<ThumbUpIcon />} onClick={setYes} />
+        {value !== 'yes' && (
+          <StudioButton
+            variant='tertiary'
+            size='lg'
+            icon={<ThumbUpIcon />}
+            onClick={setYes}
+            aria-label={buttonLabels.yes}
+          />
         )}
-        {yesOrNo === 'yes' && (
+        {value === 'yes' && (
           <StudioButton
             variant='tertiary'
             size='lg'
             icon={<ThumbUpFillIcon />}
             onClick={unsetYesOrNo}
+            aria-label={buttonLabels.yes}
+            aria-selected={true}
           />
         )}
-        {yesOrNo !== 'no' && (
-          <StudioButton variant='tertiary' size='lg' icon={<ThumbDownIcon />} onClick={setNo} />
+        {value !== 'no' && (
+          <StudioButton
+            variant='tertiary'
+            size='lg'
+            icon={<ThumbDownIcon />}
+            onClick={setNo}
+            aria-label={buttonLabels.no}
+          />
         )}
-        {yesOrNo === 'no' && (
+        {value === 'no' && (
           <StudioButton
             variant='tertiary'
             size='lg'
             icon={<ThumbDownFillIcon />}
             onClick={unsetYesOrNo}
+            aria-label={buttonLabels.no}
+            aria-selected={true}
           />
         )}
       </div>

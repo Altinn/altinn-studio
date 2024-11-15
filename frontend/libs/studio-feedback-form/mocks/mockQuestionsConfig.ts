@@ -15,5 +15,9 @@ export const mockQuestions: QuestionConfig[] = [
     questionText: 'Was this better?',
     type: 'yesNo',
     id: 'better',
+    buttonLabels: {
+      yes: 'Yes',
+      no: 'No',
+    },
   },
 ];
