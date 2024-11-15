@@ -6,7 +6,7 @@ import { EditCodeList } from './EditCodeList/EditCodeList';
 
 export type CodeListsProps = {
   codeLists: CodeListWithMetadata[];
-  onChangeCodeListId: (title: string) => void;
+  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
@@ -23,7 +23,7 @@ export function CodeLists({ codeLists, onChangeCodeListId, onUpdateCodeList }: C
 
 type CodeListProps = {
   codeList: CodeListWithMetadata;
-  onChangeCodeListId: (title: string) => void;
+  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 

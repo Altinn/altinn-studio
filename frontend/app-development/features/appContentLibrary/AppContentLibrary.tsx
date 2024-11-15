@@ -6,7 +6,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeLists';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
+import { useAddOptionListMutation, useUpdateOptionListMutation, useUpdateOptionListIdMutation } from 'app-shared/hooks/mutations';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -18,6 +18,7 @@ export function AppContentLibrary(): React.ReactElement {
   } = useOptionListsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
+  const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
 
   if (optionListsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
@@ -37,7 +38,8 @@ export function AppContentLibrary(): React.ReactElement {
       codeList: {
         props: {
           codeLists: codeLists,
-          onChangeCodeListId: () => {},
+          onUpdateCodeListId: (optionListId: string, newOptionListId: string) =>
+    updateOptionListId({ optionListId, newOptionListId }),
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
           fetchDataError: optionListsError,

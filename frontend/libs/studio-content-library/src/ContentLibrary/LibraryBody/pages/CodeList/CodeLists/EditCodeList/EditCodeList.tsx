@@ -7,7 +7,7 @@ import { KeyVerticalIcon } from '@studio/icons';
 
 export type EditCodeListProps = {
   codeList: CodeListWithMetadata;
-  onChangeCodeListId: (newTitle: string) => void;
+  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
@@ -18,9 +18,9 @@ export function EditCodeList({
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
 
-  const handleCodeListTitleChange = (title: string) => {
+  const handleCodeListTitleChange = (newCodeListId: string) => {
     // TODO: validate new name. - unique and same name restrictions as layoutName. Use in customValidation
-    onChangeCodeListId(title);
+    onChangeCodeListId(codeList.title, newCodeListId);
   };
 
   const handleUpdateCodeList = (updatedCodeList: CodeList) => {

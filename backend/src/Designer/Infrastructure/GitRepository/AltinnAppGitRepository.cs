@@ -778,6 +778,25 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             DeleteFileByRelativePath(optionsFilePath);
         }
+        
+        /// <summary>
+        /// Deletes the option list with the provided id.
+        /// </summary>
+        /// <param name="oldOptionsListId">The name of the option list to change filename of.</param>
+        /// <param name="newOptionsListId">The new name of the option list file.</param>
+        public void UpdateOptionsListId(string oldOptionsListId, string newOptionsListId)
+        {
+            string currentFilePath = Path.Combine(OptionsFolderPath, $"{oldOptionsListId}.json");
+            string newFilePath = Path.Combine(OptionsFolderPath, $"{newOptionsListId}.json");
+            if (!FileExistsByRelativePath(currentFilePath))
+            {  throw new FileNotFoundException("Options list does not exist.");
+            }
+            if (FileExistsByRelativePath(newFilePath))
+            {
+                throw new ArgumentException("New options list name must be unique.");
+            }
+            File.Move(GetAbsoluteFileOrDirectoryPathSanitized(currentFilePath), GetAbsoluteFileOrDirectoryPathSanitized(newFilePath));
+        }
 
         /// <summary>
         /// Saves the process definition file on disk.
