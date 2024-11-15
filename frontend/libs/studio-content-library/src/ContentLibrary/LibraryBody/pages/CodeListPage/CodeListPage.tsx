@@ -15,12 +15,14 @@ export type CodeListWithMetadata = {
 
 export type CodeListPageProps = {
   codeLists: CodeListWithMetadata[];
+  onChangeCodeListId: (title: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   fetchDataError: boolean;
 };
 export function CodeListPage({
   codeLists,
+  onChangeCodeListId,
   onUpdateCodeList,
   onUploadCodeList,
   fetchDataError,
@@ -41,7 +43,10 @@ export function CodeListPage({
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
       />
-      <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
+      <CodeLists 
+        codeLists={codeLists} 
+        onChangeCodeListId={onChangeCodeListId} 
+        onUpdateCodeList={onUpdateCodeList} />
     </div>
   );
 }
