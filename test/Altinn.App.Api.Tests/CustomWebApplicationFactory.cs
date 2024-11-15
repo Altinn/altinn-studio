@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OpenTelemetry;
@@ -32,6 +34,7 @@ public class ApiTestBase
     };
 
     protected readonly ITestOutputHelper OutputHelper;
+    protected string? OverrideEnvironment { get; set; }
     private readonly WebApplicationFactory<Program> _factory;
 
     protected IServiceProvider Services { get; private set; }
@@ -50,7 +53,7 @@ public class ApiTestBase
         return false;
     };
 
-    public ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
+    protected ApiTestBase(WebApplicationFactory<Program> factory, ITestOutputHelper outputHelper)
     {
         _factory = factory;
         Services = _factory.Services;
@@ -128,6 +131,20 @@ public class ApiTestBase
             builder.ConfigureTestServices(services => OverrideServicesForAllTests(services));
             builder.ConfigureTestServices(OverrideServicesForThisTest);
             builder.ConfigureTestServices(ConfigureFakeHttpClientHandler);
+            // Mock IHostEnvironment to return the environment name we want to test
+            if (OverrideEnvironment is not null)
+            {
+                builder.ConfigureTestServices(services =>
+                {
+                    var hostEnvironmentMock = new Mock<IHostEnvironment>(MockBehavior.Strict);
+
+                    hostEnvironmentMock.SetupGet(e => e.EnvironmentName).Returns(() => OverrideEnvironment);
+                    hostEnvironmentMock.SetupGet(e => e.ApplicationName).Returns("Altinn.App.Api");
+                    hostEnvironmentMock.SetupGet(e => e.ContentRootPath).Returns(appRootPath);
+
+                    services.Replace(ServiceDescriptor.Singleton(hostEnvironmentMock.Object));
+                });
+            }
         });
         var services = Services = factory.Services;
         _ = services.GetService<TelemetrySink>(); // The sink starts listening when it is constructed, so we make sure to construct here

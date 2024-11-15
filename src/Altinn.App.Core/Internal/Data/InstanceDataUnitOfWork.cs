@@ -233,7 +233,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                     DataType = dataType,
                     FileName = dataElement.Filename,
                     ContentType = dataElement.ContentType,
-                    CurrentBinaryData = default,
+                    CurrentBinaryData = ReadOnlyMemory<byte>.Empty,
                 }
             );
         }
@@ -250,7 +250,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                         ? cfd
                         : _modelSerializationService.GetEmpty(dataType),
                     PreviousFormData = _modelSerializationService.GetEmpty(dataType),
-                    CurrentBinaryData = null,
+                    CurrentBinaryData = ReadOnlyMemory<byte>.Empty,
                     PreviousBinaryData = _binaryCache.TryGetCachedValue(dataElementIdentifier, out var value)
                         ? value
                         : null,

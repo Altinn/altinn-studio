@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -12,6 +13,7 @@ using Altinn.App.Api.Tests.Utils;
 using Altinn.App.Common.Tests;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Internal.Language;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
@@ -22,6 +24,7 @@ using Json.Pointer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Xunit.Abstractions;
 
@@ -43,9 +46,10 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
     private const string App = "contributer-restriction";
     private const int UserId = 1337;
     private const int InstanceOwnerPartyId = 500600;
-    private static readonly Guid _instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd");
+    private static readonly Guid _instanceGuid = new("0fc98a23-fe31-4ef5-8fb9-dd3f479354ce");
     private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
     private static readonly Guid _dataGuid = new("fc121812-0336-45fb-a75c-490df3ad5109");
+    private static readonly Guid _binaryDataGuid = new("fc121812-0336-45fb-a75c-490df3ad510a");
 
     // Define mocks
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
@@ -1011,6 +1015,99 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
 
         _dataProcessorMock.Verify();
         _formDataValidatorMock.Verify();
+    }
+
+    [Fact]
+    public async Task RunPatch_DeleteElementInDataProcessor_ReturnsUpdatedInstance()
+    {
+        var dataWriteProcessorMock = new Mock<IDataWriteProcessor>(MockBehavior.Strict);
+
+        dataWriteProcessorMock
+            .Setup(d =>
+                d.ProcessDataWrite(It.IsAny<IInstanceDataMutator>(), "Task_1", It.IsAny<DataElementChanges>(), null)
+            )
+            .Returns(
+                (IInstanceDataMutator dataMutator, string taskId, DataElementChanges changes, string? language) =>
+                {
+                    dataMutator.RemoveDataElement(new DataElementIdentifier(_dataGuid));
+                    dataMutator.RemoveDataElement(new DataElementIdentifier(_binaryDataGuid));
+                    return Task.CompletedTask;
+                }
+            )
+            .Verifiable(Times.Once);
+
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IDataProcessor>();
+            services.AddSingleton(dataWriteProcessorMock.Object);
+        };
+
+        var patch = new DataPatchRequestMultiple()
+        {
+            IgnoredValidators = [],
+            Patches =
+            [
+                // new DataPatchRequestMultiple.PatchListItem(_dataGuid,
+                //     new JsonPatch(PatchOperation.Replace(path, JsonNode.Parse("\"Ola Olsen\""))))
+            ]
+        };
+
+        var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(patch, HttpStatusCode.OK);
+
+        parsedResponse.Instance.Data.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RunPatch_MutateDataInValidator_Errors()
+    {
+        OverrideEnvironment = "Development";
+        OverrideServicesForThisTest = services =>
+        {
+            services.RemoveAll<IDataProcessor>();
+        };
+        _formDataValidatorMock.SetupGet(fdv => fdv.DataType).Returns("default");
+        _formDataValidatorMock
+            .Setup(fdv => fdv.HasRelevantChanges(It.IsAny<object>(), It.IsAny<object>()))
+            .Returns(true);
+        _formDataValidatorMock
+            .Setup(v => v.ValidateFormData(It.IsAny<Instance>(), It.IsAny<DataElement>(), It.IsAny<object>(), "nb"))
+            .ReturnsAsync(
+                (Instance _instanceGuid, DataElement dataElement, object data, string? language) =>
+                {
+                    if (data is Skjema skjema)
+                    {
+                        skjema.Melding ??= new();
+                        skjema.Melding.Name = "InvalidChangeInValidator";
+                    }
+                    return new List<ValidationIssue>();
+                }
+            )
+            .Verifiable(Times.Once);
+
+        var path = JsonPointer.Create("melding", "name");
+        var patch = new DataPatchRequestMultiple()
+        {
+            IgnoredValidators = [],
+            Patches =
+            [
+                new DataPatchRequestMultiple.PatchListItem(
+                    _dataGuid,
+                    new JsonPatch(PatchOperation.Test(path, JsonNode.Parse("null")))
+                )
+            ]
+        };
+
+        var url = $"/{Org}/{App}/instances/{_instanceId}/data?language=nb";
+
+        var action = async () =>
+        {
+            using var updateDataElementContent = JsonContent.Create(patch);
+            await GetClient().PatchAsync(url, updateDataElementContent);
+        };
+        // Not sure why the exception propagates out of the api call in WebApplicationFactory.
+        (await action.Should().ThrowAsync<Exception>())
+            .Which.Message.Should()
+            .Contain("changed by validators");
     }
 
     ~DataControllerPatchTests()

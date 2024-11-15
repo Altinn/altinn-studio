@@ -122,8 +122,15 @@ public sealed class FormDataChange : DataElementChange
     /// The binary representation (for storage) of the data element after changes
     /// </summary>
     /// <remarks>
-    /// Not available for form data in data processing phase, because it can't reflect
-    /// the changes made by the data processors.
+    /// This is null during data processing, because the deserialized data
+    /// is still valid for editing, and the binary data can't keep up with the
+    /// changes
+    ///
+    /// Availible during validation, because then the data should not be
+    /// changed, and it is used for storing and for verification that validators
+    /// does not mutate the data.
+    ///
+    /// For deleted data elements this is set to <see cref="ReadOnlyMemory{T}.Empty"/>
     /// </remarks>
     public required ReadOnlyMemory<byte>? CurrentBinaryData { get; init; }
 }
