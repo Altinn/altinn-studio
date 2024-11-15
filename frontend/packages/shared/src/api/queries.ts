@@ -90,14 +90,39 @@ export const getIsLoggedInWithAnsattporten = async (): Promise<boolean> =>
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
     setTimeout(() => {
-      return resolve(false);
+      return resolve(true);
     }, 1000);
   });
+
+const scopesMock: MaskinportenScope[] = [
+  { label: 'scope1', description: 'description1' },
+  { label: 'scope2', description: 'description2' },
+  { label: 'scope3', description: 'description3' },
+  { label: 'scope4', description: 'description4' },
+  { label: 'scope5', description: 'description5' },
+  { label: 'scope6', description: 'description6' },
+  { label: 'scope7', description: 'description7' },
+  { label: 'scope8', description: 'description8' },
+  { label: 'scope9', description: 'description9' },
+  { label: 'scope10', description: 'description10' },
+  { label: 'scope11', description: 'description11' },
+];
+
 export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
     setTimeout(() => {
-      return resolve([]);
+      //return resolve([]);
+      return resolve(scopesMock);
+    }, 1000);
+  });
+
+export const getSelectedMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
+  // TODO: replace with endpoint when it's ready in the backend.
+  new Promise((resolve) => {
+    setTimeout(() => {
+      //return resolve([]);
+      return resolve([scopesMock[2], scopesMock[4]]);
     }, 1000);
   });
 
