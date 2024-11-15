@@ -129,6 +129,29 @@ public class OptionsController : ControllerBase
 
         return Ok(newOptionsList);
     }
+    
+    /// <summary>
+    /// Updates the name of an options list by changing file name in repo.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="optionsListId">Name of the options list.</param>
+    /// <param name="newOptionsListId">New name of options list file.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPut]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("change-name/{optionsListId}")]
+    public ActionResult UpdateOptionsListId(string org, string repo, [FromRoute] string optionsListId, [FromBody] string newOptionsListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+        _optionsService.UpdateOptionsListId(editingContext, optionsListId, newOptionsListId, cancellationToken);
+
+        return Ok();
+    }
 
     /// <summary>
     /// Updates the name of an options list by changing file name in repo.

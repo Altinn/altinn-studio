@@ -127,7 +127,7 @@ public class OptionsService : IOptionsService
             return false;
         }
     }
-
+    
     /// <inheritdoc />
     public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId,
         string newOptionsListName, CancellationToken cancellationToken = default)
@@ -136,6 +136,5 @@ public class OptionsService : IOptionsService
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
         altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
-
     }
 }

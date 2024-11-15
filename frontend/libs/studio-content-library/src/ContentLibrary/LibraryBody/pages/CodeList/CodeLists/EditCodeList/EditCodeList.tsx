@@ -8,7 +8,7 @@ import {updateCodeListWithMetadata} from "../CodeLists";
 
 export type EditCodeListProps = {
   codeList: CodeListWithMetadata;
-  onChangeCodeListId: (newTitle: string) => void;
+  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
@@ -18,7 +18,7 @@ export function EditCodeList({
   onUpdateCodeList,
 }: EditCodeListProps): React.ReactElement {
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-
+  
   const handleCodeListTitleChange = (title: string) => {
     onChangeCodeListId(title);
   };
