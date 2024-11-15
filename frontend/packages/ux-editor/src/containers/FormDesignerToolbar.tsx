@@ -3,7 +3,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './FormDesignerToolbar.module.css';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from '../components/Elements/LayoutSetsContainer';
-import { StudioButton, StudioCheckbox, StudioParagraph, StudioSwitch } from '@studio/components';
+import { StudioSwitch } from '@studio/components';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
@@ -11,8 +11,6 @@ import {
 } from 'app-shared/utils/featureToggleUtils';
 import { useTranslation } from 'react-i18next';
 import { HelpText } from '@digdir/designsystemet-react';
-import { FeedbackModal } from './DesignView/AddItem/FeedbackModal';
-import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
 
 export const FormDesignerToolbar = () => {
   const { t } = useTranslation();
@@ -22,7 +20,6 @@ export const FormDesignerToolbar = () => {
   const [newComponentView, setNewComponentView] = React.useState(
     shouldDisplayFeature('addComponentModal'),
   );
-  const [betterOrWorse, setBetterOrWorse] = React.useState<'better' | 'worse' | null>(null);
 
   const toggleComponentFeatureFlag = () => {
     if (newComponentView) {
@@ -32,18 +29,6 @@ export const FormDesignerToolbar = () => {
     }
     setNewComponentView(!newComponentView);
     window.location.reload();
-  };
-
-  const setBetter = () => {
-    setBetterOrWorse('better');
-  };
-
-  const setWorse = () => {
-    setBetterOrWorse('worse');
-  };
-
-  const unsetBetterOrWorse = () => {
-    setBetterOrWorse(null);
   };
 
   return (
@@ -63,71 +48,6 @@ export const FormDesignerToolbar = () => {
         >
           {t('ux_editor.top_bar.featureFlag_addComponentModal.helpText')}
         </HelpText>
-        {newComponentView && (
-          <FeedbackModal
-            heading='Gi tilbakemelding'
-            triggerButtonText='Gi tilbakemelding'
-            closeButtonText='Lukk'
-          >
-            <StudioParagraph>
-              Hva syns du om den nye visningen for å legge til komponenter?
-            </StudioParagraph>
-            <div style={{ display: 'flex', flexDirection: 'row', gap: 12 }}>
-              {betterOrWorse !== 'better' && (
-                <StudioButton
-                  variant='tertiary'
-                  size='lg'
-                  icon={<ThumbUpIcon />}
-                  onClick={setBetter}
-                />
-              )}
-              {betterOrWorse === 'better' && (
-                <StudioButton
-                  variant='tertiary'
-                  size='lg'
-                  icon={<ThumbUpFillIcon />}
-                  onClick={unsetBetterOrWorse}
-                />
-              )}
-              {betterOrWorse !== 'worse' && (
-                <StudioButton
-                  variant='tertiary'
-                  size='lg'
-                  icon={<ThumbDownIcon />}
-                  onClick={setWorse}
-                />
-              )}
-              {betterOrWorse === 'worse' && (
-                <StudioButton
-                  variant='tertiary'
-                  size='lg'
-                  icon={<ThumbDownFillIcon />}
-                  onClick={unsetBetterOrWorse}
-                />
-              )}
-            </div>
-            {betterOrWorse === 'better' && (
-              <StudioCheckbox.Group
-                onChange={(value: string[]) => console.log('updated value: ', value)}
-                legend='Hva likte du bedre med den nye visningen?'
-              >
-                <StudioCheckbox value='oversiktlig'>Det var mer oversiktlig</StudioCheckbox>
-                <StudioCheckbox value='raskere'>Det var raskere å bruke</StudioCheckbox>
-                <StudioCheckbox value='enklere'>Det var enklere å bruke</StudioCheckbox>
-              </StudioCheckbox.Group>
-            )}
-            {betterOrWorse === 'worse' && (
-              <StudioCheckbox.Group
-                onChange={(value: string[]) => console.log('updated value: ', value)}
-                legend='Hva likte du dårligere med den nye visningen?'
-              >
-                <StudioCheckbox value='oversiktlig'>Det var mindre oversiktlig</StudioCheckbox>
-                <StudioCheckbox value='raskere'>Det tok mer tid å bruke</StudioCheckbox>
-                <StudioCheckbox value='enklere'>Det var vanskeligere å bruke</StudioCheckbox>
-              </StudioCheckbox.Group>
-            )}
-          </FeedbackModal>
-        )}
       </div>
     </section>
   );
