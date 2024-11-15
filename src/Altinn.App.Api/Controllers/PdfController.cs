@@ -73,11 +73,6 @@ public class PdfController : ControllerBase
         [FromRoute] Guid instanceGuid
     )
     {
-        if (_env.IsProduction())
-        {
-            return NotFound();
-        }
-
         var instance = await _instanceClient.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
         string? taskId = instance.Process?.CurrentTask?.ElementId;
         if (instance == null || taskId == null)
@@ -85,7 +80,7 @@ public class PdfController : ControllerBase
             return NotFound("Did not find instance or task");
         }
 
-        Stream pdfContent = await _pdfService.GeneratePdf(instance, taskId, CancellationToken.None);
+        Stream pdfContent = await _pdfService.GeneratePdf(instance, taskId, true, CancellationToken.None);
         return new FileStreamResult(pdfContent, "application/pdf");
     }
 
