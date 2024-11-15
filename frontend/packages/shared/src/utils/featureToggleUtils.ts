@@ -12,7 +12,8 @@ export type SupportedFeatureFlags =
   | 'exportForm'
   | 'addComponentModal'
   | 'subform'
-  | 'summary2';
+  | 'summary2'
+  | 'optionListEditor';
 
 /*
  * Please add all the features that you want to be toggle on by default here.

@@ -1,6 +1,3 @@
-export type Option<T extends string | boolean | number = string | boolean | number> = {
-  label: string;
-  value: T;
-  description?: string;
-  helpText?: string;
-};
+import type { CodeListItem, CodeListItemValue } from '@studio/components';
+
+export type Option<T extends CodeListItemValue = CodeListItemValue> = CodeListItem<T>;

@@ -2,8 +2,8 @@ import React from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ObjRestrictionKey } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
+import { ItemWrapper } from '../ItemWrapper';
 
 export function ObjectRestrictions({
   restrictions,
@@ -13,8 +13,7 @@ export function ObjectRestrictions({
   const { t } = useTranslation();
   const defaults = Object.values(ObjRestrictionKey);
   return defaults?.length ? (
-    <>
-      <Divider />
+    <ItemWrapper>
       {defaults.map((key) => (
         <RestrictionField
           key={key}
@@ -26,6 +25,6 @@ export function ObjectRestrictions({
           onChangeValue={onChangeRestrictionValue}
         />
       ))}
-    </>
+    </ItemWrapper>
   ) : null;
 }

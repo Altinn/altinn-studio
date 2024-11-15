@@ -11,6 +11,8 @@ describe('ContentResourceLibraryImpl', () => {
         props: {
           codeLists: [],
           onUpdateCodeList: () => {},
+          onUploadCodeList: () => {},
+          fetchDataError: false,
         },
       },
       images: {
