@@ -36,7 +36,14 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(
     {
         ApplicationName = "Altinn.App.Api.Tests",
         WebRootPath = Path.Join(TestData.GetTestDataRootDirectory(), "apps", "tdd", "contributer-restriction"),
-        EnvironmentName = "Production",
+        EnvironmentName = "Production"
+    }
+);
+builder.WebHost.UseDefaultServiceProvider(
+    (context, options) =>
+    {
+        options.ValidateScopes = true; // Allways validate scopes in test
+        options.ValidateOnBuild = true;
     }
 );
 

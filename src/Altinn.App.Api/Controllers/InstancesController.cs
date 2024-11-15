@@ -905,9 +905,9 @@ public class InstancesController : ControllerBase
 
     private void ConditionallySetReadStatus(Instance instance)
     {
-        string? orgClaimValue = User.GetOrg();
+        var isInstantiatedByOrg = User.GetOrg() is not null;
 
-        if (orgClaimValue == instance.Org)
+        if (isInstantiatedByOrg)
         {
             // Default value for ReadStatus is "not read"
             return;
