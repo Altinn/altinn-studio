@@ -84,12 +84,7 @@ public class PdfService : IPdfService
 
         TextResource? textResource = await GetTextResource(instance, language);
 
-        var pdfContent = await GeneratePdfContent(instance, language, false, ct);
-
-        Console.WriteLine("\n\n\n\n\n\n");
-
-        Console.WriteLine(pdfContent);
-        Console.WriteLine("\n\n\n\n\n\n");
+        var pdfContent = await GeneratePdfContent(instance, language, false, textResource, ct);
 
         string fileName = GetFileName(instance, textResource);
         await _dataClient.InsertBinaryData(instance.Id, PdfElementType, PdfContentType, fileName, pdfContent, taskId);
@@ -106,13 +101,16 @@ public class PdfService : IPdfService
 
         var language = GetOverriddenLanguage(queries) ?? await GetLanguage(user);
 
-        return await GeneratePdfContent(instance, language, isPreview, ct);
+        TextResource? textResource = await GetTextResource(instance, language);
+
+        return await GeneratePdfContent(instance, language, isPreview, textResource, ct);
     }
 
     private async Task<Stream> GeneratePdfContent(
         Instance instance,
         string language,
         bool isPreview,
+        TextResource? textResource,
         CancellationToken ct
     )
     {
@@ -124,8 +122,6 @@ public class PdfService : IPdfService
         Uri uri = BuildUri(baseUrl, pagePath, language);
 
         bool displayFooter = _pdfGeneratorSettings.DisplayFooter;
-
-        TextResource? textResource = await GetTextResource(instance, language);
 
         string? footerContent = null;
 
