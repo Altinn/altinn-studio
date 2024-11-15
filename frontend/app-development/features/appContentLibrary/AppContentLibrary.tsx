@@ -52,6 +52,7 @@ export function AppContentLibrary(): React.ReactElement {
       codeList: {
         props: {
           codeLists: codeLists,
+          onChangeCodeListId: () => {},
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
           fetchDataError: optionListsError,
