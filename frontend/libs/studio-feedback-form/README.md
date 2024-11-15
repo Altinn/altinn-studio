@@ -20,14 +20,21 @@ Consumers supply a configuration object, allowing for customization of the quest
 ```tsx
 const MyFeedbackForm = (): React.ReactElement => {
   const { getFeedbackForm } = new FeedbackFormImpl({
-    triggerButtonText: 'Give feedback',
-    closeButtonText: 'Close',
+    buttonText: {
+      close: 'Close',
+      trigger: 'Give feedback',
+      submit: 'Submit',
+    },
     heading: 'Feedback',
     questions: [
       {
         id: '1',
         type: 'yesNo',
         questionText: 'Is this better than before?',
+        buttonLabels: {
+          yes: 'Yes',
+          no: 'No',
+        },
       },
       {
         id: '2',

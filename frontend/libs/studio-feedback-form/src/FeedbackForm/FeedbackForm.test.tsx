@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { FeedbackForm } from './FeedbackForm';
 import type { ButtonTexts } from '../types/QuestionsProps';
 import { mockQuestions } from '../../mocks/mockQuestionsConfig';
-import { FeedbackFormContextProvider } from '../contexts/FeedbackFormContext';
+import { FeedbackFormContext } from '../contexts/FeedbackFormContext';
 import userEvent from '@testing-library/user-event';
 
 const buttonTexts: ButtonTexts = {
@@ -61,11 +61,29 @@ describe('FeedbackForm', () => {
       }
     });
   });
+
+  it('should update answers when a question is answered', async () => {
+    const mockSetAnswers = jest.fn();
+    const user = userEvent.setup();
+    renderFeedbackForm(mockQuestions, mockSetAnswers);
+
+    const trigger = screen.getByText(buttonTexts.trigger);
+    await user.click(trigger);
+
+    const yesButton = screen.getByRole('button', { name: 'Yes' });
+    await user.click(yesButton);
+
+    expect(mockSetAnswers).toHaveBeenCalledTimes(1);
+    expect(mockSetAnswers).toHaveBeenCalledWith({ better: 'yes' });
+  });
 });
 
-const renderFeedbackForm = (questions: any) => {
+const renderFeedbackForm = (
+  questions: any,
+  setAnswers?: (answers: Record<string, string>) => void,
+) => {
   render(
-    <FeedbackFormContextProvider>
+    <FeedbackFormContext.Provider value={{ answers: {}, setAnswers: setAnswers || jest.fn() }}>
       <FeedbackForm
         buttonTexts={buttonTexts}
         heading={heading}
@@ -73,6 +91,6 @@ const renderFeedbackForm = (questions: any) => {
         position='inline'
         onSubmit={jest.fn()}
       />
-    </FeedbackFormContextProvider>,
+    </FeedbackFormContext.Provider>,
   );
 };
