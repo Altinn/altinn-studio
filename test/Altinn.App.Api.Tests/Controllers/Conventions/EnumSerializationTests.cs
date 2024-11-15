@@ -50,8 +50,8 @@ public class EnumSerializationTests : ApiTestBase, IClassFixture<WebApplicationF
                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                 });
 
-            services.AddScoped(_ => _authorizationClientMock.Object);
-            services.AddScoped(_ => _appMetadataMock.Object);
+            services.AddSingleton(_authorizationClientMock.Object);
+            services.AddSingleton(_appMetadataMock.Object);
         };
     }
 
