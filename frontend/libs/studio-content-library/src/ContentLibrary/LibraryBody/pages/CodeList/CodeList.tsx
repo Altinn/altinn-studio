@@ -15,7 +15,7 @@ export type CodeListWithMetadata = {
 
 export type CodeListProps = {
   codeLists: CodeListWithMetadata[];
-  onChangeCodeListId: (title: string) => void;
+  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   fetchDataError: boolean;
