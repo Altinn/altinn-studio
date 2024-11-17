@@ -21,7 +21,7 @@ See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
-1. Newest [.NET 8 SDK][5]
+1. Newest [.NET 9 SDK][5]
 2. [Node.js][6] (Latest LTS version, v20.\*)
 3. Newest [Git][7]
 4. A code editor - we like [Visual Studio Code][8]
@@ -187,7 +187,7 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [2]: https://docs.altinn.studio/altinn-studio/getting-started/
 [3]: https://docs.altinn.studio/altinn-studio/getting-started/app-dev-course/
 [4]: https://github.com/Altinn/app-localtest
-[5]: https://dotnet.microsoft.com/download/dotnet/8.0
+[5]: https://dotnet.microsoft.com/download/dotnet/9.0
 [6]: https://nodejs.org
 [7]: https://git-scm.com/downloads
 [8]: https://code.visualstudio.com/Download
