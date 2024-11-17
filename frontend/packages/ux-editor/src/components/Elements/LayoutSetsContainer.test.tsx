@@ -7,11 +7,16 @@ import { renderWithProviders } from '../../testing/mocks';
 import {
   layoutSet1NameMock,
   layoutSet2NameMock,
+  layoutSet3SubformNameMock,
   layoutSetsMock,
 } from '../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import {
+  addFeatureFlagToLocalStorage,
+  removeFeatureFlagFromLocalStorage,
+} from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 // Test data
@@ -30,14 +35,9 @@ describe('LayoutSetsContainer', () => {
     expect(await screen.findByRole('option', { name: layoutSetName2 })).toBeInTheDocument();
   });
 
-  it('should not render combobox when  there are no layoutSets', async () => {
+  it('should not render combobox when there are no layoutSets', async () => {
     render({ sets: null });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-  });
-
-  it('should not render layout set options when there are no layout sets', async () => {
-    render({ sets: null });
-    expect(screen.queryByRole('option')).not.toBeInTheDocument;
   });
 
   it('Should update with selected layout', async () => {
@@ -57,13 +57,21 @@ describe('LayoutSetsContainer', () => {
     expect(appContextMock.onLayoutSetNameChange).toHaveBeenCalledWith('test-layout-set-2');
   });
 
-  it('should not render add and delete subform buttons when feature is disabled', () => {
-    render();
-    const createSubformButton = screen.queryByRole('button', {
-      name: textMock('ux_editor.create.subform'),
+  it('should render the delete subform button when feature is enabled and selected layoutset is a subform', () => {
+    addFeatureFlagToLocalStorage('subform');
+    render(
+      { sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] },
+      { selectedlayoutSet: layoutSet3SubformNameMock },
+    );
+    const deleteSubformButton = screen.getByRole('button', {
+      name: textMock('ux_editor.delete.subform'),
     });
-    expect(createSubformButton).not.toBeInTheDocument();
+    expect(deleteSubformButton).toBeInTheDocument();
+    removeFeatureFlagFromLocalStorage('subform');
+  });
 
+  it('should not render the delete subform button when feature is disabled', () => {
+    render();
     const deleteSubformButton = screen.queryByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
@@ -71,7 +79,8 @@ describe('LayoutSetsContainer', () => {
   });
 });
 
-const render = (layoutSetsData = layoutSetsMock) => {
+const render = (layoutSetsData = layoutSetsMock, options: { selectedlayoutSet?: string } = {}) => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsData);
+  appContextMock.selectedFormLayoutSetName = options.selectedlayoutSet || layoutSetName1;
   return renderWithProviders(<LayoutSetsContainer />);
 };

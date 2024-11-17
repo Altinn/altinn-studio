@@ -5,8 +5,8 @@ import { useText, useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { SubformWrapper } from './Subform/SubformWrapper';
 import { StudioCombobox } from '@studio/components';
+import { DeleteSubformWrapper } from './Subform/DeleteSubformWrapper';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
@@ -59,7 +59,7 @@ export function LayoutSetsContainer() {
       </StudioCombobox>
       {shouldDisplayFeature('exportForm') && <ExportForm />}
       {shouldDisplayFeature('subform') && (
-        <SubformWrapper
+        <DeleteSubformWrapper
           layoutSets={layoutSetsResponse}
           selectedLayoutSet={selectedFormLayoutSetName}
         />
