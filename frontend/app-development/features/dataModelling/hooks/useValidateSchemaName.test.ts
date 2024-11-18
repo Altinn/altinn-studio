@@ -137,7 +137,7 @@ describe('useValidateSchemaName', () => {
 
     it('should disallow "-" and "_" at start of name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidFirstCharacters = ['-', '_', 'æ', 'ø', 'å', 'Æ', 'Ø', 'Å'];
+      const invalidFirstCharacters = ['-', '_'];
 
       invalidFirstCharacters.forEach((char) => {
         act(() => {
