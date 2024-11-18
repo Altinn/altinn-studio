@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
@@ -19,6 +19,7 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 /**
  * @component
@@ -128,12 +129,15 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          <StudioButton asChild variant='tertiary' color='second' size='medium'>
-            <Link to={`${getResourceDashboardURL(org, app)}/accesslists`}>
-              <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-              <TasklistIcon />
-            </Link>
-          </StudioButton>
+          <ButtonRouterLink
+            variant='tertiary'
+            color='second'
+            size='medium'
+            to={`${getResourceDashboardURL(org, app)}/accesslists`}
+          >
+            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+            <TasklistIcon />
+          </ButtonRouterLink>
           <div className={classes.verticalDivider} />
           <StudioButton
             variant='tertiary'

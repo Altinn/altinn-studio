@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 
 interface IToolbarItemProps {
   text: string;
@@ -13,9 +13,12 @@ interface IToolbarItemProps {
 export const ToolbarItem = ({ notDraggable, componentType, text, icon }: IToolbarItemProps) => {
   return (
     <div>
-      <DragAndDropTree.NewItem<ComponentTypeV3> notDraggable={notDraggable} payload={componentType}>
+      <StudioDragAndDropTree.NewItem<ComponentTypeV3>
+        notDraggable={notDraggable}
+        payload={componentType}
+      >
         <ToolbarItemComponent componentType={componentType} thirdPartyLabel={text} icon={icon} />
-      </DragAndDropTree.NewItem>
+      </StudioDragAndDropTree.NewItem>
     </div>
   );
 };
