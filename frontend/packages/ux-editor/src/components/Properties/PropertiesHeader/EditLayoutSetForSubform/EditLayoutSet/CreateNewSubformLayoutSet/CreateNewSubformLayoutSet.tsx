@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioCard, StudioSpinner, StudioTextfield } from '@studio/components';
-import { ClipboardIcon, CheckmarkIcon } from '@studio/icons';
+import { TrashIcon, CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewSubformLayoutSet.module.css';
 import { SubformDataModelSelect } from './SubformDataModelSelect';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
@@ -9,13 +9,17 @@ import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 type CreateNewSubformLayoutSetProps = {
-  onSubformCreated: (layoutSetName: string) => void;
+  onUpdateLayoutSet: (layoutSetName: string) => void;
   layoutSets: LayoutSets;
+  setShowCreateSubformCard: (showCreateSubform: boolean) => void;
+  hasSubforms: boolean;
 };
 
 export const CreateNewSubformLayoutSet = ({
-  onSubformCreated,
+  onUpdateLayoutSet,
   layoutSets,
+  setShowCreateSubformCard,
+  hasSubforms,
 }: CreateNewSubformLayoutSetProps): React.ReactElement => {
   const { t } = useTranslation();
   const [newSubform, setNewSubform] = useState('');
@@ -31,7 +35,11 @@ export const CreateNewSubformLayoutSet = ({
   }
 
   function handleCreateSubform() {
-    createSubform({ layoutSetName: newSubform, onSubformCreated, dataType: selectedDataType });
+    createSubform({
+      layoutSetName: newSubform,
+      onSubformCreated: onUpdateLayoutSet,
+      dataType: selectedDataType,
+    });
   }
 
   const saveIcon = isPendingLayoutSetMutation ? (
@@ -43,30 +51,37 @@ export const CreateNewSubformLayoutSet = ({
   return (
     <StudioCard>
       <StudioCard.Content>
-        <StudioCard.Header>
-          <ClipboardIcon className={classes.headerIcon} />
-        </StudioCard.Header>
         <StudioTextfield
           label={t('ux_editor.component_properties.subform.created_layout_set_name')}
           value={newSubform}
+          size='sm'
           disabled={isPendingLayoutSetMutation}
           onChange={(e) => handleChange(e.target.value)}
           error={nameError}
         />
         <SubformDataModelSelect
-          disabled={false}
           selectedDataType={selectedDataType}
           setSelectedDataType={setSelectedDataType}
         />
-        <StudioButton
-          className={classes.savelayoutSetButton}
-          icon={saveIcon}
-          onClick={handleCreateSubform}
-          title={t('general.close')}
-          disabled={!newSubform || !!nameError || !selectedDataType}
-          variant='tertiary'
-          color='success'
-        />
+        <div className={classes.buttonGroup}>
+          <StudioButton
+            icon={saveIcon}
+            onClick={handleCreateSubform}
+            title={t('general.save')}
+            disabled={!newSubform || !!nameError || !selectedDataType}
+            variant='secondary'
+            color='success'
+          />
+          {hasSubforms && (
+            <StudioButton
+              onClick={() => setShowCreateSubformCard(false)}
+              title={t('general.close')}
+              icon={<TrashIcon />}
+              variant='secondary'
+              color='danger'
+            />
+          )}
+        </div>
       </StudioCard.Content>
     </StudioCard>
   );
