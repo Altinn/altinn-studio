@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
-import { textResourcesMock } from './test-data/textResourcesMock';
+import { textResourcesMock } from '../../test-data/textResourcesMock';
 
 type Story = StoryObj<typeof StudioTextResourcePicker>;
 

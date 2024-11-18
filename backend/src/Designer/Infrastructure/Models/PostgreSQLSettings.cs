@@ -16,5 +16,10 @@ namespace Altinn.Studio.Designer.Configuration
         /// Password for app user for the postgres db
         /// </summary>
         public string DesignerDbPwd { get; set; }
+
+        public string FormattedConnectionString()
+        {
+            return string.Format(ConnectionString, DesignerDbPwd);
+        }
     }
 }

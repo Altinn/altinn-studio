@@ -115,10 +115,9 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
-    const additionalText = 'new text';
-    const newValue = codeList[0].label + additionalText;
-    await user.type(labelInput, additionalText);
-    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
+    const newValue = 'new text';
+    await user.type(labelInput, newValue);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], label: newValue },
       codeList[1],
@@ -130,10 +129,9 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
-    const additionalText = 'new text';
-    const newValue = codeList[0].value + additionalText;
-    await user.type(valueInput, additionalText);
-    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
+    const newValue = 'new text';
+    await user.type(valueInput, newValue);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], value: newValue },
       codeList[1],
@@ -145,10 +143,9 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const descriptionInput = screen.getByRole('textbox', { name: texts.itemDescription(1) });
-    const additionalText = 'new text';
-    const newValue = codeList[0].description + additionalText;
-    await user.type(descriptionInput, additionalText);
-    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
+    const newValue = 'new text';
+    await user.type(descriptionInput, newValue);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], description: newValue },
       codeList[1],
@@ -160,10 +157,9 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     const helpTextInput = screen.getByRole('textbox', { name: texts.itemHelpText(1) });
-    const additionalText = 'new text';
-    const newValue = codeList[0].helpText + additionalText;
-    await user.type(helpTextInput, additionalText);
-    expect(onChange).toHaveBeenCalledTimes(additionalText.length);
+    const newValue = 'new text';
+    await user.type(helpTextInput, newValue);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], helpText: newValue },
       codeList[1],

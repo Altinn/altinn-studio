@@ -7,7 +7,7 @@ import { StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
 import type { SelectionComponentType } from '../../../../types/FormComponent';
-import { OptionTabs } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/OptionTabs';
+import { OptionTabs } from './OptionTabs';
 
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {
