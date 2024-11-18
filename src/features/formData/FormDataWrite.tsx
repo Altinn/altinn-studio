@@ -10,7 +10,7 @@ import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
-import { useCurrentDataModelName, useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
+import { useGetDataModelUrl } from 'src/features/datamodel/useBindingSchema';
 import { useRuleConnections } from 'src/features/form/dynamics/DynamicsContext';
 import { usePageSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { useFormDataWriteProxies } from 'src/features/formData/FormDataWriteProxies';
@@ -64,6 +64,7 @@ const {
   useLaxMemoSelector,
   useLaxDelayedSelector,
   useDelayedSelector,
+  useDelayedSelectorProps,
   useLaxSelector,
   useLaxStore,
   useStore,
@@ -565,6 +566,15 @@ const debouncedSelector = (reference: IDataModelReference) => (state: FormDataCo
 const invalidDebouncedSelector = (reference: IDataModelReference) => (state: FormDataContext) =>
   dot.pick(reference.field, state.dataModels[reference.dataType].invalidDebouncedCurrentData);
 
+const debouncedRowSelector = (reference: IDataModelReference) => (state: FormDataContext) => {
+  const rawRows = dot.pick(reference.field, state.dataModels[reference.dataType].debouncedCurrentData);
+  if (!Array.isArray(rawRows) || !rawRows.length) {
+    return emptyArray;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
+};
+
 export const FD = {
   /**
    * Gives you a selector function that can be used to look up paths in the data model. This is similar to
@@ -579,6 +589,13 @@ export const FD = {
     });
   },
 
+  useDebouncedSelectorProps() {
+    return useDelayedSelectorProps({
+      mode: 'simple',
+      selector: debouncedSelector,
+    });
+  },
+
   /**
    * The same as useDebouncedSelector(), but will return BaseRow[] instead of the raw data. This is useful if you
    * just want to fetch the number of rows, and the indexes/uuids of those rows, without fetching the actual data
@@ -587,15 +604,14 @@ export const FD = {
   useDebouncedRowsSelector(): FormDataRowsSelector {
     return useDelayedSelector({
       mode: 'simple',
-      selector: (reference: IDataModelReference) => (state) => {
-        const rawRows = dot.pick(reference.field, state.dataModels[reference.dataType].debouncedCurrentData);
-        if (!Array.isArray(rawRows) || !rawRows.length) {
-          return emptyArray;
-        }
+      selector: debouncedRowSelector,
+    });
+  },
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return rawRows.map((row: any, index: number) => ({ uuid: row[ALTINN_ROW_ID], index }));
-      },
+  useDebouncedRowsSelectorProps() {
+    return useDelayedSelectorProps({
+      mode: 'simple',
+      selector: debouncedRowSelector,
     });
   },
 
@@ -604,6 +620,13 @@ export const FD = {
    */
   useInvalidDebouncedSelector(): FormDataSelector {
     return useDelayedSelector({
+      mode: 'simple',
+      selector: invalidDebouncedSelector,
+    });
+  },
+
+  useInvalidDebouncedSelectorProps() {
+    return useDelayedSelectorProps({
       mode: 'simple',
       selector: invalidDebouncedSelector,
     });
@@ -722,17 +745,17 @@ export const FD = {
    */
   useMapping: <D extends 'string' | 'raw' = 'string'>(
     mapping: IMapping | undefined,
+    defaultDataType: string | undefined,
     dataAs?: D,
-  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } => {
-    const currentDataType = useCurrentDataModelName();
-    return useMemoSelector((s) => {
+  ): D extends 'raw' ? { [key: string]: FDValue } : { [key: string]: string } =>
+    useMemoSelector((s) => {
       const realDataAs = dataAs || 'string';
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out: any = {};
-      if (mapping && currentDataType) {
+      if (mapping && defaultDataType) {
         for (const key of Object.keys(mapping)) {
           const outputKey = mapping[key];
-          const value = dot.pick(key, s.dataModels[currentDataType].debouncedCurrentData);
+          const value = dot.pick(key, s.dataModels[defaultDataType].debouncedCurrentData);
 
           if (realDataAs === 'raw') {
             out[outputKey] = value;
@@ -746,8 +769,7 @@ export const FD = {
         }
       }
       return out;
-    });
-  },
+    }),
 
   /**
    * This returns the raw method for setting a value in the form data. This is useful if you want to

@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
+import deepEqual from 'fast-deep-equal';
+
 import { evalExpr } from 'src/features/expressions';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
@@ -9,6 +11,7 @@ import { getComponentDef, getNodeConstructor } from 'src/layout';
 import { NodesStateQueue } from 'src/utils/layout/generator/CommitQueue';
 import { GeneratorDebug } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal, GeneratorNodeProvider } from 'src/utils/layout/generator/GeneratorContext';
+import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { useGeneratorErrorBoundaryNodeRef } from 'src/utils/layout/generator/GeneratorErrorBoundary';
 import {
   GeneratorCondition,
@@ -20,7 +23,6 @@ import {
 import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
 import { NodePropertiesValidation } from 'src/utils/layout/generator/validation/NodePropertiesValidation';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SimpleEval } from 'src/features/expressions';
 import type { ExprConfig, ExprResolved, ExprValToActual, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { CompDef } from 'src/layout';
@@ -144,7 +146,21 @@ function ResolveExpressions<T extends CompTypes>({ node, intermediateItem }: Com
     [def, resolverProps],
   );
 
-  NodesStateQueue.useSetNodeProp({ node, prop: 'item', value: resolved, partial: true });
+  const isSet = NodesInternal.useNodeData(node, (data) => {
+    if (!data.item) {
+      return false;
+    }
+
+    for (const key in resolved) {
+      if (!deepEqual(data.item[key], resolved[key])) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  NodesStateQueue.useSetNodeProp({ node, prop: 'item', value: resolved, partial: true }, !isSet);
 
   return (
     <>{GeneratorDebug.displayState && <pre style={{ fontSize: '0.8em' }}>{JSON.stringify(resolved, null, 2)}</pre>}</>
@@ -160,7 +176,7 @@ export function useExpressionResolverProps<T extends CompTypes>(
   _item: CompIntermediateExact<T>,
   rowIndex?: number,
 ): ExprResolver<T> {
-  const allDataSources = useExpressionDataSources();
+  const allDataSources = GeneratorData.useExpressionDataSources();
   const allDataSourcesAsRef = useAsRef(allDataSources);
 
   // The hidden property is handled elsewhere, and should never be passed to the item (and resolved as an

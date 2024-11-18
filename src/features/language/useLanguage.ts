@@ -13,7 +13,11 @@ import { useFormComponentCtx } from 'src/layout/FormComponentContext';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
 import { smartLowerCaseFirst } from 'src/utils/formComponentUtils';
-import { useDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
+import { NodesInternal } from 'src/utils/layout/NodesContext';
+import {
+  useDataModelBindingTranspose,
+  useInnerDataModelBindingTranspose,
+} from 'src/utils/layout/useDataModelBindingTranspose';
 import type { DataModelReader, useDataModelReaders } from 'src/features/formData/FormDataReaders';
 import type {
   LangDataSources,
@@ -25,6 +29,7 @@ import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, ILanguage, IVariable } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { LaxNodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { DataModelTransposeSelector } from 'src/utils/layout/useDataModelBindingTranspose';
 
 type SimpleLangParam = string | number | undefined;
@@ -127,11 +132,22 @@ export function useLanguageWithForcedNode(node: LayoutNode | undefined) {
 
 // Exactly the same as above, but returns a function accepting a node
 export function useLanguageWithForcedNodeSelector() {
-  const sources = useLangToolsDataSources();
   const defaultDataType = DataModels.useLaxDefaultDataType();
   const formDataTypes = DataModels.useLaxReadableDataTypes();
   const formDataSelector = FD.useLaxDebouncedSelector();
-  const transposeSelector = useDataModelBindingTranspose();
+  const nodeDataSelector = NodesInternal.useLaxNodeDataSelector();
+
+  return useInnerLanguageWithForcedNodeSelector(defaultDataType, formDataTypes, formDataSelector, nodeDataSelector);
+}
+
+export function useInnerLanguageWithForcedNodeSelector(
+  defaultDataType: string | typeof ContextNotProvided | undefined,
+  formDataTypes: string[] | typeof ContextNotProvided,
+  formDataSelector: FormDataSelector | typeof ContextNotProvided,
+  nodeDataSelector: LaxNodeDataSelector,
+) {
+  const sources = useLangToolsDataSources();
+  const transposeSelector = useInnerDataModelBindingTranspose(nodeDataSelector);
 
   return useCallback(
     (node: LayoutNode | undefined) => {

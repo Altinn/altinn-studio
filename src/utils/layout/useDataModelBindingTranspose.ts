@@ -27,7 +27,9 @@ export type DataModelTransposeSelector = ReturnType<typeof useDataModelBindingTr
  */
 export function useDataModelBindingTranspose() {
   const nodeSelector = NodesInternal.useLaxNodeDataSelector();
-
+  return useInnerDataModelBindingTranspose(nodeSelector);
+}
+export function useInnerDataModelBindingTranspose(nodeSelector: LaxNodeDataSelector) {
   return useCallback(
     (node: LayoutNode, subject: IDataModelReference, _rowIndex?: number) => {
       const { currentLocation, currentLocationIsRepGroup, foundRowIndex } = firstDataModelBinding(node, nodeSelector);

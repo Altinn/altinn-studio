@@ -1,8 +1,9 @@
 import { NodeDataPlugin } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
+import type { DSPropsForSimpleSelector } from 'src/hooks/delayedSelectors';
 import type { CompWithBehavior } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
-import type { NodesStoreFull } from 'src/utils/layout/NodesContext';
+import type { NodesContext, NodesStoreFull } from 'src/utils/layout/NodesContext';
 import type { NodeDataPluginSetState } from 'src/utils/layout/plugins/NodeDataPlugin';
 import type { NodeData } from 'src/utils/layout/types';
 
@@ -16,6 +17,7 @@ export interface OptionsStorePluginConfig {
   extraHooks: {
     useNodeOptions: NodeOptionsSelector;
     useNodeOptionsSelector: () => NodeOptionsSelector;
+    useNodeOptionsSelectorProps: () => DSPropsForSimpleSelector<NodesContext, NodeOptionsSelector>;
   };
 }
 
@@ -46,11 +48,20 @@ export class OptionsStorePlugin extends NodeDataPlugin<OptionsStorePluginConfig>
       useNodeOptionsSelector: () =>
         store.useDelayedSelector({
           mode: 'simple',
-          selector: (node: LayoutNode<CompWithBehavior<'canHaveOptions'>> | undefined) => (state) => {
-            const store = node ? state.nodeData[node.id] : undefined;
-            return { isFetching: nodeDataToIsFetching(store), options: nodeDataToOptions(store) };
-          },
+          selector: nodeOptionsSelector,
+        }),
+
+      useNodeOptionsSelectorProps: () =>
+        store.useDelayedSelectorProps({
+          mode: 'simple',
+          selector: nodeOptionsSelector,
         }),
     };
   }
 }
+
+const nodeOptionsSelector =
+  (node: LayoutNode<CompWithBehavior<'canHaveOptions'>> | undefined) => (state: NodesContext) => {
+    const store = node ? state.nodeData[node.id] : undefined;
+    return { isFetching: nodeDataToIsFetching(store), options: nodeDataToOptions(store) };
+  };

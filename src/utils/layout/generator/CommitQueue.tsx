@@ -3,6 +3,7 @@ import { useCallback, useEffect } from 'react';
 import { useAsRef } from 'src/hooks/useAsRef';
 import { generatorLog } from 'src/utils/layout/generator/debug';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
+import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import { NODES_TICK_TIMEOUT, StageFinished } from 'src/utils/layout/generator/GeneratorStages';
 import {
   type AddNodeRequest,
@@ -51,23 +52,22 @@ export function useCommit() {
 
   return useCallback(() => {
     const toCommit = registry.current.toCommit;
+    let changes = false;
+
     if (toCommit.addNodes.length) {
       generatorLog('logCommits', 'Committing', toCommit.addNodes.length, 'addNodes requests');
       addNodes(toCommit.addNodes);
       toCommit.addNodes.length = 0; // This truncates the array, but keeps the reference
-      updateCommitsPendingInBody(toCommit);
-      return true;
+      changes = true;
     }
 
     if (toCommit.removeNodes.length) {
       generatorLog('logCommits', 'Committing', toCommit.removeNodes.length, 'removeNodes requests');
       removeNodes(toCommit.removeNodes);
       toCommit.removeNodes.length = 0;
-      updateCommitsPendingInBody(toCommit);
-      return true;
+      changes = true;
     }
 
-    let changes = false;
     if (toCommit.setNodeProps.length) {
       generatorLog('logCommits', 'Committing', toCommit.setNodeProps.length, 'setNodeProps requests:', () => {
         const counts = {};
@@ -138,11 +138,12 @@ export const NodesStateQueue = {
   useAddNode: (req: AddNodeRequest, condition = true) => useAddToQueue('addNodes', false, req, condition),
   useRemoveNode: (req: Omit<RemoveNodeRequest, 'layouts'>) => useRemoveNode(req),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSetNodeProp: (req: SetNodePropRequest<any, any>, condition = true) =>
+  useSetNodeProp: (req: SetNodePropRequest<any, any>, condition: boolean) =>
     useAddToQueue('setNodeProps', true, req, condition),
-  useSetRowExtras: (req: SetRowExtrasRequest, condition = true) => useAddToQueue('setRowExtras', true, req, condition),
+  useSetRowExtras: (req: SetRowExtrasRequest, condition: boolean) =>
+    useAddToQueue('setRowExtras', true, req, condition),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSetPageProp: (req: SetPagePropRequest<any>, condition = true) =>
+  useSetPageProp: (req: SetPagePropRequest<any>, condition: boolean) =>
     useAddToQueue('setPageProps', true, req, condition),
 };
 
@@ -154,7 +155,7 @@ function useAddToQueue<T extends keyof RegistryCommitQueues>(
 ) {
   const registry = GeneratorInternal.useRegistry();
   const toCommit = registry.current.toCommit;
-  const commit = useCommitWhenFinished();
+  const commit = GeneratorData.useCommitWhenFinished();
 
   if (condition) {
     registry.current.toCommitCount += 1;
@@ -176,7 +177,7 @@ function useRemoveNode(request: Omit<RemoveNodeRequest, 'layouts'>) {
   const registry = GeneratorInternal.useRegistry();
   const toCommit = registry.current.toCommit;
   const ref = useAsRef(request);
-  const commit = useCommitWhenFinished();
+  const commit = GeneratorData.useCommitWhenFinished();
 
   useEffect(() => {
     const reg = registry.current;
@@ -198,7 +199,7 @@ function useRemoveNode(request: Omit<RemoveNodeRequest, 'layouts'>) {
  * up (setTimeout is slow, at least when debugging), we'll set a timeout once if this selector find out the generator
  * has finished.
  */
-function useCommitWhenFinished() {
+export function useCommitWhenFinished() {
   const commit = useCommit();
   const registry = GeneratorInternal.useRegistry();
   const stateRef = NodesStore.useSelectorAsRef((s) => s.stages);

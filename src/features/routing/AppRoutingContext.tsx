@@ -121,7 +121,7 @@ export const useNavigationParam = <T extends keyof PathParams>(key: T) =>
     return paramFrom(matches, key) as PathParams[T];
   });
 
-export const useIsCurrentView = (pageKey: string) =>
+export const useIsCurrentView = (pageKey: string | undefined) =>
   useSelector((s) => {
     const path = getPath(s.hash);
     const matches = matchers.map((matcher) => matchPath(matcher, path));

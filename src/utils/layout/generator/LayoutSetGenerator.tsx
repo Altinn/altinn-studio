@@ -11,19 +11,14 @@ import {
   GeneratorErrorBoundary,
   useGeneratorErrorBoundaryNodeRef,
 } from 'src/utils/layout/generator/GeneratorErrorBoundary';
-import {
-  GeneratorCondition,
-  GeneratorStages,
-  StageAddNodes,
-  StageMarkHidden,
-} from 'src/utils/layout/generator/GeneratorStages';
+import { GeneratorCondition, StageAddNodes, StageMarkHidden } from 'src/utils/layout/generator/GeneratorStages';
 import { useEvalExpressionInGenerator } from 'src/utils/layout/generator/useEvalExpression';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
-import { LayoutPages } from 'src/utils/layout/LayoutPages';
-import { Hidden, NodesInternal, NodesStore, useNodesWhenNotReady } from 'src/utils/layout/NodesContext';
+import { Hidden, NodesInternal, NodesStore, useNodes } from 'src/utils/layout/NodesContext';
 import type { CompExternal, CompExternalExact, CompTypes, ILayout } from 'src/layout/layout';
 import type { ChildClaimerProps, ComponentProto, NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { ChildClaim, ChildClaims, ChildClaimsMap } from 'src/utils/layout/generator/GeneratorContext';
+import type { LayoutPages } from 'src/utils/layout/LayoutPages';
 
 const style: React.CSSProperties = GeneratorDebug.displayState
   ? {
@@ -48,11 +43,10 @@ interface ChildrenState {
 
 export function LayoutSetGenerator() {
   const layouts = GeneratorInternal.useLayouts();
-  const pages = useMemo(() => new LayoutPages(), []);
+  const pages = useNodes();
 
   const children = (
     <>
-      <SaveFinishedNodesToStore pages={pages} />
       <ExportStores />
       {GeneratorDebug.displayState && <h1>Node generator</h1>}
       {layouts &&
@@ -77,22 +71,6 @@ export function LayoutSetGenerator() {
   );
 
   return <div style={style}>{children}</div>;
-}
-
-function SaveFinishedNodesToStore({ pages }: { pages: LayoutPages }) {
-  const existingNodes = useNodesWhenNotReady();
-  const setNodes = NodesInternal.useSetNodes();
-  const isFinishedAddingNodes = GeneratorStages.useIsDoneAddingNodes();
-  const numPages = Object.keys(GeneratorInternal.useLayouts()).length;
-  const shouldSet = existingNodes !== pages && pages && (isFinishedAddingNodes || numPages === 0);
-
-  useEffect(() => {
-    if (shouldSet) {
-      setNodes(pages);
-    }
-  }, [pages, setNodes, shouldSet]);
-
-  return null;
 }
 
 function ExportStores() {

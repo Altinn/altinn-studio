@@ -5,6 +5,7 @@ import type { SortDirection } from '@digdir/design-system-react/dist/types/compo
 import type { UseQueryResult } from '@tanstack/react-query';
 
 import { useAppQueries } from 'src/core/contexts/AppQueriesProvider';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
@@ -29,7 +30,7 @@ export const useDataListQuery = (
   const { fetchDataList } = useAppQueries();
   const selectedLanguage = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
-  const mappingResult = FD.useMapping(mapping);
+  const mappingResult = FD.useMapping(mapping, DataModels.useDefaultDataType());
   const { pageSize, pageNumber, sortColumn, sortDirection } = filter || {};
 
   const url = getDataListsUrl({

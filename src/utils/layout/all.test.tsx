@@ -12,7 +12,7 @@ import { GenericComponent } from 'src/layout/GenericComponent';
 import { fetchApplicationMetadata } from 'src/queries/queries';
 import { ensureAppsDirIsSet, getAllApps } from 'src/test/allApps';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
 import { TraversalTask } from 'src/utils/layout/useNodeTraversal';
 import type { ExternalAppLayoutSet } from 'src/test/allApps';
 
@@ -57,7 +57,7 @@ function TestApp() {
 
 function RenderAllComponents() {
   const state = NodesInternal.useStore().getState();
-  const nodes = state.nodes;
+  const nodes = useNodes();
   if (!nodes) {
     throw new Error('No nodes found');
   }

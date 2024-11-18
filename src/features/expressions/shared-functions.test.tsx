@@ -15,6 +15,7 @@ import { useExternalApis } from 'src/features/externalApi/useExternalApi';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
+import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
@@ -25,7 +26,8 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 jest.mock('src/features/externalApi/useExternalApi');
 
 function ExpressionRunner({ node, expression }: { node: LayoutNode; expression: ExprValToActualOrExpr<ExprVal.Any> }) {
-  const result = useEvalExpression(ExprVal.Any, node, expression, null);
+  const dataSources = useExpressionDataSources();
+  const result = useEvalExpression(ExprVal.Any, node, expression, null, dataSources);
   return (
     <>
       <div data-testid='expr-result'>{JSON.stringify(result)}</div>

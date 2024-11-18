@@ -142,12 +142,20 @@ function initialCreateStore() {
   );
 }
 
-const { Provider, useSelector, useLaxSelector, useSelectorAsRef, useStore, useLaxSelectorAsRef, useDelayedSelector } =
-  createZustandContext({
-    name: 'Validation',
-    required: true,
-    initialCreateStore,
-  });
+const {
+  Provider,
+  useSelector,
+  useLaxSelector,
+  useSelectorAsRef,
+  useStore,
+  useLaxSelectorAsRef,
+  useDelayedSelector,
+  useDelayedSelectorProps,
+} = createZustandContext({
+  name: 'Validation',
+  required: true,
+  initialCreateStore,
+});
 
 export function ValidationProvider({ children }: PropsWithChildren) {
   const writableDataTypes = DataModels.useWritableDataTypes();
@@ -308,6 +316,18 @@ function useDS<U>(outerSelector: (state: ValidationContext) => U) {
   });
 }
 
+const dataElementHasErrorsSelector = (dataElementId: string) => (state: ValidationContext) => {
+  const dataElementValidations = state.state.dataModels[dataElementId];
+  for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
+    for (const validation of fieldValidations) {
+      if (validation.severity === 'error') {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 export type ValidationSelector = ReturnType<typeof Validation.useSelector>;
 export type ValidationDataModelSelector = ReturnType<typeof Validation.useDataModelSelector>;
 export type DataElementHasErrorsSelector = ReturnType<typeof Validation.useDataElementHasErrorsSelector>;
@@ -322,17 +342,13 @@ export const Validation = {
   useDataElementHasErrorsSelector: () =>
     useDelayedSelector({
       mode: 'simple',
-      selector: (dataElementId: string) => (state) => {
-        const dataElementValidations = state.state.dataModels[dataElementId];
-        for (const fieldValidations of Object.values(dataElementValidations ?? {})) {
-          for (const validation of fieldValidations) {
-            if (validation.severity === 'error') {
-              return true;
-            }
-          }
-        }
-        return false;
-      },
+      selector: dataElementHasErrorsSelector,
+    }),
+
+  useDataElementHasErrorsSelectorProps: () =>
+    useDelayedSelectorProps({
+      mode: 'simple',
+      selector: dataElementHasErrorsSelector,
     }),
 
   useShowAllBackendErrors: () => useSelector((state) => state.showAllBackendErrors),

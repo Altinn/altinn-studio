@@ -9,6 +9,7 @@ import type { FormDataSelector } from 'src/layout';
 import type { CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 import type { NodeData, NodeItemFromNode } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
@@ -67,19 +68,15 @@ export function useNodeDirectChildren(
   restriction?: TraversalRestriction,
 ): LayoutNode[] {
   return (
-    NodesInternal.useNodeData(parent, (nodeData, _, fullState) => {
+    NodesInternal.useNodeData(parent, (nodeData) => {
       if (!parent) {
         return emptyArray;
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const out = parent.def.pickDirectChildren(nodeData as any, restriction);
-      const rootNode = fullState.nodes;
-      if (!rootNode) {
-        return emptyArray;
-      }
-
-      return out?.map((id) => rootNode.findById(id)).filter(typedBoolean);
+      const nodes = parent.page.layoutSet;
+      return out?.map((id) => nodes.findById(id)).filter(typedBoolean);
     }) ?? emptyArray
   );
 }
@@ -104,6 +101,9 @@ export function useNodeFormDataSelector() {
   const nodeSelector = NodesInternal.useNodeDataSelector();
   const formDataSelector = FD.useDebouncedSelector();
 
+  return useInnerNodeFormDataSelector(nodeSelector, formDataSelector);
+}
+export function useInnerNodeFormDataSelector(nodeSelector: NodeDataSelector, formDataSelector: FormDataSelector) {
   return useCallback(
     <N extends LayoutNode | undefined>(node: N): NodeFormData<N> => {
       const dataModelBindings = nodeSelector((picker) => picker(node)?.layout.dataModelBindings, [node]);

@@ -52,6 +52,7 @@ const {
   useHasProvider,
   useLaxStore,
   useLaxDelayedSelector,
+  useLaxDelayedSelectorProps,
 } = createZustandContext({
   name: 'InstanceContext',
   required: true,
@@ -241,10 +242,17 @@ export const useLaxInstanceDataElements = (dataType: string | undefined) =>
   useLaxInstance((state) => state.data?.data.filter((d) => d.dataType === dataType)) ?? emptyArray;
 
 export type DataElementSelector = <U>(selector: (data: IData[]) => U, deps: unknown[]) => U | typeof ContextNotProvided;
+const dataElementsInnerSelector = (state: InstanceContext) => [state.data?.data ?? emptyArray];
+
 export const useLaxDataElementsSelector = (): DataElementSelector =>
   useLaxDelayedSelector({
     mode: 'innerSelector',
-    makeArgs: (state) => [state.data?.data ?? emptyArray],
+    makeArgs: dataElementsInnerSelector,
+  });
+export const useLaxDataElementsSelectorProps = () =>
+  useLaxDelayedSelectorProps({
+    mode: 'innerSelector',
+    makeArgs: dataElementsInnerSelector,
   });
 
 /** Like useLaxInstanceAllDataElements, but will never re-render when the data changes */

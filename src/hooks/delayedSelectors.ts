@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef, useSyncExternalStore } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 import type { StoreApi } from 'zustand';
@@ -27,125 +27,312 @@ type ModeFromConf<C extends DSConfig> = C extends DSConfig<any, infer M> ? M : n
  * because the function itself will be recreated every time the component re-renders, and the function
  * will not be able to be used as a cache key.
  */
-export function useDelayedSelector<C extends DSConfig>({
-  store,
-  deps = [],
-  strictness,
-  mode,
-  makeCacheKey = mode.mode === 'simple' ? defaultMakeCacheKey : defaultMakeCacheKeyForInnerSelector,
-  equalityFn = deepEqual,
-  onlyReRenderWhen,
-}: DSProps<C>): DSReturn<C> {
-  const selectorsCalled = useRef<SelectorMap<C>>();
-  const [renderCount, forceRerender] = useState(0);
-  const lastReRenderValue = useRef<unknown>(undefined);
-  const unsubscribe = useRef<() => void>();
+export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSReturn<C> {
+  const state = useRef(new SingleDelayedSelectorController(props));
 
-  useEffect(() => () => unsubscribe.current?.(), []);
+  // Check if any deps have changed
+  state.current.checkDeps(props);
 
-  const subscribe = useCallback(
-    () =>
-      store !== ContextNotProvided
-        ? store.subscribe((state) => {
-            if (!selectorsCalled.current) {
-              return;
-            }
+  return useSyncExternalStore(state.current.subscribe, state.current.getSnapshot);
+}
 
-            let stateChanged = true;
-            if (onlyReRenderWhen) {
-              stateChanged = onlyReRenderWhen(state, lastReRenderValue.current, (v) => {
-                lastReRenderValue.current = v;
-              });
-            }
-            if (!stateChanged) {
-              return;
-            }
+export function useMultipleDelayedSelectors<P extends MultiDSProps>(...props: P): { [I in keyof P]: DSReturn<P[I]> } {
+  const state = useRef(new MultiDelayedSelectorController(props));
 
-            // When the state changes, we run all the known selectors again to figure out if anything changed. If it
-            // did change, we'll clear the list of selectors to force a re-render.
-            const selectors = selectorsCalled.current.values();
-            let changed = false;
-            for (const { fullSelector, value } of selectors) {
-              if (!equalityFn(value, fullSelector(state))) {
-                changed = true;
-                break;
-              }
-            }
-            if (changed) {
-              selectorsCalled.current = undefined;
-              forceRerender((prev) => prev + 1);
-            }
-          })
-        : undefined,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store],
-  );
+  // Check if any deps have changed
+  state.current.checkDeps(props);
 
-  return useCallback(
-    (...args: unknown[]) => {
-      if (store === ContextNotProvided) {
-        if (strictness === SelectorStrictness.throwWhenNotProvided) {
-          throw new Error('useDelayedSelector: store not provided');
+  return useSyncExternalStore(state.current.subscribe, state.current.getSnapshot);
+}
+
+abstract class BaseDelayedSelector<C extends DSConfig> {
+  private store: C['store'];
+  private strictness: C['strictness'];
+  private mode: C['mode'];
+  private makeCacheKey: (args: unknown[]) => unknown[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private equalityFn: (a: any, b: any) => boolean;
+  private onlyReRenderWhen: OnlyReRenderWhen<TypeFromConf<C>, unknown> | undefined;
+  private deps: unknown[] | undefined;
+
+  protected selectorFunc = ((...args: unknown[]) => this.selector(...args)) as DSReturn<C>;
+  private lastReRenderValue: unknown = null;
+  private selectorsCalled: SelectorMap<C> | null = null;
+  private unsubscribeMethod: (() => void) | null = null;
+
+  constructor({
+    store,
+    strictness,
+    mode,
+    makeCacheKey = mode.mode === 'simple' ? defaultMakeCacheKey : defaultMakeCacheKeyForInnerSelector,
+    equalityFn = deepEqual,
+    onlyReRenderWhen,
+    deps,
+  }: DSProps<C>) {
+    this.store = store;
+    this.strictness = strictness;
+    this.mode = mode;
+    this.makeCacheKey = makeCacheKey;
+    this.equalityFn = equalityFn;
+    this.onlyReRenderWhen = onlyReRenderWhen;
+    this.deps = deps;
+  }
+
+  public checkDeps(newProps: DSProps<C>) {
+    if (newProps.deps && !arrayShallowEqual(newProps.deps, this.deps)) {
+      const {
+        store,
+        strictness,
+        mode,
+        makeCacheKey = mode.mode === 'simple' ? defaultMakeCacheKey : defaultMakeCacheKeyForInnerSelector,
+        equalityFn = deepEqual,
+        onlyReRenderWhen,
+        deps,
+      } = newProps;
+
+      this.store = store;
+      this.strictness = strictness;
+      this.mode = mode;
+      this.makeCacheKey = makeCacheKey;
+      this.equalityFn = equalityFn;
+      this.onlyReRenderWhen = onlyReRenderWhen;
+      this.deps = deps;
+
+      // No need to trigger re-render if no selectors have been called
+      if (this.selectorsCalled) {
+        this.updateSelector();
+      }
+    }
+  }
+
+  protected abstract onUpdateSelector(): void;
+  protected onCallSelector() {}
+
+  private updateSelector() {
+    this.selectorsCalled = null;
+    this.unsubscribeFromStore();
+    this.selectorFunc = ((...args: unknown[]) => this.selector(...args)) as DSReturn<C>;
+    this.onUpdateSelector();
+  }
+
+  public unsubscribeFromStore() {
+    if (this.unsubscribeMethod) {
+      this.unsubscribeMethod();
+      this.unsubscribeMethod = null;
+    }
+  }
+
+  private subscribeToStore() {
+    if (this.store === ContextNotProvided) {
+      return null;
+    }
+    return this.store.subscribe((state) => {
+      if (!this.selectorsCalled) {
+        return;
+      }
+
+      let stateChanged = true;
+      if (this.onlyReRenderWhen) {
+        stateChanged = this.onlyReRenderWhen(state, this.lastReRenderValue, (v) => {
+          this.lastReRenderValue = v;
+        });
+      }
+      if (!stateChanged) {
+        return;
+      }
+
+      // When the state changes, we run all the known selectors again to figure out if anything changed. If it
+      // did change, we'll clear the list of selectors to force a re-render.
+      const selectors = this.selectorsCalled.values();
+      let changed = false;
+      for (const { fullSelector, value } of selectors) {
+        if (!this.equalityFn(value, fullSelector(state))) {
+          changed = true;
+          break;
         }
-        return ContextNotProvided;
       }
-
-      if (isNaN(renderCount)) {
-        // This should not happen, and this piece of code looks a bit out of place. This really is only here
-        // to make sure the callback is re-created and the component re-renders when the store changes.
-        throw new Error('useDelayedSelector: renderCount is NaN');
+      if (changed) {
+        this.updateSelector();
       }
+    });
+  }
 
-      const cacheKey = makeCacheKey(args);
-      const prev = selectorsCalled.current?.get(cacheKey);
-      if (prev) {
-        // Performance-wise we could also just have called the selector here, it doesn't really matter. What is
-        // important however, is that we let developers know as early as possible if they forgot to include a dependency
-        // or otherwise used the hook incorrectly, so we'll make sure to return the value to them here even if it
-        // could be stale (but only when improperly used).
-        return prev.value;
+  private selector(...args: unknown[]) {
+    if (this.store === ContextNotProvided) {
+      if (this.strictness === SelectorStrictness.throwWhenNotProvided) {
+        throw new Error('useDelayedSelector: store not provided');
       }
+      return ContextNotProvided;
+    }
 
-      // We don't need to initialize the arraymap before checking for the previous value,
-      // since we know it would not exist if we just created it.
-      if (!selectorsCalled.current) {
-        selectorsCalled.current = new ShallowArrayMap();
+    this.onCallSelector();
+
+    const cacheKey = this.makeCacheKey(args);
+    const prev = this.selectorsCalled?.get(cacheKey);
+    if (prev) {
+      // Performance-wise we could also just have called the selector here, it doesn't really matter. What is
+      // important however, is that we let developers know as early as possible if they forgot to include a dependency
+      // or otherwise used the hook incorrectly, so we'll make sure to return the value to them here even if it
+      // could be stale (but only when improperly used).
+      return prev.value;
+    }
+
+    // We don't need to initialize the arraymap before checking for the previous value,
+    // since we know it would not exist if we just created it.
+    if (!this.selectorsCalled) {
+      this.selectorsCalled = new ShallowArrayMap();
+    }
+    if (!this.unsubscribeMethod) {
+      this.unsubscribeMethod = this.subscribeToStore();
+    }
+
+    const state = this.store.getState();
+
+    if (this.mode.mode === 'simple') {
+      const { selector } = this.mode as SimpleArgMode;
+      const fullSelector: Selector<TypeFromConf<C>, unknown> = (state) => selector(...args)(state);
+      const value = fullSelector(state);
+      this.selectorsCalled.set(cacheKey, { fullSelector, value });
+      return value;
+    }
+
+    if (this.mode.mode === 'innerSelector') {
+      const { makeArgs } = this.mode as InnerSelectorMode;
+      if (typeof args[0] !== 'function' || !Array.isArray(args[1]) || args.length !== 2) {
+        throw new Error('useDelayedSelector: innerSelector must be a function');
       }
-      if (!unsubscribe.current) {
-        unsubscribe.current = subscribe();
+      const fullSelector: Selector<TypeFromConf<C>, unknown> = (state) => {
+        const innerArgs = makeArgs(state);
+        const innerSelector = args[0] as (...args: typeof innerArgs) => unknown;
+        return innerSelector(...innerArgs);
+      };
+
+      const value = fullSelector(state);
+      this.selectorsCalled.set(cacheKey, { fullSelector, value });
+      return value;
+    }
+
+    throw new Error('useDelayedSelector: invalid mode');
+  }
+}
+
+class SingleDelayedSelectorController<C extends DSConfig> extends BaseDelayedSelector<C> {
+  // Subscription does not happen synchronously, but as an effect, meaning that there is a window of time
+  // where selectors could be used (and updated) before we have the ability to trigger a re-render.
+  // See: https://github.com/facebook/react/blob/92c0f5f85fed42024b17bf6595291f9f5d6e8734/packages/react-reconciler/src/ReactFiberHooks.js#L1715-L1716
+  private triggerRender: (() => void) | null = null;
+  private shouldTriggerOnSubscribe = false;
+
+  public getSnapshot = () => this.selectorFunc;
+  public subscribe = (callback: () => void) => {
+    this.triggerRender = callback;
+    if (this.shouldTriggerOnSubscribe) {
+      this.triggerRender();
+      this.shouldTriggerOnSubscribe = false;
+    }
+    return () => this.unsubscribeFromStore();
+  };
+
+  protected onUpdateSelector(): void {
+    if (this.triggerRender) {
+      this.triggerRender();
+    } else {
+      this.shouldTriggerOnSubscribe = true;
+    }
+  }
+}
+
+class MultiDelayedSelector<C extends DSConfig> extends BaseDelayedSelector<C> {
+  private changeCount = 0;
+  private lastSelectChangeCount = 0;
+  private onChange: (lastSelectChangeCount: number) => void;
+
+  constructor(props: DSProps<C>, onChange: (lastSelectChangeCount: number) => void) {
+    super(props);
+    this.onChange = onChange;
+  }
+
+  public getSelectorFunc() {
+    return this.selectorFunc;
+  }
+
+  public setChangeCount(count: number) {
+    this.changeCount = count;
+  }
+
+  protected onCallSelector(): void {
+    this.lastSelectChangeCount = this.changeCount;
+  }
+
+  protected onUpdateSelector(): void {
+    this.onChange(this.lastSelectChangeCount);
+  }
+}
+
+class MultiDelayedSelectorController<P extends MultiDSProps> {
+  // Subscription does not happen synchronously, but as an effect, meaning that there is a window of time
+  // where selectors could be used (and updated) before we have the ability to trigger a re-render.
+  // See: https://github.com/facebook/react/blob/92c0f5f85fed42024b17bf6595291f9f5d6e8734/packages/react-reconciler/src/ReactFiberHooks.js#L1715-L1716
+  private triggerRender: (() => void) | null = null;
+  private shouldTriggerOnSubscribe = false;
+
+  private changeCount = 0;
+  private controllers: MultiDelayedSelector<DSConfig>[] = [];
+  private selectorFuncs: DSReturn<DSConfig>[] = [];
+
+  constructor(props: P) {
+    for (let i = 0; i < props.length; i++) {
+      const MDS = new MultiDelayedSelector(props[i], (lastSelectChangeCount: number) =>
+        this.onUpdateSelector(i, lastSelectChangeCount),
+      );
+      this.controllers.push(MDS);
+      this.selectorFuncs.push(MDS.getSelectorFunc());
+    }
+  }
+
+  public getSnapshot = () => this.selectorFuncs as { [I in keyof P]: DSReturn<P[I]> };
+
+  public subscribe = (callback: () => void) => {
+    this.triggerRender = callback;
+    if (this.shouldTriggerOnSubscribe) {
+      this.triggerRender();
+      this.shouldTriggerOnSubscribe = false;
+    }
+    return () => this.controllers.forEach((c) => c.unsubscribeFromStore());
+  };
+
+  public checkDeps(newProps: P) {
+    for (let i = 0; i < newProps.length; i++) {
+      this.controllers[i].checkDeps(newProps[i]);
+    }
+  }
+
+  private onUpdateSelector(index: number, lastSelectChangeCount: number): void {
+    // Prevent multiple re-renders at the same time
+    this.selectorFuncs[index] = this.controllers[index].getSelectorFunc();
+    if (lastSelectChangeCount === this.changeCount) {
+      this.selectorFuncs = [...this.selectorFuncs];
+      if (this.triggerRender) {
+        this.triggerRender();
+      } else {
+        this.shouldTriggerOnSubscribe = true;
       }
+    }
+    this.changeCount += 1;
+    this.controllers.forEach((ds) => ds.setChangeCount(this.changeCount));
+  }
+}
 
-      const state = store.getState();
-
-      if (mode.mode === 'simple') {
-        const { selector } = mode as SimpleArgMode;
-        const fullSelector: Selector<TypeFromConf<C>, unknown> = (state) => selector(...args)(state);
-        const value = fullSelector(state);
-        selectorsCalled.current.set(cacheKey, { fullSelector, value });
-        return value;
-      }
-
-      if (mode.mode === 'innerSelector') {
-        const { makeArgs } = mode as InnerSelectorMode;
-        if (typeof args[0] !== 'function' || !Array.isArray(args[1]) || args.length !== 2) {
-          throw new Error('useDelayedSelector: innerSelector must be a function');
-        }
-        const fullSelector: Selector<TypeFromConf<C>, unknown> = (state) => {
-          const innerArgs = makeArgs(state);
-          const innerSelector = args[0] as (...args: typeof innerArgs) => unknown;
-          return innerSelector(...innerArgs);
-        };
-
-        const value = fullSelector(state);
-        selectorsCalled.current.set(cacheKey, { fullSelector, value });
-        return value;
-      }
-
-      throw new Error('useDelayedSelector: invalid mode');
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [store, renderCount, ...deps],
-  ) as DSReturn<C>;
+function arrayShallowEqual(a: unknown[], b?: unknown[]) {
+  if (a.length !== b?.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function defaultMakeCacheKeyForInnerSelector(args: unknown[]): unknown[] {
@@ -224,6 +411,15 @@ export interface DSProps<C extends DSConfig> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   deps?: any[];
 }
+
+type MultiDSProps = DSProps<DSConfig>[];
+
+export type DSPropsForSimpleSelector<
+  Type,
+  SimpleSelector extends (...args: unknown[]) => unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Strictness extends SelectorStrictness = any,
+> = DSProps<DSConfig<Type, SimpleArgMode<Type, Parameters<SimpleSelector>, ReturnType<SimpleSelector>>, Strictness>>;
 
 export type DSReturn<C extends DSConfig> =
   ModeFromConf<C> extends SimpleArgMode

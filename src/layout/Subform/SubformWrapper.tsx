@@ -1,24 +1,38 @@
 import React, { useEffect } from 'react';
-import type { PropsWithChildren } from 'react';
 
+import { Form, FormFirstPage } from 'src/components/form/Form';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useIsCurrentView, useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-export const SubformWrapper = ({ node, children }: PropsWithChildren<{ node: LayoutNode<'Subform'> }>) => {
+export function SubformWrapper({ node }: { node: LayoutNode<'Subform'> }) {
   const isDone = useDoOverride(node);
 
   if (!isDone) {
     return <Loader reason='subform-taskstore' />;
   }
 
-  return <FormProvider>{children}</FormProvider>;
-};
+  return (
+    <FormProvider>
+      <SubformForm />
+    </FormProvider>
+  );
+}
+
+function SubformForm() {
+  const hasFormPage = !useIsCurrentView(undefined);
+
+  if (hasFormPage) {
+    return <Form />;
+  }
+
+  return <FormFirstPage />;
+}
 
 export const RedirectBackToMainForm = () => {
   const mainPageKey = useNavigationParam('mainPageKey');

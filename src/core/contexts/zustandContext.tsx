@@ -8,7 +8,7 @@ import type { StoreApi } from 'zustand';
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { SelectorStrictness, useDelayedSelector } from 'src/hooks/delayedSelectors';
 import type { CreateContextProps } from 'src/core/contexts/context';
-import type { DSConfig, DSMode, DSReturn } from 'src/hooks/delayedSelectors';
+import type { DSConfig, DSMode, DSProps, DSReturn } from 'src/hooks/delayedSelectors';
 
 type ExtractFromStoreApi<T> = T extends StoreApi<infer U> ? Exclude<U, void> : never;
 
@@ -165,6 +165,26 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
       deps,
     });
 
+  const useDSProps = <Mode extends DSMode<Type>>(
+    mode: Mode,
+    deps?: unknown[],
+  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.throwWhenNotProvided>> => ({
+    store: useCtx(),
+    strictness: SelectorStrictness.throwWhenNotProvided,
+    mode,
+    deps,
+  });
+
+  const useLaxDSProps = <Mode extends DSMode<Type>>(
+    mode: Mode,
+    deps?: unknown[],
+  ): DSProps<DSConfig<Type, Mode, SelectorStrictness.returnWhenNotProvided>> => ({
+    store: useLaxCtx(),
+    strictness: SelectorStrictness.returnWhenNotProvided,
+    mode,
+    deps,
+  });
+
   return {
     Provider: MyProvider,
     useSelector,
@@ -175,6 +195,8 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     useLaxSelector,
     useDelayedSelector: useDS,
     useLaxDelayedSelector: useLaxDS,
+    useDelayedSelectorProps: useDSProps,
+    useLaxDelayedSelectorProps: useLaxDSProps,
     useHasProvider,
     useStore: useCtx,
     useLaxStore: useLaxCtx,

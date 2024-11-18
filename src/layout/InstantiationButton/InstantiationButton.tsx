@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button } from 'src/app-components/button/Button';
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useInstantiation } from 'src/features/instantiate/InstantiationContext';
 import { useCurrentParty } from 'src/features/party/PartiesProvider';
@@ -11,7 +12,7 @@ type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProvidedP
 // TODO(Datamodels): This uses mapping and therefore only supports the "default" data model
 export const InstantiationButton = ({ children, ...props }: Props) => {
   const { instantiateWithPrefill, error, isLoading } = useInstantiation();
-  const prefill = FD.useMapping(props.mapping);
+  const prefill = FD.useMapping(props.mapping, DataModels.useDefaultDataType());
   const party = useCurrentParty();
 
   const onClick = () => {

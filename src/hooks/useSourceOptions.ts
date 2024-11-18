@@ -3,7 +3,7 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
+import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
@@ -16,7 +16,7 @@ interface IUseSourceOptionsArgs {
 }
 
 export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOptionInternal[] | undefined => {
-  const dataSources = useExpressionDataSources();
+  const dataSources = GeneratorData.useExpressionDataSources();
 
   return useMemoDeepEqual(() => {
     if (!source) {

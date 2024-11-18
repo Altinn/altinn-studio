@@ -2,7 +2,6 @@ import React, { forwardRef } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import type { JSX, ReactNode } from 'react';
 
-import { Form, FormFirstPage } from 'src/components/form/Form';
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
 import {
   type ComponentValidation,
@@ -36,20 +35,8 @@ export class Subform extends SubformDef implements ValidateComponent<'Subform'>,
       <TaskStoreProvider>
         <Routes>
           <Route
-            path=':dataElementId/:subformPage'
-            element={
-              <SubformWrapper node={node}>
-                <Form />
-              </SubformWrapper>
-            }
-          />
-          <Route
-            path=':dataElementId'
-            element={
-              <SubformWrapper node={node}>
-                <FormFirstPage />
-              </SubformWrapper>
-            }
+            path=':dataElementId/:subformPage?'
+            element={<SubformWrapper node={node} />}
           />
           <Route
             path='*'

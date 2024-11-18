@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
 import { DataModelsProvider } from 'src/features/datamodel/DataModelsProvider';
@@ -32,6 +32,15 @@ export function useIsInFormContext() {
  */
 export function FormProvider({ children }: React.PropsWithChildren) {
   const hasProcess = useHasProcessProvider();
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+
+  if (renderCount.current > 1) {
+    console.error(
+      `FormProvider re-rendered. This may cause all nodes to be re-created and may trash ` +
+        `performance. Consider optimizing routes and components to avoid this.`,
+    );
+  }
 
   return (
     <>

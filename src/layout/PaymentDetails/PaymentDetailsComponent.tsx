@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 
+import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { useOrderDetails, useRefetchOrderDetails } from 'src/features/payment/OrderDetailsProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
@@ -18,7 +19,7 @@ export function PaymentDetailsComponent({ node }: IPaymentDetailsProps) {
   const mapping = useNodeItem(node, (i) => i.mapping);
   const hasUnsavedChanges = FD.useHasUnsavedChanges();
 
-  const mappedValues = FD.useMapping(mapping);
+  const mappedValues = FD.useMapping(mapping, DataModels.useDefaultDataType());
   const prevMappedValues = useRef<Record<string, unknown> | undefined>(undefined);
 
   // refetch data if we have configured mapping and the mapped values have changed
