@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
 import classes from './CreateNewWrapper.module.css';
 import { useTranslation } from 'react-i18next';
