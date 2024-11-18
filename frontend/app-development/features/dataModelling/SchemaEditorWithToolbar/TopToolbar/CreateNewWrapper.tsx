@@ -1,11 +1,11 @@
+import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
-import classes from './TopToolbar.module.css';
+import classes from './CreateNewWrapper.module.css';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 import { useValidateSchemaName } from '../../hooks/useValidateSchemaName';
-import cn from 'classnames';
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 
 export interface CreateNewWrapperProps {
@@ -31,7 +31,7 @@ export function CreateNewWrapper({
   const isConfirmButtonActivated = newModelName && !nameError;
   const relativePath = createPathOption ? '' : undefined;
 
-  const handleNameChange = (e: any) => {
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value || '';
     setNewModelName(name);
     validateName(name);
@@ -46,7 +46,7 @@ export function CreateNewWrapper({
     handleOpenChange();
   };
 
-  const handleKeyUp = (e: React.KeyboardEvent) => {
+  const handleKeyUp = (e: KeyboardEvent) => {
     if (e.key === 'Enter' && isConfirmButtonActivated) {
       handleConfirm();
     }
@@ -70,7 +70,7 @@ export function CreateNewWrapper({
         {<PlusIcon />}
         {t('general.create_new')}
       </StudioPopover.Trigger>
-      <StudioPopover.Content className={cn(classes.popover, classes.createNewPopover)}>
+      <StudioPopover.Content className={classes.popover}>
         <StudioTextfield
           id='newModelInput'
           label={t('schema_editor.create_model_description')}

@@ -12,9 +12,10 @@ import { renderWithProviders } from '../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 
 // Test data:
+const [testOrg, testApp] = ['testOrg', 'testApp'];
+const mockCreateDataModel = jest.fn();
 const mockSetIsCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
   isCreateNewOpen: false,
@@ -22,17 +23,8 @@ const defaultProps: CreateNewWrapperProps = {
   disabled: false,
   setIsCreateNewOpen: mockSetIsCreateNewOpen,
 };
-const mockCreateDataModel = jest.fn();
-
-jest.mock('../../../../hooks/mutations', () => ({
-  useCreateDataModelMutation: jest.fn(),
-}));
 
 describe('CreateNewWrapper', () => {
-  beforeEach(() => {
-    (useCreateDataModelMutation as jest.Mock).mockReturnValue({ mutate: mockCreateDataModel });
-  });
-
   afterEach(jest.clearAllMocks);
 
   it('should open the popup when clicking "new" button', async () => {
@@ -61,17 +53,17 @@ describe('CreateNewWrapper', () => {
     expect(mockSetIsCreateNewOpen).toHaveBeenCalledWith(false);
   });
 
-  it('should show error when validation fails', async () => {
+  it('should show an error text when validation fails', async () => {
     const user = userEvent.setup();
     const newModelName = dataModel1NameMock;
     const errorMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
     render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
 
-    expect(screen.queryByText(errorMessage)).not.toBeInTheDocument();
+    expect(queryErrorMessage(errorMessage)).not.toBeInTheDocument();
 
     await user.type(queryInputField(), newModelName);
 
-    expect(screen.getByText(errorMessage)).toBeInTheDocument();
+    expect(queryErrorMessage(errorMessage)).toBeInTheDocument();
     expect(queryConfirmButton()).toBeDisabled();
   });
 
@@ -83,9 +75,9 @@ describe('CreateNewWrapper', () => {
       await user.type(queryInputField(), 'new-model');
       await user.click(queryConfirmButton());
 
-      expect(mockCreateDataModel).toHaveBeenCalledWith({
-        name: 'new-model',
-        relativePath: undefined,
+      expect(mockCreateDataModel).toHaveBeenCalledWith(testOrg, testApp, {
+        modelName: 'new-model',
+        relativeDirectory: undefined,
       });
     });
 
@@ -96,9 +88,9 @@ describe('CreateNewWrapper', () => {
       await user.type(queryInputField(), 'new-model');
       await user.keyboard('{Enter}');
 
-      expect(mockCreateDataModel).toHaveBeenCalledWith({
-        name: 'new-model',
-        relativePath: undefined,
+      expect(mockCreateDataModel).toHaveBeenCalledWith(testOrg, testApp, {
+        modelName: 'new-model',
+        relativeDirectory: undefined,
       });
     });
 
@@ -109,9 +101,9 @@ describe('CreateNewWrapper', () => {
       await user.type(queryInputField(), 'new-model');
       await user.click(queryConfirmButton());
 
-      expect(mockCreateDataModel).toHaveBeenCalledWith({
-        name: 'new-model',
-        relativePath: '',
+      expect(mockCreateDataModel).toHaveBeenCalledWith(testOrg, testApp, {
+        modelName: 'new-model',
+        relativeDirectory: '',
       });
     });
 
@@ -144,6 +136,10 @@ const getNewButton = () => screen.getByRole('button', { name: textMock('general.
 const queryInputField = () =>
   screen.queryByRole('textbox', { name: textMock('schema_editor.create_model_description') });
 
+const queryErrorMessage = (errorMessage: string) => {
+  return screen.queryByText(errorMessage);
+};
+
 const queryConfirmButton = () =>
   screen.queryByRole('button', { name: textMock('schema_editor.create_model_confirm_button') });
 
@@ -152,6 +148,7 @@ const render = (
   queryClient = createQueryClientMock(),
 ) => {
   renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />, {
+    queries: { createDataModel: mockCreateDataModel },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ui-editor`,
     queryClient,
   });

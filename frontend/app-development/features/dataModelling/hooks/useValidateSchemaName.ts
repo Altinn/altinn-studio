@@ -22,7 +22,7 @@ export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
       return;
     }
     if (name.length > SCHEMA_NAME_MAX_LENGTH) {
-      setNameError(t('validation_errors.maxLength', { 0: SCHEMA_NAME_MAX_LENGTH }));
+      setNameError(t('validation_errors.maxLength', { number: SCHEMA_NAME_MAX_LENGTH }));
       return;
     }
     if (isExistingModelName(name, dataModels)) {

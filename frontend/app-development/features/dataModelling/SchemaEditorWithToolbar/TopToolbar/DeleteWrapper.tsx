@@ -8,7 +8,8 @@ import { AltinnConfirmDialog } from 'app-shared/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateBpmn } from 'app-shared/hooks/useUpdateBpmn';
 import { removeDataTypeIdsToSign } from 'app-shared/utils/bpmnUtils';
-import classes from './TopToolbar.module.css';
+import classes from './DeleteWrapper.module.css';
+
 export interface DeleteWrapperProps {
   selectedOption: MetadataOption | null;
 }

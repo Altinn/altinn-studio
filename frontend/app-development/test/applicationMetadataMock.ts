@@ -35,7 +35,7 @@ const mockOnEntry: OnEntry = {
   show: 'select-instance',
 };
 
-const mockDataTypes: DataTypeElement[] = [
+export const mockDataTypes: DataTypeElement[] = [
   {
     id: 'dataTypeId',
   },

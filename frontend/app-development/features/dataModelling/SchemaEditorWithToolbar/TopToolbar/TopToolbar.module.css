@@ -20,17 +20,6 @@
   padding-top: 4px;
 }
 
-.popover {
-  /* This is so that popovers goes above the header which has an z-index of 2000 */
-  z-index: 2001;
-}
-
-.createNewPopover {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-3);
-}
-
 .select {
   cursor: pointer;
   min-width: 20vw;
