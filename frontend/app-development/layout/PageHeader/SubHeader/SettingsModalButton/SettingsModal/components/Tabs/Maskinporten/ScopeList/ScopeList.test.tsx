@@ -8,7 +8,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
 const scopesMock: MaskinportenScope = {
-  label: 'label',
+  scope: 'label',
   description: 'description',
 };
 
