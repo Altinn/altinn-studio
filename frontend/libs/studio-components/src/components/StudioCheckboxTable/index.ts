@@ -1,10 +1,10 @@
 import {
-  StudioCheckboxTableBody,
-  StudioCheckboxTableHeader,
   StudioCheckboxTable as StudioCheckboxTableParent,
-  StudioCheckboxTableRow,
   type StudioCheckboxTableProps,
 } from './StudioCheckboxTable';
+import { StudioCheckboxTableBody } from './StudioCheckboxTableBody';
+import { StudioCheckboxTableHeader } from './StudioCheckboxTableHeader';
+import { StudioCheckboxTableRow } from './StudioCheckboxTableRow';
 
 type StudioCheckboxTableComponent = typeof StudioCheckboxTableParent & {
   Header: typeof StudioCheckboxTableHeader;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioCheckboxTable } from './index';
-import { type StudioCheckboxTableRowElement } from './StudioCheckboxTable';
+import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableRowElement';
 
 const options: StudioCheckboxTableRowElement[] = [
   {
