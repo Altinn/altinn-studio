@@ -7,7 +7,7 @@ import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@navikt/
 import cn from 'classnames';
 import dot from 'dot-object';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';

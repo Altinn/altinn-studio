@@ -4,7 +4,7 @@ import { ErrorMessage, Table } from '@digdir/designsystemet-react';
 import { ExclamationmarkTriangleIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';

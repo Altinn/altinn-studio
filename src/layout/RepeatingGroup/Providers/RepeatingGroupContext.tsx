@@ -439,6 +439,7 @@ function useExtendedRepeatingGroupState(node: LayoutNode<'RepeatingGroup'>): Ext
       return { result: 'stoppedByValidation', uuid: undefined, index: undefined };
     }
     const uuid = uuidv4();
+
     appendToList({
       reference: groupBinding,
       newValue: { [ALTINN_ROW_ID]: uuid },

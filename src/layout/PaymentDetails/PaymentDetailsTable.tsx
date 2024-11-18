@@ -3,7 +3,7 @@ import React from 'react';
 import { Label, Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/PaymentDetails/PaymentDetailsTable.module.css';
 import type { OrderDetails } from 'src/features/payment/types';

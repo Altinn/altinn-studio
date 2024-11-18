@@ -406,6 +406,7 @@ function makeActions(
 
         existingValue.splice(index, 1);
       }),
+
     removeValueFromList: ({ reference, value }) =>
       set((state) => {
         if (state.dataModels[reference.dataType].readonly) {

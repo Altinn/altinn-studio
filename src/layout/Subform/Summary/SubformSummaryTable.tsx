@@ -5,7 +5,7 @@ import { Paragraph, Spinner, Table } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import classNames from 'classnames';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { Label } from 'src/components/label/Label';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';

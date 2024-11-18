@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Label, Paragraph } from '@digdir/designsystemet-react';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { useLaxInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';

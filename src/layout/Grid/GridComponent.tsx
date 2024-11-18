@@ -5,7 +5,7 @@ import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { Fieldset } from 'src/components/form/Fieldset';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
@@ -40,6 +40,8 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
   const columnSettings: ITableColumnFormatting = {};
   const isMobile = useIsMobile();
   const isNested = node.parent instanceof BaseLayoutNode;
+  const { elementAsString } = useLanguage();
+  const accessibleTitle = elementAsString(title);
 
   if (isMobile) {
     return <MobileGrid {...props} />;
@@ -59,7 +61,7 @@ export function RenderGrid(props: PropsFromGenericComponent<'Grid'>) {
             className={cn({ [css.captionFullWidth]: shouldHaveFullWidth })}
             title={<Lang id={title} />}
             description={description && <Lang id={description} />}
-            helpText={help && <Lang id={help} />}
+            helpText={help ? { text: <Lang id={help} />, accessibleTitle } : undefined}
             labelSettings={labelSettings}
           />
         )}

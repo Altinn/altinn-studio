@@ -2,9 +2,9 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { CaptionProps } from 'src/components/form/Caption';
+import type { CaptionProps } from 'src/components/form/caption/Caption';
 
 describe('Caption', () => {
   const render = async (props?: Partial<CaptionProps>) =>

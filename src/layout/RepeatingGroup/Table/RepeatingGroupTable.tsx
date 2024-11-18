@@ -3,7 +3,7 @@ import React from 'react';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
-import { Caption } from 'src/components/form/Caption';
+import { Caption } from 'src/components/form/caption/Caption';
 import { Lang } from 'src/features/language/Lang';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { GenericComponent } from 'src/layout/GenericComponent';

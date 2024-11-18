@@ -5,6 +5,12 @@ export const FeatureToggles = {
     description: '',
     links: ['https://github.com/Altinn/app-frontend-react/issues/1502'],
   },
+  simpleTableEnabled: {
+    defaultValue: false,
+    title: 'Activate experimental component SimpleTable',
+    description: '',
+    links: ['https://github.com/Altinn/app-frontend-react/pull/2593'],
+  },
 };
 
 export type FeatureToggleSource = 'window' | 'cookie' | 'default';
@@ -54,4 +60,5 @@ export function getAugmentedFeatures(): AugmentedFeatureToggles {
 
 export const featureToggleValues: IFeatureTogglesMap = {
   betaPDFenabled: getFeature('betaPDFenabled').value,
+  simpleTableEnabled: getFeature('simpleTableEnabled').value,
 };

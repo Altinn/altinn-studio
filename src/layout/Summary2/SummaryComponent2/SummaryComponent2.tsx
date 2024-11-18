@@ -37,6 +37,7 @@ function SummaryBody({ target }: SummaryBodyProps) {
 
 export function SummaryComponent2({ summaryNode }: ISummaryComponent2) {
   const item = useNodeItem(summaryNode);
+
   return (
     <TaskStoreProvider>
       <Summary2StoreProvider

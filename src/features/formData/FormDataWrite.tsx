@@ -937,6 +937,8 @@ export const FD = {
    */
   useLastSaveValidationIssues: () => useSelector((s) => s.validationIssues),
 
+  useRemoveIndexFromList: () => useSelector((s) => s.removeIndexFromList),
+
   useGetDataTypeForElementId: () => {
     const map: Record<string, string | undefined> = useMemoSelector((s) =>
       Object.fromEntries(
