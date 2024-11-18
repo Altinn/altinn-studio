@@ -56,10 +56,10 @@ describe('StudioButton', () => {
     testRefForwarding<HTMLButtonElement>((ref) => renderButton({}, ref), getButton);
   });
 
-  it('Supports render asChild', () => {
+  it('Supports polymorphism', () => {
     render(
-      <StudioButton asChild>
-        <a href='/'>Test</a>
+      <StudioButton as='a' href='/'>
+        Test
       </StudioButton>,
     );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

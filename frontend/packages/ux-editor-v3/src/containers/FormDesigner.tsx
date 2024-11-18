@@ -10,7 +10,7 @@ import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
 import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner } from '@studio/components';
+import { StudioPageSpinner, StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
@@ -31,7 +31,6 @@ import { useSearchParams } from 'react-router-dom';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
 import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -144,7 +143,7 @@ export const FormDesigner = ({
     };
 
     return (
-      <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
+      <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
             <Elements />
@@ -153,7 +152,7 @@ export const FormDesigner = ({
             <Preview />
           </div>
         </div>
-      </DragAndDropTree.Provider>
+      </StudioDragAndDropTree.Provider>
     );
   }
   return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
