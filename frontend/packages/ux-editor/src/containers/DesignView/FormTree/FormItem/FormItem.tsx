@@ -2,7 +2,7 @@ import React from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList } from '../renderItemList';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';
@@ -40,7 +40,7 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
   );
 
   return (
-    <DragAndDropTree.Item
+    <StudioDragAndDropTree.Item
       icon={Icon && <Icon />}
       emptyMessage={t('ux_editor.container_empty')}
       expandable={isContainer(layout, id)}
@@ -52,6 +52,6 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
       {isContainer(layout, id) && shouldDisplayFeature('addComponentModal') && (
         <AddItem containerId={id} layout={layout} />
       )}
-    </DragAndDropTree.Item>
+    </StudioDragAndDropTree.Item>
   );
 };

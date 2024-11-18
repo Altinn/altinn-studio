@@ -7,7 +7,7 @@ import {
   isNodeValidParent,
   isReference,
 } from '@altinn/schema-model';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { renderSchemaNodeList } from '../renderSchemaNodeList';
 import { renderIcon } from './renderIcon';
 import { ActionButtons } from './ActionButtons';
@@ -46,7 +46,7 @@ export const SchemaNode = ({
   );
 
   return (
-    <DragAndDropTree.Item
+    <StudioDragAndDropTree.Item
       emptyMessage={t('schema_editor.empty_node')}
       expandable={isNodeValidParent(node)}
       icon={renderIcon(savableModel, schemaPointer)}
@@ -56,7 +56,7 @@ export const SchemaNode = ({
       title={title}
     >
       {renderSchemaNodeList(savableModel, schemaPointer, uniquePointer)}
-    </DragAndDropTree.Item>
+    </StudioDragAndDropTree.Item>
   );
 };
 
