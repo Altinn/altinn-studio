@@ -5,7 +5,7 @@ import { layoutMock } from '../../testing/layoutMock';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from '../../testing/mocks';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemContextProvider } from '../FormItemContext';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { internalLayoutWithMultiPageGroup } from '../../testing/layoutWithMultiPageGroupMocks';
@@ -59,9 +59,9 @@ describe('FormLayout', () => {
 
 const render = (props?: Partial<FormLayoutProps>) =>
   renderWithProviders(
-    <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <FormLayout {...defaultProps} {...props} />
       </FormItemContextProvider>
-    </DragAndDropTree.Provider>,
+    </StudioDragAndDropTree.Provider>,
   );

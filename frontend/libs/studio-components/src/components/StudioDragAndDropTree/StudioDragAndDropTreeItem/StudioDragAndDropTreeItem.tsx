@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
 import { StudioDragAndDropTreeRootContext } from '../StudioDragAndDropTreeRoot';
 import { StudioDragAndDropTreeItemContext } from './StudioDragAndDropTreeItemContext';
-import classes from './DragAndDropTreeItem.module.css';
+import classes from './StudioDragAndDropTreeItem.module.css';
 import cn from 'classnames';
 import { StudioEmptyList } from '../StudioEmptyList';
 

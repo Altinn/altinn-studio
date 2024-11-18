@@ -19,9 +19,11 @@ import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
 const defaultModel = 'testModel';
 
+const defaultDataModel = 'testModel';
+const secondDataModel = 'secondDataModel';
 const dataModelMetadata: DataModelMetadataResponse = {
   elements: {
-    testModel: {
+    [defaultDataModel]: {
       id: defaultModel,
       type: 'ComplexType',
       dataBindingName: defaultModel,
@@ -316,6 +318,15 @@ const render = async ({
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],
   );
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], {
+    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
+  });
+  queryClientMock.setQueryData([QueryKey.AppMetadata, org, app], {
+    dataTypes: [
+      { id: defaultDataModel, maxCount: 1, appLogic: {} },
+      { id: secondDataModel, maxCount: 1, appLogic: {} },
+    ],
+  });
   return renderWithProviders(
     <FormItemContext.Provider
       value={{
