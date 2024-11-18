@@ -159,6 +159,21 @@ describe('useValidateSchemaName', () => {
 
       expect(result.current.nameError).toBe('');
     });
+
+    it('should disallow " " and "." in name', () => {
+      const { result } = renderUseValidateSchemaName();
+      const invalidCharacters = [' ', '.'];
+
+      invalidCharacters.forEach((char) => {
+        act(() => {
+          result.current.validateName('a' + char);
+        });
+
+        expect(result.current.nameError).toBe(
+          textMock('schema_editor.error_invalid_datamodel_name'),
+        );
+      });
+    });
   });
 });
 
