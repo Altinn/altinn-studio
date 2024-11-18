@@ -16,13 +16,25 @@ const heading = 'Heading';
 
 describe('FeedbackForm', () => {
   it('should render FeedbackForm', () => {
-    renderFeedbackForm(mockQuestions);
+    renderFeedbackForm({ questions: mockQuestions });
     expect(screen.getByText(buttonTexts.trigger)).toBeInTheDocument();
   });
 
-  it('should open FeedbackForm modal when trigger is clicked', async () => {
+  it('should open FeedbackForm modal when trigger is clicked when position is inline (default)', async () => {
     const user = userEvent.setup();
-    renderFeedbackForm(mockQuestions);
+    renderFeedbackForm({ questions: mockQuestions });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    const trigger = screen.getByText(buttonTexts.trigger);
+    await user.click(trigger);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(heading)).toBeInTheDocument();
+  });
+
+  it('should open FeedbackForm modal when trigger is clicked when position is "fixed"', async () => {
+    const user = userEvent.setup();
+    renderFeedbackForm({ questions: mockQuestions, position: 'fixed' });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     const trigger = screen.getByText(buttonTexts.trigger);
@@ -34,7 +46,7 @@ describe('FeedbackForm', () => {
 
   it('should close FeedbackForm modal when submit button is clicked', async () => {
     const user = userEvent.setup();
-    renderFeedbackForm(mockQuestions);
+    renderFeedbackForm({ questions: mockQuestions });
 
     const trigger = screen.getByText(buttonTexts.trigger);
     await user.click(trigger);
@@ -47,7 +59,7 @@ describe('FeedbackForm', () => {
 
   it('should render all questions of type yesNo and text', async () => {
     const user = userEvent.setup();
-    renderFeedbackForm(mockQuestions);
+    renderFeedbackForm({ questions: mockQuestions });
 
     const trigger = screen.getByText(buttonTexts.trigger);
     await user.click(trigger);
@@ -65,7 +77,7 @@ describe('FeedbackForm', () => {
   it('should update answers when a question is answered', async () => {
     const mockSetAnswers = jest.fn();
     const user = userEvent.setup();
-    renderFeedbackForm(mockQuestions, mockSetAnswers);
+    renderFeedbackForm({ questions: mockQuestions, setAnswers: mockSetAnswers });
 
     const trigger = screen.getByText(buttonTexts.trigger);
     await user.click(trigger);
@@ -78,17 +90,22 @@ describe('FeedbackForm', () => {
   });
 });
 
-const renderFeedbackForm = (
-  questions: any,
-  setAnswers?: (answers: Record<string, string>) => void,
-) => {
+const renderFeedbackForm = ({
+  questions,
+  setAnswers,
+  position,
+}: {
+  questions: any;
+  setAnswers?: (answers: Record<string, string>) => void;
+  position?: 'fixed' | 'inline';
+}) => {
   render(
     <FeedbackFormContext.Provider value={{ answers: {}, setAnswers: setAnswers || jest.fn() }}>
       <FeedbackForm
         buttonTexts={buttonTexts}
         heading={heading}
         questions={questions}
-        position='inline'
+        position={position || 'inline'}
         onSubmit={jest.fn()}
       />
     </FeedbackFormContext.Provider>,
