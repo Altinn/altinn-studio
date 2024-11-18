@@ -8,7 +8,6 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { typedLocalStorage } from '@studio/pure-functions';
 import userEvent from '@testing-library/user-event';
 import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
 import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
@@ -315,11 +314,7 @@ describe('EditBinding without featureFlag', () => {
 });
 
 describe('EditBinding with featureFlag', () => {
-  beforeEach(() => {
-    typedLocalStorage.removeItem('featureFlags');
-  });
-  it('should display two selectors: data model and a data model field, when the feature flag is enabled', async () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['multipleDataModelsPerTask']);
+  it('should display two selectors: data model and a data model field', async () => {
     renderEditBinding({
       queries: {
         getAppMetadataModelIds: getAppMetadataModelIdsMock,
@@ -343,7 +338,6 @@ describe('EditBinding with featureFlag', () => {
   });
 
   it('should call handleComponentChange with new binding format when data model field is changed', async () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['multipleDataModelsPerTask']);
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({
@@ -388,7 +382,6 @@ describe('EditBinding with featureFlag', () => {
   });
 
   it('should call handleComponentChange with new binding format when data model is changed', async () => {
-    typedLocalStorage.setItem<string[]>('featureFlags', ['multipleDataModelsPerTask']);
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditBinding({

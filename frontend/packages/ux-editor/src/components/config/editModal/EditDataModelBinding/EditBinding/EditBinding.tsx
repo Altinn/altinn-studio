@@ -10,7 +10,6 @@ import {
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
 } from '@altinn/ux-editor/utils/dataModelUtils';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
@@ -50,9 +49,7 @@ export const EditBinding = ({
         ...component,
         dataModelBindings: {
           ...component.dataModelBindings,
-          [bindingKey]: shouldDisplayFeature('multipleDataModelsPerTask')
-            ? updatedBinding
-            : selectedDataFieldElement,
+          [bindingKey]: updatedBinding,
         },
         required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
         timeStamp: getXsdDataTypeFromDataModelFields(
