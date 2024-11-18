@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { CalendarIcon } from '@navikt/aksel-icons';
 import { formatDate, isValid as isValidDate } from 'date-fns';
 
+import { Button } from 'src/app-components/button/Button';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -85,7 +85,6 @@ export function DatepickerComponent({ node }: IDatepickerProps) {
                   aria-label={langAsString('date_picker.aria_label_icon')}
                   disabled={readOnly}
                   color='first'
-                  size='small'
                 >
                   <CalendarIcon title={langAsString('date_picker.aria_label_icon')} />
                 </Button>

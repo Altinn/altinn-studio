@@ -1,11 +1,12 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { Button, Table } from '@digdir/designsystemet-react';
+import { Table } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
+import { Button } from 'src/app-components/button/Button';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -247,10 +248,8 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                   aria-controls={isEditingRow ? `group-edit-container-${id}-${uuid}` : undefined}
                   variant='tertiary'
                   color='second'
-                  size='small'
                   onClick={() => toggleEditing({ index: row.index, uuid: row.uuid })}
                   aria-label={`${editButtonText} ${firstCellData ?? ''}`}
-                  data-testid='edit-button'
                   className={classes.tableButton}
                   disabled={!isFresh}
                 >
@@ -306,11 +305,9 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
                 aria-controls={isEditingRow ? `group-edit-container-${id}-${uuid}` : undefined}
                 variant='tertiary'
                 color='second'
-                size='small'
                 icon={!isEditingRow && mobileViewSmall}
                 onClick={() => toggleEditing({ index, uuid })}
                 aria-label={`${editButtonText} ${firstCellData ?? ''}`}
-                data-testid='edit-button'
                 className={classes.tableButton}
               >
                 {(isEditingRow || !mobileViewSmall) && editButtonText}
@@ -414,11 +411,9 @@ function DeleteElement({
       <Button
         variant='tertiary'
         color='danger'
-        size='small'
         disabled={isDeletingRow || disabled}
         onClick={() => handleDelete({ index, uuid })}
         aria-label={`${deleteButtonText}-${firstCellData}`}
-        data-testid='delete-button'
         icon={!children}
         className={classes.tableButton}
       >

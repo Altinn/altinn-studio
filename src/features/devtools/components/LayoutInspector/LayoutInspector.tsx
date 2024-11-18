@@ -1,9 +1,10 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Alert, Button } from '@digdir/designsystemet-react';
+import { Alert } from '@digdir/designsystemet-react';
 import { Close } from '@navikt/ds-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { LayoutInspectorItem } from 'src/features/devtools/components/LayoutInspector/LayoutInspectorItem';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
@@ -146,8 +147,7 @@ export const LayoutInspector = () => {
               onClick={() => setSelectedComponent(undefined)}
               variant='tertiary'
               color='second'
-              size='small'
-              aria-label={'close'}
+              aria-label='close'
               icon={true}
             >
               <Close
@@ -172,8 +172,7 @@ export const LayoutInspector = () => {
           {error && <span className={classes.error}>Ugyldig JSON</span>}
           {propertiesHaveChanged && (
             <Button
-              fullWidth
-              size='small'
+              style={{ width: '100%' }}
               onClick={handleSave}
             >
               Lagre

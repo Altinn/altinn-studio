@@ -21,9 +21,9 @@ describe('Calculate Page Order', () => {
     // Both pages the 'repeating' and 'hide' pages are now hidden
     cy.get(appFrontend.navMenuButtons).should('have.length', 3);
 
-    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.findByRole('button', { name: /Neste/ }).clickAndGone();
     cy.get(appFrontend.navMenuCurrent).should('have.text', '2. Kjæledyr');
-    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.findByRole('button', { name: /Neste/ }).clickAndGone();
     cy.get(appFrontend.navMenuCurrent).should('have.text', '3. summary');
   });
 });

@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { CodeIcon, XMarkOctagonFillIcon } from '@navikt/aksel-icons';
 import cn from 'classnames';
 
+import { Button } from 'src/app-components/button/Button';
 import classes from 'src/features/devtools/components/OpenDevToolsButton/OpenDevToolsButton.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
@@ -49,7 +49,6 @@ export const OpenDevToolsButton = ({ isHidden, onClick }: IOpenDevToolsButtonPro
         )}
         <Button
           tabIndex={-1}
-          size='small'
           variant='secondary'
           color='second'
           onClick={onClick}

@@ -69,10 +69,12 @@ function fillOutGroup() {
   };
 
   cy.intercept('POST', '**/instances/**/data?dataType=*').as('upload');
-  cy.get(appFrontend.nextButton).click();
+  cy.findByRole('button', { name: /Neste/ }).click();
   cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
   cy.addItemToGroup(1, 2, 'automation');
-  cy.get(appFrontend.group.row(0).editBtn).click();
+  cy.findAllByRole('button', { name: /Rediger/ })
+    .eq(0)
+    .click();
   cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
   cy.get(appFrontend.group.row(0).uploadSingle.dropZone).selectFile(mkFile('attachment-in-single.pdf'), {
     force: true,
@@ -97,8 +99,8 @@ function fillOutGroup() {
   cy.wait('@upload');
   cy.waitUntilNodesReady();
   cy.dsSelect(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector!, 'Altinn');
-  cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSave!).click();
-  cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector!).should('not.exist');
+  cy.findByRole('button', { name: 'Lagre' }).click();
+  cy.findByRole('combobox', { name: 'Velg' }).should('not.exist');
 
   cy.dsSelect('#nested-source-0-0', 'Annet');
   cy.dsSelect('#nested-reference-0-0', 'Test');
@@ -109,7 +111,7 @@ function fillOutGroup() {
 
   cy.gotoNavPage('hide');
   cy.get(appFrontend.group.sendersName).type('automation');
-  cy.get(appFrontend.nextButton).click();
+  cy.findByRole('button', { name: /Neste/ }).click();
   cy.get(appFrontend.group.summaryText).should('be.visible');
 }
 
@@ -124,7 +126,7 @@ function fillOutLikert() {
 
 function fillOutList() {
   cy.get(dataListPage.tableBody).contains('Caroline').closest('tr').click();
-  cy.get(appFrontend.nextButton).click();
+  cy.findByRole('button', { name: 'Neste' }).click();
 }
 
 const functionMap: { [key in FillableFrontendTasks]: () => void } = {

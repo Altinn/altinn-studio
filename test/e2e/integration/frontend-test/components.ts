@@ -18,7 +18,7 @@ describe('UI Components', () => {
   it('Image component with help text', () => {
     cy.goto('message');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
-    cy.get(appFrontend.closeButton).should('be.visible');
+    cy.findByRole('button', { name: /Lukk skjema/i }).should('be.visible');
     cy.get(appFrontend.header).should('contain.text', appFrontend.apps.frontendTest).and('contain.text', texts.ttd);
     cy.get(appFrontend.message.logo).then((image) => {
       cy.wrap(image).find('img').should('have.attr', 'alt', 'Altinn logo');
@@ -54,7 +54,9 @@ describe('UI Components', () => {
     }).as('uploadWithDelay');
 
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
+    cy.findByRole('presentation', {
+      name: /Last opp eventuell dokumentasjon for ditt nye navn/i,
+    }).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
     cy.get(appFrontend.changeOfName.uploadedTable)
@@ -75,13 +77,16 @@ describe('UI Components', () => {
       }
     });
     cy.goto('changename');
-    cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
+    cy.findByRole('presentation', {
+      name: /Last opp eventuell dokumentasjon for ditt nye navn/i,
+    }).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
     cy.get(appFrontend.changeOfName.fileUploadSuccess).should('exist');
     cy.snapshot('components:attachment');
-    cy.get(appFrontend.changeOfName.deleteAttachment).click();
-    cy.get(appFrontend.changeOfName.deleteAttachment).should('not.exist');
+
+    cy.findByRole('button', { name: 'Slett vedlegg' }).click();
+    cy.findByRole('button', { name: 'Slett vedlegg' }).should('not.exist');
     cy.get('[role=alert]').should('not.exist');
   });
 
@@ -93,7 +98,9 @@ describe('UI Components', () => {
       });
     }).as('uploadWithDelay');
 
-    cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
+    cy.findByRole('presentation', {
+      name: /Last opp eventuell dokumentasjon for ditt nye navn/i,
+    }).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
 
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
@@ -193,11 +200,13 @@ describe('UI Components', () => {
     for (const { uploader, shouldExist } of components) {
       cy.get(uploader).selectFile('test/e2e/fixtures/test.pdf', { force: true });
       cy.get(appFrontend.changeOfName.fileUploadSuccess).should('exist');
-      cy.get(appFrontend.changeOfName.deleteAttachment).click();
-      cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+
+      cy.findByRole('button', { name: 'Slett vedlegg' }).click();
+      cy.findByRole('button', { name: 'Avbryt' }).click();
       cy.get(shouldExist).should('exist');
-      cy.get(appFrontend.changeOfName.deleteAttachment).click();
-      cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+
+      cy.findByRole('button', { name: 'Slett vedlegg' }).click();
+      cy.findByRole('button', { name: 'Ja, slett vedlegg' }).click({ force: true });
       cy.get(shouldExist).should('not.exist');
     }
   });
@@ -402,11 +411,11 @@ describe('UI Components', () => {
     cy.findByRole('radio', { name: /Gårdsbruk/ }).check();
     //makes sure that textresources from active radiobutton are displayed in the alert dialog
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre fra Slektskap?');
-    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('radio', { name: /Slektskap/ }).should('be.checked');
 
     cy.findByRole('radio', { name: /Gårdsbruk/ }).check();
-    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.findByRole('radio', { name: /Gårdsbruk/ }).should('be.checked');
   });
 
@@ -424,13 +433,13 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?');
-    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
 
     cy.get(appFrontend.changeOfName.sources).click();
     cy.findByRole('option', { name: /digitaliseringsdirektoratet/i }).click();
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil endre til Digitaliseringsdirektoratet?');
-    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.get(appFrontend.changeOfName.sources).should('have.value', 'Digitaliseringsdirektoratet');
   });
 
@@ -457,24 +466,24 @@ describe('UI Components', () => {
 
     cy.findByRole('button', { name: /slett grønn/i, hidden: true }).click();
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Grønn?');
-    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('button', { name: /slett grønn/i, hidden: true }).should('be.visible');
 
     cy.findByRole('button', { name: /slett gul/i, hidden: true }).click();
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Gul?');
-    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.findByRole('button', { name: /slett gul/i, hidden: true }).should('not.exist');
 
     cy.findByRole('button', { name: /fjern alle valgte/i, hidden: true }).click();
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Blå, Cyan, Grønn?');
-    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.findByRole('button', { name: /slett blå/i, hidden: true }).should('be.visible');
     cy.findByRole('button', { name: /slett cyan/i, hidden: true }).should('be.visible');
     cy.findByRole('button', { name: /slett grønn/i, hidden: true }).should('be.visible');
 
     cy.findByRole('button', { name: /fjern alle valgte/i, hidden: true }).click();
     cy.findByRole('dialog').should('contain.text', 'Er du sikker på at du vil slette Blå, Cyan, Grønn?');
-    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.findByRole('button', { name: /slett blå/i, hidden: true }).should('not.exist');
     cy.findByRole('button', { name: /slett cyan/i, hidden: true }).should('not.exist');
     cy.findByRole('button', { name: /slett grønn/i, hidden: true }).should('not.exist');
@@ -491,10 +500,10 @@ describe('UI Components', () => {
     cy.get(appFrontend.changeOfName.newFirstName).type('Per');
     cy.get(appFrontend.changeOfName.newFirstName).blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').dblclick();
-    cy.get(appFrontend.changeOfName.popOverCancelButton).click();
+    cy.findByRole('button', { name: /Avbryt/ }).click();
     cy.get(appFrontend.changeOfName.reasons).should('be.visible');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.changeOfName.popOverDeleteButton).click();
+    cy.findByRole('button', { name: /Bekreft/ }).click();
     cy.get(appFrontend.changeOfName.reasons).should('not.exist');
   });
 
@@ -550,15 +559,15 @@ describe('UI Components', () => {
 
     cy.get('#form-content-button-group1').within(() => {
       cy.get(appFrontend.printButton).should('be.visible');
-      cy.get(appFrontend.nextButton).should('be.visible');
+      cy.findByRole('button', { name: /Neste/ }).should('be.visible');
     });
 
     // Check that the buttons are moved inside the error paper
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).within(() => {
       cy.get('#form-content-button-group1').within(() => {
         cy.get(appFrontend.printButton).should('be.visible');
-        cy.get(appFrontend.nextButton).should('be.visible');
+        cy.findByRole('button', { name: /Neste/ }).should('be.visible');
       });
     });
   });

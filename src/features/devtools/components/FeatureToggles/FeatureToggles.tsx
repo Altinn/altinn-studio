@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 
-import { Button, Checkbox, Heading, Label, Paragraph } from '@digdir/designsystemet-react';
+import { Checkbox, Heading, Label, Paragraph } from '@digdir/designsystemet-react';
 
+import { Button } from 'src/app-components/button/Button';
 import classes from 'src/features/devtools/components/FeatureToggles/FeatureToggles.module.css';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { getAugmentedFeatures } from 'src/features/toggles';
@@ -99,7 +100,6 @@ export function FeatureToggles() {
         )}
         <div className={classes.button}>
           <Button
-            size='small'
             disabled={Object.keys(overrides).length <= 0}
             onClick={() => {
               const { org, app } = window;

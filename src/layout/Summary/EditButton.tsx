@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { Edit } from '@navikt/ds-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import classes from 'src/layout/Summary/EditButton.module.css';
 
 export interface IEditButtonProps {
@@ -17,7 +17,6 @@ export function EditButton(props: IEditButtonProps) {
       className={classes.editButton}
       variant='tertiary'
       color='second'
-      size='small'
       onClick={props.onClick}
       aria-label={`${props.editText}: ${props.label}`}
     >

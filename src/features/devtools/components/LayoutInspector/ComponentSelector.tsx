@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { FingerButtonIcon } from '@navikt/aksel-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { setHighlightStyle } from 'src/features/devtools/hooks/useComponentHighlighter';
 
@@ -129,7 +129,6 @@ export function ComponentSelector({ type }: ComponentSelectorProps) {
   return (
     <Button
       title={type === 'node' ? 'Velg en komponent' : 'Velg en layout-komponent'}
-      size='sm'
       onClick={toggle}
       variant={active ? 'primary' : 'tertiary'}
       color='second'

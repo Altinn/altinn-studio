@@ -17,7 +17,7 @@ export type InputProps = {
   id?: string;
   readOnly?: boolean;
   type?: InputType;
-  textOnly?: boolean;
+  textonly?: boolean;
 } & Pick<
   InputHTMLAttributes<HTMLInputElement>,
   | 'value'
@@ -36,7 +36,7 @@ export type InputProps = {
 export function Input(props: InputProps) {
   const { size = 'sm', ...rest } = props;
 
-  if (props.textOnly) {
+  if (props.textonly) {
     const { value, id, className } = props;
     if (value === null || (typeof value === 'string' && value.length === 0)) {
       return null;

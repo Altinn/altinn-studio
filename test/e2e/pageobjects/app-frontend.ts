@@ -37,8 +37,6 @@ export class AppFrontend {
   //Common
   public loadingAnimation = 'rect[role="presentation"]';
   public header = '#main-content > header';
-  public closeButton = '[data-testid="form-close-button"]';
-  public backButton = '[data-testid="form-back-button"]';
   public attachmentIcon = '.reg-attachment';
   public sendinButton = '#sendInButton';
   public instantiationButton = '#instantiation-button';
@@ -64,9 +62,6 @@ export class AppFrontend {
   public navMobileMenu = 'nav[data-testid=NavigationBar] button';
   public navButtons = '[data-testid=NavigationButtons]';
   public startAgain = '#startAgain';
-  public nextButton = `[data-testid=NavigationButtons] button:contains("${texts.next}")`;
-  public prevButton = `[data-testid=NavigationButtons] button:contains("${texts.prev}")`;
-  public backToSummaryButton = `[data-testid=NavigationButtons] button:contains("${texts.backToSummary}")`;
 
   public grid = {
     grid: '#page3-grid',
@@ -180,9 +175,6 @@ export class AppFrontend {
     mobilenummer: '#mobilnummer',
     sources: '#sources',
     uploadingAnimation: '[id*="loader"]',
-    deleteAttachment: '[data-testid^="attachment-delete"]',
-    popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
-    popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
     uploadedTable: '#file-upload-table',
     downloadAttachment: '[data-testid="attachment-download"]',
     fileUploadSuccess: '[data-testid="status-success"]',
@@ -234,10 +226,6 @@ export class AppFrontend {
     options: '#reduxOptions',
     optionsDynamic: '#reduxOptions-expressions',
     hideRepeatingGroupRow: '#hideRepeatingGroupRow',
-    popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
-    popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
-    edit: '[data-testid=edit-button]',
-    delete: '[data-testid=delete-button]',
     hideCommentField: '[id^="hideComment"]',
     hiddenRowsInfoMsg: '[data-componentid="info-msg"]',
     row: (idx: number) => ({
@@ -245,8 +233,8 @@ export class AppFrontend {
       newValue: `#newValue-${idx}`,
       uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3, 'untagged'),
       uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4, 'untagged'),
-      editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) [data-testid=edit-button]`,
-      deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) [data-testid=delete-button]`,
+      editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:nth-last-of-type(2n) button`,
+      deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:last-of-type button`,
       nestedGroup: {
         row: (subIdx: number) => ({
           comments: `#comments-${idx}-${subIdx}`,
@@ -387,12 +375,11 @@ export function makeUploaderSelectors<T extends Type>(
     attachments: (idx) => ({
       name: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(1)`,
       status: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(${statusIdx})`,
-      deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) [data-testid^="attachment-delete"]`,
+      deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button:contains("Slett")`,
       ...(type === 'tagged' && {
         tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) input`,
         tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
         editBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) td:last-of-type button:contains("Rediger")`,
-        deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button:contains("Slett")`,
       }),
     }),
     addMoreBtn: `#altinn-fileuploader-${id}-${row} > button`,

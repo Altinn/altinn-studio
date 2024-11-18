@@ -36,7 +36,7 @@ describe('Repeating group attachments', () => {
 
   beforeEach(() => {
     cy.goto('group');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     addNewRow();
     gotoSecondPage();
@@ -75,7 +75,7 @@ describe('Repeating group attachments', () => {
     const attachment = item.attachments(idx);
     if (attachment.tagSelector !== undefined && attachment.tagSave !== undefined) {
       cy.dsSelect(attachment.tagSelector, 'Altinn');
-      cy.get(attachment.tagSave).click();
+      cy.findByRole('button', { name: 'Lagre' }).click();
     }
 
     cy.get(attachment.status).should('contain.text', texts.finishedUploading);
@@ -241,7 +241,9 @@ describe('Repeating group attachments', () => {
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
 
     [0, 1].forEach((row) => {
-      cy.get(appFrontend.group.row(row).editBtn).click();
+      cy.findAllByRole('button', { name: /Rediger/ })
+        .eq(row)
+        .click();
       gotoSecondPage();
       filenames[row].nested.forEach((nestedRow, nestedRowIdx) => {
         if (nestedRowIdx === 0) {
@@ -313,7 +315,10 @@ describe('Repeating group attachments', () => {
 
     // Now that all attachments described above have been uploaded and verified, start deleting the middle attachment
     // of the first-row multi-uploader to verify that the next attachment is shifted upwards.
-    cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).deleteBtn).click();
+    cy.findByRole('row', { name: 'multiInFirstRow2 .pdf 0.00 MB. Ferdig lastet Slett vedlegg' }).within(() => {
+      cy.findByRole('button', { name: /slett/i }).click();
+    });
+
     deletedAttachmentNames.push(filenames[0].multi[1]);
     waitForFormDataSave();
 
@@ -331,9 +336,15 @@ describe('Repeating group attachments', () => {
     cy.get(appFrontend.group.row(1).editBtn).click();
     gotoSecondPage();
     cy.get(appFrontend.group.row(1).nestedGroup.row(1).editBtn).click();
-    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).editBtn || '').click();
+    cy.get('#form-content-subUploader-1-1').within(() => {
+      cy.findByRole('row', { name: /nested-row1-sub1-2/ }).within(() => {
+        cy.findByRole('button', { name: 'Rediger' }).click();
+      });
+    });
+    cy.get('#form-content-subUploader-1-1').within(() => {
+      cy.findByRole('button', { name: 'Slett vedlegg' }).click();
+    });
 
-    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).deleteBtn).click();
     deletedAttachmentNames.push(filenames[1].nested[1][1]);
     waitForFormDataSave();
 

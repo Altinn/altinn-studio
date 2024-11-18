@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import Dropzone from 'react-dropzone';
 
-import { Button, Combobox, Fieldset } from '@digdir/designsystemet-react';
+import { Combobox, Fieldset } from '@digdir/designsystemet-react';
 import { DownloadIcon, UploadIcon } from '@navikt/aksel-icons';
 import axios from 'axios';
 
+import { Button } from 'src/app-components/button/Button';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useIsInFormContext } from 'src/features/form/FormContext';
@@ -90,7 +91,6 @@ const InnerDownloadXMLButton = () => {
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Button
           variant='secondary'
-          size='small'
           onClick={downloadXML}
           disabled={disabled}
         >
@@ -113,7 +113,6 @@ const InnerDownloadXMLButton = () => {
                 onClick: (e) => e.preventDefault(),
               })}
               variant='secondary'
-              size='small'
               disabled={disabled}
             >
               {

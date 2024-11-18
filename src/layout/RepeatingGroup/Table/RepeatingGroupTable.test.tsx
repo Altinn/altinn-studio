@@ -159,8 +159,8 @@ describe('RepeatingGroupTable', () => {
     it('should render edit and delete buttons as icons for screens smaller thnn 786px', async () => {
       await render();
 
-      const iconButtonsDelete = screen.getAllByTestId(/delete-button/i);
-      const iconButtonsEdit = screen.getAllByTestId(/edit-button/i);
+      const iconButtonsDelete = screen.getAllByRole('button', { name: /Slett/ });
+      const iconButtonsEdit = screen.getAllByRole('button', { name: /Rediger/ });
 
       expect(iconButtonsDelete).toHaveLength(4);
       expect(iconButtonsEdit).toHaveLength(4);

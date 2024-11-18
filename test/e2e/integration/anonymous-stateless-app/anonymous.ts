@@ -13,7 +13,7 @@ describe('Anonymous (stateless)', () => {
 
   it('Prefill from data processing is fetched', () => {
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
-    cy.get(appFrontend.closeButton).should('not.exist');
+    cy.findByRole('button', { name: /Lukk skjema/i }).should('not.exist');
     cy.get(appFrontend.profileIconButton).should('not.exist');
     cy.get(appFrontend.stateless.name).invoke('val').should('be.empty');
     cy.get(appFrontend.stateless.number).should('have.value', '1234');

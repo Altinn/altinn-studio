@@ -1,7 +1,6 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
-
+import { Button } from 'src/app-components/button/Button';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
@@ -43,12 +42,7 @@ export function UnknownError() {
               Sjekk loggen for mer informasjon.
               <br />
               <br />
-              <Button
-                size='small'
-                onClick={openLog}
-              >
-                Vis logg
-              </Button>
+              <Button onClick={openLog}>Vis logg</Button>
             </>
           )}
         </>

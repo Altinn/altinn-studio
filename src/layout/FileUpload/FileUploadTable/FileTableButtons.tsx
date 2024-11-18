@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { PencilIcon, TrashIcon } from '@navikt/aksel-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { DeleteWarningPopover } from 'src/features/alertOnChange/DeleteWarningPopover';
 import { useAlertOnChange } from 'src/features/alertOnChange/useAlertOnChange';
@@ -76,12 +76,10 @@ export function FileTableButtons({ node, attachment, mobileView, editWindowIsOpe
     >
       <Button
         className={classes.button}
-        size='small'
         variant='tertiary'
         color={showEditButton ? 'second' : 'danger'}
         onClick={() => (showEditButton ? handleEdit(index) : handleDelete())}
-        data-testid={`attachment-delete-${index}`}
-        aria-label={langAsString(showEditButton ? 'general.edit_alt' : 'general.delete')}
+        aria-label={langAsString(showEditButton ? 'general.edit_alt' : 'form_filler.file_uploader_list_delete')}
         icon={mobileView}
       >
         {!mobileView && <Lang id={showEditButton ? 'general.edit_alt' : 'form_filler.file_uploader_list_delete'} />}

@@ -83,7 +83,7 @@ export const InputVariant = ({ node, overrideDisplay }: Pick<IInputProps, 'node'
     autoComplete: autocomplete,
     className: formatting?.align ? classes[`text-align-${formatting.align}`] : '',
     readOnly,
-    textOnly: overrideDisplay?.rowReadOnly && readOnly,
+    textonly: overrideDisplay?.rowReadOnly && readOnly,
     required,
     onBlur: FD.useDebounceImmediately(),
     error: !useIsValid(node),

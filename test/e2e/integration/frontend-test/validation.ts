@@ -40,7 +40,7 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.reasonRelationship).type('test');
     cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
     cy.get('button[aria-label*="Today"]').click();
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
 
     cy.get(appFrontend.fieldValidation(appFrontend.changeOfName.newFirstName)).should(
       'contain.text',
@@ -110,9 +110,9 @@ describe('Validation', () => {
       .check();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
     cy.findByRole('tab', { name: newLastName }).click();
-    cy.get(appFrontend.nextButton).scrollIntoView();
-    cy.get(appFrontend.nextButton).should('be.inViewport');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).scrollIntoView();
+    cy.findByRole('button', { name: /Neste/ }).should('be.inViewport');
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport)
       .should('be.inViewport')
       .should('contain.text', texts.errorReport)
@@ -270,7 +270,7 @@ describe('Validation', () => {
   it('Validations are removed for hidden fields', () => {
     // Init and add data to group
     cy.goto('group');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('123');
@@ -305,7 +305,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).type('tull og tøys');
 
     // Try to click next to observe the error report
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
 
@@ -316,7 +316,7 @@ describe('Validation', () => {
   it('List component: validation messages should only show up once', () => {
     cy.goto('datalist');
     cy.get(dataListPage.tableBody).first().first().contains('Caroline');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: 'Neste' }).click();
     cy.get(appFrontend.errorReport)
       .should('be.inViewport')
       .should('contain.text', texts.errorReport)
@@ -344,11 +344,11 @@ describe('Validation', () => {
     cy.get(appFrontend.group.prefill.liten).check();
     cy.get(appFrontend.group.prefill.stor).check();
     cy.get(appFrontend.group.prefill.stor).blur();
-    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.findByRole('button', { name: /Neste/ }).clickAndGone();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
 
     // Check that showGroupToContinue can be focused when clicked
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
 
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
@@ -374,27 +374,27 @@ describe('Validation', () => {
 
     // Validation message should now have changed, since we filled out currentValue and saved
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi 123 til').should('be.visible');
-    cy.get(appFrontend.group.row(2).deleteBtn).click();
+    cy.findByRole('button', { name: 'Slett-NOK 123' }).click();
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 2);
     cy.waitUntilNodesReady();
 
     // Check that nested group with multipage gets focus
-    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.findByRole('button', { name: 'Se innhold NOK 1' }).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).comments).type('comment');
     cy.get(appFrontend.group.saveSubGroup).click();
     cy.get(appFrontend.group.addNewItemSubGroup).click();
     cy.get(appFrontend.group.saveSubGroup).click();
-    cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
+    cy.findByRole('button', { name: 'Rediger comment' }).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).click();
-    cy.get(appFrontend.group.row(0).editBtn).click();
-    cy.get(appFrontend.group.row(2).editBtn).click();
+    cy.findByRole('button', { name: 'Lukk NOK 1' }).click();
+    cy.findByRole('button', { name: 'Se innhold NOK 1 233' }).click();
     cy.get(appFrontend.errorReport).findByText(texts.requiredComment).click();
     cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).should('be.focused');
 
     // Check that switching page works
     cy.get(appFrontend.group.row(0).nestedGroup.row(1).comments).type('comment2');
-    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.findByRole('button', { name: 'Lukk NOK 1' }).click();
     cy.gotoNavPage('summary');
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
@@ -402,9 +402,9 @@ describe('Validation', () => {
     cy.get(appFrontend.group.sendersName).should('be.focused');
     cy.get(appFrontend.group.sendersName).type('hello world');
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.get(appFrontend.prevButton).click();
+    cy.findByRole('button', { name: /Tilbake/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.prevButton).click();
+    cy.findByRole('button', { name: /Tilbake/ }).click();
 
     cy.changeLayout((component) => {
       if (component.type === 'RepeatingGroup' && component.id === 'mainGroup' && component.tableColumns) {
@@ -447,7 +447,7 @@ describe('Validation', () => {
 
     // These components are not editable in the table yet, so even though the edit button
     // is gone now, they're not to be found.
-    cy.get(appFrontend.group.edit).should('not.exist');
+    cy.findByRole('button', { name: /Rediger/ }).should('not.exist');
     cy.get(appFrontend.group.row(0).currentValue).should('not.exist');
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.get(appFrontend.group.row(0).newValue).should('not.exist');
@@ -472,7 +472,7 @@ describe('Validation', () => {
 
     // Delete the row, start over, and observe that the currentValue now exists as a field in the table and
     // produces a validation message if not filled out. We need to use the 'next' button to trigger validation.
-    cy.get(appFrontend.group.row(2).deleteBtn).click();
+    cy.findByRole('button', { name: 'Slett-NOK 456' }).click();
     cy.waitUntilNodesReady();
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
     cy.get(appFrontend.group.addNewItem).click();
@@ -480,7 +480,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.row(2).newValue).should('exist');
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 1. endre fra').click();
@@ -502,7 +502,7 @@ describe('Validation', () => {
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(1).find('td').eq(0).should('have.text', 'NOK 1 233');
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').eq(2).find('td').eq(0).should('have.text', '');
     cy.get(appFrontend.group.row(2).currentValue).should('not.exist');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('repeating').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.errorReport).findByText('Du må fylle ut 2. endre verdi til').click();
@@ -524,14 +524,14 @@ describe('Validation', () => {
       }
     });
 
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 1);
     cy.get(appFrontend.group.editContainer).should('not.exist');
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.row(3).newValue).should('not.exist');
     cy.get(appFrontend.group.row(3).currentValue).should('not.exist');
     cy.get(appFrontend.group.editContainer).should('not.exist');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
 
     // The validations still show up, because technically these are not hidden, but they're unreachable.
     // See the TODO in RepeatingGroup/index.tsx for why fixing this is a breaking change.
@@ -597,9 +597,9 @@ describe('Validation', () => {
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(2, 3, 'hideSendersName');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page is still visible
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
@@ -653,15 +653,15 @@ describe('Validation', () => {
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(1, 11, 'whatever');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 5); // 'hide' page should be visible and active
     cy.navPage('hide').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.sendersName).should('not.exist');
     cy.get(appFrontend.errorReport).should('not.exist');
 
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.errorReport).should('contain.text', 'Tullevalidering');
   });
@@ -684,9 +684,9 @@ describe('Validation', () => {
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(2, 3, 'hidePage');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('Kjæledyr').should('have.attr', 'aria-current', 'page');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.navMenuButtons).should('have.length', 4); // 'hide' page is now invisible
     cy.get(appFrontend.errorReport).should('not.exist');
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');

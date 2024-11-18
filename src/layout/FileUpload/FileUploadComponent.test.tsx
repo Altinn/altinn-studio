@@ -65,7 +65,9 @@ describe('FileUploadComponent', () => {
 
       const file = new File(['(⌐□_□)'], attachment?.filename || '', { type: attachment.contentType });
 
-      const fileInput = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
+      const fileInput = screen
+        .getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+        .querySelector('input') as HTMLInputElement;
       await userEvent.upload(fileInput, file);
 
       await waitFor(() => {
@@ -93,7 +95,7 @@ describe('FileUploadComponent', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Slett' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Slett vedlegg' })).toBeInTheDocument();
       });
 
       await deleteAttachment();
@@ -109,36 +111,42 @@ describe('FileUploadComponent', () => {
       });
 
       expect(mutations.doAttachmentRemove.mock).toHaveBeenCalledTimes(1);
-      expect(screen.queryByRole('button', { name: 'Slett' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Slett vedlegg' })).not.toBeInTheDocument();
     });
   });
 
   describe('displayMode', () => {
     it('should not display drop area when displayMode is simple', async () => {
-      const { id } = await render({
+      await render({
         component: { displayMode: 'simple' },
         attachments: (dataType) => getDataElements({ count: 3, dataType }),
       });
 
-      expect(screen.queryByTestId(`altinn-drop-zone-${id}`)).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i }),
+      ).not.toBeInTheDocument();
     });
 
     it('should display drop area when displayMode is not simple', async () => {
-      const { id } = await render({
+      await render({
         component: { displayMode: 'list', maxNumberOfAttachments: 5 },
         attachments: (dataType) => getDataElements({ count: 3, dataType }),
       });
 
-      expect(screen.getByTestId(`altinn-drop-zone-${id}`)).toBeInTheDocument();
+      expect(
+        screen.getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i }),
+      ).toBeInTheDocument();
     });
 
     it('should not display drop area when displayMode is not simple and max attachments is reached', async () => {
-      const { id } = await render({
+      await render({
         component: { displayMode: 'list', maxNumberOfAttachments: 3 },
         attachments: (dataType) => getDataElements({ count: 3, dataType }),
       });
 
-      expect(screen.queryByTestId(`altinn-drop-zone-${id}`)).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i }),
+      ).not.toBeInTheDocument();
     });
   });
 });
@@ -148,7 +156,7 @@ async function openEdit() {
 }
 
 async function deleteAttachment() {
-  await userEvent.click(screen.getByRole('button', { name: 'Slett' }));
+  await userEvent.click(screen.getByRole('button', { name: 'Slett vedlegg' }));
 }
 
 async function selectTag(tagName: string = 'Tag 1') {
@@ -162,13 +170,15 @@ async function selectTag(tagName: string = 'Tag 1') {
 describe('FileUploadWithTagComponent', () => {
   describe('uploaded', () => {
     it('should show spinner when file status has uploaded=false', async () => {
-      const { id } = await renderWithTag({
+      await renderWithTag({
         attachments: (dataType) => getDataElements({ count: 0, dataType }),
       });
 
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
-      const dropZone = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
+      const dropZone = screen
+        .getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+        .querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
       await screen.findByText('Laster innhold');
@@ -242,11 +252,13 @@ describe('FileUploadWithTagComponent', () => {
     });
 
     it('should not show save button when attachment.uploaded=false', async () => {
-      const { id, mutations } = await renderWithTag({ attachments: () => [] });
+      const { mutations } = await renderWithTag({ attachments: () => [] });
 
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
-      const dropZone = screen.getByTestId(`altinn-drop-zone-${id}`).querySelector('input') as HTMLInputElement;
+      const dropZone = screen
+        .getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+        .querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
       await waitFor(() => expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1));
@@ -300,14 +312,15 @@ describe('FileUploadWithTagComponent', () => {
 
   describe('files', () => {
     it('should display drop area when max attachments is not reached', async () => {
-      const { id } = await renderWithTag({
+      await renderWithTag({
         component: { maxNumberOfAttachments: 3 },
         attachments: (dataType) => getDataElements({ count: 2, dataType }),
       });
 
-      expect(screen.getByTestId(`altinn-drop-zone-${id}`).textContent).toMatch(
-        'Dra og slipp eller let etter filTillatte filformater er: alle',
-      );
+      expect(
+        screen.getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+          .textContent,
+      ).toMatch('Dra og slipp eller let etter filTillatte filformater er: alle');
     });
 
     it('should not display drop area when max attachments is reached', async () => {

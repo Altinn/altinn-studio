@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { Button, Popover } from '@digdir/designsystemet-react';
+import { Popover } from '@digdir/designsystemet-react';
 
+import { Button } from 'src/app-components/button/Button';
 import classes from 'src/features/alertOnChange/DeleteWarningPopover.module.css';
 import { Lang } from 'src/features/language/Lang';
 
@@ -38,18 +39,13 @@ export function DeleteWarningPopover({
         <div>{messageText}</div>
         <div className={classes.popoverButtonContainer}>
           <Button
-            data-testid='warning-popover-delete-button'
-            variant='primary'
-            size='small'
             color='danger'
             onClick={onPopoverDeleteClick}
           >
             {deleteButtonText}
           </Button>
           <Button
-            data-testid='warning-popover-cancel-button'
             variant='tertiary'
-            size='small'
             color='second'
             onClick={onCancelClick}
           >

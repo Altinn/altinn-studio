@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Route, Routes } from 'react-router-dom';
 
-import { Button } from '@digdir/designsystemet-react';
 import Grid from '@material-ui/core/Grid';
 
+import { Button } from 'src/app-components/button/Button';
 import { Form, FormFirstPage } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
@@ -71,6 +71,7 @@ function NavigationError({ label }: NavigationErrorProps) {
           <div className={classes.navigationError}>
             <Button
               variant='secondary'
+              size='md'
               onClick={() => {
                 navigateToTask(currentTaskId);
               }}

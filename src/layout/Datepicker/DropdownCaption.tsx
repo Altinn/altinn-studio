@@ -2,10 +2,11 @@ import React from 'react';
 import { formatMonthDropdown, useDayPicker } from 'react-day-picker';
 import type { MonthCaptionProps } from 'react-day-picker';
 
-import { Button, Combobox } from '@digdir/designsystemet-react';
+import { Combobox } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { addYears, max, min, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
+import { Button } from 'src/app-components/button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -47,7 +48,6 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
           aria-label={langAsString('date_picker.aria_label_left_arrow')}
           disabled={!previousMonth}
           onClick={() => previousMonth && goToMonth(previousMonth)}
-          size='small'
         >
           <ArrowLeftIcon />
         </Button>
@@ -108,7 +108,6 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
           aria-label={langAsString('date_picker.aria_label_right_arrow')}
           disabled={!nextMonth}
           onClick={() => nextMonth && goToMonth(nextMonth)}
-          size='small'
         >
           <ArrowRightIcon />
         </Button>

@@ -27,13 +27,17 @@ describe('DropzoneComponent', () => {
         description: 'description',
       },
     });
-    const dropzone = screen.getByTestId(`altinn-drop-zone-${id}`);
+    const dropzone = screen.getByRole('presentation', {
+      name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i,
+    });
     expect(dropzone.getAttribute('aria-describedby')).toContain(getDescriptionId(id));
   });
 
   it('should not include aria-describedby for description if textResourceBindings.description is not present', async () => {
     await render();
-    const dropzone = screen.getByTestId(`altinn-drop-zone-${id}`);
+    const dropzone = screen.getByRole('presentation', {
+      name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i,
+    });
     expect(dropzone.getAttribute('aria-describedby')).not.toContain(getDescriptionId(id));
   });
 

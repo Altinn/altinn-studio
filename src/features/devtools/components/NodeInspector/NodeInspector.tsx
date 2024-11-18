@@ -1,9 +1,10 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
 
-import { Button, Tabs } from '@digdir/designsystemet-react';
+import { Tabs } from '@digdir/designsystemet-react';
 import { Close } from '@navikt/ds-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import reusedClasses from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { NodeHierarchy } from 'src/features/devtools/components/NodeInspector/NodeHierarchy';
 import { NodeInspectorContextProvider } from 'src/features/devtools/components/NodeInspector/NodeInspectorContext';
@@ -41,10 +42,9 @@ export const NodeInspector = () => {
           <div className={reusedClasses.closeButton}>
             <Button
               onClick={() => setSelected(undefined)}
-              size='small'
               variant='tertiary'
               color='second'
-              aria-label={'close'}
+              aria-label='close'
               icon={true}
             >
               <Close

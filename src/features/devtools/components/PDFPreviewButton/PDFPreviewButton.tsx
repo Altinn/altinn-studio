@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Button, Fieldset } from '@digdir/designsystemet-react';
+import { Fieldset } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import { PDFGeneratorPreview } from 'src/components/PDFGeneratorPreview/PDFGeneratorPreview';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
@@ -33,7 +34,6 @@ export const PDFPreviewButton = () => {
     >
       <Button
         onClick={() => setPdfPreview(true)}
-        size='small'
         disabled={taskType !== ProcessTaskType.Data}
         color='second'
       >

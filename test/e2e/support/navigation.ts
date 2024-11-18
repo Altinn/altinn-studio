@@ -81,7 +81,7 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras) => void } = {
   message: () => {
     cy.intercept('**/active', []).as('noActiveInstances');
     cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.get(appFrontend.closeButton).should('be.visible');
+    cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
   },
   changename: (extra?: Extras) => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {

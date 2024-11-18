@@ -140,7 +140,7 @@ describe('Grid component', () => {
     cy.get(appFrontend.group.prefill.liten).check();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
-    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.findByRole('button', { name: 'Se innhold NOK 1' }).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
     cy.get(appFrontend.group.row(0).nestedGroup.groupContainer)
       .find('table tr:last-child td:first-child')

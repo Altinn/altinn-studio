@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 import { Pagination } from '@altinn/altinn-design-system';
-import { Button, Heading, Paragraph, Table } from '@digdir/designsystemet-react';
+import { Heading, Paragraph, Table } from '@digdir/designsystemet-react';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 import type { DescriptionText } from '@altinn/altinn-design-system/dist/types/src/components/Pagination/Pagination';
 
+import { Button } from 'src/app-components/button/Button';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
 import { DataLoadingProvider } from 'src/core/contexts/dataLoadingContext';
@@ -125,7 +126,6 @@ function InstanceSelection() {
                   <div className={classes.tableButtonWrapper}>
                     <Button
                       variant='tertiary'
-                      size='small'
                       color='second'
                       icon={true}
                       onClick={handleOpenInstance}
@@ -191,7 +191,6 @@ function InstanceSelection() {
                 <div className={classes.tableButtonWrapper}>
                   <Button
                     variant='tertiary'
-                    size='small'
                     color='second'
                     onClick={(ev) => {
                       storeCallback(focusMainContent);
@@ -262,6 +261,7 @@ function InstanceSelection() {
         {!mobileView && renderTable()}
         <div className={classes.startNewButtonContainer}>
           <Button
+            size='md'
             onClick={() => {
               if (currentParty) {
                 storeCallback(focusMainContent);

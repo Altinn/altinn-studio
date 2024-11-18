@@ -46,7 +46,7 @@ describe('Options', () => {
   it('is possible to build options from repeating groups', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');
@@ -60,7 +60,7 @@ describe('Options', () => {
   it('is possible to use dynamic expressions in "source" when building options from repeating groups', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
 
     cy.findByRole('checkbox', { name: /ja/i }).click();
     cy.addItemToGroup(1, 2, 'automation');
@@ -79,7 +79,7 @@ describe('Options', () => {
   it('is possible to use dynamic expressions in "source" when building options from repeating groups with Radio buttons', () => {
     cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.findByRole('checkbox', { name: /ja/i }).click();
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');

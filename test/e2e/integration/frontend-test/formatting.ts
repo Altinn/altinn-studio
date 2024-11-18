@@ -13,11 +13,11 @@ describe('Formatting', () => {
     cy.get(appFrontend.changeOfName.mobilenummer).type('44444444');
     cy.get(appFrontend.changeOfName.mobilenummer).should('have.value', '+47 444 44 444');
     cy.fillOut('changename');
-    cy.get(appFrontend.backButton).should('be.visible');
+    cy.findByRole('button', { name: /Tilbake/ }).should('be.visible');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton).click();
     cy.wait('@getLayoutGroup');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
     cy.get(appFrontend.group.currentValue).type('1');
@@ -28,7 +28,7 @@ describe('Formatting', () => {
 
   it('Dynamic number formatting', () => {
     cy.goto('group');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
     cy.get(appFrontend.group.addNewItem).click();
@@ -73,7 +73,7 @@ describe('Formatting', () => {
 
       for (const lang of ['en', 'nb'] as const) {
         changeToLang(lang);
-        cy.get(appFrontend.group.edit).click();
+        cy.findByRole('button', { name: /Rediger/ }).click();
         cy.get(appFrontend.group.currentValue).assertTextWithoutWhiteSpaces(expected[lang]);
         cy.get(appFrontend.group.saveMainGroup).clickAndGone();
         cy.findByText(expected[lang]);

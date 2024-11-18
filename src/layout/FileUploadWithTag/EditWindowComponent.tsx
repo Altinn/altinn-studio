@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 
-import { Button, Combobox } from '@digdir/designsystemet-react';
+import { Combobox } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import deepEqual from 'fast-deep-equal';
 
+import { Button } from 'src/app-components/button/Button';
 import { AltinnLoader } from 'src/components/AltinnLoader';
 import { isAttachmentUploaded } from 'src/features/attachments';
 import { useAttachmentsUpdater } from 'src/features/attachments/hooks';
@@ -215,7 +216,6 @@ export function EditWindowComponent({
                 />
               ) : (
                 <Button
-                  size='small'
                   onClick={handleSave}
                   id={`attachment-save-tag-button-${uniqueId}`}
                 >

@@ -108,7 +108,6 @@ export function DropzoneComponent({
               })}
               style={styles}
               id={`altinn-drop-zone-${id}`}
-              data-testid={`altinn-drop-zone-${id}`}
               className={`${classes.fileUpload}${hasValidationMessages ? classes.fileUploadInvalid : ''}`}
               aria-labelledby={labelId}
               aria-describedby={ariaDescribedBy}

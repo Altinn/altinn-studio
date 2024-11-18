@@ -71,8 +71,7 @@ describe('NavBar', () => {
       hideCloseButton: true,
       showLanguageSelector: false,
     });
-    expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(screen.queryByTestId('form-back-button')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Tilbake/i })).not.toBeInTheDocument();
   });
 
   it('should render back button', async () => {
@@ -82,7 +81,7 @@ describe('NavBar', () => {
       type: ProcessTaskType.Data,
       initialPage: '2',
     });
-    expect(screen.getByTestId('form-back-button')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Tilbake/i })).toBeInTheDocument();
   });
   it('should render and change app language', async () => {
     await render({

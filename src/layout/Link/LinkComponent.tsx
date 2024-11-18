@@ -1,15 +1,13 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
-
 import type { PropsFromGenericComponent } from '..';
 
+import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { ButtonColor, ButtonVariant } from 'src/layout/Button/WrappedButton';
 import type { LinkStyle } from 'src/layout/Link/config.generated';
 
 export const buttonStyles: {
@@ -48,7 +46,6 @@ export function LinkComponent({ node }: ILinkComponent) {
       style={style}
       color={buttonStyles[linkStyle].color}
       variant={buttonStyles[linkStyle].variant}
-      size='small'
       onClick={LinkButtonOnClick()}
     >
       <Lang id={textResourceBindings?.title} />

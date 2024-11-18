@@ -1,8 +1,9 @@
 import React from 'react';
 
-import { Button, Modal, Spinner } from '@digdir/designsystemet-react';
+import { Modal, Spinner } from '@digdir/designsystemet-react';
 import { FilePdfIcon } from '@navikt/aksel-icons';
 
+import { Button } from 'src/app-components/button/Button';
 import classes from 'src/features/devtools/components/PDFPreviewButton/PDFPreview.module.css';
 import { useLaxInstance } from 'src/features/instance/InstanceContext';
 import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
@@ -69,7 +70,6 @@ export function PDFGeneratorPreview({
     <>
       <Button
         onClick={generatePDF}
-        size='small'
         disabled={disabled}
         color='second'
       >

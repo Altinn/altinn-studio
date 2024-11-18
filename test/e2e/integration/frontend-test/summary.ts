@@ -36,7 +36,7 @@ describe('Summary', () => {
     cy.fillOut('changename');
     cy.gotoNavPage('summary');
     cy.waitUntilSaved();
-    cy.get(appFrontend.backButton).should('be.visible');
+    cy.findByRole('button', { name: /Tilbake/ }).should('be.visible');
 
     // Summary displays change button for editable fields and does not for readonly fields
     // navigate back to form and clear date
@@ -65,7 +65,7 @@ describe('Summary', () => {
     cy.dsSelect(appFrontend.changeOfName.uploadWithTag.tagsDropDown, 'Adresse');
     cy.get(appFrontend.changeOfName.uploadWithTag.saveTag).click();
 
-    cy.get(appFrontend.backToSummaryButton).click();
+    cy.findByRole('button', { name: /tilbake til oppsummering/i }).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
 
     // This previously tested that the error report was visible here, and that it had 'texts.requiredFieldDateFrom'.
@@ -105,7 +105,7 @@ describe('Summary', () => {
         cy.wrap(summaryDate).contains('button', texts.goToRightPage).click();
         cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
         cy.get('button[aria-label*="Today"]').click();
-        cy.get(appFrontend.backToSummaryButton).click();
+        cy.findByRole('button', { name: /Tilbake til oppsummering/ }).click();
       });
 
     // Error in summary field is removed when the required field is filled
@@ -200,7 +200,7 @@ describe('Summary', () => {
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedDynamics).check();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[1]).check();
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).check();
-    cy.get(appFrontend.backToSummaryButton).click();
+    cy.findByRole('button', { name: /Tilbake til oppsummering/ }).click();
 
     cy.get(appFrontend.group.mainGroupSummaryContent).should('have.length', 1);
     groupElements().should('have.length', 6);
@@ -330,7 +330,7 @@ describe('Summary', () => {
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     // Add data
-    cy.get(appFrontend.group.row(0).editBtn).click();
+    cy.findByRole('button', { name: 'Se innhold NOK 1' }).click();
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
 
     cy.get(appFrontend.group.comments).type('first comment');
@@ -400,7 +400,7 @@ describe('Summary', () => {
       cy.findByRole('tab', { name: /nytt etternavn/i }).click();
       cy.get(appFrontend.changeOfName.newLastName).clear();
       cy.get(appFrontend.changeOfName.sources).should('have.value', 'Altinn');
-      cy.get(appFrontend.nextButton).click();
+      cy.findByRole('button', { name: /Neste/ }).click();
 
       if (config === undefined) {
         cy.navPage('summary').should('have.attr', 'aria-current', 'page');
@@ -413,7 +413,7 @@ describe('Summary', () => {
          * when there are errors on a previous page.
          */
         cy.gotoNavPage('summary');
-        cy.get(appFrontend.nextButton).click();
+        cy.findByRole('button', { name: /Neste/ }).click();
         if (config.page === 'current') {
           cy.navPage('grid').should('have.attr', 'aria-current', 'page');
         } else {
@@ -424,7 +424,7 @@ describe('Summary', () => {
         cy.findByRole('tab', { name: /nytt etternavn/i }).click();
         cy.get(appFrontend.changeOfName.newLastName).type('a');
         cy.get(appFrontend.changeOfName.newLastName).blur();
-        cy.get(appFrontend.nextButton).click();
+        cy.findByRole('button', { name: /Neste/ }).click();
       }
 
       if (config?.page === 'all') {
@@ -446,28 +446,28 @@ describe('Summary', () => {
       // that the back to summary button goes away when navigating via the navMenu instead.
       cy.get(`${exampleSummary} button`).click();
       cy.get(appFrontend.changeOfName.newFirstName).should('exist'); // We're now on the first page
-      cy.get(appFrontend.backToSummaryButton).should('exist');
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('exist');
       cy.gotoNavPage('lastPage');
       cy.get('#some-required-component').should('exist');
       assertErrorReport();
-      cy.get(appFrontend.backToSummaryButton).should('not.exist');
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
       assertErrorReport();
       cy.get(`${exampleSummary} button`).click();
       cy.get(appFrontend.changeOfName.newFirstName).should('exist');
       assertErrorReport();
-      cy.get(appFrontend.backToSummaryButton).click();
-      cy.get(appFrontend.backToSummaryButton).should('not.exist');
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).click();
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
       cy.get(exampleSummary).should('exist');
       assertErrorReport();
       cy.gotoNavPage('lastPage');
       cy.get('#some-required-component').should('exist');
-      cy.get(appFrontend.backToSummaryButton).should('not.exist');
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
       assertErrorReport();
-      cy.get(appFrontend.backButton).click();
+      cy.findByRole('button', { name: /Tilbake/ }).click();
       assertErrorReport();
       cy.gotoNavPage('summary');
       cy.get(exampleSummary).should('exist');
@@ -497,8 +497,8 @@ describe('Summary', () => {
 
     // The 'back to summary' button should not be here, and when we click 'next' we should land on the next
     // page (not the page we came from)
-    cy.get(appFrontend.backToSummaryButton).should('not.exist');
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.navPage('summary').should('have.attr', 'aria-current', 'page');
   });
 
@@ -569,8 +569,8 @@ describe('Summary', () => {
     cy.findByRole('tab', { name: /nytt etternavn/i }).click();
     cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
     cy.get(appFrontend.changeOfName.confirmChangeName).find('label').click();
-    cy.get(appFrontend.nextButton).should('be.visible');
-    cy.get(appFrontend.backToSummaryButton).should('not.exist');
+    cy.findByRole('button', { name: /Neste/ }).should('be.visible');
+    cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
     // Get some validation messages
     cy.gotoNavPage('grid');
     cy.get(appFrontend.sendinButton).click();
@@ -582,15 +582,15 @@ describe('Summary', () => {
       cy.gotoNavPage('summary');
       cy.get('[data-componentid="summary3"] button').click();
       cy.navPage('form').should('have.attr', 'aria-current', 'page');
-      cy.get(appFrontend.backToSummaryButton).should('be.visible');
-      cy.get(appFrontend.nextButton).should('not.exist');
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('be.visible');
+      cy.findByRole('button', { name: /Neste/ }).should('not.exist');
 
       if (test()) {
-        cy.get(appFrontend.nextButton).should('be.visible');
-        cy.get(appFrontend.backToSummaryButton).should('not.exist');
+        cy.findByRole('button', { name: /Neste/ }).should('be.visible');
+        cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
       } else {
-        cy.get(appFrontend.backToSummaryButton).should('be.visible');
-        cy.get(appFrontend.nextButton).should('not.exist');
+        cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('be.visible');
+        cy.findByRole('button', { name: /Neste/ }).should('not.exist');
       }
     }
 
@@ -609,7 +609,7 @@ describe('Summary', () => {
 
     // Clicking backToSummary should clear it
     testNavigationMethod(() => {
-      cy.get(appFrontend.backToSummaryButton).click();
+      cy.findByRole('button', { name: /Tilbake til oppsummering/ }).click();
       cy.navPage('summary').should('have.attr', 'aria-current', 'page');
       return true;
     });
@@ -621,8 +621,8 @@ describe('Summary', () => {
     cy.get(appFrontend.errorReport).find(`li:contains("${texts.requiredFieldFromBackend}")`).find('button').click();
     cy.navPage('form').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.focused');
-    cy.get(appFrontend.nextButton).should('be.visible');
-    cy.get(appFrontend.backToSummaryButton).should('not.exist');
+    cy.findByRole('button', { name: /Neste/ }).should('be.visible');
+    cy.findByRole('button', { name: /Tilbake til oppsummering/ }).should('not.exist');
   });
 });
 

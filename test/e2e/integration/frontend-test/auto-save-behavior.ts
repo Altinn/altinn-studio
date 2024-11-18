@@ -17,8 +17,8 @@ describe('Auto save behavior', () => {
     cy.wait('@saveFormData').then(() => {
       expect(formDataReqCounter).to.be.eq(1);
     });
-    cy.get(appFrontend.nextButton).clickAndGone();
-    cy.get(appFrontend.backButton).clickAndGone();
+    cy.findByRole('button', { name: /Neste/ }).clickAndGone();
+    cy.findByRole('button', { name: /Tilbake/ }).clickAndGone();
 
     // Doing an extra wait to be sure no request is sent to backend
     cy.waitUntilSaved();
@@ -46,22 +46,22 @@ describe('Auto save behavior', () => {
     });
 
     // NavigationButtons
-    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.findByRole('button', { name: /Neste/ }).clickAndGone();
     cy.wait('@saveFormData').then(() => {
       expect(formDataReqCounter).to.be.eq(1);
     });
 
     // Clicking the back button does not save anything, because we didn't
     // change anything in the form data worth saving
-    cy.get(appFrontend.backButton).clickAndGone();
+    cy.findByRole('button', { name: /Tilbake/ }).clickAndGone();
 
     cy.navPage('prefill').should('have.attr', 'aria-current', 'page');
     cy.get(appFrontend.group.prefill.liten).should('be.visible');
 
     // Go forward again, change something and then observe the back button saves
-    cy.get(appFrontend.nextButton).clickAndGone();
+    cy.findByRole('button', { name: /Neste/ }).clickAndGone();
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
-    cy.get(appFrontend.backButton).clickAndGone();
+    cy.findByRole('button', { name: /Tilbake/ }).clickAndGone();
     cy.wait('@saveFormData').then(() => {
       expect(formDataReqCounter).to.be.eq(2);
     });
@@ -77,7 +77,7 @@ describe('Auto save behavior', () => {
 
     // Icon previous button
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).uncheck();
-    cy.get(appFrontend.prevButton).clickAndGone();
+    cy.findByRole('button', { name: /Tilbake/ }).clickAndGone();
     cy.wait('@saveFormData').then(() => {
       expect(formDataReqCounter).to.be.eq(4);
     });
@@ -118,7 +118,7 @@ describe('Auto save behavior', () => {
       cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
       cy.get('button[aria-label*="Today"]').click();
 
-      cy.get(appFrontend.nextButton).click();
+      cy.findByRole('button', { name: /Neste/ }).click();
       cy.wait('@saveFormData').then(() => {
         expect(formDataReqCounter).to.be.eq(1);
       });
@@ -189,7 +189,7 @@ describe('Auto save behavior', () => {
       cy.get(`${appFrontend.changeOfName.dateOfEffect}-button`).click();
       cy.get('button[aria-label*="Today"]').click();
 
-      cy.get(appFrontend.nextButton).click();
+      cy.findByRole('button', { name: /Neste/ }).click();
       cy.wait('@saveFormData').then(() => {
         expect(saveFormDataCounter).to.be.eq(1);
       });

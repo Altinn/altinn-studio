@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
-
 import type { PropsFromGenericComponent } from '..';
 
+import { Button } from 'src/app-components/button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -19,7 +18,6 @@ export const PrintButtonComponent = ({ node }: PropsFromGenericComponent<'PrintB
         style={{ marginTop: parentIsPage ? 'var(--button-margin-top)' : undefined }}
         variant='secondary'
         color='first'
-        size='small'
         onClick={window.print}
       >
         <Lang id={textResourceBindings?.title ?? 'general.print_button_text'} />

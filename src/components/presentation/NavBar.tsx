@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { Close, FullscreenEnter, FullscreenExit, Left } from '@navikt/ds-icons';
 import cn from 'classnames';
 
+import { Button } from 'src/app-components/button/Button';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import classes from 'src/components/presentation/NavBar.module.css';
 import { useReturnToView } from 'src/features/form/layout/PageNavigationContext';
@@ -63,12 +63,10 @@ export const NavBar = ({ type }: INavBarProps) => {
       <div>
         {showBackArrow && (
           <Button
-            data-testid='form-back-button'
             className={classes.buttonMargin}
             onClick={handleBackArrowButton}
             variant='tertiary'
             color='second'
-            size='small'
             aria-label={langAsString('general.back')}
             icon={true}
           >
@@ -89,7 +87,6 @@ export const NavBar = ({ type }: INavBarProps) => {
             onClick={toggleExpandedWidth}
             variant='tertiary'
             color='second'
-            size='small'
             aria-label={langAsString('general.expand_form')}
             icon={true}
           >
@@ -110,12 +107,10 @@ export const NavBar = ({ type }: INavBarProps) => {
         )}
         {!hideCloseButton && (
           <Button
-            data-testid='form-close-button'
             className={classes.buttonMargin}
             onClick={handleModalCloseButton}
             variant='tertiary'
             color='second'
-            size='small'
             aria-label={langAsString('general.close_schema')}
             icon={true}
           >

@@ -69,6 +69,7 @@ window.logWarnOnce = window.logError;
 window.logInfoOnce = window.logError;
 
 window.scrollTo = () => {};
+document.getAnimations = () => [];
 
 jest.setTimeout(env.parsed?.JEST_TIMEOUT ? parseInt(env.parsed.JEST_TIMEOUT, 10) : 20000);
 

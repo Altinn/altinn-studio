@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { Button } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 
+import { Button } from 'src/app-components/button/Button';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { useReturnToView, useSummaryNodeOfOrigin } from 'src/features/form/layout/PageNavigationContext';
 import { useIsSaving } from 'src/features/formData/FormDataWrite';
@@ -120,7 +120,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             <Button
               disabled={isSaving}
               ref={refNext}
-              size='small'
               onClick={onClickBackToSummary}
             >
               <Lang id={returnToViewText} />
@@ -132,7 +131,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             <Button
               disabled={isSaving}
               ref={refNext}
-              size='small'
               onClick={onClickNext}
               // If we are showing a back to summary button, we want the "next" button to be secondary
               variant={showBackToSummaryButton ? 'secondary' : 'primary'}
@@ -146,7 +144,6 @@ export function NavigationButtonsComponent({ node }: INavigationButtons) {
             <Button
               disabled={isSaving}
               ref={refPrev}
-              size='small'
               variant={showNextButton || showBackToSummaryButton ? 'secondary' : 'primary'}
               onClick={onClickPrevious}
             >

@@ -154,7 +154,7 @@ describe('Group (Pets)', () => {
     pets6[pets6.findIndex((pet) => pet.name === 'Preben Potet')].visible = false;
     assertPetOrder(pets6);
 
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
     cy.get(appFrontend.errorReport).should('contain.text', 'Du kan ikke ha flere dyr med samme navn og art.');
 
@@ -166,7 +166,7 @@ describe('Group (Pets)', () => {
     pets7.splice(deletedIndex, 1);
     assertPetOrder(pets7);
 
-    cy.get(appFrontend.nextButton).click();
+    cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).should('not.exist');
   });
 

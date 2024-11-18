@@ -139,19 +139,19 @@ describe('PDF', () => {
     cy.gotoNavPage('repeating');
     cy.findByRole('checkbox', { name: /ja/i }).check();
 
-    cy.get(appFrontend.group.edit).first().click();
+    cy.findByRole('button', { name: 'Se innhold NOK 1' }).click();
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).should('be.visible');
     cy.get(appFrontend.group.row(0).nestedGroup.row(0).comments).type('Dette er en kommentar');
-    cy.get(appFrontend.group.edit).first().click();
+    cy.findByRole('button', { name: 'Lukk NOK 1' }).click();
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
-    cy.get(appFrontend.group.edit).eq(1).click();
+    cy.findByRole('button', { name: 'Se innhold NOK 120' }).click();
     cy.get(appFrontend.group.editContainer).should('be.visible');
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).first().click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.back).should('be.visible');
-    cy.get(appFrontend.group.edit).eq(1).click();
+    cy.findByRole('button', { name: 'Lukk NOK 120' }).click();
     cy.get(appFrontend.group.editContainer).should('not.exist');
 
     cy.gotoNavPage('hide');
