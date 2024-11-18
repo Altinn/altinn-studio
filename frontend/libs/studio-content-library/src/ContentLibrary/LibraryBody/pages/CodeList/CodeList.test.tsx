@@ -4,6 +4,7 @@ import type { CodeListProps, CodeListWithMetadata } from './CodeList';
 import { CodeList } from './CodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
+const onChangeCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
 const codeListName = 'codeList';
@@ -13,6 +14,8 @@ const codeListMock: CodeListWithMetadata = {
 };
 
 describe('CodeList', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders the codeList heading', () => {
     renderCodeList();
     const codeListHeading = screen.getByRole('heading', {
@@ -43,9 +46,13 @@ describe('CodeList', () => {
     expect(codeListUploadButton).toBeInTheDocument();
   });
 
-  it('renders the code list as a clickable element', () => {
+  it('renders the code list', () => {
     renderCodeList();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    const codeListAccordion = screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: codeListName,
+      }),
+    );
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -56,24 +63,21 @@ describe('CodeList', () => {
   });
 });
 
-const defaultCodeListProps: CodeListProps = {
+const defaultCodeListProps: Partial<CodeListProps> = {
   codeLists: [codeListMock],
-  onUpdateCodeList: onUpdateCodeListMock,
-  onUploadCodeList: onUploadCodeListMock,
   fetchDataError: false,
 };
 
 const renderCodeList = ({
   codeLists,
-  onUpdateCodeList,
-  onUploadCodeList,
   fetchDataError,
 }: Partial<CodeListProps> = defaultCodeListProps) => {
   render(
     <CodeList
       codeLists={codeLists}
-      onUpdateCodeList={onUpdateCodeList}
-      onUploadCodeList={onUploadCodeList}
+      onChangeCodeListId={onChangeCodeListIdMock}
+      onUpdateCodeList={onUpdateCodeListMock}
+      onUploadCodeList={onUploadCodeListMock}
       fetchDataError={fetchDataError}
     />,
   );

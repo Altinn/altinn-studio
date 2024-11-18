@@ -6,7 +6,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeLists';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useAddOptionListMutation, useUpdateOptionListMutation, useUpdateOptionListIdMutation } from 'app-shared/hooks/mutations';
+import {
+  useAddOptionListMutation,
+  useUpdateOptionListMutation,
+  useUpdateOptionListIdMutation,
+} from 'app-shared/hooks/mutations';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -39,7 +43,7 @@ export function AppContentLibrary(): React.ReactElement {
         props: {
           codeLists: codeLists,
           onUpdateCodeListId: (optionListId: string, newOptionListId: string) =>
-    updateOptionListId({ optionListId, newOptionListId }),
+            updateOptionListId({ optionListId, newOptionListId }),
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
           fetchDataError: optionListsError,
