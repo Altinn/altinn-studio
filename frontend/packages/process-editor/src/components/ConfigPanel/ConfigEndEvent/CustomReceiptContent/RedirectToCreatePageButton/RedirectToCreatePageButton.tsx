@@ -7,7 +7,6 @@ import { StudioButton, StudioRedirectBox } from '@studio/components';
 import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { useTranslation } from 'react-i18next';
 import { useBpmnApiContext } from '../../../../../contexts/BpmnApiContext';
-import { Link } from '@digdir/designsystemet-react';
 
 export const RedirectToCreatePageButton = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -26,14 +25,16 @@ export const RedirectToCreatePageButton = (): React.ReactElement => {
       <StudioRedirectBox
         title={t('process_editor.configuration_panel_custom_receipt_navigate_to_design_title')}
       >
-        <StudioButton asChild variant='primary' color='second' onClick={handleClick}>
-          <Link
-            href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
-            className={classes.link}
-          >
-            <PencilWritingIcon />
-            {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_button')}
-          </Link>
+        <StudioButton
+          as='a'
+          className={classes.link}
+          color='second'
+          href={packagesRouter.getPackageNavigationUrl('editorUiEditor')}
+          icon={<PencilWritingIcon />}
+          onClick={handleClick}
+          variant='primary'
+        >
+          {t('process_editor.configuration_panel_custom_receipt_navigate_to_design_button')}
         </StudioButton>
       </StudioRedirectBox>
     </div>
