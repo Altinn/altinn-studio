@@ -59,9 +59,6 @@ type Story = StoryFn<typeof StudioCheckboxTable>;
 const meta: Meta = {
   title: 'Components/StudioCheckboxTable',
   component: PreviewComponent,
-  argTypes: {
-    variant: {},
-  },
 };
 export const Preview: Story = (args): React.ReactElement => <PreviewComponent {...args} />;
 
