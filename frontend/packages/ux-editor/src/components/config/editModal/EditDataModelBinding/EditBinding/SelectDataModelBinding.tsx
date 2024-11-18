@@ -41,11 +41,17 @@ export const SelectDataModelBinding = ({
     handleBindingChange(dataModelBinding);
   };
 
-  return shouldDisplayFeature('multipleDataModelsPerTask') ? (
+  const bindableDataTypesWithDefaultOption = [
+    { id: t('ux_editor.modal_properties_data_model_field_choose'), value: '' },
+    ...(defaultDataTypeName ? [{ id: defaultDataTypeName, value: defaultDataTypeName }] : []),
+    ...bindableDataTypes,
+  ];
+
+  return (
     <FormField
       id={id}
       onChange={handleDataModelChange}
-      value={selectedDataModel}
+      value={selectedDataModel || defaultDataTypeName}
       propertyPath={propertyPath}
       label={t('ux_editor.modal_properties_data_model_binding')}
       renderField={({ fieldProps }) => (
@@ -57,24 +63,13 @@ export const SelectDataModelBinding = ({
           onChange={(e) => fieldProps.onChange(e.target.value)}
           size='small'
         >
-          {defaultDataTypeName && (
-            <option key={defaultDataTypeName} value={defaultDataTypeName}>
-              {defaultDataTypeName}
-            </option>
-          )}
-          {bindableDataTypes.map((dataType) => (
+          {bindableDataTypesWithDefaultOption.map((dataType) => (
             <option key={dataType.id} value={dataType.id}>
               {dataType.id}
             </option>
           ))}
         </StudioNativeSelect>
       )}
-    />
-  ) : (
-    <StudioDisplayTile
-      label={t('ux_editor.modal_properties_data_model_binding')}
-      value={selectedDataModel}
-      className={classes.displayTileContainer}
     />
   );
 };
