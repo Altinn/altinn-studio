@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { render as renderRtl, renderHook, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DragAndDropTreeRoot } from './DragAndDropTreeRoot';
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
+import { StudioDragAndDrop } from '@studio/components';
 import { DragAndDropTreeRootContext } from 'app-shared/components/DragAndDropTree/DragAndDropTreeRoot/DragAndDropTreeRootContext';
 
 const user = userEvent.setup();
@@ -11,11 +11,11 @@ const user = userEvent.setup();
 // Test data:
 const childrenTestId = 'test';
 const renderComponent = (children?: ReactNode) => (
-  <DragAndDrop.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId='rootId'>
+  <StudioDragAndDrop.Provider onAdd={jest.fn()} onMove={jest.fn()} rootId='rootId'>
     <DragAndDropTreeRoot>
       <div data-testid={childrenTestId}>{children}</div>
     </DragAndDropTreeRoot>
-  </DragAndDrop.Provider>
+  </StudioDragAndDrop.Provider>
 );
 
 const render = (children?: ReactNode) => renderRtl(renderComponent(children));

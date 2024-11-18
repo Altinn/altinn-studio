@@ -78,4 +78,8 @@ export class StringUtils {
    */
   static substringAfterLast = (str: string, separator: string): string =>
     ArrayUtils.last(str.split(separator)) || '';
+
+  static capitalize = (string: string): string => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 }

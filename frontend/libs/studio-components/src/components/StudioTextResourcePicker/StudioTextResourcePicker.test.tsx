@@ -1,6 +1,6 @@
 import type { ForwardedRef } from 'react';
 import React from 'react';
-import { textResourcesMock } from './test-data/textResourcesMock';
+import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { StudioTextResourcePickerProps } from './StudioTextResourcePicker';
 import { StudioTextResourcePicker } from './StudioTextResourcePicker';
 import type { RenderResult } from '@testing-library/react';
@@ -9,7 +9,7 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 import userEvent from '@testing-library/user-event';
-import type { TextResource } from './types/TextResource';
+import type { TextResource } from '../../types/TextResource';
 
 // Test data:
 const textResources = textResourcesMock;
