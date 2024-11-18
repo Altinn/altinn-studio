@@ -167,10 +167,49 @@ export const useStartUrl = (forcedTaskId?: string) => {
   ]);
 };
 
-export function useNavigatePage() {
-  const isStatelessApp = useApplicationMetadata().isStatelessApp;
+export function useNavigateToTask() {
   const processTasks = useLaxProcessData()?.processTasks;
   const lastTaskId = processTasks?.slice(-1)[0]?.elementId;
+  const navigate = useNavigate();
+  const navParams = useAllNavigationParamsAsRef();
+  const queryKeysRef = useQueryKeysAsStringAsRef();
+
+  return useCallback(
+    (newTaskId?: string, options?: NavigateOptions & { runEffect?: boolean }) => {
+      const { runEffect = true } = options ?? {};
+      const { partyId, instanceGuid, taskId } = navParams.current;
+      if (newTaskId === taskId) {
+        return;
+      }
+      const url = `/instance/${partyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeysRef.current}`;
+      navigate(url, undefined, options, runEffect ? () => focusMainContent(options) : undefined);
+    },
+    [lastTaskId, navParams, navigate, queryKeysRef],
+  );
+}
+
+export function useIsValidTaskId() {
+  const processTasks = useLaxProcessData()?.processTasks;
+
+  return useCallback(
+    (taskId?: string) => {
+      if (!taskId) {
+        return false;
+      }
+      if (taskId === TaskKeys.ProcessEnd) {
+        return true;
+      }
+      if (taskId === TaskKeys.CustomReceipt) {
+        return true;
+      }
+      return processTasks?.find((task) => task.elementId === taskId) !== undefined;
+    },
+    [processTasks],
+  );
+}
+
+export function useNavigatePage() {
+  const isStatelessApp = useApplicationMetadata().isStatelessApp;
   const navigate = useNavigate();
   const navParams = useAllNavigationParamsAsRef();
   const queryKeysRef = useQueryKeysAsStringAsRef();
@@ -261,35 +300,6 @@ export function useNavigatePage() {
     [isStatelessApp, maybeSaveOnPageChange, navParams, navigate, order, queryKeysRef],
   );
 
-  const navigateToTask = useCallback(
-    (newTaskId?: string, options?: NavigateOptions & { runEffect?: boolean }) => {
-      const { runEffect = true } = options ?? {};
-      const { partyId, instanceGuid, taskId } = navParams.current;
-      if (newTaskId === taskId) {
-        return;
-      }
-      const url = `/instance/${partyId}/${instanceGuid}/${newTaskId ?? lastTaskId}${queryKeysRef.current}`;
-      navigate(url, undefined, options, runEffect ? () => focusMainContent(options) : undefined);
-    },
-    [lastTaskId, navParams, navigate, queryKeysRef],
-  );
-
-  const isValidTaskId = useCallback(
-    (taskId?: string) => {
-      if (!taskId) {
-        return false;
-      }
-      if (taskId === TaskKeys.ProcessEnd) {
-        return true;
-      }
-      if (taskId === TaskKeys.CustomReceipt) {
-        return true;
-      }
-      return processTasks?.find((task) => task.elementId === taskId) !== undefined;
-    },
-    [processTasks],
-  );
-
   const trimSingleTrailingSlash = (str: string) => (str.endsWith('/') ? str.slice(0, -1) : str);
   const getCurrentPageIndex = useCallback(() => {
     const location = trimSingleTrailingSlash(window.location.href.split('?')[0]);
@@ -363,9 +373,7 @@ export function useNavigatePage() {
 
   return {
     navigateToPage,
-    navigateToTask,
     isValidPageId,
-    isValidTaskId,
     order,
     navigateToNextPage,
     navigateToPreviousPage,

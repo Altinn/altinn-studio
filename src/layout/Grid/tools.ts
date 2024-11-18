@@ -7,35 +7,35 @@ import type { IsHiddenSelector } from 'src/utils/layout/NodesContext';
 
 const emptyArray: never[] = [];
 
-export function useNodesFromGrid(grid: LayoutNode<'Grid'> | undefined, enabled = true) {
+export function useNodeIdsFromGrid(grid: LayoutNode<'Grid'> | undefined, enabled = true) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
   const rows = useNodeItem(grid, (item) => item.rowsInternal);
-  return enabled && grid && rows ? nodesFromGridRows(rows, isHiddenSelector) : emptyArray;
+  return enabled && grid && rows ? nodeIdsFromGridRows(rows, isHiddenSelector) : emptyArray;
 }
 
-export function useNodesFromGridRows(rows: GridRowsInternal | undefined, enabled = true) {
+export function useNodeIdsFromGridRows(rows: GridRowsInternal | undefined, enabled = true) {
   const isHiddenSelector = Hidden.useIsHiddenSelector();
-  return enabled && rows ? nodesFromGridRows(rows, isHiddenSelector) : emptyArray;
+  return enabled && rows ? nodeIdsFromGridRows(rows, isHiddenSelector) : emptyArray;
 }
 
-function nodesFromGridRows(rows: GridRowsInternal, isHiddenSelector: IsHiddenSelector): LayoutNode[] {
-  const out: LayoutNode[] = [];
+function nodeIdsFromGridRows(rows: GridRowsInternal, isHiddenSelector: IsHiddenSelector): string[] {
+  const out: string[] = [];
   for (const row of rows) {
     if (isGridRowHidden(row, isHiddenSelector)) {
       continue;
     }
 
-    out.push(...nodesFromGridRow(row));
+    out.push(...nodeIdsFromGridRow(row));
   }
 
   return out.length ? out : emptyArray;
 }
 
-export function nodesFromGridRow(row: GridRowInternal): LayoutNode[] {
-  const out: LayoutNode[] = [];
+export function nodeIdsFromGridRow(row: GridRowInternal): string[] {
+  const out: string[] = [];
   for (const cell of row.cells) {
     if (isGridCellNode(cell)) {
-      out.push(cell.node);
+      out.push(cell.nodeId);
     }
   }
 
@@ -47,7 +47,7 @@ export function isGridRowHidden(row: GridRowInternal, isHiddenSelector: IsHidden
   const allCellsAreHidden = row.cells.every((cell) => {
     if (isGridCellNode(cell)) {
       atLeastNoneNodeExists = true;
-      return isHiddenSelector(cell.node);
+      return isHiddenSelector(cell.nodeId);
     }
 
     // Non-component cells always collapse and hide if components in other cells are hidden
@@ -70,5 +70,5 @@ export function isGridCellEmpty(cell: GridCellInternal | GridCell): boolean {
 }
 
 export function isGridCellNode(cell: GridCellInternal): cell is GridCellNode {
-  return !!(cell && 'node' in cell && cell.node);
+  return !!(cell && 'nodeId' in cell && cell.nodeId);
 }

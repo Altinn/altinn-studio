@@ -30,7 +30,6 @@ import type {
   CompIntermediate,
   CompIntermediateExact,
   CompTypes,
-  IsContainerComp,
   ITextResourceBindingsExternal,
   NodeValidationProps,
 } from 'src/layout/layout';
@@ -43,17 +42,11 @@ import type { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { NodeData, StateFactoryProps } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
-export interface BasicNodeGeneratorProps {
+export interface NodeGeneratorProps {
   externalItem: CompExternalExact<CompTypes>;
   claim: ChildClaim;
+  childClaims: ChildClaims | undefined;
 }
-
-export interface ContainerGeneratorProps extends BasicNodeGeneratorProps {
-  childClaims: ChildClaims;
-}
-
-export type NodeGeneratorProps<Type extends CompTypes> =
-  IsContainerComp<Type> extends true ? ContainerGeneratorProps : BasicNodeGeneratorProps;
 
 export interface ExprResolver<Type extends CompTypes> {
   item: CompIntermediateExact<Type>;
@@ -89,7 +82,7 @@ export abstract class AnyComponent<Type extends CompTypes> {
    * Render a node generator for this component. This can be overridden if you want to extend
    * the default node generator with additional functionality.
    */
-  renderNodeGenerator(props: NodeGeneratorProps<Type>): JSX.Element | null {
+  renderNodeGenerator(props: NodeGeneratorProps): JSX.Element | null {
     return <NodeGenerator {...props} />;
   }
 
@@ -130,42 +123,11 @@ export abstract class AnyComponent<Type extends CompTypes> {
   abstract stateFactory(props: StateFactoryProps<Type>): unknown;
 
   /**
-   * Picks all direct children of a node, returning an array of item stores for each child. This must be implemented for
+   * Picks all direct children of a node, returning an array of node IDs for each child. This must be implemented for
    * every component type that can adopt children.
    */
-  public pickDirectChildren(_state: NodeData<Type>, _restriction?: TraversalRestriction): LayoutNode[] {
+  public pickDirectChildren(_state: NodeData<Type>, _restriction?: TraversalRestriction): string[] {
     return [];
-  }
-
-  /**
-   * Adds a child node to the parent node. This must be implemented for every component type that can adopt children.
-   */
-  public addChild(
-    _state: NodeData<Type>,
-    _childNode: LayoutNode,
-    _claim: ChildClaim,
-    _rowIndex: number | undefined,
-  ): Partial<NodeData<Type>> {
-    throw new Error(
-      `addChild() is not implemented yet for '${this.type}'. ` +
-        `You have to implement this if the component type supports children.`,
-    );
-  }
-
-  /**
-   * Removes a child node from the parent node. This must be implemented for every component type that
-   * can adopt children.
-   */
-  public removeChild(
-    _state: NodeData<Type>,
-    _childNode: LayoutNode,
-    _claim: ChildClaim,
-    _rowIndex: number | undefined,
-  ): Partial<NodeData<Type>> {
-    throw new Error(
-      `removeChild() is not implemented yet for '${this.type}'. ` +
-        `You have to implement this if the component type supports children.`,
-    );
   }
 
   /**
@@ -421,9 +383,9 @@ export interface ComponentProto {
   capabilities: CompCapabilities;
 }
 
-export interface ChildClaimerProps<Type extends CompTypes, ClaimMetadata> {
+export interface ChildClaimerProps<Type extends CompTypes> {
   item: CompIntermediate<Type>;
-  claimChild: (pluginKey: string, id: string, metadata: ClaimMetadata) => void;
+  claimChild: (pluginKey: string, id: string) => void;
   getProto: (id: string) => ComponentProto | undefined;
 }
 
@@ -434,23 +396,9 @@ export abstract class ContainerComponent<Type extends CompTypes> extends _FormCo
     return false;
   }
 
-  abstract claimChildren(props: ChildClaimerProps<Type, unknown>): void;
+  abstract claimChildren(props: ChildClaimerProps<Type>): void;
 
-  abstract pickDirectChildren(state: NodeData<Type>, restriction?: TraversalRestriction): LayoutNode[];
-
-  abstract addChild(
-    state: NodeData<Type>,
-    childNode: LayoutNode,
-    claim: ChildClaim,
-    rowIndex: number | undefined,
-  ): Partial<NodeData<Type>>;
-
-  abstract removeChild(
-    state: NodeData<Type>,
-    childNode: LayoutNode,
-    claim: ChildClaim,
-    rowIndex: number | undefined,
-  ): Partial<NodeData<Type>>;
+  abstract pickDirectChildren(state: NodeData<Type>, restriction?: TraversalRestriction): string[];
 }
 
 export type LayoutComponent<Type extends CompTypes = CompTypes> =

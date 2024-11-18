@@ -20,6 +20,7 @@ import { useLayouts } from 'src/features/form/layout/LayoutsContext';
 import { useLaxLayoutSettings, useLayoutSettings } from 'src/features/form/layoutSettings/LayoutSettingsContext';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { OptionsStorePlugin } from 'src/features/options/OptionsStorePlugin';
+import { useIsCurrentView } from 'src/features/routing/AppRoutingContext';
 import { MaintainInitialValidationsInNodesContext } from 'src/features/validation/backendValidation/BackendValidation';
 import { useGetCachedInitialValidations } from 'src/features/validation/backendValidation/backendValidationQuery';
 import { ExpressionValidation } from 'src/features/validation/expressionValidation/ExpressionValidation';
@@ -31,7 +32,6 @@ import {
 import { ValidationStorePlugin } from 'src/features/validation/ValidationStorePlugin';
 import { SelectorStrictness, useDelayedSelector } from 'src/hooks/delayedSelectors';
 import { useAsRef } from 'src/hooks/useAsRef';
-import { useCurrentView } from 'src/hooks/useNavigatePage';
 import { useWaitForState } from 'src/hooks/useWaitForState';
 import { getComponentDef } from 'src/layout';
 import { useGetAwaitingCommits } from 'src/utils/layout/generator/CommitQueue';
@@ -58,7 +58,6 @@ import type { DSReturn, InnerSelectorMode, OnlyReRenderWhen } from 'src/hooks/de
 import type { WaitForState } from 'src/hooks/useWaitForState';
 import type { CompExternal, CompTypes, ILayouts } from 'src/layout/layout';
 import type { LayoutComponent } from 'src/layout/LayoutComponent';
-import type { ChildClaim } from 'src/utils/layout/generator/GeneratorContext';
 import type { GeneratorStagesContext, Registry } from 'src/utils/layout/generator/GeneratorStages';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPages } from 'src/utils/layout/LayoutPages';
@@ -106,14 +105,10 @@ type ExtraHooks = AllFlat<{
 export interface AddNodeRequest<T extends CompTypes = CompTypes> {
   node: LayoutNode<T>;
   targetState: NodeData<T>;
-  claim: ChildClaim;
-  rowIndex: number | undefined;
 }
 
 export interface RemoveNodeRequest<T extends CompTypes = CompTypes> {
   node: LayoutNode<T>;
-  claim: ChildClaim;
-  rowIndex: number | undefined;
   layouts: ILayouts;
 }
 
@@ -148,7 +143,6 @@ export type NodesContext = {
   pagesData: PagesData;
   nodeData: { [key: string]: NodeData };
   prevNodeData: { [key: string]: NodeData } | undefined; // Earlier node data from before the state became non-ready
-  childrenMap: { [key: string]: string[] | undefined };
   hiddenViaRules: { [key: string]: true | undefined };
   hiddenViaRulesRan: boolean;
   validationsProcessedLast: ValidationsProcessedLast;
@@ -201,7 +195,6 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
     },
     nodeData: {},
     prevNodeData: {},
-    childrenMap: {},
     hiddenViaRules: {},
     hiddenViaRulesRan: false,
     validationsProcessedLast,
@@ -226,33 +219,13 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
     addNodes: (requests) =>
       set((state) => {
         const nodeData = { ...state.nodeData };
-        const childrenMap = { ...state.childrenMap };
-        for (const { node, targetState, claim, rowIndex } of requests) {
+        for (const { node, targetState } of requests) {
           nodeData[node.id] = targetState;
-
-          if (node.parent instanceof BaseLayoutNode) {
-            const additionalParentState = node.parent.def.addChild(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              nodeData[node.parent.id] as any,
-              node,
-              claim,
-              rowIndex,
-            );
-            nodeData[node.parent.id] = {
-              ...nodeData[node.parent.id],
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ...(additionalParentState as any),
-            };
-            childrenMap[node.parent.id] = [...(childrenMap[node.parent.id] || [])];
-            childrenMap[node.parent.id]!.push(node.id);
-            childrenMap[node.parent.id] = [...new Set(childrenMap[node.parent.id]!)];
-          }
-
           node.page._addChild(node);
         }
+
         return {
           nodeData,
-          childrenMap,
           readiness: NodesReadiness.NotReady,
           addRemoveCounter: state.addRemoveCounter + 1,
         };
@@ -260,9 +233,9 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
     removeNodes: (requests) =>
       set((state) => {
         const nodeData = { ...state.nodeData };
-        const childrenMap = { ...state.childrenMap };
 
-        for (const { node, claim, rowIndex, layouts } of requests) {
+        let count = 0;
+        for (const { node, layouts } of requests) {
           if (!nodeData[node.id]) {
             continue;
           }
@@ -273,30 +246,23 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
             continue;
           }
 
-          if (node.parent instanceof BaseLayoutNode && nodeData[node.parent.id]) {
-            const additionalParentState = node.parent.def.removeChild(
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              nodeData[node.parent.id] as any,
-              node,
-              claim,
-              rowIndex,
-            );
-            nodeData[node.parent.id] = {
-              ...nodeData[node.parent.id],
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ...(additionalParentState as any),
-            };
-            childrenMap[node.parent.id] = [...(childrenMap[node.parent.id] || [])];
-            childrenMap[node.parent.id] = childrenMap[node.parent.id]!.filter((id) => id !== node.id);
+          if (layouts !== state.layouts) {
+            // The layouts have changed since the request was added, so there's no need to remove the node (it was
+            // automatically removed when resetting the NodesContext state upon the layout change)
+            continue;
           }
 
           delete nodeData[node.id];
           node.page._removeChild(node);
+          count += 1;
+        }
+
+        if (count === 0) {
+          return {};
         }
 
         return {
           nodeData,
-          childrenMap,
           readiness: NodesReadiness.NotReady,
           addRemoveCounter: state.addRemoveCounter + 1,
         };
@@ -842,17 +808,6 @@ function NodesLoader() {
   return <Loader reason='nodes' />;
 }
 
-type MaybeNode = string | undefined | null | LayoutNode;
-type RetValFromNode<T extends MaybeNode> = T extends LayoutNode
-  ? T
-  : T extends undefined
-    ? undefined
-    : T extends null
-      ? null
-      : T extends string
-        ? LayoutNode
-        : never;
-
 /**
  * Use the expression context. This will return a LayoutPages object containing the full tree of resolved
  * nodes (meaning, instances of layout components in a tree, with their expressions evaluated and resolved to
@@ -860,8 +815,8 @@ type RetValFromNode<T extends MaybeNode> = T extends LayoutNode
  *
  * Usually, if you're looking for a specific component/node, useResolvedNode() is better.
  */
-export function useNode<T extends string | undefined | LayoutNode>(id: T): RetValFromNode<T> {
-  const lastValue = useRef<LayoutNode | null | undefined | typeof NeverInitialized>(NeverInitialized);
+export function useNode<T extends string | undefined | LayoutNode>(id: T): LayoutNode | undefined {
+  const lastValue = useRef<LayoutNode | undefined | typeof NeverInitialized>(NeverInitialized);
   const node = Store.useSelector((state) => {
     if (!id || !state?.nodes) {
       return undefined;
@@ -875,7 +830,7 @@ export function useNode<T extends string | undefined | LayoutNode>(id: T): RetVa
     lastValue.current = node;
     return node;
   });
-  return node as RetValFromNode<T>;
+  return node ?? undefined;
 }
 
 export const useGetPage = (pageId: string | undefined) =>
@@ -940,15 +895,15 @@ function isHiddenPage(state: NodesContext, page: LayoutPage | string | undefined
 
 export function isHidden(
   state: NodesContext,
-  node: LayoutNode | LayoutPage | undefined,
+  nodeOrId: LayoutNode | LayoutPage | undefined | string,
   _options?: IsHiddenOptions,
 ): boolean | undefined {
-  if (!node) {
+  if (!nodeOrId) {
     return undefined;
   }
 
-  if (node instanceof LayoutPage) {
-    return isHiddenPage(state, node, _options);
+  if (nodeOrId instanceof LayoutPage) {
+    return isHiddenPage(state, nodeOrId, _options);
   }
 
   const options = withDefaults(_options);
@@ -956,7 +911,9 @@ export function isHidden(
     return false;
   }
 
-  const hidden = state.nodeData[node.id]?.hidden;
+  const id = typeof nodeOrId === 'string' ? nodeOrId : nodeOrId.id;
+  const node = state.nodes?.findById(id);
+  const hidden = state.nodeData[id]?.hidden;
   if (hidden === undefined) {
     return undefined;
   }
@@ -965,12 +922,12 @@ export function isHidden(
     return true;
   }
 
-  if (state.hiddenViaRules[node.id]) {
+  if (state.hiddenViaRules[id]) {
     return true;
   }
 
-  const parent = node.parent;
-  if (parent instanceof BaseLayoutNode && 'isChildHidden' in parent.def && state.nodeData[parent.id]) {
+  const parent = node?.parent;
+  if (parent && parent instanceof BaseLayoutNode && 'isChildHidden' in parent.def && state.nodeData[parent.id]) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const childHidden = parent.def.isChildHidden(state.nodeData[parent.id] as any, node);
     if (childHidden) {
@@ -1017,7 +974,7 @@ export const Hidden = {
     const forcedVisibleByDevTools = Hidden.useIsForcedVisibleByDevTools();
     return Store.useDelayedSelector({
       mode: 'simple',
-      selector: (node: LayoutNode | LayoutPage, options?: IsHiddenOptions) => (state) =>
+      selector: (node: LayoutNode | LayoutPage | string, options?: IsHiddenOptions) => (state) =>
         isHidden(state, node, makeOptions(forcedVisibleByDevTools, options)),
     });
   },
@@ -1032,12 +989,12 @@ export const Hidden = {
     return devToolsIsOpen && devToolsHiddenComponents !== 'hide';
   },
   useIsPageInOrder(pageKey: string) {
-    const currentView = useCurrentView();
+    const isCurrentView = useIsCurrentView(pageKey);
     const maybeLayoutSettings = useLaxLayoutSettings();
     const orderWithHidden = maybeLayoutSettings === ContextNotProvided ? [] : maybeLayoutSettings.pages.order;
     const layoutSettings = useLayoutSettings();
 
-    if (pageKey === currentView) {
+    if (isCurrentView) {
       // If this is the current view, then it's never hidden. This avoids settings fields as hidden when
       // code caused this to be the current view even if it's not in the common order.
       return true;
@@ -1063,29 +1020,32 @@ type NodePickerReturns<N extends LayoutNode | undefined> = NodeDataFromNode<N> |
 function selectNodeData<N extends LayoutNode | undefined>(
   node: N | string,
   state: NodesContext,
-  alwaysUseFreshData = false,
+  preferFreshData = false,
 ): NodePickerReturns<N> {
-  const source =
-    state.readiness === NodesReadiness.Ready || alwaysUseFreshData
-      ? state.nodeData
-      : state.prevNodeData && Object.keys(state.prevNodeData).length > 0
-        ? state.prevNodeData
-        : state.nodeData;
-
-  if (typeof node === 'string') {
-    return source[node] as NodePickerReturns<N>;
+  const nodeId = typeof node === 'string' ? node : node?.id;
+  if (!nodeId) {
+    return undefined;
   }
 
-  return (node ? source[node.id] : undefined) as NodePickerReturns<N>;
+  const data =
+    state.readiness === NodesReadiness.Ready
+      ? state.nodeData[nodeId] // Always use fresh data when ready
+      : preferFreshData && state.nodeData[nodeId]?.item?.id // Only allow getting fresh data when not ready if item is set
+        ? state.nodeData[nodeId]
+        : state.prevNodeData?.[nodeId]
+          ? state.prevNodeData[nodeId]
+          : state.nodeData[nodeId]; // Fall back to fresh data if prevNodeData is not set
+
+  return data as NodePickerReturns<N>;
 }
 
 function getNodeData<N extends LayoutNode | undefined, Out>(
   node: N | string,
   state: NodesContext,
   selector: (nodeData: NodeDataFromNode<N>) => Out,
-  alwaysUseFreshData = false,
+  preferFreshData = false,
 ) {
-  return node ? selector(selectNodeData(node, state, alwaysUseFreshData) as NodeDataFromNode<N>) : undefined;
+  return node ? selector(selectNodeData(node, state, preferFreshData) as NodeDataFromNode<N>) : undefined;
 }
 
 /**

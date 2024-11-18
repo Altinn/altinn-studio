@@ -15,13 +15,7 @@ import type {
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface TabConfigInternal extends Omit<TabConfig, 'children'> {
-  children: (LayoutNode | undefined)[];
-}
-
-interface ClaimMetadata {
-  tabIdx: number;
-  tabId: string;
-  childIdx: number;
+  childIds: string[];
 }
 
 interface Config<Type extends CompTypes> {
@@ -29,7 +23,6 @@ interface Config<Type extends CompTypes> {
   expectedFromExternal: {
     tabs: TabConfig[];
   };
-  metaData: ClaimMetadata;
   extraState: undefined;
   extraInItem: {
     tabs: undefined;
@@ -66,8 +59,8 @@ export class TabsPlugin<Type extends CompTypes>
   }
 
   claimChildren({ item, claimChild, getProto }: DefPluginChildClaimerProps<Config<Type>>): void {
-    for (const [tabIdx, tab] of (item.tabs || []).entries()) {
-      for (const [childIdx, child] of tab.children.entries()) {
+    for (const tab of (item.tabs || []).values()) {
+      for (const child of tab.children.values()) {
         const proto = getProto(child);
         if (!proto) {
           continue;
@@ -79,7 +72,7 @@ export class TabsPlugin<Type extends CompTypes>
           );
           continue;
         }
-        claimChild(child, { tabIdx, tabId: tab.id, childIdx });
+        claimChild(child);
       }
     }
   }
@@ -92,13 +85,15 @@ export class TabsPlugin<Type extends CompTypes>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory({ item }: DefPluginStateFactoryProps<Config<Type>>) {
+  itemFactory({ item, idMutators }: DefPluginStateFactoryProps<Config<Type>>) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tabsInternal = structuredClone((item as any).tabs || []) as TabConfigInternal[];
 
     // Remove all children, as they will be added as nodes later:
     for (const tab of tabsInternal) {
-      tab.children = [];
+      const children = (tab as unknown as TabConfig).children ?? [];
+      tab.childIds = children.map((childId) => idMutators.reduce((id, mutator) => mutator(id), childId));
+      (tab as unknown as TabConfig).children = [];
     }
 
     return {
@@ -107,50 +102,19 @@ export class TabsPlugin<Type extends CompTypes>
     } as DefPluginExtraInItem<Config<Type>>;
   }
 
-  pickDirectChildren(
-    state: DefPluginState<Config<Type>>,
-    restriction?: TraversalRestriction | undefined,
-  ): LayoutNode[] {
-    const out: LayoutNode[] = [];
+  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: TraversalRestriction | undefined): string[] {
+    const out: string[] = [];
     if (restriction !== undefined) {
       return out;
     }
 
     for (const tab of state.item?.tabsInternal || []) {
-      for (const child of tab.children) {
+      for (const child of tab.childIds) {
         child && out.push(child);
       }
     }
 
     return out;
-  }
-
-  addChild(
-    state: DefPluginState<Config<Type>>,
-    childNode: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<Config<Type>>> {
-    const tabsInternal = [...(state.item?.tabsInternal || [])];
-    const tab = tabsInternal[metadata.tabIdx];
-    if (!tab) {
-      throw new Error(`Tab with index ${metadata.tabIdx} not found`);
-    }
-    const children = [...tab.children];
-    children[metadata.childIdx] = childNode;
-    tabsInternal[metadata.tabIdx] = { ...tabsInternal[metadata.tabIdx], children };
-    return { item: { ...state.item, tabs: undefined, tabsInternal } } as Partial<DefPluginState<Config<Type>>>;
-  }
-
-  removeChild(state: DefPluginState<Config<Type>>, childNode: LayoutNode, metadata: ClaimMetadata) {
-    const tabsInternal = [...(state.item?.tabsInternal || [])];
-    const tab = tabsInternal[metadata.tabIdx];
-    if (!tab) {
-      throw new Error(`Tab with index ${metadata.tabIdx} not found`);
-    }
-    const children = [...tab.children];
-    children[metadata.childIdx] = undefined;
-    tabsInternal[metadata.tabIdx] = { ...tabsInternal[metadata.tabIdx], children };
-    return { item: { ...state.item, tabs: undefined, tabsInternal } } as Partial<DefPluginState<Config<Type>>>;
   }
 
   isChildHidden(_state: DefPluginState<Config<Type>>, _childNode: LayoutNode): boolean {

@@ -235,7 +235,6 @@ export function useRegistry() {
       removeNodes: [],
       setNodeProps: [],
       setRowExtras: [],
-      setRowUuid: [],
       setPageProps: [],
     },
     commitTimeout: null,

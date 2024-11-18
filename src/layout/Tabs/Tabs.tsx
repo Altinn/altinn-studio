@@ -7,7 +7,7 @@ import { useRegisterNodeNavigationHandler } from 'src/features/form/layout/Navig
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import classes from 'src/layout/Tabs/Tabs.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
@@ -25,7 +25,7 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
     const parents = traversalSelector((t) => t.with(targetNode).parents(), [targetNode]);
     for (const parent of parents ?? []) {
       if (parent === node) {
-        const targetTabId = tabs.find((tab) => tab.children.some((child) => child === targetNode))?.id;
+        const targetTabId = tabs.find((tab) => tab.childIds.some((childId) => childId === targetNode.id))?.id;
         if (targetTabId) {
           setActiveTab(targetTabId);
           return true;
@@ -66,10 +66,10 @@ export const Tabs = ({ node }: PropsFromGenericComponent<'Tabs'>) => {
               spacing={6}
               alignItems='flex-start'
             >
-              {tab.children.filter(typedBoolean).map((node) => (
-                <GenericComponent
-                  key={node.id}
-                  node={node}
+              {tab.childIds.filter(typedBoolean).map((nodeId) => (
+                <GenericComponentById
+                  key={nodeId}
+                  id={nodeId}
                 />
               ))}
             </Grid>

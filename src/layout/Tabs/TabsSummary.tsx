@@ -4,7 +4,7 @@ import { Heading } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 
 import { Lang } from 'src/features/language/Lang';
-import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import classes from 'src/layout/Tabs/TabsSummary.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
@@ -52,10 +52,10 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
               spacing={6}
               alignItems='flex-start'
             >
-              {tab.children.filter(typedBoolean).map((node) => (
-                <ComponentSummary
-                  key={node.id}
-                  componentNode={node}
+              {tab.childIds.filter(typedBoolean).map((nodeId) => (
+                <ComponentSummaryById
+                  key={nodeId}
+                  componentId={nodeId}
                 />
               ))}
             </Grid>

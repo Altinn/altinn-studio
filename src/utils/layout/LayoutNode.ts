@@ -82,7 +82,8 @@ export class BaseLayoutNode<Type extends CompTypes = CompTypes> implements Layou
   private childrenAsList(task: TraversalTask) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const def = this.def as CompDef<any>;
-    return def.pickDirectChildren(task.getData(this), task.restriction).filter(typedBoolean) as LayoutNode[];
+    const childIds = def.pickDirectChildren(task.getData(this), task.restriction) as string[];
+    return childIds.map((id) => task.getNode(id)).filter(typedBoolean);
   }
 
   public firstChild(task: TraversalTask): LayoutNode | undefined {

@@ -7,6 +7,7 @@ import { useUnifiedValidationsForNode } from 'src/features/validation/selectors/
 import { validationsOfSeverity } from 'src/features/validation/utils';
 import classes from 'src/layout/Likert/Summary2/LikertSummary.module.css';
 import { SingleValueSummary } from 'src/layout/Summary2/CommonSummaryComponents/SingleValueSummary';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -60,7 +61,7 @@ export function LikertSummary({ componentNode, emptyFieldText, isCompact }: Like
       {rows.map((row) => (
         <LikertRowSummary
           key={row?.uuid}
-          rowNode={row?.itemNode}
+          rowNodeId={row?.itemNodeId}
           emptyFieldText={emptyFieldText}
           readOnly={readOnly}
           isCompact={isCompact}
@@ -80,32 +81,50 @@ export function LikertSummary({ componentNode, emptyFieldText, isCompact }: Like
 }
 
 type LikertRowSummaryProps = {
-  rowNode?: LayoutNode<'LikertItem'>;
+  rowNodeId?: string;
   emptyFieldText?: string;
   readOnly?: boolean;
   isCompact?: boolean;
 };
 
-function LikertRowSummary({ rowNode, emptyFieldText, readOnly, isCompact }: LikertRowSummaryProps) {
-  const title = useNodeItem(rowNode, (i) => i.textResourceBindings?.title);
-  const displayData = rowNode?.def.useDisplayData(rowNode);
-  const validations = useUnifiedValidationsForNode(rowNode);
-  const errors = validationsOfSeverity(validations, 'error');
+function LikertRowSummary(props: LikertRowSummaryProps) {
+  const rowNode = useNode(props.rowNodeId) as LayoutNode | undefined;
 
-  if (!rowNode) {
+  if (!rowNode || !rowNode.isType('LikertItem')) {
     return null;
   }
+
+  return (
+    <LikertRowSummaryInner
+      node={rowNode}
+      {...props}
+    />
+  );
+}
+
+function LikertRowSummaryInner({
+  node,
+  emptyFieldText,
+  readOnly,
+  isCompact,
+}: LikertRowSummaryProps & {
+  node: LayoutNode<'LikertItem'>;
+}) {
+  const title = useNodeItem(node, (i) => i.textResourceBindings?.title);
+  const displayData = node.def.useDisplayData(node);
+  const validations = useUnifiedValidationsForNode(node);
+  const errors = validationsOfSeverity(validations, 'error');
 
   return (
     <SingleValueSummary
       title={
         <Lang
           id={title}
-          node={rowNode}
+          node={node}
         />
       }
       isCompact={isCompact}
-      componentNode={rowNode}
+      componentNode={node}
       displayData={displayData}
       errors={errors}
       hideEditButton={readOnly}

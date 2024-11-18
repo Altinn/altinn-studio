@@ -16,9 +16,23 @@ interface ComponentSummaryProps {
   isCompact?: boolean;
 }
 
-interface ResolveComponentProps {
-  targetId: string;
+export function ComponentSummaryById({
+  componentId,
+  ...rest
+}: { componentId: string } & Omit<ComponentSummaryProps, 'componentNode'>) {
+  const componentNode = useNode(componentId);
+  if (!componentNode) {
+    return null;
+  }
+
+  return (
+    <ComponentSummary
+      componentNode={componentNode}
+      {...rest}
+    />
+  );
 }
+
 export function ComponentSummary({ componentNode }: ComponentSummaryProps) {
   const summaryNodeItem = useSummary2Store((state) => state.summaryItem);
   const componentNodeItem = useNodeItem(componentNode);
@@ -66,13 +80,4 @@ export function ComponentSummary({ componentNode }: ComponentSummaryProps) {
       {renderedComponent}
     </Grid>
   );
-}
-
-export function ResolveComponent({ targetId }: ResolveComponentProps) {
-  const resolvedComponent = useNode(targetId);
-  if (!resolvedComponent) {
-    return null;
-  }
-
-  return <ComponentSummary componentNode={resolvedComponent} />;
 }

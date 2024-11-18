@@ -3,7 +3,7 @@ import { CompCategory } from 'src/layout/common';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { GridRows } from 'src/layout/common.generated';
-import type { GridCellNode, GridRowsInternal } from 'src/layout/Grid/types';
+import type { GridCellInternal, GridRowsInternal } from 'src/layout/Grid/types';
 import type { CompTypes, TypesFromCategory } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type {
@@ -15,11 +15,6 @@ import type {
   NodeDefChildrenPlugin,
 } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
-
-interface ClaimMetadata {
-  rowIdx: number;
-  cellIdx: number;
-}
 
 interface ExternalConfig {
   componentType?: TypesFromCategory<CompCategory.Container>;
@@ -33,7 +28,6 @@ interface Config<Type extends CompTypes, ExternalProp extends string, InternalPr
   expectedFromExternal: {
     [key in ExternalProp]?: GridRows;
   };
-  childClaimMetadata: ClaimMetadata;
   extraState: undefined;
   extraInItem: {
     [key in ExternalProp]: undefined;
@@ -113,8 +107,8 @@ export class GridRowsPlugin<E extends ExternalConfig>
       return;
     }
 
-    for (const [rowIdx, row] of rows.entries()) {
-      for (const [cellIdx, cell] of row.cells.entries()) {
+    for (const row of rows.values()) {
+      for (const cell of row.cells.values()) {
         if (cell && 'component' in cell && cell.component) {
           const proto = getProto(cell.component);
           if (!proto) {
@@ -127,7 +121,7 @@ export class GridRowsPlugin<E extends ExternalConfig>
             );
             continue;
           }
-          claimChild(cell.component, { rowIdx, cellIdx });
+          claimChild(cell.component);
         }
       }
     }
@@ -141,14 +135,30 @@ export class GridRowsPlugin<E extends ExternalConfig>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory({ item }: DefPluginStateFactoryProps<ToInternal<E>>) {
-    // Components with Grid rows may not have component references in all the cells, so we cannot rely on
-    // addChild() alone to produce a fully complete state. This adds all the non-component cells to the item
-    // state as soon as the node state is first created.
+  itemFactory({ item, idMutators }: DefPluginStateFactoryProps<ToInternal<E>>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const external = ((item as any)[this.settings.externalProp] ?? []) as GridRows;
+    const internal: GridRowsInternal = [];
+
+    for (const row of external.values()) {
+      const cells: GridCellInternal[] = [];
+      for (const cell of row.cells.values()) {
+        if (cell && 'component' in cell && cell.component) {
+          const { component, ...rest } = cell;
+          cells.push({
+            ...rest,
+            nodeId: idMutators.reduce((id, mutator) => mutator(id), component),
+          });
+        } else {
+          cells.push(cell as GridCellInternal);
+        }
+      }
+      internal.push({ ...row, cells });
+    }
+
     return {
       [this.settings.externalProp]: undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [this.settings.internalProp]: structuredClone((item as any)[this.settings.externalProp]),
+      [this.settings.internalProp]: internal,
     } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
@@ -160,11 +170,8 @@ export class GridRowsPlugin<E extends ExternalConfig>
     } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
-  pickDirectChildren(
-    state: DefPluginState<ToInternal<E>>,
-    restriction?: TraversalRestriction | undefined,
-  ): LayoutNode[] {
-    const out: LayoutNode[] = [];
+  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction | undefined): string[] {
+    const out: string[] = [];
     if (restriction !== undefined) {
       return out;
     }
@@ -172,66 +179,13 @@ export class GridRowsPlugin<E extends ExternalConfig>
     const rows = (state.item?.[this.settings.internalProp] || []) as GridRowsInternal;
     for (const row of rows) {
       for (const cell of row.cells) {
-        if (cell && 'node' in cell && cell.node) {
-          out.push(cell.node);
+        if (cell && 'nodeId' in cell && cell.nodeId) {
+          out.push(cell.nodeId);
         }
       }
     }
 
     return out;
-  }
-
-  addChild(
-    state: DefPluginState<ToInternal<E>>,
-    node: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<ToInternal<E>>> {
-    const rowsInternal = [...(state.item?.[this.settings.internalProp] ?? [])] as GridRowsInternal;
-    const row =
-      rowsInternal[metadata.rowIdx] ??
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      structuredClone((state as any).layout[this.settings.externalProp][metadata.rowIdx]);
-
-    const cells = [...(row.cells ?? [])];
-    const overwriteLayout = { component: undefined };
-    cells[metadata.cellIdx] = { ...cells[metadata.cellIdx], ...overwriteLayout, node } as GridCellNode;
-    rowsInternal[metadata.rowIdx] = { ...row, cells };
-
-    return {
-      item: {
-        ...state.item,
-        [this.settings.externalProp]: undefined,
-        [this.settings.internalProp]: rowsInternal,
-      },
-    } as Partial<DefPluginState<ToInternal<E>>>;
-  }
-
-  removeChild(
-    state: DefPluginState<ToInternal<E>>,
-    node: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<ToInternal<E>>> {
-    const rowsInternal = [...(state.item?.[this.settings.internalProp] ?? [])] as GridRowsInternal;
-    const row =
-      rowsInternal[metadata.rowIdx] ??
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      structuredClone((state as any).layout[this.settings.externalProp][metadata.rowIdx]);
-
-    const cells = [...(row.cells ?? [])];
-    const cell = cells[metadata.cellIdx];
-    if (cell && 'node' in cell && cell.node === node) {
-      cells[metadata.cellIdx] = { ...cell };
-      delete cells[metadata.cellIdx]!['node'];
-      rowsInternal[metadata.rowIdx] = { ...row, cells };
-    }
-
-    return {
-      item: {
-        ...state.item,
-        [this.settings.externalProp]: undefined,
-        [this.settings.internalProp]: rowsInternal,
-      },
-    } as Partial<DefPluginState<ToInternal<E>>>;
   }
 
   isChildHidden(_state: DefPluginState<ToInternal<E>>, _childNode: LayoutNode): boolean {

@@ -170,7 +170,7 @@ describe('ValidationPlugin', () => {
     it('validation on navigating to next page should not be blocked by unrelated validations', async () => {
       await render({ text: 'this is too long', showValidations: ['Schema'], validateOnNext: ['Required'] });
 
-      const ErrorReport = screen.getByTestId('ErrorReport');
+      let ErrorReport = screen.getByTestId('ErrorReport');
       expect(within(ErrorReport).getByText(/bruk 10 eller færre tegn/i)).toBeInTheDocument();
       expect(within(ErrorReport).queryByText(/du må fylle ut text/i)).not.toBeInTheDocument();
 
@@ -178,6 +178,7 @@ describe('ValidationPlugin', () => {
 
       await screen.findByText(/this is the second page!/i);
 
+      ErrorReport = screen.getByTestId('ErrorReport');
       expect(within(ErrorReport).getByText(/bruk 10 eller færre tegn/i)).toBeInTheDocument();
       expect(within(ErrorReport).queryByText(/du må fylle ut text/i)).not.toBeInTheDocument();
     });

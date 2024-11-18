@@ -7,9 +7,9 @@ import { Grid } from '@material-ui/core';
 import { Lang } from 'src/features/language/Lang';
 import { CardProvider } from 'src/layout/Cards/CardContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponent, GenericComponentById } from 'src/layout/GenericComponent';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { typedBoolean } from 'src/utils/typing';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { CardInternal } from 'src/layout/Cards/CardsPlugin';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -58,7 +58,7 @@ export const Cards = ({ node }: ICardsProps) => {
                 <Lang id={card.description} />
               </Card.Content>
             )}
-            {card.children && card.children.length > 0 && (
+            {card.childIds && card.childIds.length > 0 && (
               <Grid
                 container={true}
                 item={true}
@@ -75,10 +75,10 @@ export const Cards = ({ node }: ICardsProps) => {
                     node={node}
                     renderedInMedia={false}
                   >
-                    {card.children.filter(typedBoolean).map((childNode, idx) => (
-                      <GenericComponent
+                    {card.childIds.map((childId, idx) => (
+                      <GenericComponentById
                         key={idx}
-                        node={childNode}
+                        id={childId}
                       />
                     ))}
                   </CardProvider>
@@ -111,7 +111,8 @@ interface MediaProps {
 }
 
 function Media({ card, node, minMediaHeight }: MediaProps) {
-  if (!card.media) {
+  const mediaNode = useNode(card.mediaId);
+  if (!mediaNode) {
     return null;
   }
 
@@ -123,11 +124,11 @@ function Media({ card, node, minMediaHeight }: MediaProps) {
         minMediaHeight={minMediaHeight}
       >
         <div
-          data-componentid={card.media.id}
-          data-componentbaseid={card.media.baseId}
+          data-componentid={mediaNode.id}
+          data-componentbaseid={mediaNode.baseId}
         >
           <GenericComponent
-            node={card.media}
+            node={mediaNode}
             overrideDisplay={{
               directRender: true,
             }}

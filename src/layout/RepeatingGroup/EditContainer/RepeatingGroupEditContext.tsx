@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createContext } from 'src/core/contexts/context';
@@ -25,19 +25,10 @@ const { Provider, useCtx } = createContext<RepeatingGroupEditRowContext>({
 
 function useRepeatingGroupEditRowState(
   node: LayoutNode<'RepeatingGroup'>,
-  editId: string,
 ): RepeatingGroupEditRowContext & { setMultiPageIndex: (index: number) => void } {
-  const { edit, rows } = useNodeItem(node);
+  const edit = useNodeItem(node, (i) => i.edit);
+  const lastPage = useNodeItem(node, (i) => i.internal.lastMultiPageIndex) ?? 0;
   const multiPageEnabled = edit?.multiPage ?? false;
-  const lastPage = useMemo(() => {
-    const row = rows.find((r) => r && r.uuid === editId);
-    let lastPage = 0;
-    for (const childNode of row?.items ?? []) {
-      lastPage = Math.max(lastPage, childNode.multiPageIndex ?? 0);
-    }
-    return lastPage;
-  }, [editId, rows]);
-
   const [multiPageIndex, setMultiPageIndex] = useState(0);
 
   const nextMultiPage = useCallback(() => {
@@ -59,13 +50,9 @@ function useRepeatingGroupEditRowState(
   };
 }
 
-interface Props {
-  editId: string;
-}
-
-export function RepeatingGroupEditRowProvider({ editId, children }: PropsWithChildren<Props>) {
+export function RepeatingGroupEditRowProvider({ children }: PropsWithChildren) {
   const { node } = useRepeatingGroup();
-  const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(node, editId);
+  const { setMultiPageIndex, ...state } = useRepeatingGroupEditRowState(node);
   const traversal = useNodeTraversalSelector();
 
   useRegisterNodeNavigationHandler(async (targetNode) => {

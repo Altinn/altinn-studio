@@ -49,6 +49,13 @@ export class TraversalTask {
   }
 
   /**
+   * Get the node object for a given ID
+   */
+  public getNode(id: string): LayoutNode | undefined {
+    return this.state.nodes?.findById(id);
+  }
+
+  /**
    * Filter a node based on the matcher
    */
   public passesMatcher(node: Node): boolean {

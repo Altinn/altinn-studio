@@ -9,7 +9,7 @@ import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
 import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
-import { TaskKeys, useNavigatePage } from 'src/hooks/useNavigatePage';
+import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
@@ -33,7 +33,7 @@ const ProcessContext = createContext<Pick<UseQueryResult<IProcess, HttpClientErr
 export function ProcessProvider({ children, instanceId }: PropsWithChildren<{ instanceId: string }>) {
   const taskId = useNavigationParam('taskId');
   const layoutSets = useLayoutSets();
-  const navigateToTask = useNavigatePage().navigateToTask;
+  const navigateToTask = useNavigateToTask();
 
   const { isLoading, data, error, refetch } = useQuery<IProcess, HttpClientError>(getProcessQueryDef(instanceId));
 

@@ -13,19 +13,24 @@ import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { LayoutStyle } from 'src/layout/common.generated';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import classes from 'src/layout/LikertItem/LikertItemComponent.module.css';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
+import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 type LikertComponentProps = PropsFromGenericComponent<'Likert'>;
 
 export const LikertComponent = ({ node }: LikertComponentProps) => {
-  const { textResourceBindings, rows } = useNodeItem(node);
+  const textResourceBindings = useNodeItem(node, (item) => item.textResourceBindings);
   const mobileView = useIsMobileOrTablet();
-  const { options: calculatedOptions, isFetching } = useNodeOptions(rows.find((row) => !!row)?.itemNode);
-  const rowNodes = rows.map((row) => row?.itemNode).filter(typedBoolean);
+  const rows = useNodeItem(node, (item) => item.rows);
+  const rowNodeIds = rows.map((row) => row?.itemNodeId).filter(typedBoolean);
+  const firstLikertNodeId = rowNodeIds[0];
+  const firstLikertNode = useNode(firstLikertNodeId) as LayoutNode<'LikertItem'> | undefined;
+  const { options: calculatedOptions, isFetching } = useNodeOptions(firstLikertNode);
 
   const id = node.id;
 
@@ -62,10 +67,10 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
           aria-labelledby={textResourceBindings?.title ? getLabelId(node.id) : undefined}
           aria-describedby={textResourceBindings?.description ? getDescriptionId(node.id) : undefined}
         >
-          {rowNodes.map((comp) => (
-            <GenericComponent
-              key={comp.id}
-              node={comp}
+          {rowNodeIds.map((compId) => (
+            <GenericComponentById
+              key={compId}
+              id={compId}
             />
           ))}
         </div>
@@ -127,15 +132,15 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
             </Table.Row>
           </Table.Head>
           <Table.Body>
-            {rowNodes.map((comp) => {
+            {rowNodeIds.map((compId) => {
               const override: IGenericComponentProps<'LikertItem'>['overrideItemProps'] = {
                 layout: LayoutStyle.Table,
               };
 
               return (
-                <GenericComponent
-                  key={comp.id}
-                  node={comp}
+                <GenericComponentById
+                  key={compId}
+                  id={compId}
                   overrideDisplay={{ directRender: true }}
                   overrideItemProps={override}
                 />

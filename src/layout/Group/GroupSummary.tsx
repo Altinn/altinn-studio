@@ -8,6 +8,7 @@ import type { HeadingProps } from '@digdir/designsystemet-react';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupSummary.module.css';
 import { ComponentSummary } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { GroupSummaryOverrideProps } from 'src/layout/Summary2/config.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -34,34 +35,47 @@ function getHeadingLevel(hierarchyLevel: number): HeadingLevel {
 
 const ChildComponents = ({ componentNode, hierarchyLevel, summaryOverride }: GroupComponentSummaryProps) => {
   const childComponents = useNodeItem(componentNode, (i) => i.childComponents);
-  return childComponents.map((child) => {
-    if (child?.isType('Group')) {
-      return (
-        <Grid
-          item
-          key={child?.id}
-        >
-          <GroupSummary
-            componentNode={child}
-            hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
-            key={componentNode.id}
-            summaryOverride={summaryOverride}
-          />
-        </Grid>
-      );
-    }
-
-    const isCompact = summaryOverride?.isCompact;
-
-    return (
-      <ComponentSummary
-        key={child?.id}
-        componentNode={child}
-        isCompact={isCompact}
-      />
-    );
-  });
+  return childComponents.map((childId) => (
+    <ChildComponent
+      key={childId}
+      id={childId}
+      hierarchyLevel={hierarchyLevel}
+      summaryOverride={summaryOverride}
+    />
+  ));
 };
+
+function ChildComponent({
+  id,
+  hierarchyLevel,
+  summaryOverride,
+}: { id: string } & Pick<GroupComponentSummaryProps, 'hierarchyLevel' | 'summaryOverride'>) {
+  const child = useNode(id);
+  if (!child) {
+    return null;
+  }
+
+  if (child.isType('Group')) {
+    return (
+      <Grid item>
+        <GroupSummary
+          componentNode={child}
+          hierarchyLevel={hierarchyLevel ? hierarchyLevel + 1 : 1}
+          summaryOverride={summaryOverride}
+        />
+      </Grid>
+    );
+  }
+
+  const isCompact = summaryOverride?.isCompact;
+
+  return (
+    <ComponentSummary
+      componentNode={child}
+      isCompact={isCompact}
+    />
+  );
+}
 
 export const GroupSummary = ({ componentNode, hierarchyLevel = 0, summaryOverride }: GroupComponentSummaryProps) => {
   const title = useNodeItem(componentNode, (i) => i.textResourceBindings?.title);

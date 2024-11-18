@@ -121,6 +121,13 @@ export const useNavigationParam = <T extends keyof PathParams>(key: T) =>
     return paramFrom(matches, key) as PathParams[T];
   });
 
+export const useIsCurrentView = (pageKey: string) =>
+  useSelector((s) => {
+    const path = getPath(s.hash);
+    const matches = matchers.map((matcher) => matchPath(matcher, path));
+    return paramFrom(matches, 'pageKey') === pageKey;
+  });
+
 export const useNavigationPath = () => useSelector((s) => getPath(s.hash));
 export const useNavigationParams = () => useMemoSelector((s) => matchParams(getPath(s.hash)));
 export const useNavigationEffect = () => useSelector((ctx) => ctx.effectCallback);

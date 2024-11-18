@@ -15,13 +15,8 @@ import type {
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
 export interface CardInternal extends Omit<CardConfigExternal, 'children' | 'media'> {
-  children?: (LayoutNode | undefined)[];
-  media?: LayoutNode;
-}
-
-interface ClaimMetadata {
-  cardIdx: number;
-  child: number | 'media';
+  childIds?: string[];
+  mediaId?: string;
 }
 
 interface Config<Type extends CompTypes> {
@@ -29,7 +24,6 @@ interface Config<Type extends CompTypes> {
   expectedFromExternal: {
     cards: CardConfigExternal[];
   };
-  childClaimMetadata: ClaimMetadata;
   extraState: undefined;
   extraInItem: {
     cards: undefined;
@@ -66,7 +60,7 @@ export class CardsPlugin<Type extends CompTypes>
   }
 
   claimChildren({ item, claimChild, getProto }: DefPluginChildClaimerProps<Config<Type>>): void {
-    for (const [cardIdx, card] of (item.cards || []).entries()) {
+    for (const card of (item.cards || []).values()) {
       if (card.media) {
         const proto = getProto(card.media);
         if (!proto) {
@@ -79,10 +73,10 @@ export class CardsPlugin<Type extends CompTypes>
           );
           continue;
         }
-        claimChild(card.media, { cardIdx, child: 'media' });
+        claimChild(card.media);
       }
 
-      for (const [childIdx, child] of card.children?.entries() ?? []) {
+      for (const child of card.children?.values() ?? []) {
         const proto = getProto(child);
         if (!proto) {
           continue;
@@ -94,7 +88,7 @@ export class CardsPlugin<Type extends CompTypes>
           );
           continue;
         }
-        claimChild(child, { cardIdx, child: childIdx });
+        claimChild(child);
       }
     }
   }
@@ -107,14 +101,17 @@ export class CardsPlugin<Type extends CompTypes>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory({ item }: DefPluginStateFactoryProps<Config<Type>>) {
+  itemFactory({ item, idMutators }: DefPluginStateFactoryProps<Config<Type>>) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const cardsInternal = structuredClone((item as any).cards || []) as CardInternal[];
 
-    // Remove all children, as they will be added as nodes later:
     for (const card of cardsInternal) {
-      card.children = [];
-      card.media = undefined;
+      const children = (card as CardConfigExternal).children ?? [];
+      const mediaId = (card as CardConfigExternal).media;
+      card.childIds = children.map((childId) => idMutators.reduce((id, mutator) => mutator(id), childId));
+      card.mediaId = mediaId && idMutators.reduce((id, mutator) => mutator(id), mediaId);
+      (card as CardConfigExternal).children = undefined;
+      (card as CardConfigExternal).media = undefined;
     }
 
     return {
@@ -123,61 +120,22 @@ export class CardsPlugin<Type extends CompTypes>
     } as DefPluginExtraInItem<Config<Type>>;
   }
 
-  pickDirectChildren(
-    state: DefPluginState<Config<Type>>,
-    restriction?: TraversalRestriction | undefined,
-  ): LayoutNode[] {
-    const out: LayoutNode[] = [];
+  pickDirectChildren(state: DefPluginState<Config<Type>>, restriction?: TraversalRestriction | undefined): string[] {
+    const out: string[] = [];
     if (restriction !== undefined) {
       return out;
     }
 
     for (const card of Object.values(state.item?.cardsInternal || [])) {
-      if (card.media) {
-        out.push(card.media);
+      if (card.mediaId) {
+        out.push(card.mediaId);
       }
-      for (const child of card.children ?? []) {
-        child && out.push(child);
+      for (const childId of card.childIds ?? []) {
+        childId && out.push(childId);
       }
     }
 
     return out;
-  }
-
-  addChild(
-    state: DefPluginState<Config<Type>>,
-    childNode: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<Config<Type>>> {
-    const cardsInternal = [...(state.item?.cardsInternal || [])];
-    const card = cardsInternal[metadata.cardIdx] ?? {};
-    if (metadata.child === 'media') {
-      cardsInternal[metadata.cardIdx] = { ...card, media: childNode };
-    } else {
-      const children = [...(card.children || [])];
-      children[metadata.child] = childNode;
-      cardsInternal[metadata.cardIdx] = { ...card, children };
-    }
-
-    return { item: { ...state.item, cardsInternal } } as Partial<DefPluginState<Config<Type>>>;
-  }
-
-  removeChild(
-    state: DefPluginState<Config<Type>>,
-    _childNode: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<Config<Type>>> {
-    const cardsInternal = [...(state.item?.cardsInternal || [])];
-    const card = cardsInternal[metadata.cardIdx] ?? {};
-    if (metadata.child === 'media') {
-      cardsInternal[metadata.cardIdx] = { ...card, media: undefined };
-    } else {
-      const children = [...(card.children || [])];
-      children[metadata.child] = undefined;
-      cardsInternal[metadata.cardIdx] = { ...card, children };
-    }
-
-    return { item: { ...state.item, cardsInternal } } as Partial<DefPluginState<Config<Type>>>;
   }
 
   isChildHidden(_state: DefPluginState<Config<Type>>, _childNode: LayoutNode): boolean {

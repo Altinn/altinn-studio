@@ -7,6 +7,7 @@ import type { PropsFromGenericComponent } from '..';
 import classes from 'src/layout/ButtonGroup/ButtonGroupComponent.module.css';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { GenericComponent } from 'src/layout/GenericComponent';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 export function ButtonGroupComponent({ node }: PropsFromGenericComponent<'ButtonGroup'>) {
@@ -22,19 +23,33 @@ export function ButtonGroupComponent({ node }: PropsFromGenericComponent<'Button
         alignItems='center'
         className={classes.container}
       >
-        {childComponents.map((n) => (
-          <div
-            key={n.id}
-            data-componentid={n.id}
-            data-componentbaseid={n.baseId}
-          >
-            <GenericComponent
-              node={n}
-              overrideDisplay={{ directRender: true }}
-            />
-          </div>
+        {childComponents.map((id) => (
+          <Child
+            key={id}
+            id={id}
+          />
         ))}
       </Grid>
     </ComponentStructureWrapper>
+  );
+}
+
+function Child({ id }: { id: string }) {
+  const node = useNode(id);
+  if (!node) {
+    return null;
+  }
+
+  return (
+    <div
+      key={node.id}
+      data-componentid={node.id}
+      data-componentbaseid={node.baseId}
+    >
+      <GenericComponent
+        node={node}
+        overrideDisplay={{ directRender: true }}
+      />
+    </div>
   );
 }

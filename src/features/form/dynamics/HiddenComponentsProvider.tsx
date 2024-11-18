@@ -7,6 +7,7 @@ import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useDataModelBindingTranspose } from 'src/utils/layout/useDataModelBindingTranspose';
 import { useNodeTraversalSelector } from 'src/utils/layout/useNodeTraversal';
 import { splitDashedKey } from 'src/utils/splitDashedKey';
+import { typedBoolean } from 'src/utils/typing';
 import type { IConditionalRenderingRule } from 'src/features/form/dynamics/index';
 import type { FormDataSelector } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
@@ -58,28 +59,15 @@ function useLegacyHiddenComponents() {
       const groupId = rule.repeatingGroup.groupId;
       const node = traversalSelector((t) => t.findById(groupId), [groupId]);
       if (node?.isType('RepeatingGroup')) {
-        const firstChildren = nodeDataSelector(
-          (picker) => picker(node)?.item?.rows.map((row) => row?.items?.[0]),
-          [node],
-        );
-        for (const firstChild of firstChildren ?? []) {
+        const firstChildren = pickFirstNodes(nodeDataSelector, traversalSelector, node);
+        for (const firstChild of firstChildren) {
           if (rule.repeatingGroup.childGroupId && firstChild) {
             const rowIndex = firstChild.rowIndex!;
             const childId = `${rule.repeatingGroup.childGroupId}-${rowIndex}`;
-            const childNode = traversalSelector(
-              (t) =>
-                t
-                  .with(node)
-                  .flat(undefined, rowIndex)
-                  .find((n) => n.id === childId),
-              [node, rowIndex, childId],
-            );
+            const childNode = traversalSelector((t) => t.findById(childId), [childId]);
             if (childNode && childNode.isType('RepeatingGroup')) {
-              const nestedChildren = nodeDataSelector(
-                (picker) => picker(childNode)?.item?.rows.map((row) => row?.items?.[0]),
-                [childNode],
-              );
-              for (const firstNestedChild of nestedChildren ?? []) {
+              const nestedChildren = pickFirstNodes(nodeDataSelector, traversalSelector, childNode);
+              for (const firstNestedChild of nestedChildren) {
                 runConditionalRenderingRule(rule, firstNestedChild, ...props);
               }
             }
@@ -94,6 +82,22 @@ function useLegacyHiddenComponents() {
   }
 
   return hiddenNodes;
+}
+
+function pickFirstNodes(
+  nodeDataSelector: ReturnType<typeof NodesInternal.useNodeDataSelector>,
+  traversalSelector: ReturnType<typeof useNodeTraversalSelector>,
+  node: LayoutNode<'RepeatingGroup'>,
+) {
+  const targets = nodeDataSelector(
+    (picker) =>
+      picker(node)
+        ?.item?.rows.filter(typedBoolean)
+        .map((row) => row && row.itemIds && row.itemIds[0]) ?? [],
+    [node],
+  );
+
+  return traversalSelector((t) => targets.map((id) => t.findById(id)).filter(typedBoolean), [node, targets]);
 }
 
 function runConditionalRenderingRule(

@@ -19,6 +19,7 @@ import {
 } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupContext';
 import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Providers/RepeatingGroupFocusContext';
 import classes from 'src/layout/RepeatingGroup/RepeatingGroup.module.css';
+import { useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { CompInternal } from 'src/layout/layout';
 
@@ -38,7 +39,7 @@ export function RepeatingGroupsEditContainer({ editId, ...props }: IRepeatingGro
   }
 
   return (
-    <RepeatingGroupEditRowProvider editId={editId}>
+    <RepeatingGroupEditRowProvider>
       <RepeatingGroupsEditContainerInternal
         editId={editId}
         group={group}
@@ -77,7 +78,6 @@ function RepeatingGroupsEditContainerInternal({
   const textsForRow = row?.groupExpressions?.textResourceBindings;
   const editForRow = row?.groupExpressions?.edit;
   const editForGroup = group.edit;
-  const rowItems = row?.items;
   const { refSetter } = useRepeatingGroupsFocusContext();
   const texts = {
     ...group.textResourceBindings,
@@ -153,23 +153,15 @@ function RepeatingGroupsEditContainerInternal({
           spacing={6}
           ref={(n) => refSetter && editingRowIndex !== undefined && refSetter(editingRowIndex, 'editContainer', n)}
         >
-          {rowItems?.map((n) => {
-            const isOnOtherMultiPage = multiPageEnabled && n.multiPageIndex !== multiPageIndex;
-            if (isOnOtherMultiPage) {
-              return null;
-            }
-
-            if (group.tableColumns && group.tableColumns[n.baseId]?.showInExpandedEdit === false) {
-              return null;
-            }
-
-            return (
-              <GenericComponent
-                key={n.id}
-                node={n}
-              />
-            );
-          })}
+          {row?.itemIds?.map((nodeId) => (
+            <ChildComponent
+              key={nodeId}
+              nodeId={nodeId}
+              multiPageIndex={multiPageIndex}
+              multiPageEnabled={multiPageEnabled}
+              tableColumns={group.tableColumns}
+            />
+          ))}
         </Grid>
         <Grid item={true}>
           {editForGroup?.multiPage && (
@@ -252,5 +244,38 @@ function RepeatingGroupsEditContainerInternal({
         </Grid>
       </Grid>
     </div>
+  );
+}
+
+function ChildComponent({
+  nodeId,
+  multiPageIndex,
+  multiPageEnabled,
+  tableColumns,
+}: {
+  nodeId: string;
+  multiPageEnabled: boolean;
+  multiPageIndex: number | undefined;
+  tableColumns: CompInternal<'RepeatingGroup'>['tableColumns'] | undefined;
+}) {
+  const node = useNode(nodeId);
+  if (!node) {
+    return null;
+  }
+
+  const isOnOtherMultiPage = multiPageEnabled && node.multiPageIndex !== multiPageIndex;
+  if (isOnOtherMultiPage) {
+    return null;
+  }
+
+  if (tableColumns && tableColumns[node.baseId]?.showInExpandedEdit === false) {
+    return null;
+  }
+
+  return (
+    <GenericComponent
+      key={node.id}
+      node={node}
+    />
   );
 }

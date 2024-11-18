@@ -17,7 +17,7 @@ import { useUpdateInitialValidations } from 'src/features/validation/backendVali
 import { appSupportsIncrementalValidationFeatures } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { useOnFormSubmitValidation } from 'src/features/validation/callbacks/onFormSubmitValidation';
 import { Validation } from 'src/features/validation/validationContext';
-import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { isAtLeastVersion } from 'src/utils/versionCompare';
 import type { ApplicationMetadata } from 'src/features/applicationMetadata/types';
 import type { BackendValidationIssue } from 'src/features/validation';
@@ -36,7 +36,7 @@ function useProcessNext() {
   const reFetchInstanceData = useStrictInstanceRefetch();
   const language = useCurrentLanguage();
   const refetchProcessData = useReFetchProcessData();
-  const { navigateToTask } = useNavigatePage();
+  const navigateToTask = useNavigateToTask();
   const instanceId = useLaxInstanceId();
   const onFormSubmitValidation = useOnFormSubmitValidation();
   const updateInitialValidations = useUpdateInitialValidations();

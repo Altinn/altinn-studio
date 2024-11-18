@@ -416,13 +416,11 @@ export class ComponentConfig {
         from: 'src/utils/layout/useNodeTraversal',
       });
       const LayoutNode = new CG.import({ import: 'LayoutNode', from: 'src/utils/layout/LayoutNode' });
-      const ChildClaim = new CG.import({ import: 'ChildClaim', from: 'src/utils/layout/generator/GeneratorContext' });
 
       const claimChildrenBody = childrenPlugins.map((plugin) =>
         `${pluginRef(plugin)}.claimChildren({
             ...props,
-            claimChild: (id: string, metadata: unknown) =>
-              props.claimChild('${plugin.getKey()}', id, metadata),
+            claimChild: (id: string) => props.claimChild('${plugin.getKey()}', id),
          });`.trim(),
       );
 
@@ -435,17 +433,11 @@ export class ComponentConfig {
       );
 
       additionalMethods.push(
-        `claimChildren(props: ${ChildClaimerProps}<'${this.type}', unknown>) {
+        `claimChildren(props: ${ChildClaimerProps}<'${this.type}'>) {
           ${claimChildrenBody.join('\n')}
         }`,
         `pickDirectChildren(state: ${NodeData}<'${this.type}'>, restriction?: ${TraversalRestriction}) {
           return [${pickDirectChildrenBody.join(', ')}];
-        }`,
-        `addChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, rowIndex: number | undefined) {
-          return this.plugins[pluginKey!].addChild(state as any, childNode, metadata, rowIndex) as Partial<${NodeData}<'${this.type}'>>;
-        }`,
-        `removeChild(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}, { pluginKey, metadata }: ${ChildClaim}, rowIndex: number | undefined) {
-          return this.plugins[pluginKey!].removeChild(state as any, childNode, metadata, rowIndex) as Partial<${NodeData}<'${this.type}'>>;
         }`,
         `isChildHidden(state: ${NodeData}<'${this.type}'>, childNode: ${LayoutNode}) {
           return [${isChildHiddenBody.join(', ')}].some((h) => h);
@@ -459,7 +451,7 @@ export class ComponentConfig {
 
       ${this.config.directRendering ? 'directRender(): boolean { return true; }' : ''}
 
-      renderNodeGenerator(props: ${NodeGeneratorProps}<'${this.type}'>): ${ReactJSX}.Element | null {
+      renderNodeGenerator(props: ${NodeGeneratorProps}): ${ReactJSX}.Element | null {
         return (
           <${NodeGenerator} {...props}>
             ${pluginGeneratorChildren}

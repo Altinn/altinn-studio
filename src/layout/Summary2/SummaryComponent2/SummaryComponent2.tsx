@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { TaskStoreProvider } from 'src/core/contexts/taskStoreContext';
-import { ResolveComponent } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
+import { ComponentSummaryById } from 'src/layout/Summary2/SummaryComponent2/ComponentSummary';
 import { LayoutSetSummary } from 'src/layout/Summary2/SummaryComponent2/LayoutSetSummary';
 import { TaskSummaryWrapper } from 'src/layout/Summary2/SummaryComponent2/TaskSummaryWrapper';
 import { Summary2StoreProvider } from 'src/layout/Summary2/summaryStoreContext';
@@ -31,7 +31,7 @@ function SummaryBody({ target }: SummaryBodyProps) {
   }
 
   if (target.type === 'component') {
-    return <ResolveComponent targetId={target.id} />;
+    return <ComponentSummaryById componentId={target.id} />;
   }
 }
 

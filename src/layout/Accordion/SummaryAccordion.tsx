@@ -4,7 +4,7 @@ import cn from 'classnames';
 
 import { useLanguage } from 'src/features/language/useLanguage';
 import classes from 'src/layout/Accordion/SummaryAccordion.module.css';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
 
@@ -38,10 +38,10 @@ export function SummaryAccordionComponent({ targetNode }: SummaryRendererProps<'
         <Heading className={classes.paddingSmall}>{title}</Heading>
       </div>
       <div className={classes.padding}>
-        {childComponents.map((node) => (
-          <GenericComponent
-            key={node.id}
-            node={node}
+        {childComponents.map((nodeId) => (
+          <GenericComponentById
+            key={nodeId}
+            id={nodeId}
           />
         ))}
       </div>

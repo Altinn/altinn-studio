@@ -8,7 +8,7 @@ import classes from 'src/layout/Accordion/Accordion.module.css';
 import { AccordionItem as AltinnAcordionItem } from 'src/layout/Accordion/AccordionItem';
 import { useIsInAccordionGroup } from 'src/layout/AccordionGroup/AccordionGroupContext';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { GenericComponent } from 'src/layout/GenericComponent';
+import { GenericComponentById } from 'src/layout/GenericComponent';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 
@@ -34,10 +34,10 @@ export const Accordion = ({ node }: IAccordionProps) => {
         spacing={6}
         alignItems='flex-start'
       >
-        {childComponents.map((node) => (
-          <GenericComponent
-            key={node.id}
-            node={node}
+        {childComponents.map((id) => (
+          <GenericComponentById
+            key={id}
+            id={id}
           />
         ))}
       </Grid>

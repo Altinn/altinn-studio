@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { FD } from 'src/features/formData/FormDataWrite';
 import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
+import { typedBoolean } from 'src/utils/typing';
 import type { WaitForState } from 'src/hooks/useWaitForState';
 import type { FormDataSelector } from 'src/layout';
 import type { CompInternal, CompTypes, IDataModelBindings, TypeFromNode } from 'src/layout/layout';
@@ -61,12 +62,25 @@ export function useWaitForNodeItem<RetVal, N extends LayoutNode | undefined>(
 }
 
 const emptyArray: LayoutNode[] = [];
-export function useNodeDirectChildren(parent: LayoutNode, restriction?: TraversalRestriction): LayoutNode[] {
-  return NodesInternal.useNodeData(
-    parent,
-    (nodeData) =>
+export function useNodeDirectChildren(
+  parent: LayoutNode | undefined,
+  restriction?: TraversalRestriction,
+): LayoutNode[] {
+  return (
+    NodesInternal.useNodeData(parent, (nodeData, _, fullState) => {
+      if (!parent) {
+        return emptyArray;
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      parent.def.pickDirectChildren(nodeData as any, restriction) ?? emptyArray,
+      const out = parent.def.pickDirectChildren(nodeData as any, restriction);
+      const rootNode = fullState.nodes;
+      if (!rootNode) {
+        return emptyArray;
+      }
+
+      return out?.map((id) => rootNode.findById(id)).filter(typedBoolean);
+    }) ?? emptyArray
   );
 }
 

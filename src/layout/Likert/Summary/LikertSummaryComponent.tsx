@@ -10,11 +10,12 @@ import { LargeLikertSummaryContainer } from 'src/layout/Likert/Summary/LargeLike
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { EditButton } from 'src/layout/Summary/EditButton';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { typedBoolean } from 'src/utils/typing';
 import type { ITextResourceBindings } from 'src/layout/layout';
 import type { SummaryRendererProps } from 'src/layout/LayoutComponent';
+import type { LikertRow } from 'src/layout/Likert/Generator/LikertRowsPlugin';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export function LikertSummaryComponent({
@@ -32,7 +33,7 @@ export function LikertSummaryComponent({
   const isHidden = Hidden.useIsHiddenSelector();
 
   const inExcludedChildren = (n: LayoutNode) =>
-    excludedChildren && (excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId));
+    (excludedChildren && (excludedChildren.includes(n.id) || excludedChildren.includes(n.baseId))) ?? false;
 
   const groupValidations = useDeepValidationsForNode(targetNode);
   const groupHasErrors = hasValidationErrors(groupValidations);
@@ -101,31 +102,16 @@ export function LikertSummaryComponent({
           {rows.length === 0 ? (
             <span className={classes.emptyField}>{lang('general.empty_summary')}</span>
           ) : (
-            rows.filter(typedBoolean).map((row) => {
-              if (!row.itemNode || inExcludedChildren(row.itemNode)) {
-                return null;
-              }
-              if (isHidden(row.itemNode) || !row.itemNode.isCategory(CompCategory.Form)) {
-                return null;
-              }
-
-              const RenderCompactSummary = row.itemNode.def.renderCompactSummary.bind(row.itemNode.def);
-              return (
-                <div
-                  key={`row-${row.uuid}`}
-                  className={classes.border}
-                >
-                  <RenderCompactSummary
-                    onChangeClick={onChangeClick}
-                    changeText={changeText}
-                    key={row.itemNode.id}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    targetNode={row.itemNode as any}
-                    summaryNode={summaryNode}
-                  />
-                </div>
-              );
-            })
+            rows.filter(typedBoolean).map((row, idx) => (
+              <Row
+                key={idx}
+                row={row}
+                inExcludedChildren={inExcludedChildren}
+                onChangeClick={onChangeClick}
+                changeText={changeText}
+                summaryNode={summaryNode}
+              />
+            ))
           )}
         </div>
       </div>
@@ -147,5 +133,38 @@ export function LikertSummaryComponent({
         </div>
       )}
     </>
+  );
+}
+
+interface RowProps extends Pick<SummaryRendererProps<'Likert'>, 'onChangeClick' | 'changeText' | 'summaryNode'> {
+  row: LikertRow;
+  inExcludedChildren: (n: LayoutNode) => boolean;
+}
+
+function Row({ row, inExcludedChildren, summaryNode, onChangeClick, changeText }: RowProps) {
+  const isHidden = Hidden.useIsHiddenSelector();
+  const node = useNode(row.itemNodeId) as LayoutNode<'LikertItem'> | undefined;
+
+  if (!node || inExcludedChildren(node)) {
+    return null;
+  }
+  if (isHidden(node) || !node.isCategory(CompCategory.Form)) {
+    return null;
+  }
+
+  const RenderCompactSummary = node.def.renderCompactSummary.bind(node.def);
+  return (
+    <div
+      key={`row-${row.uuid}`}
+      className={classes.border}
+    >
+      <RenderCompactSummary
+        onChangeClick={onChangeClick}
+        changeText={changeText}
+        key={node.id}
+        targetNode={node}
+        summaryNode={summaryNode}
+      />
+    </div>
   );
 }

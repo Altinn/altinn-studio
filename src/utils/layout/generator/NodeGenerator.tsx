@@ -34,8 +34,7 @@ import type {
   CompTypes,
   ITextResourceBindings,
 } from 'src/layout/layout';
-import type { BasicNodeGeneratorProps, ExprResolver } from 'src/layout/LayoutComponent';
-import type { ChildClaim } from 'src/utils/layout/generator/GeneratorContext';
+import type { ExprResolver, NodeGeneratorProps } from 'src/layout/LayoutComponent';
 import type { LayoutNode, LayoutNodeProps } from 'src/utils/layout/LayoutNode';
 import type { StateFactoryProps } from 'src/utils/layout/types';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
@@ -49,7 +48,7 @@ import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSo
  * can always be up-to-date, and so that we can implement effects for components that run even when the
  * component is not visible/rendered.
  */
-export function NodeGenerator({ children, claim, externalItem }: PropsWithChildren<BasicNodeGeneratorProps>) {
+export function NodeGenerator({ children, externalItem }: PropsWithChildren<NodeGeneratorProps>) {
   const intermediateItem = useIntermediateItem(externalItem) as CompIntermediateExact<CompTypes>;
   const node = useNewNode(intermediateItem) as LayoutNode;
   useGeneratorErrorBoundaryNodeRef().current = node;
@@ -63,10 +62,7 @@ export function NodeGenerator({ children, claim, externalItem }: PropsWithChildr
         stage={StageAddNodes}
         mustBeAdded='parent'
       >
-        <AddRemoveNode
-          {...commonProps}
-          claim={claim}
-        />
+        <AddRemoveNode {...commonProps} />
       </GeneratorCondition>
       <GeneratorCondition
         stage={StageMarkHidden}
@@ -110,15 +106,18 @@ function MarkAsHidden<T extends CompTypes>({ node, externalItem }: CommonProps<T
   return null;
 }
 
-interface AddNodeProps<T extends CompTypes> extends CommonProps<T> {
-  claim: ChildClaim;
-}
-
-function AddRemoveNode<T extends CompTypes>({ node, intermediateItem, claim }: AddNodeProps<T>) {
+function AddRemoveNode<T extends CompTypes>({ node, intermediateItem }: CommonProps<T>) {
   const parent = GeneratorInternal.useParent()!;
   const rowIndex = GeneratorInternal.useRowIndex();
   const pageKey = GeneratorInternal.usePage()?.pageKey ?? '';
-  const stateFactoryProps = { item: intermediateItem, parent, rowIndex, pageKey } satisfies StateFactoryProps<T>;
+  const idMutators = GeneratorInternal.useIdMutators() ?? [];
+  const stateFactoryProps = {
+    item: intermediateItem,
+    parent,
+    rowIndex,
+    pageKey,
+    idMutators,
+  } satisfies StateFactoryProps<T>;
   const isAdded = NodesInternal.useIsAdded(node);
 
   NodesStateQueue.useAddNode(
@@ -126,13 +125,11 @@ function AddRemoveNode<T extends CompTypes>({ node, intermediateItem, claim }: A
       node,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       targetState: node.def.stateFactory(stateFactoryProps as any),
-      claim,
-      rowIndex,
     },
     !isAdded,
   );
 
-  NodesStateQueue.useRemoveNode({ node, claim, rowIndex });
+  NodesStateQueue.useRemoveNode({ node });
 
   return null;
 }

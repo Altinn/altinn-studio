@@ -14,10 +14,6 @@ import type {
 } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
-interface ClaimMetadata {
-  idx: number;
-}
-
 interface Config<
   Type extends TypesFromCategory<CompCategory.Container>,
   ExternalProp extends string,
@@ -25,12 +21,11 @@ interface Config<
 > {
   componentType: Type;
   settings: Required<Pick<ExternalConfig, 'title' | 'description'>>;
-  childClaimMetadata: ClaimMetadata;
   expectedFromExternal: {
     [key in ExternalProp]: string[];
   };
   extraState: undefined;
-  extraInItem: { [key in ExternalProp]: undefined } & { [key in InternalProp]: LayoutNode[] };
+  extraInItem: { [key in ExternalProp]: undefined } & { [key in InternalProp]: string[] };
 }
 
 interface ExternalConfig {
@@ -113,16 +108,18 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
     return `<${GenerateNodeChildren} claims={props.childClaims} pluginKey='${this.getKey()}' />`;
   }
 
-  itemFactory(_props: DefPluginStateFactoryProps<ToInternal<E>>) {
-    // Components with children may also have _zero_ children, but the internal prop has to contain an array still.
+  itemFactory({ idMutators, item }: DefPluginStateFactoryProps<ToInternal<E>>) {
+    const raw = (item[this.settings.externalProp] ?? []) as string[];
+    const children = raw.map((childId) => idMutators.reduce((id, mutator) => mutator(id), childId));
+
     return {
       [this.settings.externalProp]: undefined,
-      [this.settings.internalProp]: [],
+      [this.settings.internalProp]: children,
     } as DefPluginExtraInItem<ToInternal<E>>;
   }
 
   claimChildren({ item, claimChild, getProto }: DefPluginChildClaimerProps<ToInternal<E>>): void {
-    for (const [idx, id] of item[this.settings.externalProp].entries()) {
+    for (const id of item[this.settings.externalProp].values()) {
       if (this.settings.onlyWithCapability) {
         const proto = getProto(id);
         if (!proto) {
@@ -136,42 +133,16 @@ export class NonRepeatingChildrenPlugin<E extends ExternalConfig>
           continue;
         }
       }
-      claimChild(id, { idx });
+      claimChild(id);
     }
   }
 
-  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction): LayoutNode[] {
+  pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction): string[] {
     if (restriction !== undefined) {
       return [];
     }
 
     return state.item?.[this.settings.internalProp] || [];
-  }
-
-  addChild(
-    state: DefPluginState<ToInternal<E>>,
-    childNode: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<ToInternal<E>>> {
-    const newState: (LayoutNode | undefined)[] = [...(state.item?.[this.settings.internalProp] ?? [])];
-    newState[metadata.idx] = childNode;
-    const overwriteLayout = { [this.settings.externalProp]: undefined };
-    return {
-      item: { ...state.item, [this.settings.internalProp]: newState, ...overwriteLayout },
-    } as unknown as Partial<DefPluginState<ToInternal<E>>>;
-  }
-
-  removeChild(
-    state: DefPluginState<ToInternal<E>>,
-    _childNode: LayoutNode,
-    metadata: ClaimMetadata,
-  ): Partial<DefPluginState<ToInternal<E>>> {
-    const newState: (LayoutNode | undefined)[] = [...(state.item?.[this.settings.internalProp] ?? [])];
-    newState[metadata.idx] = undefined;
-    const overwriteLayout = { [this.settings.externalProp]: undefined };
-    return {
-      item: { ...state.item, [this.settings.internalProp]: newState, ...overwriteLayout },
-    } as unknown as Partial<DefPluginState<ToInternal<E>>>;
   }
 
   isChildHidden(_state: DefPluginState<ToInternal<E>>, _childNode: LayoutNode): boolean {

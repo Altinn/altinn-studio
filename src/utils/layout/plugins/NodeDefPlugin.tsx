@@ -18,8 +18,6 @@ export interface DefPluginConfig {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extraInItem?: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  childClaimMetadata?: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings?: any;
 }
 
@@ -39,7 +37,6 @@ export type DefPluginExtraInItemFromPlugin<Plugin extends NodeDefPlugin<any>> =
       : Record<string, never>
     : never;
 
-export type DefPluginClaimMetadata<Config extends DefPluginConfig> = Config['childClaimMetadata'];
 export type DefPluginCompType<Config extends DefPluginConfig> = Config['componentType'];
 export type DefPluginExtraState<Config extends DefPluginConfig> = Config['extraState'] extends undefined
   ? unknown
@@ -57,11 +54,11 @@ export type DefPluginExprResolver<Config extends DefPluginConfig> = Omit<
 };
 export type DefPluginCompExternal<Config extends DefPluginConfig> = Config['expectedFromExternal'];
 export type DefPluginChildClaimerProps<Config extends DefPluginConfig> = Omit<
-  ChildClaimerProps<DefPluginCompType<Config>, DefPluginClaimMetadata<Config>>,
+  ChildClaimerProps<DefPluginCompType<Config>>,
   'claimChild'
 > & {
   item: DefPluginCompExternal<Config>;
-  claimChild(childId: string, metadata: DefPluginClaimMetadata<Config>): void;
+  claimChild(childId: string): void;
 };
 export type DefPluginSettings<Config extends DefPluginConfig> = Config['settings'];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -263,19 +260,7 @@ export abstract class NodeDefPlugin<Config extends DefPluginConfig> {
  */
 export interface NodeDefChildrenPlugin<Config extends DefPluginConfig> {
   claimChildren(props: DefPluginChildClaimerProps<Config>): void;
-  pickDirectChildren(state: DefPluginState<Config>, restriction?: TraversalRestriction): LayoutNode[];
-  addChild(
-    state: DefPluginState<Config>,
-    childNode: LayoutNode,
-    metadata: DefPluginClaimMetadata<Config>,
-    rowIndex: number | undefined,
-  ): Partial<DefPluginState<Config>>;
-  removeChild(
-    state: DefPluginState<Config>,
-    childNode: LayoutNode,
-    metadata: DefPluginClaimMetadata<Config>,
-    rowIndex: number | undefined,
-  ): Partial<DefPluginState<Config>>;
+  pickDirectChildren(state: DefPluginState<Config>, restriction?: TraversalRestriction): string[];
   isChildHidden(state: DefPluginState<Config>, childNode: LayoutNode): boolean;
 }
 
@@ -286,11 +271,7 @@ export function isNodeDefChildrenPlugin(plugin: unknown): plugin is NodeDefChild
     typeof plugin === 'object' &&
     'claimChildren' in plugin &&
     'pickDirectChildren' in plugin &&
-    'addChild' in plugin &&
-    'removeChild' in plugin &&
     typeof plugin.claimChildren === 'function' &&
-    typeof plugin.pickDirectChildren === 'function' &&
-    typeof plugin.addChild === 'function' &&
-    typeof plugin.removeChild === 'function'
+    typeof plugin.pickDirectChildren === 'function'
   );
 }

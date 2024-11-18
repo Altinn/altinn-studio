@@ -7,12 +7,11 @@ import cn from 'classnames';
 
 import classes from 'src/features/devtools/components/LayoutInspector/LayoutInspector.module.css';
 import { useComponentHighlighter } from 'src/features/devtools/hooks/useComponentHighlighter';
-import { nodesFromGridRow } from 'src/layout/Grid/tools';
-import { Hidden } from 'src/utils/layout/NodesContext';
+import { nodeIdsFromGridRow } from 'src/layout/Grid/tools';
+import { Hidden, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeDirectChildren, useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { GridRowsInternal } from 'src/layout/Grid/types';
 import type { CompInternal } from 'src/layout/layout';
-import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface Common {
   selected: string | undefined;
@@ -20,11 +19,11 @@ interface Common {
 }
 
 interface INodeHierarchyItemProps extends Common {
-  node: LayoutNode;
+  nodeId: string;
 }
 
 interface INodeHierarchyProps extends Common {
-  nodes: LayoutNode[] | undefined;
+  nodeIds: string[];
 }
 
 interface IGridRowsRenderer extends Common {
@@ -35,16 +34,16 @@ interface IGridRowsRenderer extends Common {
 const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
   <>
     {rows.map((row, idx) => {
-      const nodes = nodesFromGridRow(row);
+      const nodeIds = nodeIdsFromGridRow(row);
       return (
         <li
           className={classes.repGroupRow}
           key={idx}
         >
           <span className={classes.componentMetadata}>{text}</span>
-          {nodes.length > 0 ? (
+          {nodeIds.length > 0 ? (
             <NodeHierarchy
-              nodes={nodes}
+              nodeIds={nodeIds}
               selected={selected}
               onClick={onClick}
             />
@@ -57,10 +56,10 @@ const GridRowList = ({ rows, onClick, text, selected }: IGridRowsRenderer) => (
   </>
 );
 
-export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyItemProps) => {
-  const nodeId = node.id;
-  const nodeType = node.type;
-  const nodeMultiPageIndex = node.multiPageIndex;
+export const NodeHierarchyItem = ({ nodeId, onClick, selected }: INodeHierarchyItemProps) => {
+  const node = useNode(nodeId);
+  const nodeType = node?.type;
+  const nodeMultiPageIndex = node?.multiPageIndex;
   const { onMouseEnter, onMouseLeave } = useComponentHighlighter(nodeId, false);
   const children = useNodeDirectChildren(node);
   const hasChildren = children.length > 0;
@@ -68,10 +67,14 @@ export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyIte
 
   const el = useRef<HTMLLIElement>(null);
   useEffect(() => {
-    if (node.id === selected && el.current) {
+    if (node?.id === selected && el.current) {
       el.current.scrollIntoView({ block: 'nearest' });
     }
   }, [node, selected]);
+
+  if (!node) {
+    return null;
+  }
 
   return (
     <>
@@ -100,7 +103,7 @@ export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyIte
       {hasChildren && !node.isType('RepeatingGroup') && (
         <li>
           <NodeHierarchy
-            nodes={children}
+            nodeIds={children.map((child) => child.id)}
             selected={selected}
             onClick={onClick}
           />
@@ -108,7 +111,7 @@ export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyIte
       )}
       {/* Support for repeating groups */}
       <RepeatingGroupExtensions
-        node={node}
+        nodeId={nodeId}
         selected={selected}
         onClick={onClick}
       />
@@ -116,8 +119,9 @@ export const NodeHierarchyItem = ({ node, onClick, selected }: INodeHierarchyIte
   );
 };
 
-function RepeatingGroupExtensions({ node, selected, onClick }: INodeHierarchyItemProps) {
-  const isRepGroup = node.isType('RepeatingGroup');
+function RepeatingGroupExtensions({ nodeId, selected, onClick }: INodeHierarchyItemProps) {
+  const node = useNode(nodeId);
+  const isRepGroup = node?.isType('RepeatingGroup');
   const nodeItem = useNodeItem(node) as CompInternal<'RepeatingGroup'>;
 
   if (!isRepGroup) {
@@ -143,7 +147,7 @@ function RepeatingGroupExtensions({ node, selected, onClick }: INodeHierarchyIte
             Rad {row?.index} {row?.groupExpressions?.hiddenRow === true ? '(skjult)' : ''}
           </span>
           <NodeHierarchy
-            nodes={row?.items}
+            nodeIds={row?.itemIds ?? []}
             selected={selected}
             onClick={onClick}
           />
@@ -161,20 +165,19 @@ function RepeatingGroupExtensions({ node, selected, onClick }: INodeHierarchyIte
   );
 }
 
-export function NodeHierarchy({ nodes, selected, onClick }: INodeHierarchyProps) {
+export function NodeHierarchy({ nodeIds, ...rest }: INodeHierarchyProps) {
   return (
     <ul className={classes.list}>
-      {nodes?.map((child) => {
-        if (!child) {
+      {nodeIds.map((childId) => {
+        if (!childId) {
           return null;
         }
 
         return (
           <NodeHierarchyItem
-            key={child.id}
-            node={child}
-            selected={selected}
-            onClick={onClick}
+            key={childId}
+            nodeId={childId}
+            {...rest}
           />
         );
       })}

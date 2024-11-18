@@ -12,7 +12,7 @@ import {
   type SetNodePropRequest,
   type SetPagePropRequest,
 } from 'src/utils/layout/NodesContext';
-import type { SetRowExtrasRequest, SetRowUuidRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
+import type { SetRowExtrasRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
 
 /**
  * Queues for changes that need to be committed to the nodes store.
@@ -23,7 +23,6 @@ export interface RegistryCommitQueues {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setNodeProps: SetNodePropRequest<any, any>[];
   setRowExtras: SetRowExtrasRequest[];
-  setRowUuid: SetRowUuidRequest[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setPageProps: SetPagePropRequest<any>[];
 }
@@ -37,7 +36,6 @@ export function useGetAwaitingCommits() {
       toCommit.addNodes.length +
       toCommit.setNodeProps.length +
       toCommit.setRowExtras.length +
-      toCommit.setRowUuid.length +
       toCommit.setPageProps.length
     );
   }, [registry]);
@@ -49,7 +47,6 @@ export function useCommit() {
   const setNodeProps = NodesInternal.useSetNodeProps();
   const setPageProps = NodesInternal.useSetPageProps();
   const setRowExtras = NodesInternal.useSetRowExtras();
-  const setRowUuids = NodesInternal.useSetRowUuids();
   const registry = GeneratorInternal.useRegistry();
 
   return useCallback(() => {
@@ -93,13 +90,6 @@ export function useCommit() {
       changes = true;
     }
 
-    if (toCommit.setRowUuid.length) {
-      generatorLog('logCommits', 'Committing', toCommit.setRowUuid.length, 'setRowUuid requests');
-      setRowUuids(toCommit.setRowUuid);
-      toCommit.setRowUuid.length = 0;
-      changes = true;
-    }
-
     if (toCommit.setPageProps.length) {
       generatorLog('logCommits', 'Committing', toCommit.setPageProps.length, 'setPageProps requests');
       setPageProps(toCommit.setPageProps);
@@ -109,7 +99,7 @@ export function useCommit() {
 
     updateCommitsPendingInBody(toCommit);
     return changes;
-  }, [addNodes, removeNodes, setNodeProps, setRowExtras, setRowUuids, setPageProps, registry]);
+  }, [addNodes, removeNodes, setNodeProps, setRowExtras, setPageProps, registry]);
 }
 
 export function SetWaitForCommits() {
@@ -151,7 +141,6 @@ export const NodesStateQueue = {
   useSetNodeProp: (req: SetNodePropRequest<any, any>, condition = true) =>
     useAddToQueue('setNodeProps', true, req, condition),
   useSetRowExtras: (req: SetRowExtrasRequest, condition = true) => useAddToQueue('setRowExtras', true, req, condition),
-  useSetRowUuid: (req: SetRowUuidRequest, condition = true) => useAddToQueue('setRowUuid', true, req, condition),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSetPageProp: (req: SetPagePropRequest<any>, condition = true) =>
     useAddToQueue('setPageProps', true, req, condition),

@@ -4,6 +4,7 @@ import { typedBoolean } from 'src/utils/typing';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
 import type { IDataModelBindingsLikert } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { NodesContext } from 'src/utils/layout/NodesContext';
 import type {
   DefPluginChildClaimerProps,
   DefPluginExtraInItem,
@@ -14,8 +15,8 @@ import type {
 import type { BaseRow } from 'src/utils/layout/types';
 import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
 
-interface LikertRow extends BaseRow {
-  itemNode: LayoutNode<'LikertItem'> | undefined;
+export interface LikertRow extends BaseRow {
+  itemNodeId: string | undefined;
 }
 
 interface Config {
@@ -29,6 +30,10 @@ interface Config {
 }
 
 export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefChildrenPlugin<Config> {
+  public settings = {
+    internalProp: 'rows',
+  };
+
   makeImport() {
     return new CG.import({
       import: 'LikertRowsPlugin',
@@ -42,12 +47,16 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
 
   addToComponent(_component: ComponentConfig): void {}
 
+  makeConstructorArgs(_asGenericArgs = false): string {
+    return '';
+  }
+
   extraNodeGeneratorChildren(): string {
     const LikertGeneratorChildren = new CG.import({
       import: 'LikertGeneratorChildren',
       from: 'src/layout/Likert/Generator/LikertGeneratorChildren',
     });
-    return `<${LikertGeneratorChildren} />`;
+    return `<${LikertGeneratorChildren} plugin={this.plugins['${this.getKey()}']} />`;
   }
 
   itemFactory(_props: DefPluginStateFactoryProps<Config>) {
@@ -61,68 +70,26 @@ export class LikertRowsPlugin extends NodeDefPlugin<Config> implements NodeDefCh
 
   claimChildren(_props: DefPluginChildClaimerProps<Config>) {}
 
-  pickDirectChildren(state: DefPluginState<Config>, restriction?: TraversalRestriction | undefined): LayoutNode[] {
+  pickDirectChildren(state: DefPluginState<Config>, restriction?: TraversalRestriction | undefined): string[] {
     if (restriction !== undefined) {
-      const node = state.item?.rows[restriction]?.itemNode;
-      return node ? [node] : [];
+      const nodeId = state.item?.rows[restriction]?.itemNodeId;
+      return nodeId ? [nodeId] : [];
     }
 
-    return state.item?.rows.map((row) => row?.itemNode).filter(typedBoolean) ?? [];
-  }
-
-  addChild(
-    state: DefPluginState<Config>,
-    childNode: LayoutNode,
-    _metadata: undefined,
-    index: number | undefined,
-  ): Partial<DefPluginState<Config>> {
-    if (!childNode.isType('LikertItem')) {
-      throw new Error(`Child node of Likert component must be of type 'LikertItem'`);
-    }
-
-    const rowIndex = childNode.rowIndex;
-    if (rowIndex === undefined || rowIndex !== index) {
-      throw new Error(`Child node of Likert component missing 'row' property`);
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const i = state.item as any;
-    const rows = (i && 'rows' in i ? [...i.rows] : []) as LikertRow[];
-
-    rows[rowIndex] = { ...(rows[rowIndex] || {}), index, itemNode: childNode };
-
-    return {
-      item: {
-        ...state.item,
-        rows,
-      },
-    } as Partial<DefPluginState<Config>>;
-  }
-
-  removeChild(
-    state: DefPluginState<Config>,
-    childNode: LayoutNode,
-    _metadata: undefined,
-    index: number | undefined,
-  ): Partial<DefPluginState<Config>> {
-    const rowIndex = childNode.rowIndex;
-    if (rowIndex === undefined || rowIndex !== index) {
-      throw new Error(`Child node of Likert component missing 'row' property`);
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const i = state.item as any;
-    const rows = (i && 'rows' in i ? [...i.rows] : []) as LikertRow[];
-
-    rows[rowIndex] = { ...(rows[rowIndex] || {}), index, itemNode: undefined };
-
-    return {
-      item: {
-        ...state.item,
-        rows,
-      },
-    } as Partial<DefPluginState<Config>>;
+    return state.item?.rows.map((row) => row?.itemNodeId).filter(typedBoolean) ?? [];
   }
 
   isChildHidden(_state: DefPluginState<Config>, _childNode: LayoutNode): boolean {
     return false;
+  }
+
+  stateIsReady(state: DefPluginState<Config>, fullState: NodesContext): boolean {
+    if (!super.stateIsReady(state, fullState)) {
+      return false;
+    }
+
+    const internalProp = this.settings.internalProp;
+    const rows = state.item?.[internalProp] as (LikertRow | undefined)[];
+    return rows?.every((row) => (row ? row.uuid !== undefined && row.itemNodeId !== undefined : true)) ?? false;
   }
 }

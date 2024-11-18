@@ -235,7 +235,15 @@ function usePagesWithErrors(rowsPerPage: number | undefined, node: LayoutNode<'R
         continue;
       }
 
-      const deepNodes = visibleRows[i].items?.flatMap((node) => traversalSelector((t) => t.with(node).flat(), [node]));
+      const deepNodes = visibleRows[i].itemIds?.flatMap((nodeId) =>
+        traversalSelector(
+          (t) => {
+            const node = t.findById(nodeId);
+            return node ? t.with(node).flat() : [];
+          },
+          [nodeId],
+        ),
+      );
       for (const node of deepNodes || []) {
         const validations = nodeValidationsSelector(node, 'visible', 'error');
         if (validations.length > 0) {
