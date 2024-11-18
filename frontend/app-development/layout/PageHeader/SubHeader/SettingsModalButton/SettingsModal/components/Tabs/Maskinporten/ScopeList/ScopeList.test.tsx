@@ -8,12 +8,12 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
 const scopeMock1: MaskinportenScope = {
-  label: 'scope1',
+  scope: 'scope1',
   description: 'description1',
 };
 
 const scopeMock2: MaskinportenScope = {
-  label: 'scope2',
+  scope: 'scope2',
   description: 'description2',
 };
 
@@ -41,9 +41,9 @@ describe('ScopeList', () => {
     expect(screen.getAllByRole('checkbox')).toHaveLength(2);
 
     allScopes.forEach((scope: MaskinportenScope) => {
-      expect(screen.getByRole('checkbox', { name: scope.label }));
+      expect(screen.getByRole('checkbox', { name: scope.scope }));
       expect(screen.getByText(scope.description));
-      expect(screen.getByRole('checkbox', { name: scope.label })).not.toBeChecked();
+      expect(screen.getByRole('checkbox', { name: scope.scope })).not.toBeChecked();
     });
   });
 
@@ -64,8 +64,8 @@ describe('ScopeList', () => {
 
     await waitForGetScopesCheckIsDone();
 
-    expect(screen.getByRole('checkbox', { name: scopeMock1.label })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: scopeMock2.label })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: scopeMock1.scope })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: scopeMock2.scope })).not.toBeChecked();
   });
 
   it('should display an alert if no scopes are available', async () => {

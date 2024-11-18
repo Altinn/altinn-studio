@@ -37,11 +37,11 @@ export const ScopeList = (): ReactElement => {
         {scopes.map((scope: MaskinportenScope) => (
           <StudioCheckbox
             size='sm'
-            value={scope.label}
+            value={scope.scope}
             description={scope.description}
-            key={scope.label}
+            key={scope.scope}
           >
-            {scope.label}
+            {scope.scope}
           </StudioCheckbox>
         ))}
       </StudioCheckbox.Group>
@@ -56,12 +56,12 @@ export const ScopeList = (): ReactElement => {
 };
 
 const mapScopesToLabelStrings = (scopes: MaskinportenScope[]): string[] => {
-  return scopes.map((scope: MaskinportenScope) => scope.label);
+  return scopes.map((scope: MaskinportenScope) => scope.scope);
 };
 
 const mapLabelStringsToScopes = (
   labelStrings: string[],
   availableScopes: MaskinportenScope[],
 ): MaskinportenScope[] => {
-  return labelStrings.map((label) => availableScopes.find((scope) => scope.label === label));
+  return labelStrings.map((label) => availableScopes.find((scope) => scope.scope === label));
 };

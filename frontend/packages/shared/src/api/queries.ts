@@ -95,17 +95,17 @@ export const getIsLoggedInWithAnsattporten = async (): Promise<boolean> =>
   });
 
 const scopesMock: MaskinportenScope[] = [
-  { label: 'scope1', description: 'description1' },
-  { label: 'scope2', description: 'description2' },
-  { label: 'scope3', description: 'description3' },
-  { label: 'scope4', description: 'description4' },
-  { label: 'scope5', description: 'description5' },
-  { label: 'scope6', description: 'description6' },
-  { label: 'scope7', description: 'description7' },
-  { label: 'scope8', description: 'description8' },
-  { label: 'scope9', description: 'description9' },
-  { label: 'scope10', description: 'description10' },
-  { label: 'scope11', description: 'description11' },
+  { scope: 'scope1', description: 'description1' },
+  { scope: 'scope2', description: 'description2' },
+  { scope: 'scope3', description: 'description3' },
+  { scope: 'scope4', description: 'description4' },
+  { scope: 'scope5', description: 'description5' },
+  { scope: 'scope6', description: 'description6' },
+  { scope: 'scope7', description: 'description7' },
+  { scope: 'scope8', description: 'description8' },
+  { scope: 'scope9', description: 'description9' },
+  { scope: 'scope10', description: 'description10' },
+  { scope: 'scope11', description: 'description11' },
 ];
 
 export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>

@@ -1,4 +1,4 @@
 export type MaskinportenScope = {
-  label: string;
+  scope: string;
   description: string;
 };
