@@ -1,5 +1,4 @@
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
-import { StudioTreeView } from '@studio/components';
+import { StudioTreeView, StudioDragAndDrop } from '@studio/components';
 import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
 import { DragAndDropTreeRootContext } from '../DragAndDropTreeRoot';
@@ -39,7 +38,7 @@ export const DragAndDropTreeItem = ({
   const labelButtonWrapperClass = cn(classes.labelButtonWrapper, hasHoveredItemClass);
 
   return (
-    <DragAndDrop.ListItem
+    <StudioDragAndDrop.ListItem
       as='li'
       itemId={nodeId}
       onDragOver={handleDragOver}
@@ -68,5 +67,5 @@ export const DragAndDropTreeItem = ({
 
 const renderChildren = (children: ReactNode, emptyMessage?: string) => {
   const content = children || <EmptyList>{emptyMessage}</EmptyList>;
-  return <DragAndDrop.List>{content}</DragAndDrop.List>;
+  return <StudioDragAndDrop.List>{content}</StudioDragAndDrop.List>;
 };

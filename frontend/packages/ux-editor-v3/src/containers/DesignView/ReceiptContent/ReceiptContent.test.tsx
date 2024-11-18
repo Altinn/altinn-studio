@@ -20,7 +20,7 @@ import {
 } from '../../../testing/mocks';
 import { useFormLayoutSettingsQuery } from '../../../hooks/queries/useFormLayoutSettingsQuery';
 import { useFormLayoutsQuery } from '../../../hooks/queries/useFormLayoutsQuery';
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
+import { StudioDragAndDrop } from '@studio/components';
 import { FormItemContextProvider } from '../../FormItemContext';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -131,10 +131,10 @@ const waitForData = async () => {
 const render = async (props: Partial<ReceiptContentProps> = {}) => {
   await waitForData();
   return renderWithMockStore()(
-    <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <ReceiptContent {...defaultProps} {...props} />
       </FormItemContextProvider>
-    </DragAndDrop.Provider>,
+    </StudioDragAndDrop.Provider>,
   );
 };
