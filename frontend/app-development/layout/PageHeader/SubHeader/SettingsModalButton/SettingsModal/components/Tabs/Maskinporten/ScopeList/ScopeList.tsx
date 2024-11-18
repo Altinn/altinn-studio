@@ -27,26 +27,24 @@ export const ScopeList = (): ReactElement => {
 
   if (hasScopes) {
     return (
-      <div>
-        <StudioCheckbox.Group
-          legend='Dine tilgjengelige scopes'
-          value={mapScopesToLabelStrings(selectedScopes)}
-          description='Dette er en liste med scopene du har tilgjengelig fra Maskinporten.'
-          size='sm'
-          onChange={handleChangeScope}
-        >
-          {scopes.map((scope: MaskinportenScope) => (
-            <StudioCheckbox
-              size='sm'
-              value={scope.label}
-              description={scope.description}
-              key={scope.label}
-            >
-              {scope.label}
-            </StudioCheckbox>
-          ))}
-        </StudioCheckbox.Group>
-      </div>
+      <StudioCheckbox.Group
+        legend={t('settings_modal.maskinporten_tab_available_scopes_title')}
+        value={mapScopesToLabelStrings(selectedScopes)}
+        description={t('settings_modal.maskinporten_tab_available_scopes_description')}
+        size='sm'
+        onChange={handleChangeScope}
+      >
+        {scopes.map((scope: MaskinportenScope) => (
+          <StudioCheckbox
+            size='sm'
+            value={scope.label}
+            description={scope.description}
+            key={scope.label}
+          >
+            {scope.label}
+          </StudioCheckbox>
+        ))}
+      </StudioCheckbox.Group>
     );
   }
 

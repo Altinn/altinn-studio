@@ -176,6 +176,9 @@ export const queriesMock: ServicesContextProps = {
   getMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getSelectedMaskinportenScopes: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),

@@ -7,10 +7,17 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
-const scopesMock: MaskinportenScope = {
-  label: 'label',
-  description: 'description',
+const scopeMock1: MaskinportenScope = {
+  label: 'scope1',
+  description: 'description1',
 };
+
+const scopeMock2: MaskinportenScope = {
+  label: 'scope2',
+  description: 'description2',
+};
+
+const allScopes: MaskinportenScope[] = [scopeMock1, scopeMock2];
 
 describe('ScopeList', () => {
   it('should display a spinner while loading', () => {
@@ -21,7 +28,7 @@ describe('ScopeList', () => {
   it('should display a list of scopes if scopes are available', async () => {
     const mockGetMaskinportenScopes = jest
       .fn()
-      .mockImplementation(() => Promise.resolve([scopesMock]));
+      .mockImplementation(() => Promise.resolve(allScopes));
 
     renderScopeList({
       queries: {
@@ -31,9 +38,34 @@ describe('ScopeList', () => {
 
     await waitForGetScopesCheckIsDone();
 
-    expect(
-      screen.getByText('List of scopes and possibility to select scope comes here'),
-    ).toBeInTheDocument();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+
+    allScopes.forEach((scope: MaskinportenScope) => {
+      expect(screen.getByRole('checkbox', { name: scope.label }));
+      expect(screen.getByText(scope.description));
+      expect(screen.getByRole('checkbox', { name: scope.label })).not.toBeChecked();
+    });
+  });
+
+  it('should display a list of scopes available and the correct scopes selected', async () => {
+    const mockGetMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(allScopes));
+    const mockGetSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([scopeMock1]));
+
+    renderScopeList({
+      queries: {
+        getMaskinportenScopes: mockGetMaskinportenScopes,
+        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
+      },
+    });
+
+    await waitForGetScopesCheckIsDone();
+
+    expect(screen.getByRole('checkbox', { name: scopeMock1.label })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: scopeMock2.label })).not.toBeChecked();
   });
 
   it('should display an alert if no scopes are available', async () => {
