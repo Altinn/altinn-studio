@@ -216,7 +216,7 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
  * know should only be used in instanceful contexts. Code paths that have to work in stateless/instanceless contexts
  * should use the lax versions and handle the undefined case.
  */
-function useLaxInstance<U>(selector: (state: InstanceContext) => U) {
+export function useLaxInstance<U>(selector: (state: InstanceContext) => U) {
   const out = useLaxMemoSelector(selector);
   return out === ContextNotProvided ? undefined : out;
 }

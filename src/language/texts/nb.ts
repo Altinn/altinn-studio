@@ -414,5 +414,9 @@ export function nb(): FixedLanguageList {
     process_error: {
       submit_error_please_retry: 'Noe gikk galt under innsendingen, prøv igjen om noen minutter.',
     },
+    pdfPreview: {
+      error: 'Kunne ikke forhåndsvise PDF',
+      defaultButtonText: 'Forhåndsvis PDF',
+    },
   } satisfies NestedTexts;
 }

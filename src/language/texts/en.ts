@@ -413,5 +413,9 @@ export function en() {
     process_error: {
       submit_error_please_retry: 'Something went wrong when submitting, please try again in a few minutes.',
     },
+    pdfPreview: {
+      error: 'Could not show PDF preview',
+      defaultButtonText: 'Preview PDF',
+    },
   } satisfies NestedTexts;
 }
