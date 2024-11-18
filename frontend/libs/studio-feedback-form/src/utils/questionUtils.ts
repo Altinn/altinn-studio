@@ -2,7 +2,7 @@ import type { QuestionConfig } from '../types/QuestionsProps';
 
 type QuestionType = Extract<QuestionConfig, { type: string }>['type'];
 
-const defaultValueMap: Record<QuestionType, any> = {
+const defaultValueMap: Record<QuestionType, string | Array<string>> = {
   text: '',
   yesNo: '',
   checkbox: [],

@@ -17,7 +17,7 @@ const heading = 'Heading';
 describe('FeedbackForm', () => {
   it('should render FeedbackForm', () => {
     renderFeedbackForm({ questions: mockQuestions });
-    expect(screen.getByText(buttonTexts.trigger)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: buttonTexts.trigger })).toBeInTheDocument();
   });
 
   it('should open FeedbackForm modal when trigger is clicked when position is inline (default)', async () => {
@@ -25,7 +25,7 @@ describe('FeedbackForm', () => {
     renderFeedbackForm({ questions: mockQuestions });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    const trigger = screen.getByText(buttonTexts.trigger);
+    const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('FeedbackForm', () => {
     renderFeedbackForm({ questions: mockQuestions, position: 'fixed' });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    const trigger = screen.getByText(buttonTexts.trigger);
+    const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -48,7 +48,7 @@ describe('FeedbackForm', () => {
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions });
 
-    const trigger = screen.getByText(buttonTexts.trigger);
+    const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
 
     const closeButton = screen.getByText(buttonTexts.submit);
@@ -61,7 +61,7 @@ describe('FeedbackForm', () => {
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions });
 
-    const trigger = screen.getByText(buttonTexts.trigger);
+    const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
 
     mockQuestions.forEach((question) => {
@@ -79,7 +79,7 @@ describe('FeedbackForm', () => {
     const user = userEvent.setup();
     renderFeedbackForm({ questions: mockQuestions, setAnswers: mockSetAnswers });
 
-    const trigger = screen.getByText(buttonTexts.trigger);
+    const trigger = screen.getByRole('button', { name: buttonTexts.trigger });
     await user.click(trigger);
 
     const yesButton = screen.getByRole('button', { name: 'Yes' });
