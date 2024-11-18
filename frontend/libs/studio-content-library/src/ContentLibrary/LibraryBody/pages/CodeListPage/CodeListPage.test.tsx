@@ -4,6 +4,7 @@ import type { CodeListPageProps, CodeListWithMetadata } from './CodeListPage';
 import { CodeListPage } from './CodeListPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
+const onChangeCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
 const codeListName = 'codeList';
@@ -13,6 +14,8 @@ const codeListMock: CodeListWithMetadata = {
 };
 
 describe('CodeListPage', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders the codeList heading', () => {
     renderCodeList();
     const codeListHeading = screen.getByRole('heading', {
@@ -43,9 +46,13 @@ describe('CodeListPage', () => {
     expect(codeListUploadButton).toBeInTheDocument();
   });
 
-  it('renders the code list as a clickable element', () => {
+  it('renders the code list', () => {
     renderCodeList();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    const codeListAccordion = screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: codeListName,
+      }),
+    );
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -56,24 +63,21 @@ describe('CodeListPage', () => {
   });
 });
 
-const defaultCodeListProps: CodeListPageProps = {
+const defaultCodeListPageProps: CodeListPageProps = {
   codeLists: [codeListMock],
-  onUpdateCodeList: onUpdateCodeListMock,
-  onUploadCodeList: onUploadCodeListMock,
   fetchDataError: false,
 };
 
 const renderCodeList = ({
   codeLists,
-  onUpdateCodeList,
-  onUploadCodeList,
   fetchDataError,
-}: Partial<CodeListPageProps> = defaultCodeListProps) => {
+}: Partial<CodeListPageProps> = defaultCodeListPageProps) => {
   render(
     <CodeListPage
       codeLists={codeLists}
-      onUpdateCodeList={onUpdateCodeList}
-      onUploadCodeList={onUploadCodeList}
+      onChangeCodeListId={onChangeCodeListIdMock}
+      onUpdateCodeList={onUpdateCodeListMock}
+      onUploadCodeList={onUploadCodeListMock}
       fetchDataError={fetchDataError}
     />,
   );

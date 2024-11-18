@@ -1,6 +1,7 @@
 import type { CodeList, CodeListEditorTexts } from '@studio/components';
 import { StudioCodeListEditor, StudioToggleableTextfield } from '@studio/components';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeList';
 import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
@@ -17,13 +18,14 @@ export function EditCodeList({
   onChangeCodeListId,
   onUpdateCodeList,
 }: EditCodeListProps): React.ReactElement {
+  const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-  
-  const handleCodeListTitleChange = (title: string) => {
-    onChangeCodeListId(title);
+
+  const handleCodeListTitleChange = (newCodeListId: string) => {
+      if (newCodeListId !== codeList.title) onChangeCodeListId(codeList.title, newCodeListId);
   };
 
-    const handleBlurAny = (updatedCodeList: StudioComponentsCodeList): void => {
+    const handleBlurAny = (updatedCodeList: CodeList): void => {
         const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
         onUpdateCodeList(updatedCodeListWithMetadata);
     };
@@ -31,10 +33,9 @@ export function EditCodeList({
   return (
     <>
       <StudioToggleableTextfield
-        customValidation={() => null}
         inputProps={{
           icon: <KeyVerticalIcon />,
-          label: 'Navn',
+          title: t('app_content_library.code_lists.code_list_edit_id_title'),
           value: codeList.title,
           onBlur: (event) => handleCodeListTitleChange(event.target.value),
           size: 'small',
@@ -42,6 +43,7 @@ export function EditCodeList({
         viewProps={{
           children: codeList.title,
           variant: 'tertiary',
+          title: t('app_content_library.code_lists.code_list_view_id_title'),
         }}
       />
       <StudioCodeListEditor

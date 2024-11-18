@@ -31,7 +31,7 @@ describe('useUpdateOptionListIdMutation', () => {
       newOptionListId,
     );
   });
-
+  
   test('Sets the option lists cache with new id in correct alphabetical order', async () => {
     const optionListA = 'optionListA';
     const optionListB = 'optionListB';

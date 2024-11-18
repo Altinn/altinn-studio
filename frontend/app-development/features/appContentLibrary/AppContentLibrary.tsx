@@ -10,7 +10,11 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
-import { useAddOptionListMutation, useUpdateOptionListMutation, useUpdateOptionListIdMutation } from 'app-shared/hooks/mutations';
+import {
+  useAddOptionListMutation,
+  useUpdateOptionListMutation,
+  useUpdateOptionListIdMutation,
+} from 'app-shared/hooks/mutations';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -54,7 +58,7 @@ export function AppContentLibrary(): React.ReactElement {
         props: {
           codeLists: codeLists,
           onUpdateCodeListId: (optionListId: string, newOptionListId: string) =>
-    updateOptionListId({ optionListId, newOptionListId }),
+            updateOptionListId({ optionListId, newOptionListId }),
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
           fetchDataError: optionListsError,
