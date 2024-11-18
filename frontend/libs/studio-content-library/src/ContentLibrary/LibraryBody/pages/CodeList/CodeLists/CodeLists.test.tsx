@@ -14,12 +14,17 @@ const codeListWithMetadataMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: [{ value: 'value', label: 'label' }],
 };
+const onChangeCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
 describe('CodeLists', () => {
   it('renders the code list', () => {
     renderCodeLists();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    const codeListAccordion = screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: codeListName,
+      }),
+    );
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -48,15 +53,37 @@ describe('CodeLists', () => {
       title: codeListName,
     });
   });
+
+  it('calls onUpdateCodeListId when changing the code list id', async () => {
+    const user = userEvent.setup();
+    renderCodeLists();
+    await openCodeList(user);
+    const codeListIdToggleTextfield = screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_view_id_title'),
+    );
+    await user.click(codeListIdToggleTextfield);
+    const codeListIdInput = screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_edit_id_title'),
+    );
+    await user.type(codeListIdInput, '2');
+    await user.tab();
+    expect(onChangeCodeListIdMock).toHaveBeenCalledTimes(1);
+    expect(onChangeCodeListIdMock).toHaveBeenLastCalledWith(codeListName, codeListName + '2');
+  });
 });
 
 const openCodeList = async (user: UserEvent) => {
-  const codeListAccordion = screen.getByRole('button', { name: codeListName });
+  const codeListAccordion = screen.getByTitle(
+    textMock('app_content_library.code_lists.code_list_accordion_title', {
+      codeListTitle: codeListName,
+    }),
+  );
   await user.click(codeListAccordion);
 };
 
 const defaultProps: CodeListsProps = {
   codeLists: [codeListWithMetadataMock],
+  onChangeCodeListId: onChangeCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
 };
 
