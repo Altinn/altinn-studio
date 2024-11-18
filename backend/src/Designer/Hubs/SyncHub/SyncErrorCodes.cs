@@ -10,6 +10,7 @@ public static class SyncErrorCodes
     public const string LayoutSetsDataTypeSyncError = nameof(LayoutSetsDataTypeSyncError);
     public const string LayoutSetComponentIdSyncError = nameof(LayoutSetComponentIdSyncError);
     public const string LayoutSetSubLayoutSyncError = nameof(LayoutSetSubLayoutSyncError);
+    public const string LayoutSetSubFormButtonSyncError = nameof(LayoutSetSubFormButtonSyncError);
     public const string SettingsComponentIdSyncError = nameof(SettingsComponentIdSyncError);
     public const string LayoutPageAddSyncError = nameof(LayoutPageAddSyncError);
 }

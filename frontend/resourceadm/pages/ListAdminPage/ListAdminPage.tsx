@@ -13,6 +13,7 @@ import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
@@ -94,16 +95,15 @@ export const ListAdminPage = (): React.JSX.Element => {
                   return (
                     <div key={list.identifier} className={classes.tableRowContent}>
                       <div>{list.name}</div>
-                      <StudioButton
-                        variant='tertiary'
+                      <ButtonRouterLink
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
-                        asChild
+                        icon={<PencilWritingIcon />}
+                        iconPlacement='right'
+                        to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}
+                        variant='tertiary'
                       >
-                        <Link to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}>
-                          {t('resourceadm.listadmin_edit_list')}
-                          <PencilWritingIcon />
-                        </Link>
-                      </StudioButton>
+                        {t('resourceadm.listadmin_edit_list')}
+                      </ButtonRouterLink>
                     </div>
                   );
                 })}

@@ -16,3 +16,5 @@ export const StudioDragAndDropTree: StudioDragAndDropTreeComponent = {
   Provider: StudioDragAndDropTreeProvider,
   NewItem: StudioDragAndDrop.NewItem,
 };
+
+export { type StudioDragAndDropTreeProviderProps } from './StudioDragAndDropTreeProvider';
