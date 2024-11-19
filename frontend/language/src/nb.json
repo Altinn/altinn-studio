@@ -873,7 +873,7 @@
   "schema_editor.error_invalid_child": "Du kan ikke plassere denne komponenttypen i denne gruppen.",
   "schema_editor.error_invalid_datamodel_name": "Navnet er ugyldig. Det første tegnet må være en stor eller liten bokstav fra a til z. Deretter kan du bruke små eller store bokstaver fra a til å, tall, understrek og bindestrek.",
   "schema_editor.error_model_name_exists": "Modellnavnet {{newModelName}} er allerede i bruk.",
-  "schema_editor.error_reserved_keyword": "Du kan ikke bruke dette navnet, det er allerede reservert.",
+  "schema_editor.error_reserved_keyword": "Systemet bruker allerede dette navnet. Velg et annet navn.",
   "schema_editor.error_upload_data_model_id_exists_override_option": "Det finnes allerede en datamodell med dette navnet. Vil du overskrive den?",
   "schema_editor.field": "Objekt",
   "schema_editor.field_name": "Navn på felt",
