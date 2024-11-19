@@ -1,6 +1,13 @@
-import React, { type ReactElement } from 'react';
+import React, { useState, type ChangeEvent, type ReactElement } from 'react';
 import classes from './ScopeList.module.css';
-import { StudioAlert, StudioCheckbox, StudioSpinner } from '@studio/components';
+import {
+  StudioAlert,
+  StudioCheckboxTable,
+  type StudioCheckboxTableRowElement,
+  StudioHeading,
+  StudioParagraph,
+  StudioSpinner,
+} from '@studio/components';
 import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQuery';
 import { useTranslation } from 'react-i18next';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
@@ -14,38 +21,12 @@ export const ScopeList = (): ReactElement => {
   const hasScopes: boolean = scopes?.length > 0;
   const isPendingQueries: boolean = isPendingScopes || isPendingSelectedScopes;
 
-  const handleChangeScope = (values: string[]) => {
-    const updatedScopes: MaskinportenScope[] = mapLabelStringsToScopes(values, scopes);
-    console.log('The list of updated scopes are: ', updatedScopes);
-
-    // TODO: Mutation call to update the database
-  };
-
   if (isPendingQueries) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
   if (hasScopes) {
-    return (
-      <StudioCheckbox.Group
-        legend={t('settings_modal.maskinporten_tab_available_scopes_title')}
-        value={mapScopesToLabelStrings(selectedScopes)}
-        description={t('settings_modal.maskinporten_tab_available_scopes_description')}
-        size='sm'
-        onChange={handleChangeScope}
-      >
-        {scopes.map((scope: MaskinportenScope) => (
-          <StudioCheckbox
-            size='sm'
-            value={scope.scope}
-            description={scope.description}
-            key={scope.scope}
-          >
-            {scope.scope}
-          </StudioCheckbox>
-        ))}
-      </StudioCheckbox.Group>
-    );
+    return <ScopeListContent allScopes={scopes} selectedScopes={selectedScopes} />;
   }
 
   return (
@@ -55,13 +36,82 @@ export const ScopeList = (): ReactElement => {
   );
 };
 
-const mapScopesToLabelStrings = (scopes: MaskinportenScope[]): string[] => {
-  return scopes.map((scope: MaskinportenScope) => scope.scope);
+type ScopeListContentProps = {
+  allScopes: MaskinportenScope[];
+  selectedScopes: MaskinportenScope[];
 };
 
-const mapLabelStringsToScopes = (
-  labelStrings: string[],
-  availableScopes: MaskinportenScope[],
-): MaskinportenScope[] => {
-  return labelStrings.map((label) => availableScopes.find((scope) => scope.scope === label));
+const ScopeListContent = ({ allScopes, selectedScopes }: ScopeListContentProps): ReactElement => {
+  const { t } = useTranslation();
+
+  const checkboxTableRowElements: StudioCheckboxTableRowElement[] = mapScopesToRowElements(
+    allScopes,
+    selectedScopes,
+  );
+
+  // This useState is temporary to simulate correct behaviour in browser. It will be removed and replaced by a mutation function
+  const [rowElements, setRowElements] =
+    useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
+
+  const areAllChecked = rowElements.every((element) => element.checked);
+  const isAnyChecked = rowElements.some((element) => element.checked);
+
+  const handleChangeAllScopes = () => {
+    // TODO: Replace line below with mutation call to update the database
+    setRowElements(rowElements.map((element) => ({ ...element, checked: !areAllChecked })));
+  };
+
+  const handleChangeScope = (event: ChangeEvent<HTMLInputElement>) => {
+    const clickedValue = event.target.value;
+
+    const updatedRowElements: StudioCheckboxTableRowElement[] = rowElements.map((element) =>
+      element.value === clickedValue ? { ...element, checked: !element.checked } : element,
+    );
+
+    // TODO: Replace line below with mutation call to update the database
+    setRowElements(updatedRowElements);
+  };
+
+  return (
+    <>
+      <StudioHeading size='2xs' level={2} spacing>
+        {t('settings_modal.maskinporten_tab_available_scopes_title')}
+      </StudioHeading>
+      <StudioParagraph size='sm' spacing>
+        {t('settings_modal.maskinporten_tab_available_scopes_description')}
+      </StudioParagraph>
+      <StudioCheckboxTable className={classes.table}>
+        <StudioCheckboxTable.Header
+          title={t('settings_modal.maskinporten_select_all_scopes')}
+          checked={areAllChecked}
+          indeterminate={isAnyChecked && !areAllChecked}
+          onChange={handleChangeAllScopes}
+        />
+        <StudioCheckboxTable.Body>
+          {
+            // Replace "rowElements" with "checkboxTableRowElements" when ready to implement with mutation function
+            rowElements.map((rowElement: StudioCheckboxTableRowElement) => (
+              <StudioCheckboxTable.Row
+                key={rowElement.value}
+                rowElement={rowElement}
+                onChange={handleChangeScope}
+              />
+            ))
+          }
+        </StudioCheckboxTable.Body>
+      </StudioCheckboxTable>
+    </>
+  );
+};
+
+const mapScopesToRowElements = (
+  scopes: MaskinportenScope[],
+  selectedScopes: MaskinportenScope[],
+): StudioCheckboxTableRowElement[] => {
+  return scopes.map((scope) => ({
+    label: scope.scope,
+    value: scope.scope,
+    description: scope.description,
+    checked: selectedScopes.some((selected) => selected.scope === scope.scope),
+  }));
 };

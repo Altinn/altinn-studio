@@ -27,7 +27,7 @@ export const StudioCheckboxTableRow = ({
           checked={checked}
         />
       </StudioTable.Cell>
-      <StudioTable.Cell>
+      <StudioTable.Cell className={classes.chexboxTextContent}>
         <StudioParagraph size='sm'>{label}</StudioParagraph>
         {description && (
           <StudioParagraph size='sm' className={classes.descriptionText}>

@@ -1006,6 +1006,7 @@
   "settings_modal.left_nav_tab_setup": "Oppsett",
   "settings_modal.loading_content": "Laster inn data",
   "settings_modal.maskinporten_no_scopes_available": "Du har ingen tilgjengelige scopes å velge mellom fordi din bruker ikke er tilknyttet noen scopes i Maskinporten.",
+  "settings_modal.maskinporten_select_all_scopes": "Velg alle scopes",
   "settings_modal.maskinporten_tab_available_scopes_description": "Listen med tilgjengelige scopes er hentet fra Maskinporten. Huk av de scopene du ønsker at skal være valgt.",
   "settings_modal.maskinporten_tab_available_scopes_title": "Dine tilgjengelige scopes",
   "settings_modal.maskinporten_tab_description": "For å hente tilgjengelige scopes må du verifisere deg med Ansattporten",
