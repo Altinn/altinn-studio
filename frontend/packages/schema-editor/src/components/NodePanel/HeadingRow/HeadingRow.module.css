@@ -3,7 +3,6 @@
   align-items: center;
   display: flex;
   padding: var(--gap) 0;
-  padding-inline: var(--gap);
   gap: var(--gap);
 }
 
@@ -13,9 +12,13 @@
 
 .heading .headingButton {
   font: var(--fds-typography-paragraph-short-medium);
+  border: none;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 0;
 }
 
 .root.selected .headingButton {
   background-color: var(--studio-treeitem-selected-background-colour);
-  border-left-color: var(--studio-treeitem-vertical-line-colour-root);
+  box-shadow: inset var(--studio-treeitem-vertical-line-width) 0 0 0
+    var(--studio-treeitem-vertical-line-colour-root);
 }
