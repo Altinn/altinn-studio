@@ -98,10 +98,17 @@ public class ApiTestBase
         }
     }
 
-    public HttpClient GetRootedClient(string org, string app, int userId, int? partyId, int authenticationLevel = 2)
+    public HttpClient GetRootedClient(
+        string org,
+        string app,
+        int userId,
+        int? partyId,
+        int authenticationLevel = 2,
+        string? serviceOwnerOrg = null
+    )
     {
         var client = GetRootedClient(org, app);
-        string token = PrincipalUtil.GetToken(userId, partyId, authenticationLevel);
+        string token = PrincipalUtil.GetToken(userId, partyId, authenticationLevel, org: serviceOwnerOrg);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }

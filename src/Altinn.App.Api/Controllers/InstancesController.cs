@@ -1,6 +1,6 @@
 using System.Globalization;
 using System.Net;
-using System.Text.Json;
+using System.Text;
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers.Patch;
 using Altinn.App.Api.Helpers.RequestHandling;
@@ -71,7 +71,7 @@ public class InstancesController : ControllerBase
     private readonly IHostEnvironment _env;
     private readonly ModelSerializationService _serializationService;
     private readonly InternalPatchService _patchService;
-    private static readonly JsonSerializerOptions _jsonSerializerOptionsWeb = new(JsonSerializerDefaults.Web);
+
     private const long RequestSizeLimit = 2000 * 1024 * 1024;
 
     /// <summary>
@@ -1244,10 +1244,7 @@ public class InstancesController : ControllerBase
                 && instancePart.ContentType.Contains("application/json", StringComparison.Ordinal)
             )
             {
-                return System.Text.Json.JsonSerializer.Deserialize<Instance>(
-                    instancePart.Bytes,
-                    _jsonSerializerOptionsWeb
-                );
+                return JsonConvert.DeserializeObject<Instance>(Encoding.UTF8.GetString(instancePart.Bytes));
             }
         }
 

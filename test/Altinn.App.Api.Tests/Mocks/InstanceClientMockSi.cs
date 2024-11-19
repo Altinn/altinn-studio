@@ -21,26 +21,14 @@ public class InstanceClientMockSi : IInstanceClient
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
+    public Task<Instance> CreateInstance(string org, string app, Instance instance)
     {
-        string partyId = instanceTemplate.InstanceOwner.PartyId;
+        string partyId = instance.InstanceOwner.PartyId;
         Guid instanceGuid = Guid.NewGuid();
-
-        Instance instance =
-            new()
-            {
-                Id = $"{partyId}/{instanceGuid}",
-                AppId = $"{org}/{app}",
-                Org = org,
-                InstanceOwner = instanceTemplate.InstanceOwner,
-                Process = instanceTemplate.Process,
-                Data = new List<DataElement>(),
-            };
-
-        if (instanceTemplate.DataValues != null)
-        {
-            instance.DataValues = instanceTemplate.DataValues;
-        }
+        instance.Id = $"{partyId}/{instanceGuid}";
+        instance.AppId = $"{org}/{app}";
+        instance.Org = org;
+        instance.Data = new List<DataElement>();
 
         string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
         string directory =
