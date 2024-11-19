@@ -67,7 +67,7 @@ describe('EditOptions', () => {
     });
     expect(
       await screen.findByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('EditOptions', () => {
 
     expect(
       await screen.findByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).toBeInTheDocument();
@@ -160,18 +160,18 @@ describe('EditOptions', () => {
 
     expect(
       screen.queryByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).not.toBeInTheDocument();
 
     const codelistTabElement = await screen.findByRole('tab', {
-      name: textMock('ux_editor.options.tab_codelist'),
+      name: textMock('ux_editor.options.tab_code_list'),
     });
     await waitFor(() => user.click(codelistTabElement));
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).toBeInTheDocument();
@@ -217,7 +217,7 @@ describe('EditOptions', () => {
     });
 
     await waitFor(() => user.click(manualTabElement));
-    expect(screen.getByText(textMock('ux_editor.options.codelist_only'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
 
   it('should show error message if query fails', async () => {
