@@ -6,13 +6,14 @@ import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
 import { TextQuestion } from './Question/TextQuestion';
 import classes from './FeedbackForm.module.css';
 import { getDefaultAnswerValueForQuestion } from '../utils/questionUtils';
+import type { AnswerType } from '../types/AnswerType';
 
 type FeedbackFormProps = {
   buttonTexts: ButtonTexts;
   heading: string;
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
-  onSubmit: (answers: Record<string, any>) => void;
+  onSubmit: (answers: Record<string, AnswerType>) => void;
 };
 
 export function FeedbackForm({

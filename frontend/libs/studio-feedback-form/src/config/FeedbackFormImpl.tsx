@@ -2,6 +2,7 @@ import React from 'react';
 import type { ButtonTexts, QuestionConfig } from '../types/QuestionsProps';
 import { FeedbackFormContextProvider } from '../contexts/FeedbackFormContext';
 import { FeedbackForm } from '../FeedbackForm/FeedbackForm';
+import type { AnswerType } from '../types/AnswerType';
 
 export class FeedbackFormImpl {
   private readonly buttonTexts: ButtonTexts;
@@ -15,7 +16,7 @@ export class FeedbackFormImpl {
     heading: string;
     questions: QuestionConfig[];
     position?: 'inline' | 'fixed';
-    onSubmit: (answers: Record<string, any>) => void;
+    onSubmit: (answers: Record<string, AnswerType>) => void;
   }) {
     this.buttonTexts = config.buttonTexts;
     this.heading = config.heading;
