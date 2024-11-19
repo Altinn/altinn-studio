@@ -146,8 +146,8 @@ describe('ListAdminPage', () => {
     const user = userEvent.setup();
     renderListAdminPage();
 
-    const backButton = screen.getByText(textMock('resourceadm.listadmin_back'));
-    await user.click(backButton);
+    const backLink = screen.getByRole('link', { name: textMock('resourceadm.listadmin_back') });
+    await user.click(backLink);
 
     expect(mockedNavigate).toHaveBeenCalledWith('/ttd/ttd-resources');
   });

@@ -155,8 +155,8 @@ describe('AccessListDetail', () => {
     const user = userEvent.setup();
     renderAccessListDetail();
 
-    const backButton = screen.getByText(textMock('general.back'));
-    await user.click(backButton);
+    const backLink = screen.getByRole('link', { name: textMock('general.back') });
+    await user.click(backLink);
 
     expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
   });

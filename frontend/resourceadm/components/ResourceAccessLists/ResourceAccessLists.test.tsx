@@ -210,8 +210,8 @@ describe('ResourceAccessLists', () => {
     const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
     await waitForElementToBeRemoved(spinnerTitle);
 
-    const backButton = screen.getByText(textMock('general.back'));
-    await user.click(backButton);
+    const backLink = screen.getByRole('link', { name: textMock('general.back') });
+    await user.click(backLink);
 
     const expectedBackUrl = `/${org}/${org}-resources/resource/${resourceId}/about`;
     expect(mockedNavigate).toHaveBeenCalledWith(expectedBackUrl);
