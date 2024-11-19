@@ -17,7 +17,7 @@ describe('LinkButton', () => {
     const user = userEvent.setup();
     render(<LinkButton {...defaultProps} />);
 
-    const linkButton = screen.getByText(/click me/i);
+    const linkButton = screen.getByRole('link', { name: /click me/i });
     await user.click(linkButton);
 
     expect(mockOnClick).toHaveBeenCalled();
