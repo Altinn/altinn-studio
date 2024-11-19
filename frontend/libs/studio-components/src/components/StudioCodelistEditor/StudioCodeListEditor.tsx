@@ -44,13 +44,13 @@ export function StudioCodeListEditor({
   );
 }
 
-type InternalStatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
   onChange,
   onInvalid,
-}: InternalStatefulCodeListEditorProps): ReactElement {
+}: StatefulCodeListEditorProps): ReactElement {
   const [codeList, setCodeList] = useState<CodeList>(defaultCodeList);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ function StatefulCodeListEditor({
   return <ControlledCodeListEditor codeList={codeList} onChange={handleChange} />;
 }
 
-type InternalCodeListEditorProps = Omit<InternalStatefulCodeListEditorProps, 'onInvalid'>;
+type InternalCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
 
 function ControlledCodeListEditor({
   codeList,
