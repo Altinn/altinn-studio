@@ -15,7 +15,7 @@ public class AnsattPortenController(IAuthenticationService authService) : Contro
 {
     [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
     [HttpGet("login")]
-    public async Task<IActionResult> Login([FromQuery] string redirectTo)
+    public async Task<IActionResult> Login([FromQuery(Name = "redirect_to")] string redirectTo)
     {
         await Task.CompletedTask;
         if (!Url.IsLocalUrl(redirectTo))
