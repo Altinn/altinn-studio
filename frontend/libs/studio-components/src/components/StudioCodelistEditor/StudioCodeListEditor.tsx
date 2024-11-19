@@ -27,7 +27,7 @@ import { StudioErrorMessage } from '../StudioErrorMessage';
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onChange: (codeList: CodeList) => void;
-  onInvalid: () => void;
+  onInvalid?: () => void;
   texts: CodeListEditorTexts;
 };
 
