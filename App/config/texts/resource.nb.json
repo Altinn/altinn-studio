@@ -2,6 +2,10 @@
   "language": "nb",
   "resources": [
     {
+      "id": "signering-av-stiftelsesdok.Button-cBQsfZ.title",
+      "value": "Til signering"
+    },
+    {
       "id": "signering-av-stiftelsesdok.Header-NfIrgi.title",
       "value": "TODO: \n- Mulighet for å legge inn hvor man vil varsles når alle har signert?\n- Mulighet for å overstyre varsling per signatar."
     },
