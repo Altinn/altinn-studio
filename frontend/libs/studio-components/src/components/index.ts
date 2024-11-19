@@ -20,6 +20,7 @@ export * from './StudioDeleteButton';
 export * from './StudioDisplayTile';
 export * from './StudioDivider';
 export * from './StudioDragAndDrop';
+export * from './StudioDragAndDropTree';
 export * from './StudioDropdownMenu';
 export * from './StudioError';
 export * from './StudioErrorMessage';
