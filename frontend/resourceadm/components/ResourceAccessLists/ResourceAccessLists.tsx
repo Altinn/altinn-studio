@@ -14,6 +14,7 @@ import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { EnvId } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../AccessListErrorMessage';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export interface ResourceAccessListsProps {
   env: EnvId;
@@ -124,23 +125,20 @@ export const ResourceAccessLists = ({
               >
                 {list.name}
               </Checkbox>
-              <StudioButton
-                variant='tertiary'
-                asChild
+              <ButtonRouterLink
                 aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                icon={<PencilWritingIcon />}
+                iconPlacement='right'
+                to={`${getResourcePageURL(
+                  org,
+                  app,
+                  resourceData.identifier,
+                  'accesslists',
+                )}/${env}/${list.identifier}`}
+                variant='tertiary'
               >
-                <Link
-                  to={`${getResourcePageURL(
-                    org,
-                    app,
-                    resourceData.identifier,
-                    'accesslists',
-                  )}/${env}/${list.identifier}`}
-                >
-                  {t('resourceadm.listadmin_edit_list')}
-                  <PencilWritingIcon />
-                </Link>
-              </StudioButton>
+                {t('resourceadm.listadmin_edit_list')}
+              </ButtonRouterLink>
             </div>
           );
         })}

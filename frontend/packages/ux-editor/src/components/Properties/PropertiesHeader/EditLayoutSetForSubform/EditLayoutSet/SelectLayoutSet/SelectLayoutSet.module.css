@@ -4,10 +4,6 @@
   gap: var(--fds-spacing-2);
 }
 
-.selectLayoutSetwithPadding {
-  padding: 0 var(--fds-spacing-5);
-}
-
 .layoutSetsOption {
   text-overflow: ellipsis;
   width: 100%;
