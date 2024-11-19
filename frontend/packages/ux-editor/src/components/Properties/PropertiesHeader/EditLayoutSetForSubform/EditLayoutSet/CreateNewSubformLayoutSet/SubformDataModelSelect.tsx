@@ -7,11 +7,13 @@ import { StudioNativeSelect } from '@studio/components';
 export interface ISubformDataModelSelectProps {
   selectedDataType: string;
   setSelectedDataType: (dataType: string) => void;
+  disabled?: boolean;
 }
 
 export const SubformDataModelSelect = ({
   selectedDataType,
   setSelectedDataType,
+  disabled,
 }: ISubformDataModelSelectProps) => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -27,6 +29,7 @@ export const SubformDataModelSelect = ({
       onChange={(e) => handleChange(e.target.value)}
       value={selectedDataType}
       size='small'
+      disabled={disabled}
     >
       <option value='' hidden></option>
       {dataModelIds ? (
