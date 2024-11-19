@@ -13,11 +13,15 @@ export const AppPreviewSubMenu = () => {
 
   return (
     <div className={classes.subHeader}>
-      <StudioPageHeader.HeaderButton asChild color='dark' variant='preview'>
-        <a href={backToEditingHref} aria-label={t('top_menu.preview_back_to_editing')}>
-          <ArrowLeftIcon className={classes.icon} />
-          {shouldDisplayText && t('top_menu.preview_back_to_editing')}
-        </a>
+      <StudioPageHeader.HeaderButton
+        aria-label={t('top_menu.preview_back_to_editing')}
+        as='a'
+        color='dark'
+        href={backToEditingHref}
+        variant='preview'
+      >
+        <ArrowLeftIcon className={classes.icon} />
+        {shouldDisplayText && t('top_menu.preview_back_to_editing')}
       </StudioPageHeader.HeaderButton>
     </div>
   );

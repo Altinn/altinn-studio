@@ -1,43 +1,38 @@
 import React from 'react';
 import { EditLayoutSet } from './EditLayoutSet';
-import { NoSubformLayoutsExist } from './NoSubformLayoutsExist';
 import type { ComponentType } from 'app-shared/types/ComponentType';
-import { SubformUtilsImpl } from '../../../../classes/SubformUtils';
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { IGenericEditComponent } from '../../../../components/config/componentConfig';
-import { useAppContext } from '../../../../hooks';
+import { DefinedLayoutSet } from './EditLayoutSet/DefinedLayoutSet/DefinedLayoutSet';
+import { StudioButton } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+import { PencilIcon } from '@studio/icons';
+import { useAppContext } from '@altinn/ux-editor/hooks';
+import classes from './EditLayoutSetForSubform.module.css';
 
 export const EditLayoutSetForSubform = <T extends ComponentType>({
   handleComponentChange,
   component,
 }: IGenericEditComponent<T>): React.ReactElement => {
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: layoutSets } = useLayoutSetsQuery(org, app);
   const { setSelectedFormLayoutSetName } = useAppContext();
+  const { t } = useTranslation();
 
-  const subformUtils = new SubformUtilsImpl(layoutSets.sets);
-
-  if (!subformUtils.hasSubforms) {
-    return <NoSubformLayoutsExist />;
+  const existingLayoutSetForSubform = component['layoutSet'];
+  if (existingLayoutSetForSubform) {
+    return (
+      <>
+        <DefinedLayoutSet existingLayoutSetForSubform={existingLayoutSetForSubform} />
+        <StudioButton
+          icon={<PencilIcon />}
+          onClick={() => setSelectedFormLayoutSetName(existingLayoutSetForSubform)}
+          color='second'
+          title={t('ux_editor.component_properties.navigate_to_subform_button')}
+          className={classes.navigateSubformButton}
+        >
+          {t('ux_editor.component_properties.navigate_to_subform_button')}
+        </StudioButton>
+      </>
+    );
   }
 
-  const handleUpdatedLayoutSet = (layoutSet: string): void => {
-    const updatedComponent = { ...component, layoutSet };
-    handleComponentChange(updatedComponent);
-  };
-
-  function handleCreatedSubform(layoutSetName: string) {
-    setSelectedFormLayoutSetName(layoutSetName);
-    handleUpdatedLayoutSet(layoutSetName);
-  }
-
-  return (
-    <EditLayoutSet
-      existingLayoutSetForSubform={component['layoutSet']}
-      onUpdateLayoutSet={handleUpdatedLayoutSet}
-      onSubformCreated={handleCreatedSubform}
-      layoutSets={layoutSets}
-    />
-  );
+  return <EditLayoutSet handleComponentChange={handleComponentChange} component={component} />;
 };
