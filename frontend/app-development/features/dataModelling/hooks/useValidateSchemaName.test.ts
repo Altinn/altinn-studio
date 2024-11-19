@@ -6,7 +6,7 @@ import {
   dataModel1NameMock,
   jsonMetadata1Mock,
 } from '../../../../packages/schema-editor/test/mocks/metadataMocks';
-import { mockAppMetadata, mockDataTypes } from '../../../test/applicationMetadataMock';
+import { mockAppMetadata, mockDataTypeId } from '../../../test/applicationMetadataMock';
 import { renderHookWithProviders } from '../../../test/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -68,7 +68,7 @@ describe('useValidateSchemaName', () => {
     const { result } = renderUseValidateSchemaName();
 
     act(() => {
-      result.current.validateName(mockDataTypes[0].id);
+      result.current.validateName(mockDataTypeId);
     });
 
     expect(result.current.nameError).toBe(textMock('schema_editor.error_data_type_name_exists'));

@@ -20,11 +20,6 @@
   padding-top: 4px;
 }
 
-.select {
-  cursor: pointer;
-  min-width: 20vw;
-}
-
 .generateButtonWrapper {
   flex: 1;
 }

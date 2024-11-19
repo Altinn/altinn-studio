@@ -26,7 +26,7 @@ const dataModelGenerationSuccessMessage = textMock(
 );
 const savingText = textMock('general.saving');
 
-const setCreateNewOpen = jest.fn();
+const setIsCreateNewOpen = jest.fn();
 const setSelectedOption = jest.fn();
 const onSetSchemaGenerationErrorMessages = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
@@ -34,7 +34,7 @@ const defaultProps: TopToolbarProps = {
   isCreateNewOpen: false,
   dataModels: [jsonMetadata1Mock],
   selectedOption,
-  setIsCreateNewOpen: setCreateNewOpen,
+  setIsCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 };

@@ -14,7 +14,6 @@ import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
-const [testOrg, testApp] = ['testOrg', 'testApp'];
 const mockCreateDataModel = jest.fn();
 const mockSetIsCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
@@ -53,7 +52,7 @@ describe('CreateNewWrapper', () => {
     expect(mockSetIsCreateNewOpen).toHaveBeenCalledWith(false);
   });
 
-  it('should show an error text when validation fails', async () => {
+  it('should disable confirm button and show an error text when validation fails', async () => {
     const user = userEvent.setup();
     const newModelName = dataModel1NameMock;
     const errorMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
