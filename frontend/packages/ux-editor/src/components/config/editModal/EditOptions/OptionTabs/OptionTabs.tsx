@@ -52,7 +52,7 @@ export const OptionTabs = ({
     >
       <StudioTabs.List>
         <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
-          {t('ux_editor.options.tab_codelist')}
+          {t('ux_editor.options.tab_code_list')}
         </StudioTabs.Tab>
         <StudioTabs.Tab value={SelectedOptionsType.Manual}>
           {t('ux_editor.options.tab_manual')}
@@ -102,7 +102,7 @@ const RenderManualOptions = ({
   if (areLayoutOptionsSupported === false) {
     return (
       <StudioAlert className={classes.manualTabAlert} severity='info'>
-        {t('ux_editor.options.codelist_only')}
+        {t('ux_editor.options.code_list_only')}
       </StudioAlert>
     );
   }

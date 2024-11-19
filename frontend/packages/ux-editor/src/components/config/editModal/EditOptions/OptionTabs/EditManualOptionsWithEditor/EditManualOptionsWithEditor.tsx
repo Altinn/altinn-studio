@@ -38,7 +38,7 @@ export function EditManualOptionsWithEditor({
         className={classes.manualTabDialog}
         contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.modal_add_options_codelist')}
+        heading={t('ux_editor.modal_add_options_code_list')}
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
