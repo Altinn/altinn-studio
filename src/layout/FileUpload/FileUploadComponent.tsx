@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import type { JSX } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
-import { Label } from 'src/components/label/Label';
+import { getDescriptionId, getLabelId, Label } from 'src/components/label/Label';
 import { useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -141,7 +141,8 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
               hasValidationMessages={hasValidationErrors(validations)}
               hasCustomFileEndings={hasCustomFileEndings}
               validFileEndings={validFileEndings}
-              textResourceBindings={textResourceBindings}
+              labelId={textResourceBindings?.title ? getLabelId(id) : undefined}
+              descriptionId={textResourceBindings?.description ? getDescriptionId(id) : undefined}
             />
 
             <AttachmentsCounter />

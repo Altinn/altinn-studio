@@ -66,7 +66,7 @@ describe('FileUploadComponent', () => {
       const file = new File(['(⌐□_□)'], attachment?.filename || '', { type: attachment.contentType });
 
       const fileInput = screen
-        .getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+        .getByRole('presentation', { name: /attachment-title/i })
         .querySelector('input') as HTMLInputElement;
       await userEvent.upload(fileInput, file);
 
@@ -122,9 +122,7 @@ describe('FileUploadComponent', () => {
         attachments: (dataType) => getDataElements({ count: 3, dataType }),
       });
 
-      expect(
-        screen.queryByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('presentation', { name: /attachment-title/i })).not.toBeInTheDocument();
     });
 
     it('should display drop area when displayMode is not simple', async () => {
@@ -133,9 +131,7 @@ describe('FileUploadComponent', () => {
         attachments: (dataType) => getDataElements({ count: 3, dataType }),
       });
 
-      expect(
-        screen.getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('presentation', { name: /attachment-title/i })).toBeInTheDocument();
     });
 
     it('should not display drop area when displayMode is not simple and max attachments is reached', async () => {
@@ -144,9 +140,7 @@ describe('FileUploadComponent', () => {
         attachments: (dataType) => getDataElements({ count: 3, dataType }),
       });
 
-      expect(
-        screen.queryByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('presentation', { name: /attachment-title/i })).not.toBeInTheDocument();
     });
   });
 });
@@ -177,7 +171,7 @@ describe('FileUploadWithTagComponent', () => {
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
       const dropZone = screen
-        .getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+        .getByRole('presentation', { name: /attachment-title/i })
         .querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
@@ -257,7 +251,7 @@ describe('FileUploadWithTagComponent', () => {
       const file = new File(['(⌐□_□)'], 'chucknorris.png', { type: 'image/png' });
 
       const dropZone = screen
-        .getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
+        .getByRole('presentation', { name: /attachment-title/i })
         .querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
@@ -317,10 +311,9 @@ describe('FileUploadWithTagComponent', () => {
         attachments: (dataType) => getDataElements({ count: 2, dataType }),
       });
 
-      expect(
-        screen.getByRole('presentation', { name: /Dra og slipp eller let etter fil Tillatte filformater er: alle/i })
-          .textContent,
-      ).toMatch('Dra og slipp eller let etter filTillatte filformater er: alle');
+      expect(screen.getByRole('presentation', { name: /attachment-title/i }).textContent).toMatch(
+        'Dra og slipp eller let etter filTillatte filformater er: alle',
+      );
     });
 
     it('should not display drop area when max attachments is reached', async () => {
@@ -331,7 +324,7 @@ describe('FileUploadWithTagComponent', () => {
 
       expect(
         screen.queryByRole('presentation', {
-          name: 'Dra og slipp eller let etter fil Tillatte filformater er: alle',
+          name: /attachment-title/i,
         }),
       ).not.toBeInTheDocument();
     });
@@ -364,6 +357,11 @@ async function renderAbstract<T extends Types>({
   const id = uuidv4();
   const attachments = attachmentsGenerator(id);
 
+  const textResourceBindings = {
+    title: 'attachment-title',
+    description: 'attachment-description',
+  };
+
   const utils = await renderGenericComponentTest<T>({
     type,
     renderer: (props) => <FileUploadComponent {...props} />,
@@ -374,9 +372,11 @@ async function renderAbstract<T extends Types>({
       maxNumberOfAttachments: type === 'FileUpload' ? 3 : 7,
       minNumberOfAttachments: 1,
       readOnly: false,
+      textResourceBindings,
       ...(type === 'FileUploadWithTag' && {
         optionsId: 'test-options-id',
         textResourceBindings: {
+          ...textResourceBindings,
           tagTitle: 'attachment-tag-title',
         },
       }),

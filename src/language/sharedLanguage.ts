@@ -5,7 +5,7 @@ import DOMPurify from 'dompurify';
 import parseHtmlToReact, { domToReact } from 'html-react-parser';
 import { marked } from 'marked';
 import { mangle } from 'marked-mangle';
-import type { DOMNode, Element, HTMLReactParserOptions } from 'html-react-parser';
+import type { DOMNode, Element as ReactParserElement, HTMLReactParserOptions } from 'html-react-parser';
 
 import { LinkToPotentialNode } from 'src/components/form/LinkToPotentialNode';
 import { LinkToPotentialPage } from 'src/components/form/LinkToPotentialPage';
@@ -14,7 +14,11 @@ import { cachedFunction } from 'src/utils/cachedFunction';
 marked.use(mangle());
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  if (node.tagName === 'A') {
+  if (!(node instanceof Element)) {
+    return;
+  }
+
+  if (node['tagName'] === 'A') {
     node.classList.add('altinnLink');
     const url = node.getAttribute('href') || '';
     if (url.startsWith('http') && !url.match(/(local\.altinn|altinn\.no|altinn\.cloud|basefarm\.net)/)) {
@@ -46,7 +50,7 @@ export const parseAndCleanText = cachedFunction(
   (text) => text ?? null,
 );
 
-function isElement(node: DOMNode): node is Element {
+function isElement(node: DOMNode): node is ReactParserElement {
   return node.type === 'tag';
 }
 
