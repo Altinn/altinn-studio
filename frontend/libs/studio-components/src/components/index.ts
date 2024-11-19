@@ -10,6 +10,7 @@ export * from './StudioButton';
 export * from './StudioCard';
 export * from './StudioCenter';
 export * from './StudioCheckbox';
+export * from './StudioCheckboxTable';
 export * from './StudioCodeFragment';
 export * from './StudioCodelistEditor';
 export * from './StudioCombobox';

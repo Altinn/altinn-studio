@@ -333,7 +333,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
         {
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
-            if (resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+            if (!IsServiceOwner(resource, org))
             {
                 return new UnauthorizedResult();
             }
@@ -348,7 +348,7 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult> MigrateDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string org, string env)
         {
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(delegationRequest.ServiceCode, delegationRequest.ServiceEditionCode, env.ToLower());
-            if (resource?.HasCompetentAuthority == null || !resource.HasCompetentAuthority.Orgcode.Equals(org, StringComparison.InvariantCultureIgnoreCase))
+            if (!IsServiceOwner(resource, org))
             {
                 return new UnauthorizedResult();
             }
@@ -600,6 +600,24 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return orgList;
+        }
+
+        private static bool IsServiceOwner(ServiceResource? resource, string loggedInOrg)
+        {
+            if (resource?.HasCompetentAuthority == null)
+            {
+                return false;
+            }
+
+            bool isOwnedByOrg = resource.HasCompetentAuthority.Orgcode.Equals(loggedInOrg, StringComparison.InvariantCultureIgnoreCase);
+
+            if (OrgUtil.IsTestEnv(loggedInOrg))
+            {
+                return isOwnedByOrg || resource.HasCompetentAuthority.Orgcode.Equals("acn", StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            return isOwnedByOrg;
+
         }
 
         private async Task<ResourceVersionInfo> AddEnvironmentResourceStatus(string env, string id)
