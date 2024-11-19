@@ -11,7 +11,7 @@ export const rowElementMock2: StudioCheckboxTableRowElement = {
   value: 'test-value 2',
   label: 'Test Label 2',
   description: 'Test Description 2',
-  checked: false,
+  checked: true,
 };
 
 export const rowElementMocks: StudioCheckboxTableRowElement[] = [rowElementMock1, rowElementMock2];

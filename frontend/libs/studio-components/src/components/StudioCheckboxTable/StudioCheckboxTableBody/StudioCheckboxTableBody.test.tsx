@@ -10,9 +10,6 @@ import { type StudioCheckboxTableRowElement } from '../types/StudioCheckboxTable
 
 describe('StudioCheckboxTableBody', () => {
   it('should render multiple children elements', () => {
-    const childText1 = 'Test Child1';
-    const childText2 = 'Test Child2';
-
     renderStudioCheckboxTableBody({
       children: rowElementMocks.map((rowElement: StudioCheckboxTableRowElement) => (
         <StudioCheckboxTableRow
@@ -23,8 +20,14 @@ describe('StudioCheckboxTableBody', () => {
       )),
     });
 
-    expect(screen.getByText(childText1)).toBeInTheDocument();
-    expect(screen.getByText(childText2)).toBeInTheDocument();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+
+    rowElementMocks.forEach((rowElement: StudioCheckboxTableRowElement) => {
+      expect(screen.getByRole('checkbox', { name: rowElement.label }));
+      expect(screen.getByText(rowElement.description));
+    });
+    expect(screen.getByRole('checkbox', { name: rowElementMocks[0].label })).not.toBeChecked();
+    expect(screen.getByRole('checkbox', { name: rowElementMocks[1].label })).toBeChecked();
   });
 });
 
