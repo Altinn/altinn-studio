@@ -11,13 +11,13 @@
     {
       "id": "signing-founders",
       "tasks": [
-        "Activity_0atkg6i"
+        "SigningTask_Founders"
       ]
     },
     {
       "id": "signing-auditor",
       "tasks": [
-        "Activity_0v7szrr"
+        "SigningTask_Auditor"
       ]
     }
   ],

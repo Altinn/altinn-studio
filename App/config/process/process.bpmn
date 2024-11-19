@@ -19,8 +19,8 @@
       <bpmn:incoming>Flow_1p7jwuf</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="SequenceFlow_1n56yn5" sourceRef="StartEvent_1" targetRef="Task_1" />
-    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="Activity_0atkg6i" />
-    <bpmn:task id="Activity_0atkg6i" name="Signering stiftere">
+    <bpmn:sequenceFlow id="SequenceFlow_1oot28q" sourceRef="Task_1" targetRef="SigningTask_Founders" />
+    <bpmn:task id="SigningTask_Founders" name="Signering stiftere">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>signing</altinn:taskType>
@@ -32,26 +32,27 @@
             <altinn:dataTypesToSign>
               <altinn:dataType>Skjemadata</altinn:dataType>
             </altinn:dataTypesToSign>
-            <altinn:signatureDataType>signatureInformation-KAkQ</altinn:signatureDataType>
+            <altinn:signatureDataType>signatureInformation-founders</altinn:signatureDataType>
+            <altinn:signeeProviderId>founders</altinn:signeeProviderId>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>SequenceFlow_1oot28q</bpmn:incoming>
       <bpmn:outgoing>Flow_1if1sh9</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_1if1sh9" sourceRef="Activity_0atkg6i" targetRef="Gateway_0pyr9u3" />
+    <bpmn:sequenceFlow id="Flow_1if1sh9" sourceRef="SigningTask_Founders" targetRef="Gateway_0pyr9u3" />
     <bpmn:exclusiveGateway id="Gateway_0pyr9u3">
       <bpmn:incoming>Flow_1if1sh9</bpmn:incoming>
       <bpmn:outgoing>Flow_1jkygts</bpmn:outgoing>
       <bpmn:outgoing>Flow_0wscak8</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_1jkygts" sourceRef="Gateway_0pyr9u3" targetRef="Activity_0v7szrr">
+    <bpmn:sequenceFlow id="Flow_1jkygts" sourceRef="Gateway_0pyr9u3" targetRef="SigningTask_Auditor">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["notEquals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0wscak8" sourceRef="Gateway_0pyr9u3" targetRef="Task_1">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">["equals",["gatewayAction"],"reject"]</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:task id="Activity_0v7szrr" name="Signering revisor">
+    <bpmn:task id="SigningTask_Auditor" name="Signering revisor">
       <bpmn:extensionElements>
         <altinn:taskExtension>
           <altinn:taskType>signing</altinn:taskType>
@@ -60,15 +61,15 @@
             <altinn:action>reject</altinn:action>
           </altinn:actions>
           <altinn:signatureConfig>
-            <altinn:dataTypesToSign />
-            <altinn:signatureDataType>signatureInformation-1ZBW</altinn:signatureDataType>
+            <altinn:signatureDataType>signatureInformation-auditor</altinn:signatureDataType>
+            <altinn:signeeProviderId>auditor</altinn:signeeProviderId>
           </altinn:signatureConfig>
         </altinn:taskExtension>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1jkygts</bpmn:incoming>
       <bpmn:outgoing>Flow_1miwjt2</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_1miwjt2" sourceRef="Activity_0v7szrr" targetRef="Gateway_1fsi2q3" />
+    <bpmn:sequenceFlow id="Flow_1miwjt2" sourceRef="SigningTask_Auditor" targetRef="Gateway_1fsi2q3" />
     <bpmn:exclusiveGateway id="Gateway_1fsi2q3">
       <bpmn:incoming>Flow_1miwjt2</bpmn:incoming>
       <bpmn:outgoing>Flow_1p7jwuf</bpmn:outgoing>
@@ -92,14 +93,14 @@
       <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
         <dc:Bounds x="1382" y="81" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0atkg6i_di" bpmnElement="Activity_0atkg6i">
+      <bpmndi:BPMNShape id="SigningTask_Founders_di" bpmnElement="SigningTask_Founders">
         <dc:Bounds x="610" y="59" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_0pyr9u3_di" bpmnElement="Gateway_0pyr9u3" isMarkerVisible="true">
         <dc:Bounds x="775" y="74" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0v7szrr_di" bpmnElement="Activity_0v7szrr">
+      <bpmndi:BPMNShape id="SigningTask_Auditor_di" bpmnElement="SigningTask_Auditor">
         <dc:Bounds x="1020" y="59" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>

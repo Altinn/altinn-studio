@@ -21,7 +21,7 @@ public class AuditorSigneesProvider : ISigneeProvider
         _dataClient = dataClient;
     }
     
-    public string Id { get; init; } = "auditors";
+    public string Id { get; init; } = "auditor";
     
     public async Task<SigneesResult> GetSigneesAsync(Instance instance)
     {
