@@ -1,8 +1,9 @@
-import React, { type ReactElement, type ReactNode } from 'react';
+import React, { type ReactElement } from 'react';
 import { StudioTable } from '../../StudioTable';
+import { type StudioCheckboxTableRowProps } from '../StudioCheckboxTableRow/StudioCheckboxTableRow';
 
 export type StudioCheckboxTableBodyProps = {
-  children: ReactNode;
+  children: ReactElement<StudioCheckboxTableRowProps>[];
 };
 
 export const StudioCheckboxTableBody = ({

@@ -4,32 +4,23 @@ import {
   StudioCheckboxTableBody,
   type StudioCheckboxTableBodyProps,
 } from './StudioCheckboxTableBody';
+import { StudioCheckboxTableRow } from '../StudioCheckboxTableRow';
+import { rowElementMocks } from '../mocks';
+import { type StudioCheckboxTableRowElement } from '../types/StudioCheckboxTableRowElement';
 
 describe('StudioCheckboxTableBody', () => {
-  it('should render the children passed as prop', () => {
-    const childText = 'Test Child';
-    renderStudioCheckboxTableBody({
-      children: (
-        <tr>
-          <td>{childText}</td>
-        </tr>
-      ),
-    });
-
-    expect(screen.getByText(childText)).toBeInTheDocument();
-  });
-
   it('should render multiple children elements', () => {
     const childText1 = 'Test Child1';
     const childText2 = 'Test Child2';
 
     renderStudioCheckboxTableBody({
-      children: (
-        <tr>
-          <td>{childText1}</td>
-          <td>{childText2}</td>
-        </tr>
-      ),
+      children: rowElementMocks.map((rowElement: StudioCheckboxTableRowElement) => (
+        <StudioCheckboxTableRow
+          key={rowElement.value}
+          rowElement={rowElement}
+          onChange={jest.fn()}
+        />
+      )),
     });
 
     expect(screen.getByText(childText1)).toBeInTheDocument();
