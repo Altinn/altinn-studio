@@ -25,4 +25,20 @@ export class SubformUtilsImpl implements SubformUtils {
       (set) => set.type === 'subform',
     ) as Array<SubformLayoutSet>;
   }
+
+  public get recommendedNextActionText(): {
+    title: string;
+    description: string;
+  } {
+    return this.hasSubforms
+      ? {
+          title: 'ux_editor.component_properties.subform.choose_layout_set_header',
+          description: 'ux_editor.component_properties.subform.choose_layout_set_description',
+        }
+      : {
+          title: 'ux_editor.component_properties.subform.no_existing_layout_set_header',
+          description:
+            'ux_editor.component_properties.subform.no_existing_layout_set_create_content',
+        };
+  }
 }

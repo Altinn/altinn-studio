@@ -135,7 +135,7 @@ describe('EditManualOptionsWithEditor', () => {
     await user.click(modalButton);
 
     const addNewButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_new_option'),
+      name: textMock('code_list_editor.add_option'),
     });
 
     await user.click(addNewButton);
@@ -163,7 +163,7 @@ describe('EditManualOptionsWithEditor', () => {
     await user.click(modalButton);
 
     const addNewButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_new_option'),
+      name: textMock('code_list_editor.add_option'),
     });
 
     await user.click(addNewButton);

@@ -5,7 +5,7 @@ import { CogIcon, FileJsonIcon } from '@studio/icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
 import { typeItemId } from '@studio/testing/testids';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
@@ -20,7 +20,7 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
   const name = extractNameFromPointer(uiSchemaNode.schemaPointer);
 
   return (
-    <DragAndDropTree.NewItem payload={name}>
+    <StudioDragAndDropTree.NewItem payload={name}>
       <div
         className={classNames(classes.item, {
           [classes.itemSelected]: selected,
@@ -34,6 +34,6 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
         <span className={classes.typeName}>{name}</span>
         <CogIcon />
       </div>
-    </DragAndDropTree.NewItem>
+    </StudioDragAndDropTree.NewItem>
   );
 };
