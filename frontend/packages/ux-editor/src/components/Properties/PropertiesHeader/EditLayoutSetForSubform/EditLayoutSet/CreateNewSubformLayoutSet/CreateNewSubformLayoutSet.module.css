@@ -1,10 +1,4 @@
-.savelayoutSetButton {
+.buttonGroup {
   display: flex;
-  align-self: flex-start;
-  border: 2px solid var(--success-color);
-  color: var(--success-color);
-}
-
-.headerIcon {
-  font-size: large;
+  gap: var(--fds-spacing-2);
 }

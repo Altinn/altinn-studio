@@ -4,7 +4,6 @@ import { render, screen } from '@testing-library/react';
 import { StudioDeleteButton } from './StudioDeleteButton';
 import type { StudioDeleteButtonProps } from './StudioDeleteButton';
 import userEvent from '@testing-library/user-event';
-import { StudioButton } from '../StudioButton';
 import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 describe('StudioDeleteButton', () => {
@@ -61,9 +60,9 @@ describe('StudioDeleteButton', () => {
 
   it('Supports polymorphism', () => {
     render(
-      <StudioButton asChild>
-        <a href='/'>{buttonLabel}</a>
-      </StudioButton>,
+      <StudioDeleteButton {...defaultProps} as='a' href='/'>
+        {buttonLabel}
+      </StudioDeleteButton>,
     );
     expect(screen.getByRole('link')).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
