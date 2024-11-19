@@ -9,6 +9,11 @@ import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 import { NoItemSelectedMessage } from '../NoItemSelectedMessage';
 
+enum SchemaInspectorTabs {
+  Properties = 'Properties',
+  Fields = 'Fields',
+}
+
 export const SchemaInspector = () => {
   const { t } = useTranslation();
   const { selectedUniquePointer } = useSchemaEditorAppContext();
@@ -21,15 +26,15 @@ export const SchemaInspector = () => {
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
 
   return (
-    <Tabs defaultValue='Properties' className={classes.root}>
+    <Tabs defaultValue={SchemaInspectorTabs.Properties} className={classes.root}>
       <Tabs.List>
-        <Tabs.Tab value='Properties'>{t('schema_editor.properties')}</Tabs.Tab>
-        <Tabs.Tab value='Fields'>{t('schema_editor.fields')}</Tabs.Tab>
+        <Tabs.Tab value={SchemaInspectorTabs.Properties}>{t('schema_editor.properties')}</Tabs.Tab>
+        <Tabs.Tab value={SchemaInspectorTabs.Fields}>{t('schema_editor.fields')}</Tabs.Tab>
       </Tabs.List>
-      <Tabs.Content value='Properties'>
+      <Tabs.Content value={SchemaInspectorTabs.Properties}>
         <ItemPropertiesTab selectedItem={selectedItem} />
       </Tabs.Content>
-      <Tabs.Content value='Fields'>
+      <Tabs.Content value={SchemaInspectorTabs.Fields}>
         <ItemFieldsTab selectedItem={selectedItem} />
       </Tabs.Content>
     </Tabs>
