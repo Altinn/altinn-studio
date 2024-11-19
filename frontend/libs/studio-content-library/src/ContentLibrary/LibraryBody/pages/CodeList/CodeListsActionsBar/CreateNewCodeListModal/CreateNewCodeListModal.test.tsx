@@ -46,7 +46,7 @@ describe('CreateNewCodeListModal', () => {
     expect(saveCodeListButton).toBeDisabled();
   });
 
-  it('keeps disabling the save button if only title is provided', async () => {
+  it('enables the save button if only title is provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
     await openDialog(user);
@@ -54,7 +54,7 @@ describe('CreateNewCodeListModal', () => {
     const saveCodeListButton = screen.getByRole('button', {
       name: textMock('app_content_library.code_lists.save_new_code_list'),
     });
-    expect(saveCodeListButton).toBeDisabled();
+    expect(saveCodeListButton).toBeEnabled();
   });
 
   it('keeps disabling the save button if only code list content is provided', async () => {
@@ -68,7 +68,18 @@ describe('CreateNewCodeListModal', () => {
     expect(saveCodeListButton).toBeDisabled();
   });
 
-  it('enables the save button when title and code list content are provided', async () => {
+  it('disables the save button if code list content is invalid', async () => {
+    const user = userEvent.setup();
+    renderCreateNewCodeListModal();
+    await openDialog(user);
+    await addDuplicatedCodeListValues(user);
+    const saveCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.save_new_code_list'),
+    });
+    expect(saveCodeListButton).toBeDisabled();
+  });
+
+  it('enables the save button when title and valid code list content are provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
     await openDialog(user);
@@ -118,6 +129,11 @@ const addCodeListItem = async (user: UserEvent) => {
     name: textMock('code_list_editor.add_option'),
   });
   await user.click(addCodeListItemButton);
+};
+
+const addDuplicatedCodeListValues = async (user: UserEvent) => {
+  await addCodeListItem(user);
+  await addCodeListItem(user);
 };
 
 const renderCreateNewCodeListModal = () => {

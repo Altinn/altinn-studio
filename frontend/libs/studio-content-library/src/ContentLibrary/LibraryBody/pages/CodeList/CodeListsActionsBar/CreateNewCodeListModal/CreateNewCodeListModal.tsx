@@ -56,6 +56,7 @@ type CreateNewCodeListProps = {
 function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateNewCodeListProps) {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+  const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =
     useState<CodeListWithMetadata>({
       title: '',
@@ -75,14 +76,18 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
   };
 
   const handleCodeListChange = (updatedCodeList: CodeList) => {
+    setIsCodeListValid(true);
     setCurrentCodeListWithMetadata({
       title: currentCodeListWithMetadata.title,
       codeList: updatedCodeList,
     });
   };
 
-  const isSaveButtonDisabled =
-    !currentCodeListWithMetadata.title || currentCodeListWithMetadata.codeList.length == 0;
+  const handleInvalidCodeList = () => {
+    setIsCodeListValid(false);
+  };
+
+  const isSaveButtonDisabled = !isCodeListValid || !currentCodeListWithMetadata.title;
 
   return (
     <div className={classes.createNewCodeList}>
@@ -96,6 +101,7 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
           onChange={handleCodeListChange}
+          onInvalid={handleInvalidCodeList}
           texts={editorTexts}
         />
       </div>
