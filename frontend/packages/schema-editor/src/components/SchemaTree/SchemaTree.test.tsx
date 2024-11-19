@@ -5,7 +5,7 @@ import {
   definitionNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { SchemaTree } from './SchemaTree';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { screen } from '@testing-library/react';
@@ -34,7 +34,7 @@ describe('SchemaTree', () => {
 
 const render = (schemaPointer?: string) =>
   renderWithProviders()(
-    <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
+    <StudioDragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
       <SchemaTree schemaPointer={schemaPointer} />
-    </DragAndDropTree.Provider>,
+    </StudioDragAndDropTree.Provider>,
   );
