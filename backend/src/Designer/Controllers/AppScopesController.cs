@@ -17,7 +17,6 @@ namespace Altinn.Studio.Designer.Controllers;
 
 [FeatureGate(StudioFeatureFlags.AnsattPorten)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
-
 public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     IAppScopesService appScopesService) : ControllerBase
 {

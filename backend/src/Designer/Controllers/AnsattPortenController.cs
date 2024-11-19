@@ -30,7 +30,6 @@ public class AnsattPortenController(IAuthenticationService authService) : Contro
     [HttpGet("auth-status")]
     public async Task<IActionResult> AuthStatus()
     {
-        await Task.CompletedTask;
         var authenticateResult =
             await authService.AuthenticateAsync(HttpContext,
                 AnsattPortenConstants.AnsattportenAuthenticationScheme);
