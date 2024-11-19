@@ -51,6 +51,16 @@ export const CreateNewSubformLayoutSet = ({
     setNewDataModelName(e.target.value);
   }
 
+  const handleClose = () => {
+    if (selectDisabled) {
+      setShowNewDataModelInput(false);
+      setSelectDisabled(false);
+      setNewDataModelName('');
+    } else {
+      setShowCreateSubformCard(false);
+    }
+  };
+
   const saveIcon = isPendingLayoutSetMutation ? (
     <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
   ) : (
@@ -98,9 +108,9 @@ export const CreateNewSubformLayoutSet = ({
             variant='secondary'
             color='success'
           />
-          {hasSubforms && (
+          {(hasSubforms || selectDisabled) && (
             <StudioButton
-              onClick={() => setShowCreateSubformCard(false)}
+              onClick={handleClose}
               title={t('general.close')}
               icon={<TrashIcon />}
               variant='secondary'
