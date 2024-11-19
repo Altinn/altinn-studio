@@ -7,6 +7,7 @@ import { SubformDataModelSelect } from './SubformDataModelSelect';
 import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetName';
 import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { CreateNewDataModel } from './CreateNewDataModel';
 
 type CreateNewSubformLayoutSetProps = {
   onUpdateLayoutSet: (layoutSetName: string) => void;
@@ -28,6 +29,10 @@ export const CreateNewSubformLayoutSet = ({
   const { createSubform, isPendingLayoutSetMutation } = useCreateSubform();
   const [nameError, setNameError] = useState('');
 
+  const [selectDisabled, setSelectDisabled] = useState(false);
+  const [showNewDataModelInput, setShowNewDataModelInput] = useState(false);
+  const [newDataModelName, setNewDataModelName] = useState('');
+
   function handleChange(subformName: string) {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
     setNameError(subformNameValidation);
@@ -42,11 +47,25 @@ export const CreateNewSubformLayoutSet = ({
     });
   }
 
+  function handleNewDataModelNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setNewDataModelName(e.target.value);
+  }
+
   const saveIcon = isPendingLayoutSetMutation ? (
     <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
   ) : (
     <CheckmarkIcon />
   );
+
+  function handleNewDataModelClick() {
+    setShowNewDataModelInput(true);
+    setSelectDisabled(true);
+  }
+
+  function isSaveButtonDisabled(): boolean {
+    if (showNewDataModelInput) return !newDataModelName;
+    return !newSubform || !!nameError || !selectedDataType;
+  }
 
   return (
     <StudioCard>
@@ -62,13 +81,20 @@ export const CreateNewSubformLayoutSet = ({
         <SubformDataModelSelect
           selectedDataType={selectedDataType}
           setSelectedDataType={setSelectedDataType}
+          disabled={selectDisabled}
+        />
+        <CreateNewDataModel
+          showNewDataModelInput={showNewDataModelInput}
+          newDataModelName={newDataModelName}
+          onNewDataModelNameChange={handleNewDataModelNameChange}
+          onNewDataModelClick={handleNewDataModelClick}
         />
         <div className={classes.buttonGroup}>
           <StudioButton
             icon={saveIcon}
             onClick={handleCreateSubform}
             title={t('general.save')}
-            disabled={!newSubform || !!nameError || !selectedDataType}
+            disabled={isSaveButtonDisabled()}
             variant='secondary'
             color='success'
           />
