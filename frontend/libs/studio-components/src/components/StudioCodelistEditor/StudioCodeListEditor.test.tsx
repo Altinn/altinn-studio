@@ -261,8 +261,9 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
-    await user.type(validValueInput, 'new value');
-    expect(onInvalid).toHaveBeenCalled();
+    const newValue = 'new value';
+    await user.type(validValueInput, newValue);
+    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
   });
 
   it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {
