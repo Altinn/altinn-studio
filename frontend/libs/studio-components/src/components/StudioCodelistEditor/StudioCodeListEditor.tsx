@@ -27,27 +27,30 @@ import { StudioErrorMessage } from '../StudioErrorMessage';
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onChange: (codeList: CodeList) => void;
+  onInvalid: () => void;
   texts: CodeListEditorTexts;
 };
 
 export function StudioCodeListEditor({
   codeList,
   onChange,
+  onInvalid,
   texts,
 }: StudioCodeListEditorProps): ReactElement {
   return (
     <StudioCodeListEditorContext.Provider value={{ texts }}>
-      <StatefulCodeListEditor codeList={codeList} onChange={onChange} />
+      <StatefulCodeListEditor codeList={codeList} onChange={onChange} onInvalid={onInvalid} />
     </StudioCodeListEditorContext.Provider>
   );
 }
 
-type InternalCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
+type InternalStatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
   onChange,
-}: InternalCodeListEditorProps): ReactElement {
+  onInvalid,
+}: InternalStatefulCodeListEditorProps): ReactElement {
   const [codeList, setCodeList] = useState<CodeList>(defaultCodeList);
 
   useEffect(() => {
@@ -58,12 +61,15 @@ function StatefulCodeListEditor({
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
       if (isCodeListValid(newCodeList)) onChange(newCodeList);
+      else onInvalid();
     },
-    [onChange],
+    [onChange, onInvalid],
   );
 
   return <ControlledCodeListEditor codeList={codeList} onChange={handleChange} />;
 }
+
+type InternalCodeListEditorProps = Omit<InternalStatefulCodeListEditorProps, 'onInvalid'>;
 
 function ControlledCodeListEditor({
   codeList,
