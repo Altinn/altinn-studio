@@ -5,10 +5,10 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.5.0-rc3">
+    <PackageReference Include="Altinn.App.Api" Version="8.5.0-rc6">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="8.5.0-rc3" />
+    <PackageReference Include="Altinn.App.Core" Version="8.5.0-rc6" />
     <!-- <ProjectReference Include="../../../altinn/app-lib-dotnet/src/Altinn.App.Api/Altinn.App.Api.csproj">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </ProjectReference>
