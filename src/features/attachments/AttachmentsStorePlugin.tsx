@@ -373,7 +373,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         );
       },
       useAttachments(node) {
-        return store.useSelector((state) => {
+        return store.useShallowSelector((state) => {
           if (!node) {
             return emptyArray;
           }

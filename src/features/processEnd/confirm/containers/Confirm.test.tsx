@@ -7,8 +7,6 @@ import { getPartyMock, getPartyWithSubunitMock } from 'src/__mocks__/getPartyMoc
 import { Confirm } from 'src/features/processEnd/confirm/containers/Confirm';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 
-jest.mock('react-helmet-async');
-
 describe('Confirm', () => {
   it('should not show loading if required data is loaded', async () => {
     await renderWithInstanceAndLayout({

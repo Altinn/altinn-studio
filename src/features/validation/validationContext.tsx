@@ -1,9 +1,10 @@
-import React, { Fragment, useCallback, useEffect, useRef } from 'react';
+import React, { Fragment, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { createStore } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+import { ContextNotProvided } from 'src/core/contexts/context';
 import { createZustandContext } from 'src/core/contexts/zustandContext';
 import { Loader } from 'src/core/loading/Loader';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
@@ -145,7 +146,7 @@ function initialCreateStore() {
 const {
   Provider,
   useSelector,
-  useLaxSelector,
+  useLaxShallowSelector,
   useSelectorAsRef,
   useStore,
   useLaxSelectorAsRef,
@@ -352,14 +353,26 @@ export const Validation = {
     }),
 
   useShowAllBackendErrors: () => useSelector((state) => state.showAllBackendErrors),
-  useSetShowAllBackendErrors: () =>
-    useLaxSelector((state) => async () => {
-      // Make sure we have finished processing validations before setting showAllErrors.
-      // This is because we automatically turn off this state as soon as possible.
-      // If the validations to show have not finished processing, this could get turned off before they ever became visible.
-      state.validating && (await state.validating());
-      state.setShowAllBackendErrors(true);
-    }),
+  useSetShowAllBackendErrors: () => {
+    const s = useLaxShallowSelector(({ validating, setShowAllBackendErrors }) => ({
+      validating,
+      setShowAllBackendErrors,
+    }));
+
+    return useMemo(() => {
+      if (s === ContextNotProvided) {
+        return ContextNotProvided;
+      }
+
+      return async () => {
+        // Make sure we have finished processing validations before setting showAllErrors.
+        // This is because we automatically turn off this state as soon as possible.
+        // If the validations to show have not finished processing, this could get turned off before they ever became visible.
+        s.validating && (await s.validating());
+        s.setShowAllBackendErrors(true);
+      };
+    }, [s]);
+  },
   useValidating: () => useSelector((state) => state.validating!),
   useUpdateDataModelValidations: () => useSelector((state) => state.updateDataModelValidations),
   useUpdateBackendValidations: () => useSelector((state) => state.updateBackendValidations),

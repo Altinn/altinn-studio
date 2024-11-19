@@ -11,8 +11,6 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { CompExternal, ILayout } from 'src/layout/layout';
 import type { CompSummaryExternal } from 'src/layout/Summary/config.generated';
 
-jest.mock('react-helmet-async');
-
 describe('Form', () => {
   const mockComponents: ILayout = [
     {

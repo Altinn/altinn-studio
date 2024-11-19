@@ -3,6 +3,7 @@ import type { PropsWithChildren } from 'react';
 
 import deepEqual from 'fast-deep-equal';
 import { createStore, useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import type { StoreApi } from 'zustand';
 
 import { ContextNotProvided, createContext } from 'src/core/contexts/context';
@@ -127,6 +128,21 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     return useStore(store, selector as any);
   };
 
+  /**
+   * A hook like useSelector() that can be used to select several things in one by returning a list or object containing the things to select.
+   * Will use shallow comparison to keep stable object references as long as the things inside don't change.
+   * See: https://zustand.docs.pmnd.rs/hooks/use-shallow
+   */
+  const useShallowSelector: SelectorFunc<Type> = (selector) => useStore(useCtx(), useShallow(selector));
+
+  const useLaxShallowSelector: SelectorFuncLax<Type> = (_selector) => {
+    const _store = useLaxCtx();
+    const store = _store === ContextNotProvided ? dummyStore : _store;
+    const selector = _store === ContextNotProvided ? () => ContextNotProvided : _selector;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return useStore(store, useShallow(selector as any));
+  };
+
   function MyProvider({ children, ...props }: PropsWithChildren<Props>) {
     const storeRef = useRef<Store>();
     if (!storeRef.current) {
@@ -192,6 +208,8 @@ export function createZustandContext<Store extends StoreApi<Type>, Type = Extrac
     useLaxSelectorAsRef,
     useMemoSelector,
     useLaxMemoSelector,
+    useShallowSelector,
+    useLaxShallowSelector,
     useLaxSelector,
     useDelayedSelector: useDS,
     useLaxDelayedSelector: useLaxDS,

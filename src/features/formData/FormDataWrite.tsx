@@ -59,6 +59,7 @@ interface FormDataContextInitialProps {
 const {
   Provider,
   useSelector,
+  useShallowSelector,
   useMemoSelector,
   useSelectorAsRef,
   useLaxMemoSelector,
@@ -331,7 +332,12 @@ export function FormDataWriteProvider({ children }: PropsWithChildren) {
 }
 
 function FormDataEffects() {
-  const { autoSaving, lockedBy, debounceTimeout, manualSaveRequested } = useSelector((s) => s);
+  const [autoSaving, lockedBy, debounceTimeout, manualSaveRequested] = useShallowSelector((s) => [
+    s.autoSaving,
+    s.lockedBy,
+    s.debounceTimeout,
+    s.manualSaveRequested,
+  ]);
   const hasUnsavedChanges = useHasUnsavedChanges();
   const setUnsavedAttrTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -371,14 +377,14 @@ function FormDataEffects() {
   // saving the data model to the backend. Freezing can also be triggered manually, when a manual save is requested.
   const shouldDebounce = useSelector(hasUnDebouncedChanges);
   useEffect(() => {
-    const timer = shouldDebounce.hasChanges
+    const timer = shouldDebounce
       ? setTimeout(() => {
           debounce();
         }, debounceTimeout)
       : undefined;
 
     return () => clearTimeout(timer);
-  }, [debounce, debounceTimeout, shouldDebounce]);
+  });
 
   // Save the data model when the data has been frozen/debounced, and we're ready
   const needsToSave = useSelector(hasDebouncedUnsavedChanges);
@@ -443,18 +449,11 @@ function hasDebouncedUnsavedChanges(state: FormDataContext) {
   );
 }
 
-/**
- * Checks if we need to debounce. This returns a new object so that the useEffect where it is used gets rerun whenever FormDataEffects renders.
- * If it returned the boolean directly, it would not extend the timeout beyond the first time which causes the debounce timeout not to work as intendend.
- * This may not be an optimal solution, it would ideally cause a rerender whenever any of the items it checks changes with some sort of selector.
- */
 function hasUnDebouncedChanges(state: FormDataContext) {
-  return {
-    hasChanges: Object.values(state.dataModels).some(
-      ({ currentData, debouncedCurrentData, invalidCurrentData, invalidDebouncedCurrentData }) =>
-        currentData !== debouncedCurrentData || invalidCurrentData !== invalidDebouncedCurrentData,
-    ),
-  };
+  return Object.values(state.dataModels).some(
+    ({ currentData, debouncedCurrentData, invalidCurrentData, invalidDebouncedCurrentData }) =>
+      currentData !== debouncedCurrentData || invalidCurrentData !== invalidDebouncedCurrentData,
+  );
 }
 
 function hasUnDebouncedCurrentChanges(state: FormDataContext) {

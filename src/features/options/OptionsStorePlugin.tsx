@@ -41,7 +41,7 @@ export class OptionsStorePlugin extends NodeDataPlugin<OptionsStorePluginConfig>
   extraHooks(store: NodesStoreFull): OptionsStorePluginConfig['extraHooks'] {
     return {
       useNodeOptions: (node) =>
-        store.useSelector((state) => {
+        store.useShallowSelector((state) => {
           const s = node ? state.nodeData[node.id] : undefined;
           return { isFetching: nodeDataToIsFetching(s), options: nodeDataToOptions(s) };
         }),

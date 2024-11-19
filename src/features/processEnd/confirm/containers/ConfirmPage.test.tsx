@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import type { jest } from '@jest/globals';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -11,8 +11,6 @@ import { getProcessDataMock } from 'src/__mocks__/getProcessDataMock';
 import { ConfirmPage, type IConfirmPageProps } from 'src/features/processEnd/confirm/containers/ConfirmPage';
 import { fetchProcessState } from 'src/queries/queries';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
-
-jest.mock('react-helmet-async');
 
 describe('ConfirmPage', () => {
   const personParty = getPartyMock();

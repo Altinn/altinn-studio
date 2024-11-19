@@ -8,8 +8,6 @@ import { mockMediaQuery } from 'src/test/mockMediaQuery';
 import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { ISimpleInstance } from 'src/types';
 
-jest.mock('react-helmet-async');
-
 const mockActiveInstances: ISimpleInstance[] = [
   {
     id: 'some-id',

@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { expect, jest } from '@jest/globals';
+import { expect } from '@jest/globals';
 import { screen } from '@testing-library/react';
+import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -15,8 +16,6 @@ import { InstanceRouter, renderWithoutInstanceAndLayout } from 'src/test/renderW
 import { PartyType } from 'src/types/shared';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
 import type { IParty } from 'src/types/shared';
-
-jest.mock('react-helmet-async');
 
 interface IRender {
   autoDeleteOnProcessEnd?: boolean;

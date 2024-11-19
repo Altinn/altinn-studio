@@ -118,7 +118,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           return 'validationVisibility' in nodeData ? nodeData.validationVisibility : 0;
         }),
       useRawValidations: (node) =>
-        store.useSelector((state) => {
+        store.useShallowSelector((state) => {
           if (!node) {
             return emptyArray;
           }
@@ -130,7 +130,7 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           return out && out.length > 0 ? out : emptyArray;
         }),
       useVisibleValidations: (node, showAll) =>
-        store.useSelector((state) => {
+        store.useShallowSelector((state) => {
           if (!node) {
             return emptyArray;
           }
