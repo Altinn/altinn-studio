@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 
 type ToolbarItemProps = {
   componentTitle: string;
@@ -17,7 +17,7 @@ export const ToolbarItem = ({
   icon,
 }: ToolbarItemProps) => {
   return (
-    <DragAndDropTree.NewItem<ComponentType | CustomComponentType>
+    <StudioDragAndDropTree.NewItem<ComponentType | CustomComponentType>
       notDraggable={notDraggable}
       payload={componentType}
     >
@@ -26,6 +26,6 @@ export const ToolbarItem = ({
         componentTitle={componentTitle}
         icon={icon}
       />
-    </DragAndDropTree.NewItem>
+    </StudioDragAndDropTree.NewItem>
   );
 };

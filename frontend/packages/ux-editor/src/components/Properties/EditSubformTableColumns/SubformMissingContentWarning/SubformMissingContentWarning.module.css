@@ -1,4 +1,4 @@
 .redirectButton {
   margin-top: var(--fds-spacing-3);
-  max-width: var(--fds-sizing-30);
+  align-self: flex-start;
 }

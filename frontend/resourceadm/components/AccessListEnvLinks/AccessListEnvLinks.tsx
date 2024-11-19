@@ -1,14 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Alert, List, Paragraph } from '@digdir/designsystemet-react';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import { StudioButton, StudioSpinner } from '@studio/components';
+import { StudioSpinner } from '@studio/components';
 import { ArrowForwardIcon } from '@studio/icons';
 import classes from './AccessListEnvLinks.module.css';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export const AccessListEnvLinks = (): React.JSX.Element => {
   const { t } = useTranslation();
@@ -54,14 +54,14 @@ export const AccessListEnvLinks = (): React.JSX.Element => {
             .filter((env) => env.isResourcePublished)
             .map((env) => {
               return (
-                <StudioButton key={env.id} variant='tertiary' asChild>
-                  <Link
-                    to={`${getResourcePageURL(org, app, resourceId, 'accesslists')}/${env.id}/`}
-                  >
-                    <ArrowForwardIcon />
-                    {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}
-                  </Link>
-                </StudioButton>
+                <ButtonRouterLink
+                  icon={<ArrowForwardIcon />}
+                  key={env.id}
+                  to={`${getResourcePageURL(org, app, resourceId, 'accesslists')}/${env.id}/`}
+                  variant='tertiary'
+                >
+                  {t('resourceadm.about_resource_edit_rrr', { env: t(env.label) })}
+                </ButtonRouterLink>
               );
             })}
         </>
