@@ -7,6 +7,18 @@
       "tasks": [
         "Task_1"
       ]
+    },
+    {
+      "id": "signing-founders",
+      "tasks": [
+        "Activity_0atkg6i"
+      ]
+    },
+    {
+      "id": "signing-auditor",
+      "tasks": [
+        "Activity_0v7szrr"
+      ]
     }
   ],
   "uiSettings": {}

@@ -40,6 +40,34 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": []
+    },
+    {
+      "id": "signatureInformation-KAkQ",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "taskId": "Activity_0atkg6i",
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signatureInformation-1ZBW",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "taskId": "Activity_0v7szrr",
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {

@@ -103,6 +103,47 @@
       },
       {
         "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Etternavn"
+        },
+        "id": "etternavn",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.etternavn.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "simpleBinding": "StifterPerson.Foedselsnummer"
+        },
+        "id": "foedselsnummer",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "stiftere-og-aksjetegning.Input-NQacsF.title"
+        },
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
+          "address": "StifterPerson.Adresse.Adresselinje",
+          "zipCode": "StifterPerson.Adresse.Postnummer",
+          "postPlace": "StifterPerson.Adresse.Sted"
+        },
+        "simplified": true,
+        "saveWhileTyping": 400,
+        "id": "Address-ORk7vt",
+        "type": "Address",
+        "required": true,
+        "grid": {
+          "md": 6
+        }
+      },
+      {
+        "dataModelBindings": {
           "simpleBinding": "StifterPerson.Aksjetegning.AntallAksjer"
         },
         "id": "Input-Vq1fOU",
@@ -185,47 +226,6 @@
         ],
         "grid": {
           "xl": 6,
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "StifterPerson.Etternavn"
-        },
-        "id": "etternavn",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "stiftere-og-aksjetegning.etternavn.title"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "StifterPerson.Foedselsnummer"
-        },
-        "id": "foedselsnummer",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "stiftere-og-aksjetegning.Input-NQacsF.title"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "address": "StifterPerson.Adresse.Adresselinje",
-          "zipCode": "StifterPerson.Adresse.Postnummer",
-          "postPlace": "StifterPerson.Adresse.Sted"
-        },
-        "simplified": true,
-        "saveWhileTyping": 400,
-        "id": "Address-ORk7vt",
-        "type": "Address",
-        "required": true,
-        "grid": {
           "md": 6
         }
       }
