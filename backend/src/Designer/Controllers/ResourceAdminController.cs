@@ -607,15 +607,15 @@ namespace Altinn.Studio.Designer.Controllers
             if (resource?.HasCompetentAuthority == null)
             {
                 return false;
-            } 
-            
+            }
+
             bool isOwnedByOrg = resource.HasCompetentAuthority.Orgcode.Equals(loggedInOrg, StringComparison.InvariantCultureIgnoreCase);
-            
+
             if (OrgUtil.IsTestEnv(loggedInOrg))
             {
                 return isOwnedByOrg || resource.HasCompetentAuthority.Orgcode.Equals("acn", StringComparison.InvariantCultureIgnoreCase);
             }
-            
+
             return isOwnedByOrg;
 
         }
