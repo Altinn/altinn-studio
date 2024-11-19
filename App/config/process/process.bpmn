@@ -30,7 +30,7 @@
           </altinn:actions>
           <altinn:signatureConfig>
             <altinn:dataTypesToSign>
-              <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+              <altinn:dataType>Skjemadata</altinn:dataType>
             </altinn:dataTypesToSign>
             <altinn:signatureDataType>signatureInformation-KAkQ</altinn:signatureDataType>
           </altinn:signatureConfig>
