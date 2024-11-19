@@ -38,7 +38,7 @@ describe('ScopeList', () => {
 
     await waitForGetScopesCheckIsDone();
 
-    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
 
     allScopes.forEach((scope: MaskinportenScope) => {
       expect(screen.getByRole('checkbox', { name: scope.scope }));

@@ -12,6 +12,7 @@ import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQue
 import { useTranslation } from 'react-i18next';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
+import { mapRowElementsToSelectedScopes, mapScopesToRowElements } from './utils';
 
 export const ScopeList = (): ReactElement => {
   const { t } = useTranslation();
@@ -57,8 +58,11 @@ const ScopeListContent = ({ allScopes, selectedScopes }: ScopeListContentProps):
   const isAnyChecked = rowElements.some((element) => element.checked);
 
   const handleChangeAllScopes = () => {
-    // TODO: Replace line below with mutation call to update the database
-    setRowElements(rowElements.map((element) => ({ ...element, checked: !areAllChecked })));
+    const updatedRowElements: StudioCheckboxTableRowElement[] = rowElements.map((element) => ({
+      ...element,
+      checked: !areAllChecked,
+    }));
+    saveUpdatedScopes(updatedRowElements);
   };
 
   const handleChangeScope = (event: ChangeEvent<HTMLInputElement>) => {
@@ -67,6 +71,12 @@ const ScopeListContent = ({ allScopes, selectedScopes }: ScopeListContentProps):
     const updatedRowElements: StudioCheckboxTableRowElement[] = rowElements.map((element) =>
       element.value === clickedValue ? { ...element, checked: !element.checked } : element,
     );
+    saveUpdatedScopes(updatedRowElements);
+  };
+
+  const saveUpdatedScopes = (updatedRowElements: StudioCheckboxTableRowElement[]) => {
+    const updatedScopes: MaskinportenScope[] = mapRowElementsToSelectedScopes(updatedRowElements);
+    console.log('SelectedScopes', updatedScopes);
 
     // TODO: Replace line below with mutation call to update the database
     setRowElements(updatedRowElements);
@@ -102,16 +112,4 @@ const ScopeListContent = ({ allScopes, selectedScopes }: ScopeListContentProps):
       </StudioCheckboxTable>
     </>
   );
-};
-
-const mapScopesToRowElements = (
-  scopes: MaskinportenScope[],
-  selectedScopes: MaskinportenScope[],
-): StudioCheckboxTableRowElement[] => {
-  return scopes.map((scope) => ({
-    label: scope.scope,
-    value: scope.scope,
-    description: scope.description,
-    checked: selectedScopes.some((selected) => selected.scope === scope.scope),
-  }));
 };
