@@ -90,7 +90,7 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
         label={t('app_content_library.code_lists.create_new_code_list_name')}
         className={classes.codeListTitle}
         size='small'
-        onBlur={(event) => handleCodeListTitleChange(event.target.value)}
+        onChange={(event) => handleCodeListTitleChange(event.target.value)}
       />
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
@@ -106,7 +106,9 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
         onClick={handleSaveCodeList}
         variant='secondary'
         disabled={isSaveButtonDisabled}
-      />
+      >
+        {t('app_content_library.code_lists.save_new_code_list')}
+      </StudioButton>
     </div>
   );
 }

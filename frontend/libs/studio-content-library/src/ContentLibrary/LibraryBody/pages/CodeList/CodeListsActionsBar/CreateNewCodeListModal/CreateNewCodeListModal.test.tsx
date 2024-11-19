@@ -111,7 +111,6 @@ const inputCodeListTitle = async (user: UserEvent) => {
     name: textMock('app_content_library.code_lists.create_new_code_list_name'),
   });
   await user.type(codeListNameInput, newCodeListTitleMock);
-  await user.tab();
 };
 
 const addCodeListItem = async (user: UserEvent) => {
