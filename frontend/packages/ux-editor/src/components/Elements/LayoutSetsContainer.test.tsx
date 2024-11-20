@@ -8,6 +8,7 @@ import {
   layoutSet1NameMock,
   layoutSet2NameMock,
   layoutSet3SubformNameMock,
+  layoutSetsExtendedMock,
   layoutSetsMock,
 } from '../../testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -31,8 +32,12 @@ describe('LayoutSetsContainer', () => {
     const combobox = screen.getByRole('combobox');
     await user.click(combobox);
 
-    expect(await screen.findByRole('option', { name: layoutSetName1 })).toBeInTheDocument();
-    expect(await screen.findByRole('option', { name: layoutSetName2 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('option', { name: new RegExp(layoutSetName1 + ' ') }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('option', { name: new RegExp(layoutSetName2 + ' ') }),
+    ).toBeInTheDocument();
   });
 
   it('should not render combobox when there are no layoutSets', async () => {
@@ -45,7 +50,7 @@ describe('LayoutSetsContainer', () => {
     const user = userEvent.setup();
     const combobox = screen.getByRole('combobox');
     await user.click(combobox);
-    await user.click(screen.getByRole('option', { name: layoutSetName2 }));
+    await user.click(screen.getByRole('option', { name: new RegExp(layoutSetName2 + ' ') }));
 
     await waitFor(() =>
       expect(appContextMock.setSelectedFormLayoutSetName).toHaveBeenCalledTimes(1),
@@ -95,5 +100,6 @@ describe('LayoutSetsContainer', () => {
 const render = (layoutSetsData = layoutSetsMock, options: { selectedlayoutSet?: string } = {}) => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsData);
   appContextMock.selectedFormLayoutSetName = options.selectedlayoutSet || layoutSetName1;
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
   return renderWithProviders(<LayoutSetsContainer />);
 };
