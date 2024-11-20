@@ -1,5 +1,14 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { AttributionControl, GeoJSON, MapContainer, Marker, TileLayer, Tooltip, useMapEvent } from 'react-leaflet';
+import {
+  AttributionControl,
+  GeoJSON,
+  MapContainer,
+  Marker,
+  TileLayer,
+  Tooltip,
+  useMapEvent,
+  WMSTileLayer,
+} from 'react-leaflet';
 
 import cn from 'classnames';
 import { icon, type Map as LeafletMap } from 'leaflet';
@@ -129,14 +138,32 @@ export function Map({
       attributionControl={false}
     >
       {setMarkerLocation && isInteractive && <MapClickHandler onClick={setMarkerLocation} />}
-      {layers.map((layer, i) => (
-        <TileLayer
-          key={i}
-          url={layer.url}
-          attribution={layer.attribution}
-          subdomains={layer.subdomains ? layer.subdomains : []}
-        />
-      ))}
+      {layers.map((layer, i) =>
+        layer.type === 'WMS' ? (
+          <WMSTileLayer
+            key={i}
+            url={layer.url}
+            attribution={layer.attribution}
+            subdomains={layer.subdomains ? layer.subdomains : []}
+            layers={layer.layers}
+            format={layer.format ?? 'image/jpeg'}
+            version={layer.version ?? '1.1.1'}
+            transparent={layer.transparent ?? false}
+            uppercase={layer.uppercase ?? false}
+            minZoom={layer.minZoom ?? 0}
+            maxZoom={layer.maxZoom ?? 18}
+          />
+        ) : (
+          <TileLayer
+            key={i}
+            url={layer.url}
+            attribution={layer.attribution}
+            subdomains={layer.subdomains ? layer.subdomains : []}
+            minZoom={layer.minZoom ?? 0}
+            maxZoom={layer.maxZoom ?? 18}
+          />
+        ),
+      )}
       {geometries?.map(({ altinnRowId, data, label }) => (
         <GeoJSON
           key={altinnRowId}
