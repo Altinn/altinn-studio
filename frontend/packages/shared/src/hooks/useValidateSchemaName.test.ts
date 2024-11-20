@@ -1,16 +1,19 @@
 import { SCHEMA_NAME_MAX_LENGTH, useValidateSchemaName } from './useValidateSchemaName';
-import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { act } from '@testing-library/react';
 import {
-  dataModel1NameMock,
-  jsonMetadata1Mock,
-} from '../../../../packages/schema-editor/test/mocks/metadataMocks';
-import { mockAppMetadata, mockDataTypeId } from '../../../test/applicationMetadataMock';
-import { renderHookWithProviders } from '../../../test/mocks';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
+  mockAppMetadata,
+  mockDataTypeId,
+} from '../../../../app-development/test/applicationMetadataMock';
+import { createQueryClientMock } from '../mocks/queryClientMock';
+import { QueryKey } from '../types/QueryKey';
 import { app, org } from '@studio/testing/testids';
+import { renderHookWithProviders } from '../../../../app-development/test/mocks';
+import {
+  dataModelNameMock,
+  jsonMetadataMock,
+  xsdMetadataMock,
+} from 'app-shared/mocks/dataModelMetadataMocks';
 
 describe('useValidateSchemaName', () => {
   afterEach(() => {
@@ -54,12 +57,12 @@ describe('useValidateSchemaName', () => {
     const { result } = renderUseValidateSchemaName();
 
     act(() => {
-      result.current.validateName(dataModel1NameMock);
+      result.current.validateName(dataModelNameMock);
     });
 
     expect(result.current.nameError).toBe(
       textMock('schema_editor.error_model_name_exists', {
-        newModelName: dataModel1NameMock,
+        newModelName: dataModelNameMock,
       }),
     );
   });
@@ -178,14 +181,14 @@ describe('useValidateSchemaName', () => {
 });
 
 const renderUseValidateSchemaName = () => {
-  const dataModels: DataModelMetadata[] = [jsonMetadata1Mock];
-
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.AppMetadata, org, app], mockAppMetadata);
+  queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadataMock]);
+  queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadataMock]);
   const { renderHookResult: result } = renderHookWithProviders(
     {},
     queryClient,
-  )(() => useValidateSchemaName(dataModels));
+  )(() => useValidateSchemaName());
 
   return result;
 };

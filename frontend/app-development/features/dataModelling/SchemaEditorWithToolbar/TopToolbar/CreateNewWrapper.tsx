@@ -3,16 +3,14 @@ import React, { useState } from 'react';
 import classes from './CreateNewWrapper.module.css';
 import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
-import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
-import { useValidateSchemaName } from '../../hooks/useValidateSchemaName';
+import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
   isCreateNewOpen: boolean;
   createPathOption?: boolean;
-  dataModels: DataModelMetadata[];
   setIsCreateNewOpen: (open: boolean) => void;
 }
 
@@ -20,12 +18,11 @@ export function CreateNewWrapper({
   disabled,
   createPathOption = false,
   isCreateNewOpen,
-  dataModels,
   setIsCreateNewOpen,
 }: CreateNewWrapperProps) {
   const { t } = useTranslation();
   const [newModelName, setNewModelName] = useState('');
-  const { validateName, nameError, setNameError } = useValidateSchemaName(dataModels);
+  const { validateName, nameError, setNameError } = useValidateSchemaName();
   const { mutate: createDataModel } = useCreateDataModelMutation();
 
   const isConfirmButtonActivated = newModelName && !nameError;

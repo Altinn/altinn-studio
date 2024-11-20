@@ -42,7 +42,6 @@ export function TopToolbar({
   return (
     <section className={classes.toolbar} role='toolbar'>
       <CreateNewWrapper
-        dataModels={dataModels}
         disabled={false}
         isCreateNewOpen={isCreateNewOpen}
         setIsCreateNewOpen={setIsCreateNewOpen}

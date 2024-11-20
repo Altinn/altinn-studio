@@ -1,16 +1,27 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAppMetadataQuery } from 'app-shared/hooks/queries';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
-import type { ApplicationMetadata, DataTypeElement } from 'app-shared/types/ApplicationMetadata';
-import { extractModelNamesFromMetadataList } from '../../../utils/metadataUtils';
+import {
+  useAppMetadataQuery,
+  useDataModelsJsonQuery,
+  useDataModelsXsdQuery,
+} from '../hooks/queries';
+import { useStudioEnvironmentParams } from '../hooks/useStudioEnvironmentParams';
+import type { DataModelMetadata } from '../types/DataModelMetadata';
+import type { ApplicationMetadata, DataTypeElement } from '../types/ApplicationMetadata';
+import {
+  extractModelNamesFromMetadataList,
+  mergeJsonAndXsdData,
+} from '../../../../app-development/utils/metadataUtils';
 
-export const useValidateSchemaName = (dataModels: DataModelMetadata[]) => {
+export const useValidateSchemaName = () => {
   const [nameError, setNameError] = useState('');
   const { org, app } = useStudioEnvironmentParams();
   const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const { data: jsonData } = useDataModelsJsonQuery(org, app);
+  const { data: xsdData } = useDataModelsXsdQuery(org, app);
   const { t } = useTranslation();
+
+  const dataModels = mergeJsonAndXsdData(jsonData, xsdData);
 
   const validateName = (name: string): void => {
     if (!name) {
