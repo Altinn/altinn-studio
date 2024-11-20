@@ -7,14 +7,14 @@ import { useTranslation } from 'react-i18next';
 
 export type CodeListsProps = {
   codeLists: CodeListWithMetadata[];
-  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
+  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
 };
 
 export function CodeLists({
   codeLists,
-  onChangeCodeListId,
+  onUpdateCodeListId,
   onUpdateCodeList,
   codeListInEditMode,
 }: CodeListsProps) {
@@ -22,7 +22,7 @@ export function CodeLists({
     <CodeList
       key={codeList.title}
       codeList={codeList}
-      onChangeCodeListId={onChangeCodeListId}
+      onUpdateCodeListId={onUpdateCodeListId}
       onUpdateCodeList={onUpdateCodeList}
       codeListInEditMode={codeListInEditMode}
     />
@@ -31,15 +31,15 @@ export function CodeLists({
 
 type CodeListProps = {
   codeList: CodeListWithMetadata;
-  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
+  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
 };
 
 function CodeList({
   codeList,
+  onUpdateCodeListId,
   onUpdateCodeList,
-  onChangeCodeListId,
   codeListInEditMode,
 }: CodeListProps) {
   const { t } = useTranslation();
@@ -56,7 +56,7 @@ function CodeList({
         <Accordion.Content>
           <EditCodeList
             codeList={codeList}
-            onChangeCodeListId={onChangeCodeListId}
+            onUpdateCodeListId={onUpdateCodeListId}
             onUpdateCodeList={onUpdateCodeList}
           />
         </Accordion.Content>

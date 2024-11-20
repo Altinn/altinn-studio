@@ -46,7 +46,7 @@ describe('CodeListPage', () => {
     expect(codeListUploadButton).toBeInTheDocument();
   });
 
-  it('renders the code list', () => {
+  it('renders the code list accordion', () => {
     renderCodeList();
     const codeListAccordion = screen.getByTitle(
       textMock('app_content_library.code_lists.code_list_accordion_title', {

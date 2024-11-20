@@ -7,7 +7,7 @@ import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils } from '@studio/pure-functions';
-import { RemoveExtension } from './utils/ExtractFileName';
+import { RemoveExtension } from './utils/RemoveExtension';
 
 export type CodeListWithMetadata = {
   codeList: StudioComponentCodeList;
@@ -16,14 +16,14 @@ export type CodeListWithMetadata = {
 
 export type CodeListPageProps = {
   codeLists: CodeListWithMetadata[];
-  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
+  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   fetchDataError: boolean;
 };
 export function CodeListPage({
   codeLists,
-  onChangeCodeListId,
+  onUpdateCodeListId,
   onUpdateCodeList,
   onUploadCodeList,
   fetchDataError,
@@ -41,9 +41,9 @@ export function CodeListPage({
     setCodeListInEditMode(RemoveExtension(uploadedCodeList.name));
   };
 
-  const handleChangeCodeListId = (codeListId: string, newCodeListId: string) => {
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string) => {
     setCodeListInEditMode(newCodeListId);
-    onChangeCodeListId(codeListId, newCodeListId);
+    onUpdateCodeListId(codeListId, newCodeListId);
   };
 
   return (
@@ -57,7 +57,7 @@ export function CodeListPage({
       />
       <CodeLists
         codeLists={codeLists}
-        onChangeCodeListId={handleChangeCodeListId}
+        onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
       />

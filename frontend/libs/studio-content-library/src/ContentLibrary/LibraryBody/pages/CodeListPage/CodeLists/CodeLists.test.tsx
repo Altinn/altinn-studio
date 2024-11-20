@@ -4,7 +4,6 @@ import type { CodeListsProps } from './CodeLists';
 import { updateCodeListWithMetadata, CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeListPage';
-import type { UserEvent } from '@testing-library/user-event';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
@@ -14,33 +13,33 @@ const codeListWithMetadataMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: [{ value: 'value', label: 'label' }],
 };
-const onChangeCodeListIdMock = jest.fn();
+const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
 describe('CodeLists', () => {
-  it('renders the code list', () => {
+  it('renders the code list accordion closed by default', () => {
     renderCodeLists();
-    const codeListAccordion = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle: codeListName,
-      }),
-    );
+    const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: false });
     expect(codeListAccordion).toBeInTheDocument();
+    expect(codeListAccordion).toHaveAttribute('aria-expanded', 'false');
   });
 
-  it('renders the code list editor when opening the accordion', async () => {
-    const user = userEvent.setup();
+  it('renders the code list accordion open by default if code list title is equal to codeListInEditMode', () => {
+    renderCodeLists({ codeListInEditMode: codeListName });
+    const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: true });
+    expect(codeListAccordion).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('renders the code list editor', () => {
     renderCodeLists();
-    await openCodeList(user);
     const codeListEditor = screen.getByText(textMock('code_list_editor.legend'));
-    expect(codeListEditor).toBeVisible();
+    expect(codeListEditor).toBeInTheDocument();
   });
 
   it('calls onUpdateCodeList when changing a code list', async () => {
     const user = userEvent.setup();
     const codeListValueText = 'codeListValueText';
     renderCodeLists();
-    await openCodeList(user);
     const codeListFirstItemValue = screen.getByLabelText(
       textMock('code_list_editor.value_item', { number: 1 }),
     );
@@ -57,7 +56,6 @@ describe('CodeLists', () => {
   it('calls onUpdateCodeListId when changing the code list id', async () => {
     const user = userEvent.setup();
     renderCodeLists();
-    await openCodeList(user);
     const codeListIdToggleTextfield = screen.getByTitle(
       textMock('app_content_library.code_lists.code_list_view_id_title'),
     );
@@ -67,24 +65,16 @@ describe('CodeLists', () => {
     );
     await user.type(codeListIdInput, '2');
     await user.tab();
-    expect(onChangeCodeListIdMock).toHaveBeenCalledTimes(1);
-    expect(onChangeCodeListIdMock).toHaveBeenLastCalledWith(codeListName, codeListName + '2');
+    expect(onUpdateCodeListIdMock).toHaveBeenCalledTimes(1);
+    expect(onUpdateCodeListIdMock).toHaveBeenLastCalledWith(codeListName, codeListName + '2');
   });
 });
 
-const openCodeList = async (user: UserEvent) => {
-  const codeListAccordion = screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_accordion_title', {
-      codeListTitle: codeListName,
-    }),
-  );
-  await user.click(codeListAccordion);
-};
-
 const defaultProps: CodeListsProps = {
   codeLists: [codeListWithMetadataMock],
-  onChangeCodeListId: onChangeCodeListIdMock,
+  onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
+  codeListInEditMode: undefined,
 };
 
 const renderCodeLists = (props: Partial<CodeListsProps> = {}): RenderResult => {

@@ -9,20 +9,20 @@ import {updateCodeListWithMetadata} from "../CodeLists";
 
 export type EditCodeListProps = {
   codeList: CodeListWithMetadata;
-  onChangeCodeListId: (codeListId: string, newCodeListId: string) => void;
+  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
 export function EditCodeList({
   codeList,
-  onChangeCodeListId,
+  onUpdateCodeListId,
   onUpdateCodeList,
 }: EditCodeListProps): React.ReactElement {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-
-  const handleCodeListTitleChange = (newCodeListId: string) => {
-      if (newCodeListId !== codeList.title) onChangeCodeListId(codeList.title, newCodeListId);
+  
+  const handleUpdateCodeListId = (newCodeListId: string) => {
+    if (newCodeListId !== codeList.title) onUpdateCodeListId(codeList.title, newCodeListId);
   };
 
     const handleBlurAny = (updatedCodeList: CodeList): void => {
@@ -35,15 +35,15 @@ export function EditCodeList({
       <StudioToggleableTextfield
         inputProps={{
           icon: <KeyVerticalIcon />,
-          title: t('app_content_library.code_lists.code_list_edit_id_title'),
+          name: t('app_content_library.code_lists.code_list_edit_id_title'),
           value: codeList.title,
-          onBlur: (event) => handleCodeListTitleChange(event.target.value),
+          onBlur: (event) => handleUpdateCodeListId(event.target.value),
           size: 'small',
         }}
         viewProps={{
           children: codeList.title,
           variant: 'tertiary',
-          title: t('app_content_library.code_lists.code_list_view_id_title'),
+          name: t('app_content_library.code_lists.code_list_view_id_title'),
         }}
       />
       <StudioCodeListEditor
