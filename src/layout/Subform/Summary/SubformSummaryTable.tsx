@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { Paragraph, Spinner, Table } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
@@ -13,7 +12,7 @@ import { useStrictDataElements, useStrictInstanceId } from 'src/features/instanc
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { usePdfModeActive } from 'src/features/pdf/PDFWrapper';
-import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage, useNavigate } from 'src/features/routing/AppRoutingContext';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

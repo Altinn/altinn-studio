@@ -971,11 +971,4 @@ export const FD = {
 
     return useCallback((dataElementId: string) => map[dataElementId], [map]);
   },
-
-  /**
-   * This lets you set to a function that will be called as soon as the saving operation finishes.
-   * Beware that this is not a subscription service, so you can easily overwrite an existing callback here. This
-   * is only meant to be used in NodesContext.
-   */
-  useSetOnSaveFinished: () => useSelector((s) => s.setOnSaveFinished),
 };

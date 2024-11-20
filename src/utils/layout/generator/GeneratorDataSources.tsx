@@ -29,10 +29,7 @@ const { Provider, hooks } = createHookContext({
   useReadableDataTypes: () => DataModels.useReadableDataTypes(),
   useExternalApis: () => useExternalApis(useApplicationMetadata().externalApiIds ?? []),
   useIsForcedVisibleByDevTools: () => useDevToolsStore((state) => state.isOpen && state.hiddenComponents !== 'hide'),
-
   useGetDataElementIdForDataType: () => DataModels.useGetDataElementIdForDataType(),
-  useValidationsProcessedLast: () => Validation.useProcessedLast(),
-
   useCommitWhenFinished: () => useCommitWhenFinished(),
 });
 
@@ -42,10 +39,7 @@ export const GeneratorData = {
   useValidationDataSources,
   useDefaultDataType: hooks.useDefaultDataType,
   useIsForcedVisibleByDevTools: hooks.useIsForcedVisibleByDevTools,
-
   useGetDataElementIdForDataType: hooks.useGetDataElementIdForDataType,
-  useValidationsProcessedLast: hooks.useValidationsProcessedLast,
-
   useCommitWhenFinished: hooks.useCommitWhenFinished,
 };
 

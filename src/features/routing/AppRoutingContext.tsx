@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { matchPath, useLocation, useNavigate as useNativeNavigate } from 'react-router-dom';
 import type { MutableRefObject, PropsWithChildren } from 'react';
+import type { NavigateOptions } from 'react-router-dom';
 
 import { createStore } from 'zustand';
 
@@ -30,8 +31,10 @@ interface Context {
   updateHash: (hash: string) => void;
   effectCallback: NavigationEffectCb | null;
   setEffectCallback: (cb: NavigationEffectCb | null) => void;
-  navigateRef: MutableRefObject<ReturnType<typeof useNativeNavigate>>;
+  navigateRef: MutableRefObject<SimpleNavigate | undefined>;
 }
+
+export type SimpleNavigate = (target: string, options?: NavigateOptions) => void;
 
 function newStore({ initialLocation }: { initialLocation: string | undefined }) {
   return createStore<Context>((set) => ({
@@ -39,8 +42,7 @@ function newStore({ initialLocation }: { initialLocation: string | undefined }) 
     updateHash: (hash: string) => set({ hash }),
     effectCallback: null,
     setEffectCallback: (effectCallback: NavigationEffectCb) => set({ effectCallback }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigateRef: { current: undefined as any },
+    navigateRef: { current: undefined },
   }));
 }
 
@@ -139,11 +141,13 @@ export const useIsSubformPage = () =>
   useSelector((s) => {
     const path = getPath(s.hash);
     const matches = matchers.map((matcher) => matchPath(matcher, path));
-    return !!paramFrom(matches, 'mainPageKey');
+    const mainPageKey = paramFrom(matches, 'mainPageKey');
+    const subformPageKey = paramFrom(matches, 'pageKey');
+    return !!(mainPageKey && subformPageKey);
   });
 
 // Use this instead of the native one to avoid re-rendering whenever the route changes
-export const useNavigate = () => useSelector((ctx) => ctx.navigateRef).current;
+export const useNavigate = () => useStaticSelector((ctx) => ctx.navigateRef).current!;
 
 const matchers: string[] = [
   '/instance/:partyId/:instanceGuid',
@@ -198,8 +202,20 @@ function UpdateHash() {
 }
 
 function UpdateNavigate() {
-  const navigateRef = useSelector((ctx) => ctx.navigateRef);
-  navigateRef.current = useNativeNavigate();
+  const store = useStore();
+  const navigateRef = useStaticSelector((ctx) => ctx.navigateRef);
+  const nativeNavigate = useNativeNavigate();
+
+  navigateRef.current = (target, options) => {
+    if (target && !target.startsWith('/')) {
+      // Used for relative navigation, e.g. navigating to a subform page
+      const currentPath = getPath(store.getState().hash).replace(/\/$/, '');
+      const newTarget = `${currentPath}/${target}`;
+      nativeNavigate(newTarget, options);
+      return;
+    }
+    nativeNavigate(target, options);
+  };
 
   return null;
 }

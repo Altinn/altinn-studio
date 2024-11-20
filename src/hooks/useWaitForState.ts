@@ -6,9 +6,9 @@ import type { StoreApi } from 'zustand';
 import { ContextNotProvided } from 'src/core/contexts/context';
 
 export type WaitForState<T, RetVal> = (callback: Callback<T, RetVal>) => Promise<RetVal>;
-type Callback<T, RetVal> = (state: T, setReturnValue: (val: RetVal) => void) => boolean;
+type Callback<T, RetVal> = (state: T, setReturnValue: (val: RetVal) => void) => boolean | Promise<boolean>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Subscriber = (state: any) => boolean;
+type Subscriber = (state: any) => boolean | Promise<boolean>;
 
 // If ContextNotProvided is a valid state, it will possibly be provided as a direct
 // input (not wrapped in a ref or store)
@@ -27,8 +27,13 @@ export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForSta
   // Call subscribers on every re-render/state change if state is a ref
   if (isRef(state)) {
     for (const subscriber of subscribersRef.current) {
-      if (subscriber(state.current)) {
+      const result = subscriber(state.current);
+      if (result === true) {
         subscribersRef.current.delete(subscriber);
+      } else if (result instanceof Promise) {
+        result.then((res) => {
+          res && subscribersRef.current.delete(subscriber);
+        });
       }
     }
   }
@@ -36,9 +41,9 @@ export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForSta
   useEffect(() => {
     // Call subscribers on every state change if state is a zustand store
     if (isStore(state)) {
-      return state.subscribe((state) => {
+      return state.subscribe(async (state) => {
         for (const subscriber of subscribersRef.current) {
-          if (subscriber(state)) {
+          if (await subscriber(state)) {
             subscribersRef.current.delete(subscriber);
           }
         }
@@ -56,8 +61,8 @@ export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForSta
         }
 
         if (state === ContextNotProvided) {
-          subscribersRef.current.add((state) => {
-            if (callback(state, setReturnValue)) {
+          subscribersRef.current.add(async (state) => {
+            if (await callback(state, setReturnValue)) {
               resolve(returnValue as RetVal);
               return true;
             }
@@ -69,13 +74,20 @@ export function useWaitForState<RetVal, T>(state: ValidInputs<T>[0]): WaitForSta
         const currentState = isRef(state) ? state.current : state.getState();
 
         // If state is already correct, resolve immediately
-        if (callback(currentState, setReturnValue)) {
+        const result = callback(currentState, setReturnValue);
+
+        if (result === true) {
           resolve(returnValue as RetVal);
           return;
         }
+        if (result instanceof Promise) {
+          result.then((res) => {
+            res && resolve(returnValue as RetVal);
+          });
+        }
 
-        subscribersRef.current.add((state) => {
-          if (callback(state, setReturnValue)) {
+        subscribersRef.current.add(async (state) => {
+          if (await callback(state, setReturnValue)) {
             resolve(returnValue as RetVal);
             return true;
           }

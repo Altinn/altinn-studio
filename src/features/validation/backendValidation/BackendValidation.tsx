@@ -13,7 +13,6 @@ import {
   useShouldValidateInitial,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { Validation } from 'src/features/validation/validationContext';
-import { NodesStore } from 'src/utils/layout/NodesContext';
 
 const emptyObject = {};
 const emptyArray = [];
@@ -88,18 +87,6 @@ export function BackendValidation({ dataTypes }: { dataTypes: string[] }) {
       updateBackendValidations(backendValidations, { incremental: lastSaveValidations });
     }
   }, [dataTypes, defaultDataElementId, lastSaveValidations, updateBackendValidations]);
-
-  return null;
-}
-
-export function MaintainInitialValidationsInNodesContext() {
-  const enabled = useShouldValidateInitial();
-  const { data: initialValidations } = useBackendValidationQuery(enabled);
-  const setInitialValidations = NodesStore.useSelector((state) => state.setLatestInitialValidations);
-
-  useEffect(() => {
-    setInitialValidations(initialValidations);
-  }, [initialValidations, setInitialValidations]);
 
   return null;
 }

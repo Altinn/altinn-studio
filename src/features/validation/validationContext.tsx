@@ -31,6 +31,7 @@ import {
   useShouldValidateInitial,
 } from 'src/features/validation/backendValidation/backendValidationUtils';
 import { InvalidDataValidation } from 'src/features/validation/invalidDataValidation/InvalidDataValidation';
+import { useWaitForNodesToValidate } from 'src/features/validation/nodeValidation/waitForNodesToValidate';
 import { SchemaValidation } from 'src/features/validation/schemaValidation/SchemaValidation';
 import { hasValidationErrors, mergeFieldValidations, selectValidations } from 'src/features/validation/utils';
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -146,6 +147,7 @@ function initialCreateStore() {
 const {
   Provider,
   useSelector,
+  useMemoSelector,
   useLaxShallowSelector,
   useSelectorAsRef,
   useStore,
@@ -188,6 +190,7 @@ function useWaitForValidation(): WaitForValidation {
   const hasWritableDataTypes = !!DataModels.useWritableDataTypes()?.length;
   const enabled = useShouldValidateInitial();
   const getCachedInitialValidations = useGetCachedInitialValidations();
+  const waitForNodesToValidate = useWaitForNodesToValidate();
 
   return useCallback(
     async (forceSave = true) => {
@@ -201,21 +204,22 @@ function useWaitForValidation(): WaitForValidation {
       await waitForNodesReady();
       const validationsFromSave = await waitForSave(forceSave);
       // If validationsFromSave is not defined, we check if initial validations are done processing
-      const lastInitialValidations = await waitForState((state, setReturnValue) => {
+      await waitForState(async (state) => {
         const { isFetching, cachedInitialValidations } = getCachedInitialValidations();
 
-        if (
+        const validationsReady =
           state.processedLast.incremental === validationsFromSave &&
           state.processedLast.initial === cachedInitialValidations &&
-          !isFetching
-        ) {
-          setReturnValue(cachedInitialValidations);
+          !isFetching;
+
+        if (validationsReady) {
+          await waitForNodesToValidate(state.processedLast);
           return true;
         }
 
         return false;
       });
-      await waitForNodesReady({ initial: lastInitialValidations, incremental: validationsFromSave });
+      await waitForNodesReady();
     },
     [
       enabled,
@@ -223,6 +227,7 @@ function useWaitForValidation(): WaitForValidation {
       hasWritableDataTypes,
       waitForAttachments,
       waitForNodesReady,
+      waitForNodesToValidate,
       waitForSave,
       waitForState,
     ],
@@ -334,8 +339,6 @@ export type ValidationDataModelSelector = ReturnType<typeof Validation.useDataMo
 export type DataElementHasErrorsSelector = ReturnType<typeof Validation.useDataElementHasErrorsSelector>;
 
 export const Validation = {
-  useFullStateRef: () => useSelectorAsRef((state) => state.state),
-
   // Selectors. These are memoized, so they won't cause a re-render unless the selected fields change.
   useSelector: () => useDS((state) => state),
   useDataModelSelector: () => useDS((state) => state.state.dataModels),
@@ -377,8 +380,12 @@ export const Validation = {
   useUpdateDataModelValidations: () => useSelector((state) => state.updateDataModelValidations),
   useUpdateBackendValidations: () => useSelector((state) => state.updateBackendValidations),
 
-  useProcessedLast: () => useSelector((state) => state.processedLast),
-  useProcessedLastRef: () => useSelectorAsRef((state) => state.processedLast),
+  useFullState: <U,>(selector: (state: ValidationContext & Internals) => U): U =>
+    useMemoSelector((state) => selector(state)),
+  useGetProcessedLast: () => {
+    const store = useStore();
+    return useCallback(() => store.getState().processedLast, [store]);
+  },
 
   useRef: () => useSelectorAsRef((state) => state),
   useLaxRef: () => useLaxSelectorAsRef((state) => state),

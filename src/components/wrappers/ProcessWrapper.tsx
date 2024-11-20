@@ -5,7 +5,7 @@ import { Route, Routes } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 
 import { Button } from 'src/app-components/button/Button';
-import { Form, FormFirstPage } from 'src/components/form/Form';
+import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';
 import { Loader } from 'src/core/loading/Loader';
@@ -187,7 +187,7 @@ export const ProcessWrapper = () => {
             }
           />
           <Route
-            path=':pageKey'
+            path='*'
             element={
               <PDFWrapper>
                 <PresentationComponent type={realTaskType}>
@@ -195,10 +195,6 @@ export const ProcessWrapper = () => {
                 </PresentationComponent>
               </PDFWrapper>
             }
-          />
-          <Route
-            path='*'
-            element={<FormFirstPage />}
           />
         </Routes>
       </FormProvider>

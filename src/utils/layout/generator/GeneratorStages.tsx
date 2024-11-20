@@ -53,7 +53,9 @@ export type Registry = {
   toCommit: RegistryCommitQueues;
   toCommitCount: number;
   commitTimeout: ReturnType<typeof setTimeout> | null;
-  validations: ValidationsProcessedLast;
+  validationsProcessed: {
+    [nodeId: string]: ValidationsProcessedLast;
+  };
 };
 
 /**
@@ -238,10 +240,7 @@ export function useRegistry() {
       setPageProps: [],
     },
     commitTimeout: null,
-    validations: {
-      initial: undefined,
-      incremental: undefined,
-    },
+    validationsProcessed: {},
   });
 }
 

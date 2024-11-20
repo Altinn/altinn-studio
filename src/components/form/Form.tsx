@@ -91,10 +91,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
     return (
       <>
         <ErrorProcessing setFormState={setFormState} />
-        <Loader
-          reason='form-ids'
-          renderPresentation={false}
-        />
+        <Loader reason='form-ids' />
       </>
     );
   }

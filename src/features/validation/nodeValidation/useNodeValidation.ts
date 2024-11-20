@@ -1,119 +1,59 @@
-import { useMemo } from 'react';
-
-import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
-import { useAttachmentsSelector } from 'src/features/attachments/hooks';
-import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
-import { FD } from 'src/features/formData/FormDataWrite';
-import { useLaxDataElementsSelector } from 'src/features/instance/InstanceContext';
-import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { Validation } from 'src/features/validation/validationContext';
 import { implementsValidateComponent, implementsValidateEmptyField } from 'src/layout';
+import { GeneratorInternal } from 'src/utils/layout/generator/GeneratorContext';
 import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
-import { NodesInternal } from 'src/utils/layout/NodesContext';
-import type {
-  AnyValidation,
-  BaseValidation,
-  ValidationDataSources,
-  ValidationsProcessedLast,
-} from 'src/features/validation';
+import type { AnyValidation, BaseValidation } from 'src/features/validation';
 import type { CompDef, ValidationFilter } from 'src/layout';
 import type { IDataModelReference } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
 
+const emptyArray: AnyValidation[] = [];
+
 /**
  * Runs validations defined in the component classes. This runs from the node generator, and will collect all
  * validations for a node and return them.
  */
-export function useNodeValidation(
-  node: LayoutNode,
-  shouldValidate: boolean,
-): { validations: AnyValidation[]; processedLast: ValidationsProcessedLast } {
-  const dataModelSelector = Validation.useDataModelSelector();
-  const validationDataSources = GeneratorData.useValidationDataSources();
-  const nodeDataSelector = NodesInternal.useNodeDataSelector();
-
+export function useNodeValidation(node: LayoutNode, shouldValidate: boolean): AnyValidation[] {
+  const registry = GeneratorInternal.useRegistry();
+  const dataSources = GeneratorData.useValidationDataSources();
   const getDataElementIdForDataType = GeneratorData.useGetDataElementIdForDataType();
-  const processedLast = GeneratorData.useValidationsProcessedLast();
+  const dataModelBindings = GeneratorInternal.useIntermediateItem()?.dataModelBindings;
+  const bindings = Object.entries((dataModelBindings ?? {}) as Record<string, IDataModelReference>);
 
-  return {
-    processedLast,
-    validations: useMemo(() => {
-      const validations: AnyValidation[] = [];
-      if (!shouldValidate) {
-        return validations;
+  return Validation.useFullState((state) => {
+    if (!shouldValidate) {
+      return emptyArray;
+    }
+
+    const validations: AnyValidation[] = [];
+    if (implementsValidateEmptyField(node.def)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      validations.push(...node.def.runEmptyFieldValidation(node as any, dataSources));
+    }
+
+    if (implementsValidateComponent(node.def)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      validations.push(...node.def.runComponentValidation(node as any, dataSources));
+    }
+
+    for (const [bindingKey, { dataType, field }] of bindings) {
+      const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
+      const fieldValidations = state.state.dataModels[dataElementId]?.[field];
+      if (fieldValidations) {
+        validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
       }
+    }
 
-      if (implementsValidateEmptyField(node.def)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        validations.push(...node.def.runEmptyFieldValidation(node as any, validationDataSources));
-      }
+    const result = filter(validations, node, dataSources.nodeDataSelector);
+    registry.current.validationsProcessed[node.id] = state.processedLast;
 
-      if (implementsValidateComponent(node.def)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        validations.push(...node.def.runComponentValidation(node as any, validationDataSources));
-      }
+    if (result.length === 0) {
+      return emptyArray;
+    }
 
-      const dataModelBindings = validationDataSources.nodeDataSelector(
-        (picker) => picker(node)?.layout.dataModelBindings,
-        [node],
-      );
-      for (const [bindingKey, { dataType, field }] of Object.entries(
-        (dataModelBindings ?? {}) as Record<string, IDataModelReference>,
-      )) {
-        const dataElementId = getDataElementIdForDataType(dataType) ?? dataType; // stateless does not have dataElementId
-        const fieldValidations = dataModelSelector(
-          (dataModels) => dataModels[dataElementId]?.[field],
-          [dataType, field],
-        );
-        if (fieldValidations) {
-          validations.push(...fieldValidations.map((v) => ({ ...v, bindingKey })));
-        }
-      }
-
-      return filter(validations, node, nodeDataSelector);
-    }, [shouldValidate, node, validationDataSources, nodeDataSelector, getDataElementIdForDataType, dataModelSelector]),
-  };
-}
-
-/**
- * Hook providing validation data sources
- */
-function useValidationDataSources(): ValidationDataSources {
-  const formDataSelector = FD.useDebouncedSelector();
-  const invalidDataSelector = FD.useInvalidDebouncedSelector();
-  const attachmentsSelector = useAttachmentsSelector();
-  const currentLanguage = useCurrentLanguage();
-  const nodeSelector = NodesInternal.useNodeDataSelector();
-  const applicationMetadata = useApplicationMetadata();
-  const dataElementsSelector = useLaxDataElementsSelector();
-  const layoutSets = useLayoutSets();
-  const dataElementHasErrorsSelector = Validation.useDataElementHasErrorsSelector();
-
-  return useMemo(
-    () => ({
-      formDataSelector,
-      invalidDataSelector,
-      attachmentsSelector,
-      currentLanguage,
-      nodeDataSelector: nodeSelector,
-      applicationMetadata,
-      dataElementsSelector,
-      layoutSets,
-      dataElementHasErrorsSelector,
-    }),
-    [
-      formDataSelector,
-      invalidDataSelector,
-      attachmentsSelector,
-      currentLanguage,
-      nodeSelector,
-      applicationMetadata,
-      dataElementsSelector,
-      layoutSets,
-      dataElementHasErrorsSelector,
-    ],
-  );
+    return result;
+  });
 }
 
 /**

@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 
-import { Form, FormFirstPage } from 'src/components/form/Form';
+import { Form } from 'src/components/form/Form';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
-import { useIsCurrentView, useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -19,21 +19,10 @@ export function SubformWrapper({ node }: { node: LayoutNode<'Subform'> }) {
 
   return (
     <FormProvider>
-      <SubformForm />
+      <Form />
     </FormProvider>
   );
 }
-
-function SubformForm() {
-  const hasFormPage = !useIsCurrentView(undefined);
-
-  if (hasFormPage) {
-    return <Form />;
-  }
-
-  return <FormFirstPage />;
-}
-
 export const RedirectBackToMainForm = () => {
   const mainPageKey = useNavigationParam('mainPageKey');
   const { navigateToPage } = useNavigatePage();

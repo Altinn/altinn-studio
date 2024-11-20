@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { Spinner, Table } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
@@ -14,7 +13,7 @@ import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';
 import { useStrictDataElements, useStrictInstanceId } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
+import { useIsSubformPage, useNavigate } from 'src/features/routing/AppRoutingContext';
 import { useAddEntryMutation, useDeleteEntryMutation } from 'src/features/subformData/useSubformMutations';
 import { isSubformValidation } from 'src/features/validation';
 import { useComponentValidationsForNode } from 'src/features/validation/selectors/componentValidationsForNode';
