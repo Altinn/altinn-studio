@@ -7,11 +7,14 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const mockComponentOptionsId = 'options';
+const getOptionLists = jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult));
+const updateOptionList = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve<Option[]>([{ value: '', label: '' }]));
 
 const apiResult: OptionsLists = {
   options: [
@@ -22,9 +25,7 @@ const apiResult: OptionsLists = {
 };
 
 describe('OptionListEditor', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(jest.clearAllMocks);
 
   it('should render a spinner when there is no data', () => {
     renderOptionListEditor({
@@ -110,8 +111,8 @@ describe('OptionListEditor', () => {
     });
     await user.type(textBox, 'test');
 
-    await waitFor(() => expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1));
-    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
+    await waitFor(() => expect(updateOptionList).toHaveBeenCalledTimes(1));
+    expect(updateOptionList).toHaveBeenCalledWith(
       org,
       app,
       mockComponentOptionsId,
@@ -129,10 +130,7 @@ const openModal = async (user: UserEvent) => {
 
 const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {}) => {
   return renderWithProviders(<OptionListEditor optionsId={mockComponentOptionsId} />, {
-    queries: {
-      getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
-      ...queries,
-    },
+    queries: { getOptionLists, updateOptionList, ...queries },
     queryClient: createQueryClientMock(),
     previewContextProps,
   });
@@ -140,9 +138,7 @@ const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {})
 
 const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({
   previewContextProps = {},
-  queries = {
-    getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult)),
-  },
+  queries = {},
 } = {}) => {
   const view = renderOptionListEditor({ previewContextProps, queries });
   await waitForElementToBeRemoved(() => {
