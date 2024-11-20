@@ -6,7 +6,3 @@
 .header {
   background-color: var(--fds-colors-grey-100);
 }
-
-.checkboxContent {
-  width: 3rem;
-}
