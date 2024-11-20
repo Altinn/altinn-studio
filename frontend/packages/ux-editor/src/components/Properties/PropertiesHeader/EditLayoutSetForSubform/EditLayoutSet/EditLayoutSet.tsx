@@ -16,6 +16,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
+import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 
 export const EditLayoutSet = <T extends ComponentType>({
   handleComponentChange,
@@ -26,14 +27,34 @@ export const EditLayoutSet = <T extends ComponentType>({
   const [selectedSubform, setSelectedSubform] = useState<string>(undefined);
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-
+  const { createSubform, isPendingLayoutSetMutation } = useCreateSubform();
   const subformUtils = new SubformUtilsImpl(layoutSets.sets);
   const hasSubforms = subformUtils.hasSubforms;
   const { title, description } = subformUtils.recommendedNextActionText;
 
-  const handleUpdatedLayoutSet = (layoutSet: string): void => {
-    const updatedComponent = { ...component, layoutSet };
+  const handleUpdatedComponent = (subform: string) => {
+    const updatedComponent = { ...component, layoutSet: subform };
     handleComponentChange(updatedComponent);
+  };
+
+  const handleSelectSubformSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    const formData: FormData = new FormData(e.currentTarget);
+    const subform = formData.get('subform') as string;
+    handleComponentChange({ ...component, layoutSet: subform });
+  };
+
+  const handleCreateSubformSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    const formData: FormData = new FormData(e.currentTarget);
+    const newSubformName = formData.get('subform') as string;
+    const subformDataType = formData.get('subformDataType') as string;
+
+    createSubform({
+      layoutSetName: newSubformName,
+      onSubformCreated: handleUpdatedComponent,
+      dataType: subformDataType,
+    });
   };
 
   return (
@@ -42,6 +63,11 @@ export const EditLayoutSet = <T extends ComponentType>({
       description={t(description)}
       hideSaveButton={true}
       hideSkipButton={true}
+      onSave={
+        showCreateSubformCard || !hasSubforms
+          ? handleCreateSubformSubmit
+          : handleSelectSubformSubmit
+      }
     >
       {!hasSubforms && (
         <>
@@ -54,7 +80,7 @@ export const EditLayoutSet = <T extends ComponentType>({
       {showCreateSubformCard || !hasSubforms ? (
         <CreateNewSubformLayoutSet
           layoutSets={layoutSets}
-          onUpdateLayoutSet={handleUpdatedLayoutSet}
+          isPendingLayoutSetMutation={isPendingLayoutSetMutation}
           setShowCreateSubformCard={setShowCreateSubformCard}
           hasSubforms={hasSubforms}
         />
@@ -73,7 +99,7 @@ export const EditLayoutSet = <T extends ComponentType>({
           <StudioButton
             className={classes.saveSubformButton}
             icon={<CheckmarkIcon />}
-            onClick={() => handleUpdatedLayoutSet(selectedSubform)}
+            type='submit'
             title={t('general.save')}
             disabled={!selectedSubform}
             variant='secondary'
