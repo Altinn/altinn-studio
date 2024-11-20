@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useAppMetadataQuery,
@@ -21,7 +21,7 @@ export const useValidateSchemaName = () => {
   const { data: xsdData } = useDataModelsXsdQuery(org, app);
   const { t } = useTranslation();
 
-  const dataModels = mergeJsonAndXsdData(jsonData, xsdData);
+  const dataModels = useMemo(() => mergeJsonAndXsdData(jsonData, xsdData), [jsonData, xsdData]);
 
   const validateName = (name: string): void => {
     if (!name) {
