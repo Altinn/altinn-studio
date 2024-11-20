@@ -254,19 +254,46 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="destinationFileName">FileName for the destination file</param>
         protected void MoveFileByRelativePath(string sourceRelativeFilePath, string destRelativeFilePath, string destinationFileName)
         {
-            if (FileExistsByRelativePath(sourceRelativeFilePath))
+            if (!FileExistsByRelativePath(sourceRelativeFilePath))
             {
-                Guard.AssertNotNullOrEmpty(sourceRelativeFilePath, nameof(sourceRelativeFilePath));
-
-                string sourceAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativeFilePath);
-                string destAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativeFilePath);
-                string destAbsoluteParentDirPath = destAbsoluteFilePath.Remove(destAbsoluteFilePath.IndexOf(destinationFileName, StringComparison.Ordinal));
-                Directory.CreateDirectory(destAbsoluteParentDirPath);
-                Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, sourceAbsoluteFilePath);
-                Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteFilePath);
-
-                File.Move(sourceAbsoluteFilePath, destAbsoluteFilePath);
+                throw new FileNotFoundException($"File {sourceRelativeFilePath} does not exist.");
             }
+
+            if (FileExistsByRelativePath(destRelativeFilePath))
+            {
+                throw new IOException($"Suggested file name {destinationFileName} already exists.");
+            }
+            string sourceAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativeFilePath);
+            string destAbsoluteFilePath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativeFilePath);
+            string destAbsoluteParentDirPath = destAbsoluteFilePath.Remove(destAbsoluteFilePath.IndexOf(destinationFileName, StringComparison.Ordinal));
+            Directory.CreateDirectory(destAbsoluteParentDirPath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, sourceAbsoluteFilePath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteFilePath);
+
+            File.Move(sourceAbsoluteFilePath, destAbsoluteFilePath);
+        }
+
+        /// <summary>
+        /// Move the specified folder to specified destination
+        /// </summary>
+        /// <param name="sourceRelativeDirectoryPath">Relative path to folder to be moved.</param>
+        /// <param name="destRelativeDirectoryPath">Relative path to destination of moved folder.</param>
+        protected void MoveDirectoryByRelativePath(string sourceRelativeDirectoryPath, string destRelativeDirectoryPath)
+        {
+            if (!DirectoryExistsByRelativePath(sourceRelativeDirectoryPath))
+            {
+                throw new DirectoryNotFoundException($"Directory {sourceRelativeDirectoryPath} does not exist.");
+            }
+            if (DirectoryExistsByRelativePath(destRelativeDirectoryPath))
+            {
+                throw new IOException($"Suggested directory {destRelativeDirectoryPath} already exists.");
+            }
+            string sourceAbsoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativeDirectoryPath);
+            string destAbsoluteDirectoryPath = GetAbsoluteFileOrDirectoryPathSanitized(destRelativeDirectoryPath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, sourceAbsoluteDirectoryPath);
+            Guard.AssertFilePathWithinParentDirectory(RepositoryDirectory, destAbsoluteDirectoryPath);
+
+            Directory.Move(sourceAbsoluteDirectoryPath, destAbsoluteDirectoryPath);
         }
 
         /// <summary>
