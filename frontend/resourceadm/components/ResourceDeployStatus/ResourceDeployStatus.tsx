@@ -63,7 +63,7 @@ export const ResourceDeployStatus = ({
             <ArrowRightIcon fontSize='1.5rem' />
             <Paragraph size='small' className={classes.text}>
               <Trans i18nKey={errorItem.message} values={{ num: errorItem.numberOfErrors }}>
-                <LinkButton onClick={() => onNavigateToPageWithError(errorItem.pageWithError)} />
+                <LinkButton onClick={onNavigateToPageWithError} page={errorItem.pageWithError} />
               </Trans>
             </Paragraph>
           </div>
