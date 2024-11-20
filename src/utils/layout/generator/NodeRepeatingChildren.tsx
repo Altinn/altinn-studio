@@ -150,8 +150,7 @@ interface ResolveRowProps {
 function ResolveRowExpressions({ plugin }: ResolveRowProps) {
   const node = GeneratorInternal.useParent() as LayoutNode;
   const rowIndex = GeneratorInternal.useRowIndex()!;
-  const nodeChildren = useNodeDirectChildren(node, rowIndex);
-  const firstChild = nodeChildren ? nodeChildren[0] : undefined;
+  const firstChild = useNodeDirectChildren(node, rowIndex).at(0);
 
   const internal = NodesInternal.useNodeData(
     node,

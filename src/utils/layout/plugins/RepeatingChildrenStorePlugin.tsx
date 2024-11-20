@@ -36,6 +36,10 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
         set((state) => {
           let changes = false;
           const nodeData = { ...state.nodeData };
+          const newPartialItems: {
+            [nodeId: string]: { [internalProp: string]: (RepChildrenRow | undefined)[] | undefined } | undefined;
+          } = {};
+
           for (const { node, rowIndex, plugin, extras } of requests) {
             if (typeof extras !== 'object' || !extras) {
               throw new Error('Extras must be an object');
@@ -43,22 +47,30 @@ export class RepeatingChildrenStorePlugin extends NodeDataPlugin<RepeatingChildr
 
             const internalProp = plugin.settings.internalProp;
             const data = nodeData[node.id];
-            const existingRows = data && data.item && (data.item[internalProp] as RepChildrenRow[] | undefined);
+
+            const existingRows =
+              newPartialItems[node.id]?.[internalProp] ??
+              (data?.item?.[internalProp] as (RepChildrenRow | undefined)[] | undefined);
             if (!existingRows) {
               continue;
             }
 
-            const existingRow = existingRows ? existingRows[rowIndex] : {};
+            const existingRow = existingRows[rowIndex] ?? ({} as RepChildrenRow);
             const nextRow = { ...existingRow, ...extras, index: rowIndex } as RepChildrenRow;
             if (deepEqual(existingRow, nextRow)) {
               continue;
             }
 
             changes = true;
-            const newRows = [...(existingRows || [])];
-            newRows[rowIndex] = nextRow;
+            newPartialItems[node.id] ??= {};
+            newPartialItems[node.id]![internalProp] ??= [...(existingRows || [])];
+            newPartialItems[node.id]![internalProp]![rowIndex] = nextRow;
+          }
+
+          for (const [nodeId, partialItem] of Object.entries(newPartialItems)) {
+            const data = nodeData[nodeId];
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            nodeData[node.id] = { ...data, item: { ...data.item, [internalProp]: newRows } as any };
+            nodeData[nodeId] = { ...data, item: { ...data.item, ...partialItem } as any };
           }
 
           return changes

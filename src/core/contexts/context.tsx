@@ -50,12 +50,12 @@ export function createContext<T>({ name, required, ...rest }: CreateContextProps
   });
   Context.displayName = name;
 
-  const useHasProvider = () => Boolean(useContext(Context).provided);
+  const useHasProvider = () => useContext(Context).provided;
 
   const useCtx = (): T => {
-    const hasProvider = useHasProvider();
-    const value = useContext(Context).innerValue;
-    if (!hasProvider) {
+    const ctx = useContext(Context);
+    const value = ctx.innerValue;
+    if (!ctx.provided) {
       if (required) {
         throw new Error(`${name} is missing`);
       }

@@ -12,19 +12,34 @@ export class LayoutPage implements LayoutObject {
   public layoutSet: LayoutPages;
   public pageKey: string;
 
-  private allChildren: Map<string, LayoutNode> = new Map();
+  private allChildren: LayoutNode[] = [];
+  private allChildIds = new Set<string>();
+
+  private _directChildren: LayoutNode[] = [];
 
   /**
    * Adds a child to the collection. For internal use only.
    */
   public _addChild(child: LayoutNode) {
-    this.allChildren.set(child.id, child);
-    this.layoutSet.registerNode(child);
+    if (!this.allChildIds.has(child.id)) {
+      this.layoutSet.registerNode(child);
+      this.allChildIds.add(child.id);
+      this.allChildren.push(child);
+
+      // Direct children of a layout page are always static.
+      // Only children of components like repeating groups are dynamic
+      if (child.parent === this) {
+        this._directChildren.push(child);
+      }
+    }
   }
 
   public _removeChild(child: LayoutNode) {
-    this.allChildren.delete(child.id);
-    this.layoutSet.unregisterNode(child);
+    if (this.allChildIds.has(child.id)) {
+      this.layoutSet.unregisterNode(child);
+      this.allChildIds.delete(child.id);
+      this.allChildren.splice(this.allChildren.indexOf(child), 1);
+    }
   }
 
   /**
@@ -47,7 +62,7 @@ export class LayoutPage implements LayoutObject {
   }
 
   protected directChildren(_task: TraversalTask): LayoutNode[] {
-    return [...this.allChildren.values()].filter((node) => node.parent === this);
+    return this._directChildren;
   }
 
   public firstChild(task: TraversalTask): LayoutNode | undefined {
@@ -61,7 +76,7 @@ export class LayoutPage implements LayoutObject {
   }
 
   private firstDeepChild(task: TraversalTask): LayoutNode | undefined {
-    for (const node of this.allChildren.values()) {
+    for (const node of this.allChildren) {
       if (task.passes(node)) {
         return node;
       }
@@ -86,7 +101,7 @@ export class LayoutPage implements LayoutObject {
   }
 
   public flat(task?: TraversalTask): LayoutNode[] {
-    return task ? [...this.allChildren.values()].filter((n) => task.passes(n)) : [...this.allChildren.values()];
+    return task ? this.allChildren.filter((n) => task.passes(n)) : this.allChildren;
   }
 
   public isRegisteredInCollection(layoutSet: LayoutPages): boolean {
@@ -98,7 +113,7 @@ export class LayoutPage implements LayoutObject {
     this.layoutSet = layoutSet;
     layoutSet.replacePage(this);
 
-    for (const node of this.allChildren.values()) {
+    for (const node of this.allChildren) {
       layoutSet.registerNode(node);
     }
   }

@@ -218,24 +218,21 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig = typeof defaultCo
   }
 
   pickDirectChildren(state: DefPluginState<ToInternal<E>>, restriction?: TraversalRestriction): string[] {
-    const out: string[] = [];
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rows = (state.item as any)[this.settings.internalProp] as Row<E>[];
+    const rows = (state.item as any)[this.settings.internalProp] as (Row<E> | undefined)[];
     if (!rows) {
-      return out;
+      return emptyArray;
     }
 
-    for (const row of rows) {
-      if (!row || (restriction !== undefined && row.index !== restriction)) {
-        continue;
-      }
-
-      for (const child of row.itemIds || []) {
-        child && out.push(child);
-      }
+    if (restriction !== undefined) {
+      return rows[restriction]?.itemIds ?? emptyArray;
     }
 
+    const out: string[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      row && out.push(...row.itemIds);
+    }
     return out;
   }
 
@@ -255,3 +252,5 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig = typeof defaultCo
     return rows?.every((row) => row && row.uuid !== undefined && row.itemIds !== undefined) ?? false;
   }
 }
+
+const emptyArray = [];
