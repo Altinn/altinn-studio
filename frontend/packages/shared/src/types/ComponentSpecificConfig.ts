@@ -285,12 +285,6 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       dataModelBindings: DataModelBindingsLikert;
       filter?: { key: 'start' | 'stop'; value: string | number };
     };
-  [ComponentType.LikertItem]: FormComponentProps &
-    SummarizableComponentProps &
-    SelectionComponentFull & {
-      dataModelBindings: DataModelBindingsOptionsSimple;
-      layout?: LayoutStyle;
-    };
   [ComponentType.Link]: {
     style: 'primary' | 'secondary' | 'link';
     openInNewTab?: boolean;
