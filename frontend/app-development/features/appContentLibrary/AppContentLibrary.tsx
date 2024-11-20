@@ -28,6 +28,10 @@ export function AppContentLibrary(): React.ReactElement {
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
   const codeLists = convertOptionListsToCodeLists(optionLists);
+  
+  const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
+    updateOptionListId({ optionListId, newOptionListId });
+  };
 
   const handleUpload = (file: File) => {
     uploadOptionList(file);
@@ -42,8 +46,7 @@ export function AppContentLibrary(): React.ReactElement {
       codeList: {
         props: {
           codeLists: codeLists,
-          onUpdateCodeListId: (optionListId: string, newOptionListId: string) =>
-            updateOptionListId({ optionListId, newOptionListId }),
+          onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
           fetchDataError: optionListsError,
