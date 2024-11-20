@@ -5,11 +5,10 @@ import { SchemaInspector } from '../SchemaInspector';
 import type { UiSchemaNodes } from '@altinn/schema-model';
 import { ROOT_POINTER } from '@altinn/schema-model';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
 import { useMoveProperty } from './hooks/useMoveProperty';
 import { useAddReference } from './hooks/useAddReference';
 import { NodePanel } from '../NodePanel';
-import { StudioResizableLayout } from '@studio/components';
+import { StudioResizableLayout, StudioDragAndDropTree } from '@studio/components';
 import { useUserQuery } from 'app-development/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
@@ -24,7 +23,7 @@ export const SchemaEditor = () => {
     selectedTypePointer && schemaModel.getNodeBySchemaPointer(selectedTypePointer);
 
   return (
-    <DragAndDropTree.Provider
+    <StudioDragAndDropTree.Provider
       onAdd={addReference}
       onMove={moveProperty}
       rootId={ROOT_POINTER}
@@ -55,6 +54,6 @@ export const SchemaEditor = () => {
           </aside>
         </StudioResizableLayout.Element>
       </StudioResizableLayout.Container>
-    </DragAndDropTree.Provider>
+    </StudioDragAndDropTree.Provider>
   );
 };

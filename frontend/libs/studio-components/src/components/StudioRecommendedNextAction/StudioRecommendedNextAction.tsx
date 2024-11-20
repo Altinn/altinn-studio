@@ -30,7 +30,7 @@ export const StudioRecommendedNextAction = ({
 }: StudioRecommendedNextActionProps): React.ReactElement => {
   const formName = useId();
   return (
-    <form name={formName} onSubmit={onSave}>
+    <form name={formName} onSubmit={onSave} data-testid='recommendedNextActionCard'>
       <StudioCard>
         <StudioCard.Header>
           <Heading size='xs'>{title}</Heading>
