@@ -22,7 +22,7 @@ export const useValidDataModels = (currentDataModel: string) => {
         org,
         app,
         layoutSetName: selectedFormLayoutSetName,
-        dataModelName: isDataModelValid ? currentDataModel : '',
+        dataModelName: isDataModelValid && currentDataModel ? currentDataModel : dataModels?.[0],
       },
       { enabled: !isPendingDataModels && !isFetchingDataModels },
     );
