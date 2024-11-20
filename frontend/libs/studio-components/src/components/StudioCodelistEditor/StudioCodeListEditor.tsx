@@ -156,7 +156,7 @@ function CodeLists({
           item={item}
           key={index}
           number={index + 1}
-          onChange={(newItem) => handleChange(index, newItem)}
+          onBlur={(newItem) => handleChange(index, newItem)}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
         />
       ))}

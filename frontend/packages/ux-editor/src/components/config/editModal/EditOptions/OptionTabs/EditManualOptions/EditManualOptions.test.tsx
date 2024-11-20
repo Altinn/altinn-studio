@@ -9,6 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { FormComponent } from '../../../../../../types/FormComponent';
 import userEvent from '@testing-library/user-event';
 
+// Test data:
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
   type: ComponentType.RadioButtons,
@@ -20,26 +21,11 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   dataModelBindings: { simpleBinding: '' },
 };
 
-const renderEditManualOptions = async <
-  T extends ComponentType.Checkboxes | ComponentType.RadioButtons,
->({
-  componentProps,
-  handleComponentChange = jest.fn(),
-}: {
-  componentProps?: Partial<FormItem<T>>;
-  handleComponentChange?: () => void;
-  queries?: Partial<ServicesContextProps>;
-} = {}) => {
-  const component = {
-    ...mockComponent,
-    ...componentProps,
-  };
-  renderWithProviders(
-    <EditManualOptions handleComponentChange={handleComponentChange} component={component} />,
-  );
-};
+const handleComponentChange = jest.fn();
 
 describe('EditManualOptions', () => {
+  afterEach(() => jest.clearAllMocks());
+
   it('should show manual input when component has options defined', async () => {
     renderEditManualOptions({
       componentProps: {
@@ -60,9 +46,7 @@ describe('EditManualOptions', () => {
   });
 
   it('should call handleComponentUpdate when adding a new option', async () => {
-    const handleComponentChangeMock = jest.fn();
     renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
       componentProps: {
         options: [{ label: 'oldOption', value: 'oldOption' }],
       },
@@ -72,7 +56,7 @@ describe('EditManualOptions', () => {
       name: textMock('ux_editor.modal_new_option'),
     });
     addOptionButton.click();
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [
         { label: 'oldOption', value: 'oldOption' },
@@ -83,9 +67,7 @@ describe('EditManualOptions', () => {
 
   it('should call handleComponentUpdate when removing an option', async () => {
     const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
     renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
       componentProps: {
         options: [
           { label: 'option1', value: 'option1' },
@@ -102,16 +84,14 @@ describe('EditManualOptions', () => {
       name: textMock('general.delete'),
     });
     await user.click(removeOptionButton);
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [{ label: 'option1', value: 'option1' }],
     });
   });
 
   it('should handle adding new option even if options property has not been set', async () => {
-    const handleComponentChangeMock = jest.fn();
     renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
       componentProps: {
         options: undefined,
       },
@@ -121,16 +101,14 @@ describe('EditManualOptions', () => {
       name: textMock('ux_editor.modal_new_option'),
     });
     addOptionButton.click();
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [{ label: expect.any(String), value: expect.any(String) }],
     });
   });
 
   it('should delete optionsId property if it exists when adding a new option', async () => {
-    const handleComponentChangeMock = jest.fn();
     renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
       componentProps: {
         optionsId: 'testId',
       },
@@ -140,7 +118,7 @@ describe('EditManualOptions', () => {
       name: textMock('ux_editor.modal_new_option'),
     });
     addOptionButton.click();
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [{ label: expect.any(String), value: expect.any(String) }],
     });
@@ -148,9 +126,7 @@ describe('EditManualOptions', () => {
 
   it('should call handleComponentUpdate when changing an option', async () => {
     const user = userEvent.setup();
-    const handleComponentChangeMock = jest.fn();
     renderEditManualOptions({
-      handleComponentChange: handleComponentChangeMock,
       componentProps: {
         options: [{ label: 'option1', value: 'option1' }],
       },
@@ -164,9 +140,24 @@ describe('EditManualOptions', () => {
       name: textMock('general.value'),
     });
     await user.type(textField, 'a');
-    expect(handleComponentChangeMock).toHaveBeenCalledWith({
+    expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
       options: [{ label: 'option1', value: 'option1a' }],
     });
   });
 });
+
+function renderEditManualOptions<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
+  componentProps,
+}: {
+  componentProps?: Partial<FormItem<T>>;
+  queries?: Partial<ServicesContextProps>;
+} = {}) {
+  const component = {
+    ...mockComponent,
+    ...componentProps,
+  };
+  renderWithProviders(
+    <EditManualOptions handleComponentChange={handleComponentChange} component={component} />,
+  );
+}

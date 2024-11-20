@@ -20,37 +20,15 @@ const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   dataModelBindings: { simpleBinding: '' },
 };
 
-const renderEditManualOptionsWithEditor = <
-  T extends ComponentType.Checkboxes | ComponentType.RadioButtons,
->({
-  componentProps,
-  handleComponentChange = jest.fn(),
-}: {
-  componentProps?: Partial<FormItem<T>>;
-  handleComponentChange?: () => void;
-  queries?: Partial<ServicesContextProps>;
-} = {}) => {
-  const component = {
-    ...mockComponent,
-    ...componentProps,
-  };
-  renderWithProviders(
-    <EditManualOptionsWithEditor
-      handleComponentChange={handleComponentChange}
-      component={component}
-    />,
-  );
-};
-
 describe('EditManualOptionsWithEditor', () => {
   it('should display a button when no code list is defined in the layout', () => {
     renderEditManualOptionsWithEditor();
 
-    const modalButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
-    });
-
-    expect(modalButton).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('general.create_new'),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should display a button when a code list is defined in the layout', () => {
@@ -60,67 +38,19 @@ describe('EditManualOptionsWithEditor', () => {
       },
     });
 
-    const modalButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
-    });
-
-    expect(modalButton).toBeInTheDocument();
-  });
-
-  it('should not display how many options have been defined, when no options are defined', () => {
-    renderEditManualOptionsWithEditor();
-
-    const optionText = screen.queryByText(textMock('ux_editor.options.single', { value: 1 }));
-    const optionsText = screen.queryByText(textMock('ux_editor.options.multiple', { value: 2 }));
-
-    expect(optionText).not.toBeInTheDocument();
-    expect(optionsText).not.toBeInTheDocument();
-  });
-
-  it('should display how many options have been defined, when a single option is defined', () => {
-    renderEditManualOptionsWithEditor({
-      componentProps: {
-        options: [{ label: 'option1', value: 'option1' }],
-      },
-    });
-
-    const optionText = screen.getByText(textMock('ux_editor.options.single', { value: 1 }));
-    const optionsText = screen.queryByText(textMock('ux_editor.options.multiple', { value: 2 }));
-
-    expect(optionText).toBeInTheDocument();
-    expect(optionsText).not.toBeInTheDocument();
-  });
-
-  it('should display how many options have been defined, when multiple options are defined', () => {
-    renderEditManualOptionsWithEditor({
-      componentProps: {
-        options: [
-          { label: 'option1', value: 'option1' },
-          { label: 'option2', value: 'option2' },
-        ],
-      },
-    });
-
-    const optionText = screen.queryByText(textMock('ux_editor.options.single', { value: 1 }));
-    const optionsText = screen.getByText(textMock('ux_editor.options.multiple', { value: 2 }));
-
-    expect(optionText).not.toBeInTheDocument();
-    expect(optionsText).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('general.create_new'),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should open a modal when the trigger button is clicked', async () => {
-    const user = userEvent.setup();
     renderEditManualOptionsWithEditor();
 
-    const modalButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
-    });
+    await userFindAndClickOnOpenModalButton();
 
-    await user.click(modalButton);
-
-    const modalDialog = screen.getByRole('dialog');
-
-    expect(modalDialog).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('should call handleComponentChange when there has been a change in the editor', async () => {
@@ -128,16 +58,11 @@ describe('EditManualOptionsWithEditor', () => {
     const user = userEvent.setup();
     renderEditManualOptionsWithEditor({ handleComponentChange: mockHandleComponentChange });
 
-    const modalButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
-    });
-
-    await user.click(modalButton);
+    await userFindAndClickOnOpenModalButton();
 
     const addNewButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_new_option'),
     });
-
     await user.click(addNewButton);
 
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
@@ -156,11 +81,7 @@ describe('EditManualOptionsWithEditor', () => {
       handleComponentChange: mockHandleComponentChange,
     });
 
-    const modalButton = screen.getByRole('button', {
-      name: textMock('ux_editor.modal_properties_code_list_custom_list'),
-    });
-
-    await user.click(modalButton);
+    await userFindAndClickOnOpenModalButton();
 
     const addNewButton = screen.getByRole('button', {
       name: textMock('ux_editor.modal_new_option'),
@@ -169,8 +90,39 @@ describe('EditManualOptionsWithEditor', () => {
     await user.click(addNewButton);
 
     expect(mockHandleComponentChange).toHaveBeenCalledWith({
-      ...mockComponent, // does not contain optionsId
+      ...mockComponent,
       options: [{ label: '', value: '' }],
     });
   });
 });
+
+async function userFindAndClickOnOpenModalButton() {
+  const user = userEvent.setup();
+  const modalButton = screen.getByRole('button', {
+    name: textMock('general.create_new'),
+  });
+
+  await user.click(modalButton);
+}
+
+type renderProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
+  componentProps?: Partial<FormItem<T>>;
+  handleComponentChange?: () => void;
+  queries?: Partial<ServicesContextProps>;
+};
+
+function renderEditManualOptionsWithEditor<
+  T extends ComponentType.Checkboxes | ComponentType.RadioButtons,
+>({ componentProps = {}, handleComponentChange = jest.fn() }: renderProps<T> = {}) {
+  const component = {
+    ...mockComponent,
+    ...componentProps,
+  };
+  renderWithProviders(
+    <EditManualOptionsWithEditor
+      setChosenOption={jest.fn()}
+      handleComponentChange={handleComponentChange}
+      component={component}
+    />,
+  );
+}

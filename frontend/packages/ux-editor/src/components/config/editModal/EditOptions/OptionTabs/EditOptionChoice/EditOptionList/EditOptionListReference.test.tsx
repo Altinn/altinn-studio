@@ -1,9 +1,9 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { EditOptionListReference } from './EditOptionListReference';
-import { renderWithProviders } from '../../../../../../testing/mocks';
+import { renderWithProviders } from '../../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormComponent } from '../../../../../../types/FormComponent';
+import type { FormComponent } from '../../../../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 
@@ -42,7 +42,7 @@ describe('EditOptionListReference', () => {
   it('should render', () => {
     renderEditOptionListReference();
     expect(
-      screen.getByText(textMock('ux_editor.options.codelist_referenceId.description')),
+      screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
     ).toBeInTheDocument();
   });
 

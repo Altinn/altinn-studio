@@ -31,22 +31,6 @@ describe('getSelectedOptionsType', () => {
     expect(result).toEqual(SelectedOptionsType.ReferenceId);
   });
 
-  it('should return SelectedOptionsType.Manual if options is set and codeListId is not set', () => {
-    const codeListId = undefined;
-    const options = [{ label: 'label1', value: 'value1' }];
-    const optionListIds = ['anotherCodeListId'];
-    const result = getSelectedOptionsType(codeListId, options, optionListIds);
-    expect(result).toEqual(SelectedOptionsType.Manual);
-  });
-
-  it('should return SelectedOptionsType.Manual if options is set and codeListId is not set, even if options has length 0', () => {
-    const codeListId = undefined;
-    const options = [];
-    const optionListIds = ['anotherCodeListId'];
-    const result = getSelectedOptionsType(codeListId, options, optionListIds);
-    expect(result).toEqual(SelectedOptionsType.Manual);
-  });
-
   it('should use default value for optionListIds if it is not provided', () => {
     const codeListId = '';
     const options = undefined;
@@ -87,11 +71,6 @@ describe('getOptionsPropertyKey', () => {
   it('should return optionsId if selected options type is ReferenceId', () => {
     const result = getOptionsPropertyKey(SelectedOptionsType.ReferenceId);
     expect(result).toEqual('optionsId');
-  });
-
-  it('should return options if selected options type is Manual', () => {
-    const result = getOptionsPropertyKey(SelectedOptionsType.Manual);
-    expect(result).toEqual('options');
   });
 
   it('should return options if selected options type is Unknown', () => {

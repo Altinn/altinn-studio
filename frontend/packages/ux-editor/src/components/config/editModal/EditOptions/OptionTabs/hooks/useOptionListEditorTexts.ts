@@ -6,7 +6,7 @@ export const useOptionListEditorTexts = (): CodeListEditorTexts => {
 
   return {
     add: t('ux_editor.modal_new_option'),
-    codeList: t('ux_editor.modal_add_options_codelist'),
+    codeList: t('ux_editor.modal_add_options_code_list'),
     delete: t('general.delete'),
     deleteItem: (number: number) =>
       t('ux_editor.modal_properties_code_list_delete_item', { number }),

@@ -3,13 +3,11 @@ import { EditOptionList } from './EditOptionList';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
-import { renderWithProviders, optionListIdsMock } from '../../../../../../testing/mocks';
+import { componentMocks } from '../../../../../../../testing/componentMocks';
+import { renderWithProviders, optionListIdsMock } from '../../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { FormComponent } from '../../../../../../types/FormComponent';
+import type { FormComponent } from '../../../../../../../types/FormComponent';
 
 // Test data:
 const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
@@ -24,19 +22,21 @@ const getOptionListIds = jest
 describe('EditOptionList', () => {
   it('should render the component', async () => {
     renderEditOptionList();
-    expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_code_list_helper')),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(textMock('ux_editor.options.upload_title'))).toBeInTheDocument();
   });
 
   it('should call onChange when option list changes', async () => {
     const user = userEvent.setup();
     renderEditOptionList();
+    await waitForElementToBeRemoved(
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
+    );
 
-    await waitFor(() => screen.findByRole('combobox'));
+    await userFindDropDownButton(user);
+    const choice = screen.getByText(optionListIdsMock[0]);
+    await user.click(choice);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'test-1');
-    await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalled());
+    await waitFor(() => expect(handleComponentChangeMock).toHaveBeenCalledTimes(1));
   });
 
   it('should remove options property (if it exists) when optionsId property changes', async () => {
@@ -46,10 +46,14 @@ describe('EditOptionList', () => {
         options: [{ label: 'option1', value: 'option1' }],
       },
     });
+    await waitForElementToBeRemoved(
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
+    );
 
-    await waitFor(() => screen.findByRole('combobox'));
+    await userFindDropDownButton(user);
+    const choice = screen.getByText(optionListIdsMock[0]);
+    await user.click(choice);
 
-    await user.selectOptions(screen.getByRole('combobox'), 'test-1');
     await waitFor(() =>
       expect(handleComponentChangeMock).toHaveBeenCalledWith({
         ...mockComponent,
@@ -57,16 +61,6 @@ describe('EditOptionList', () => {
         optionsId: 'test-1',
       }),
     );
-  });
-
-  it('should render the selected option list item upon component initialization', async () => {
-    renderEditOptionList({
-      componentProps: {
-        optionsId: 'test-2',
-      },
-    });
-
-    expect(await screen.findByRole('combobox')).toHaveValue('test-2');
   });
 
   it('should render returned error message if option list endpoint returns an error', async () => {
@@ -127,6 +121,9 @@ describe('EditOptionList', () => {
     });
 
     renderEditOptionList();
+    await waitForElementToBeRemoved(
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
+    );
     await userFindUploadButtonAndClick(user);
     await userFindFileInputAndUploadFile(user, file);
 
@@ -134,47 +131,32 @@ describe('EditOptionList', () => {
       textMock('ux_editor.modal_properties_code_list_filename_error'),
     );
   });
-
-  it('should render OptionListEditor when featureFlag is active', async () => {
-    addFeatureFlagToLocalStorage('optionListEditor');
-    renderEditOptionList({
-      queries: {
-        getOptionLists: jest.fn().mockImplementation(() =>
-          Promise.resolve<OptionsLists>({
-            optionsIdMock: [{ value: 'test', label: 'label text' }],
-          }),
-        ),
-      },
-    });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
-    );
-
-    expect(
-      screen.getByRole('button', {
-        name: textMock('ux_editor.modal_properties_code_list_open_editor'),
-      }),
-    ).toBeInTheDocument();
-  });
 });
 
-const userFindUploadButtonAndClick = async (user: UserEvent) => {
+async function userFindUploadButtonAndClick(user: UserEvent) {
   const btn = screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_upload'),
+    name: textMock('ux_editor.options.upload_title'),
   });
   await user.click(btn);
-};
+}
 
-const userFindFileInputAndUploadFile = async (user: UserEvent, file: File) => {
-  const fileInput = screen.getByLabelText(textMock('ux_editor.modal_properties_code_list_upload'));
+async function userFindFileInputAndUploadFile(user: UserEvent, file: File) {
+  const fileInput = screen.getByLabelText(textMock('ux_editor.options.upload_title'));
 
   await user.upload(fileInput, file);
-};
+}
 
-const renderEditOptionList = ({ queries = {}, componentProps = {} } = {}) => {
+async function userFindDropDownButton(user: UserEvent) {
+  const btn = screen.getByRole('button', {
+    name: textMock('ux_editor.modal_properties_code_list'),
+  });
+  await user.click(btn);
+}
+
+function renderEditOptionList({ queries = {}, componentProps = {} } = {}) {
   return renderWithProviders(
     <EditOptionList
+      setChosenOption={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,
@@ -186,4 +168,4 @@ const renderEditOptionList = ({ queries = {}, componentProps = {} } = {}) => {
       queryClient: createQueryClientMock(),
     },
   );
-};
+}

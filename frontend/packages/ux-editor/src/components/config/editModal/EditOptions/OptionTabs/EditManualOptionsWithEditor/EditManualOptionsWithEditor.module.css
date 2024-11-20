@@ -6,6 +6,10 @@
   height: var(--code-list-modal-height);
 }
 
+.modalTrigger {
+  width: 50%;
+}
+
 .content {
   height: 100%;
 }

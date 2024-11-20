@@ -1,0 +1,182 @@
+import React, { createRef, useRef, useState } from 'react';
+import type { Option } from 'app-shared/types/Option';
+import { useTranslation } from 'react-i18next';
+import {
+  StudioCodeListEditor,
+  StudioModal,
+  StudioSpinner,
+  StudioErrorMessage,
+  StudioAlert,
+  StudioProperty,
+} from '@studio/components';
+import type { CodeListEditorTexts } from '@studio/components';
+import { useDebounce } from '@studio/hooks';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations/useUpdateOptionListMutation';
+import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
+import { useOptionListEditorTexts } from '../../../hooks/useOptionListEditorTexts';
+import { usePreviewContext } from 'app-development/contexts/PreviewContext';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import type { IGenericEditComponent } from '../../../../../../componentConfig';
+import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
+import classes from './OptionListEditor.module.css';
+
+type OptionListEditorProps = {
+  optionsId: string;
+  label: string;
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+
+export function OptionListEditor({
+  optionsId,
+  component,
+  handleComponentChange,
+  label,
+}: OptionListEditorProps): React.ReactNode {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: optionsListMap, status } = useOptionListsQuery(org, app);
+
+  switch (status) {
+    case 'pending':
+      return (
+        <StudioSpinner spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')} />
+      );
+    case 'error':
+      return (
+        <StudioErrorMessage>{t('ux_editor.modal_properties_error_message')}</StudioErrorMessage>
+      );
+    case 'success': {
+      if (optionsListMap[optionsId] !== undefined) {
+        return (
+          <OptionListEditorModal
+            label={label}
+            optionsId={optionsId}
+            optionsList={optionsListMap[optionsId]}
+          />
+        );
+      }
+      if (component.options !== undefined) {
+        return (
+          <OptionListEditorModalManualOptions
+            label={label}
+            component={component}
+            handleComponentChange={handleComponentChange}
+          />
+        );
+      }
+    }
+  }
+}
+
+type OptionListEditorModalProps = {
+  label: string;
+  optionsId: string;
+  optionsList: Option[];
+};
+
+function OptionListEditorModal({
+  label,
+  optionsId,
+  optionsList,
+}: OptionListEditorModalProps): React.ReactNode {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { doReloadPreview } = usePreviewContext();
+  const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
+  const [localOptionList, setLocalOptionList] = useState<Option[]>(optionsList);
+  const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+  const modalRef = createRef<HTMLDialogElement>();
+
+  const handleOptionsChange = (options: Option[]) => {
+    debounce(() => {
+      updateOptionList({ optionListId: optionsId, optionsList: options });
+      setLocalOptionList(options);
+      doReloadPreview();
+    });
+  };
+
+  const handleClose = () => {
+    modalRef.current?.close();
+  };
+
+  return (
+    <>
+      <StudioProperty.Button
+        value={label}
+        title={t('ux_editor.options.option_edit_text')}
+        property={t('ux_editor.modal_properties_code_list_button_title_library')}
+        onClick={() => modalRef.current.showModal()}
+      />
+      <StudioModal.Dialog
+        ref={modalRef}
+        className={classes.editOptionTabModal}
+        contentClassName={classes.content}
+        closeButtonTitle={t('general.close')}
+        heading={t('ux_editor.modal_add_options_code_list')}
+        onInteractOutside={handleClose}
+        onBeforeClose={handleClose}
+        footer={
+          <StudioAlert severity={'warning'} size='sm'>
+            {t('ux_editor.modal_properties_code_list_alert_title')}
+          </StudioAlert>
+        }
+      >
+        <StudioCodeListEditor
+          codeList={localOptionList}
+          onChange={handleOptionsChange}
+          texts={editorTexts}
+        />
+      </StudioModal.Dialog>
+    </>
+  );
+}
+
+type EditManualOptionsWithEditorProps = {
+  label: string;
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+
+function OptionListEditorModalManualOptions({
+  label,
+  component,
+  handleComponentChange,
+}: EditManualOptionsWithEditorProps): React.ReactNode {
+  const { t } = useTranslation();
+  const modalRef = useRef<HTMLDialogElement>(null);
+  const editorTexts = useOptionListEditorTexts();
+
+  const handleOptionsChange = (options: Option[]) => {
+    if (component.optionsId) {
+      delete component.optionsId;
+    }
+
+    handleComponentChange({
+      ...component,
+      options,
+    });
+  };
+
+  return (
+    <>
+      <StudioProperty.Button
+        value={label}
+        title={t('ux_editor.options.option_edit_text')}
+        property={t('ux_editor.modal_properties_code_list_button_title_manual')}
+        onClick={() => modalRef.current.showModal()}
+      />
+      <StudioModal.Dialog
+        ref={modalRef}
+        className={classes.editOptionTabModal}
+        contentClassName={classes.content}
+        closeButtonTitle={t('general.close')}
+        heading={t('ux_editor.modal_add_options_code_list')}
+      >
+        <StudioCodeListEditor
+          codeList={component.options ?? []}
+          onChange={handleOptionsChange}
+          texts={editorTexts}
+        />
+      </StudioModal.Dialog>
+    </>
+  );
+}

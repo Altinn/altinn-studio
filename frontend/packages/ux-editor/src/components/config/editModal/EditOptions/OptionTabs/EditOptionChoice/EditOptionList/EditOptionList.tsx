@@ -1,14 +1,13 @@
 import React from 'react';
 import { ErrorMessage } from '@digdir/designsystemet-react';
-import type { IGenericEditComponent } from '../../../../componentConfig';
-import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
+import type { IGenericEditComponent } from '../../../../../componentConfig';
+import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
+import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
-import { useTranslation, Trans } from 'react-i18next';
-import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
-import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { FormField } from '../../../../../FormField';
+import { useTranslation } from 'react-i18next';
+import { StudioDropdownMenu, StudioFileUploader, StudioSpinner } from '@studio/components';
+import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import { findFileNameError } from './utils/findFileNameError';
 import type { FileNameError } from './utils/findFileNameError';
@@ -16,13 +15,16 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditOptionList.module.css';
-import { OptionListEditor } from './OptionListEditor';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
+type EditOptionListProps<T extends SelectionComponentType> = {
+  setChosenOption: (value: boolean) => void;
+} & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
 
 export function EditOptionList<T extends SelectionComponentType>({
+  setChosenOption,
   component,
   handleComponentChange,
-}: IGenericEditComponent<T>) {
+}: EditOptionListProps<T>) {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
@@ -39,6 +41,8 @@ export function EditOptionList<T extends SelectionComponentType>({
       ...component,
       optionsId,
     });
+
+    setChosenOption(true);
   };
 
   const onSubmit = (file: File) => {
@@ -73,42 +77,24 @@ export function EditOptionList<T extends SelectionComponentType>({
     }
   };
 
-  const componentHasConnectedOptionListToEdit = !!component.optionsId;
-
   return (
     <>
-      <OptionListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('optionListEditor') && componentHasConnectedOptionListToEdit && (
-        <OptionListEditor optionsId={component.optionsId} />
-      )}
+      <OptionListSelector handleOptionsIdChange={handleOptionsIdChange} />
       <StudioFileUploader
         accept='.json'
         variant={'tertiary'}
-        uploaderButtonText={t('ux_editor.modal_properties_code_list_upload')}
+        uploaderButtonText={t('ux_editor.options.upload_title')}
         onSubmit={onSubmit}
       />
-      <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more_static'}>
-        <a
-          className={classes.linkStaticCodeLists}
-          href={altinnDocsUrl({
-            relativeUrl: 'altinn-studio/reference/data/options/static-codelists/',
-          })}
-          target='_newTab'
-          rel='noopener noreferrer'
-        />
-      </Trans>
     </>
   );
 }
 
-type OptionListSelectorProps<T extends SelectionComponentType> = {
+type OptionListSelectorProps = {
   handleOptionsIdChange: (optionsId: string) => void;
-} & Pick<IGenericEditComponent<T>, 'component'>;
+};
 
-function OptionListSelector<T extends SelectionComponentType>({
-  component,
-  handleOptionsIdChange,
-}: OptionListSelectorProps<T>): React.ReactNode {
+function OptionListSelector({ handleOptionsIdChange }: OptionListSelectorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
@@ -131,50 +117,42 @@ function OptionListSelector<T extends SelectionComponentType>({
       return (
         <OptionListSelectorWithData
           optionListIds={optionListIds}
-          component={component}
           handleOptionsIdChange={handleOptionsIdChange}
         />
       );
   }
 }
 
-type OptionListSelectorWithDataProps<T extends SelectionComponentType> = {
+type OptionListSelectorWithDataProps = {
   optionListIds: string[];
   handleOptionsIdChange: (optionsId: string) => void;
-} & Pick<IGenericEditComponent<T>, 'component'>;
+};
 
-function OptionListSelectorWithData<T extends SelectionComponentType>({
+function OptionListSelectorWithData({
   optionListIds,
-  component,
   handleOptionsIdChange,
-}: OptionListSelectorWithDataProps<T>): React.ReactNode {
+}: OptionListSelectorWithDataProps): React.ReactNode {
   const { t } = useTranslation();
 
   if (!optionListIds.length) return null;
   return (
-    <FormField
-      key={component.id}
-      id={component.id}
-      label={t('ux_editor.modal_properties_code_list_id')}
-      onChange={handleOptionsIdChange}
-      value={component.optionsId}
-      propertyPath={`${component.propertyPath}/properties/optionsId`}
-      renderField={({ fieldProps }) => (
-        <StudioNativeSelect
-          size='small'
-          onChange={(e) => fieldProps.onChange(e.target.value)}
-          value={fieldProps.value}
+    <StudioDropdownMenu
+      size='small'
+      anchorButtonProps={{
+        className: classes.modalTrigger,
+        variant: 'secondary',
+        children: t('ux_editor.modal_properties_code_list'),
+      }}
+    >
+      {optionListIds.map((optionListId: string) => (
+        <StudioDropdownMenu.Item
+          key={optionListId}
+          icon={<BookIcon />}
+          onClick={() => handleOptionsIdChange(optionListId)}
         >
-          <option hidden value=''>
-            {t('ux_editor.modal_properties_code_list_helper')}
-          </option>
-          {optionListIds.map((optionListId) => (
-            <option key={optionListId} value={optionListId}>
-              {optionListId}
-            </option>
-          ))}
-        </StudioNativeSelect>
-      )}
-    />
+          {optionListId}
+        </StudioDropdownMenu.Item>
+      ))}
+    </StudioDropdownMenu>
   );
 }

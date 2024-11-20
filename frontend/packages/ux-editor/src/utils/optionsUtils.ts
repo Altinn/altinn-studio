@@ -36,7 +36,7 @@ export function getSelectedOptionsType(
   }
 
   if (!!options) {
-    return SelectedOptionsType.Manual;
+    return SelectedOptionsType.CodeList;
   }
 
   return componentUsesDynamicCodeList(codeListId, optionListIds)
@@ -54,7 +54,6 @@ export function getOptionsPropertyKey(selectedOptionsType: SelectedOptionsType) 
     case SelectedOptionsType.CodeList:
     case SelectedOptionsType.ReferenceId:
       return 'optionsId';
-    case SelectedOptionsType.Manual:
     default:
       return 'options';
   }
