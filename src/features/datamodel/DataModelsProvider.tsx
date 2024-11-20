@@ -129,7 +129,7 @@ function initialCreateStore() {
   }));
 }
 
-const { Provider, useSelector, useLaxSelector, useSelectorAsRef } = createZustandContext({
+const { Provider, useSelector, useLaxSelector, useSelectorAsRef, useStaticSelector } = createZustandContext({
   name: 'DataModels',
   required: true,
   initialCreateStore,
@@ -355,7 +355,9 @@ export const DataModels = {
   useDataModelSchema: (dataType: string) => useSelector((state) => state.schemas[dataType]),
 
   useLookupBinding: () => {
-    const { schemaLookup, allDataTypes } = useSelector((state) => state);
+    // Using a static selector to avoid re-rendering. While the state can update later, we don't need
+    // to re-run data model validations, etc.
+    const { schemaLookup, allDataTypes } = useStaticSelector((state) => state);
     return useMemo(() => {
       if (allDataTypes?.every((dt) => schemaLookup[dt])) {
         return (reference: IDataModelReference) => schemaLookup[reference.dataType].getSchemaForPath(reference.field);

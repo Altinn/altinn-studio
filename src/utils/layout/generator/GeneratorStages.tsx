@@ -402,7 +402,7 @@ function useInitialRunNum() {
 function useShouldRenderOrRun(stage: Stage, isNew: boolean, restartReason: 'hook' | 'component') {
   const initialRun = useInitialRunNum();
 
-  const [shouldRenderOrRun, shouldRestart] = NodesStore.useMemoSelector((state) => {
+  const [shouldRenderOrRun, shouldRestart] = NodesStore.useShallowSelector((state) => {
     if (isNew && state.stages.currentStage === StageFinished) {
       return [false, true];
     }
@@ -415,12 +415,19 @@ function useShouldRenderOrRun(stage: Stage, isNew: boolean, restartReason: 'hook
 
   // When new hooks and components are registered and the stages have finished (typically when a new
   // row in a repeating group is added, and thus new nodes are being generated), restart the stages.
-  const restart = NodesStore.useSelector((state) => state.stages.restart);
+  const store = NodesStore.useStore();
   useEffect(() => {
-    if (shouldRestart) {
-      restart(restartReason);
+    const state = store.getState();
+
+    // It seems that calling restart() here, even when it just falls back to setting an empty object, will
+    // cause a deep comparison and trash performance when you have many components in a form. Checking
+    // the stage beforehand will prevent this.
+    const isOnLastStage = state.stages.currentStage === List[List.length - 1];
+
+    if (shouldRestart && isOnLastStage) {
+      state.stages.restart(restartReason);
     }
-  }, [restart, restartReason, shouldRestart]);
+  }, [restartReason, shouldRestart, store]);
 
   return shouldRenderOrRun;
 }
