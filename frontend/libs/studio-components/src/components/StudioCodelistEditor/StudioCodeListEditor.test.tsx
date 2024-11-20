@@ -47,10 +47,12 @@ const codeList: CodeList = [
   },
 ];
 const onChange = jest.fn();
+const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
   codeList,
   texts,
   onChange,
+  onInvalid,
 };
 const duplicatedValue = 'duplicate';
 const codeListWithDuplicatedValues: CodeList = [
@@ -253,6 +255,23 @@ describe('StudioCodeListEditor', () => {
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
     await user.type(validValueInput, 'new value');
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('Does trigger onInvalid if the code list is invalid', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    const newValue = 'new value';
+    await user.type(validValueInput, newValue);
+    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
+  });
+
+  it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
+    const invalidValueInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
+    await user.type(invalidValueInput, 'new unique value');
+    expect(onInvalid).not.toHaveBeenCalled();
   });
 });
 
