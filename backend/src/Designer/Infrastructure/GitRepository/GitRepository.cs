@@ -82,7 +82,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             return Directory.GetFiles(absoluteDirectory, searchPatternMatch, searchOption);
         }
-        
+
         /// <summary>
         /// Gets all the files within the specified directory in a alphabetically sorted order.
         /// </summary>
