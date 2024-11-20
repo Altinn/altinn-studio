@@ -134,7 +134,7 @@ public class OptionsService : IOptionsService
         AltinnAppGitRepository altinnAppGitRepository =
             _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
                 altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-        altinnAppGitRepository.UpdateOptionsListId( optionsListId, newOptionsListName);
-        
+        altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.josn", $"{newOptionsListName}.json");
+
     }
 }

@@ -128,7 +128,7 @@ public class OptionsController : ControllerBase
 
         return Ok(newOptionsList);
     }
-    
+
     /// <summary>
     /// Updates the name of an options list by changing file name in repo.
     /// </summary>
