@@ -54,7 +54,6 @@ import {
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
 } from './paths';
-
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
