@@ -4,21 +4,18 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import {
-  dataModel1NameMock,
-  jsonMetadata1Mock,
-} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { renderWithProviders } from '../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { jsonMetadataMock, xsdMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 
 // Test data:
 const mockCreateDataModel = jest.fn();
 const mockSetIsCreateNewOpen = jest.fn();
 const defaultProps: CreateNewWrapperProps = {
   isCreateNewOpen: false,
-  dataModels: [],
   disabled: false,
   setIsCreateNewOpen: mockSetIsCreateNewOpen,
 };
@@ -28,7 +25,7 @@ describe('CreateNewWrapper', () => {
 
   it('should open the popup when clicking "new" button', async () => {
     const user = userEvent.setup();
-    render();
+    renderCreateNewWrapper();
 
     expect(queryInputField()).not.toBeInTheDocument();
     expect(queryConfirmButton()).not.toBeInTheDocument();
@@ -41,7 +38,7 @@ describe('CreateNewWrapper', () => {
 
   it('should close the popup when clicking "new" button', async () => {
     const user = userEvent.setup();
-    render({ isCreateNewOpen: true });
+    renderCreateNewWrapper({ isCreateNewOpen: true });
 
     expect(queryInputField()).toBeInTheDocument();
     expect(queryConfirmButton()).toBeInTheDocument();
@@ -54,9 +51,9 @@ describe('CreateNewWrapper', () => {
 
   it('should disable confirm button and show an error text when validation fails', async () => {
     const user = userEvent.setup();
-    const newModelName = dataModel1NameMock;
-    const errorMessage = textMock('schema_editor.error_model_name_exists', { newModelName });
-    render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
+    const newModelName = '_InvalidName';
+    const errorMessage = textMock('schema_editor.error_invalid_datamodel_name');
+    renderCreateNewWrapper({ isCreateNewOpen: true });
 
     expect(queryErrorMessage(errorMessage)).not.toBeInTheDocument();
 
@@ -69,12 +66,12 @@ describe('CreateNewWrapper', () => {
   describe('createDataModel', () => {
     it('should call createDataModel when confirm button is clicked', async () => {
       const user = userEvent.setup();
-      render({ isCreateNewOpen: true });
+      renderCreateNewWrapper({ isCreateNewOpen: true });
 
       await user.type(queryInputField(), 'new-model');
       await user.click(queryConfirmButton());
 
-      expect(mockCreateDataModel).toHaveBeenCalledWith(testOrg, testApp, {
+      expect(mockCreateDataModel).toHaveBeenCalledWith(org, app, {
         modelName: 'new-model',
         relativeDirectory: undefined,
       });
@@ -82,12 +79,12 @@ describe('CreateNewWrapper', () => {
 
     it('should call createDataModel when input is focused and Enter key is pressed', async () => {
       const user = userEvent.setup();
-      render({ isCreateNewOpen: true });
+      renderCreateNewWrapper({ isCreateNewOpen: true });
 
       await user.type(queryInputField(), 'new-model');
       await user.keyboard('{Enter}');
 
-      expect(mockCreateDataModel).toHaveBeenCalledWith(testOrg, testApp, {
+      expect(mockCreateDataModel).toHaveBeenCalledWith(org, app, {
         modelName: 'new-model',
         relativeDirectory: undefined,
       });
@@ -95,12 +92,12 @@ describe('CreateNewWrapper', () => {
 
     it('should call createDataModel with relativePath when createPathOption is set and ok button is clicked', async () => {
       const user = userEvent.setup();
-      render({ isCreateNewOpen: true, createPathOption: true });
+      renderCreateNewWrapper({ isCreateNewOpen: true, createPathOption: true });
 
       await user.type(queryInputField(), 'new-model');
       await user.click(queryConfirmButton());
 
-      expect(mockCreateDataModel).toHaveBeenCalledWith(testOrg, testApp, {
+      expect(mockCreateDataModel).toHaveBeenCalledWith(org, app, {
         modelName: 'new-model',
         relativeDirectory: '',
       });
@@ -110,7 +107,7 @@ describe('CreateNewWrapper', () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
-      render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
+      renderCreateNewWrapper({ isCreateNewOpen: true });
 
       await userWithNoPointerEventCheck.click(queryConfirmButton());
 
@@ -121,7 +118,7 @@ describe('CreateNewWrapper', () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
-      render({ isCreateNewOpen: true, dataModels: [jsonMetadata1Mock] });
+      renderCreateNewWrapper({ isCreateNewOpen: true });
 
       await userWithNoPointerEventCheck.keyboard('{Enter}');
 
@@ -142,10 +139,12 @@ const queryErrorMessage = (errorMessage: string) => {
 const queryConfirmButton = () =>
   screen.queryByRole('button', { name: textMock('schema_editor.create_model_confirm_button') });
 
-const render = (
+const renderCreateNewWrapper = (
   props: Partial<CreateNewWrapperProps> = {},
   queryClient = createQueryClientMock(),
 ) => {
+  queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadataMock]);
+  queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadataMock]);
   renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />, {
     queries: { createDataModel: mockCreateDataModel },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ui-editor`,
