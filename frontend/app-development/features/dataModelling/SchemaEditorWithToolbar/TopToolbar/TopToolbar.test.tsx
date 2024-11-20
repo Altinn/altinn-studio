@@ -4,7 +4,10 @@ import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import {
+  jsonMetadata1Mock,
+  xsdMetadata1Mock,
+} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
 import type { MetadataOption } from '../../../../types/MetadataOption';
@@ -46,10 +49,13 @@ const renderToolbar = (
 ) => {
   const TopToolbarWithInitData = () => {
     const queryClient = useQueryClient();
+    queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadata1Mock]);
+    queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadata1Mock]);
     queryClient.setQueryData(
       [QueryKey.JsonSchema, org, app, modelPath],
       buildJsonSchema(uiSchemaNodesMock),
     );
+
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
