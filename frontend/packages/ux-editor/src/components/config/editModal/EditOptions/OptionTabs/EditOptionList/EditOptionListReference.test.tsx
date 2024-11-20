@@ -42,7 +42,7 @@ describe('EditOptionListReference', () => {
   it('should render', () => {
     renderEditOptionListReference();
     expect(
-      screen.getByText(textMock('ux_editor.options.codelist_referenceId.description')),
+      screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
     ).toBeInTheDocument();
   });
 

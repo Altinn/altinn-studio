@@ -88,7 +88,7 @@ describe('OptionListEditor', () => {
 
     await openModal(user);
     const textBox = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_code_list_item_description', { number: 2 }),
+      name: textMock('code_list_editor.description_item', { number: 2 }),
     });
     await user.type(textBox, 'test');
 
@@ -106,7 +106,7 @@ describe('OptionListEditor', () => {
 
     await openModal(user);
     const textBox = screen.getByRole('textbox', {
-      name: textMock('ux_editor.modal_properties_code_list_item_description', { number: 2 }),
+      name: textMock('code_list_editor.description_item', { number: 2 }),
     });
     await user.type(textBox, 'test');
 

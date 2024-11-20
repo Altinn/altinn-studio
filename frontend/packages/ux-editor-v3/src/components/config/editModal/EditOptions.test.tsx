@@ -45,7 +45,7 @@ describe('EditOptions', () => {
 
   it('should show code list input by default when neither options nor optionId are set', async () => {
     await render();
-    expect(screen.getByText(textMock('ux_editor.modal_add_options_codelist'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.modal_add_options_code_list'))).toBeInTheDocument();
   });
 
   it('should show manual input when component has options defined', async () => {

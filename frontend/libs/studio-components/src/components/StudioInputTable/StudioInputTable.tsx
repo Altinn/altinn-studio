@@ -4,7 +4,6 @@ import { StudioTable } from '../StudioTable';
 import classes from './StudioInputTable.module.css';
 import cn from 'classnames';
 import { useForwardedRef } from '@studio/hooks';
-import { activateTabbingOnFirstInputElement } from './dom-utils/activateTabbingOnFirstInputElement';
 import type { StudioInputTableContextValue } from './StudioInputTableContext';
 import { StudioInputTableContext } from './StudioInputTableContext';
 
@@ -16,7 +15,6 @@ export const StudioInputTable = forwardRef<HTMLTableElement, StudioInputTablePro
     const forwardedRef = useForwardedRef<HTMLTableElement>(ref);
     const internalRef = useCallback(
       (table: HTMLTableElement) => {
-        activateTabbingOnFirstInputElement(table);
         forwardedRef.current = table;
       },
       [forwardedRef],
