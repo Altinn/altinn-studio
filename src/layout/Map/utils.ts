@@ -108,16 +108,18 @@ export function parseGeometries(
 
   const out: Geometry[] = [];
 
-  for (const { data: rawData, label } of geometries) {
+  for (const { altinnRowId, data: rawData, label } of geometries) {
     if (geometryType === 'WKT') {
       const data = WKT.parse(rawData);
       out.push({
+        altinnRowId,
         data,
         label,
       });
     } else {
       const data = JSON.parse(rawData) as GeoJSON;
       out.push({
+        altinnRowId,
         data,
         label,
       });

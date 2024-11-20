@@ -137,9 +137,9 @@ export function Map({
           subdomains={layer.subdomains ? layer.subdomains : []}
         />
       ))}
-      {geometries?.map(({ data, label }, i) => (
+      {geometries?.map(({ altinnRowId, data, label }) => (
         <GeoJSON
-          key={`${i}-${label}`}
+          key={altinnRowId}
           data={data}
           interactive={false}
         >
