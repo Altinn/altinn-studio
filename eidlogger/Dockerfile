@@ -1,8 +1,5 @@
 # Build stage
 FROM eclipse-temurin:21-alpine AS build
-ARG GITHUB_USER
-ARG GITHUB_PASSWORD
-COPY settings.xml.template /root/.m2/settings.xml
 WORKDIR /app
 COPY mvnw mvnw
 COPY .mvn ./.mvn
