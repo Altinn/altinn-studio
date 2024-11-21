@@ -47,10 +47,9 @@ export function LayoutSetsContainer() {
       <StudioCombobox
         label={t('left_menu.layout_dropdown_menu_label')}
         hideLabel
-        value={selectedFormLayoutSetName ? [selectedFormLayoutSetName] : null}
+        value={[selectedFormLayoutSetName]}
         onValueChange={([value]) => handleLayoutSetChange(value)}
       >
-        <StudioCombobox.Empty>{t('left_menu.no_layout_sets')}</StudioCombobox.Empty>
         {layoutSets.sets.map((layoutSet) => (
           <StudioCombobox.Option
             value={layoutSet.id}
