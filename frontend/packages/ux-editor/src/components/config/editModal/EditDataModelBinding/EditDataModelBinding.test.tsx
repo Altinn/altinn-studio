@@ -8,6 +8,9 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
 
 const defaultEditDataModelingBinding: EditDataModelBindingProps<any> = {
   component: componentMocks[ComponentType.Input],
@@ -26,11 +29,23 @@ type renderEditDataModelBinding = {
   queries?: Partial<ServicesContextProps>;
 };
 
+const defaultDataModel = 'defaultDataModel';
+const secondDataModel = 'secondDataModel';
+
 const renderEditDataModelBinding = ({
   props = defaultEditDataModelingBinding,
   queryClient = createQueryClientMock(),
   queries,
 }: renderEditDataModelBinding) => {
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
+    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
+  });
+  queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+    dataTypes: [
+      { id: defaultDataModel, maxCount: 1, appLogic: {} },
+      { id: secondDataModel, maxCount: 1, appLogic: {} },
+    ],
+  });
   return {
     ...renderWithProviders(<EditDataModelBinding {...props} />, {
       queries: { ...queries },

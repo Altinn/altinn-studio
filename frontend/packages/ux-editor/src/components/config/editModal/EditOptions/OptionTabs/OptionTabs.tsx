@@ -1,8 +1,8 @@
 import { getSelectedOptionsType } from '@altinn/ux-editor/utils/optionsUtils';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import classes from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions.module.css';
-import { EditCodeList, EditCodeListReference } from './EditCodeList';
+import classes from './OptionTabs.module.css';
+import { EditOptionList, EditOptionListReference } from './EditOptionList';
 import { SelectedOptionsType } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
@@ -52,7 +52,7 @@ export const OptionTabs = ({
     >
       <StudioTabs.List>
         <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
-          {t('ux_editor.options.tab_codelist')}
+          {t('ux_editor.options.tab_code_list')}
         </StudioTabs.Tab>
         <StudioTabs.Tab value={SelectedOptionsType.Manual}>
           {t('ux_editor.options.tab_manual')}
@@ -65,7 +65,7 @@ export const OptionTabs = ({
         className={classes.codelistTabContent}
         value={SelectedOptionsType.CodeList}
       >
-        <EditCodeList component={component} handleComponentChange={handleComponentChange} />
+        <EditOptionList component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.Manual} className={classes.manualTabContent}>
         <RenderManualOptions
@@ -78,7 +78,7 @@ export const OptionTabs = ({
         value={SelectedOptionsType.ReferenceId}
         className={classes.codelistTabContent}
       >
-        <EditCodeListReference
+        <EditOptionListReference
           component={component}
           handleComponentChange={handleComponentChange}
         />
@@ -102,14 +102,14 @@ const RenderManualOptions = ({
   if (areLayoutOptionsSupported === false) {
     return (
       <StudioAlert className={classes.manualTabAlert} severity='info'>
-        {t('ux_editor.options.codelist_only')}
+        {t('ux_editor.options.code_list_only')}
       </StudioAlert>
     );
   }
 
   return (
     <>
-      {shouldDisplayFeature('codeListEditor') ? (
+      {shouldDisplayFeature('optionListEditor') ? (
         <EditManualOptionsWithEditor
           component={component}
           handleComponentChange={handleComponentChange}

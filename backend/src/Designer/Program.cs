@@ -38,7 +38,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
 
 ILogger logger;
 
@@ -243,18 +242,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureLocalization();
     services.AddPolicyBasedAuthorization();
 
-    services.AddSwaggerGen(c =>
-    {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Designer API", Version = "v1" });
-        try
-        {
-            c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-        }
-        catch
-        {
-            // Catch swashbuckle exception if it doesn't find the generated XML documentation file
-        }
-    });
+    services.AddOpenApi("v1");
 
     // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
@@ -320,16 +308,7 @@ void Configure(IConfiguration configuration)
         }
     });
 
-    const string swaggerRoutePrefix = "designer/swagger";
-    app.UseSwagger(c =>
-    {
-        c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
-    });
-    app.UseSwaggerUI(c =>
-    {
-        c.RoutePrefix = swaggerRoutePrefix;
-        c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
-    });
+    app.MapOpenApi("/designer/openapi/{documentName}/openapi.json");
 
     if (!app.Environment.IsDevelopment())
     {

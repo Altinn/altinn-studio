@@ -13,7 +13,6 @@ const user = userEvent.setup();
 
 const mockDataModelIds = ['dataModelId1', 'dataModelId2'];
 const defaultProps: ISubformDataModelSelectProps = {
-  disabled: false,
   selectedDataType: '',
   setSelectedDataType: jest.fn(),
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
@@ -171,9 +171,9 @@ const render = (layout: IInternalLayout = layoutMock) => {
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
   return renderWithProviders(
     <FormItemContext.Provider value={formItemContext}>
-      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
+      <StudioDragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
         <FormTree layout={layout} />
-      </DragAndDropTree.Provider>
+      </StudioDragAndDropTree.Provider>
     </FormItemContext.Provider>,
     {
       queryClient,
