@@ -1,0 +1,10 @@
+.popoverContent {
+  border-radius: 1px;
+  max-width: 100px;
+  padding: 10px;
+  top: 50px;
+}
+
+.popoverTrigger {
+  padding: 0;
+}

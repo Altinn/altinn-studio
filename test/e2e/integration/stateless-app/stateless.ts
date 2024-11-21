@@ -36,9 +36,9 @@ describe('Stateless', () => {
   });
 
   it('Logout from appfrontend', () => {
-    cy.get(appFrontend.profileIconButton).click();
-    cy.get(appFrontend.logOut).should('be.visible');
-    cy.get(appFrontend.logOutLink).should('exist').and('be.visible');
+    cy.findByRole('button', { name: 'Profil ikon knapp' }).click();
+    cy.findByRole('dialog', { name: 'Profil ikon knapp' }).should('exist');
+    cy.findByRole('link', { name: 'Logg ut' }).should('be.visible');
   });
 
   it('is possible to start app instance from stateless app', () => {

@@ -44,8 +44,6 @@ export class AppFrontend {
   public altinnError = '[data-testid="AltinnError"]';
   public instanceErrorCode = '[data-testid="StatusCode"]';
   public profileIconButton = '#profile-icon-button';
-  public logOut = '#logout-menu-item';
-  public logOutLink = 'a[href$="/ui/authentication/LogOut"]';
   public printButton = 'button:contains("Print / Lagre PDF")';
   public toast = '[role="alert"][class^="Toast"]';
   public expandedWidth = '[data-expanded="true"]';
