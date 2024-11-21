@@ -127,6 +127,11 @@ describe('ScopeList utils functions', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('should set description to empty string when description is undefined', () => {
+      const result = mapRowElementsToScopes([{ ...mockRowElement2, description: undefined }]);
+      expect(result).toEqual([{ ...mockScope2, description: '' }]);
+    });
   });
 
   describe('mapRowElementsToSelectedScopes', () => {
