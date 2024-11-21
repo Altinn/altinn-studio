@@ -4,10 +4,7 @@ import { TopToolbar } from './TopToolbar';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import {
-  jsonMetadata1Mock,
-  xsdMetadata1Mock,
-} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
 import type { MetadataOption } from '../../../../types/MetadataOption';
