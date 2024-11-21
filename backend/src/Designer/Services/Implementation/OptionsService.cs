@@ -91,6 +91,12 @@ public class OptionsService : IOptionsService
         List<Option> deserializedOptions = JsonSerializer.Deserialize<List<Option>>(payload.OpenReadStream(),
             new JsonSerializerOptions { WriteIndented = true, AllowTrailingCommas = true });
 
+        bool optionListHasInvalidNullFields = deserializedOptions.Exists(option => option.Value == null || option.Label == null);
+        if (optionListHasInvalidNullFields)
+        {
+            throw new InvalidOptionsFormatException("Uploaded file is missing one of the following attributes for an option: value or label.");
+        }
+
         var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
         await altinnAppGitRepository.CreateOrOverwriteOptionsList(optionsListId, deserializedOptions, cancellationToken);
 

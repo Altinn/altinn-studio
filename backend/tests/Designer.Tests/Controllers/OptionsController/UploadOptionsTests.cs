@@ -106,7 +106,38 @@ public class UploadOptionsTests : DesignerEndpointsTestsBase<UploadOptionsTests>
         string optionsFileName = "missing-fields-options.json";
         string jsonOptions = @"[
         {""value"": """" }, 
-        {""label"": """" }, 
+        {""label"": """" },
+    ]";
+
+        byte[] optionsBytes = Encoding.UTF8.GetBytes(jsonOptions);
+        string apiUrl = $"{VersionPrefix}/{Org}/{targetRepository}/options/upload";
+        var content = new MultipartFormDataContent();
+        var optionsContent = new ByteArrayContent(optionsBytes);
+        optionsContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        content.Add(optionsContent, "file", optionsFileName);
+        using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, apiUrl)
+        {
+            Content = content
+        };
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_Returns_400BadRequest_When_Uploading_New_OptionsList_With_Null_Values()
+    {
+        // Arrange
+        const string repo = "empty-app";
+
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest(Org, repo, Developer, targetRepository);
+
+        string optionsFileName = "null-options.json";
+        string jsonOptions = @"[
         {""label"": null, ""value"": null }
     ]";
 
