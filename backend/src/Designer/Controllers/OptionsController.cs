@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -147,7 +148,14 @@ public class OptionsController : ControllerBase
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-        _optionsService.UpdateOptionsListId(editingContext, optionsListId, newOptionsListId, cancellationToken);
+        try
+        {
+            _optionsService.UpdateOptionsListId(editingContext, optionsListId, newOptionsListId, cancellationToken);
+        }
+        catch (IOException exception)
+        {
+            return BadRequest(exception.Message);
+        }
 
         return Ok();
     }
