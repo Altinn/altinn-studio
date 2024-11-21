@@ -19,6 +19,8 @@ import {
   removeFeatureFlagFromLocalStorage,
 } from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetsModel } from 'app-shared/types/api/dto/LayoutSetsModel';
 
 // Test data
 const layoutSetName1 = layoutSet1NameMock;
@@ -41,7 +43,7 @@ describe('LayoutSetsContainer', () => {
   });
 
   it('should not render combobox when there are no layoutSets', async () => {
-    render({ sets: null });
+    render({ layoutSets: null, layoutSetsExtended: null });
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
@@ -64,10 +66,10 @@ describe('LayoutSetsContainer', () => {
 
   it('should render the delete subform button when feature is enabled and selected layoutset is a subform', () => {
     addFeatureFlagToLocalStorage('subform');
-    render(
-      { sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] },
-      { selectedlayoutSet: layoutSet3SubformNameMock },
-    );
+    render({
+      layoutSets: { sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] },
+      selectedLayoutSet: layoutSet3SubformNameMock,
+    });
     const deleteSubformButton = screen.getByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
@@ -77,10 +79,10 @@ describe('LayoutSetsContainer', () => {
 
   it('should not render the delete subform button when feature is enabled and selected layoutset is not a subform', () => {
     addFeatureFlagToLocalStorage('subform');
-    render(
-      { sets: [{ id: layoutSet1NameMock, dataType: 'data-model' }] },
-      { selectedlayoutSet: layoutSet1NameMock },
-    );
+    render({
+      layoutSets: { sets: [{ id: layoutSet1NameMock, dataType: 'data-model' }] },
+      selectedLayoutSet: layoutSet1NameMock,
+    });
     const deleteSubformButton = screen.queryByRole('button', {
       name: textMock('ux_editor.delete.subform'),
     });
@@ -97,9 +99,25 @@ describe('LayoutSetsContainer', () => {
   });
 });
 
-const render = (layoutSetsData = layoutSetsMock, options: { selectedlayoutSet?: string } = {}) => {
-  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsData);
-  appContextMock.selectedFormLayoutSetName = options.selectedlayoutSet || layoutSetName1;
-  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtendedMock);
+type renderProps = {
+  layoutSets?: LayoutSets;
+  layoutSetsExtended?: LayoutSetsModel;
+  selectedLayoutSet?: string;
+};
+
+const defaultProps: renderProps = {
+  layoutSets: layoutSetsMock,
+  layoutSetsExtended: layoutSetsExtendedMock,
+  selectedLayoutSet: layoutSetName1,
+};
+
+const render = ({
+  layoutSets,
+  layoutSetsExtended,
+  selectedLayoutSet,
+}: renderProps = defaultProps) => {
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
+  queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtended);
+  appContextMock.selectedFormLayoutSetName = selectedLayoutSet;
   return renderWithProviders(<LayoutSetsContainer />);
 };
