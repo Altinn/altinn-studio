@@ -1,8 +1,8 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
-import { CreateNewWrapperProps, extractDataTypeNamesFromAppMetadata } from './CreateNewWrapper';
-import { CreateNewWrapper } from './CreateNewWrapper';
+import type { CreateNewWrapperProps } from './CreateNewWrapper';
+import { extractDataTypeNamesFromAppMetadata, CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
