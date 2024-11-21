@@ -49,8 +49,6 @@ const renderToolbar = (
 ) => {
   const TopToolbarWithInitData = () => {
     const queryClient = useQueryClient();
-    queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadata1Mock]);
-    queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadata1Mock]);
     queryClient.setQueryData(
       [QueryKey.JsonSchema, org, app, modelPath],
       buildJsonSchema(uiSchemaNodesMock),
