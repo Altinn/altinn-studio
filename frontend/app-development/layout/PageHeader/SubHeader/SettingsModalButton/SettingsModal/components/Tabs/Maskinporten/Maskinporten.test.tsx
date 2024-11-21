@@ -63,8 +63,10 @@ describe('Maskinporten', () => {
 
     await waitForLoggedInStatusCheckIsDone();
 
-    const temporaryLoggedInContent = screen.getByText('View when logged in comes here');
-    expect(temporaryLoggedInContent).toBeInTheDocument();
+    const loginButton = screen.queryByRole('button', {
+      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
+    });
+    expect(loginButton).not.toBeInTheDocument();
   });
 
   it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
@@ -81,6 +83,27 @@ describe('Maskinporten', () => {
     expect(consoleLogMock).toHaveBeenCalledWith(
       'Will be implemented in next iteration when backend is ready',
     );
+  });
+
+  it('should show an alert with text that no scopes are available for user', async () => {
+    const getIsLoggedInWithAnsattportenMock = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(true));
+
+    const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+
+    renderMaskinporten({
+      queries: {
+        getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
+        getMaskinportenScopes: mockGetMaskinportenScopes,
+      },
+    });
+
+    await waitForLoggedInStatusCheckIsDone();
+
+    expect(
+      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available')),
+    ).toBeInTheDocument();
   });
 });
 
