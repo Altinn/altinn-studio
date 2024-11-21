@@ -22,8 +22,10 @@
         },
         "children": [
           "balloonNum",
-          "balloonColor"
+          "balloonColor",
+          "balloonColorSummary"
         ],
+        "tableHeaders": ["balloonNum", "balloonColor"],
         "edit": {
           "addButton": false
         },
@@ -52,6 +54,18 @@
         "mapping": {
           "ShiftingOptions.Balloons[{0}].Num": "balloonNum"
         }
+      },
+      {
+        "id": "balloonColorSummary",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Farge (verdi)"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "ShiftingOptions.Balloons.Color"
+        },
+        "options": [],
+        "renderAsSummary": true
       },
       {
         "id": "button-group-shifting-options",
