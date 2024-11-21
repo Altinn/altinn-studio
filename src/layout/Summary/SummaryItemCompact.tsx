@@ -19,7 +19,7 @@ export function SummaryItemCompact({ targetNode, displayData }: ICompactSummaryI
   const titleTrb = textBindings && 'title' in textBindings ? textBindings.title : undefined;
 
   return (
-    <div data-testid={'summary-item-compact'}>
+    <div data-testid='summary-item-compact'>
       {/* FIXME: is data-testid actually necessary? Can we get it in tests in other ways? */}
       <SummaryTitle
         title={summaryTitleTrb ?? titleTrb}
@@ -47,7 +47,7 @@ const DisplayData = ({ displayData, targetNode }: { displayData: string; targetN
   ) : (
     <span className={classes.emptyField}>
       <Lang
-        id={'general.empty_summary'}
+        id='general.empty_summary'
         node={targetNode}
       />
     </span>

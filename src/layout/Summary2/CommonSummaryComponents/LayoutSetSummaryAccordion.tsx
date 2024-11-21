@@ -15,7 +15,7 @@ export function LayoutSetSummaryAccordion({ filteredPages }: LayoutSetAccordionS
   return (
     <Accordion
       border
-      color={'neutral'}
+      color='neutral'
       className={classes.summaryItem}
     >
       {filteredPages.map((layoutId: string) => (

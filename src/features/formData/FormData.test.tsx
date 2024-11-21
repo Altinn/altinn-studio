@@ -113,11 +113,11 @@ async function statelessRender(props: RenderProps) {
         <MemoryRouter>
           <Routes>
             <Route
-              path={'/'}
+              path='/'
               element={<AppRoutingProvider>{children}</AppRoutingProvider>}
             />
             <Route
-              path={'/different'}
+              path='/different'
               element={
                 <AppRoutingProvider>
                   <div>something different</div>

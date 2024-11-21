@@ -119,7 +119,7 @@ export function FormPage({ currentPageId }: { currentPageId: string | undefined 
       {hasRequired && (
         <MessageBanner
           error={requiredFieldsMissing}
-          messageKey={'form_filler.required_description'}
+          messageKey='form_filler.required_description'
         />
       )}
       <Grid

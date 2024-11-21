@@ -105,7 +105,7 @@ function InnerImage({ renderSvg, id, imgSrc, altText, width, height, renderedInC
         type='image/svg+xml'
         id={id}
         data={imgSrc}
-        role={'presentation'}
+        role='presentation'
       >
         <img
           src={imgSrc}

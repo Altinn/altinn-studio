@@ -59,7 +59,7 @@ export const AltinnError = ({
       )}
       <div>
         <a
-          className={'altinnLink'}
+          className='altinnLink'
           href={url}
         >
           {urlText}

@@ -43,14 +43,14 @@ export function MultipleChoiceSummary({ getFormData }: IMultipleChoiceSummaryPro
     <Grid
       item
       xs={12}
-      data-testid={'multiple-choice-summary'}
+      data-testid='multiple-choice-summary'
     >
       {Object.keys(formData).length === 0 ? (
         <Typography
           variant='body1'
           className={classes.emptyField}
         >
-          <Lang id={'general.empty_summary'} />
+          <Lang id='general.empty_summary' />
         </Typography>
       ) : (
         <List classes={{ root: classes.list }}>

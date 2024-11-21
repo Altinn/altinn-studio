@@ -125,7 +125,7 @@ export function DropzoneComponent({
                     <Lang id='form_filler.file_uploader_upload' />
                   ) : (
                     <>
-                      <Lang id={'form_filler.file_uploader_drag'} />
+                      <Lang id='form_filler.file_uploader_drag' />
                       <span className={cn(classes.blueUnderLine)}>
                         {' '}
                         <Lang id='form_filler.file_uploader_find' />

@@ -103,18 +103,18 @@ export function SubformComponent({ node }: PropsFromGenericComponent<'Subform'>)
                     ))
                   ) : (
                     <Table.HeaderCell className={classes.tableCellFormatting}>
-                      <Lang id={'form_filler.subform_default_header'} />
+                      <Lang id='form_filler.subform_default_header' />
                     </Table.HeaderCell>
                   )}
                   <Table.HeaderCell>
                     <span className={classes.visuallyHidden}>
-                      <Lang id={'general.edit'} />
+                      <Lang id='general.edit' />
                     </span>
                   </Table.HeaderCell>
                   {showDeleteButton && (
                     <Table.HeaderCell>
                       <span className={classes.visuallyHidden}>
-                        <Lang id={'general.delete'} />
+                        <Lang id='general.delete' />
                       </span>
                     </Table.HeaderCell>
                   )}

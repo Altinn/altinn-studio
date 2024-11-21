@@ -36,7 +36,7 @@ export function NodeInspectorTextResourceBindings({ node, textResourceBindings }
 
   return (
     <Value
-      property={'textResourceBindings'}
+      property='textResourceBindings'
       collapsible={true}
     >
       <dl className={classes.propertyList}>

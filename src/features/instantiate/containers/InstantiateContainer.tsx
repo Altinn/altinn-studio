@@ -37,5 +37,5 @@ export const InstantiateContainer = () => {
     return <UnknownError />;
   }
 
-  return <Loader reason={'instantiating'} />;
+  return <Loader reason='instantiating' />;
 };

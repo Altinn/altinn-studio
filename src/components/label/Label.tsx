@@ -52,7 +52,7 @@ export function Label(props: LabelProps) {
   const textResourceBindings = (overriddenTrb ?? _trb) as ExprResolved<TRBLabel> | undefined;
 
   if (!textResourceBindings?.title) {
-    return <>{children}</>;
+    return children;
   }
 
   const labelId = getLabelId(id);

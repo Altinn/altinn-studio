@@ -116,7 +116,7 @@ const CurrentPartyProvider = ({ children }: PropsWithChildren) => {
   const [userHasSelectedParty, setUserHasSelectedParty] = useState(false);
 
   if (isLoading) {
-    return <Loader reason={'current-party'} />;
+    return <Loader reason='current-party' />;
   }
 
   const error = errorFromMutation || errorFromQuery;
@@ -163,7 +163,7 @@ export function PartyProvider({ children }: PropsWithChildren) {
   const shouldFetchProfile = useShouldFetchProfile();
 
   if (!shouldFetchProfile) {
-    return <>{children}</>;
+    return children;
   }
 
   return (

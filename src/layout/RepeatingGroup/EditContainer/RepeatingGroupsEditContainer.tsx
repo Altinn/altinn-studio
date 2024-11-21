@@ -133,7 +133,7 @@ function RepeatingGroupsEditContainerInternal({
               onClick={() => deleteRow({ index: row.index, uuid: row.uuid })}
               data-testid='delete-button'
             >
-              <Lang id={'general.delete'} />
+              <Lang id='general.delete' />
               <DeleteIcon fontSize='1rem' />
             </Button>
           </Grid>
@@ -182,7 +182,7 @@ function RepeatingGroupsEditContainerInternal({
                       fontSize='1rem'
                       aria-hidden='true'
                     />
-                    <Lang id={'general.back'} />
+                    <Lang id='general.back' />
                   </Button>
                 </Grid>
               )}
@@ -194,7 +194,7 @@ function RepeatingGroupsEditContainerInternal({
                     onClick={() => nextMultiPage()}
                     disabled={!isFresh}
                   >
-                    <Lang id={'general.next'} />
+                    <Lang id='general.next' />
                     <Next
                       fontSize='1rem'
                       aria-hidden='true'

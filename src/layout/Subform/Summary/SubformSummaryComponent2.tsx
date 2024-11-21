@@ -38,7 +38,7 @@ export const SummarySubformWrapper = ({ node }: PropsWithChildren<{ node: Layout
           />
           <Paragraph asChild>
             <span className={classes.emptyField}>
-              <Lang id={'general.empty_summary'} />
+              <Lang id='general.empty_summary' />
             </span>
           </Paragraph>
         </>
@@ -98,7 +98,7 @@ const DoSummaryWrapper = ({
               <Heading
                 className='no-visual-testing'
                 spacing={false}
-                size={'sm'}
+                size='sm'
                 level={2}
               >
                 {dataElementId}

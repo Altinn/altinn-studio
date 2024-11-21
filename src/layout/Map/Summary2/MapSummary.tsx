@@ -77,7 +77,7 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
       {markerLocation && (
         <Typography className={cn(classes.footer, classes.summaryValue, { [classes.error]: errors.length > 0 })}>
           <Lang
-            id={'map_component.selectedLocation'}
+            id='map_component.selectedLocation'
             params={[markerLocation.latitude, markerLocation.longitude]}
           />
         </Typography>
@@ -88,7 +88,7 @@ export function MapSummary({ componentNode, emptyFieldText, isCompact }: MapSumm
             id={message.key}
             params={message.params}
             node={componentNode}
-          ></Lang>
+          />
         </ErrorMessage>
       ))}
     </div>

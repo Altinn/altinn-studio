@@ -17,8 +17,8 @@ function AppTextsRenderer() {
   const appOwner = useAppOwner();
   return (
     <>
-      <div data-testid={'appName'}>{appName}</div>
-      <div data-testid={'appOwner'}>{appOwner}</div>
+      <div data-testid='appName'>{appName}</div>
+      <div data-testid='appOwner'>{appOwner}</div>
     </>
   );
 }

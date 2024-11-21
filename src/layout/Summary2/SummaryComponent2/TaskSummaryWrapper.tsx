@@ -41,5 +41,5 @@ export function TaskSummaryWrapper({ taskId, children }: React.PropsWithChildren
   if (overriddenTaskId) {
     return <FormProvider>{children}</FormProvider>;
   }
-  return <>{children}</>;
+  return children;
 }

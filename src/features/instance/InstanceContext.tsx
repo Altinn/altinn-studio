@@ -208,7 +208,7 @@ const BlockUntilLoaded = ({ children }: PropsWithChildren) => {
     return <Loader reason='instance' />;
   }
 
-  return <>{children}</>;
+  return children;
 };
 
 /**

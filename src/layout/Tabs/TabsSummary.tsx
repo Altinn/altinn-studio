@@ -24,7 +24,7 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
   return (
     <div
       className={classes.summaryContent}
-      data-testid={'summary-tabs-component'}
+      data-testid='summary-tabs-component'
     >
       {tabs.map((tab, index) => (
         <>

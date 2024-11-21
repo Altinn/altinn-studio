@@ -47,7 +47,7 @@ export function Value({ children, className, property, collapsible, wasExpressio
         {collapsible ? (
           // eslint-disable-next-line jsx-a11y/anchor-is-valid
           <a
-            href={'#'}
+            href='#'
             onClick={(e) => {
               e.preventDefault();
               setCollapsed(!collapsed);
@@ -107,8 +107,8 @@ function OtherNode(props: { property: string; node: LayoutNode }) {
     <Value property={props.property}>
       {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
       <a
-        href={'#'}
-        role={'button'}
+        href='#'
+        role='button'
         onClick={(e) => {
           e.preventDefault();
           context.selectNode(props.node.id);

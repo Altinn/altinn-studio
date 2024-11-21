@@ -64,7 +64,7 @@ export const PaymentComponent = ({ node }: PropsFromGenericComponent<'Payment'>)
             </Alert>
           )}
           {paymentInfo?.status === PaymentStatus.Paid && (
-            <Alert severity={'info'}>
+            <Alert severity='info'>
               <Lang id='payment.alert.paid' />
             </Alert>
           )}

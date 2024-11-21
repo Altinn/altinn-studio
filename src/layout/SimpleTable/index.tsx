@@ -36,7 +36,7 @@ export class SimpleTable extends SimpleTableDef {
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {
-      return <SimpleTableComponent {...props}></SimpleTableComponent>;
+      return <SimpleTableComponent {...props} />;
     },
   );
 

@@ -79,7 +79,7 @@ export const MultipleValueSummary = ({
             [classes.compact]: isCompact,
           })}
         >
-          <Label weight={'regular'}>{title}</Label>
+          <Label weight='regular'>{title}</Label>
           {displayType === 'list' && (
             <List.Root>
               <List.Unordered>
@@ -108,7 +108,7 @@ export const MultipleValueSummary = ({
               className={classes.emptyValue}
             >
               <span>
-                <Lang id={emptyFieldText ?? 'general.empty_summary'}></Lang>
+                <Lang id={emptyFieldText ?? 'general.empty_summary'} />
               </span>
             </Paragraph>
           )}
@@ -120,14 +120,14 @@ export const MultipleValueSummary = ({
                 id={message.key}
                 params={message.params}
                 node={componentNode}
-              ></Lang>
+              />
             </ErrorMessage>
           ))}
       </div>
       <EditButton
         className={classes.editButton}
         componentNode={componentNode}
-        summaryComponentId={''}
+        summaryComponentId=''
       />
     </div>
   );

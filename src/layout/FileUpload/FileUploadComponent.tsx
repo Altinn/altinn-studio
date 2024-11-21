@@ -75,7 +75,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
         className={classes.fileUploadButton}
         onClick={() => setShowFileUpload(true)}
       >
-        <Lang id={'form_filler.file_uploader_add_attachment'} />
+        <Lang id='form_filler.file_uploader_add_attachment' />
       </button>
     );
   };
@@ -87,7 +87,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
       // if the user adds more attachments than max, all should be ignored
       toast(
         <Lang
-          id={'form_filler.file_uploader_validation_error_exceeds_max_files'}
+          id='form_filler.file_uploader_validation_error_exceeds_max_files'
           params={[maxNumberOfAttachments]}
         />,
         { type: 'error' },
@@ -150,7 +150,7 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
               validations={validations}
               node={node}
             />
-            {attachments && attachments.length > 0 && <div className={classes.betweenTableAndDropMargin}></div>}
+            {attachments && attachments.length > 0 && <div className={classes.betweenTableAndDropMargin} />}
           </>
         )}
 

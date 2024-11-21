@@ -73,12 +73,10 @@ export function PDFGeneratorPreview({
         disabled={disabled}
         color='second'
       >
-        {
-          <FilePdfIcon
-            fontSize='1rem'
-            aria-hidden
-          />
-        }
+        <FilePdfIcon
+          fontSize='1rem'
+          aria-hidden
+        />
         {buttonTitle ? langAsString(buttonTitle) : langAsString('pdfPreview.defaultButtonText')}
       </Button>
       <Modal
@@ -96,7 +94,7 @@ export function PDFGeneratorPreview({
         ) : errorText ? (
           <div style={{ textAlign: 'center' }}>
             <Modal.Header>
-              <Lang id={'pdfPreview.error'} />
+              <Lang id='pdfPreview.error' />
             </Modal.Header>
             <Modal.Content>
               {showErrorDetails &&

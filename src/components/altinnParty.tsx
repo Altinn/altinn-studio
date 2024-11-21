@@ -163,7 +163,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
               <Typography>
                 {party.childParties.length}
                 &nbsp;
-                <Lang id={'party_selection.unit_type_subunit_plural'} />
+                <Lang id='party_selection.unit_type_subunit_plural' />
               </Typography>
             </Grid>
           </Grid>
@@ -196,7 +196,7 @@ export function AltinnParty({ party, onSelectParty, showSubUnits }: IAltinnParty
                 <Typography className={classes.partyName}>{childParty.name}</Typography>
                 <Typography className={classes.partyInfo}>
                   &nbsp;
-                  <Lang id={'party_selection.unit_org_number'} />
+                  <Lang id='party_selection.unit_org_number' />
                   &nbsp;{childParty.orgNumber}
                 </Typography>
               </Grid>

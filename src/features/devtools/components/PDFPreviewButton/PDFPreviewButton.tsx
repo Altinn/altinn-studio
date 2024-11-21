@@ -37,18 +37,16 @@ export const PDFPreviewButton = () => {
         disabled={taskType !== ProcessTaskType.Data}
         color='second'
       >
-        {
-          <FilePdfIcon
-            fontSize='1rem'
-            aria-hidden
-          />
-        }
+        <FilePdfIcon
+          fontSize='1rem'
+          aria-hidden
+        />
         Forhåndsvis PDF
       </Button>
       {!isStudioPreview && (
         <PDFGeneratorPreview
           showErrorDetails={true}
-          buttonTitle={'Generer PDF'}
+          buttonTitle='Generer PDF'
         />
       )}
     </Fieldset>

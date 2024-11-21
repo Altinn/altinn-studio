@@ -38,11 +38,11 @@ describe('LandmarkShortcuts.tsx', () => {
           {...defaultProps}
           {...props}
         />
-        <main id='main-content'></main>
+        <main id='main-content' />
         <div
           id='other-content'
           tabIndex={-2}
-        ></div>
+        />
       </>,
     );
   }

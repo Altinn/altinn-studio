@@ -745,7 +745,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
     return <NodesLoader />;
   }
 
-  return <>{children}</>;
+  return children;
 }
 
 function NodesLoader() {

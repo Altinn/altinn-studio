@@ -62,18 +62,16 @@ export function MapComponent({ node }: IMapComponentProps) {
         size='sm'
         className={classes.footer}
       >
-        {markerBinding && (
-          <>
-            {markerLocationIsValid ? (
-              <Lang
-                id={'map_component.selectedLocation'}
-                params={[markerLocation.latitude, markerLocation.longitude]}
-              />
-            ) : (
-              <Lang id={'map_component.noSelectedLocation'} />
-            )}
-          </>
-        )}
+        {markerBinding ? (
+          markerLocationIsValid ? (
+            <Lang
+              id='map_component.selectedLocation'
+              params={[markerLocation.latitude, markerLocation.longitude]}
+            />
+          ) : (
+            <Lang id='map_component.noSelectedLocation' />
+          )
+        ) : null}
       </Paragraph>
     </ComponentStructureWrapper>
   );

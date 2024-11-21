@@ -162,9 +162,7 @@ function ResolveExpressions<T extends CompTypes>({ node, intermediateItem }: Com
 
   NodesStateQueue.useSetNodeProp({ node, prop: 'item', value: resolved, partial: true }, !isSet);
 
-  return (
-    <>{GeneratorDebug.displayState && <pre style={{ fontSize: '0.8em' }}>{JSON.stringify(resolved, null, 2)}</pre>}</>
-  );
+  return GeneratorDebug.displayState && <pre style={{ fontSize: '0.8em' }}>{JSON.stringify(resolved, null, 2)}</pre>;
 }
 
 /**

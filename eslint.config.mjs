@@ -118,6 +118,10 @@ export default tseslint.config(
 
       'react-hooks/exhaustive-deps': ['error', { additionalHooks: '^(useMemoDeepEqual)$' }],
       'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
+      'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
+      'react/jsx-fragments': ['error'],
+      'react/jsx-no-useless-fragment': ['error'],
+      'react/self-closing-comp': ['error'],
       'react/prop-types': ['off'],
 
       'sonarjs/no-duplicate-string': ['off'],

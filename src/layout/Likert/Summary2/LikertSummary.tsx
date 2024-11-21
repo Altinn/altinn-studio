@@ -73,7 +73,7 @@ export function LikertSummary({ componentNode, emptyFieldText, isCompact }: Like
             id={message.key}
             params={message.params}
             node={componentNode}
-          ></Lang>
+          />
         </ErrorMessage>
       ))}
     </div>

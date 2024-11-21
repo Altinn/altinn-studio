@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
@@ -68,5 +68,5 @@ export const LangDataSourcesProvider = ({ children }: PropsWithChildren) => {
     return null;
   }
 
-  return <>{children}</>;
+  return children;
 };

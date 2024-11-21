@@ -28,18 +28,18 @@ export const AltinnCollapsableList = ({
   return (
     <Grid
       container={true}
-      direction={'column'}
+      direction='column'
     >
       <Grid
         container={true}
-        direction={'row'}
+        direction='row'
         onClick={onClickExpand}
         onKeyPress={onKeyPress}
         tabIndex={0}
       >
         <Grid
           container={true}
-          direction={'row'}
+          direction='row'
         >
           {listHeader}
         </Grid>

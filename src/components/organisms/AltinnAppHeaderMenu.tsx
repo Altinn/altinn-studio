@@ -23,40 +23,38 @@ export function AltinnAppHeaderMenu({ party, logoColor }: IAltinnAppHeaderMenuPr
   }
 
   return (
-    <>
-      <Popover placement='bottom'>
-        <Popover.Trigger
-          size='sm'
-          variant='tertiary'
-          style={{ padding: 0 }}
-          aria-label={langAsString('general.header_profile_icon_label')}
+    <Popover placement='bottom'>
+      <Popover.Trigger
+        size='sm'
+        variant='tertiary'
+        style={{ padding: 0 }}
+        aria-label={langAsString('general.header_profile_icon_label')}
+      >
+        <CircleIcon
+          size='1.5rem'
+          color={logoColor}
         >
-          <CircleIcon
-            size='1.5rem'
-            color={logoColor}
-          >
-            {party.orgNumber ? (
-              <Buildings3Icon
-                color='white'
-                aria-hidden='true'
-              />
-            ) : (
-              <PersonIcon
-                color='white'
-                aria-hidden='true'
-              />
-            )}
-          </CircleIcon>
-        </Popover.Trigger>
-        <Popover.Content className={classes.popoverContent}>
-          <a
-            className={'altinnLink'}
-            href={logoutUrlAltinn(window.location.origin)}
-          >
-            <Lang id='general.log_out' />
-          </a>
-        </Popover.Content>
-      </Popover>
-    </>
+          {party.orgNumber ? (
+            <Buildings3Icon
+              color='white'
+              aria-hidden='true'
+            />
+          ) : (
+            <PersonIcon
+              color='white'
+              aria-hidden='true'
+            />
+          )}
+        </CircleIcon>
+      </Popover.Trigger>
+      <Popover.Content className={classes.popoverContent}>
+        <a
+          className='altinnLink'
+          href={logoutUrlAltinn(window.location.origin)}
+        >
+          <Lang id='general.log_out' />
+        </a>
+      </Popover.Content>
+    </Popover>
   );
 }

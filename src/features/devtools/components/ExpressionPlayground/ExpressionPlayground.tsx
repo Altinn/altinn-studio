@@ -164,7 +164,7 @@ export const ExpressionPlayground = () => {
   return (
     <div className={classes.container}>
       <SplitView
-        direction={'row'}
+        direction='row'
         sizes={[300]}
       >
         <SplitView direction='column'>
@@ -180,7 +180,7 @@ export const ExpressionPlayground = () => {
               className={cn(classes.textbox, classes.output)}
               readOnly={true}
               value={outputs[0].value}
-              placeholder={'Resultatet av uttrykket vises her'}
+              placeholder='Resultatet av uttrykket vises her'
             />
           )}
           {outputs.length > 1 && (
@@ -217,7 +217,7 @@ export const ExpressionPlayground = () => {
                         className={cn(classes.textbox, classes.output)}
                         readOnly={true}
                         value={output.value}
-                        placeholder={'Resultatet av uttrykket vises her'}
+                        placeholder='Resultatet av uttrykket vises her'
                       />
                     </Tabs.Content>
                   );
@@ -227,7 +227,7 @@ export const ExpressionPlayground = () => {
           )}
         </SplitView>
         <div className={classes.rightColumn}>
-          <Fieldset legend={'Kjør uttrykk i kontekst av komponent'}>
+          <Fieldset legend='Kjør uttrykk i kontekst av komponent'>
             <Combobox
               size='sm'
               value={selectedContext}
@@ -253,7 +253,7 @@ export const ExpressionPlayground = () => {
             {forComponentId && forPage === currentPageId && (
               // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
-                href={'#'}
+                href='#'
                 onClick={(e) => {
                   e.preventDefault();
                   setActiveTab(DevToolsTab.Components);
@@ -283,11 +283,11 @@ export const ExpressionPlayground = () => {
           </Fieldset>
           <br />
           <br />
-          <Fieldset legend={'Dokumentasjon'}>
+          <Fieldset legend='Dokumentasjon'>
             Les mer om uttrykk{' '}
             <a
-              href={'https://docs.altinn.studio/nb/app/development/logic/expressions/'}
-              target={'_blank'}
+              href='https://docs.altinn.studio/nb/app/development/logic/expressions/'
+              target='_blank'
               rel='noreferrer'
             >
               i dokumentasjonen

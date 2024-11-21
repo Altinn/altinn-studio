@@ -86,11 +86,11 @@ function NavigationError({ label }: NavigationErrorProps) {
 }
 
 export function NotCurrentTaskPage() {
-  return <NavigationError label={'general.part_of_form_completed'} />;
+  return <NavigationError label='general.part_of_form_completed' />;
 }
 
 export function InvalidTaskIdPage() {
-  return <NavigationError label={'general.invalid_task_id'} />;
+  return <NavigationError label='general.invalid_task_id' />;
 }
 
 export function NavigateToStartUrl() {

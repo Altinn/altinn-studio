@@ -81,7 +81,7 @@ function RegularRepeatingGroup(props: FullProps) {
   return (
     <>
       <div
-        data-testid={'summary-group-component'}
+        data-testid='summary-group-component'
         style={{ width: '100%' }}
       >
         <div className={classes.container}>
@@ -102,7 +102,7 @@ function RegularRepeatingGroup(props: FullProps) {
         <div style={{ width: '100%' }}>
           {rows.length === 0 ? (
             <span className={classes.emptyField}>
-              <Lang id={'general.empty_summary'} />
+              <Lang id='general.empty_summary' />
             </span>
           ) : (
             rows.map((row) => (
@@ -118,7 +118,7 @@ function RegularRepeatingGroup(props: FullProps) {
 
       {groupHasErrors && !display?.hideValidationMessages && (
         <div className={classes.gridStyle}>
-          <ErrorPaper message={<Lang id={'group.row_error'} />} />
+          <ErrorPaper message={<Lang id='group.row_error' />} />
           <div>
             {!display?.hideChangeButton && (
               <button
@@ -126,7 +126,7 @@ function RegularRepeatingGroup(props: FullProps) {
                 onClick={onChangeClick}
                 type='button'
               >
-                <Lang id={'form_filler.summary_go_to_correct_page'} />
+                <Lang id='form_filler.summary_go_to_correct_page' />
               </button>
             )}
           </div>
@@ -158,7 +158,7 @@ function RegularRepeatingGroupRow({
 
   return (
     <div
-      data-testid={'summary-repeating-row'}
+      data-testid='summary-repeating-row'
       key={`row-${row.uuid}`}
       className={classes.border}
     >

@@ -170,20 +170,20 @@ export const ReceiptContainer = () => {
       {!applicationMetadata.autoDeleteOnProcessEnd && (
         <ReceiptComponent
           attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, langTools)}
-          body={<Lang id={'receipt.body'} />}
-          collapsibleTitle={<Lang id={'receipt.attachments'} />}
+          body={<Lang id='receipt.body' />}
+          collapsibleTitle={<Lang id='receipt.attachments' />}
           instanceMetaDataObject={instanceMetaObject}
-          subtitle={<Lang id={'receipt.subtitle'} />}
+          subtitle={<Lang id='receipt.subtitle' />}
           subtitleurl={returnUrlToArchive(origin) || undefined}
-          title={<Lang id={'receipt.title'} />}
-          titleSubmitted={<Lang id={'receipt.title_submitted'} />}
+          title={<Lang id='receipt.title' />}
+          titleSubmitted={<Lang id='receipt.title_submitted' />}
           pdf={pdf}
         />
       )}
       {applicationMetadata.autoDeleteOnProcessEnd && (
         <ReceiptComponentSimple
-          body={<Lang id={'receipt.body_simple'} />}
-          title={<Lang id={'receipt.title'} />}
+          body={<Lang id='receipt.body_simple' />}
+          title={<Lang id='receipt.title' />}
         />
       )}
       <ReadyForPrint type='load' />

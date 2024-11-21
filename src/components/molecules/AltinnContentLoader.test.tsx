@@ -11,7 +11,7 @@ const render = (props = {}) => {
 
   rtlRender(
     <AltinnContentLoader
-      reason={'testing'}
+      reason='testing'
       {...allProps}
     />,
   );

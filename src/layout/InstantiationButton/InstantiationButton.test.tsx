@@ -33,12 +33,12 @@ const render = async () => {
     initialPage: 'page1',
     router: ({ children }) => (
       <MemoryRouter
-        basename={'/ttd/test'}
+        basename='/ttd/test'
         initialEntries={['/ttd/test']}
       >
         <Routes>
           <Route
-            path={'/'}
+            path='/'
             element={children}
           />
           <Route

@@ -6,7 +6,7 @@ import { PANEL_VARIANT } from 'src/app-components/panel/constants';
 import { Panel } from 'src/app-components/panel/Panel';
 import type { PanelVariant } from 'src/app-components/panel/Panel';
 
-const MockLang = ({ text }: { text: string }) => <>{text}</>;
+const MockLang = ({ text }: { text: string }) => text;
 
 describe('Panel', () => {
   it('should show title and content', () => {

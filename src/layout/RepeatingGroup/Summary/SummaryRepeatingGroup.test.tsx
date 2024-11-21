@@ -25,7 +25,7 @@ describe('SummaryGroupComponent', () => {
     const groupNode = useNode(groupId) as LayoutNode<'RepeatingGroup'>;
     return (
       <SummaryRepeatingGroup
-        changeText={'Change'}
+        changeText='Change'
         onChangeClick={mockHandleDataChange}
         summaryNode={node}
         targetNode={groupNode}

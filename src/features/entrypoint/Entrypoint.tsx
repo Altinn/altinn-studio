@@ -15,7 +15,7 @@ const ShowOrInstantiate: React.FC<{ show: ShowTypes }> = ({ show }) => {
   if (show === 'select-instance') {
     return (
       <Navigate
-        to={'/instance-selection'}
+        to='/instance-selection'
         replace={true}
       />
     );
@@ -52,7 +52,7 @@ export const Entrypoint = () => {
   if (!partyIsValid) {
     return (
       <Navigate
-        to={'/party-selection/403'}
+        to='/party-selection/403'
         replace={true}
       />
     );
@@ -69,7 +69,7 @@ export const Entrypoint = () => {
   if (promptForParty === 'always') {
     return (
       <Navigate
-        to={'/party-selection/explained'}
+        to='/party-selection/explained'
         replace={true}
       />
     );
@@ -81,7 +81,7 @@ export const Entrypoint = () => {
 
   return (
     <Navigate
-      to={'/party-selection/explained'}
+      to='/party-selection/explained'
       replace={true}
     />
   );

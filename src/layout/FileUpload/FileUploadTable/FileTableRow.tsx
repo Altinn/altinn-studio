@@ -88,7 +88,7 @@ export function FileTableRow({ node, attachment, mobileView, tagLabel, isSummary
           <EditButton
             className={classes.marginLeftAuto}
             componentNode={node}
-            summaryComponentId={''}
+            summaryComponentId=''
           />
         </td>
       )}
@@ -137,7 +137,7 @@ const NameCell = ({
                   {`${readableSize} ${mobileView ? uploadStatus : ''}`}
                   {hasTag && !mobileView && (
                     <div data-testid='status-success'>
-                      <Lang id={'form_filler.file_uploader_list_status_done'} />
+                      <Lang id='form_filler.file_uploader_list_status_done' />
                     </div>
                   )}
                 </div>

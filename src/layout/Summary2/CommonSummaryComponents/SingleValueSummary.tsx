@@ -32,11 +32,11 @@ export const SingleValueSummary = ({
 }: SingleValueSummaryProps) => (
   <div
     className={classes.summaryItemWrapper}
-    data-testid={'summary-single-value-component'}
+    data-testid='summary-single-value-component'
   >
     <div className={classes.summaryItem}>
       <div className={cn(classes.labelValueWrapper, isCompact && classes.compact)}>
-        <Label weight={'regular'}>
+        <Label weight='regular'>
           {title}
           {!!title?.toString()?.length && isCompact && ':'}
         </Label>
@@ -75,7 +75,7 @@ export const SingleValueSummary = ({
             id={message.key}
             params={message.params}
             node={componentNode}
-          ></Lang>
+          />
         </ErrorMessage>
       ))}
   </div>

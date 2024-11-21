@@ -139,7 +139,7 @@ export function ReceiptComponent({
           className={classes.paddingTop24}
         >
           <a
-            className={'altinnLink'}
+            className='altinnLink'
             href={subtitleurl}
           >
             {subtitle}

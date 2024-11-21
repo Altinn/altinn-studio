@@ -264,7 +264,7 @@ describe('SchemaValidation', () => {
               .spyOn(Validation, 'useUpdateDataModelValidations')
               .mockImplementation(() => updateDataModelValidations);
 
-            render(<SchemaValidation dataType='mockDataType'></SchemaValidation>);
+            render(<SchemaValidation dataType='mockDataType' />);
 
             // If valid, expect empty validations object
             // If not valid, expect an object containing at least field and severity

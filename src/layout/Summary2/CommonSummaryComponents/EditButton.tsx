@@ -76,7 +76,7 @@ export function EditButton({
       variant='tertiary'
       className={className}
     >
-      {!isMobile && <Lang id={'general.edit'} />}
+      {!isMobile && <Lang id='general.edit' />}
       <Edit
         fontSize='1rem'
         aria-hidden={true}

@@ -34,7 +34,7 @@ export function AttachmentSummaryComponent({ targetNode }: IAttachmentSummaryCom
     >
       {attachments.length === 0 ? (
         <div className={classes.emptyField}>
-          <Lang id={'general.empty_summary'} />
+          <Lang id='general.empty_summary' />
         </div>
       ) : (
         attachments.map((attachment) => {

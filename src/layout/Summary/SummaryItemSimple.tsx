@@ -11,12 +11,12 @@ export interface ISummaryItemSimple {
 }
 
 export const SummaryItemSimple = ({ formDataAsString, hideFromVisualTesting = false }: ISummaryItemSimple) => (
-  <div data-testid={'summary-item-simple'}>
+  <div data-testid='summary-item-simple'>
     {formDataAsString ? (
       <span className={cn(classes.data, { 'no-visual-testing': hideFromVisualTesting })}>{formDataAsString}</span>
     ) : (
       <span className={classes.emptyField}>
-        <Lang id={'general.empty_summary'} />
+        <Lang id='general.empty_summary' />
       </span>
     )}
   </div>

@@ -56,18 +56,18 @@ function TestStringCache() {
   return (
     <>
       <SelectValueWithStringCacheKey
-        id={'test1-1'}
-        cacheKey={'test1'}
+        id='test1-1'
+        cacheKey='test1'
         selectValue={selectValue}
       />
       <SelectValueWithStringCacheKey
-        id={'test1-2'}
-        cacheKey={'test1'}
+        id='test1-2'
+        cacheKey='test1'
         selectValue={selectValue}
       />
       <SelectValueWithStringCacheKey
-        id={'test2'}
-        cacheKey={'test2'}
+        id='test2'
+        cacheKey='test2'
         selectValue={selectValue}
       />
     </>
@@ -107,11 +107,11 @@ function TestFunctionCache() {
   return (
     <>
       <SelectValueWithFunctionCache
-        id={'test3-1'}
+        id='test3-1'
         selectValue={selectValue}
       />
       <SelectValueWithFunctionCache
-        id={'test3-2'}
+        id='test3-2'
         selectValue={selectValue}
       />
     </>
@@ -149,7 +149,7 @@ function IncrementButton() {
   const increment = useSelector((state) => state.increment);
   return (
     <button
-      data-testid={'increment'}
+      data-testid='increment'
       onClick={increment}
     >
       Increment

@@ -84,7 +84,7 @@ export function MultipleSelectComponent({ node, overrideDisplay }: IMultipleSele
           className={comboboxClasses.container}
         >
           <Combobox.Empty>
-            <Lang id={'form_filler.no_options_found'} />
+            <Lang id='form_filler.no_options_found' />
           </Combobox.Empty>
           {options.map((option) => (
             <Combobox.Option

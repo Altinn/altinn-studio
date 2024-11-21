@@ -13,29 +13,29 @@ export function MissingRolesError() {
 
   return (
     <InstantiationErrorPage
-      title={<Lang id={'instantiate.authorization_error_main_title'} />}
+      title={<Lang id='instantiate.authorization_error_main_title' />}
       content={
         <>
           <span>
             <Lang
-              id={'instantiate.authorization_error_rights'}
+              id='instantiate.authorization_error_rights'
               params={[selectedParty?.name]}
             />{' '}
             (
             <Link to='/party-selection/'>
-              <Lang id={'party_selection.change_party'} />
+              <Lang id='party_selection.change_party' />
             </Link>
             ).
           </span>
           <br />
           <br />
           <span>
-            <Lang id={'instantiate.authorization_error_ask'} />
+            <Lang id='instantiate.authorization_error_ask' />
           </span>
           <br />
           <span>
             <Lang
-              id={'instantiate.authorization_error_check_rights'}
+              id='instantiate.authorization_error_check_rights'
               params={[getHostname()]}
             />
           </span>
@@ -43,17 +43,17 @@ export function MissingRolesError() {
           <br />
           <span>
             <Lang
-              id={'instantiate.authorization_error_info_rights'}
+              id='instantiate.authorization_error_info_rights'
               params={[getHostname()]}
             />
           </span>
           <span>
             <Lang
-              id={'instantiate.authorization_error_info_customer_service'}
+              id='instantiate.authorization_error_info_customer_service'
               params={[
                 <Lang
                   key={0}
-                  id={'general.customer_service_phone_number'}
+                  id='general.customer_service_phone_number'
                 />,
               ]}
             />

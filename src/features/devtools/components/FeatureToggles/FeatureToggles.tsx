@@ -36,7 +36,7 @@ export function FeatureToggles() {
 
   return (
     <SplitView
-      direction={'row'}
+      direction='row'
       minContent
     >
       <div className={classes.list}>
@@ -62,18 +62,18 @@ export function FeatureToggles() {
               >
                 <Heading
                   spacing={true}
-                  size={'small'}
+                  size='small'
                   level={4}
                 >
                   {parseAndCleanText(title)}
                 </Heading>
-                <Label size={'xsmall'}>Nøkkel: {key}</Label>
+                <Label size='xsmall'>Nøkkel: {key}</Label>
                 <br />
-                <Label size={'xsmall'}>
+                <Label size='xsmall'>
                   Verdi: {JSON.stringify(value)} / Standardverdi: {JSON.stringify(defaultValue)}
                 </Label>
                 <br />
-                <Label size={'xsmall'}>Kilde: {sourceMap[source]}</Label>
+                <Label size='xsmall'>Kilde: {sourceMap[source]}</Label>
                 <Paragraph>
                   {parseAndCleanText(description)}
                   {links && links.length && (
@@ -82,7 +82,7 @@ export function FeatureToggles() {
                         <li key={url}>
                           <a
                             href={url}
-                            target={'_blank'}
+                            target='_blank'
                             rel='noreferrer'
                           >
                             {url}

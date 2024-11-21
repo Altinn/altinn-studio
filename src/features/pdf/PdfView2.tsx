@@ -157,7 +157,7 @@ function PdfWrapping({ children }: PropsWithChildren) {
 
   return (
     <div
-      id={'pdfView'}
+      id='pdfView'
       className={classes.pdfWrapper}
     >
       {appOwner && <span role='doc-subtitle'>{appOwner}</span>}
@@ -167,15 +167,15 @@ function PdfWrapping({ children }: PropsWithChildren) {
         wrapper={(children) => (
           <div
             className={classes.paymentTitleContainer}
-            data-testid={'pdf-logo'}
+            data-testid='pdf-logo'
           >
-            {children} <OrganisationLogo></OrganisationLogo>
+            {children} <OrganisationLogo />
           </div>
         )}
       >
         <Heading
           level={1}
-          size={'lg'}
+          size='lg'
         >
           {isPayment ? `${appName} - ${langAsString('payment.receipt.title')}` : appName}
         </Heading>

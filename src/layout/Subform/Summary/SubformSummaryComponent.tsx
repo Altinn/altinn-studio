@@ -1,4 +1,5 @@
 import React from 'react';
+import type { JSX } from 'react';
 
 import { Spinner } from '@digdir/designsystemet-react';
 
@@ -30,7 +31,7 @@ export function SubformSummaryComponent({ targetNode }: ISubformSummaryComponent
     >
       {dataElements.length === 0 ? (
         <div className={classes.emptyField}>
-          <Lang id={'general.empty_summary'} />
+          <Lang id='general.empty_summary' />
         </div>
       ) : (
         dataElements.map((dataElement) => (
@@ -65,7 +66,7 @@ function SubformSummaryRow({ dataElement, node }: { dataElement: IData; node: La
     return <Lang id='form_filler.error_fetch_subform' />;
   }
 
-  const content = tableColumns.map((entry, i) => (
+  const content: (JSX.Element | string)[] = tableColumns.map((entry, i) => (
     <DataQueryWithDefaultValue
       key={i}
       data={data}
@@ -75,7 +76,7 @@ function SubformSummaryRow({ dataElement, node }: { dataElement: IData; node: La
   ));
 
   if (content.length === 0) {
-    content.push(<>{id}</>);
+    content.push(id);
   }
 
   const isLastEntry = (i: number) => i === content.length - 1;

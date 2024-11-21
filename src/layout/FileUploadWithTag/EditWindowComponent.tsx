@@ -181,7 +181,7 @@ export function EditWindowComponent({
                 className={comboboxClasses.container}
               >
                 <Combobox.Empty>
-                  <Lang id={'form_filler.no_options_found'} />
+                  <Lang id='form_filler.no_options_found' />
                 </Combobox.Empty>
                 {options?.map((option) => (
                   <Combobox.Option
@@ -219,7 +219,7 @@ export function EditWindowComponent({
                   onClick={handleSave}
                   id={`attachment-save-tag-button-${uniqueId}`}
                 >
-                  <Lang id={'general.save'} />
+                  <Lang id='general.save' />
                 </Button>
               )}
             </Grid>

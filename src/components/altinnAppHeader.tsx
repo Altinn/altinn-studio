@@ -47,7 +47,7 @@ export const AltinnAppHeader = ({ profile }: IHeaderProps) => {
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
                 <a
-                  className={'altinnLink'}
+                  className='altinnLink'
                   href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}
                 >
                   <Lang id='instantiate.inbox' />
@@ -55,7 +55,7 @@ export const AltinnAppHeader = ({ profile }: IHeaderProps) => {
               </li>
               <li className={classes.headerLink}>
                 <a
-                  className={'altinnLink'}
+                  className='altinnLink'
                   href={returnUrlToAllSchemas(window.location.origin) || '#'}
                 >
                   <Lang id='instantiate.all_forms' />
@@ -63,7 +63,7 @@ export const AltinnAppHeader = ({ profile }: IHeaderProps) => {
               </li>
               <li className={classes.headerLink}>
                 <a
-                  className={'altinnLink'}
+                  className='altinnLink'
                   href={returnUrlToProfile(window.location.origin, party?.partyId) || '#'}
                 >
                   <Lang id='instantiate.profile' />

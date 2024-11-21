@@ -27,7 +27,7 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
         variant='body1'
         className={classes.emptyField}
       >
-        <Lang id={'general.empty_summary'} />
+        <Lang id='general.empty_summary' />
       </Typography>
     );
   }
@@ -43,7 +43,7 @@ export function MapComponentSummary({ targetNode }: IMapComponentSummary) {
       {markerLocation && (
         <Typography className={classes.footer}>
           <Lang
-            id={'map_component.selectedLocation'}
+            id='map_component.selectedLocation'
             params={[markerLocation.latitude, markerLocation.longitude]}
           />
         </Typography>

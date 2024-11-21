@@ -140,7 +140,7 @@ export function AppTable<T extends object>({
                     <Button
                       key={idx}
                       onClick={() => button.onClick(rowIndex, rowData)}
-                      size={'sm'}
+                      size='sm'
                       variant={button.variant ? button.variant : defaultButtonVariant}
                       color={button.color ? button.color : 'second'}
                     >

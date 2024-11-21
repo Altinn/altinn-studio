@@ -34,7 +34,7 @@ export const AltinnAppHeader = ({ logoColor, headerBackgroundColor, party, userP
       shortcuts={[
         {
           id: 'main-content',
-          text: <Lang id={'navigation.to_main_content'} />,
+          text: <Lang id='navigation.to_main_content' />,
         },
       ]}
     />

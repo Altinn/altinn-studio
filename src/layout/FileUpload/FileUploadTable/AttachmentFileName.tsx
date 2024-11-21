@@ -42,7 +42,7 @@ export const AttachmentFileName = ({ attachment, mobileView }: { attachment: IAt
           <Link
             href={url}
             className={classes.download}
-            data-testid={`attachment-download`}
+            data-testid='attachment-download'
             asChild={pdfModeActive}
           >
             {fileName}

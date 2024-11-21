@@ -33,5 +33,5 @@ export const LinkToPotentialPage = (props: Props) => {
     );
   }
 
-  return <>{props.children}</>;
+  return props.children;
 };

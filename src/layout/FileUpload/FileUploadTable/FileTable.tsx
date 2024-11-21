@@ -62,11 +62,11 @@ export function FileTable({
             id='altinn-file-list-row-header'
           >
             <th style={{ width: mobileView ? '80%' : '40%' }}>
-              <Lang id={'form_filler.file_uploader_list_header_name'} />
+              <Lang id='form_filler.file_uploader_list_header_name' />
             </th>
             {!mobileView && (
               <th>
-                <Lang id={'form_filler.file_uploader_list_header_file_size'} />
+                <Lang id='form_filler.file_uploader_list_header_file_size' />
               </th>
             )}
             {hasTag && !mobileView && (
@@ -76,14 +76,14 @@ export function FileTable({
             )}
             {!(hasTag && mobileView) && !pdfModeActive && !mobileView && (
               <th>
-                <Lang id={'form_filler.file_uploader_list_header_status'} />
+                <Lang id='form_filler.file_uploader_list_header_status' />
               </th>
             )}
 
             {!pdfModeActive && (
               <th>
                 <p className='sr-only'>
-                  <Lang id={'form_filler.file_uploader_list_header_delete_sr'} />
+                  <Lang id='form_filler.file_uploader_list_header_delete_sr' />
                 </p>
               </th>
             )}

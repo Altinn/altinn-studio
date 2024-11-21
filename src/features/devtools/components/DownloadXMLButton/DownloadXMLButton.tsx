@@ -94,12 +94,10 @@ const InnerDownloadXMLButton = () => {
           onClick={downloadXML}
           disabled={disabled}
         >
-          {
-            <DownloadIcon
-              fontSize='1rem'
-              aria-hidden={true}
-            />
-          }
+          <DownloadIcon
+            fontSize='1rem'
+            aria-hidden={true}
+          />
           Last ned XML
         </Button>
         <Dropzone
@@ -115,12 +113,10 @@ const InnerDownloadXMLButton = () => {
               variant='secondary'
               disabled={disabled}
             >
-              {
-                <UploadIcon
-                  fontSize='1rem'
-                  aria-hidden={true}
-                />
-              }
+              <UploadIcon
+                fontSize='1rem'
+                aria-hidden={true}
+              />
               <input {...getInputProps()} />
               Last opp XML
             </Button>

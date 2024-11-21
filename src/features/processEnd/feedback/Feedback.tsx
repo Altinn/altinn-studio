@@ -28,10 +28,10 @@ export function Feedback() {
         <title>{`${getPageTitle(appName, langAsString('feedback.title'), appOwner)}`}</title>
       </Helmet>
       <Typography variant='body1'>
-        <Lang id={'feedback.title'} />
+        <Lang id='feedback.title' />
       </Typography>
       <Typography variant='body1'>
-        <Lang id={'feedback.body'} />
+        <Lang id='feedback.body' />
       </Typography>
       <ReadyForPrint type='load' />
     </div>

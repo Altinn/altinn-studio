@@ -10,7 +10,7 @@ describe('Loader', () => {
   it('should be able to render with minimal providers', async () => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
     await renderWithMinimalProviders({
-      renderer: () => <Loader reason={'testing-reason'} />,
+      renderer: () => <Loader reason='testing-reason' />,
       waitUntilLoaded: false,
     });
 

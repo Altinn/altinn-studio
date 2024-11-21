@@ -53,55 +53,51 @@ export function AltinnCollapsibleAttachments({
 
   const attachmentCount = hideCount ? '' : `(${attachments && attachments.length})`;
 
-  return (
-    <>
-      {collapsible ? (
-        <List
-          component='nav'
-          id='attachment-collapsible-list'
+  return collapsible ? (
+    <List
+      component='nav'
+      id='attachment-collapsible-list'
+    >
+      <ListItem
+        button={true}
+        onClick={handleOpenClose}
+        disableGutters={true}
+      >
+        <ListItemIcon
+          classes={{
+            root: cn({ [classes.transformArrowRight]: !open }, classes.transition),
+          }}
         >
-          <ListItem
-            button={true}
-            onClick={handleOpenClose}
-            disableGutters={true}
-          >
-            <ListItemIcon
-              classes={{
-                root: cn({ [classes.transformArrowRight]: !open }, classes.transition),
-              }}
-            >
-              <CaretDownFillIcon
-                aria-hidden='true'
-                fontSize='1.5rem'
-              />
-            </ListItemIcon>
-            <ListItemText
-              primary={`${elementAsString(title)} ${attachmentCount}`}
-              classes={{
-                root: cn(classes.listItemTextPadding),
-                primary: cn(classes.collapsedTitle),
-              }}
-            />
-          </ListItem>
-          <Collapse
-            in={open}
-            timeout='auto'
-            unmountOnExit={true}
-          >
-            <AltinnAttachment attachments={attachments} />
-          </Collapse>
-        </List>
-      ) : (
-        <>
-          <Typography style={fontStyle}>
-            {title} {attachmentCount}
-          </Typography>
-          <AltinnAttachment
-            attachments={attachments}
-            id='attachment-list'
+          <CaretDownFillIcon
+            aria-hidden='true'
+            fontSize='1.5rem'
           />
-        </>
-      )}
+        </ListItemIcon>
+        <ListItemText
+          primary={`${elementAsString(title)} ${attachmentCount}`}
+          classes={{
+            root: cn(classes.listItemTextPadding),
+            primary: cn(classes.collapsedTitle),
+          }}
+        />
+      </ListItem>
+      <Collapse
+        in={open}
+        timeout='auto'
+        unmountOnExit={true}
+      >
+        <AltinnAttachment attachments={attachments} />
+      </Collapse>
+    </List>
+  ) : (
+    <>
+      <Typography style={fontStyle}>
+        {title} {attachmentCount}
+      </Typography>
+      <AltinnAttachment
+        attachments={attachments}
+        id='attachment-list'
+      />
     </>
   );
 }

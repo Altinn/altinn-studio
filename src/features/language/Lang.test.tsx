@@ -10,7 +10,7 @@ import { renderWithMinimalProviders } from 'src/test/renderWithProviders';
 function TestSubject() {
   return (
     <div data-testid='test-subject'>
-      <Lang id={'general.create_new'} />
+      <Lang id='general.create_new' />
     </div>
   );
 }

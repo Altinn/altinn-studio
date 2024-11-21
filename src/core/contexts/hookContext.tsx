@@ -41,7 +41,7 @@ export function createHookContext<P extends HookContextProps>(
           (innerProviders, { Provider }) => (
             <Provider>{innerProviders}</Provider>
           ),
-          <>{children}</>,
+          children,
         )}
       </>
     ),

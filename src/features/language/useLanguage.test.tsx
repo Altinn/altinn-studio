@@ -146,7 +146,7 @@ describe('useLanguage', () => {
 
   it('langAsString() should work with complex lookups and arrays', async () => {
     await renderWithoutInstanceAndLayout({
-      renderer: () => <TestSimple input={'complex'} />,
+      renderer: () => <TestSimple input='complex' />,
       queries: {
         fetchTextResources: async () => ({
           language: 'nb',

@@ -9,8 +9,8 @@ export function ForbiddenError() {
 
   return (
     <InstantiationErrorPage
-      title={<Lang id={'instantiate.forbidden_action_error_title'} />}
-      content={<Lang id={'instantiate.forbidden_action_error_text'} />}
+      title={<Lang id='instantiate.forbidden_action_error_title' />}
+      content={<Lang id='instantiate.forbidden_action_error_text' />}
       showContactInfo={true}
       statusCode={langAsString('instantiate.forbidden_action_error_status')}
     />

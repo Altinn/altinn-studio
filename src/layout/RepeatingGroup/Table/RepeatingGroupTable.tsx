@@ -103,7 +103,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
           />
         )}
         <ExtraRows
-          where={'Before'}
+          where='Before'
           extraCells={extraCells}
           columnSettings={columnSettings}
         />
@@ -120,14 +120,14 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
               {displayEditColumn && (
                 <Table.HeaderCell style={{ padding: 0, paddingRight: '10px' }}>
                   <span className={classes.visuallyHidden}>
-                    <Lang id={'general.edit'} />
+                    <Lang id='general.edit' />
                   </span>
                 </Table.HeaderCell>
               )}
               {displayDeleteColumn && (
                 <Table.HeaderCell style={{ padding: 0 }}>
                   <span className={classes.visuallyHidden}>
-                    <Lang id={'general.delete'} />
+                    <Lang id='general.delete' />
                   </span>
                 </Table.HeaderCell>
               )}
@@ -176,7 +176,7 @@ export function RepeatingGroupTable(): React.JSX.Element | null {
         </Table.Body>
         <RepeatingGroupPagination />
         <ExtraRows
-          where={'After'}
+          where='After'
           extraCells={extraCells}
           columnSettings={columnSettings}
         />

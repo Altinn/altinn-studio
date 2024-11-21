@@ -15,7 +15,7 @@ describe('tests to make sure to follow accessibility requirements', () => {
 
   test('should have role alert on spinner text to make sure screen readers is focus the text content', async () => {
     await renderWithoutInstanceAndLayout({
-      renderer: () => <AltinnSpinner spinnerText={'Loading form'} />,
+      renderer: () => <AltinnSpinner spinnerText='Loading form' />,
       waitUntilLoaded: false,
     });
     await waitFor(() => {

@@ -48,7 +48,7 @@ export function NoValidPartiesError() {
     <InstantiationErrorPage
       title={
         <Lang
-          id={'party_selection.no_valid_selection_first_part'}
+          id='party_selection.no_valid_selection_first_part'
           params={[getAllowedParties()]}
         />
       }
@@ -56,13 +56,13 @@ export function NoValidPartiesError() {
         <>
           <span>
             <Lang
-              id={'party_selection.no_valid_selection_second_part'}
+              id='party_selection.no_valid_selection_second_part'
               params={[appMetadata?.title.nb]}
             />
           </span>
           <span>
             <Lang
-              id={'party_selection.no_valid_selection_third_part'}
+              id='party_selection.no_valid_selection_third_part'
               params={[getAllowedParties()]}
             />
           </span>
@@ -70,17 +70,17 @@ export function NoValidPartiesError() {
           <br />
           <span>
             <Lang
-              id={'instantiate.authorization_error_info_rights'}
+              id='instantiate.authorization_error_info_rights'
               params={[getHostname()]}
             />
           </span>
           <span>
             <Lang
-              id={'instantiate.authorization_error_info_customer_service'}
+              id='instantiate.authorization_error_info_customer_service'
               params={[
                 <Lang
                   key={0}
-                  id={'general.customer_service_phone_number'}
+                  id='general.customer_service_phone_number'
                 />,
               ]}
             />

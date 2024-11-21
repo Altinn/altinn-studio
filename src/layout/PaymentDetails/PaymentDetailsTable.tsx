@@ -56,7 +56,7 @@ export const PaymentDetailsTable = ({ orderDetails, tableTitle, description, ...
         <Table.Row className={classes.tableRow}>
           <Table.Cell colSpan={2}>
             <Label>
-              <Lang id={'payment.component.vat'} />
+              <Lang id='payment.component.vat' />
             </Label>
           </Table.Cell>
           <Table.Cell align='right'>

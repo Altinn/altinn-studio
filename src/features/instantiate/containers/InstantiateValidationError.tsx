@@ -24,7 +24,7 @@ export function InstantiateValidationError(props: { message: string }) {
 
   return (
     <InstantiationErrorPage
-      title={<Lang id={'instantiate.authorization_error_instantiate_validation_title'} />}
+      title={<Lang id='instantiate.authorization_error_instantiate_validation_title' />}
       content={createErrorContent()}
       statusCode={`${langAsString('party_selection.error_caption_prefix')} 403`}
     />

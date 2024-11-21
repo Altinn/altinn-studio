@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { useAsRef } from 'src/hooks/useAsRef';
@@ -83,5 +83,5 @@ export function OpenByDefaultProvider({ node, children }: PropsWithChildren<Prop
     })();
   }, [openByDefault, stateRef, addRow, groupId, hasNoRows]);
 
-  return <>{children}</>;
+  return children;
 }

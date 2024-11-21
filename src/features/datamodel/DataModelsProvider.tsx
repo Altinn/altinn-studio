@@ -267,7 +267,7 @@ function BlockUntilLoaded({ children }: PropsWithChildren) {
     }
   }
 
-  return <>{children}</>;
+  return children;
 }
 
 interface LoaderProps {

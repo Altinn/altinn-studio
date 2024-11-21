@@ -89,7 +89,7 @@ function SubformTableRow({
           <EditButton
             className={classes2.marginLeftAuto}
             componentNode={targetNode}
-            summaryComponentId={''}
+            summaryComponentId=''
             navigationOverride={() => navigate(`${targetNode.id}/${id}`)}
           />
         </Table.Cell>
@@ -132,7 +132,7 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
         />
         <Paragraph asChild>
           <span className={classes2.emptyField}>
-            <Lang id={'general.empty_summary'} />
+            <Lang id='general.empty_summary' />
           </span>
         </Paragraph>
       </>
@@ -170,13 +170,13 @@ export function SubformSummaryTable({ targetNode }: ISubformSummaryComponent): R
                 ))
               ) : (
                 <Table.HeaderCell className={classes1.tableCellFormatting}>
-                  <Lang id={'form_filler.subform_default_header'} />
+                  <Lang id='form_filler.subform_default_header' />
                 </Table.HeaderCell>
               )}
               {!pdfModeActive && (
                 <Table.HeaderCell className={classNames(classes2.editColumnHeader, classes2.noRightPad)}>
                   <span className={classes1.visuallyHidden}>
-                    <Lang id={'general.edit'} />
+                    <Lang id='general.edit' />
                   </span>
                 </Table.HeaderCell>
               )}

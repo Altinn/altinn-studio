@@ -56,16 +56,14 @@ export function WrappedCheckbox({ id, option, hideLabel, alertOnChange, checked,
         size='small'
         onChange={(e) => handleChange(e.target.checked)}
       >
-        {
-          <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
-            {langAsString(option.label)}
-            {option.helpText && (
-              <HelpText title={elementAsString(option.helpText)}>
-                <Lang id={option.helpText} />
-              </HelpText>
-            )}
-          </span>
-        }
+        <span className={cn({ 'sr-only': hideLabel }, classes.checkboxLabelContainer)}>
+          {langAsString(option.label)}
+          {option.helpText && (
+            <HelpText title={elementAsString(option.helpText)}>
+              <Lang id={option.helpText} />
+            </HelpText>
+          )}
+        </span>
       </Checkbox>
     </ConditionalWrapper>
   );

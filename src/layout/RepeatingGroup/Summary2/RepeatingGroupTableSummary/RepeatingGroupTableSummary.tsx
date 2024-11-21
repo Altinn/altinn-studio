@@ -61,7 +61,7 @@ export const RepeatingGroupTableSummary = ({
   return (
     <div
       className={cn(classes.summaryWrapper)}
-      data-testid={'summary-repeating-group-component'}
+      data-testid='summary-repeating-group-component'
     >
       <Table className={isSmall ? tableClasses.mobileTable : undefined}>
         <Caption title={<Lang id={title} />} />
@@ -77,7 +77,7 @@ export const RepeatingGroupTableSummary = ({
             {!pdfModeActive && !isSmall && (
               <Table.HeaderCell>
                 <span className={tableClasses.visuallyHidden}>
-                  <Lang id={'general.edit'} />
+                  <Lang id='general.edit' />
                 </span>
               </Table.HeaderCell>
             )}
@@ -114,7 +114,7 @@ export const RepeatingGroupTableSummary = ({
             id={message.key}
             params={message.params}
             node={componentNode}
-          ></Lang>
+          />
         </ErrorMessage>
       ))}
     </div>

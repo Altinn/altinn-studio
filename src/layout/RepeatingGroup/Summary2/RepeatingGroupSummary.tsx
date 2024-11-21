@@ -54,7 +54,7 @@ export const RepeatingGroupSummary = ({
   return (
     <div
       className={cn(classes.summaryWrapper, { [classes.nestedSummaryWrapper]: isNested })}
-      data-testid={'summary-repeating-group-component'}
+      data-testid='summary-repeating-group-component'
     >
       <Heading
         size='xs'
@@ -95,7 +95,7 @@ export const RepeatingGroupSummary = ({
             id={message.key}
             params={message.params}
             node={componentNode}
-          ></Lang>
+          />
         </ErrorMessage>
       ))}
     </div>
