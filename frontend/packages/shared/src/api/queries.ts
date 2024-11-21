@@ -87,7 +87,7 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
-export const getIsLoggedInWithAnsattporten = (): Promise<{ isLoggedIn: boolean }> =>
+export const getIsLoggedInWithAnsattporten = () =>
   get<{
     isLoggedIn: boolean;
   }>(authStatusAnsattporten());
