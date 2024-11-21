@@ -3361,7 +3361,7 @@ components:
           $ref: '#/components/schemas/MessageBoxConfig'
         copyInstanceSettings:
           $ref: '#/components/schemas/CopyInstanceSettings'
-        storageContainerNumber:
+        storageAccountNumber:
           type: integer
           format: int32
           nullable: true

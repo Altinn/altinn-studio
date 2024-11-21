@@ -4,23 +4,13 @@ using Altinn.App.Core.Helpers;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
-using Xunit.Abstractions;
 
 namespace Altinn.App.Core.Tests.Helpers;
 
 public class MultiDecisionHelperTests
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
-
-    private readonly ITestOutputHelper _output;
-
-    public MultiDecisionHelperTests(ITestOutputHelper output)
-    {
-        _output = output;
-    }
-
     [Fact]
-    public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_current_task_elemtnId()
+    public async Task CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_current_task_elemtnId()
     {
         var claimsPrincipal = GetClaims("1337");
 
@@ -41,11 +31,11 @@ public class MultiDecisionHelperTests
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
 
-        CompareWithOrUpdateGoldenFile("multidecision-all-actions-task", result);
+        await Verify(result);
     }
 
     [Fact]
-    public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_instanceId_is_GUID_only()
+    public async Task CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_instanceId_is_GUID_only()
     {
         var claimsPrincipal = GetClaims("1337");
 
@@ -66,11 +56,11 @@ public class MultiDecisionHelperTests
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
 
-        CompareWithOrUpdateGoldenFile("multidecision-all-actions-guid", result);
+        await Verify(result);
     }
 
     [Fact]
-    public void CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_endevent()
+    public async Task CreateMultiDecisionRequest_generates_multidecisionrequest_with_all_actions_endevent()
     {
         var claimsPrincipal = GetClaims("1337");
 
@@ -91,7 +81,7 @@ public class MultiDecisionHelperTests
 
         var result = MultiDecisionHelper.CreateMultiDecisionRequest(claimsPrincipal, instance, actions);
 
-        CompareWithOrUpdateGoldenFile("multidecision-all-actions-endevent", result);
+        await Verify(result);
     }
 
     [Fact]
@@ -202,30 +192,6 @@ public class MultiDecisionHelperTests
                 ),
             }
         );
-    }
-
-    private static string XacmlJsonRequestRootToString(XacmlJsonRequestRoot request)
-    {
-        return JsonSerializer.Serialize(request, _jsonSerializerOptions);
-    }
-
-    private void CompareWithOrUpdateGoldenFile(string testId, XacmlJsonRequestRoot xacmlJsonRequestRoot)
-    {
-        bool updateGoldeFiles = Environment.GetEnvironmentVariable("UpdateGoldenFiles") == "true";
-        string goldenFilePath = Path.Join("Helpers", "TestData", "MultiDecisionHelper", testId + ".golden.json");
-        string xacmlJsonRequestRootAsString = XacmlJsonRequestRootToString(xacmlJsonRequestRoot);
-        if (updateGoldeFiles)
-        {
-            File.WriteAllText(Path.Join("..", "..", "..", goldenFilePath), xacmlJsonRequestRootAsString);
-        }
-        else
-        {
-            _output.WriteLine("To update golden files, run with environment variable value UpdateGoldenFiles=true");
-            _output.WriteLine("Golden file path: " + new FileInfo(goldenFilePath)?.FullName);
-        }
-
-        string goldenFileContent = File.ReadAllText(goldenFilePath);
-        Assert.Equal(goldenFileContent, xacmlJsonRequestRootAsString);
     }
 
     private static List<XacmlJsonResult> GetXacmlJsonRespons(string filename)

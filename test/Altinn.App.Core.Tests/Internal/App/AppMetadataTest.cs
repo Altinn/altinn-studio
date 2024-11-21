@@ -475,14 +475,12 @@ public class AppMetadataTest
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
         var appMetadataObj = await appMetadata.GetApplicationMetadata();
         string serialized = JsonSerializer.Serialize(appMetadataObj, _jsonSerializerOptions);
-        string expected = File.ReadAllText(
-            Path.Join(_appBasePath, "AppMetadata", "unmapped-properties.applicationmetadata.expected.json")
+        serialized = serialized.Replace(
+            typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString(),
+            "--AltinnNugetVersion--"
         );
-        expected = expected.Replace(
-            "--AltinnNugetVersion--",
-            typeof(ApplicationMetadata).Assembly!.GetName().Version!.ToString()
-        );
-        serialized.Trim().Should().Be(expected.Trim());
+
+        await Verify(serialized);
     }
 
     [Fact]

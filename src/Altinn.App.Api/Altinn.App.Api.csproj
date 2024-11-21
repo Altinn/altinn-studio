@@ -15,8 +15,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.PEP" Version="4.0.0" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.0.0" />
+    <PackageReference Include="Altinn.Common.PEP" Version="4.1.0" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="4.0.3" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />

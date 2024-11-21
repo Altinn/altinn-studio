@@ -1,4 +1,4 @@
-{
+﻿{
   "Id": "tdd/bestilling",
   "Features": {
     "footer": true,
@@ -76,7 +76,7 @@
   "EFormidling": null,
   "MessageBoxConfig": null,
   "CopyInstanceSettings": null,
-  "StorageContainerNumber": null,
+  "StorageAccountNumber": null,
   "DisallowUserInstantiation": false,
   "Created": "2019-09-16T22:22:22",
   "CreatedBy": "username",
