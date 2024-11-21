@@ -29,7 +29,7 @@ export function LayoutSetsContainer() {
     onLayoutSetNameChange(selectedFormLayoutSetName);
   }, [onLayoutSetNameChange, selectedFormLayoutSetName]);
 
-  if (!layoutSets) return null;
+  if (!layoutSetsResponse || !layoutSets) return null;
 
   const handleLayoutSetChange = async (layoutSetName: string) => {
     if (selectedFormLayoutSetName !== layoutSetName && layoutSetName) {
@@ -47,9 +47,10 @@ export function LayoutSetsContainer() {
       <StudioCombobox
         label={t('left_menu.layout_dropdown_menu_label')}
         hideLabel
-        value={[selectedFormLayoutSetName]}
+        value={selectedFormLayoutSetName ? [selectedFormLayoutSetName] : null}
         onValueChange={([value]) => handleLayoutSetChange(value)}
       >
+        <StudioCombobox.Empty>{t('left_menu.no_layout_sets')}</StudioCombobox.Empty>
         {layoutSets.sets.map((layoutSet) => (
           <StudioCombobox.Option
             value={layoutSet.id}
