@@ -73,10 +73,10 @@ jobs:
           name: dist
           path: dist
 
-      - name: Set Percy command based on PR draft status
+      - name: Set Percy command based on PR draft status or main branch
         shell: bash
         run: |
-          if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
+          if [ "${{ github.ref }}" == "refs/heads/main" ] || [ "${{ github.event.pull_request.draft }}" == "false" ]; then
             echo "PERCY_COMMAND=percy exec --parallel -- npx" >> $GITHUB_ENV
           fi
 
