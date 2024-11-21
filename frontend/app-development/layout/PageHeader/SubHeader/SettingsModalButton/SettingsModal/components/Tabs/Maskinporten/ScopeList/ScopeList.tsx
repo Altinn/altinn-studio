@@ -16,21 +16,20 @@ import { mapRowElementsToSelectedScopes, mapScopesToRowElements } from './utils'
 
 export const ScopeList = (): ReactElement => {
   const { t } = useTranslation();
-  const { data: scopes, isPending: isPendingScopes } = useGetScopesQuery();
+  const { data: maskinPortenScopes, isPending: isPendingMaskinportenScopes } = useGetScopesQuery();
   const { data: selectedScopes, isPending: isPendingSelectedScopes } = useGetSelectedScopesQuery();
 
-  console.log('scopes', scopes);
-  console.log('selectedScopes', selectedScopes);
+  const hasScopes: boolean = maskinPortenScopes?.length > 0;
+  const isPendingScopeQueries: boolean = isPendingMaskinportenScopes || isPendingSelectedScopes;
 
-  const hasScopes: boolean = scopes?.length > 0;
-  const isPendingQueries: boolean = isPendingScopes || isPendingSelectedScopes;
-
-  if (isPendingQueries) {
+  if (isPendingScopeQueries) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
   if (hasScopes) {
-    return <ScopeListContent allScopes={scopes} selectedScopes={selectedScopes} />;
+    return (
+      <ScopeListContent maskinPortenScopes={maskinPortenScopes} selectedScopes={selectedScopes} />
+    );
   }
 
   return (
@@ -41,15 +40,18 @@ export const ScopeList = (): ReactElement => {
 };
 
 type ScopeListContentProps = {
-  allScopes: MaskinportenScope[];
+  maskinPortenScopes: MaskinportenScope[];
   selectedScopes: MaskinportenScope[];
 };
 
-const ScopeListContent = ({ allScopes, selectedScopes }: ScopeListContentProps): ReactElement => {
+const ScopeListContent = ({
+  maskinPortenScopes,
+  selectedScopes,
+}: ScopeListContentProps): ReactElement => {
   const { t } = useTranslation();
 
   const checkboxTableRowElements: StudioCheckboxTableRowElement[] = mapScopesToRowElements(
-    allScopes,
+    maskinPortenScopes,
     selectedScopes,
   );
 
@@ -69,10 +71,10 @@ const ScopeListContent = ({ allScopes, selectedScopes }: ScopeListContentProps):
   };
 
   const handleChangeScope = (event: ChangeEvent<HTMLInputElement>) => {
-    const clickedValue = event.target.value;
+    const selectedScope = event.target.value;
 
     const updatedRowElements: StudioCheckboxTableRowElement[] = rowElements.map((element) =>
-      element.value === clickedValue ? { ...element, checked: !element.checked } : element,
+      element.value === selectedScope ? { ...element, checked: !element.checked } : element,
     );
     saveUpdatedScopes(updatedRowElements);
   };
