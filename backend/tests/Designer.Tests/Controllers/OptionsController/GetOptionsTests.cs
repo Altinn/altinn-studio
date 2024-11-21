@@ -1,11 +1,13 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -95,5 +97,27 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
 
         // Assert
         Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetSingleOptionsList_Returns400BadRequest_WhenOptionsListIsInvalid()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        const string optionsListId = "options-with-null-fields";
+
+        string apiUrl = $"/designer/api/ttd/{repo}/options/{optionsListId}";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(await response.Content.ReadAsStringAsync());
+        problemDetails.Should().NotBeNull();
+        JsonElement errorCode = (JsonElement)problemDetails.Extensions[ProblemDetailsExtensionsCodes.ErrorCode];
+        errorCode.ToString().Should().Be("InvalidOptionsFormat");
     }
 }
