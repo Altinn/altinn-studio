@@ -9,7 +9,10 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { OptionTabs } from './OptionTabs';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import {
+  addFeatureFlagToLocalStorage,
+  removeFeatureFlagFromLocalStorage,
+} from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -123,6 +126,7 @@ describe('EditOptions', () => {
   });
 
   it('should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
+    addFeatureFlagToLocalStorage('optionListEditor');
     const user = userEvent.setup();
     renderEditOptions({
       componentProps: { options: undefined, optionsId: undefined },
@@ -132,8 +136,8 @@ describe('EditOptions', () => {
     const codeListTabElement = screen.getByRole('tab', {
       name: textMock('ux_editor.options.tab_code_list'),
     });
-
     await user.click(codeListTabElement);
+
     expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
 
@@ -151,6 +155,23 @@ describe('EditOptions', () => {
     expect(
       await screen.findByRole('button', { name: textMock('ux_editor.options.option_remove_text') }),
     ).toBeInTheDocument();
+  });
+
+  // V1 Todo: remove once featureFlag is gone
+  it('with V1 EditOptionList, should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
+    removeFeatureFlagFromLocalStorage('optionListEditor');
+    const user = userEvent.setup();
+    renderEditOptions({
+      componentProps: { options: undefined, optionsId: undefined },
+      renderOptions: { areLayoutOptionsSupported: false },
+    });
+
+    const maunalTabElement = screen.getByRole('tab', {
+      name: textMock('ux_editor.options.tab_manual'),
+    });
+    await user.click(maunalTabElement);
+
+    expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
 });
 

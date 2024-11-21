@@ -18,6 +18,7 @@ export interface ISelectionEditComponentProvidedProps<T extends SelectionCompone
 
 export enum SelectedOptionsType {
   CodeList = 'codelist',
+  Manual = 'manual',
   ReferenceId = 'referenceId',
   Unknown = '',
 }

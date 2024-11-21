@@ -1674,6 +1674,7 @@
   "ux_editor.options.section_heading": "Valg for kodelister",
   "ux_editor.options.single": "{{value}} alternativ",
   "ux_editor.options.tab_code_list": "Velg kodeliste",
+  "ux_editor.options.tab_manual": "Sett opp egne alternativer",
   "ux_editor.options.tab_referenceId": "Angi referanse-ID",
   "ux_editor.options.upload_title": "Last opp din egen",
   "ux_editor.page": "Side",

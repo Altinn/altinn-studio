@@ -11,6 +11,7 @@ import { SelectedOptionsType } from '@altinn/ux-editor/components/config/editMod
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
 import classes from './OptionTabs.module.css';
+import { EditOptionList } from './EditOptionList-v1';
 
 type OptionTabsProps = {
   optionListIds: string[];
@@ -50,27 +51,67 @@ export const OptionTabs = ({
         setSelectedOptionsType(value as SelectedOptionsType);
       }}
     >
-      <StudioTabs.List>
-        <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
-          {t('ux_editor.options.tab_code_list')}
-        </StudioTabs.Tab>
-        <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
-          {t('ux_editor.options.tab_referenceId')}
-        </StudioTabs.Tab>
-      </StudioTabs.List>
-      <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
-        <RenderOptions
-          component={component}
-          handleComponentChange={handleComponentChange}
-          areLayoutOptionsSupported={renderOptions.areLayoutOptionsSupported}
-        />
-      </StudioTabs.Content>
-      <StudioTabs.Content value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
-        <EditOptionListReference
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
-      </StudioTabs.Content>
+      {shouldDisplayFeature('optionListEditor') ? (
+        <>
+          <StudioTabs.List>
+            <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
+              {t('ux_editor.options.tab_code_list')}
+            </StudioTabs.Tab>
+            <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
+              {t('ux_editor.options.tab_referenceId')}
+            </StudioTabs.Tab>
+          </StudioTabs.List>
+          <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
+            <RenderOptions
+              component={component}
+              handleComponentChange={handleComponentChange}
+              areLayoutOptionsSupported={renderOptions.areLayoutOptionsSupported}
+            />
+          </StudioTabs.Content>
+          <StudioTabs.Content
+            value={SelectedOptionsType.ReferenceId}
+            className={classes.tabContent}
+          >
+            <EditOptionListReference
+              component={component}
+              handleComponentChange={handleComponentChange}
+            />
+          </StudioTabs.Content>
+        </>
+      ) : (
+        <>
+          <StudioTabs.List>
+            <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
+              {t('ux_editor.options.tab_code_list')}
+            </StudioTabs.Tab>
+            <StudioTabs.Tab value={SelectedOptionsType.Manual}>
+              {t('ux_editor.options.tab_manual')}
+            </StudioTabs.Tab>
+            <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
+              {t('ux_editor.options.tab_referenceId')}
+            </StudioTabs.Tab>
+          </StudioTabs.List>
+          <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
+            <EditOptionList component={component} handleComponentChange={handleComponentChange} />
+          </StudioTabs.Content>
+          <StudioTabs.Content value={SelectedOptionsType.Manual} className={classes.tabContent}>
+            <RenderManualOptions
+              component={component}
+              handleComponentChange={handleComponentChange}
+              areLayoutOptionsSupported={renderOptions.areLayoutOptionsSupported}
+            />
+          </StudioTabs.Content>
+          <StudioTabs.Content
+            value={SelectedOptionsType.ReferenceId}
+            className={classes.tabContent}
+          >
+            <EditOptionListReference
+              component={component}
+              handleComponentChange={handleComponentChange}
+            />
+          </StudioTabs.Content>
+        </>
+      )}
     </StudioTabs>
   );
 };
@@ -97,12 +138,40 @@ const RenderOptions = ({
 
   return (
     <>
-      {shouldDisplayFeature('optionListEditor') ? (
-        <EditOptionChoice component={component} handleComponentChange={handleComponentChange} />
-      ) : (
-        <EditManualOptions component={component} handleComponentChange={handleComponentChange} />
-      )}
+      <EditOptionChoice component={component} handleComponentChange={handleComponentChange} />
       {errorMessage && component.options !== undefined && (
+        <StudioErrorMessage className={classes.errorMessage} size='small'>
+          {errorMessage}
+        </StudioErrorMessage>
+      )}
+    </>
+  );
+};
+
+type RenderManualOptionsV1Props = {
+  areLayoutOptionsSupported: boolean;
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+
+const RenderManualOptions = ({
+  component,
+  handleComponentChange,
+  areLayoutOptionsSupported,
+}: RenderManualOptionsV1Props) => {
+  const errorMessage = useComponentErrorMessage(component);
+  const { t } = useTranslation();
+
+  if (areLayoutOptionsSupported === false) {
+    return (
+      <StudioAlert className={classes.tabAlert} severity='info'>
+        {t('ux_editor.options.code_list_only')}
+      </StudioAlert>
+    );
+  }
+
+  return (
+    <>
+      <EditManualOptions component={component} handleComponentChange={handleComponentChange} />
+      {errorMessage && (
         <StudioErrorMessage className={classes.errorMessage} size='small'>
           {errorMessage}
         </StudioErrorMessage>
