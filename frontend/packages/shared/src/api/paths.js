@@ -168,6 +168,3 @@ export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${ba
 
 // Event Hubs
 export const SyncEventsWebSocketHub = () => '/sync-hub';
-
-// Maskinporten
-export const maskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes/maskinporten`;

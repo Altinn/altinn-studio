@@ -13,12 +13,10 @@ import { useTranslation } from 'react-i18next';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
 import { mapRowElementsToSelectedScopes, mapScopesToRowElements } from './utils';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export const ScopeList = (): ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: scopes, isPending: isPendingScopes } = useGetScopesQuery(org, app);
+  const { data: scopes, isPending: isPendingScopes } = useGetScopesQuery();
   const { data: selectedScopes, isPending: isPendingSelectedScopes } = useGetSelectedScopesQuery();
 
   console.log('scopes', scopes);
