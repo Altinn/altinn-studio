@@ -218,7 +218,7 @@ public class TelemetryConfigurationTests
 
         EventLevel[] errorLevels = [EventLevel.Error, EventLevel.Critical];
         var events = listener.Events;
-        Assert.NotEmpty(events.Where(e => errorLevels.Contains(e.Level)));
+        Assert.Contains(events, e => errorLevels.Contains(e.Level));
     }
 
     [Fact]
