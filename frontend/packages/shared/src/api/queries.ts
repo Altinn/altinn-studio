@@ -87,7 +87,10 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
-export const getIsLoggedInWithAnsattporten = async () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
+export const getIsLoggedInWithAnsattporten = (): Promise<{ isLoggedIn: boolean }> =>
+  get<{
+    isLoggedIn: boolean;
+  }>(authStatusAnsattporten());
 
 const scopesMock: MaskinportenScope[] = [
   { scope: 'scope1', description: 'description1' },
