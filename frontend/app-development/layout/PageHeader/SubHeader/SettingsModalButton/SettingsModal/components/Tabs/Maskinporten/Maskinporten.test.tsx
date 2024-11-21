@@ -21,7 +21,7 @@ describe('Maskinporten', () => {
   it('should check and verify if the user is logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(false));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: false }));
 
     renderMaskinporten({
       queries: {
@@ -54,7 +54,7 @@ describe('Maskinporten', () => {
   it('should display content if logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
     renderMaskinporten({
       queries: {
         getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
@@ -88,7 +88,7 @@ describe('Maskinporten', () => {
   it('should show an alert with text that no scopes are available for user', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
 
     const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
 
