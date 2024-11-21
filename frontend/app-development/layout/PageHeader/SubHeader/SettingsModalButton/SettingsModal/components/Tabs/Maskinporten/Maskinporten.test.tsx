@@ -33,7 +33,7 @@ describe('Maskinporten', () => {
   });
 
   it('should display information about login and login button, if user is not logged in', async () => {
-    renderMaskinporten({});
+    renderMaskinporten();
     await waitForLoggedInStatusCheckIsDone();
 
     const title = screen.getByRole('heading', {
@@ -71,7 +71,7 @@ describe('Maskinporten', () => {
 
   it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
     const user = userEvent.setup();
-    renderMaskinporten({});
+    renderMaskinporten();
     await waitForLoggedInStatusCheckIsDone();
 
     const loginButton = screen.getByRole('button', {
@@ -110,7 +110,7 @@ describe('Maskinporten', () => {
 type RenderMaskinporten = {
   queries?: Partial<typeof queriesMock>;
 };
-const renderMaskinporten = ({ queries = queriesMock }: RenderMaskinporten) => {
+const renderMaskinporten = ({ queries = queriesMock }: RenderMaskinporten = {}) => {
   const queryClient = createQueryClientMock();
   renderWithProviders({ ...queriesMock, ...queries }, queryClient)(<Maskinporten />);
 };

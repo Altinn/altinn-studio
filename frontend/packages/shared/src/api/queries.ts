@@ -54,8 +54,8 @@ import {
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
   authStatusAnsattporten,
+  maskinportenScopesPath,
 } from './paths';
-
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -106,14 +106,14 @@ const scopesMock: MaskinportenScope[] = [
   { scope: 'scope11', description: 'description11' },
 ];
 
-export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
-  // TODO: replace with endpoint when it's ready in the backend.
-  new Promise((resolve) => {
+export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScope[]>(maskinportenScopesPath(org, app));
+// TODO: replace with endpoint when it's ready in the backend.
+/*new Promise((resolve) => {
     setTimeout(() => {
       //return resolve([]);
       return resolve(scopesMock);
     }, 1000);
-  });
+  });*/
 
 export const getSelectedMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
   // TODO: replace with endpoint when it's ready in the backend.
