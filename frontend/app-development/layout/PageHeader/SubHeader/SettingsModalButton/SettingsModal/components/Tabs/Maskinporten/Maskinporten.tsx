@@ -3,22 +3,23 @@ import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
 import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from '../../../../../../../../hooks/queries/useIsLoggedInWithAnsattportenQuery';
+import { loginWithAnsattPorten } from 'app-shared/api/paths';
 
 export const Maskinporten = (): ReactElement => {
-  const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
+  const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
   const { t } = useTranslation();
 
   const handleLoginWithAnsattporten = (): void => {
-    console.log('Will be implemented in next iteration when backend is ready');
+    window.location.href = loginWithAnsattPorten(window.location.pathname + window.location.search);
   };
 
   if (isPendingAuthStatus) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
-  if (isLoggedInWithAnsattporten) {
+  if (ansattportenAuthStatus.isLoggedIn) {
     return <div>View when logged in comes here</div>;
   }
 

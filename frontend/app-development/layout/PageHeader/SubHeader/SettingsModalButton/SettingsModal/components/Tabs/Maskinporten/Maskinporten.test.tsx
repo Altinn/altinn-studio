@@ -6,22 +6,15 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
+import { loginWithAnsattPorten } from 'app-shared/api/paths';
+
+jest.mock('app-shared/api/paths');
 
 describe('Maskinporten', () => {
-  const consoleLogMock = jest.fn();
-  const originalConsoleLog = console.log;
-  beforeEach(() => {
-    console.log = consoleLogMock;
-  });
-
-  afterEach(() => {
-    console.log = originalConsoleLog;
-  });
-
   it('should check and verify if the user is logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(false));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: false }));
 
     renderMaskinporten({
       queries: {
@@ -54,7 +47,7 @@ describe('Maskinporten', () => {
   it('should display content if logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
     renderMaskinporten({
       queries: {
         getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
@@ -68,6 +61,9 @@ describe('Maskinporten', () => {
   });
 
   it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
+    const loginWithAnsattPortenMock = jest.fn();
+    (loginWithAnsattPorten as jest.Mock).mockImplementation(loginWithAnsattPortenMock);
+
     const user = userEvent.setup();
     renderMaskinporten();
     await waitForLoggedInStatusCheckIsDone();
@@ -77,10 +73,7 @@ describe('Maskinporten', () => {
     });
 
     await user.click(loginButton);
-
-    expect(consoleLogMock).toHaveBeenCalledWith(
-      'Will be implemented in next iteration when backend is ready',
-    );
+    expect(loginWithAnsattPortenMock).toHaveBeenCalledTimes('/');
   });
 });
 
