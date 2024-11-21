@@ -43,6 +43,7 @@ import {
   addImagePath,
   optionListUploadPath,
   optionListUpdatePath,
+  createInstancePath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -67,6 +68,7 @@ import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResp
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
+import type { Instance } from '../types/api/preview/Instance';
 
 const headers = {
   Accept: 'application/json',
@@ -135,6 +137,9 @@ export const publishResource = (org: string, repo: string, id: string, env: stri
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
 export const migrateDelegations = (org: string, env: string, payload: MigrateDelegationsRequest) => post(altinn2DelegationsMigrationPath(org, env), payload);
+
+// Preview
+export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<Instance>(createInstancePath(org, app, partyId, taskId));
 
 // ProcessEditor
 

@@ -230,6 +230,9 @@ export const queriesMock: ServicesContextProps = {
     .fn()
     .mockImplementation(() => Promise.resolve<ITextResourcesObjectFormat>({})),
 
+  // Mutations - Preview
+  createPreviewInstance: jest.fn().mockImplementation(() => Promise.resolve()),
+
   // Mutations - Resourceadm
   createResource: jest.fn().mockImplementation(() => Promise.resolve()),
   importResourceFromAltinn2: jest.fn().mockImplementation(() => Promise.resolve<Resource>(null)),

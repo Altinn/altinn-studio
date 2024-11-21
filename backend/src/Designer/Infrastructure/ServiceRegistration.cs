@@ -73,6 +73,8 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IDataService, DataService>();
+            services.AddTransient<IInstanceService, InstanceService>();
+            services.AddTransient<IResourceRegistry, ResourceRegistryService>();
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.AddTransient<IImagesService, ImagesService>();
             services.RegisterDatamodeling(configuration);

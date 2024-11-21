@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,26 +24,27 @@ namespace Altinn.Studio.Designer.Controllers.Preview
     [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
     public class InstancesController(IHttpContextAccessor httpContextAccessor,
         IPreviewService previewService,
-        IAltinnGitRepositoryFactory altinnGitRepositoryFactory
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
+        IInstanceService instanceService
     ) : Controller
     {
-        /// <summary>
-        /// Action for creating the mocked instance object
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="instanceOwnerPartyId"></param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        /// <returns>The mocked instance object</returns>
-        [HttpPost]
-        public async Task<ActionResult<Instance>> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId, CancellationToken cancellationToken)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            string refererHeader = Request.Headers["Referer"];
-            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            Instance mockInstance = await previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId, layoutSetName, cancellationToken);
-            return Ok(mockInstance);
-        }
+        /*/// <summary>*/
+        /*/// Action for creating the mocked instance object*/
+        /*/// </summary>*/
+        /*/// <param name="org">Unique identifier of the organisation responsible for the app.</param>*/
+        /*/// <param name="app">Application identifier which is unique within an organisation.</param>*/
+        /*/// <param name="instanceOwnerPartyId"></param>*/
+        /*/// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>*/
+        /*/// <returns>The mocked instance object</returns>*/
+        /*[HttpPost]*/
+        /*public async Task<ActionResult<Instance>> Instances(string org, string app, [FromQuery] int? instanceOwnerPartyId, CancellationToken cancellationToken)*/
+        /*{*/
+        /*    string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);*/
+        /*    string refererHeader = Request.Headers["Referer"];*/
+        /*    string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);*/
+        /*    Instance mockInstance = await previewService.GetMockInstance(org, app, developer, instanceOwnerPartyId, layoutSetName, cancellationToken);*/
+        /*    return Ok(mockInstance);*/
+        /*}*/
 
         /// <summary>
         /// Action for getting a mocked response for the current task connected to the instance
@@ -64,17 +69,40 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         }
 
         /// <summary>
-        /// Endpoint to get instance for next process step
+        /// Get instance from storage
         /// </summary>
-        /// <returns>A mocked instance object</returns>
-        [HttpGet("{partyId}/{instanceGuId}")]
-        public async Task<ActionResult<Instance>> InstanceForNextTask(string org, string app, [FromRoute] int partyId, CancellationToken cancellationToken)
+        [HttpGet("{partyId}/{instanceGuid}")]
+        [UseSystemTextJson]
+        public ActionResult<JsonNode> Get(
+                [FromRoute] string org,
+                [FromRoute] string app,
+                [FromRoute] int partyId,
+                [FromRoute] Guid instanceGuid,
+                CancellationToken cancellationToken)
+        {
+            JsonNode jsonNode = instanceService.GetInstance(instanceGuid);
+            return Ok(jsonNode);
+        }
+
+        /// <summary>
+        /// Create a new instance
+        /// </summary>
+        [HttpPost]
+        [UseSystemTextJson]
+        public async Task<ActionResult<Instance>> Post(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromQuery] int instanceOwnerPartyId,
+            [FromQuery] string taskId,
+            [FromQuery] string? language = null
+        )
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-            string refererHeader = Request.Headers["Referer"];
-            string layoutSetName = GetSelectedLayoutSetInEditorFromRefererHeader(refererHeader);
-            Instance mockInstance = await previewService.GetMockInstance(org, app, developer, partyId, layoutSetName, cancellationToken);
-            return Ok(mockInstance);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+
+            Instance instance = instanceService.CreateInstance(org, app, instanceOwnerPartyId, taskId, applicationMetadata.DataTypes);
+            return Ok(instance);
         }
 
         /// <summary>

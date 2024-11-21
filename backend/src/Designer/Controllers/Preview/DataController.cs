@@ -45,6 +45,14 @@ namespace Altinn.Studio.Designer.Controllers.Preview
             return Created("link-to-app-placeholder", dataElement);
         }
 
+        // TODO: add multiple patch operation endpoint "PATCH /data"
+        // {
+        // "patches": [
+        // {"dataElementId":"b22ee2a7-b9f9-4ca4-a03d-7bf08c8b2bcd","patch":[{"op":"add","path":"/property1","value":"f"}]}
+        // ],
+        // "ignoredValidators": ["DataAnnotations","Required","Expression"]
+        // }
+
         [HttpPatch("{dataGuid}")]
         [UseSystemTextJson]
         public ActionResult<DataPatchResponse> Patch(
