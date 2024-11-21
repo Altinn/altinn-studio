@@ -12,7 +12,12 @@ import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQue
 import { useTranslation } from 'react-i18next';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
-import { mapRowElementsToSelectedScopes, mapScopesToRowElements } from './utils';
+import {
+  mapRowElementsToSelectedScopes,
+  mapScopesToRowElements,
+  toggleRowElementCheckedState,
+  updateRowElementsCheckedState,
+} from './utils';
 
 export const ScopeList = (): ReactElement => {
   const { t } = useTranslation();
@@ -59,22 +64,22 @@ const ScopeListContent = ({
   const [rowElements, setRowElements] =
     useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
 
-  const areAllChecked = rowElements.every((element) => element.checked);
+  const areAllChecked = rowElements.every((element) => element.checked || element.disabled);
   const isAnyChecked = rowElements.some((element) => element.checked);
 
   const handleChangeAllScopes = () => {
-    const updatedRowElements: StudioCheckboxTableRowElement[] = rowElements.map((element) => ({
-      ...element,
-      checked: !areAllChecked,
-    }));
+    const updatedRowElements: StudioCheckboxTableRowElement[] = updateRowElementsCheckedState(
+      rowElements,
+      areAllChecked,
+    );
     saveUpdatedScopes(updatedRowElements);
   };
 
   const handleChangeScope = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedScope = event.target.value;
-
-    const updatedRowElements: StudioCheckboxTableRowElement[] = rowElements.map((element) =>
-      element.value === selectedScope ? { ...element, checked: !element.checked } : element,
+    const updatedRowElements: StudioCheckboxTableRowElement[] = toggleRowElementCheckedState(
+      rowElements,
+      selectedScope,
     );
     saveUpdatedScopes(updatedRowElements);
   };
