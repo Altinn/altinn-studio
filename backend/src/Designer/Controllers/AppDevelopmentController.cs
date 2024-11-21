@@ -125,13 +125,28 @@ namespace Altinn.Studio.Designer.Controllers
                 {
                     foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange)
                     {
-                        await _mediator.Publish(new ComponentIdChangedEvent
+                        if (componentIdChange.OldComponentId != componentIdChange.NewComponentId)
                         {
-                            OldComponentId = componentIdChange.OldComponentId,
-                            NewComponentId = componentIdChange.NewComponentId,
-                            LayoutSetName = layoutSetName,
-                            EditingContext = editingContext
-                        }, cancellationToken);
+                            if (componentIdChange.NewComponentId == null)
+                            {
+                                await _mediator.Publish(new ComponentDeletedEvent
+                                {
+                                    ComponentId = componentIdChange.OldComponentId,
+                                    LayoutSetName = layoutSetName,
+                                    EditingContext = editingContext
+                                }, cancellationToken);
+                            }
+                            else
+                            {
+                                await _mediator.Publish(new ComponentIdChangedEvent
+                                {
+                                    OldComponentId = componentIdChange.OldComponentId,
+                                    NewComponentId = componentIdChange.NewComponentId,
+                                    LayoutSetName = layoutSetName,
+                                    EditingContext = editingContext
+                                }, cancellationToken);
+                            }
+                        }
                     }
                 }
                 if (!formLayouts.ContainsKey(layoutName))
