@@ -1006,6 +1006,7 @@
   "settings_modal.left_nav_tab_policy": "Tilganger",
   "settings_modal.left_nav_tab_setup": "Oppsett",
   "settings_modal.loading_content": "Laster inn data",
+  "settings_modal.maskinporten_no_scopes_available": "Du har ingen tilgjengelige scopes å velge mellom fordi din bruker ikke er tilknyttet noen scopes i Maskinporten.",
   "settings_modal.maskinporten_tab_description": "For å hente tilgjengelige scopes må du verifisere deg med Ansattporten",
   "settings_modal.maskinporten_tab_login_with_ansattporten": "Logg inn med Ansattporten",
   "settings_modal.maskinporten_tab_title": "Håndtering av Scopes fra Maskinporten",
