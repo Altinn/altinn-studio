@@ -34,7 +34,9 @@ export function EditCodeList({
       <StudioToggleableTextfield
         inputProps={{
           icon: <KeyVerticalIcon />,
-          name: t('app_content_library.code_lists.code_list_edit_id_title'),
+          title: t('app_content_library.code_lists.code_list_edit_id_title', {
+            codeListName: codeList.title,
+          }),
           value: codeList.title,
           onBlur: (event) => handleUpdateCodeListId(event.target.value),
           size: 'small',
@@ -42,7 +44,9 @@ export function EditCodeList({
         viewProps={{
           children: codeList.title,
           variant: 'tertiary',
-          name: t('app_content_library.code_lists.code_list_view_id_title'),
+          title: t('app_content_library.code_lists.code_list_view_id_title', {
+            codeListName: codeList.title,
+          }),
         }}
       />
       <StudioCodeListEditor

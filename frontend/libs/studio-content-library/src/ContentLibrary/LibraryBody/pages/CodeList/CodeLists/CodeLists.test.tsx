@@ -57,11 +57,15 @@ describe('CodeLists', () => {
     const user = userEvent.setup();
     renderCodeLists();
     const codeListIdToggleTextfield = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_view_id_title'),
+      textMock('app_content_library.code_lists.code_list_view_id_title', {
+        codeListName: codeListName,
+      }),
     );
     await user.click(codeListIdToggleTextfield);
     const codeListIdInput = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_edit_id_title'),
+      textMock('app_content_library.code_lists.code_list_edit_id_title', {
+        codeListName: codeListName,
+      }),
     );
     await user.type(codeListIdInput, '2');
     await user.tab();
