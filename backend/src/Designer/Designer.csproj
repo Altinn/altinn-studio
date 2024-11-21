@@ -14,10 +14,6 @@
     <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <CodeAnalisysCompatibleVersion>4.5.0</CodeAnalisysCompatibleVersion>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Altinn.App.Core" />
     <PackageReference Include="Altinn.Authorization.ABAC" />
@@ -59,8 +55,6 @@
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="Polly" />
     <PackageReference Include="Scrutor" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(CodeAnalisysCompatibleVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(CodeAnalisysCompatibleVersion)" />
   </ItemGroup>
 
   <ItemGroup>
