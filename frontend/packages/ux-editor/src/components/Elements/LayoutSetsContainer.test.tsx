@@ -105,17 +105,11 @@ type renderProps = {
   selectedLayoutSet?: string;
 };
 
-const defaultProps: renderProps = {
-  layoutSets: layoutSetsMock,
-  layoutSetsExtended: layoutSetsExtendedMock,
-  selectedLayoutSet: layoutSetName1,
-};
-
 const render = ({
-  layoutSets,
-  layoutSetsExtended,
-  selectedLayoutSet,
-}: renderProps = defaultProps) => {
+  layoutSets = layoutSetsMock,
+  layoutSetsExtended = layoutSetsExtendedMock,
+  selectedLayoutSet = layoutSetName1,
+}: renderProps = {}) => {
   queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSets);
   queryClientMock.setQueryData([QueryKey.LayoutSetsExtended, org, app], layoutSetsExtended);
   appContextMock.selectedFormLayoutSetName = selectedLayoutSet;
