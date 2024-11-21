@@ -781,8 +781,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="newOptionsListFileName">The new file name of the option list file.</param>
         public void UpdateOptionsListId(string oldOptionsListFileName, string newOptionsListFileName)
         {
-            string currentFilePath = Path.Combine(OptionsFolderPath, $"{oldOptionsListFileName}.json");
-            string newFilePath = Path.Combine(OptionsFolderPath, $"{newOptionsListFileName}.json");
+            string currentFilePath = Path.Combine(OptionsFolderPath, oldOptionsListFileName);
+            string newFilePath = Path.Combine(OptionsFolderPath, newOptionsListFileName);
             MoveFileByRelativePath(currentFilePath, newFilePath, newOptionsListFileName);
         }
 
