@@ -5,6 +5,7 @@ import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { useOptionListButtonValue, useOptionListEditorTexts } from '../hooks';
 import type { EditManualOptionsProps } from '../EditManualOptions';
+import { CodeListValueType } from '@studio/components/src/components/StudioCodelistEditor/types/CodeListValueType';
 
 export function EditManualOptionsWithEditor({
   component,
@@ -14,6 +15,8 @@ export function EditManualOptionsWithEditor({
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
   const buttonValue = useOptionListButtonValue(component.options);
   const editorTexts = useOptionListEditorTexts();
+
+  const valueType = getValueType(component.options);
 
   const handleOptionsChange = (options: Option[]) => {
     if (component.optionsId) {
@@ -44,8 +47,20 @@ export function EditManualOptionsWithEditor({
           codeList={component.options ?? []}
           onChange={(optionList) => handleOptionsChange(optionList)}
           texts={editorTexts}
+          valueType={valueType}
         />
       </StudioModal.Dialog>
     </>
   );
 }
+
+const getValueType = (optionList?: Option[]): CodeListValueType => {
+  if (optionList) {
+    const firstCodeListValue = optionList[0].value;
+    if (typeof firstCodeListValue === CodeListValueType.String) return CodeListValueType.String;
+    if (typeof firstCodeListValue === CodeListValueType.Number) return CodeListValueType.Number;
+    if (typeof firstCodeListValue === CodeListValueType.Boolean) return CodeListValueType.Boolean;
+  } else {
+    return CodeListValueType.String;
+  }
+};

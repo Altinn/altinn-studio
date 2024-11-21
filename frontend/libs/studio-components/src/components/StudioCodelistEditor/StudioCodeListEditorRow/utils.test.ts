@@ -1,6 +1,7 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
-import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
+import { changeDescription, changeHelpText, changeLabel, changeValue, convertValue } from './utils';
+import { CodeListValueType } from '../types/CodeListValueType';
 
 // Test data:
 const testItem: CodeListItem = {
@@ -45,13 +46,15 @@ describe('StudioCodeListEditorRow utils', () => {
     it('Changes the value of the code list item', () => {
       const item = createTestItem();
       const newValue = 'updatedValue';
-      const updatedItem = changeValue(item, newValue);
+      const valueType = CodeListValueType.String;
+      const updatedItem = changeValue(item, newValue, valueType);
       expect(updatedItem.value).toBe(newValue);
     });
 
     it('Returns a new instance', () => {
       const item = createTestItem();
-      const updatedItem = changeValue(item, 'updatedValue');
+      const valueType = CodeListValueType.String;
+      const updatedItem = changeValue(item, 'updatedValue', valueType);
       expect(updatedItem).not.toBe(item);
     });
   });
@@ -68,6 +71,32 @@ describe('StudioCodeListEditorRow utils', () => {
       const item = createTestItem();
       const updatedItem = changeHelpText(item, 'Updated help text');
       expect(updatedItem).not.toBe(item);
+    });
+  });
+
+  describe('convertValue', () => {
+    it('should return the correct string value', () => {
+      const value = '123';
+      const valueType = CodeListValueType.String;
+      expect(convertValue(value, valueType)).toBe('123');
+    });
+
+    it('should return the correct number value', () => {
+      const value = '123';
+      const valueType = CodeListValueType.Number;
+      expect(convertValue(value, valueType)).toBe(123);
+    });
+
+    it('should return the correct boolean value for true input', () => {
+      const value = 'true';
+      const valueType = CodeListValueType.Boolean;
+      expect(convertValue(value, valueType)).toBe(true);
+    });
+
+    it('should return the correct boolean value for false input', () => {
+      const value = 'false';
+      const valueType = CodeListValueType.Boolean;
+      expect(convertValue(value, valueType)).toBe(false);
     });
   });
 });

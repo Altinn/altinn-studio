@@ -5,6 +5,7 @@ import { StudioCodeListEditor } from './StudioCodeListEditor';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import type { CodeList } from './types/CodeList';
 import userEvent from '@testing-library/user-event';
+import { CodeListValueType } from './types/CodeListValueType';
 
 // Test data:
 const texts: CodeListEditorTexts = {
@@ -53,6 +54,7 @@ const defaultProps: StudioCodeListEditorProps = {
   texts,
   onChange,
   onInvalid,
+  valueType: CodeListValueType.String,
 };
 const duplicatedValue = 'duplicate';
 const codeListWithDuplicatedValues: CodeList = [

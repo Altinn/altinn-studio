@@ -17,6 +17,7 @@ import { useOptionListEditorTexts } from '../hooks/useOptionListEditorTexts';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import classes from './OptionListEditor.module.css';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { CodeListValueType } from '@studio/components/src/components/StudioCodelistEditor/types/CodeListValueType';
 
 type OptionListEditorProps = {
   optionsId: string;
@@ -72,6 +73,9 @@ function OptionListEditorModal({
     modalRef.current?.close();
   };
 
+  const valueType = getValueType(optionsList);
+  console.log(valueType);
+
   return (
     <StudioModal.Root>
       <StudioModal.Trigger className={classes.modalTrigger} variant='tertiary' icon={<TableIcon />}>
@@ -90,8 +94,20 @@ function OptionListEditorModal({
           codeList={optionsList}
           onChange={handleOptionsChange}
           texts={editorTexts}
+          valueType={valueType}
         />
       </StudioModal.Dialog>
     </StudioModal.Root>
   );
 }
+
+const getValueType = (optionList?: Option[]): CodeListValueType => {
+  if (optionList[0]?.value) {
+    const firstCodeListValue = optionList[0].value;
+    if (typeof firstCodeListValue === CodeListValueType.String) return CodeListValueType.String;
+    if (typeof firstCodeListValue === CodeListValueType.Number) return CodeListValueType.Number;
+    if (typeof firstCodeListValue === CodeListValueType.Boolean) return CodeListValueType.Boolean;
+  } else {
+    return CodeListValueType.String;
+  }
+};

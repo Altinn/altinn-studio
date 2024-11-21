@@ -23,12 +23,14 @@ import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './v
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
+import type { CodeListValueType } from './types/CodeListValueType';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onChange: (codeList: CodeList) => void;
   onInvalid?: () => void;
   texts: CodeListEditorTexts;
+  valueType: CodeListValueType;
 };
 
 export function StudioCodeListEditor({
@@ -36,15 +38,16 @@ export function StudioCodeListEditor({
   onChange,
   onInvalid,
   texts,
+  valueType,
 }: StudioCodeListEditorProps): ReactElement {
   return (
-    <StudioCodeListEditorContext.Provider value={{ texts }}>
+    <StudioCodeListEditorContext.Provider value={{ texts, valueType }}>
       <StatefulCodeListEditor codeList={codeList} onChange={onChange} onInvalid={onInvalid} />
     </StudioCodeListEditorContext.Provider>
   );
 }
 
-type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts' | 'valueType'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
@@ -112,7 +115,7 @@ function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps):
   return (
     <StudioInputTable>
       <Headings />
-      <CodeLists {...props} />
+      <Body {...props} />
     </StudioInputTable>
   );
 }
@@ -133,7 +136,7 @@ function Headings(): ReactElement {
   );
 }
 
-function CodeLists({
+function Body({
   codeList,
   onChange,
   errorMap,

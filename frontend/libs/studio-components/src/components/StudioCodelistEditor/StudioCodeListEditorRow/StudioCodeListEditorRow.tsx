@@ -24,7 +24,7 @@ export function StudioCodeListEditorRow({
   onChange,
   onDeleteButtonClick,
 }: StudioCodeListEditorRowProps) {
-  const { texts } = useStudioCodeListEditorContext();
+  const { texts, valueType } = useStudioCodeListEditorContext();
 
   const handleLabelChange = useCallback(
     (label: string) => {
@@ -44,10 +44,10 @@ export function StudioCodeListEditorRow({
 
   const handleValueChange = useCallback(
     (value: string) => {
-      const updatedItem = changeValue(item, value);
+      const updatedItem = changeValue(item, value, valueType);
       onChange(updatedItem);
     },
-    [item, onChange],
+    [item, onChange, valueType],
   );
 
   const handleHelpTextChange = useCallback(
