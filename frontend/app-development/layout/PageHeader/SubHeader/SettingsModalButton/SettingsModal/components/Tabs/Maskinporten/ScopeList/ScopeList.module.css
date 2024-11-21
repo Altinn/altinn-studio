@@ -6,3 +6,11 @@
 .noScopeAlert {
   margin-top: var(--fds-spacing-8);
 }
+
+.link {
+  display: inline;
+}
+
+.informationText  {
+  color: var(--fds-semantic-text-neutral-subtle);
+}

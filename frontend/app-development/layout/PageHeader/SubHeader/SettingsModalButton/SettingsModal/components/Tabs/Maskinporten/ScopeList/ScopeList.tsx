@@ -5,11 +5,12 @@ import {
   StudioCheckboxTable,
   type StudioCheckboxTableRowElement,
   StudioHeading,
+  StudioLink,
   StudioParagraph,
   StudioSpinner,
 } from '@studio/components';
 import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQuery';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
 import {
@@ -18,6 +19,8 @@ import {
   toggleRowElementCheckedState,
   updateRowElementsCheckedState,
 } from './utils';
+import { GetInTouchWith } from 'app-shared/getInTouch';
+import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 
 export const ScopeList = (): ReactElement => {
   const { t } = useTranslation();
@@ -37,11 +40,7 @@ export const ScopeList = (): ReactElement => {
     );
   }
 
-  return (
-    <StudioAlert severity='info' className={classes.noScopeAlert}>
-      {t('settings_modal.maskinporten_no_scopes_available')}
-    </StudioAlert>
-  );
+  return <NoScopesAlert />;
 };
 
 type ScopeListContentProps = {
@@ -59,6 +58,8 @@ const ScopeListContent = ({
     maskinPortenScopes,
     selectedScopes,
   );
+
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   // This useState is temporary to simulate correct behaviour in browser. It will be removed and replaced by a mutation function
   const [rowElements, setRowElements] =
@@ -93,12 +94,17 @@ const ScopeListContent = ({
   };
 
   return (
-    <>
-      <StudioHeading size='2xs' level={2} spacing>
-        {t('settings_modal.maskinporten_tab_available_scopes_title')}
-      </StudioHeading>
-      <StudioParagraph size='sm' spacing>
+    <div>
+      <LoggedInTitle />
+      <StudioParagraph size='sm' spacing className={classes.informationText}>
         {t('settings_modal.maskinporten_tab_available_scopes_description')}
+      </StudioParagraph>
+      <StudioParagraph size='sm' spacing className={classes.informationText}>
+        <Trans i18nKey='settings_modal.maskinporten_tab_available_scopes_description_help'>
+          <StudioLink href={contactByEmail.url('serviceOwner')} className={classes.link}>
+            {' '}
+          </StudioLink>
+        </Trans>
       </StudioParagraph>
       <StudioCheckboxTable className={classes.table}>
         <StudioCheckboxTable.Header
@@ -120,6 +126,39 @@ const ScopeListContent = ({
           }
         </StudioCheckboxTable.Body>
       </StudioCheckboxTable>
-    </>
+    </div>
+  );
+};
+
+const LoggedInTitle = (): ReactElement => {
+  const { t } = useTranslation();
+  return (
+    <StudioHeading size='2xs' level={3} spacing>
+      {t('settings_modal.maskinporten_tab_available_scopes_title')}
+    </StudioHeading>
+  );
+};
+
+const NoScopesAlert = (): ReactElement => {
+  const { t } = useTranslation();
+
+  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
+
+  return (
+    <div>
+      <LoggedInTitle />
+      <StudioAlert severity='info' className={classes.noScopeAlert}>
+        <StudioHeading level={4} size='xs' spacing>
+          {t('settings_modal.maskinporten_no_scopes_available_title')}
+        </StudioHeading>
+        <StudioLink
+          href={contactByEmail.url('serviceOwner')}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          {t('settings_modal.maskinporten_no_scopes_available_description')}
+        </StudioLink>
+      </StudioAlert>
+    </div>
   );
 };

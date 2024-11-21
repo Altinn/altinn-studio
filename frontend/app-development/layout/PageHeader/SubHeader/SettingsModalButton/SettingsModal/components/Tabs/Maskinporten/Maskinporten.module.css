@@ -1,0 +1,17 @@
+.contentWrapper {
+  border: 2px solid var(--fds-semantic-border-divider-default);
+  border-radius: var(--fds-sizing-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--fds-spacing-4);
+}
+
+.loginIcon {
+  font-size: var(--fds-sizing-15);
+  padding-top: var(--fds-spacing-4);
+}
+
+.loginButton {
+  margin-bottom: var(--fds-spacing-15);
+}
