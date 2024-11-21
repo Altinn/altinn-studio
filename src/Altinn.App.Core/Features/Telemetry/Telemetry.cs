@@ -76,6 +76,7 @@ public sealed partial class Telemetry : IDisposable
             InitProcesses(context);
             InitValidation(context);
             InitMaskinporten(context);
+            InitCorrespondence(context);
 
             // NOTE: This Telemetry class is registered as a singleton
             // Metrics could be kept in fields of the respective objects that use them for instrumentation
@@ -169,6 +170,11 @@ public sealed partial class Telemetry : IDisposable
         /// Label for the organisation number.
         /// </summary>
         public const string OrganisationNumber = "organisation.number";
+
+        /// <summary>
+        /// Label for the Correspondence ID.
+        /// </summary>
+        public const string CorrespondenceId = "correspondence.id";
     }
 
     internal static class InternalLabels

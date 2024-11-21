@@ -47,6 +47,11 @@ public class PlatformSettings
     public string ApiNotificationEndpoint { get; set; } = "http://localhost:5101/notifications/api/v1/";
 
     /// <summary>
+    /// Gets or sets the url for the Correspondence API endpoint.
+    /// </summary>
+    public string ApiCorrespondenceEndpoint { get; set; } = "http://localhost:5101/correspondence/api/v1/"; // TODO: which port for localtest?
+
+    /// <summary>
     /// Gets or sets the subscription key value to use in requests against the platform.
     /// A new subscription key is generated automatically every time an app is deployed to an environment. The new key is then automatically
     /// added to the environment for the app code during deploy. This will override the value stored in app settings.

@@ -14,15 +14,22 @@ public static class JwtTokenMock
     /// Generates a token with a self signed certificate included in the integration test project.
     /// </summary>
     /// <param name="principal">The claims principal to include in the token.</param>
-    /// <param name="tokenExipry">How long the token should be valid for.</param>
+    /// <param name="tokenExpiry">How long the token should be valid for.</param>
+    /// <param name="timeProvider">Alternative timeprovider, if applicable</param>
     /// <returns>A new token.</returns>
-    public static string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+    public static string GenerateToken(
+        ClaimsPrincipal principal,
+        TimeSpan tokenExpiry,
+        TimeProvider? timeProvider = null
+    )
     {
         JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+        var now = timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
         SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(principal.Identity),
-            Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
+            Expires = now.Add(tokenExpiry).UtcDateTime,
+            NotBefore = now.UtcDateTime,
             SigningCredentials = GetSigningCredentials(),
             Audience = "altinn.no",
         };

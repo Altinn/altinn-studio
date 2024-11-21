@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Exceptions;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +11,7 @@ namespace Altinn.App.Core.Features.Maskinporten.Delegates;
 internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
 {
     public IEnumerable<string> Scopes { get; init; }
+    internal readonly TokenAuthorities Authorities;
 
     private readonly ILogger<MaskinportenDelegatingHandler> _logger;
     private readonly IMaskinportenClient _maskinportenClient;
@@ -17,10 +19,12 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
     /// <summary>
     /// Creates a new instance of <see cref="MaskinportenDelegatingHandler"/>.
     /// </summary>
-    /// <param name="scopes">A list of scopes to claim authorization for with Maskinporten</param>
+    /// <param name="authorities">The token authority to authorise with</param>
+    /// <param name="scopes">A list of scopes to claim authorisation for</param>
     /// <param name="maskinportenClient">A <see cref="MaskinportenClient"/> instance</param>
     /// <param name="logger">Optional logger interface</param>
     public MaskinportenDelegatingHandler(
+        TokenAuthorities authorities,
         IEnumerable<string> scopes,
         IMaskinportenClient maskinportenClient,
         ILogger<MaskinportenDelegatingHandler> logger
@@ -29,6 +33,7 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
         Scopes = scopes;
         _logger = logger;
         _maskinportenClient = maskinportenClient;
+        Authorities = authorities;
     }
 
     /// <inheritdoc/>
@@ -39,21 +44,18 @@ internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
     {
         _logger.LogDebug("Executing custom `SendAsync` method; injecting authentication headers");
 
-        var auth = await _maskinportenClient.GetAccessToken(Scopes, cancellationToken);
-        if (!auth.TokenType.Equals(TokenTypes.Bearer, StringComparison.OrdinalIgnoreCase))
+        var token = Authorities switch
         {
-            throw new MaskinportenUnsupportedTokenException(
-                $"Unsupported token type received from Maskinporten: {auth.TokenType}"
-            );
-        }
+            TokenAuthorities.Maskinporten => await _maskinportenClient.GetAccessToken(Scopes, cancellationToken),
+            TokenAuthorities.AltinnTokenExchange => await _maskinportenClient.GetAltinnExchangedToken(
+                Scopes,
+                cancellationToken
+            ),
+            _ => throw new MaskinportenAuthenticationException($"Unknown authority `{Authorities}`"),
+        };
 
-        request.Headers.Authorization = new AuthenticationHeaderValue(TokenTypes.Bearer, auth.AccessToken);
+        request.Headers.Authorization = new AuthenticationHeaderValue(TokenTypes.Bearer, token.Value);
 
         return await base.SendAsync(request, cancellationToken);
     }
-}
-
-internal static class TokenTypes
-{
-    public const string Bearer = "Bearer";
 }

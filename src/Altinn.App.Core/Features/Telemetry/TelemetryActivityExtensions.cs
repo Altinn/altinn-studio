@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Altinn.App.Core.Features.Correspondence.Models;
 using Altinn.App.Core.Models.Process;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -265,6 +266,27 @@ public static class TelemetryActivityExtensions
         return activity;
     }
 
+    internal static Activity SetCorrespondence(this Activity activity, SendCorrespondenceResponse? response)
+    {
+        if (response is not null)
+        {
+            if (response.Correspondences is { Count: 1 })
+            {
+                activity.SetTag(Labels.CorrespondenceId, response.Correspondences[0].CorrespondenceId);
+            }
+
+            var tags = new ActivityTagsCollection();
+            tags.Add("ids", response.Correspondences?.Select(c => c.CorrespondenceId.ToString()) ?? []);
+            tags.Add("statuses", response.Correspondences?.Select(c => c.Status.ToString()) ?? []);
+            tags.Add("count", response.Correspondences?.Count ?? 0);
+            tags.Add("attachments", response.AttachmentIds?.Count ?? 0);
+            tags.Add("operation", "send");
+            activity.AddEvent(new ActivityEvent("correspondence", tags: tags));
+        }
+
+        return activity;
+    }
+
     internal static Activity SetProblemDetails(this Activity activity, ProblemDetails problemDetails)
     {
         // Leave activity status to ASP.NET Core, as it will be set depending on status code?
@@ -344,7 +366,7 @@ public static class TelemetryActivityExtensions
     internal static void Errored(this Activity activity, Exception? exception = null, string? error = null)
     {
         activity.SetStatus(ActivityStatusCode.Error, error);
-        if(exception is not null)
+        if (exception is not null)
         {
             activity.AddException(exception);
         }

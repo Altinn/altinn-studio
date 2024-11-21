@@ -1,14 +1,13 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Tests.Extensions;
 using Altinn.App.Api.Tests.TestUtils;
-using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features.Maskinporten;
+using Altinn.App.Core.Features.Maskinporten.Constants;
 using Altinn.App.Core.Features.Maskinporten.Delegates;
 using Altinn.App.Core.Features.Maskinporten.Models;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.App.Api.Tests.Maskinporten;
 
@@ -121,17 +120,30 @@ public class MaskinportenClientIntegrationTests
     }
 
     [Theory]
-    [InlineData("client1", "scope1")]
-    [InlineData("client2", "scope1", "scope2", "scope3")]
-    public void UseMaskinportenAuthorization_AddsHandler_BindsToSpecifiedClient(
+    [InlineData(nameof(TokenAuthorities.Maskinporten), "client1", "scope1")]
+    [InlineData(nameof(TokenAuthorities.Maskinporten), "client2", "scope1", "scope2", "scope3")]
+    [InlineData(nameof(TokenAuthorities.AltinnTokenExchange), "doesntmatter")]
+    public void UseMaskinportenAuthorisation_AddsHandler_BindsToSpecifiedClient(
+        string tokenAuthority,
         string scope,
         params string[] additionalScopes
     )
     {
         // Arrange
+        Enum.TryParse(tokenAuthority, false, out TokenAuthorities actualTokenAuthority);
         var app = AppBuilder.Build(registerCustomAppServices: services =>
-            services.AddHttpClient<DummyHttpClient>().UseMaskinportenAuthorization(scope, additionalScopes)
-        );
+        {
+            _ = actualTokenAuthority switch
+            {
+                TokenAuthorities.Maskinporten => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAuthorisation(scope, additionalScopes),
+                TokenAuthorities.AltinnTokenExchange => services
+                    .AddHttpClient<DummyHttpClient>()
+                    .UseMaskinportenAltinnAuthorisation(scope, additionalScopes),
+                _ => throw new ArgumentException($"Unknown TokenAuthority {tokenAuthority}"),
+            };
+        });
 
         // Act
         var client = app.Services.GetRequiredService<DummyHttpClient>();
@@ -142,6 +154,7 @@ public class MaskinportenClientIntegrationTests
         Assert.NotNull(delegatingHandler);
         var inputScopes = new[] { scope }.Concat(additionalScopes);
         delegatingHandler.Scopes.Should().BeEquivalentTo(inputScopes);
+        delegatingHandler.Authorities.Should().Be(actualTokenAuthority);
     }
 
     private sealed class DummyHttpClient(HttpClient client)

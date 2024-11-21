@@ -371,18 +371,12 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<IFileValidatorFactory, FileValidatorFactory>();
     }
 
-    internal static IEnumerable<ServiceDescriptor> GetOptionsDescriptors<TOptions>(this IServiceCollection services)
+    internal static bool IsConfigured<TOptions>(this IServiceCollection services)
         where TOptions : class
     {
-        return services.Where(d =>
+        return services.Any(d =>
             d.ServiceType == typeof(IConfigureOptions<TOptions>)
             || d.ServiceType == typeof(IOptionsChangeTokenSource<TOptions>)
         );
-    }
-
-    internal static ServiceDescriptor? GetOptionsDescriptor<TOptions>(this IServiceCollection services)
-        where TOptions : class
-    {
-        return services.GetOptionsDescriptors<TOptions>().FirstOrDefault();
     }
 }

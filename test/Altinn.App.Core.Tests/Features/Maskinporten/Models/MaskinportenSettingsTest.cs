@@ -12,7 +12,7 @@ public class MaskinportenSettingsTest
     /// <summary>
     /// This key definition is complete and valid
     /// </summary>
-    private string validJwk = """
+    private static readonly string _validJwk = """
         {
             "p": "5BRHaF0zpryULcbyTf02xZUXMb26Ait8XvU4NsAYCH4iLNkC_zYRJ0X_qb0sJ_WVYecB1-nCV1Qr15KnsaKp1qBOx21_ftHHwdBE12z9KYGe1xQ4ZIXEP0OiR044XQPphRFVjWOF7wQKdoXlTNXCg4B3lo5waBj8eYmMHCxyK6k",
             "kty": "RSA",
@@ -30,15 +30,15 @@ public class MaskinportenSettingsTest
         """;
 
     /// <summary>
-    /// This is a Base64 encoded version of <see cref="validJwk"/>.
-    /// <inheritdoc cref="validJwk"/>
+    /// This is a Base64 encoded version of <see cref="_validJwk"/>.
+    /// <inheritdoc cref="_validJwk"/>
     /// </summary>
-    private string validJwk_Base64 => Convert.ToBase64String(Encoding.UTF8.GetBytes(validJwk));
+    private static string _validJwkBase64 => Convert.ToBase64String(Encoding.UTF8.GetBytes(_validJwk));
 
     /// <summary>
     /// This key definition is missing the `e` exponent and the `kid` identifier
     /// </summary>
-    private string invalidJwk = """
+    private static readonly string _invalidJwk = """
         {
             "p": "5BRHaF0zpryULcbyTf02xZUXMb26Ait8XvU4NsAYCH4iLNkC_zYRJ0X_qb0sJ_WVYecB1-nCV1Qr15KnsaKp1qBOx21_ftHHwdBE12z9KYGe1xQ4ZIXEP0OiR044XQPphRFVjWOF7wQKdoXlTNXCg4B3lo5waBj8eYmMHCxyK6k",
             "kty": "RSA",
@@ -56,10 +56,10 @@ public class MaskinportenSettingsTest
         """;
 
     /// <summary>
-    /// This is a Base64 encoded version of <see cref="invalidJwk"/>.
-    /// <inheritdoc cref="invalidJwk"/>
+    /// This is a Base64 encoded version of <see cref="_invalidJwk"/>.
+    /// <inheritdoc cref="_invalidJwk"/>
     /// </summary>
-    private string invalidJwk_base64 => Convert.ToBase64String(Encoding.UTF8.GetBytes(invalidJwk));
+    private static string _invalidJwkBase64 => Convert.ToBase64String(Encoding.UTF8.GetBytes(_invalidJwk));
 
     [Fact]
     public void ShouldDeserializeFromJsonCorrectly()
@@ -69,7 +69,7 @@ public class MaskinportenSettingsTest
             {
                 "authority": "https://maskinporten.dev/",
                 "clientId": "test-client",
-                "jwk": {{validJwk}}
+                "jwk": {{_validJwk}}
             }
             """;
 
@@ -91,7 +91,7 @@ public class MaskinportenSettingsTest
             {
                 "authority": "https://maskinporten.dev/",
                 "clientId": "test-client",
-                "jwkBase64": "{{validJwk_Base64}}"
+                "jwkBase64": "{{_validJwkBase64}}"
             }
             """;
 
@@ -113,7 +113,7 @@ public class MaskinportenSettingsTest
             {
                 "authority": "https://maskinporten.dev/",
                 "clientId": "test-client",
-                "jwk": {{invalidJwk}}
+                "jwk": {{_invalidJwk}}
             }
             """;
 
@@ -139,7 +139,7 @@ public class MaskinportenSettingsTest
             {
                 "authority": "https://maskinporten.dev/",
                 "clientId": "test-client",
-                "jwkBase64": "{{invalidJwk_base64}}"
+                "jwkBase64": "{{_invalidJwkBase64}}"
             }
             """;
 

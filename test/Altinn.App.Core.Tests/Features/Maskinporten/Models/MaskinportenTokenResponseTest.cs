@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Altinn.App.Core.Features.Maskinporten.Models;
+using Altinn.App.Core.Models;
 using FluentAssertions;
 
 namespace Altinn.App.Core.Tests.Features.Maskinporten.Models;
@@ -10,9 +11,10 @@ public class MaskinportenTokenResponseTest
     public void ShouldDeserializeFromJsonCorrectly()
     {
         // Arrange
-        var json = """
+        var encodedToken = TestHelpers.GetEncodedAccessToken();
+        var json = $$"""
             {
-                "access_token": "jwt.content.here",
+                "access_token": "{{encodedToken.AccessToken}}",
                 "token_type": "Bearer",
                 "expires_in": 120,
                 "scope": "anything"
@@ -20,16 +22,34 @@ public class MaskinportenTokenResponseTest
             """;
 
         // Act
-        var beforeCreation = DateTime.UtcNow;
-        var token = JsonSerializer.Deserialize<MaskinportenTokenResponse>(json);
-        var afterCreation = DateTime.UtcNow;
+        var tokenResponse = JsonSerializer.Deserialize<MaskinportenTokenResponse>(json);
 
         // Assert
-        Assert.NotNull(token);
-        token.AccessToken.Should().Be("jwt.content.here");
-        token.TokenType.Should().Be("Bearer");
-        token.Scope.Should().Be("anything");
-        token.ExpiresIn.Should().Be(120);
-        token.ExpiresAt.Should().BeBefore(afterCreation.AddSeconds(120)).And.BeAfter(beforeCreation.AddSeconds(120));
+        Assert.NotNull(tokenResponse);
+        tokenResponse.AccessToken.Should().Be(JwtToken.Parse(encodedToken.AccessToken));
+        tokenResponse.TokenType.Should().Be("Bearer");
+        tokenResponse.Scope.Should().Be("anything");
+        tokenResponse.ExpiresIn.Should().Be(120);
+    }
+
+    [Fact]
+    public void ToString_ShouldMaskAccessToken()
+    {
+        // Arrange
+        var encodedToken = TestHelpers.GetEncodedAccessToken();
+
+        // Act
+        var tokenResponse = new MaskinportenTokenResponse
+        {
+            AccessToken = JwtToken.Parse(encodedToken.AccessToken),
+            Scope = "yep",
+            TokenType = "Bearer",
+            ExpiresIn = 120,
+        };
+
+        // Assert
+        tokenResponse.AccessToken.ToStringUnmasked().Should().Be(encodedToken.AccessToken);
+        tokenResponse.ToString().Should().NotContain(encodedToken.Components.Signature);
+        $"{tokenResponse}".Should().NotContain(encodedToken.Components.Signature);
     }
 }
