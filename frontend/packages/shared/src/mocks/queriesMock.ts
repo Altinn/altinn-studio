@@ -104,6 +104,9 @@ export const queriesMock: ServicesContextProps = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getLayoutSetsExtended: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
