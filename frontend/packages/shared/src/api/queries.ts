@@ -53,7 +53,6 @@ import {
   repoDiffPath,
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
-  authStatusAnsattporten,
   maskinportenScopesPath,
 } from './paths';
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -87,10 +86,13 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
-export const getIsLoggedInWithAnsattporten = () =>
-  get<{
-    isLoggedIn: boolean;
-  }>(authStatusAnsattporten());
+export const getIsLoggedInWithAnsattporten = async (): Promise<boolean> =>
+  // TODO: replace with endpoint when it's ready in the backend.
+  new Promise((resolve) => {
+    setTimeout(() => {
+      return resolve(false);
+    }, 1000);
+  });
 
 const scopesMock: MaskinportenScope[] = [
   { scope: 'scope1', description: 'description1' },
