@@ -362,12 +362,12 @@ public static class ServiceCollectionExtensions
 
         public OtelPropagator(TextMapPropagator inner) => _inner = inner;
 
-        public override ISet<string> Fields => _inner.Fields;
+        public override ISet<string>? Fields => _inner.Fields;
 
         public override PropagationContext Extract<T>(
             PropagationContext context,
             T carrier,
-            Func<T, string, IEnumerable<string>> getter
+            Func<T, string, IEnumerable<string>?> getter
         )
         {
             if (carrier is HttpRequest)

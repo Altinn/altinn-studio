@@ -3215,7 +3215,6 @@ components:
           type: object
           additionalProperties:
             type: boolean
-            nullable: true
           nullable: true
         userActions:
           type: array
@@ -3374,7 +3373,6 @@ components:
           type: object
           additionalProperties:
             type: boolean
-            nullable: true
           nullable: true
         logo:
           $ref: '#/components/schemas/Logo'
@@ -4115,11 +4113,8 @@ components:
     JsonNodeOptions:
       type: object
       properties:
-        hasValue:
+        propertyNameCaseInsensitive:
           type: boolean
-          readOnly: true
-        value:
-          $ref: '#/components/schemas/JsonNodeOptions'
       additionalProperties: false
     JsonPatch:
       type: object
@@ -4727,7 +4722,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ValidationIssueWithSource'
-            nullable: true
           nullable: true
         clientActions:
           type: array

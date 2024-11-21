@@ -5259,8 +5259,7 @@
           "actions": {
             "type": "object",
             "additionalProperties": {
-              "type": "boolean",
-              "nullable": true
+              "type": "boolean"
             },
             "nullable": true
           },
@@ -5479,8 +5478,7 @@
           "features": {
             "type": "object",
             "additionalProperties": {
-              "type": "boolean",
-              "nullable": true
+              "type": "boolean"
             },
             "nullable": true
           },
@@ -6503,12 +6501,8 @@
       "JsonNodeOptions": {
         "type": "object",
         "properties": {
-          "hasValue": {
-            "type": "boolean",
-            "readOnly": true
-          },
-          "value": {
-            "$ref": "#/components/schemas/JsonNodeOptions"
+          "propertyNameCaseInsensitive": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -7349,8 +7343,7 @@
                 "items": {
                   "$ref": "#/components/schemas/ValidationIssueWithSource"
                 }
-              },
-              "nullable": true
+              }
             },
             "nullable": true
           },
