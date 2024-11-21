@@ -1,1 +1,1 @@
-export type SettingsModalTabId = 'about' | 'setup' | 'policy' | 'access_control';
+export type SettingsModalTabId = 'about' | 'setup' | 'policy' | 'access_control' | 'maskinporten';
