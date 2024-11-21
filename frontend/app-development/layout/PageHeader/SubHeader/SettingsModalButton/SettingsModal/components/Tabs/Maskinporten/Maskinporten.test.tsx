@@ -29,7 +29,6 @@ describe('Maskinporten', () => {
       },
     });
     await waitForLoggedInStatusCheckIsDone();
-
     await waitFor(() => expect(getIsLoggedInWithAnsattportenMock).toHaveBeenCalledTimes(1));
   });
 

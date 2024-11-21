@@ -3,10 +3,10 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
-export const useGetScopesQuery = (org: string, app: string) => {
+export const useGetScopesQuery = () => {
   const { getMaskinportenScopes } = useServicesContext();
   return useQuery<MaskinportenScope[]>({
     queryKey: [QueryKey.AppScopes],
-    queryFn: () => getMaskinportenScopes(org, app),
+    queryFn: () => getMaskinportenScopes(),
   });
 };

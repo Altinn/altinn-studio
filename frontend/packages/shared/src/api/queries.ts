@@ -108,14 +108,14 @@ const scopesMock: MaskinportenScope[] = [
   { scope: 'scope11', description: 'description11' },
 ];
 
-export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScope[]>(maskinportenScopesPath(org, app));
-// TODO: replace with endpoint when it's ready in the backend.
-/*new Promise((resolve) => {
+export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
+  // TODO: replace with endpoint when it's ready in the backend.
+  new Promise((resolve) => {
     setTimeout(() => {
       //return resolve([]);
       return resolve(scopesMock);
     }, 1000);
-  });*/
+  });
 
 export const getSelectedMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
   // TODO: replace with endpoint when it's ready in the backend.
