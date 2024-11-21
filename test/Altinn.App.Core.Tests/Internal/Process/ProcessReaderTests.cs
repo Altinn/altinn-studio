@@ -93,8 +93,8 @@ public class ProcessReaderTests
                     {
                         Id = "Gateway1",
                         Incoming = new List<string>() { "Flow2" },
-                        Outgoing = new List<string>() { "Flow3", "Flow4" }
-                    }
+                        Outgoing = new List<string>() { "Flow3", "Flow4" },
+                    },
                 }
             );
     }
@@ -117,7 +117,7 @@ public class ProcessReaderTests
                         Incoming = new List<string> { "Flow2" },
                         Outgoing = new List<string> { "Flow3" },
                         Name = "Bekreft skjemadata",
-                    }
+                    },
                 }
             );
     }
@@ -144,8 +144,8 @@ public class ProcessReaderTests
                     {
                         Id = "EndEvent",
                         Incoming = new List<string>() { "Flow4", "Flow5" },
-                        Outgoing = new List<string>()
-                    }
+                        Outgoing = new List<string>(),
+                    },
                 }
             );
     }
@@ -168,7 +168,7 @@ public class ProcessReaderTests
                         Name = "Utfylling",
                         Incoming = new List<string>() { "Flow1" },
                         Outgoing = new List<string>() { "Flow2" },
-                    }
+                    },
                 }
             );
     }
@@ -191,7 +191,7 @@ public class ProcessReaderTests
                         Name = "Bekreft skjemadata",
                         Incoming = new List<string>() { "Flow2" },
                         Outgoing = new List<string>() { "Flow3" },
-                    }
+                    },
                 }
             );
     }
@@ -212,8 +212,8 @@ public class ProcessReaderTests
                     {
                         Id = "EndEvent",
                         Incoming = new List<string>() { "Flow3" },
-                        Outgoing = new List<string>()
-                    }
+                        Outgoing = new List<string>(),
+                    },
                 }
             );
     }
@@ -269,8 +269,8 @@ public class ProcessReaderTests
                         Id = "Flow2",
                         FlowType = null!,
                         SourceRef = "Task1",
-                        TargetRef = "Gateway1"
-                    }
+                        TargetRef = "Gateway1",
+                    },
                 }
             );
     }
@@ -291,15 +291,15 @@ public class ProcessReaderTests
                         Id = "Flow3",
                         FlowType = null!,
                         SourceRef = "Gateway1",
-                        TargetRef = "Task2"
+                        TargetRef = "Task2",
                     },
                     new SequenceFlow()
                     {
                         Id = "Flow4",
                         FlowType = null!,
                         SourceRef = "Gateway1",
-                        TargetRef = "EndEvent"
-                    }
+                        TargetRef = "EndEvent",
+                    },
                 }
             );
     }
@@ -333,7 +333,7 @@ public class ProcessReaderTests
                     Id = "StartEvent",
                     Name = null!,
                     Incoming = new List<string>(),
-                    Outgoing = new List<string> { "Flow1" }
+                    Outgoing = new List<string> { "Flow1" },
                 }
             );
     }
@@ -360,17 +360,17 @@ public class ProcessReaderTests
                             AltinnActions = new List<AltinnAction>()
                             {
                                 new("submit", ActionType.ProcessAction),
-                                new("lookup", ActionType.ServerAction)
+                                new("lookup", ActionType.ServerAction),
                             },
                             TaskType = "data",
                             SignatureConfiguration = new()
                             {
                                 DataTypesToSign = new() { "default", "default2" },
                                 SignatureDataType = "signature",
-                                UniqueFromSignaturesInDataTypes = new() { "signature1" }
-                            }
-                        }
-                    }
+                                UniqueFromSignaturesInDataTypes = new() { "signature1" },
+                            },
+                        },
+                    },
                 }
             );
     }
@@ -389,7 +389,7 @@ public class ProcessReaderTests
                     Id = "EndEvent",
                     Name = null!,
                     Incoming = new List<string> { "Flow4", "Flow5" },
-                    Outgoing = new List<string>()
+                    Outgoing = new List<string>(),
                 }
             );
     }
@@ -417,7 +417,7 @@ public class ProcessReaderTests
                     Name = null!,
                     Default = "Flow3",
                     Incoming = new List<string> { "Flow2" },
-                    Outgoing = new List<string> { "Flow3", "Flow4" }
+                    Outgoing = new List<string> { "Flow3", "Flow4" },
                 }
             );
     }

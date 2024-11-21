@@ -123,7 +123,7 @@ public class ComponentContextForTestSpec
             ComponentId = context.Component.Id,
             CurrentPageName = context.Component.PageId,
             ChildContexts = context.ChildContexts?.Select(FromContext) ?? [],
-            RowIndices = context.RowIndices
+            RowIndices = context.RowIndices,
         };
     }
 }

@@ -39,7 +39,7 @@ public class DefaultTaskValidator : ITaskValidator //TODO: Implement IValidator
                     Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
-                    Field = dataType.Id
+                    Field = dataType.Id,
                 };
                 messages.Add(message);
             }
@@ -51,7 +51,7 @@ public class DefaultTaskValidator : ITaskValidator //TODO: Implement IValidator
                     Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
-                    Field = dataType.Id
+                    Field = dataType.Id,
                 };
                 messages.Add(message);
             }

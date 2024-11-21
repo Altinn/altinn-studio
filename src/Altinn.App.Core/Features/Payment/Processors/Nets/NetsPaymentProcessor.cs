@@ -86,7 +86,7 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                 .PaymentMethodsConfiguration?.Select(x => new NetsPaymentMethodConfiguration
                 {
                     Name = x.Name,
-                    Enabled = x.Enabled
+                    Enabled = x.Enabled,
                 })
                 .ToList(),
             Checkout = new NetsCheckout
@@ -109,7 +109,7 @@ internal class NetsPaymentProcessor : IPaymentProcessor
                         ShowMerchantName = _settings.ShowMerchantName,
                     },
                 },
-                Charge = true
+                Charge = true,
             },
         };
 
@@ -127,7 +127,7 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         return new PaymentDetails
         {
             PaymentId = paymentId,
-            RedirectUrl = AddLanguageQueryParam(hostedPaymentPageUrl, language)
+            RedirectUrl = AddLanguageQueryParam(hostedPaymentPageUrl, language),
         };
     }
 
@@ -173,19 +173,18 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         string checkoutUrl =
             checkout.Url ?? throw new PaymentException("Checkout URL is missing in the response from Nets");
 
-        PaymentDetails paymentDetails =
-            new()
-            {
-                PaymentId = paymentId,
-                RedirectUrl = AddLanguageQueryParam(checkoutUrl, language),
-                Payer = NetsMapper.MapPayerDetails(payment.Consumer),
-                PaymentType = paymentPaymentDetails?.PaymentType,
-                PaymentMethod = paymentPaymentDetails?.PaymentMethod,
-                CreatedDate = payment.Created,
-                ChargedDate = payment.Charges?.FirstOrDefault()?.Created,
-                InvoiceDetails = NetsMapper.MapInvoiceDetails(paymentPaymentDetails?.InvoiceDetails),
-                CardDetails = NetsMapper.MapCardDetails(paymentPaymentDetails?.CardDetails),
-            };
+        PaymentDetails paymentDetails = new()
+        {
+            PaymentId = paymentId,
+            RedirectUrl = AddLanguageQueryParam(checkoutUrl, language),
+            Payer = NetsMapper.MapPayerDetails(payment.Consumer),
+            PaymentType = paymentPaymentDetails?.PaymentType,
+            PaymentMethod = paymentPaymentDetails?.PaymentMethod,
+            CreatedDate = payment.Created,
+            ChargedDate = payment.Charges?.FirstOrDefault()?.Created,
+            InvoiceDetails = NetsMapper.MapInvoiceDetails(paymentPaymentDetails?.InvoiceDetails),
+            CardDetails = NetsMapper.MapCardDetails(paymentPaymentDetails?.CardDetails),
+        };
 
         return (status, paymentDetails);
     }
@@ -196,7 +195,7 @@ internal class NetsPaymentProcessor : IPaymentProcessor
         {
             "nb" => "nb-NO",
             "nn" => "nb-NO", //No support for Nynorsk. Using Bokmål.
-            _ => null
+            _ => null,
         };
 
         if (string.IsNullOrEmpty(languageCode))

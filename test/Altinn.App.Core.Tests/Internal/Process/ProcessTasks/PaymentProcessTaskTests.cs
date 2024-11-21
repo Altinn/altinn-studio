@@ -198,7 +198,7 @@ public class PaymentProcessTaskTests
                 .Returns(
                     new AltinnTaskExtension
                     {
-                        PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "" }
+                        PaymentConfiguration = new AltinnPaymentConfiguration { PaymentDataType = "" },
                     }
                 );
 
@@ -262,7 +262,7 @@ public class PaymentProcessTaskTests
                 AppId = "ttd/test",
                 Process = new ProcessState
                 {
-                    CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1", },
+                    CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1" },
                 },
             };
         }
@@ -272,7 +272,7 @@ public class PaymentProcessTaskTests
             return new AltinnPaymentConfiguration
             {
                 PaymentDataType = "paymentDataType",
-                PaymentReceiptPdfDataType = "paymentReceiptPdfDataType"
+                PaymentReceiptPdfDataType = "paymentReceiptPdfDataType",
             };
         }
     }

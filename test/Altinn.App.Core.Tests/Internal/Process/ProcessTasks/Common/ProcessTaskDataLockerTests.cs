@@ -30,7 +30,7 @@ public class ProcessTaskDataLockerTests
         instance.Data =
         [
             new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType1" },
-            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" }
+            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" },
         ];
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
@@ -38,8 +38,8 @@ public class ProcessTaskDataLockerTests
             DataTypes =
             [
                 new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType2", TaskId = taskId }
-            ]
+                new DataType { Id = "dataType2", TaskId = taskId },
+            ],
         };
 
         _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -64,7 +64,7 @@ public class ProcessTaskDataLockerTests
         instance.Data =
         [
             new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType1" },
-            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" }
+            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" },
         ];
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
@@ -72,8 +72,8 @@ public class ProcessTaskDataLockerTests
             DataTypes =
             [
                 new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType2", TaskId = taskId }
-            ]
+                new DataType { Id = "dataType2", TaskId = taskId },
+            ],
         };
 
         _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -98,7 +98,7 @@ public class ProcessTaskDataLockerTests
         instance.Data =
         [
             new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType1" },
-            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" }
+            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" },
         ];
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
@@ -106,8 +106,8 @@ public class ProcessTaskDataLockerTests
             DataTypes =
             [
                 new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType3", TaskId = "task2" }
-            ]
+                new DataType { Id = "dataType3", TaskId = "task2" },
+            ],
         };
 
         _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -129,7 +129,7 @@ public class ProcessTaskDataLockerTests
         instance.Data =
         [
             new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType1" },
-            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" }
+            new DataElement { Id = Guid.NewGuid().ToString(), DataType = "dataType2" },
         ];
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
@@ -137,8 +137,8 @@ public class ProcessTaskDataLockerTests
             DataTypes =
             [
                 new DataType { Id = "dataType1", TaskId = taskId },
-                new DataType { Id = "dataType3", TaskId = "task2" }
-            ]
+                new DataType { Id = "dataType3", TaskId = "task2" },
+            ],
         };
 
         _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -158,7 +158,7 @@ public class ProcessTaskDataLockerTests
             AppId = "ttd/test",
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo { AltinnTaskType = "datatask", ElementId = "datatask", },
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "datatask", ElementId = "datatask" },
             },
         };
     }

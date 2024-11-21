@@ -64,7 +64,7 @@ public class EformidlingStatusCheckEventHandlerTests
             Type = "app.eformidling.reminder.checkinstancestatus",
             Subject = "/party/510002",
             Time = DateTime.Parse("2022-10-13T09:33:46.6330634Z"),
-            AlternativeSubject = "/person/17858296439"
+            AlternativeSubject = "/person/17858296439",
         };
     }
 
@@ -99,7 +99,7 @@ public class EformidlingStatusCheckEventHandlerTests
         var maskinportenSettingsMock = new MaskinportenSettings()
         {
             Environment = "ver2",
-            ClientId = Guid.NewGuid().ToString()
+            ClientId = Guid.NewGuid().ToString(),
         };
 
         var x509CertificateMock = new Mock<X509Certificate2>().Object;
@@ -115,7 +115,7 @@ public class EformidlingStatusCheckEventHandlerTests
             new PlatformSettings()
             {
                 ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-                SubscriptionKey = "key"
+                SubscriptionKey = "key",
             }
         );
         var generalSettingsMock = new Mock<GeneralSettings>();
@@ -150,8 +150,10 @@ public class EformidlingStatusCheckEventHandlerTests
 
     private static Statuses GetStatues(bool delivered)
     {
-        Statuses statuses =
-            new() { Content = new List<Content> { new() { Status = delivered ? "LEVERT" : "OPPRETTET" } } };
+        Statuses statuses = new()
+        {
+            Content = new List<Content> { new() { Status = delivered ? "LEVERT" : "OPPRETTET" } },
+        };
 
         return statuses;
     }

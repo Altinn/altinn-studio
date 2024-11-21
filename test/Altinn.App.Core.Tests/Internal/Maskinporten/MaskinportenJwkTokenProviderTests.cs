@@ -36,8 +36,12 @@ public class MaskinportenJwkTokenProviderTests
         var secretsClient = new Mock<ISecretsClient>();
         secretsClient.Setup(s => s.GetSecretAsync(It.IsAny<string>())).ReturnsAsync("myBase64EncodedJwk");
 
-        MaskinportenJwkTokenProvider maskinportenJwkTokenProvider =
-            new(maskinportenService.Object, maskinportenSettings, secretsClient.Object, "nameOfMySecretInKeyVault");
+        MaskinportenJwkTokenProvider maskinportenJwkTokenProvider = new(
+            maskinportenService.Object,
+            maskinportenSettings,
+            secretsClient.Object,
+            "nameOfMySecretInKeyVault"
+        );
 
         string scopes = "altinn:serviceowner/instances.read";
         string token = await maskinportenJwkTokenProvider.GetToken(scopes);
@@ -97,8 +101,12 @@ public class MaskinportenJwkTokenProviderTests
         var secretsClient = new Mock<ISecretsClient>();
         secretsClient.Setup(s => s.GetSecretAsync(It.IsAny<string>())).ReturnsAsync("myBase64EncodedJwk");
 
-        MaskinportenJwkTokenProvider maskinportenJwkTokenProvider =
-            new(maskinportenService.Object, maskinportenSettings, secretsClient.Object, "nameOfMySecretInKeyVault");
+        MaskinportenJwkTokenProvider maskinportenJwkTokenProvider = new(
+            maskinportenService.Object,
+            maskinportenSettings,
+            secretsClient.Object,
+            "nameOfMySecretInKeyVault"
+        );
 
         string scopes = "altinn:serviceowner/instances.read";
         string token = await maskinportenJwkTokenProvider.GetAltinnExchangedToken(scopes);

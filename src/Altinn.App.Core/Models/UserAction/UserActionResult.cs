@@ -20,7 +20,7 @@ public enum ResultType
     /// <summary>
     /// The client should redirect the user to a new url
     /// </summary>
-    Redirect
+    Redirect,
 }
 
 /// <summary>
@@ -77,7 +77,7 @@ public sealed class UserActionResult
         {
             Success = true,
             ResultType = ResultType.Success,
-            ClientActions = clientActions
+            ClientActions = clientActions,
         };
     }
 
@@ -96,7 +96,7 @@ public sealed class UserActionResult
             ResultType = ResultType.Failure,
             ClientActions = clientActions,
             Error = error,
-            ErrorType = errorType
+            ErrorType = errorType,
         };
     }
 
@@ -111,7 +111,7 @@ public sealed class UserActionResult
         {
             Success = true,
             ResultType = ResultType.Redirect,
-            RedirectUrl = redirectUrl
+            RedirectUrl = redirectUrl,
         };
     }
 

@@ -184,18 +184,17 @@ public class ValidateController : ControllerBase
         // Should this be a BadRequest instead?
         if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
         {
-            ValidationIssueWithSource message =
-                new()
-                {
-                    Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    Severity = ValidationIssueSeverity.Warning,
-                    DataElementId = element.Id,
-                    Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
-                    CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    CustomTextParams = new List<string>() { dataType.TaskId, taskId },
-                    Source = GetType().FullName ?? String.Empty,
-                    NoIncrementalUpdates = true
-                };
+            ValidationIssueWithSource message = new()
+            {
+                Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
+                Severity = ValidationIssueSeverity.Warning,
+                DataElementId = element.Id,
+                Description = $"Data element for task {dataType.TaskId} validated while currentTask is {taskId}",
+                CustomTextKey = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
+                CustomTextParams = new List<string>() { dataType.TaskId, taskId },
+                Source = GetType().FullName ?? String.Empty,
+                NoIncrementalUpdates = true,
+            };
             messages.Add(message);
         }
 

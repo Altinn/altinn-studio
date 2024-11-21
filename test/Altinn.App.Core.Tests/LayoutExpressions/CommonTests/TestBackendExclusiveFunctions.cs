@@ -14,8 +14,11 @@ public class TestBackendExclusiveFunctions
 {
     private readonly ITestOutputHelper _output;
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     public TestBackendExclusiveFunctions(ITestOutputHelper output)
     {
@@ -61,8 +64,8 @@ public class TestBackendExclusiveFunctions
         _output.WriteLine($"{test.Filename} in {test.Folder}");
         _output.WriteLine(test.RawJson);
         _output.WriteLine(test.FullPath);
-        var dataType = new DataType() { Id = "default", };
-        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType], };
+        var dataType = new DataType() { Id = "default" };
+        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
         var layout = new LayoutSetComponent(test.Layouts!.Values.ToList(), "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(

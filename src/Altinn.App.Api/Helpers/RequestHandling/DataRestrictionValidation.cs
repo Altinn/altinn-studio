@@ -32,7 +32,7 @@ public static class DataRestrictionValidation
                 {
                     Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} The request must include a Content-Disposition header"
+                    Description = $"{errorBaseMessage} The request must include a Content-Disposition header",
                 }
             );
 
@@ -47,7 +47,7 @@ public static class DataRestrictionValidation
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Binary attachment exceeds limit of {maxSize}"
+                    Description = $"{errorBaseMessage} Binary attachment exceeds limit of {maxSize}",
                 }
             );
 
@@ -63,7 +63,7 @@ public static class DataRestrictionValidation
                 {
                     Code = ValidationIssueCodes.DataElementCodes.MissingFileName,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} The Content-Disposition header must contain a filename"
+                    Description = $"{errorBaseMessage} The Content-Disposition header must contain a filename",
                 }
             );
 
@@ -80,7 +80,7 @@ public static class DataRestrictionValidation
                     Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
                     Severity = ValidationIssueSeverity.Error,
                     Description =
-                        $"{errorBaseMessage} Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'."
+                        $"{errorBaseMessage} Invalid format for filename: {filename}. Filename is expected to end with '.{{filetype}}'.",
                 }
             );
 
@@ -102,7 +102,7 @@ public static class DataRestrictionValidation
                 {
                     Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"{errorBaseMessage} Content-Type header must be included in request."
+                    Description = $"{errorBaseMessage} Content-Type header must be included in request.",
                 }
             );
 
@@ -118,7 +118,7 @@ public static class DataRestrictionValidation
                     Code = ValidationIssueCodes.DataElementCodes.InvalidFileNameFormat,
                     Severity = ValidationIssueSeverity.Error,
                     Description =
-                        $"{errorBaseMessage} Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file."
+                        $"{errorBaseMessage} Content type header {contentType} does not match mime type {mimeType} for uploaded file. Please fix header or upload another file.",
                 }
             );
 
@@ -137,7 +137,7 @@ public static class DataRestrictionValidation
                     Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
                     Severity = ValidationIssueSeverity.Error,
                     Description =
-                        $"{errorBaseMessage} Invalid content type: {mimeType}. Please try another file. Permitted content types include: {string.Join(", ", dataType.AllowedContentTypes)}"
+                        $"{errorBaseMessage} Invalid content type: {mimeType}. Please try another file. Permitted content types include: {string.Join(", ", dataType.AllowedContentTypes)}",
                 }
             );
 

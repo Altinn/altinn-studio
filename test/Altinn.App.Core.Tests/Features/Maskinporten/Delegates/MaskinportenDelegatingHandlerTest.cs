@@ -19,7 +19,7 @@ public class MaskinportenDelegatingHandlerTest
                 TokenType = "Bearer",
                 Scope = "-",
                 AccessToken = "jwt-content-placeholder",
-                ExpiresIn = -1
+                ExpiresIn = -1,
             }
         );
         var httpClient = new HttpClient(handler);
@@ -46,7 +46,7 @@ public class MaskinportenDelegatingHandlerTest
                 TokenType = "MAC",
                 Scope = "-",
                 AccessToken = "jwt-content-placeholder",
-                ExpiresIn = -1
+                ExpiresIn = -1,
             }
         );
         var httpClient = new HttpClient(handler);

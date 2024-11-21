@@ -15,8 +15,10 @@ namespace Altinn.App.Core.Infrastructure.Clients.Pdf;
 /// </summary>
 public class PdfGeneratorClient : IPdfGeneratorClient
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly HttpClient _httpClient;
     private readonly PdfGeneratorSettings _pdfGeneratorSettings;
@@ -59,20 +61,17 @@ public class PdfGeneratorClient : IPdfGeneratorClient
     public async Task<Stream> GeneratePdf(Uri uri, string? footerContent, CancellationToken ct)
     {
         bool hasWaitForSelector = !string.IsNullOrWhiteSpace(_pdfGeneratorSettings.WaitForSelector);
-        PdfGeneratorRequest generatorRequest =
-            new()
+        PdfGeneratorRequest generatorRequest = new()
+        {
+            Url = uri.AbsoluteUri,
+            WaitFor = hasWaitForSelector ? _pdfGeneratorSettings.WaitForSelector : _pdfGeneratorSettings.WaitForTime,
+            Options =
             {
-                Url = uri.AbsoluteUri,
-                WaitFor = hasWaitForSelector
-                    ? _pdfGeneratorSettings.WaitForSelector
-                    : _pdfGeneratorSettings.WaitForTime,
-                Options =
-                {
-                    HeaderTemplate = "<div/>",
-                    FooterTemplate = footerContent ?? "<div/>",
-                    DisplayHeaderFooter = footerContent != null,
-                },
-            };
+                HeaderTemplate = "<div/>",
+                FooterTemplate = footerContent ?? "<div/>",
+                DisplayHeaderFooter = footerContent != null,
+            },
+        };
 
         generatorRequest.Cookies.Add(
             new PdfGeneratorCookieOptions { Value = _userTokenProvider.GetUserToken(), Domain = uri.Host }

@@ -28,29 +28,27 @@ public static class LayoutTestUtils
     private const string ClassRef = "NoClass";
     private const string TaskId = "Task_1";
 
-    private static readonly ApplicationMetadata _applicationMetadata =
-        new(AppId)
-        {
-            DataTypes =
-            [
-                new DataType()
-                {
-                    Id = DataTypeId,
-                    TaskId = TaskId,
-                    AppLogic = new() { ClassRef = ClassRef }
-                }
-            ]
-        };
+    private static readonly ApplicationMetadata _applicationMetadata = new(AppId)
+    {
+        DataTypes =
+        [
+            new DataType()
+            {
+                Id = DataTypeId,
+                TaskId = TaskId,
+                AppLogic = new() { ClassRef = ClassRef },
+            },
+        ],
+    };
 
-    private static readonly Instance _instance =
-        new()
-        {
-            Id = $"{InstanceOwnerPartyId}/{_instanceGuid}",
-            AppId = AppId,
-            Org = Org,
-            InstanceOwner = new() { PartyId = InstanceOwnerPartyId.ToString() },
-            Data = []
-        };
+    private static readonly Instance _instance = new()
+    {
+        Id = $"{InstanceOwnerPartyId}/{_instanceGuid}",
+        AppId = AppId,
+        Org = Org,
+        InstanceOwner = new() { PartyId = InstanceOwnerPartyId.ToString() },
+        Data = [],
+    };
 
     private static readonly DataElement _dataElement = new DataElement()
     {
@@ -81,7 +79,7 @@ public static class LayoutTestUtils
 
             pages.Add(JsonSerializer.Deserialize<PageComponent>(layoutBytes.RemoveBom(), _jsonSerializerOptions)!);
         }
-        var dataType = new DataType() { Id = DataTypeId, };
+        var dataType = new DataType() { Id = DataTypeId };
         var layout = new LayoutSetComponent(pages, "layout", dataType);
         var layoutModel = new LayoutModel([layout], null);
 

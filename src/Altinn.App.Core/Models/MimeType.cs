@@ -94,7 +94,7 @@ public class MimeType
             string s => IsMatch(s, comparisonType, comparer),
             StringValues s => IsMatch(s.ToString(), comparisonType, comparer),
             MimeType m => MimeTypeEquals(m),
-            _ => false
+            _ => false,
         };
     }
 }

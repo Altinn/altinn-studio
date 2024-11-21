@@ -126,7 +126,7 @@ public class DataRestrictionValidationTests
         var dataType = new DataType()
         {
             MaxSize = 1,
-            AllowedContentTypes = new List<string>() { "application/pdf" }
+            AllowedContentTypes = new List<string>() { "application/pdf" },
         };
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
             httpContext.Request,
@@ -151,7 +151,7 @@ public class DataRestrictionValidationTests
         var dataType = new DataType()
         {
             MaxSize = 1,
-            AllowedContentTypes = new List<string>() { "application/pdf" }
+            AllowedContentTypes = new List<string>() { "application/pdf" },
         };
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
             httpContext.Request,
@@ -178,7 +178,7 @@ public class DataRestrictionValidationTests
         var dataType = new DataType()
         {
             MaxSize = 1,
-            AllowedContentTypes = new List<string>() { "application/pdf", "application/json" }
+            AllowedContentTypes = new List<string>() { "application/pdf", "application/json" },
         };
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
             httpContext.Request,
@@ -205,7 +205,7 @@ public class DataRestrictionValidationTests
         var dataType = new DataType()
         {
             MaxSize = 1,
-            AllowedContentTypes = new List<string>() { "application/pdf", "application/json" }
+            AllowedContentTypes = new List<string>() { "application/pdf", "application/json" },
         };
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
             httpContext.Request,
@@ -225,7 +225,7 @@ public class DataRestrictionValidationTests
         var dataType = new DataType()
         {
             MaxSize = 1,
-            AllowedContentTypes = new List<string>() { "application/pdf", "application/octet-stream" }
+            AllowedContentTypes = new List<string>() { "application/pdf", "application/octet-stream" },
         };
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
             httpContext.Request,
@@ -245,7 +245,7 @@ public class DataRestrictionValidationTests
         var dataType = new DataType()
         {
             MaxSize = 1,
-            AllowedContentTypes = new List<string>() { "application/pdf", "application/octet-stream" }
+            AllowedContentTypes = new List<string>() { "application/pdf", "application/octet-stream" },
         };
         (bool valid, List<ValidationIssue> errors) = DataRestrictionValidation.CompliesWithDataRestrictions(
             httpContext.Request,

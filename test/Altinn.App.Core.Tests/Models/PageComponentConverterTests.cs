@@ -10,8 +10,11 @@ namespace Altinn.App.Core.Tests.Models;
 
 public class PageComponentConverterTests
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     [Theory]
     [FileNamesInFolderData("Models/page-component-converter-tests")]

@@ -61,9 +61,9 @@ public class FileScanControllerTests
                 new()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    FileScanResult = Platform.Storage.Interface.Enums.FileScanResult.Infected
-                }
-            }
+                    FileScanResult = Platform.Storage.Interface.Enums.FileScanResult.Infected,
+                },
+            },
         };
 
         var instanceClientMock = new Mock<IInstanceClient>();

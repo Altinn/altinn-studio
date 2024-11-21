@@ -26,26 +26,26 @@ public class TestScenariosData : IEnumerable<object[]>
         new("returns_NotFound_when_GetInstance_returns_null")
         {
             ReceivedInstance = null,
-            ExpectedResult = typeof(NotFoundResult)
+            ExpectedResult = typeof(NotFoundResult),
         },
         new("thows_ValidationException_when_instance_process_is_null")
         {
             ReceivedInstance = new Instance { Process = null },
-            ExpectedExceptionMessage = "Unable to validate instance without a started process."
+            ExpectedExceptionMessage = "Unable to validate instance without a started process.",
         },
         new("thows_ValidationException_when_Instance_Process_CurrentTask_is_null")
         {
             ReceivedInstance = new Instance { Process = new ProcessState { CurrentTask = null } },
-            ExpectedExceptionMessage = "Unable to validate instance without a started process."
+            ExpectedExceptionMessage = "Unable to validate instance without a started process.",
         },
         new("thows_ValidationException_when_Instance_Data_is_empty")
         {
             ReceivedInstance = new Instance
             {
                 Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
-                Data = new List<DataElement>()
+                Data = new List<DataElement>(),
             },
-            ExpectedExceptionMessage = "Unable to validate data element."
+            ExpectedExceptionMessage = "Unable to validate data element.",
         },
         new("thows_ValidationException_when_Application_DataTypes_is_empty")
         {
@@ -53,10 +53,10 @@ public class TestScenariosData : IEnumerable<object[]>
             ReceivedInstance = new Instance
             {
                 Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "1234" } },
-                Data = new List<DataElement> { new DataElement { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" } }
+                Data = new List<DataElement> { new DataElement { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" } },
             },
             ReceivedApplication = new ApplicationMetadata("ttd/test") { DataTypes = new List<DataType>() },
-            ExpectedExceptionMessage = "Unknown element type."
+            ExpectedExceptionMessage = "Unknown element type.",
         },
         new("adds_ValidationIssue_when_DataType_TaskId_does_not_match_CurrentTask_ElementId")
         {
@@ -74,16 +74,16 @@ public class TestScenariosData : IEnumerable<object[]>
                     new DataElement
                     {
                         Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
-                        DataType = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"
-                    }
-                }
+                        DataType = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
+                    },
+                },
             },
             ReceivedApplication = new ApplicationMetadata("ttd/test")
             {
                 DataTypes = new List<DataType>
                 {
-                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "Task_1" }
-                }
+                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "Task_1" },
+                },
             },
             ReceivedValidationIssues = new List<ValidationIssueWithSource>(),
             ExpectedValidationIssues = new List<ValidationIssueWithSource>
@@ -100,10 +100,10 @@ public class TestScenariosData : IEnumerable<object[]>
                         LanguageConst.Nb
                     ),
                     Source = "source",
-                    NoIncrementalUpdates = true
+                    NoIncrementalUpdates = true,
                 },
             },
-            ExpectedResult = typeof(OkObjectResult)
+            ExpectedResult = typeof(OkObjectResult),
         },
         new("returns_ValidationIssues_from_ValidationService")
         {
@@ -117,23 +117,23 @@ public class TestScenariosData : IEnumerable<object[]>
                 InstanceOwner = new() { PartyId = ValidationControllerValidateDataTests.InstanceOwnerId.ToString() },
                 Process = new ProcessState
                 {
-                    CurrentTask = new ProcessElementInfo { ElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" }
+                    CurrentTask = new ProcessElementInfo { ElementId = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd" },
                 },
                 Data = new List<DataElement>
                 {
                     new DataElement
                     {
                         Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
-                        DataType = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd"
-                    }
-                }
+                        DataType = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd",
+                    },
+                },
             },
             ReceivedApplication = new ApplicationMetadata("ttd/test")
             {
                 DataTypes = new List<DataType>
                 {
-                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "Task_1" }
-                }
+                    new DataType { Id = "0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", TaskId = "Task_1" },
+                },
             },
             ReceivedValidationIssues = new List<ValidationIssueWithSource>
             {
@@ -143,7 +143,7 @@ public class TestScenariosData : IEnumerable<object[]>
                     Description = "dummy",
                     Severity = ValidationIssueSeverity.Fixed,
                     Source = "source",
-                    NoIncrementalUpdates = true
+                    NoIncrementalUpdates = true,
                 },
             },
             ExpectedValidationIssues = new List<ValidationIssueWithSource>
@@ -154,11 +154,11 @@ public class TestScenariosData : IEnumerable<object[]>
                     Description = "dummy",
                     Severity = ValidationIssueSeverity.Fixed,
                     Source = "source",
-                    NoIncrementalUpdates = true
-                }
+                    NoIncrementalUpdates = true,
+                },
             },
-            ExpectedResult = typeof(OkObjectResult)
-        }
+            ExpectedResult = typeof(OkObjectResult),
+        },
     };
 
     private static readonly Guid _instanceId = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354ef", "D");

@@ -358,10 +358,9 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         var bytes = change switch
         {
             BinaryDataChange bc => bc.CurrentBinaryData,
-            FormDataChange fdc
-                => fdc.CurrentBinaryData
-                    ?? throw new InvalidOperationException("FormDataChange must set CurrentBinaryData before saving"),
-            _ => throw new InvalidOperationException("Change must be of type BinaryChange or FormDataChange")
+            FormDataChange fdc => fdc.CurrentBinaryData
+                ?? throw new InvalidOperationException("FormDataChange must set CurrentBinaryData before saving"),
+            _ => throw new InvalidOperationException("Change must be of type BinaryChange or FormDataChange"),
         };
         // Use the BinaryData because we serialize before saving.
         var dataElement = await _dataClient.InsertBinaryData(
@@ -601,11 +600,11 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 (
                     FormDataChange { CurrentBinaryData.Span: var currentSpan },
                     FormDataChange { CurrentBinaryData.Span: var previousSpan }
-                )
-                    => currentSpan.SequenceEqual(previousSpan),
-                (BinaryDataChange current, BinaryDataChange previous)
-                    => current.CurrentBinaryData.Span.SequenceEqual(previous.CurrentBinaryData.Span),
-                _ => throw new Exception("Data element type has changed by validators")
+                ) => currentSpan.SequenceEqual(previousSpan),
+                (BinaryDataChange current, BinaryDataChange previous) => current.CurrentBinaryData.Span.SequenceEqual(
+                    previous.CurrentBinaryData.Span
+                ),
+                _ => throw new Exception("Data element type has changed by validators"),
             };
             if (!equal)
             {

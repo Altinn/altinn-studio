@@ -16,8 +16,11 @@ namespace Altinn.App.Core.Tests.Internal.App;
 
 public class AppMetadataTest
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private readonly string _appBasePath = Path.Combine("Internal", "App", "TestData") + Path.DirectorySeparatorChar;
 
@@ -32,42 +35,41 @@ public class AppMetadataTest
         AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
 
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings), null, null, telemetrySink);
-        ApplicationMetadata expected =
-            new("tdd/bestilling")
-            {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes =
-                [
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = new List<string>() { "application/pdf" },
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
-                ],
-                PartyTypesAllowed = new PartyTypesAllowed()
+        ApplicationMetadata expected = new("tdd/bestilling")
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes =
+            [
+                new()
                 {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
+                    Id = "vedlegg",
+                    AllowedContentTypes = new List<string>() { "application/pdf", "image/png", "image/jpeg" },
+                    MinCount = 0,
+                    TaskId = "Task_1",
                 },
-                OnEntry = new OnEntry() { Show = "select-instance" },
-                Features = enabledFrontendFeatures,
-                ExternalApiIds = []
-            };
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = new List<string>() { "application/pdf" },
+                    MinCount = 1,
+                    TaskId = "Task_1",
+                },
+            ],
+            PartyTypesAllowed = new PartyTypesAllowed()
+            {
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            OnEntry = new OnEntry() { Show = "select-instance" },
+            Features = enabledFrontendFeatures,
+            ExternalApiIds = [],
+        };
         var actual = await appMetadata.GetApplicationMetadata();
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
@@ -84,55 +86,54 @@ public class AppMetadataTest
 
         AppSettings appSettings = GetAppSettings("AppMetadata", "eformid.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        ApplicationMetadata expected =
-            new("tdd/bestilling")
+        ApplicationMetadata expected = new("tdd/bestilling")
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes =
+            [
+                new()
+                {
+                    Id = "vedlegg",
+                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
+                    MinCount = 0,
+                    TaskId = "Task_1",
+                },
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = ["application/pdf"],
+                    MinCount = 1,
+                    TaskId = "Task_1",
+                },
+            ],
+            PartyTypesAllowed = new PartyTypesAllowed()
             {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes =
-                [
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = ["application/pdf"],
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
-                ],
-                PartyTypesAllowed = new PartyTypesAllowed()
-                {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
-                },
-                EFormidling = new EFormidlingContract()
-                {
-                    ServiceId = "DPF",
-                    DPFShipmentType = "altinn3.skjema",
-                    Receiver = "910123456",
-                    SendAfterTaskId = "Task_1",
-                    Process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
-                    Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding",
-                    TypeVersion = "2.0",
-                    Type = "arkivmelding",
-                    SecurityLevel = 3,
-                    DataTypes = ["372c7af5-71e1-4e99-8e05-4716711a8b53",]
-                },
-                OnEntry = new OnEntry() { Show = "select-instance" },
-                Features = enabledFrontendFeatures,
-                ExternalApiIds = []
-            };
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            EFormidling = new EFormidlingContract()
+            {
+                ServiceId = "DPF",
+                DPFShipmentType = "altinn3.skjema",
+                Receiver = "910123456",
+                SendAfterTaskId = "Task_1",
+                Process = "urn:no:difi:profile:arkivmelding:administrasjon:ver1.0",
+                Standard = "urn:no:difi:arkivmelding:xsd::arkivmelding",
+                TypeVersion = "2.0",
+                Type = "arkivmelding",
+                SecurityLevel = 3,
+                DataTypes = ["372c7af5-71e1-4e99-8e05-4716711a8b53"],
+            },
+            OnEntry = new OnEntry() { Show = "select-instance" },
+            Features = enabledFrontendFeatures,
+            ExternalApiIds = [],
+        };
         var actual = await appMetadata.GetApplicationMetadata();
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
@@ -147,42 +148,41 @@ public class AppMetadataTest
             .Setup(af => af.GetFrontendFeatures())
             .ReturnsAsync(new Dictionary<string, bool>() { { "footer", true } });
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings), null, appFeaturesMock.Object);
-        ApplicationMetadata expected =
-            new("tdd/bestilling")
-            {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes =
-                [
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = ["application/pdf"],
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
-                ],
-                PartyTypesAllowed = new PartyTypesAllowed()
+        ApplicationMetadata expected = new("tdd/bestilling")
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes =
+            [
+                new()
                 {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
+                    Id = "vedlegg",
+                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
+                    MinCount = 0,
+                    TaskId = "Task_1",
                 },
-                OnEntry = new OnEntry() { Show = "select-instance" },
-                Features = new Dictionary<string, bool>() { { "footer", true } },
-                ExternalApiIds = []
-            };
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = ["application/pdf"],
+                    MinCount = 1,
+                    TaskId = "Task_1",
+                },
+            ],
+            PartyTypesAllowed = new PartyTypesAllowed()
+            {
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            OnEntry = new OnEntry() { Show = "select-instance" },
+            Features = new Dictionary<string, bool>() { { "footer", true } },
+            ExternalApiIds = [],
+        };
         var actual = await appMetadata.GetApplicationMetadata();
         var actual2 = await appMetadata.GetApplicationMetadata();
         appFeaturesMock.Verify(af => af.GetFrontendFeatures());
@@ -204,52 +204,51 @@ public class AppMetadataTest
             "onentry-legacy-selectoptions.applicationmetadata.json"
         );
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        ApplicationMetadata expected =
-            new("tdd/bestilling")
+        ApplicationMetadata expected = new("tdd/bestilling")
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes =
+            [
+                new()
+                {
+                    Id = "vedlegg",
+                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
+                    MinCount = 0,
+                    TaskId = "Task_1",
+                },
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = ["application/pdf"],
+                    MinCount = 1,
+                    TaskId = "Task_1",
+                },
+            ],
+            PartyTypesAllowed = new PartyTypesAllowed()
             {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes =
-                [
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = ["application/pdf"],
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
-                ],
-                PartyTypesAllowed = new PartyTypesAllowed()
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            OnEntry = new OnEntry()
+            {
+                Show = "select-instance",
+                InstanceSelection = new()
                 {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
+                    SortDirection = "desc",
+                    RowsPerPageOptions = [5, 3, 10, 25, 50, 100],
+                    DefaultRowsPerPage = 1,
+                    DefaultSelectedOption = 1,
                 },
-                OnEntry = new OnEntry()
-                {
-                    Show = "select-instance",
-                    InstanceSelection = new()
-                    {
-                        SortDirection = "desc",
-                        RowsPerPageOptions = [5, 3, 10, 25, 50, 100],
-                        DefaultRowsPerPage = 1,
-                        DefaultSelectedOption = 1
-                    }
-                },
-                Features = enabledFrontendFeatures,
-                ExternalApiIds = []
-            };
+            },
+            Features = enabledFrontendFeatures,
+            ExternalApiIds = [],
+        };
         var actual = await appMetadata.GetApplicationMetadata();
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
@@ -279,22 +278,22 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1"
+                    TaskId = "Task_1",
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1"
-                }
+                    TaskId = "Task_1",
+                },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
                 Organisation = true,
                 Person = true,
-                SubUnit = true
+                SubUnit = true,
             },
             OnEntry = new OnEntry()
             {
@@ -303,11 +302,11 @@ public class AppMetadataTest
                 {
                     SortDirection = "desc",
                     RowsPerPageOptions = [5, 3, 10, 25, 50, 100],
-                    DefaultSelectedOption = 2
-                }
+                    DefaultSelectedOption = 2,
+                },
             },
             Features = enabledFrontendFeatures,
-            ExternalApiIds = []
+            ExternalApiIds = [],
         };
         var actual = await appMetadata.GetApplicationMetadata();
         actual.Should().NotBeNull();
@@ -341,22 +340,22 @@ public class AppMetadataTest
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1"
+                    TaskId = "Task_1",
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1"
-                }
+                    TaskId = "Task_1",
+                },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
                 Organisation = true,
                 Person = true,
-                SubUnit = true
+                SubUnit = true,
             },
             OnEntry = new OnEntry()
             {
@@ -366,11 +365,11 @@ public class AppMetadataTest
                     SortDirection = "desc",
                     RowsPerPageOptions = [5, 3, 10, 25, 50, 100],
                     DefaultRowsPerPage = 1,
-                    DefaultSelectedOption = 3
-                }
+                    DefaultSelectedOption = 3,
+                },
             },
             Features = enabledFrontendFeatures,
-            ExternalApiIds = []
+            ExternalApiIds = [],
         };
         var actual = await appMetadata.GetApplicationMetadata();
         actual.Should().NotBeNull();
@@ -387,58 +386,57 @@ public class AppMetadataTest
 
         AppSettings appSettings = GetAppSettings("AppMetadata", "logo-org-source.applicationmetadata.json");
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        ApplicationMetadata expected =
-            new("tdd/bestilling")
+        ApplicationMetadata expected = new("tdd/bestilling")
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes =
+            [
+                new()
+                {
+                    Id = "vedlegg",
+                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
+                    MinCount = 0,
+                    TaskId = "Task_1",
+                },
+                new()
+                {
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = ["application/pdf"],
+                    MinCount = 1,
+                    TaskId = "Task_1",
+                },
+            ],
+            PartyTypesAllowed = new PartyTypesAllowed()
             {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes =
-                [
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = ["application/pdf"],
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
-                ],
-                PartyTypesAllowed = new PartyTypesAllowed()
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            OnEntry = new OnEntry()
+            {
+                Show = "select-instance",
+                InstanceSelection = new()
                 {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
+                    SortDirection = "desc",
+                    RowsPerPageOptions = [5, 3, 10, 25, 50, 100],
+                    DefaultRowsPerPage = 1,
+                    DefaultSelectedOption = 3,
                 },
-                OnEntry = new OnEntry()
-                {
-                    Show = "select-instance",
-                    InstanceSelection = new()
-                    {
-                        SortDirection = "desc",
-                        RowsPerPageOptions = [5, 3, 10, 25, 50, 100],
-                        DefaultRowsPerPage = 1,
-                        DefaultSelectedOption = 3
-                    }
-                },
-                Logo = new Logo
-                {
-                    Source = "org",
-                    DisplayAppOwnerNameInHeader = true,
-                    Size = "medium"
-                },
-                Features = enabledFrontendFeatures,
-                ExternalApiIds = []
-            };
+            },
+            Logo = new Logo
+            {
+                Source = "org",
+                DisplayAppOwnerNameInHeader = true,
+                Size = "medium",
+            },
+            Features = enabledFrontendFeatures,
+            ExternalApiIds = [],
+        };
         var actual = await appMetadata.GetApplicationMetadata();
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
@@ -562,7 +560,7 @@ public class AppMetadataTest
             ProcessFolder = string.Empty,
             ApplicationMetadataFileName = appMetadataFilename,
             ProcessFileName = bpmnFilename,
-            ApplicationXACMLPolicyFileName = policyFilename
+            ApplicationXACMLPolicyFileName = policyFilename,
         };
         return appSettings;
     }

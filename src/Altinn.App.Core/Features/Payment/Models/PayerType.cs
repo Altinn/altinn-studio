@@ -16,5 +16,5 @@ public enum PayerType
     /// <summary>
     /// The payer is a company.
     /// </summary>
-    Company
+    Company,
 }

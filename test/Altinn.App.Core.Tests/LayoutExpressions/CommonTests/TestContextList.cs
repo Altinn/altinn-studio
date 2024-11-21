@@ -13,8 +13,11 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestContextList
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+    };
 
     private readonly ITestOutputHelper _output;
 
@@ -68,7 +71,7 @@ public class TestContextList
 
         var instance = new Instance() { Data = [] };
         var dataType = new DataType() { Id = "default" };
-        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType], };
+        var appMetadata = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
         var layout = new LayoutSetComponent(test.Layouts.Values.ToList(), "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
         var state = new LayoutEvaluatorState(

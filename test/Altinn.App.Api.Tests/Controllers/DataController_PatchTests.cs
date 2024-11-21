@@ -32,14 +32,13 @@ namespace Altinn.App.Api.Tests.Controllers;
 
 public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicationFactory<Program>>
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     // Define constants
     private const string Org = "tdd";
@@ -95,7 +94,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         string token = PrincipalUtil.GetToken(1337, null);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var serializedPatch = JsonSerializer.Serialize(
-            new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators, },
+            new DataPatchRequest() { Patch = patch, IgnoredValidators = ignoredValidators },
             _jsonSerializerOptions
         );
         OutputHelper.WriteLine(serializedPatch);
@@ -203,7 +202,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                                 AppLogic = new()
                                 {
                                     ClassRef =
-                                        "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema"
+                                        "Altinn.App.Api.Tests.Data.apps.tdd.contributer_restriction.models.Skjema",
                                 },
                             }
                         );
@@ -246,8 +245,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
         );
         var request = new DataPatchRequestMultiple()
         {
-            Patches = new() { new(_dataGuid, patch), new(extraDataGuid, patch2), },
-            IgnoredValidators = []
+            Patches = new() { new(_dataGuid, patch), new(extraDataGuid, patch2) },
+            IgnoredValidators = [],
         };
 
         var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(request, HttpStatusCode.OK);
@@ -755,7 +754,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                         }
                     );
                     model.Melding.SimpleList.SimpleKeyvalues.Add(
-                        new SimpleKeyvalues() { Key = "KeyFromServerWithoutRowId", IntValue = 3212, }
+                        new SimpleKeyvalues() { Key = "KeyFromServerWithoutRowId", IntValue = 3212 }
                     );
                     return Task.CompletedTask;
                 }
@@ -797,26 +796,26 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                     {
                         Key = "KeyFromClient",
                         IntValue = 123,
-                        AltinnRowId = rowIdClient
+                        AltinnRowId = rowIdClient,
                     },
                     new()
                     {
                         Key = "KeyFromClientNoRowId",
                         IntValue = 1234,
-                        AltinnRowId = newModel.Melding.SimpleList.SimpleKeyvalues![1].AltinnRowId
+                        AltinnRowId = newModel.Melding.SimpleList.SimpleKeyvalues![1].AltinnRowId,
                     },
                     new()
                     {
                         Key = "KeyFromServer",
                         IntValue = 321,
-                        AltinnRowId = rowIdServer
+                        AltinnRowId = rowIdServer,
                     },
                     new()
                     {
                         Key = "KeyFromServerWithoutRowId",
                         IntValue = 3212,
-                        AltinnRowId = newModel.Melding.SimpleList.SimpleKeyvalues![3].AltinnRowId
-                    }
+                        AltinnRowId = newModel.Melding.SimpleList.SimpleKeyvalues![3].AltinnRowId,
+                    },
                 }
             );
 
@@ -979,7 +978,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             .ReturnsAsync(
                 new List<ValidationIssue>
                 {
-                    new() { Severity = ValidationIssueSeverity.Error, Description = "Ignored validator", }
+                    new() { Severity = ValidationIssueSeverity.Error, Description = "Ignored validator" },
                 }
             )
             .Verifiable(Times.Once);
@@ -1049,7 +1048,7 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
             [
                 // new DataPatchRequestMultiple.PatchListItem(_dataGuid,
                 //     new JsonPatch(PatchOperation.Replace(path, JsonNode.Parse("\"Ola Olsen\""))))
-            ]
+            ],
         };
 
         var (_, _, parsedResponse) = await CallPatchMultipleApi<DataPatchResponseMultiple>(patch, HttpStatusCode.OK);
@@ -1093,8 +1092,8 @@ public class DataControllerPatchTests : ApiTestBase, IClassFixture<WebApplicatio
                 new DataPatchRequestMultiple.PatchListItem(
                     _dataGuid,
                     new JsonPatch(PatchOperation.Test(path, JsonNode.Parse("null")))
-                )
-            ]
+                ),
+            ],
         };
 
         var url = $"/{Org}/{App}/instances/{_instanceId}/data?language=nb";

@@ -17,14 +17,14 @@ public class SimpleInstanceMapperTests
             {
                 Id = "1",
                 LastChanged = DateTime.Today,
-                LastChangedBy = "1"
+                LastChangedBy = "1",
             },
             new Instance
             {
                 Id = "2",
                 LastChanged = DateTime.Today,
-                LastChangedBy = "two"
-            }
+                LastChangedBy = "two",
+            },
         };
         var userDictionary = new Dictionary<string, string> { { "1", "User1" }, { "two", "User2" } };
         var expected = new List<SimpleInstance>
@@ -33,14 +33,14 @@ public class SimpleInstanceMapperTests
             {
                 Id = "1",
                 LastChanged = DateTime.Today,
-                LastChangedBy = "User1"
+                LastChangedBy = "User1",
             },
             new SimpleInstance
             {
                 Id = "2",
                 LastChanged = DateTime.Today,
-                LastChangedBy = "User2"
-            }
+                LastChangedBy = "User2",
+            },
         };
 
         // Act
@@ -61,9 +61,9 @@ public class SimpleInstanceMapperTests
             {
                 Id = "1",
                 LastChanged = DateTime.Today,
-                LastChangedBy = "unknown-1"
+                LastChangedBy = "unknown-1",
             },
-            new Instance { Id = "2", LastChanged = DateTime.Today }
+            new Instance { Id = "2", LastChanged = DateTime.Today },
         };
         var userDictionary = new Dictionary<string, string> { { "1", "User1" }, { "two", "User2" } };
         var expected = new List<SimpleInstance>
@@ -72,14 +72,14 @@ public class SimpleInstanceMapperTests
             {
                 Id = "1",
                 LastChanged = DateTime.Today,
-                LastChangedBy = ""
+                LastChangedBy = "",
             },
             new SimpleInstance
             {
                 Id = "2",
                 LastChanged = DateTime.Today,
-                LastChangedBy = ""
-            }
+                LastChangedBy = "",
+            },
         };
 
         // Act

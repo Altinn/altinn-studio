@@ -76,7 +76,7 @@ public abstract class GenericFormDataValidator<TModel> : IFormDataValidator
                 Code = code ?? textKey,
                 CustomTextKey = textKey,
                 CustomTextParams = customTextParams,
-                Severity = severity
+                Severity = severity,
             }
         );
     }

@@ -21,8 +21,10 @@ namespace Altinn.App.Core.Tests.Features.Action;
 
 public class SigningUserActionTests
 {
-    private readonly ApplicationMetadata _defaultAppMetadata =
-        new("org/id") { DataTypes = [new DataType { Id = "model" }] };
+    private readonly ApplicationMetadata _defaultAppMetadata = new("org/id")
+    {
+        DataTypes = [new DataType { Id = "model" }],
+    };
 
     [Fact]
     public async Task HandleAction_returns_ok_if_user_is_valid()
@@ -31,7 +33,7 @@ public class SigningUserActionTests
         UserProfile userProfile = new UserProfile()
         {
             UserId = 1337,
-            Party = new Party() { SSN = "12345678901" }
+            Party = new Party() { SSN = "12345678901" },
         };
         (var userAction, var signClientMock) = CreateSigningUserAction(
             applicationMetadataToReturn: _defaultAppMetadata,
@@ -40,12 +42,12 @@ public class SigningUserActionTests
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new() { PartyId = "5000", },
+            InstanceOwner = new() { PartyId = "5000" },
             Process = new() { CurrentTask = new() { ElementId = "Task2" } },
             Data = new()
             {
-                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
-            }
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
+            },
         };
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -75,12 +77,12 @@ public class SigningUserActionTests
         UserProfile userProfile = new UserProfile()
         {
             UserId = 1337,
-            Party = new Party() { SSN = "12345678901" }
+            Party = new Party() { SSN = "12345678901" },
         };
         var appMetadata = new ApplicationMetadata("org/id")
         {
             // Optional because MinCount == 0
-            DataTypes = [new DataType { Id = "model", MinCount = 0 }]
+            DataTypes = [new DataType { Id = "model", MinCount = 0 }],
         };
         (var userAction, var signClientMock) = CreateSigningUserAction(
             applicationMetadataToReturn: appMetadata,
@@ -89,12 +91,12 @@ public class SigningUserActionTests
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new() { PartyId = "5000", },
+            InstanceOwner = new() { PartyId = "5000" },
             Process = new() { CurrentTask = new() { ElementId = "Task2" } },
             Data = new()
             {
-                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
-            }
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
+            },
         };
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -124,18 +126,18 @@ public class SigningUserActionTests
         UserProfile userProfile = new UserProfile()
         {
             UserId = 1337,
-            Party = new Party() { SSN = "12345678901" }
+            Party = new Party() { SSN = "12345678901" },
         };
         (var userAction, var signClientMock) = CreateSigningUserAction(_defaultAppMetadata, userProfile);
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new() { PartyId = "5000", },
+            InstanceOwner = new() { PartyId = "5000" },
             Process = new() { CurrentTask = new() { ElementId = "Task2" } },
             Data = new()
             {
-                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
-            }
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
+            },
         };
         var userActionContext = new UserActionContext(instance, null);
 
@@ -158,7 +160,7 @@ public class SigningUserActionTests
         UserProfile userProfile = new UserProfile()
         {
             UserId = 1337,
-            Party = new Party() { SSN = "12345678901" }
+            Party = new Party() { SSN = "12345678901" },
         };
         var appMetadata = new ApplicationMetadata("org/id")
         {
@@ -166,8 +168,8 @@ public class SigningUserActionTests
             DataTypes =
             [
                 new DataType { Id = "not_match", MinCount = 0 },
-                new DataType { Id = "not_match_2", MinCount = 1 }
-            ]
+                new DataType { Id = "not_match_2", MinCount = 1 },
+            ],
         };
         (var userAction, var signClientMock) = CreateSigningUserAction(
             applicationMetadataToReturn: appMetadata,
@@ -176,12 +178,12 @@ public class SigningUserActionTests
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new() { PartyId = "5000", },
+            InstanceOwner = new() { PartyId = "5000" },
             Process = new() { CurrentTask = new() { ElementId = "Task2" } },
             Data = new()
             {
-                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
-            }
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
+            },
         };
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -199,7 +201,7 @@ public class SigningUserActionTests
         UserProfile userProfile = new UserProfile()
         {
             UserId = 1337,
-            Party = new Party() { SSN = "12345678901" }
+            Party = new Party() { SSN = "12345678901" },
         };
         (var userAction, var signClientMock) = CreateSigningUserAction(
             applicationMetadataToReturn: _defaultAppMetadata,
@@ -209,12 +211,12 @@ public class SigningUserActionTests
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new() { PartyId = "5000", },
+            InstanceOwner = new() { PartyId = "5000" },
             Process = new() { CurrentTask = new() { ElementId = "Task2" } },
             Data = new()
             {
-                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
-            }
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
+            },
         };
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -232,7 +234,7 @@ public class SigningUserActionTests
         UserProfile userProfile = new UserProfile()
         {
             UserId = 1337,
-            Party = new Party() { SSN = "12345678901" }
+            Party = new Party() { SSN = "12345678901" },
         };
 
         var appMetadata = new ApplicationMetadata("org/id") { DataTypes = [] };
@@ -244,12 +246,12 @@ public class SigningUserActionTests
         var instance = new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new() { PartyId = "5000", },
+            InstanceOwner = new() { PartyId = "5000" },
             Process = new() { CurrentTask = new() { ElementId = "Task2" } },
             Data = new()
             {
-                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }
-            }
+                new() { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" },
+            },
         };
         var userActionContext = new UserActionContext(instance, 1337);
 

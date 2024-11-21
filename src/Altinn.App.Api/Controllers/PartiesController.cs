@@ -112,7 +112,7 @@ public class PartiesController : ControllerBase
                         ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(
                             partyList,
                             partyTypesAllowed
-                        )
+                        ),
                     }
                 );
             }
@@ -136,12 +136,12 @@ public class PartiesController : ControllerBase
                 {
                     Valid = false,
                     Message = "The supplied party is not allowed to instantiate the application",
-                    ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
+                    ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed),
                 }
             );
         }
 
-        return Ok(new InstantiationValidationResult { Valid = true, });
+        return Ok(new InstantiationValidationResult { Valid = true });
     }
 
     /// <summary>

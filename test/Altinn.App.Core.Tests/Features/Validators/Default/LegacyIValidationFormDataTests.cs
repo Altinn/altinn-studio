@@ -31,7 +31,7 @@ public class LegacyIValidationFormDataTests
             {
                 Id = "test",
                 TaskId = "Task_1",
-                AppLogic = new() { ClassRef = typeof(TestModel).FullName }
+                AppLogic = new() { ClassRef = typeof(TestModel).FullName },
             },
         },
     };
@@ -50,13 +50,13 @@ public class LegacyIValidationFormDataTests
         );
         _appMetadata.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
 
-        _dataElement = new DataElement() { DataType = "test", Id = _dataId.ToString(), };
+        _dataElement = new DataElement() { DataType = "test", Id = _dataId.ToString() };
         _instance = new Instance()
         {
             AppId = "test",
             Org = "test",
-            InstanceOwner = new InstanceOwner() { PartyId = "1", },
-            Data = [_dataElement]
+            InstanceOwner = new InstanceOwner() { PartyId = "1" },
+            Data = [_dataElement],
         };
         _instanceDataAccessor = new InstanceDataAccessorFake(_instance, _applicationMetadata, "Task_1", "test");
     }

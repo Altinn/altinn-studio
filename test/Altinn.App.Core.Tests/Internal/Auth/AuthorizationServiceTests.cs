@@ -293,7 +293,7 @@ public class AuthorizationServiceTests
             new List<IUserActionAuthorizerProvider>()
             {
                 userActionAuthorizerOneProvider,
-                userActionAuthorizerTwoProvider
+                userActionAuthorizerTwoProvider,
             }
         );
 
@@ -371,7 +371,7 @@ public class AuthorizationServiceTests
             {
                 userActionAuthorizerOneProvider,
                 userActionAuthorizerTwoProvider,
-                userActionAuthorizerThreeProvider
+                userActionAuthorizerThreeProvider,
             }
         );
 
@@ -459,7 +459,7 @@ public class AuthorizationServiceTests
             {
                 userActionAuthorizerOneProvider,
                 userActionAuthorizerTwoProvider,
-                userActionAuthorizerThreeProvider
+                userActionAuthorizerThreeProvider,
             }
         );
 
@@ -511,7 +511,7 @@ public class AuthorizationServiceTests
                     { "read", true },
                     { "write", true },
                     { "brew-coffee", true },
-                    { "drink-coffee", false }
+                    { "drink-coffee", false },
                 }
             );
 
@@ -529,26 +529,26 @@ public class AuthorizationServiceTests
             {
                 Id = "read",
                 ActionType = ActionType.ProcessAction,
-                Authorized = true
+                Authorized = true,
             },
             new UserAction()
             {
                 Id = "write",
                 ActionType = ActionType.ProcessAction,
-                Authorized = true
+                Authorized = true,
             },
             new UserAction()
             {
                 Id = "brew-coffee",
                 ActionType = ActionType.ProcessAction,
-                Authorized = true
+                Authorized = true,
             },
             new UserAction()
             {
                 Id = "drink-coffee",
                 ActionType = ActionType.ServerAction,
-                Authorized = false
-            }
+                Authorized = false,
+            },
         };
 
         // Assert

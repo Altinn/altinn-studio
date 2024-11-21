@@ -196,7 +196,7 @@ public class DataServiceTests
             InstanceOwner = new InstanceOwner { PartyId = "123" },
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo { AltinnTaskType = "dataTask", ElementId = "Task_1", },
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "dataTask", ElementId = "Task_1" },
             },
         };
     }

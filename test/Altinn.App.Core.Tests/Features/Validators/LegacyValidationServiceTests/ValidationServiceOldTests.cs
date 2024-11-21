@@ -29,20 +29,19 @@ public class ValidationServiceOldTests
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly ServiceCollection _serviceCollection = new();
 
-    private readonly ApplicationMetadata _applicationMetadata =
-        new("tdd/test")
+    private readonly ApplicationMetadata _applicationMetadata = new("tdd/test")
+    {
+        DataTypes = new List<DataType>()
         {
-            DataTypes = new List<DataType>()
+            new DataType()
             {
-                new DataType()
-                {
-                    Id = "test",
-                    TaskId = "Task_1",
-                    EnableFileScan = false,
-                    ValidationErrorOnPendingFileScan = false,
-                }
-            }
-        };
+                Id = "test",
+                TaskId = "Task_1",
+                EnableFileScan = false,
+                ValidationErrorOnPendingFileScan = false,
+            },
+        },
+    };
 
     public ValidationServiceOldTests()
     {
@@ -68,7 +67,7 @@ public class ValidationServiceOldTests
         {
             Id = "testScan",
             TaskId = "Task_1",
-            EnableFileScan = true
+            EnableFileScan = true,
         };
         _applicationMetadata.DataTypes.Add(dataType);
         var dataElement = new DataElement() { DataType = "testScan", FileScanResult = FileScanResult.Infected };
@@ -99,9 +98,9 @@ public class ValidationServiceOldTests
             Id = "test",
             TaskId = "Task_1",
             AppLogic = null,
-            EnableFileScan = true
+            EnableFileScan = true,
         };
-        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Pending, };
+        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Pending };
         var instance = new Instance() { Data = [dataElement] };
 
         var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
@@ -130,11 +129,11 @@ public class ValidationServiceOldTests
             Id = "testScan",
             TaskId = "Task_1",
             EnableFileScan = true,
-            ValidationErrorOnPendingFileScan = true
+            ValidationErrorOnPendingFileScan = true,
         };
         _applicationMetadata.DataTypes.Add(dataType);
         var dataElement = new DataElement() { DataType = "testScan", FileScanResult = FileScanResult.Pending };
-        var instance = new Instance() { Data = [dataElement], };
+        var instance = new Instance() { Data = [dataElement] };
         var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
         dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);
         dataAccessorMock.SetupGet(da => da.DataElements).Returns(instance.Data);
@@ -157,17 +156,17 @@ public class ValidationServiceOldTests
         IValidationService validationService = serviceProvider.GetRequiredService<IValidationService>();
 
         var dataType = new DataType() { EnableFileScan = true, ValidationErrorOnPendingFileScan = true };
-        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Clean, };
+        var dataElement = new DataElement() { DataType = "test", FileScanResult = FileScanResult.Clean };
         var instance = new Instance()
         {
             AppId = "ttd/test-app",
             Org = "ttd",
-            Data = [dataElement]
+            Data = [dataElement],
         };
 
         var dataAccessorMock = new InstanceDataAccessorFake(instance, _applicationMetadata, "Task_1", "test")
         {
-            { dataElement, new ReadOnlyMemory<byte>() }
+            { dataElement, new ReadOnlyMemory<byte>() },
         };
 
         List<ValidationIssueWithSource> validationIssues = await validationService.ValidateInstanceAtTask(
@@ -197,8 +196,8 @@ public class ValidationServiceOldTests
                     Id = "data",
                     TaskId = taskId,
                     MaxCount = 0,
-                }
-            }
+                },
+            },
         };
         _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
@@ -212,7 +211,7 @@ public class ValidationServiceOldTests
             {
                 new() { DataType = "data", ContentType = "application/json" },
             },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
         var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
         dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);
@@ -240,8 +239,8 @@ public class ValidationServiceOldTests
                     Id = "data",
                     TaskId = taskId,
                     MaxCount = 1,
-                }
-            }
+                },
+            },
         };
         _appMetadataMock.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(appMetadata);
 
@@ -257,16 +256,16 @@ public class ValidationServiceOldTests
                 {
                     Id = "3C8B52A9-9602-4B2E-A217-B4E816ED8DEB",
                     DataType = "data",
-                    ContentType = "application/json"
+                    ContentType = "application/json",
                 },
                 new()
                 {
                     Id = "3C8B52A9-9602-4B2E-A217-B4E816ED8DEC",
                     DataType = "data",
-                    ContentType = "application/json"
+                    ContentType = "application/json",
                 },
             },
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } }
+            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
         };
         var dataAccessorMock = new Mock<IInstanceDataAccessor>(MockBehavior.Strict);
         dataAccessorMock.SetupGet(da => da.Instance).Returns(instance);

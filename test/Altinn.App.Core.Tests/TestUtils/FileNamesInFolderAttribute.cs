@@ -23,7 +23,7 @@ public class FileNamesInFolderDataAttribute(string folderName) : DataAttribute
                 new object[]
                 {
                     Path.GetFileName(fullPath),
-                    Path.GetDirectoryName(fullPath) ?? throw new Exception($"Folder not found for {fullPath}")
+                    Path.GetDirectoryName(fullPath) ?? throw new Exception($"Folder not found for {fullPath}"),
                 }
             );
     }

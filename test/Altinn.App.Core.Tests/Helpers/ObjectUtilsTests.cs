@@ -37,7 +37,7 @@ public class ObjectUtilsTests
     [Fact]
     public void TestSimpleStringInitialized()
     {
-        var test = new TestClass() { StringValue = "some", };
+        var test = new TestClass() { StringValue = "some" };
         test.Children.Should().BeNull();
 
         ObjectUtils.InitializeAltinnRowId(test);
@@ -50,7 +50,7 @@ public class ObjectUtilsTests
     [Fact]
     public void TestSimpleListInitialized()
     {
-        var test = new TestClass() { Children = new(), };
+        var test = new TestClass() { Children = new() };
         test.Children.Should().BeEmpty();
 
         ObjectUtils.InitializeAltinnRowId(test);
@@ -67,9 +67,9 @@ public class ObjectUtilsTests
             {
                 Child = new TestClass()
                 {
-                    Child = new TestClass() { Children = new() { new TestClass() { Child = new TestClass() } } }
-                }
-            }
+                    Child = new TestClass() { Children = new() { new TestClass() { Child = new TestClass() } } },
+                },
+            },
         };
         test.Children.Should().BeNull();
         test.Child.Children.Should().BeNull();
@@ -142,11 +142,11 @@ public class ObjectUtilsTests
                         new TestClass()
                         {
                             AltinnRowId = Guid.NewGuid(),
-                            Child = new() { AltinnRowId = Guid.NewGuid() }
-                        }
-                    }
-                }
-            }
+                            Child = new() { AltinnRowId = Guid.NewGuid() },
+                        },
+                    },
+                },
+            },
         };
         test.AltinnRowId.Should().NotBe(Guid.Empty);
         test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
@@ -188,12 +188,12 @@ public class ObjectUtilsTests
                         new TestClass()
                         {
                             AltinnRowId = Guid.NewGuid(),
-                            Child = new() { AltinnRowId = Guid.NewGuid() }
+                            Child = new() { AltinnRowId = Guid.NewGuid() },
                         },
                         null!,
-                    }
-                }
-            }
+                    },
+                },
+            },
         };
         test.AltinnRowId.Should().NotBe(Guid.Empty);
         test.Child.AltinnRowId.Should().NotBe(Guid.Empty);
@@ -238,12 +238,12 @@ public class ObjectUtilsTests
                         new TestClass()
                         {
                             AltinnRowId = Guid.Empty,
-                            Child = new() { AltinnRowId = Guid.Empty }
+                            Child = new() { AltinnRowId = Guid.Empty },
                         },
                         null!,
-                    }
-                }
-            }
+                    },
+                },
+            },
         };
         test.AltinnRowId.Should().Be(Guid.Empty);
         test.Child.AltinnRowId.Should().Be(Guid.Empty);

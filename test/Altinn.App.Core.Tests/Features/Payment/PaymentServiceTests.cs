@@ -430,7 +430,7 @@ public class PaymentServiceTests
         var paymentConfiguration = new AltinnPaymentConfiguration
         {
             PaymentDataType = "paymentDataType",
-            PaymentReceiptPdfDataType = "paymentReceiptPdfDataType"
+            PaymentReceiptPdfDataType = "paymentReceiptPdfDataType",
         };
 
         // Act
@@ -506,9 +506,9 @@ public class PaymentServiceTests
                 PaymentProcessorId = "paymentProcessorId",
                 Currency = "NOK",
                 OrderLines = [],
-                Receiver = new PaymentReceiver()
+                Receiver = new PaymentReceiver(),
             },
-            PaymentDetails = new PaymentDetails { RedirectUrl = "Redirect URL", PaymentId = "paymentId", }
+            PaymentDetails = new PaymentDetails { RedirectUrl = "Redirect URL", PaymentId = "paymentId" },
         };
     }
 
@@ -520,7 +520,7 @@ public class PaymentServiceTests
             AppId = "ttd/test",
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1", },
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1" },
             },
         };
     }
@@ -539,9 +539,9 @@ public class PaymentServiceTests
                     Name = "Fee",
                     PriceExVat = 1000,
                     VatPercent = 25,
-                }
+                },
             ],
-            Receiver = new PaymentReceiver()
+            Receiver = new PaymentReceiver(),
         };
     }
 
@@ -550,7 +550,7 @@ public class PaymentServiceTests
         return new AltinnPaymentConfiguration
         {
             PaymentDataType = "paymentInformation",
-            PaymentReceiptPdfDataType = "paymentReceiptPdf"
+            PaymentReceiptPdfDataType = "paymentReceiptPdf",
         }.Validate();
     }
 }

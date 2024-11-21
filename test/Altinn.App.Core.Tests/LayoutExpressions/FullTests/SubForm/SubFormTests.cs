@@ -62,105 +62,52 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
     private static readonly Guid _subFormGuid2 = Guid.Parse("12345678-1234-1234-1234-123456789015");
     private static readonly Guid _subFormGuid3 = Guid.Parse("12345678-1234-1234-1234-123456789016");
 
-    private readonly Instance _instance =
-        new()
-        {
-            AppId = $"{Org}/{App}",
-            Org = Org,
-            Id = $"{InstanceOwnerPartyId}/{_instanceGuid}",
-            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
-            Data =
-            [
-                new DataElement() { Id = $"{_mainDataElementGuid}", DataType = DefaultDataType },
-                new DataElement() { Id = $"{_subFormGuid1}", DataType = SubformDataType },
-                new DataElement() { Id = $"{_subFormGuid2}", DataType = SubformDataType },
-                new DataElement() { Id = $"{_subFormGuid3}", DataType = SubformDataType }
-            ],
-        };
+    private readonly Instance _instance = new()
+    {
+        AppId = $"{Org}/{App}",
+        Org = Org,
+        Id = $"{InstanceOwnerPartyId}/{_instanceGuid}",
+        InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+        Data =
+        [
+            new DataElement() { Id = $"{_mainDataElementGuid}", DataType = DefaultDataType },
+            new DataElement() { Id = $"{_subFormGuid1}", DataType = SubformDataType },
+            new DataElement() { Id = $"{_subFormGuid2}", DataType = SubformDataType },
+            new DataElement() { Id = $"{_subFormGuid3}", DataType = SubformDataType },
+        ],
+    };
 
-    private static readonly ApplicationMetadata _applicationMetadata =
-        new($"{Org}/{App}")
-        {
-            Org = Org,
-            Id = $"{Org}/{App}",
-            DataTypes =
-            [
-                new DataType()
-                {
-                    Id = DefaultDataType,
-                    TaskId = TaskId,
-                    AppLogic = new ApplicationLogic() { ClassRef = _classRefMain }
-                },
-                new DataType()
-                {
-                    Id = SubformDataType,
-                    TaskId = TaskId,
-                    AppLogic = new ApplicationLogic() { ClassRef = _classRefSub, AllowInSubform = true }
-                },
-            ]
-        };
+    private static readonly ApplicationMetadata _applicationMetadata = new($"{Org}/{App}")
+    {
+        Org = Org,
+        Id = $"{Org}/{App}",
+        DataTypes =
+        [
+            new DataType()
+            {
+                Id = DefaultDataType,
+                TaskId = TaskId,
+                AppLogic = new ApplicationLogic() { ClassRef = _classRefMain },
+            },
+            new DataType()
+            {
+                Id = SubformDataType,
+                TaskId = TaskId,
+                AppLogic = new ApplicationLogic() { ClassRef = _classRefSub, AllowInSubform = true },
+            },
+        ],
+    };
 
     private readonly IOptions<GeneralSettings> _generalSettings = Options.Create(new GeneralSettings());
 
-    private static readonly LayoutSetComponent _mainLayoutComponent =
-        new(
-            [
-                ParsePage(
-                    MainLayoutId,
-                    "MainPage",
-                    $$"""
-                    {
-                        "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
-                        "data": {
-                          "layout": [
-                            {
-                              "id": "Name",
-                              "type": "Input",
-                              "dataModelBindings": {
-                                "simpleBinding": "Name"
-                              },
-                              "required": true
-                            },
-                            {
-                              "id": "Address",
-                              "type": "Input",
-                              "dataModelBindings": {
-                                "simpleBinding": "Address"
-                              },
-                              "required": true
-                            },
-                            {
-                              "id": "Phone",
-                              "type": "Input",
-                              "dataModelBindings": {
-                                "simpleBinding": "Phone"
-                              },
-                              "required": true
-                            },
-                            {
-                              "id": "SubForm",
-                              "type": "SubForm",
-                              "layoutSet": "{{SubLayoutId}}"
-                            }
-                          ]
-                        }
-                    }
-                    """
-                ),
-            ],
-            MainLayoutId,
-            _applicationMetadata.DataTypes[0]
-        );
-
-    private static readonly LayoutSetComponent _subLayoutComponent =
-        new(
-            [
-                ParsePage(
-                    SubLayoutId,
-                    "SubPage",
-                    """
-                    {
-                    "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+    private static readonly LayoutSetComponent _mainLayoutComponent = new(
+        [
+            ParsePage(
+                MainLayoutId,
+                "MainPage",
+                $$"""
+                {
+                    "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
                     "data": {
                       "layout": [
                         {
@@ -188,34 +135,82 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                           "required": true
                         },
                         {
-                          "id": "Email",
-                          "type": "Input",
-                          "dataModelBindings": {
-                            "simpleBinding": "Email"
-                          },
-                          "required": ["dataModel", "RequireEmail"]
+                          "id": "SubForm",
+                          "type": "SubForm",
+                          "layoutSet": "{{SubLayoutId}}"
                         }
                       ]
-                    }}
-                    """
-                )
-            ],
-            SubLayoutId,
-            _applicationMetadata.DataTypes[1]
-        );
+                    }
+                }
+                """
+            ),
+        ],
+        MainLayoutId,
+        _applicationMetadata.DataTypes[0]
+    );
+
+    private static readonly LayoutSetComponent _subLayoutComponent = new(
+        [
+            ParsePage(
+                SubLayoutId,
+                "SubPage",
+                """
+                {
+                "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+                "data": {
+                  "layout": [
+                    {
+                      "id": "Name",
+                      "type": "Input",
+                      "dataModelBindings": {
+                        "simpleBinding": "Name"
+                      },
+                      "required": true
+                    },
+                    {
+                      "id": "Address",
+                      "type": "Input",
+                      "dataModelBindings": {
+                        "simpleBinding": "Address"
+                      },
+                      "required": true
+                    },
+                    {
+                      "id": "Phone",
+                      "type": "Input",
+                      "dataModelBindings": {
+                        "simpleBinding": "Phone"
+                      },
+                      "required": true
+                    },
+                    {
+                      "id": "Email",
+                      "type": "Input",
+                      "dataModelBindings": {
+                        "simpleBinding": "Email"
+                      },
+                      "required": ["dataModel", "RequireEmail"]
+                    }
+                  ]
+                }}
+                """
+            ),
+        ],
+        SubLayoutId,
+        _applicationMetadata.DataTypes[1]
+    );
 
     private readonly Mock<IAppResources> _appResourcesMock = new(MockBehavior.Strict);
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock = new(MockBehavior.Loose);
 
     private readonly IServiceCollection _services = new ServiceCollection();
-    private static readonly JsonSerializerOptions _options =
-        new()
-        {
-            WriteIndented = true,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+    private static readonly JsonSerializerOptions _options = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    };
     private VerifySettings _verifySettings
     {
         get
@@ -257,9 +252,9 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
                         {
                             Id = "layoutId",
                             Tasks = [TaskId],
-                            DataType = DefaultDataType
-                        }
-                    ]
+                            DataType = DefaultDataType,
+                        },
+                    ],
                 }
             );
         _httpContextAccessorMock.SetupGet(hca => hca.HttpContext).Returns(new DefaultHttpContext());
@@ -278,7 +273,7 @@ public class SubFormTests : IClassFixture<DataAnnotationsTestFixture>
             { _instance.Data[0], new MainFormModel("Name", "Address", "Phone", null) },
             { _instance.Data[1], new SubFormModel(null, null, null, null, false) },
             { _instance.Data[2], new SubFormModel("Name2", "Address2", "Phone2", null, true) },
-            { _instance.Data[3], new SubFormModel(null, null, null, null, null) }
+            { _instance.Data[3], new SubFormModel(null, null, null, null, null) },
         };
 
         var issues = await validationService.ValidateInstanceAtTask(dataAccessor, TaskId, null, null, null);

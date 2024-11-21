@@ -30,7 +30,7 @@ public class ProfileClientCachingDecorator : IProfileClient
 
         _cacheOptions = new()
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(settings.Value.ProfileCacheLifetimeSeconds)
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(settings.Value.ProfileCacheLifetimeSeconds),
         };
     }
 

@@ -140,7 +140,7 @@ public class JsonHelperTests
     [Fact]
     public async Task NullIsNotZero()
     {
-        var data = new TestModel() { NullableIntTest = null, };
+        var data = new TestModel() { NullableIntTest = null };
         var diff = await DoTest(
             data,
             (model) =>
@@ -157,7 +157,7 @@ public class JsonHelperTests
     [Fact]
     public async Task ZeroIsNotNull()
     {
-        var data = new TestModel() { NullableIntTest = 0, };
+        var data = new TestModel() { NullableIntTest = 0 };
         var diff = await DoTest(
             data,
             (model) =>
@@ -174,7 +174,7 @@ public class JsonHelperTests
     [Fact]
     public async Task TestSystemTextJsonAnnotation()
     {
-        var data = new TestModel() { NotJsonPropertyNameTest = "Original Value", };
+        var data = new TestModel() { NotJsonPropertyNameTest = "Original Value" };
         var diff = await DoTest(
             data,
             (model) =>
@@ -184,7 +184,7 @@ public class JsonHelperTests
             }
         );
 
-        diff.Should().Equal(new Dictionary<string, object?> { { "jsonPropertyName", "New Value" }, });
+        diff.Should().Equal(new Dictionary<string, object?> { { "jsonPropertyName", "New Value" } });
     }
 
     [Theory]
@@ -195,7 +195,7 @@ public class JsonHelperTests
     [InlineData(int.MaxValue)]
     public async Task ChangeInteger(int value)
     {
-        var data = new TestModel() { RecursiveTest = new(), PrimitiveList = new(), };
+        var data = new TestModel() { RecursiveTest = new(), PrimitiveList = new() };
 
         var diff = await DoTest(
             data,

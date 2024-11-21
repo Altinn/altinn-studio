@@ -37,7 +37,7 @@ public class TestDataModel
     [Fact]
     public void NewtonsoftAttributeWorks()
     {
-        var modelHelper = new DataModelWrapper(new Model { OnlyNewtonsoft = "asdfsf559", });
+        var modelHelper = new DataModelWrapper(new Model { OnlyNewtonsoft = "asdfsf559" });
         modelHelper.GetModelData("OnlyNewtonsoft").Should().BeNull("Attribute should win over property when set");
         modelHelper.GetModelData("ONlyNewtonsoft").Should().BeNull();
         modelHelper.GetModelData("onlyNewtonsoft").Should().Be("asdfsf559");
@@ -64,8 +64,8 @@ public class TestDataModel
                     Name = new() { Value = "Donald Duck" },
                     Age = 123,
                 },
-                new() { Name = new() { Value = "Dolly Duck" } }
-            }
+                new() { Name = new() { Value = "Dolly Duck" } },
+            },
         };
         var modelHelper = new DataModelWrapper(model);
         modelHelper.GetModelData("friends.name.value").Should().BeNull();
@@ -103,7 +103,7 @@ public class TestDataModel
                     {
                         new()
                         {
-                            Name = new() { Value = "Onkel Skrue", },
+                            Name = new() { Value = "Onkel Skrue" },
                             Age = 2022,
                             Friends = new List<Friend>
                             {
@@ -116,9 +116,9 @@ public class TestDataModel
                                 {
                                     Name = new() { Value = "Madam mim" },
                                     Age = 23,
-                                }
+                                },
                             },
-                        }
+                        },
                     },
                 },
                 new()
@@ -128,7 +128,7 @@ public class TestDataModel
                     {
                         new()
                         {
-                            Name = new() { Value = "Onkel Skrue", },
+                            Name = new() { Value = "Onkel Skrue" },
                             Age = 2022,
                             Friends = new List<Friend>()
                             {
@@ -141,12 +141,12 @@ public class TestDataModel
                                 {
                                     Name = new() { Value = "Madam mim" },
                                     Age = 23,
-                                }
+                                },
                             },
-                        }
+                        },
                     },
-                }
-            }
+                },
+            },
         };
 
         var modelHelper = new DataModelWrapper(model);
@@ -201,12 +201,12 @@ public class TestDataModel
                     {
                         new()
                         {
-                            Name = new() { Value = "Første venn sin venn", },
-                            Age = 233
-                        }
-                    }
-                }
-            }
+                            Name = new() { Value = "Første venn sin venn" },
+                            Age = 233,
+                        },
+                    },
+                },
+            },
         };
         var modelHelper = new DataModelWrapper(model);
         model.Id.Should().Be(2);
@@ -246,20 +246,20 @@ public class TestDataModel
                     {
                         new()
                         {
-                            Name = new() { Value = "Første venn sin første venn", },
-                            Age = 233
+                            Name = new() { Value = "Første venn sin første venn" },
+                            Age = 233,
                         },
                         new()
                         {
-                            Name = new() { Value = "Første venn sin andre venn", },
-                            Age = 233
+                            Name = new() { Value = "Første venn sin andre venn" },
+                            Age = 233,
                         },
                         new()
                         {
-                            Name = new() { Value = "Første venn sin tredje venn", },
-                            Age = 233
-                        }
-                    }
+                            Name = new() { Value = "Første venn sin tredje venn" },
+                            Age = 233,
+                        },
+                    },
                 },
                 new()
                 {
@@ -269,10 +269,10 @@ public class TestDataModel
                     {
                         new()
                         {
-                            Name = new() { Value = "Andre venn sin venn", },
-                            Age = 233
-                        }
-                    }
+                            Name = new() { Value = "Andre venn sin venn" },
+                            Age = 233,
+                        },
+                    },
                 },
                 new()
                 {
@@ -282,12 +282,12 @@ public class TestDataModel
                     {
                         new()
                         {
-                            Name = new() { Value = "Tredje venn sin venn", },
-                            Age = 233
-                        }
-                    }
-                }
-            }
+                            Name = new() { Value = "Tredje venn sin venn" },
+                            Age = 233,
+                        },
+                    },
+                },
+            },
         };
         var serializedModel = JsonSerializer.Serialize(model);
 
@@ -325,7 +325,7 @@ public class TestDataModel
             new Model()
             {
                 Id = 3,
-                Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" }, } }
+                Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" } } },
             }
         );
         modelHelper.Invoking(m => m.GetModelData(".")).Should().Throw<DataModelException>().WithMessage("*empty part*");
@@ -353,7 +353,7 @@ public class TestDataModel
             new
             {
                 // ArrayList is not supported as a data model
-                friends = new ArrayList { 1, 2, 3 }
+                friends = new ArrayList { 1, 2, 3 },
             }
         );
         modelHelper
@@ -370,7 +370,7 @@ public class TestDataModel
             new Model
             {
                 Id = 3,
-                Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" }, } }
+                Friends = new List<Friend>() { new() { Name = new() { Value = "Ole" } } },
             }
         );
 
@@ -390,7 +390,7 @@ public class TestDataModel
     [Fact]
     public void AddIndicies_WhenGivenIndexOnNonIndexableProperty_ThrowsError()
     {
-        var modelHelper = new DataModelWrapper(new Model { Id = 3, });
+        var modelHelper = new DataModelWrapper(new Model { Id = 3 });
 
         // Throws because id is not indexable
         modelHelper

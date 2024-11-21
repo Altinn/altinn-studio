@@ -50,15 +50,15 @@ public class InstanceDataListsFactoryTest
                     {
                         Name = "Norway",
                         Code = "NO",
-                        Phone = 47
+                        Phone = 47,
                     },
                     new
                     {
                         Name = "Sweden",
                         Code = "SE",
-                        Phone = 46
+                        Phone = 46,
                     },
-                }
+                },
             };
 
             return Task.FromResult(dataList);

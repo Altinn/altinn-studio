@@ -31,16 +31,16 @@ public class RunTest2
                     {
                         Binding = default,
                         Binding2 = default,
-                        Binding3 = default
+                        Binding3 = default,
                     },
                     new()
                     {
                         Binding = "binding",
                         Binding2 = 2,
-                        Binding3 = default
+                        Binding3 = default,
                     },
-                }
-            }
+                },
+            },
         };
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "Test2");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
@@ -53,33 +53,33 @@ public class RunTest2
                     new DataReference
                     {
                         Field = "some.data[0].binding",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
                     new DataReference()
                     {
                         Field = "some.data[0].binding2",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
                     new DataReference
                     {
                         Field = "some.data[0].binding3",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
                     new DataReference
                     {
                         Field = "some.data[1].binding",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
                     new DataReference
                     {
                         Field = "some.data[1].binding2",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
                     new DataReference
                     {
                         Field = "some.data[1].binding3",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
-                    }
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
+                    },
                 ]
             );
 
@@ -110,8 +110,8 @@ public class RunTest2
                     {
                         new() { Binding = "binding" },
                         new() { Binding2 = 2, Binding3 = "hidden" },
-                    }
-                }
+                    },
+                },
             },
             "Test2"
         );
@@ -124,8 +124,8 @@ public class RunTest2
                     new DataReference()
                     {
                         Field = "some.data[1].binding2",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
-                    }
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
+                    },
                 ]
             );
     }

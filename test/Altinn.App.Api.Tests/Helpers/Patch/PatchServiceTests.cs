@@ -29,16 +29,15 @@ public sealed class PatchServiceTests : IDisposable
     // Test data
     private static readonly Guid _dataGuid = new("12345678-1234-1234-1234-123456789123");
 
-    private readonly Instance _instance =
-        new()
-        {
-            Id = "1337/12345678-1234-1234-1234-12345678912a",
-            AppId = "ttd/test",
-            Org = "ttd",
-            InstanceOwner = new() { PartyId = "1337" },
-            Data = [_dataElement],
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" }, }
-        };
+    private readonly Instance _instance = new()
+    {
+        Id = "1337/12345678-1234-1234-1234-12345678912a",
+        AppId = "ttd/test",
+        Org = "ttd",
+        InstanceOwner = new() { PartyId = "1337" },
+        Data = [_dataElement],
+        Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+    };
 
     // Service mocks
     private readonly Mock<ILogger<ValidationService>> _vLoggerMock = new(MockBehavior.Loose);
@@ -60,7 +59,7 @@ public sealed class PatchServiceTests : IDisposable
 
     public PatchServiceTests()
     {
-        var applicationMetadata = new ApplicationMetadata("ttd/test") { DataTypes = [_dataType], };
+        var applicationMetadata = new ApplicationMetadata("ttd/test") { DataTypes = [_dataType] };
         _appMetadataMock
             .Setup(a => a.GetApplicationMetadata())
             .ReturnsAsync(applicationMetadata)
@@ -113,13 +112,12 @@ public sealed class PatchServiceTests : IDisposable
         );
     }
 
-    private static readonly DataType _dataType =
-        new()
-        {
-            Id = "dataTypeId",
-            AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel" },
-            TaskId = "Task_1",
-        };
+    private static readonly DataType _dataType = new()
+    {
+        Id = "dataTypeId",
+        AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Patch.PatchServiceTests+MyModel" },
+        TaskId = "Task_1",
+    };
 
     private static readonly DataElement _dataElement = new() { Id = _dataGuid.ToString(), DataType = _dataType.Id };
 
@@ -138,7 +136,7 @@ public sealed class PatchServiceTests : IDisposable
         SetupDataClient(oldModel);
         var validationIssues = new List<ValidationIssue>()
         {
-            new() { Severity = ValidationIssueSeverity.Error, Description = "First error", }
+            new() { Severity = ValidationIssueSeverity.Error, Description = "First error" },
         };
 
         _dataProcessorMock
@@ -198,7 +196,7 @@ public sealed class PatchServiceTests : IDisposable
         SetupDataClient(oldModel);
         var validationIssues = new List<ValidationIssue>()
         {
-            new() { Severity = ValidationIssueSeverity.Error, Description = "First error", }
+            new() { Severity = ValidationIssueSeverity.Error, Description = "First error" },
         };
 
         _dataProcessorMock
@@ -248,7 +246,7 @@ public sealed class PatchServiceTests : IDisposable
         SetupDataClient(oldModel);
         var validationIssues = new List<ValidationIssue>()
         {
-            new() { Severity = ValidationIssueSeverity.Error, Description = "First error", }
+            new() { Severity = ValidationIssueSeverity.Error, Description = "First error" },
         };
 
         _dataProcessorMock

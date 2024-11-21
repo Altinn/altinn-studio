@@ -47,21 +47,21 @@ public class ProcessTaskFinalizerTests
             AppId = "ttd/test",
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "EndEvent", },
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "signing", ElementId = "EndEvent" },
             },
             Data =
             [
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
-                    References = [new Reference { ValueType = ReferenceType.Task, Value = "EndEvent" }]
-                }
-            ]
+                    References = [new Reference { ValueType = ReferenceType.Task, Value = "EndEvent" }],
+                },
+            ],
         };
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
         {
-            DataTypes = [new DataType { TaskId = instance.Process.CurrentTask.ElementId }]
+            DataTypes = [new DataType { TaskId = instance.Process.CurrentTask.ElementId }],
         };
 
         _appMetadataMock.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);

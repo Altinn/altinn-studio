@@ -70,7 +70,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } },
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -79,8 +79,8 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_1", Flow = 2 }
-            }
+                CurrentTask = new() { ElementId = "Task_1", Flow = 2 },
+            },
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
         {
@@ -93,10 +93,10 @@ public class ProcessEventHandlingTests
                     {
                         ElementId = "StartEvent",
                         AltinnTaskType = "start",
-                        Name = "Start"
-                    }
-                }
-            }
+                        Name = "Start",
+                    },
+                },
+            },
         };
         instanceService.Setup(i => i.UpdateProcess(instance)).ReturnsAsync(updateInstanceResponse);
         instanceService.Setup(i => i.GetInstance(updateInstanceResponse)).ReturnsAsync(getInstanceResponse);
@@ -160,15 +160,15 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } },
         };
         Instance getInstanceResponse = new Instance()
         {
             Id = instance.Id,
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_1", Flow = 2 }
-            }
+                CurrentTask = new() { ElementId = "Task_1", Flow = 2 },
+            },
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
         {
@@ -177,9 +177,9 @@ public class ProcessEventHandlingTests
                 EventType = InstanceEventType.process_StartTask.ToString(),
                 ProcessInfo = new()
                 {
-                    CurrentTask = new() { ElementId = "StartEvent", Name = "Start" }
-                }
-            }
+                    CurrentTask = new() { ElementId = "StartEvent", Name = "Start" },
+                },
+            },
         };
         instanceService.Setup(i => i.UpdateProcess(instance)).ReturnsAsync(updateInstanceResponse);
         instanceService.Setup(i => i.GetInstance(updateInstanceResponse)).ReturnsAsync(getInstanceResponse);
@@ -243,7 +243,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1", } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_1" } },
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -252,8 +252,8 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_1", Flow = 2 }
-            }
+                CurrentTask = new() { ElementId = "Task_1", Flow = 2 },
+            },
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
         {
@@ -267,10 +267,10 @@ public class ProcessEventHandlingTests
                         ElementId = "Task_1",
                         AltinnTaskType = "data",
                         Name = "Utfylling",
-                        Flow = 2
-                    }
-                }
-            }
+                        Flow = 2,
+                    },
+                },
+            },
         };
         instanceService.Setup(i => i.UpdateProcess(instance)).ReturnsAsync(updateInstanceResponse);
         instanceService.Setup(i => i.GetInstance(updateInstanceResponse)).ReturnsAsync(getInstanceResponse);
@@ -334,7 +334,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2" } },
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -343,8 +343,8 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_2", Flow = 3 }
-            }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 3 },
+            },
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
         {
@@ -358,10 +358,10 @@ public class ProcessEventHandlingTests
                         ElementId = "Task_2",
                         AltinnTaskType = "confirmation",
                         Name = "Bekreft",
-                        Flow = 2
-                    }
-                }
-            }
+                        Flow = 2,
+                    },
+                },
+            },
         };
         instanceService.Setup(i => i.UpdateProcess(instance)).ReturnsAsync(updateInstanceResponse);
         instanceService.Setup(i => i.GetInstance(updateInstanceResponse)).ReturnsAsync(getInstanceResponse);
@@ -425,7 +425,7 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2" } },
         };
         Instance getInstanceResponse = new Instance()
         {
@@ -434,8 +434,8 @@ public class ProcessEventHandlingTests
             AppId = "ttd/test-app",
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_2", Flow = 4 }
-            }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 4 },
+            },
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
         {
@@ -449,10 +449,10 @@ public class ProcessEventHandlingTests
                         ElementId = "Task_2",
                         AltinnTaskType = "feedback",
                         Name = "Bekreft",
-                        Flow = 4
-                    }
-                }
-            }
+                        Flow = 4,
+                    },
+                },
+            },
         };
         instanceService.Setup(i => i.UpdateProcess(instance)).ReturnsAsync(updateInstanceResponse);
         instanceService.Setup(i => i.GetInstance(updateInstanceResponse)).ReturnsAsync(getInstanceResponse);
@@ -517,15 +517,15 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2" } },
         };
         Instance getInstanceResponse = new Instance()
         {
             Id = instance.Id,
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_2", Flow = 3 }
-            }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 3 },
+            },
         };
         List<InstanceEvent> events = new List<InstanceEvent>()
         {
@@ -539,11 +539,11 @@ public class ProcessEventHandlingTests
                         ElementId = "Task_2",
                         AltinnTaskType = "confirmation",
                         Name = "Bekreft",
-                        Flow = 2
+                        Flow = 2,
                     },
-                    EndEvent = "EndEvent"
-                }
-            }
+                    EndEvent = "EndEvent",
+                },
+            },
         };
 
         var applicationMetadata = new ApplicationMetadata(instance.AppId)
@@ -554,10 +554,10 @@ public class ProcessEventHandlingTests
                 new DataType
                 {
                     Id = "data_type_1",
-                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema", },
-                    TaskId = "First"
-                }
-            }
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" },
+                    TaskId = "First",
+                },
+            },
         };
 
         appMetadata.Setup(x => x.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
@@ -625,15 +625,15 @@ public class ProcessEventHandlingTests
             Id = instance.Id,
             Org = "ttd",
             AppId = "ttd/test-app",
-            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2", } }
+            Process = new ProcessState() { CurrentTask = new() { ElementId = "Task_2" } },
         };
         Instance getInstanceResponse = new Instance()
         {
             Id = instance.Id,
             Process = new ProcessState()
             {
-                CurrentTask = new() { ElementId = "Task_2", Flow = 3 }
-            }
+                CurrentTask = new() { ElementId = "Task_2", Flow = 3 },
+            },
         };
         List<InstanceEvent> events = null;
         instanceService.Setup(i => i.UpdateProcess(instance)).ReturnsAsync(updateInstanceResponse);
@@ -676,7 +676,7 @@ public class ProcessEventHandlingTests
         Instance instance = new Instance()
         {
             Id = Guid.NewGuid().ToString(),
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } }
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
         };
 
         // Act
@@ -712,7 +712,7 @@ public class ProcessEventHandlingTests
         Instance instance = new Instance()
         {
             Id = Guid.NewGuid().ToString(),
-            Process = new() { CurrentTask = null, EndEvent = "EndEvent" }
+            Process = new() { CurrentTask = null, EndEvent = "EndEvent" },
         };
 
         // Act
@@ -810,7 +810,7 @@ public class ProcessEventHandlingTests
         Instance instance = new Instance()
         {
             Id = Guid.NewGuid().ToString(),
-            Process = new() { CurrentTask = new() { ElementId = "Task_1" } }
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
         };
 
         // Act

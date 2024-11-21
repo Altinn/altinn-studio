@@ -54,7 +54,7 @@ public class PdfServiceTests
             Id = "digdir-not-really-an-app-nb",
             Language = LanguageConst.Nb,
             Org = "digdir",
-            Resources = []
+            Resources = [],
         };
         _appResources
             .Setup(s => s.GetTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -72,19 +72,18 @@ public class PdfServiceTests
     [Fact]
     public async Task ValidRequest_ShouldReturnPdf()
     {
-        DelegatingHandlerStub delegatingHandler =
-            new(
-                async (HttpRequestMessage request, CancellationToken token) =>
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                await Task.CompletedTask;
+                return new HttpResponseMessage()
                 {
-                    await Task.CompletedTask;
-                    return new HttpResponseMessage()
-                    {
-                        Content = new StreamContent(
-                            EmbeddedResource.LoadDataAsStream("Altinn.App.Core.Tests.Internal.Pdf.TestData.example.pdf")
-                        )
-                    };
-                }
-            );
+                    Content = new StreamContent(
+                        EmbeddedResource.LoadDataAsStream("Altinn.App.Core.Tests.Internal.Pdf.TestData.example.pdf")
+                    ),
+                };
+            }
+        );
 
         var httpClient = new HttpClient(delegatingHandler);
         var pdfGeneratorClient = new PdfGeneratorClient(
@@ -106,14 +105,13 @@ public class PdfServiceTests
     [Fact]
     public async Task ValidRequest_PdfGenerationFails_ShouldThrowException()
     {
-        DelegatingHandlerStub delegatingHandler =
-            new(
-                async (HttpRequestMessage request, CancellationToken token) =>
-                {
-                    await Task.CompletedTask;
-                    return new HttpResponseMessage() { StatusCode = HttpStatusCode.RequestTimeout };
-                }
-            );
+        DelegatingHandlerStub delegatingHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                await Task.CompletedTask;
+                return new HttpResponseMessage() { StatusCode = HttpStatusCode.RequestTimeout };
+            }
+        );
 
         var httpClient = new HttpClient(delegatingHandler);
         var pdfGeneratorClient = new PdfGeneratorClient(
@@ -149,13 +147,12 @@ public class PdfServiceTests
             telemetrySink: telemetrySink
         );
 
-        Instance instance =
-            new()
-            {
-                Id = $"509378/{Guid.NewGuid()}",
-                AppId = "digdir/not-really-an-app",
-                Org = "digdir"
-            };
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+        };
 
         // Act
         await target.GenerateAndStorePdf(instance, "Task_1", CancellationToken.None);
@@ -210,19 +207,18 @@ public class PdfServiceTests
         var dataModelId = Guid.NewGuid();
         var attachmentId = Guid.NewGuid();
 
-        Instance instance =
-            new()
+        Instance instance = new()
+        {
+            Id = $"509378/{Guid.NewGuid()}",
+            AppId = "digdir/not-really-an-app",
+            Org = "digdir",
+            Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
+            Data = new()
             {
-                Id = $"509378/{Guid.NewGuid()}",
-                AppId = "digdir/not-really-an-app",
-                Org = "digdir",
-                Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
-                Data = new()
-                {
-                    new() { Id = dataModelId.ToString(), DataType = "Model" },
-                    new() { Id = attachmentId.ToString(), DataType = "attachment" }
-                }
-            };
+                new() { Id = dataModelId.ToString(), DataType = "Model" },
+                new() { Id = attachmentId.ToString(), DataType = "attachment" },
+            },
+        };
 
         // Act
         await target.GenerateAndStorePdf(instance, "Task_1", CancellationToken.None);
@@ -269,7 +265,7 @@ public class PdfServiceTests
                     new UserProfile
                     {
                         UserId = 123,
-                        ProfileSettingPreference = new ProfileSettingPreference { Language = LanguageConst.En }
+                        ProfileSettingPreference = new ProfileSettingPreference { Language = LanguageConst.En },
                     }
                 )
             );
@@ -299,7 +295,7 @@ public class PdfServiceTests
                         ProfileSettingPreference = new ProfileSettingPreference
                         {
                             /* No language preference set*/
-                        }
+                        },
                     }
                 )
             );

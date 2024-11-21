@@ -96,8 +96,8 @@ public class LinqExpressionHelpersTests
             Children = new()
             {
                 new() { Age = 3 },
-                new() { Age = 4 }
-            }
+                new() { Age = 4 },
+            },
         };
         var propertyName = LinqExpressionHelpers.GetJsonPath<MyModel, int?>(m =>
             m.Children![model.Children.Count + 1].Age

@@ -24,7 +24,7 @@ public static class JwtTokenMock
             Subject = new ClaimsIdentity(principal.Identity),
             Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
             SigningCredentials = GetSigningCredentials(),
-            Audience = "altinn.no"
+            Audience = "altinn.no",
         };
 
         SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
@@ -56,7 +56,7 @@ public static class JwtTokenMock
             ValidateAudience = false,
             RequireExpirationTime = true,
             ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
         };
 
         JwtSecurityTokenHandler validator = new();

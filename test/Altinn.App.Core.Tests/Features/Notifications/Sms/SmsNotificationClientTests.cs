@@ -53,7 +53,7 @@ public class SmsNotificationClientTests
             .ReturnsAsync(
                 new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json")
+                    Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json"),
                 }
             )
             .Callback<HttpRequestMessage, CancellationToken>(
@@ -96,7 +96,7 @@ public class SmsNotificationClientTests
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent, };
+                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent };
                 return response;
             });
 
@@ -139,7 +139,7 @@ public class SmsNotificationClientTests
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent, };
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent };
                 return response;
             });
 
@@ -181,7 +181,7 @@ public class SmsNotificationClientTests
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": 1234}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent, };
+                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent };
                 return response;
             });
 
@@ -281,7 +281,7 @@ public class SmsNotificationClientTests
         services.AddTransient<ISmsNotificationClient, SmsNotificationClient>();
 
         var sp = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
         );
 
         var client = (SmsNotificationClient)sp.GetRequiredService<ISmsNotificationClient>();

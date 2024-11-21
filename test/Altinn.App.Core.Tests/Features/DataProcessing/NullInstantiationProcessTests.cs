@@ -13,7 +13,7 @@ public class NullInstantiationProcessTests
     {
         // Arrange
         var nullInstantiation = new NullInstantiationProcessor();
-        DummyModel expected = new DummyModel() { Name = "Test", };
+        DummyModel expected = new DummyModel() { Name = "Test" };
         object input = new DummyModel() { Name = "Test" };
 
         // Act

@@ -17,27 +17,26 @@ public class DefaultTaskValidatorTests
     private const string UnlimitedDataType = "UnlimitedDataId";
     private const string OneRequiredDataType = "OneRequiredDataId";
 
-    private readonly ApplicationMetadata _applicationMetadata =
-        new(AppId)
+    private readonly ApplicationMetadata _applicationMetadata = new(AppId)
+    {
+        DataTypes = new List<DataType>()
         {
-            DataTypes = new List<DataType>()
+            new()
             {
-                new()
-                {
-                    Id = UnlimitedDataType,
-                    TaskId = UnlimitedTaskId,
-                    MaxCount = 0,
-                    MinCount = 0,
-                },
-                new()
-                {
-                    Id = OneRequiredDataType,
-                    TaskId = OneRequiredElementTaskId,
-                    MinCount = 1,
-                    MaxCount = 1,
-                }
-            }
-        };
+                Id = UnlimitedDataType,
+                TaskId = UnlimitedTaskId,
+                MaxCount = 0,
+                MinCount = 0,
+            },
+            new()
+            {
+                Id = OneRequiredDataType,
+                TaskId = OneRequiredElementTaskId,
+                MinCount = 1,
+                MaxCount = 1,
+            },
+        },
+    };
 
     private readonly Instance _instance = new Instance()
     {

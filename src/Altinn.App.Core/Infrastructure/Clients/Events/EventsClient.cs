@@ -88,7 +88,7 @@ public class EventsClient : IEventsClient
             AlternativeSubject = alternativeSubject,
             Time = DateTime.UtcNow,
             SpecVersion = "1.0",
-            Source = new Uri($"{baseUrl}instances/{instance.Id}")
+            Source = new Uri($"{baseUrl}instances/{instance.Id}"),
         };
         Application app = await _appMetadata.GetApplicationMetadata();
         string accessToken = _accessTokenGenerator.GenerateAccessToken(app?.Org, app?.Id.Split("/")[1]);

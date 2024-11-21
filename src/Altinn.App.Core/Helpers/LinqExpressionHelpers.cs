@@ -110,7 +110,7 @@ public static class LinqExpressionHelpers
                     ExpressionType.Divide => left / right,
                     ExpressionType.Multiply => left * right,
                     ExpressionType.Modulo => left % right,
-                    _ => throw new ArgumentException($"Missing implementation for {be}.")
+                    _ => throw new ArgumentException($"Missing implementation for {be}."),
                 };
 
             // Currently we just error on unknown expressions

@@ -41,7 +41,7 @@ public class AuthenticationController : ControllerBase
             HttpOnly = true,
             Secure = true,
             IsEssential = true,
-            SameSite = SameSiteMode.Lax
+            SameSite = SameSiteMode.Lax,
         };
 
         if (!string.IsNullOrWhiteSpace(token))

@@ -58,7 +58,7 @@ public class DataControllerTests : ApiTestBase, IClassFixture<WebApplicationFact
         content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
         content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
         {
-            FileName = "example.pdf"
+            FileName = "example.pdf",
         };
         var response = await client.PostAsync(
             $"/{org}/{app}/instances/{instanceOwnerPartyId}/{guid}/data/{dataType}",
@@ -212,7 +212,7 @@ public class MimeTypeAnalyserSuccessStub : IFileAnalyser
             {
                 MimeType = "application/pdf",
                 Filename = "example.pdf",
-                Extensions = new List<string>() { "pdf" }
+                Extensions = new List<string>() { "pdf" },
             }
         );
     }
@@ -234,7 +234,7 @@ public class MimeTypeAnalyserFailureStub : IFileAnalyser
             {
                 MimeType = "application/jpeg",
                 Filename = "example.jpg.pdf",
-                Extensions = new List<string>() { "jpg" }
+                Extensions = new List<string>() { "jpg" },
             }
         );
     }
@@ -263,15 +263,14 @@ public class MimeTypeValidatorStub : IFileValidator
             ) && !dataType.AllowedContentTypes.Contains("application/octet-stream")
         )
         {
-            ValidationIssue error =
-                new()
-                {
-                    Source = ValidationIssueSources.File,
-                    Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                    Severity = ValidationIssueSeverity.Error,
-                    Description =
-                        $"The {fileMimeTypeResult?.Filename + " "}file does not appear to be of the allowed content type according to the configuration for data type {dataType.Id}. Allowed content types are {string.Join(", ", dataType.AllowedContentTypes)}"
-                };
+            ValidationIssue error = new()
+            {
+                Source = ValidationIssueSources.File,
+                Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                Severity = ValidationIssueSeverity.Error,
+                Description =
+                    $"The {fileMimeTypeResult?.Filename + " "}file does not appear to be of the allowed content type according to the configuration for data type {dataType.Id}. Allowed content types are {string.Join(", ", dataType.AllowedContentTypes)}",
+            };
 
             errors.Add(error);
 

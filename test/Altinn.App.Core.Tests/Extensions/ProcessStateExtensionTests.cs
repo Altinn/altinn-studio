@@ -34,7 +34,7 @@ public class ProcessStateExtensionTests
                 FlowType = "FlowType",
                 Name = "Name",
                 Validated = new ValidationStatus() { Timestamp = DateTime.Now, CanCompleteTask = true },
-            }
+            },
         };
         ProcessState copy = original.Copy();
         Assert.NotSame(original, copy);
@@ -52,7 +52,7 @@ public class ProcessStateExtensionTests
             Started = DateTime.Now,
             StartEvent = "StartEvent",
             EndEvent = "EndEvent",
-            CurrentTask = null
+            CurrentTask = null,
         };
         ProcessState copy = original.Copy();
         Assert.NotSame(original, copy);

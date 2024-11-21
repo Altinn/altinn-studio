@@ -91,26 +91,31 @@ public class LayoutModel
     {
         return component switch
         {
-            SubFormComponent subFormComponent
-                => await GenerateContextForSubComponent(dataModel, subFormComponent, defaultDataElementIdentifier),
+            SubFormComponent subFormComponent => await GenerateContextForSubComponent(
+                dataModel,
+                subFormComponent,
+                defaultDataElementIdentifier
+            ),
 
-            RepeatingGroupComponent repeatingGroupComponent
-                => await GenerateContextForRepeatingGroup(
-                    dataModel,
-                    repeatingGroupComponent,
-                    defaultDataElementIdentifier,
-                    indexes
-                ),
-            GroupComponent groupComponent
-                => await GenerateContextForGroup(dataModel, groupComponent, defaultDataElementIdentifier, indexes),
-            _
-                => new ComponentContext(
-                    component,
-                    indexes?.Length > 0 ? indexes : null,
-                    null,
-                    defaultDataElementIdentifier,
-                    []
-                )
+            RepeatingGroupComponent repeatingGroupComponent => await GenerateContextForRepeatingGroup(
+                dataModel,
+                repeatingGroupComponent,
+                defaultDataElementIdentifier,
+                indexes
+            ),
+            GroupComponent groupComponent => await GenerateContextForGroup(
+                dataModel,
+                groupComponent,
+                defaultDataElementIdentifier,
+                indexes
+            ),
+            _ => new ComponentContext(
+                component,
+                indexes?.Length > 0 ? indexes : null,
+                null,
+                defaultDataElementIdentifier,
+                []
+            ),
         };
     }
 

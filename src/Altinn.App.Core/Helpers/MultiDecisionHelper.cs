@@ -215,8 +215,10 @@ public static class MultiDecisionHelper
         List<string> actionIds = actions.Select(a => a.Id).ToList();
         List<string> resourceIds = resources.Select(r => r.Id).ToList();
 
-        XacmlJsonMultiRequests multiRequests =
-            new() { RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds) };
+        XacmlJsonMultiRequests multiRequests = new()
+        {
+            RequestReference = CreateRequestReference(subjectIds, actionIds, resourceIds),
+        };
 
         return multiRequests;
     }

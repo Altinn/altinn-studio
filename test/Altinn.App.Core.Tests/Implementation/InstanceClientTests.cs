@@ -40,8 +40,8 @@ public sealed class InstanceClientTests : IDisposable
         {
             CompleteConfirmations = new List<CompleteConfirmation>
             {
-                new CompleteConfirmation { StakeholderId = "test" }
-            }
+                new CompleteConfirmation { StakeholderId = "test" },
+            },
         };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -191,8 +191,8 @@ public sealed class InstanceClientTests : IDisposable
         {
             Status = new InstanceStatus
             {
-                Substatus = new Substatus { Label = "Substatus.Label", Description = "Substatus.Description" }
-            }
+                Substatus = new Substatus { Label = "Substatus.Label", Description = "Substatus.Description" },
+            },
         };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -276,7 +276,7 @@ public sealed class InstanceClientTests : IDisposable
         Instance expected = new Instance
         {
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId },
-            Id = $"{instanceOwnerId}/{instanceGuid}"
+            Id = $"{instanceOwnerId}/{instanceGuid}",
         };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -399,7 +399,7 @@ public sealed class InstanceClientTests : IDisposable
         Instance expected = new Instance
         {
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerId.ToString() },
-            Id = $"{instanceOwnerId}/{instanceGuid}"
+            Id = $"{instanceOwnerId}/{instanceGuid}",
         };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
@@ -431,21 +431,19 @@ public sealed class InstanceClientTests : IDisposable
     public async Task QueryInstances_QueryResponseContainsNext()
     {
         // Arrange
-        QueryResponse<Instance> queryResponse1 =
-            new()
-            {
-                Count = 1,
-                Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } },
-                Next =
-                    "https://platform.altinn.no/storage/api/instances?appId=ttd%2Fapps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd"
-            };
+        QueryResponse<Instance> queryResponse1 = new()
+        {
+            Count = 1,
+            Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } },
+            Next =
+                "https://platform.altinn.no/storage/api/instances?appId=ttd%2Fapps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false&continuationtoken=abcd",
+        };
 
-        QueryResponse<Instance> queryResponse2 =
-            new()
-            {
-                Count = 1,
-                Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } }
-            };
+        QueryResponse<Instance> queryResponse2 = new()
+        {
+            Count = 1,
+            Instances = new List<Instance> { new Instance { Id = $"{1337}/{Guid.NewGuid()}" } },
+        };
 
         string urlPart1 =
             "instances?appId=ttd%2Fapps-test&instanceOwner.partyId=1337&status.isArchived=false&status.isSoftDeleted=false";
@@ -476,14 +474,13 @@ public sealed class InstanceClientTests : IDisposable
             _telemetry.Object
         );
 
-        Dictionary<string, StringValues> queryParams =
-            new()
-            {
-                { "appId", $"ttd/apps-test" },
-                { "instanceOwner.partyId", "1337" },
-                { "status.isArchived", "false" },
-                { "status.isSoftDeleted", "false" }
-            };
+        Dictionary<string, StringValues> queryParams = new()
+        {
+            { "appId", $"ttd/apps-test" },
+            { "instanceOwner.partyId", "1337" },
+            { "status.isArchived", "false" },
+            { "status.isSoftDeleted", "false" },
+        };
 
         // Act
         List<Instance> instances = await target.GetInstances(queryParams);
@@ -498,7 +495,7 @@ public sealed class InstanceClientTests : IDisposable
         PlatformSettings platformSettings = new PlatformSettings
         {
             ApiStorageEndpoint = "http://localhost",
-            SubscriptionKey = "key"
+            SubscriptionKey = "key",
         };
         _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 

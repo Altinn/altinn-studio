@@ -28,7 +28,7 @@ internal static class TestHelpers
                     new HttpResponseMessage
                     {
                         StatusCode = HttpStatusCode.OK,
-                        Content = new StringContent(JsonSerializer.Serialize(tokenResponse))
+                        Content = new StringContent(JsonSerializer.Serialize(tokenResponse)),
                     }
             );
 
@@ -65,7 +65,7 @@ internal static class TestHelpers
 
         var handler = new MaskinportenDelegatingHandler(scopes, mockMaskinportenClient.Object, mockLogger.Object)
         {
-            InnerHandler = innerHandlerMock.Object
+            InnerHandler = innerHandlerMock.Object,
         };
 
         return (mockMaskinportenClient, handler);

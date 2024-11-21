@@ -16,14 +16,13 @@ namespace Altinn.App.Core.Internal.Process;
 /// </summary>
 public class ExpressionsExclusiveGateway : IProcessExclusiveGateway
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new()
-        {
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly ILayoutEvaluatorStateInitializer _layoutStateInit;
 

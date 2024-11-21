@@ -99,14 +99,13 @@ internal class PaymentService : IPaymentService
             instance.Id
         );
 
-        PaymentInformation paymentInformation =
-            new()
-            {
-                TaskId = instance.Process.CurrentTask.ElementId,
-                Status = startedPayment != null ? PaymentStatus.Created : PaymentStatus.Skipped,
-                OrderDetails = orderDetails,
-                PaymentDetails = startedPayment
-            };
+        PaymentInformation paymentInformation = new()
+        {
+            TaskId = instance.Process.CurrentTask.ElementId,
+            Status = startedPayment != null ? PaymentStatus.Created : PaymentStatus.Skipped,
+            OrderDetails = orderDetails,
+            PaymentDetails = startedPayment,
+        };
 
         await _dataService.InsertJsonObject(new InstanceIdentifier(instance), dataTypeId, paymentInformation);
         return (paymentInformation, false);

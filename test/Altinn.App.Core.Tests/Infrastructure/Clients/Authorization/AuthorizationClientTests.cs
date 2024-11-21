@@ -27,16 +27,15 @@ public class AuthorizationClientTests
         Mock<IOptionsMonitor<AppSettings>> appSettingsMock = new();
         var pdpResponse = GetXacmlJsonRespons("one-action-denied");
         pdpMock.Setup(s => s.GetDecisionForRequest(It.IsAny<XacmlJsonRequestRoot>())).ReturnsAsync(pdpResponse);
-        AuthorizationClient client =
-            new(
-                Options.Create(new PlatformSettings()),
-                httpContextAccessorMock.Object,
-                httpClientMock.Object,
-                appSettingsMock.Object,
-                pdpMock.Object,
-                NullLogger<AuthorizationClient>.Instance,
-                telemetrySink.Object
-            );
+        AuthorizationClient client = new(
+            Options.Create(new PlatformSettings()),
+            httpContextAccessorMock.Object,
+            httpClientMock.Object,
+            appSettingsMock.Object,
+            pdpMock.Object,
+            NullLogger<AuthorizationClient>.Instance,
+            telemetrySink.Object
+        );
 
         var claimsPrincipal = GetClaims("1337");
 
@@ -49,8 +48,8 @@ public class AuthorizationClientTests
             Process = new ProcessState()
             {
                 CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
-                EndEvent = "EndEvent_1"
-            }
+                EndEvent = "EndEvent_1",
+            },
         };
 
         var expected = new Dictionary<string, bool>()
@@ -58,7 +57,7 @@ public class AuthorizationClientTests
             { "read", true },
             { "write", true },
             { "complete", true },
-            { "lookup", false }
+            { "lookup", false },
         };
         var actions = new List<string>() { "read", "write", "complete", "lookup" };
         var actual = await client.AuthorizeActions(instance, claimsPrincipal, actions);
@@ -99,8 +98,8 @@ public class AuthorizationClientTests
             Process = new ProcessState()
             {
                 CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
-                EndEvent = "EndEvent_1"
-            }
+                EndEvent = "EndEvent_1",
+            },
         };
 
         var expected = new Dictionary<string, bool>();
@@ -120,7 +119,7 @@ public class AuthorizationClientTests
                         new("urn:altinn:partyid", partyId, "#integer"),
                         new("urn:altinn:authlevel", "3", "#integer"),
                     }
-                )
+                ),
             }
         );
     }

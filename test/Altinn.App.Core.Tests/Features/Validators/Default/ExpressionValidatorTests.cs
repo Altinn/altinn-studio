@@ -70,10 +70,10 @@ public class ExpressionValidatorTests
     {
         var testCase = await LoadData(fileName, folder);
 
-        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app", };
-        var dataElement = new DataElement { DataType = "default", };
+        var instance = new Instance() { Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d", AppId = "org/app" };
+        var dataElement = new DataElement { DataType = "default" };
         var dataType = new DataType() { Id = "default" };
-        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = [dataType], };
+        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = [dataType] };
 
         var dataModel = DynamicClassBuilder.DataAccessorFromJsonDocument(instance, testCase.FormData, dataElement);
 

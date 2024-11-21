@@ -36,11 +36,11 @@ public static class InstanceEventExtensions
                     Validated = new ValidationStatus
                     {
                         CanCompleteTask = original.ProcessInfo?.CurrentTask?.Validated?.CanCompleteTask ?? false,
-                        Timestamp = original.ProcessInfo?.CurrentTask?.Validated?.Timestamp
-                    }
+                        Timestamp = original.ProcessInfo?.CurrentTask?.Validated?.Timestamp,
+                    },
                 },
 
-                StartEvent = original.ProcessInfo?.StartEvent
+                StartEvent = original.ProcessInfo?.StartEvent,
             },
             User = new PlatformUser
             {
@@ -48,8 +48,8 @@ public static class InstanceEventExtensions
                 EndUserSystemId = original.User.EndUserSystemId,
                 OrgId = original.User.OrgId,
                 UserId = original.User.UserId,
-                NationalIdentityNumber = original.User?.NationalIdentityNumber
-            }
+                NationalIdentityNumber = original.User?.NationalIdentityNumber,
+            },
         };
     }
 }

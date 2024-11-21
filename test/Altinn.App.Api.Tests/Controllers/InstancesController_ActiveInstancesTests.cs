@@ -143,8 +143,8 @@ public class InstancesController_ActiveInstancesTest
                 DueBefore = DateTime.Today.AddDays(20),
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
-                PresentationTexts = new() { { "periode", "1. halvår 2023" } }
-            }
+                PresentationTexts = new() { { "periode", "1. halvår 2023" } },
+            },
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
@@ -157,7 +157,7 @@ public class InstancesController_ActiveInstancesTest
                 "12345" => "",
                 // "12345" => "", // Would it be more sensible to return UserId as fallback?
                 _ => throw new Exception("Unknown user"),
-            }
+            },
         });
 
         _instanceClient
@@ -194,8 +194,8 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
-                PresentationTexts = new() { { "periode", "1. halvår 2023" }, { "kontaktperson", "Eirk Blodøks" } }
-            }
+                PresentationTexts = new() { { "periode", "1. halvår 2023" }, { "kontaktperson", "Eirk Blodøks" } },
+            },
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
@@ -208,7 +208,7 @@ public class InstancesController_ActiveInstancesTest
                 "12345" => "",
                 // "12345" => "12345", // Would it be more sensible to return UserId as fallback?
                 _ => throw new Exception("Unknown user"),
-            }
+            },
         });
 
         _instanceClient
@@ -245,7 +245,7 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "12345",
-            }
+            },
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
@@ -257,7 +257,7 @@ public class InstancesController_ActiveInstancesTest
             {
                 "12345" => "Ola Olsen",
                 _ => throw new Exception("Unknown user"),
-            }
+            },
         });
 
         _instanceClient
@@ -296,7 +296,7 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "123456789",
-            }
+            },
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
@@ -309,7 +309,7 @@ public class InstancesController_ActiveInstancesTest
                 "123456789" => "",
                 // "123456789" => "123456789", // Would it be more sensible to return OrgNumber as fallback?
                 _ => throw new Exception("Unknown user"),
-            }
+            },
         });
 
         _instanceClient
@@ -346,7 +346,7 @@ public class InstancesController_ActiveInstancesTest
                 Id = $"{1234}/{Guid.NewGuid()}",
                 LastChanged = DateTime.Now,
                 LastChangedBy = "123456789",
-            }
+            },
         };
         var expected = instances.Select(i => new SimpleInstance()
         {
@@ -358,7 +358,7 @@ public class InstancesController_ActiveInstancesTest
             {
                 "123456789" => "Testdepartementet",
                 _ => throw new Exception("Unknown user"),
-            }
+            },
         });
 
         _instanceClient

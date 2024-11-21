@@ -173,7 +173,7 @@ public class EformidlingStatusCheckEventHandler2 : IEventHandler
     {
         var requestHeaders = new Dictionary<string, string>
         {
-            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey }
+            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
         };
 
         Statuses statuses = await _eFormidlingClient.GetMessageStatusById(shipmentId, requestHeaders);

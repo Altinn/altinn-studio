@@ -26,20 +26,19 @@ public class PaymentUserActionTests
         // Arrange
         Instance instance = CreateInstance();
 
-        PaymentInformation paymentInformation =
-            new()
+        PaymentInformation paymentInformation = new()
+        {
+            TaskId = instance.Process.CurrentTask.ElementId,
+            Status = PaymentStatus.Created,
+            OrderDetails = new OrderDetails
             {
-                TaskId = instance.Process.CurrentTask.ElementId,
-                Status = PaymentStatus.Created,
-                OrderDetails = new OrderDetails
-                {
-                    PaymentProcessorId = "paymentProcessorId",
-                    Currency = "NOK",
-                    OrderLines = [],
-                    Receiver = new PaymentReceiver()
-                },
-                PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com", }
-            };
+                PaymentProcessorId = "paymentProcessorId",
+                Currency = "NOK",
+                OrderLines = [],
+                Receiver = new PaymentReceiver(),
+            },
+            PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com" },
+        };
 
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -65,20 +64,19 @@ public class PaymentUserActionTests
         // Arrange
         Instance instance = CreateInstance();
 
-        PaymentInformation paymentInformation =
-            new()
+        PaymentInformation paymentInformation = new()
+        {
+            TaskId = instance.Process.CurrentTask.ElementId,
+            Status = PaymentStatus.Skipped,
+            OrderDetails = new OrderDetails
             {
-                TaskId = instance.Process.CurrentTask.ElementId,
-                Status = PaymentStatus.Skipped,
-                OrderDetails = new OrderDetails
-                {
-                    PaymentProcessorId = "paymentProcessorId",
-                    Currency = "NOK",
-                    OrderLines = [],
-                    Receiver = new PaymentReceiver()
-                },
-                PaymentDetails = new PaymentDetails { PaymentId = null, RedirectUrl = null, }
-            };
+                PaymentProcessorId = "paymentProcessorId",
+                Currency = "NOK",
+                OrderLines = [],
+                Receiver = new PaymentReceiver(),
+            },
+            PaymentDetails = new PaymentDetails { PaymentId = null, RedirectUrl = null },
+        };
 
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -102,20 +100,19 @@ public class PaymentUserActionTests
         // Arrange
         Instance instance = CreateInstance();
 
-        PaymentInformation paymentInformation =
-            new()
+        PaymentInformation paymentInformation = new()
+        {
+            TaskId = instance.Process.CurrentTask.ElementId,
+            Status = PaymentStatus.Skipped,
+            OrderDetails = new OrderDetails
             {
-                TaskId = instance.Process.CurrentTask.ElementId,
-                Status = PaymentStatus.Skipped,
-                OrderDetails = new OrderDetails
-                {
-                    PaymentProcessorId = "paymentProcessorId",
-                    Currency = "NOK",
-                    OrderLines = [],
-                    Receiver = new PaymentReceiver()
-                },
-                PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com", }
-            };
+                PaymentProcessorId = "paymentProcessorId",
+                Currency = "NOK",
+                OrderLines = [],
+                Receiver = new PaymentReceiver(),
+            },
+            PaymentDetails = new PaymentDetails { PaymentId = "1", RedirectUrl = "https://example.com" },
+        };
 
         var userActionContext = new UserActionContext(instance, 1337);
 
@@ -154,9 +151,9 @@ public class PaymentUserActionTests
         return new Instance()
         {
             Id = "500000/b194e9f5-02d0-41bc-8461-a0cbac8a6efc",
-            InstanceOwner = new InstanceOwner { PartyId = "5000", },
+            InstanceOwner = new InstanceOwner { PartyId = "5000" },
             Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task2" } },
-            Data = [new DataElement { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }]
+            Data = [new DataElement { Id = "a499c3ef-e88a-436b-8650-1c43e5037ada", DataType = "Model" }],
         };
     }
 }

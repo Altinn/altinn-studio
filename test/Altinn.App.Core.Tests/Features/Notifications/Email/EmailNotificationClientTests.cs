@@ -33,7 +33,7 @@ public class EmailNotificationClientTests
             Body = "body",
             Recipients = [new("test.testesen@testdirektoratet.no")],
             SendersReference = "testref",
-            RequestedSendTime = DateTime.UtcNow
+            RequestedSendTime = DateTime.UtcNow,
         };
         var expectedUri = "http://localhost:5101/notifications/api/v1/orders/email";
         var expectedContent = JsonSerializer.Serialize(emailNotification);
@@ -52,7 +52,7 @@ public class EmailNotificationClientTests
             .ReturnsAsync(
                 new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json")
+                    Content = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json"),
                 }
             )
             .Callback<HttpRequestMessage, CancellationToken>(
@@ -95,7 +95,7 @@ public class EmailNotificationClientTests
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": \"order123\"}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent, };
+                var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = jsonContent };
                 return response;
             });
 
@@ -111,7 +111,7 @@ public class EmailNotificationClientTests
             Subject = "subject",
             Body = "body",
             Recipients = recipients,
-            SendersReference = "testref"
+            SendersReference = "testref",
         };
 
         // Act
@@ -137,7 +137,7 @@ public class EmailNotificationClientTests
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent(string.Empty, Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent, };
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent };
                 return response;
             });
 
@@ -153,7 +153,7 @@ public class EmailNotificationClientTests
             Subject = "subject",
             Body = "body",
             Recipients = recipients,
-            SendersReference = "testref"
+            SendersReference = "testref",
         };
 
         // Act
@@ -179,7 +179,7 @@ public class EmailNotificationClientTests
             .ReturnsAsync(() =>
             {
                 var jsonContent = new StringContent("{\"orderId\": 123}", Encoding.UTF8, "application/json");
-                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent, };
+                var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = jsonContent };
                 return response;
             });
 
@@ -195,7 +195,7 @@ public class EmailNotificationClientTests
             Subject = "subject",
             Body = "body",
             Recipients = recipients,
-            SendersReference = "testref"
+            SendersReference = "testref",
         };
 
         // Act
@@ -279,7 +279,7 @@ public class EmailNotificationClientTests
         services.AddTransient<IEmailNotificationClient, EmailNotificationClient>();
 
         var sp = services.BuildServiceProvider(
-            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true, }
+            new ServiceProviderOptions { ValidateOnBuild = true, ValidateScopes = true }
         );
 
         var client = (EmailNotificationClient)sp.GetRequiredService<IEmailNotificationClient>();

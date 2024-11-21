@@ -7,13 +7,12 @@ namespace Altinn.App.Api.Tests.Data;
 
 public static class TestData
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new(JsonSerializerDefaults.Web)
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() }
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     public static string GetTestDataRootDirectory()
     {

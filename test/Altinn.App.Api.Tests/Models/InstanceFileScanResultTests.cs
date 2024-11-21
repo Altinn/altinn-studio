@@ -114,7 +114,7 @@ public class InstanceFileScanResultTests
             new DataElementFileScanResult()
             {
                 Id = Guid.NewGuid().ToString(),
-                FileScanResult = FileScanResult.NotApplicable
+                FileScanResult = FileScanResult.NotApplicable,
             }
         );
 

@@ -53,5 +53,5 @@ public enum ProcessErrorType
     /// <summary>
     /// The request was not valid
     /// </summary>
-    BadRequest
+    BadRequest,
 }

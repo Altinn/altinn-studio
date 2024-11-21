@@ -113,7 +113,7 @@ public class AltinnPartyClient : IAltinnPartyClient
         {
             RequestUri = new Uri(endpointUrl, UriKind.Relative),
             Method = HttpMethod.Post,
-            Content = content
+            Content = content,
         };
 
         request.Headers.Add("Authorization", "Bearer " + token);

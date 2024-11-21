@@ -41,7 +41,7 @@ public class EventsSubscriptionClientTests
             new PlatformSettings()
             {
                 ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
-                SubscriptionKey = "key"
+                SubscriptionKey = "key",
             }
         );
 
@@ -54,7 +54,7 @@ public class EventsSubscriptionClientTests
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(JsonSerializer.Serialize(subscriptionContent))
+            Content = new StringContent(JsonSerializer.Serialize(subscriptionContent)),
         };
 
         Mock<HttpMessageHandler> handlerMock = new();

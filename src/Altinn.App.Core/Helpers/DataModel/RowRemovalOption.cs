@@ -18,5 +18,5 @@ public enum RowRemovalOption
     /// <summary>
     /// Ignore row removal
     /// </summary>
-    Ignore
+    Ignore,
 }

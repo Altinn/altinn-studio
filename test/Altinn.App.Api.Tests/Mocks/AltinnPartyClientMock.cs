@@ -8,8 +8,10 @@ namespace Altinn.App.Api.Tests.Mocks;
 
 public class AltinnPartyClientMock : IAltinnPartyClient
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     private readonly string _partyFolder = TestData.GetAltinnProfilePath();
 

@@ -89,7 +89,7 @@ public class InstancesController_CopyInstanceTests
             patchService
         )
         {
-            ControllerContext = controllerContext
+            ControllerContext = controllerContext,
         };
     }
 
@@ -194,12 +194,11 @@ public class InstancesController_CopyInstanceTests
         const string AppName = "copy-instance";
         int instanceOwnerPartyId = 343234;
         Guid instanceGuid = Guid.NewGuid();
-        Instance instance =
-            new()
-            {
-                Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-                Status = new InstanceStatus() { IsArchived = false }
-            };
+        Instance instance = new()
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            Status = new InstanceStatus() { IsArchived = false },
+        };
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
         _appMetadata.Setup(a => a.GetApplicationMetadata()).ReturnsAsync(CreateApplicationMetadata(Org, AppName, true));
@@ -310,12 +309,11 @@ public class InstancesController_CopyInstanceTests
         const string AppName = "copy-instance";
         int instanceOwnerPartyId = 343234;
         Guid instanceGuid = Guid.NewGuid();
-        Instance instance =
-            new()
-            {
-                Id = $"{instanceOwnerPartyId}/{instanceGuid}",
-                Status = new InstanceStatus() { IsArchived = true }
-            };
+        Instance instance = new()
+        {
+            Id = $"{instanceOwnerPartyId}/{instanceGuid}",
+            Status = new InstanceStatus() { IsArchived = true },
+        };
         InstantiationValidationResult? instantiationValidationResult = new() { Valid = false };
 
         _httpContextMock.Setup(httpContext => httpContext.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
@@ -355,19 +353,18 @@ public class InstancesController_CopyInstanceTests
         Guid instanceGuid = Guid.NewGuid();
         Guid dataGuid = Guid.NewGuid();
         const string dataTypeId = "data_type_1";
-        Instance instance =
-            new()
+        Instance instance = new()
+        {
+            Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
+            AppId = $"{Org}/{AppName}",
+            InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
+            Status = new InstanceStatus() { IsArchived = true },
+            Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
+            Data = new List<DataElement>
             {
-                Id = $"{InstanceOwnerPartyId}/{instanceGuid}",
-                AppId = $"{Org}/{AppName}",
-                InstanceOwner = new InstanceOwner() { PartyId = InstanceOwnerPartyId.ToString() },
-                Status = new InstanceStatus() { IsArchived = true },
-                Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = "First" } },
-                Data = new List<DataElement>
-                {
-                    new DataElement { Id = dataGuid.ToString(), DataType = dataTypeId }
-                }
-            };
+                new DataElement { Id = dataGuid.ToString(), DataType = dataTypeId },
+            },
+        };
         InstantiationValidationResult? instantiationValidationResult = new() { Valid = true };
 
         _httpContextMock.Setup(hc => hc.User).Returns(PrincipalUtil.GetUserPrincipal(1337, null));
@@ -442,11 +439,11 @@ public class InstancesController_CopyInstanceTests
                 new DataType
                 {
                     Id = "data_type_1",
-                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema", },
-                    TaskId = "First"
-                }
+                    AppLogic = new ApplicationLogic { ClassRef = "App.Models.Skjema" },
+                    TaskId = "First",
+                },
             },
-            Org = org
+            Org = org,
         };
     }
 

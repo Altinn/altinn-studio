@@ -26,42 +26,46 @@ public class AppResourcesSITests
         AppSettings appSettings = GetAppSettings("AppMetadata", "default.applicationmetadata.json");
         var settings = Options.Create(appSettings);
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        AppResourcesSI appResources =
-            new(settings, appMetadata, null, new NullLogger<AppResourcesSI>(), _telemetry.Object);
-        Application expected =
-            new()
+        AppResourcesSI appResources = new(
+            settings,
+            appMetadata,
+            null,
+            new NullLogger<AppResourcesSI>(),
+            _telemetry.Object
+        );
+        Application expected = new()
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes = new List<DataType>()
             {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes = new List<DataType>()
+                new()
                 {
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = ["application/pdf"],
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
+                    Id = "vedlegg",
+                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
+                    MinCount = 0,
+                    TaskId = "Task_1",
                 },
-                PartyTypesAllowed = new PartyTypesAllowed()
+                new()
                 {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = ["application/pdf"],
+                    MinCount = 1,
+                    TaskId = "Task_1",
                 },
-                OnEntry = new OnEntry() { Show = "select-instance" }
-            };
+            },
+            PartyTypesAllowed = new PartyTypesAllowed()
+            {
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            OnEntry = new OnEntry() { Show = "select-instance" },
+        };
         var actual = appResources.GetApplication();
         actual.Should().NotBeNull();
         actual.Should().BeEquivalentTo(expected);
@@ -73,8 +77,13 @@ public class AppResourcesSITests
         AppSettings appSettings = GetAppSettings("AppMetadata", "no-on-entry.applicationmetadata.json");
         var settings = Options.Create(appSettings);
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings));
-        AppResourcesSI appResources =
-            new(settings, appMetadata, null, new NullLogger<AppResourcesSI>(), _telemetry.Object);
+        AppResourcesSI appResources = new(
+            settings,
+            appMetadata,
+            null,
+            new NullLogger<AppResourcesSI>(),
+            _telemetry.Object
+        );
         Application expected = new Application()
         {
             Id = "tdd/bestilling",
@@ -89,23 +98,23 @@ public class AppResourcesSITests
                     Id = "vedlegg",
                     AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
                     MinCount = 0,
-                    TaskId = "Task_1"
+                    TaskId = "Task_1",
                 },
                 new()
                 {
                     Id = "ref-data-as-pdf",
                     AllowedContentTypes = ["application/pdf"],
                     MinCount = 1,
-                    TaskId = "Task_1"
-                }
+                    TaskId = "Task_1",
+                },
             ],
             PartyTypesAllowed = new PartyTypesAllowed()
             {
                 BankruptcyEstate = true,
                 Organisation = true,
                 Person = true,
-                SubUnit = true
-            }
+                SubUnit = true,
+            },
         };
         var actual = appResources.GetApplication();
         actual.Should().NotBeNull();
@@ -122,42 +131,46 @@ public class AppResourcesSITests
             .ReturnsAsync(new Dictionary<string, bool>() { { "footer", true } });
         var settings = Options.Create(appSettings);
         IAppMetadata appMetadata = SetupAppMetadata(Options.Create(appSettings), appFeaturesMock.Object);
-        AppResourcesSI appResources =
-            new(settings, appMetadata, null, new NullLogger<AppResourcesSI>(), _telemetry.Object);
-        Application expected =
-            new()
+        AppResourcesSI appResources = new(
+            settings,
+            appMetadata,
+            null,
+            new NullLogger<AppResourcesSI>(),
+            _telemetry.Object
+        );
+        Application expected = new()
+        {
+            Id = "tdd/bestilling",
+            Org = "tdd",
+            Created = DateTime.Parse("2019-09-16T22:22:22"),
+            CreatedBy = "username",
+            Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
+            DataTypes = new List<DataType>()
             {
-                Id = "tdd/bestilling",
-                Org = "tdd",
-                Created = DateTime.Parse("2019-09-16T22:22:22"),
-                CreatedBy = "username",
-                Title = new Dictionary<string, string>() { { "nb", "Bestillingseksempelapp" } },
-                DataTypes = new List<DataType>()
+                new()
                 {
-                    new()
-                    {
-                        Id = "vedlegg",
-                        AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
-                        MinCount = 0,
-                        TaskId = "Task_1"
-                    },
-                    new()
-                    {
-                        Id = "ref-data-as-pdf",
-                        AllowedContentTypes = ["application/pdf"],
-                        MinCount = 1,
-                        TaskId = "Task_1"
-                    }
+                    Id = "vedlegg",
+                    AllowedContentTypes = ["application/pdf", "image/png", "image/jpeg"],
+                    MinCount = 0,
+                    TaskId = "Task_1",
                 },
-                PartyTypesAllowed = new PartyTypesAllowed()
+                new()
                 {
-                    BankruptcyEstate = true,
-                    Organisation = true,
-                    Person = true,
-                    SubUnit = true
+                    Id = "ref-data-as-pdf",
+                    AllowedContentTypes = ["application/pdf"],
+                    MinCount = 1,
+                    TaskId = "Task_1",
                 },
-                OnEntry = new OnEntry() { Show = "select-instance" },
-            };
+            },
+            PartyTypesAllowed = new PartyTypesAllowed()
+            {
+                BankruptcyEstate = true,
+                Organisation = true,
+                Person = true,
+                SubUnit = true,
+            },
+            OnEntry = new OnEntry() { Show = "select-instance" },
+        };
         var actual = appResources.GetApplication();
         var actual2 = appResources.GetApplication();
         appFeaturesMock.Verify(af => af.GetFrontendFeatures());
@@ -284,7 +297,7 @@ public class AppResourcesSITests
             ProcessFolder = string.Empty,
             ApplicationMetadataFileName = appMetadataFilename,
             ProcessFileName = bpmnFilename,
-            ApplicationXACMLPolicyFileName = policyFilename
+            ApplicationXACMLPolicyFileName = policyFilename,
         };
         return appSettings;
     }

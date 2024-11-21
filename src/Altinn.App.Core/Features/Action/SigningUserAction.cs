@@ -81,14 +81,13 @@ public class SigningUserAction : IUserAction
             )
             {
                 var dataElementSignatures = GetDataElementSignatures(context.Instance.Data, dataTypesToSign);
-                SignatureContext signatureContext =
-                    new(
-                        new InstanceIdentifier(context.Instance),
-                        currentTask.Id,
-                        signatureDataType,
-                        await GetSignee(context.UserId.Value),
-                        dataElementSignatures
-                    );
+                SignatureContext signatureContext = new(
+                    new InstanceIdentifier(context.Instance),
+                    currentTask.Id,
+                    signatureDataType,
+                    await GetSignee(context.UserId.Value),
+                    dataElementSignatures
+                );
                 await _signClient.SignDataElements(signatureContext);
                 return UserActionResult.SuccessResult();
             }

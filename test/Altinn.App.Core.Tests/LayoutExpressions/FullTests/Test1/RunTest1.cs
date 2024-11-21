@@ -25,8 +25,8 @@ public class RunTest1
             {
                 Some = new()
                 {
-                    Data = new() { Binding = "don't hide second page", Binding2 = 1235 }
-                }
+                    Data = new() { Binding = "don't hide second page", Binding2 = 1235 },
+                },
             },
             "Test1"
         );
@@ -42,8 +42,8 @@ public class RunTest1
             {
                 Some = new()
                 {
-                    Data = new() { Binding = "hideSecondPage", Binding2 = 1235 }
-                }
+                    Data = new() { Binding = "hideSecondPage", Binding2 = 1235 },
+                },
             },
             "Test1"
         );
@@ -55,13 +55,13 @@ public class RunTest1
                     new DataReference()
                     {
                         Field = "some.data.binding3",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
                     },
                     new DataReference()
                     {
                         Field = "some.data.binding2",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
-                    }
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
+                    },
                 ]
             );
     }
@@ -74,8 +74,8 @@ public class RunTest1
             {
                 Some = new()
                 {
-                    Data = new() { Binding = "hideSecondPage", Binding2 = 1235 }
-                }
+                    Data = new() { Binding = "hideSecondPage", Binding2 = 1235 },
+                },
             },
             "Test1"
         );
@@ -91,8 +91,8 @@ public class RunTest1
             {
                 Some = new()
                 {
-                    Data = new() { Binding = "don't hide second page", Binding2 = 1235 }
-                }
+                    Data = new() { Binding = "don't hide second page", Binding2 = 1235 },
+                },
             },
             "Test1"
         );

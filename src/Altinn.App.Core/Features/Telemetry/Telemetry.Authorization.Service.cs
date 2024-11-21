@@ -48,7 +48,7 @@ partial class Telemetry
         {
             activity.SetInstanceId(instance);
             var now = DateTimeOffset.UtcNow;
-            ActivityTagsCollection tags = new([new("actions.count", actions.Count),]);
+            ActivityTagsCollection tags = new([new("actions.count", actions.Count)]);
             for (int i = 0; i < actions.Count; i++)
             {
                 var action = actions[i];

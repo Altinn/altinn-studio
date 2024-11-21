@@ -145,7 +145,7 @@ public class ProcessController : ControllerBase
             {
                 Instance = instance,
                 StartEventId = startEvent,
-                User = User
+                User = User,
             };
             ProcessChangeResult result = await _processEngine.GenerateProcessStartEvents(request);
             if (!result.Success)
@@ -273,7 +273,7 @@ public class ProcessController : ControllerBase
                 Detail = $"{errorCount} validation errors found for task {currentTaskId}",
                 Status = (int)HttpStatusCode.Conflict,
                 Title = "Validation failed for task",
-                Extensions = new Dictionary<string, object?>() { { "validationIssues", validationIssues }, },
+                Extensions = new Dictionary<string, object?>() { { "validationIssues", validationIssues } },
             };
         }
 
@@ -371,7 +371,7 @@ public class ProcessController : ControllerBase
                 Instance = instance,
                 User = User,
                 Action = checkedAction,
-                Language = language
+                Language = language,
             };
             var validationProblem = await GetValidationProblemDetails(instance, currentTaskId, language);
             if (validationProblem is not null)
@@ -648,7 +648,7 @@ public class ProcessController : ControllerBase
                 new AppProcessTaskTypeInfo
                 {
                     ElementId = processElement.Id,
-                    AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType
+                    AltinnTaskType = processElement.ExtensionElements?.TaskExtension?.TaskType,
                 }
             );
         }
@@ -670,7 +670,7 @@ public class ProcessController : ControllerBase
                 {
                     Detail = phe.Message,
                     Status = (int)phe.Response.StatusCode,
-                    Title = message
+                    Title = message,
                 }
             );
         }
@@ -683,7 +683,7 @@ public class ProcessController : ControllerBase
                 {
                     Detail = se.Message,
                     Status = (int)se.StatusCode,
-                    Title = message
+                    Title = message,
                 }
             );
         }
@@ -694,7 +694,7 @@ public class ProcessController : ControllerBase
             {
                 Detail = exception.Message,
                 Status = 500,
-                Title = message
+                Title = message,
             }
         );
     }

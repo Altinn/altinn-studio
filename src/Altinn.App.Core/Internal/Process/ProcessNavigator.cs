@@ -108,12 +108,11 @@ public class ProcessNavigator : IProcessNavigator
             }
             else
             {
-                ProcessGatewayInformation gatewayInformation =
-                    new()
-                    {
-                        Action = action,
-                        DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId
-                    };
+                ProcessGatewayInformation gatewayInformation = new()
+                {
+                    Action = action,
+                    DataTypeId = gateway.ExtensionElements?.GatewayExtension?.ConnectedDataTypeId,
+                };
                 IInstanceDataAccessor dataAccessor = new InstanceDataUnitOfWork(
                     instance,
                     _dataClient,

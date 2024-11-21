@@ -15,8 +15,10 @@ namespace Altinn.App.Api.Controllers;
 /// </summary>
 public class HomeController : Controller
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly IAntiforgery _antiforgery;
     private readonly PlatformSettings _platformSettings;
@@ -75,7 +77,7 @@ public class HomeController : Controller
                 tokens.RequestToken,
                 new CookieOptions
                 {
-                    HttpOnly = false // Make this cookie readable by Javascript.
+                    HttpOnly = false, // Make this cookie readable by Javascript.
                 }
             );
         }

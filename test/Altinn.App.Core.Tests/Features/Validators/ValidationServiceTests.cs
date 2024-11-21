@@ -23,13 +23,12 @@ public class ValidationServiceTests : IAsyncLifetime
 
     private readonly ApplicationMetadata _appMetadata = new($"{Org}/{App}") { DataTypes = [] };
 
-    private readonly Instance _instance =
-        new()
-        {
-            AppId = $"{Org}/{App}",
-            Org = Org,
-            Data = []
-        };
+    private readonly Instance _instance = new()
+    {
+        AppId = $"{Org}/{App}",
+        Org = Org,
+        Data = [],
+    };
 
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
     private readonly InstanceDataAccessorFake _instanceDataAccessor;
@@ -145,7 +144,7 @@ public class ValidationServiceTests : IAsyncLifetime
         {
             Severity = ValidationIssueSeverity.Error,
             Description = "Test error",
-            Code = "TestCode"
+            Code = "TestCode",
         };
 
         RegisterValidatorMock(source: "IgnoredValidator");
@@ -273,8 +272,8 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 Severity = ValidationIssueSeverity.Error,
                 Description = "Test error",
-                Code = "TestCode"
-            }
+                Code = "TestCode",
+            },
         ];
 
         var genericValidator = new GenericValidatorFake(defaultDataType, validatorIssues);
@@ -304,7 +303,7 @@ public class ValidationServiceTests : IAsyncLifetime
 
         var formDataValidatorNoAppLogicMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
         {
-            Name = "FormDataValidatorNoAppLogic"
+            Name = "FormDataValidatorNoAppLogic",
         };
         formDataValidatorNoAppLogicMock
             .SetupGet(v => v.DataType)
@@ -319,7 +318,7 @@ public class ValidationServiceTests : IAsyncLifetime
 
         var formDataValidatorWrongTaskMock = new Mock<IFormDataValidator>(MockBehavior.Strict)
         {
-            Name = "FormDataValidatorWrongTask"
+            Name = "FormDataValidatorWrongTask",
         };
         formDataValidatorWrongTaskMock
             .SetupGet(v => v.DataType)
@@ -335,7 +334,7 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 Id = "dataTypeWrongTask",
                 TaskId = "wrongTask",
-                AppLogic = new() { ClassRef = "System.String" }
+                AppLogic = new() { ClassRef = "System.String" },
             }
         );
 
@@ -354,8 +353,8 @@ public class ValidationServiceTests : IAsyncLifetime
                     {
                         Severity = ValidationIssueSeverity.Error,
                         Description = "Test error",
-                        Code = "TestCode543"
-                    }
+                        Code = "TestCode543",
+                    },
                 }
             );
         _services.AddSingleton(formDataValidatorMock.Object);
@@ -399,7 +398,7 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 Id = defaultDataType,
                 TaskId = taskId,
-                AppLogic = new() { ClassRef = valueToValidate.GetType().FullName }
+                AppLogic = new() { ClassRef = valueToValidate.GetType().FullName },
             }
         );
         var dataElement = new DataElement { Id = Guid.NewGuid().ToString(), DataType = defaultDataType };
@@ -407,7 +406,7 @@ public class ValidationServiceTests : IAsyncLifetime
         var dataElementNoValidation = new DataElement()
         {
             Id = Guid.NewGuid().ToString(),
-            DataType = dataTypeNoValidation
+            DataType = dataTypeNoValidation,
         };
         _instanceDataAccessor.Add(dataElementNoValidation, "valueToNotValidate");
 
@@ -417,8 +416,8 @@ public class ValidationServiceTests : IAsyncLifetime
             {
                 Severity = ValidationIssueSeverity.Error,
                 Description = "Test error",
-                Code = "TestCode"
-            }
+                Code = "TestCode",
+            },
         ];
 
         var changes = new DataElementChanges(
@@ -432,7 +431,7 @@ public class ValidationServiceTests : IAsyncLifetime
                     CurrentFormData = "currentValue",
                     PreviousFormData = "previousValue",
                     CurrentBinaryData = default,
-                    PreviousBinaryData = default
+                    PreviousBinaryData = default,
                 },
                 new FormDataChange()
                 {
@@ -443,8 +442,8 @@ public class ValidationServiceTests : IAsyncLifetime
                     CurrentFormData = "currentValue",
                     PreviousFormData = "previousValue",
                     CurrentBinaryData = null,
-                    PreviousBinaryData = null
-                }
+                    PreviousBinaryData = null,
+                },
             ]
         );
 

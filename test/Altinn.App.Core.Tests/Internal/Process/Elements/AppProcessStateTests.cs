@@ -26,7 +26,7 @@ public class AppProcessStateTests
                 ElementId = "Task_1",
                 FlowType = "FlowType",
                 AltinnTaskType = "data",
-            }
+            },
         };
         AppProcessState expected = new AppProcessState()
         {
@@ -43,15 +43,15 @@ public class AppProcessStateTests
                 Validated = new()
                 {
                     Timestamp = input.CurrentTask.Validated.Timestamp,
-                    CanCompleteTask = input.CurrentTask.Validated.CanCompleteTask
+                    CanCompleteTask = input.CurrentTask.Validated.CanCompleteTask,
                 },
                 ElementId = input.CurrentTask.ElementId,
                 FlowType = input.CurrentTask.FlowType,
                 AltinnTaskType = input.CurrentTask.AltinnTaskType,
                 Actions = new Dictionary<string, bool>(),
                 HasReadAccess = false,
-                HasWriteAccess = false
-            }
+                HasWriteAccess = false,
+            },
         };
         AppProcessState actual = new(input);
         actual.Should().BeEquivalentTo(expected);
@@ -75,8 +75,8 @@ public class AppProcessStateTests
                 Validated = null,
                 ElementId = "Task_1",
                 FlowType = "FlowType",
-                AltinnTaskType = "data"
-            }
+                AltinnTaskType = "data",
+            },
         };
         AppProcessState expected = new AppProcessState()
         {
@@ -96,8 +96,8 @@ public class AppProcessStateTests
                 AltinnTaskType = input.CurrentTask.AltinnTaskType,
                 Actions = new Dictionary<string, bool>(),
                 HasReadAccess = false,
-                HasWriteAccess = false
-            }
+                HasWriteAccess = false,
+            },
         };
         AppProcessState actual = new(input);
         actual.Should().BeEquivalentTo(expected);
@@ -112,7 +112,7 @@ public class AppProcessStateTests
             StartEvent = "StartEvent",
             Ended = DateTime.Now,
             EndEvent = "EndEvent",
-            CurrentTask = null
+            CurrentTask = null,
         };
         AppProcessState expected = new AppProcessState()
         {
@@ -120,7 +120,7 @@ public class AppProcessStateTests
             StartEvent = input.StartEvent,
             Ended = input.Ended,
             EndEvent = input.EndEvent,
-            CurrentTask = null
+            CurrentTask = null,
         };
         AppProcessState actual = new(input);
         actual.Should().BeEquivalentTo(expected);

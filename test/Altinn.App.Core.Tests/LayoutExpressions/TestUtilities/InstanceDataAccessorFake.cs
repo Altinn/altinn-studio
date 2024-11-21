@@ -51,7 +51,7 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
                     Id = dataElement.DataType,
                     TaskId = _defaultTaskId,
                     AppLogic = new() { ClassRef = data.GetType().FullName },
-                    MaxCount = maxCount
+                    MaxCount = maxCount,
                 };
                 _applicationMetadata.DataTypes.Add(dataType);
             }

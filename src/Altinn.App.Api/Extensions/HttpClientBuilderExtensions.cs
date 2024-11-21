@@ -28,7 +28,7 @@ public static class HttpClientBuilderExtensions
     )
     {
         var scopes = new[] { scope }.Concat(additionalScopes);
-        var factory = ActivatorUtilities.CreateFactory<MaskinportenDelegatingHandler>([typeof(IEnumerable<string>),]);
+        var factory = ActivatorUtilities.CreateFactory<MaskinportenDelegatingHandler>([typeof(IEnumerable<string>)]);
         return builder.AddHttpMessageHandler(provider => factory(provider, [scopes]));
     }
 }

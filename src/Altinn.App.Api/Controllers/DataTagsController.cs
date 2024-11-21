@@ -132,7 +132,7 @@ public class DataTagsController : ControllerBase
             app,
             instanceOwnerPartyId,
             instanceGuid,
-            dataGuid
+            dataGuid,
         };
         return CreatedAtAction(nameof(Get), routeValues, tagsList);
     }

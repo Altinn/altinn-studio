@@ -21,7 +21,7 @@ public static class SimpleInstanceMapper
             DueBefore = instance.DueBefore,
             PresentationTexts = instance.PresentationTexts,
             LastChanged = instance.LastChanged,
-            LastChangedBy = lastChangedByName
+            LastChangedBy = lastChangedByName,
         };
     }
 

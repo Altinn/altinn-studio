@@ -162,7 +162,7 @@ internal class AppOptionConverter : JsonConverter<AppOption>
                     {
                         "true" => true,
                         "false" => false,
-                        _ => throw new JsonException($"Unable to parse value {value.Value} as a boolean on AppOption")
+                        _ => throw new JsonException($"Unable to parse value {value.Value} as a boolean on AppOption"),
                     }
                 );
                 break;

@@ -150,8 +150,10 @@ public class UserDefinedMetadataController : ControllerBase
         dataElement.UserDefinedMetadata = userDefinedMetadataDto.UserDefinedMetadata;
         dataElement = await _dataClient.Update(instance, dataElement);
 
-        UserDefinedMetadataDto responseUserDefinedMetadataDto =
-            new() { UserDefinedMetadata = dataElement.UserDefinedMetadata };
+        UserDefinedMetadataDto responseUserDefinedMetadataDto = new()
+        {
+            UserDefinedMetadata = dataElement.UserDefinedMetadata,
+        };
 
         return responseUserDefinedMetadataDto;
     }

@@ -562,9 +562,9 @@ public class PageComponentConverter : JsonConverter<PageComponent>
             reader.Read();
             modelBindings[propertyName] = reader.TokenType switch
             {
-                JsonTokenType.String => new ModelBinding { Field = reader.GetString() ?? throw new JsonException(), },
+                JsonTokenType.String => new ModelBinding { Field = reader.GetString() ?? throw new JsonException() },
                 JsonTokenType.StartObject => JsonSerializer.Deserialize<ModelBinding>(ref reader, options),
-                _ => throw new JsonException()
+                _ => throw new JsonException(),
             };
         }
 

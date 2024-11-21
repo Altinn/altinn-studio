@@ -48,8 +48,8 @@ public class InstanceAppOptionsFactoryTests
                 {
                     new AppOption { Label = "Skoda Octavia 1.6", Value = "DN49525" },
                     new AppOption { Label = "e-Golf", Value = "EK38470" },
-                    new AppOption { Label = "Tilhenger", Value = "JT5817" }
-                }
+                    new AppOption { Label = "Tilhenger", Value = "JT5817" },
+                },
             };
 
             return Task.FromResult(options);

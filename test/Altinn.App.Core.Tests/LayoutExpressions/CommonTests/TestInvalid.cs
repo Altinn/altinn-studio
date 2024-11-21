@@ -12,8 +12,11 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.CommonTests;
 
 public class TestInvalid
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly ITestOutputHelper _output;
 
@@ -33,7 +36,7 @@ public class TestInvalid
         Func<Task> act = async () =>
         {
             var test = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(testCase.RawJson!, _jsonSerializerOptions)!;
-            var dataType = new DataType() { Id = "default", };
+            var dataType = new DataType() { Id = "default" };
             LayoutModel? componentModel = null;
             if (test.Layouts is not null)
             {
@@ -48,7 +51,7 @@ public class TestInvalid
                 ),
                 componentModel,
                 test.FrontEndSettings ?? new(),
-                new ApplicationMetadata("org/app") { DataTypes = [dataType], }
+                new ApplicationMetadata("org/app") { DataTypes = [dataType] }
             );
             await ExpressionEvaluator.EvaluateExpression(
                 state,

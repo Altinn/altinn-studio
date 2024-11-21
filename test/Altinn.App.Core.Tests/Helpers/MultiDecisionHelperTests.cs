@@ -33,8 +33,8 @@ public class MultiDecisionHelperTests
             Process = new ProcessState()
             {
                 CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
-                EndEvent = "EndEvent_1"
-            }
+                EndEvent = "EndEvent_1",
+            },
         };
 
         var actions = new List<string>() { "sign", "reject" };
@@ -58,8 +58,8 @@ public class MultiDecisionHelperTests
             Process = new ProcessState()
             {
                 CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Data", ElementId = "Task_1" },
-                EndEvent = "EndEvent_1"
-            }
+                EndEvent = "EndEvent_1",
+            },
         };
 
         var actions = new List<string>() { "sign", "reject" };
@@ -83,8 +83,8 @@ public class MultiDecisionHelperTests
             Process = new ProcessState()
             {
                 CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Task_1" },
-                EndEvent = "EndEvent_1"
-            }
+                EndEvent = "EndEvent_1",
+            },
         };
 
         var actions = new List<string>() { "sign", "reject" };
@@ -106,8 +106,8 @@ public class MultiDecisionHelperTests
             Process = new ProcessState()
             {
                 CurrentTask = new ProcessElementInfo() { AltinnTaskType = "Task_1" },
-                EndEvent = "EndEvent_1"
-            }
+                EndEvent = "EndEvent_1",
+            },
         };
 
         var actions = new List<string>() { "sign", "reject" };
@@ -124,14 +124,14 @@ public class MultiDecisionHelperTests
             { "read", true },
             { "write", true },
             { "complete", true },
-            { "lookup", true }
+            { "lookup", true },
         };
         var actions = new Dictionary<string, bool>()
         {
             { "read", false },
             { "write", false },
             { "complete", false },
-            { "lookup", false }
+            { "lookup", false },
         };
         var result = MultiDecisionHelper.ValidatePdpMultiDecision(actions, response, GetClaims("501337"));
         result.Should().BeEquivalentTo(expected);
@@ -146,14 +146,14 @@ public class MultiDecisionHelperTests
             { "read", true },
             { "write", true },
             { "complete", true },
-            { "lookup", false }
+            { "lookup", false },
         };
         var actions = new Dictionary<string, bool>()
         {
             { "read", false },
             { "write", false },
             { "complete", false },
-            { "lookup", false }
+            { "lookup", false },
         };
         var result = MultiDecisionHelper.ValidatePdpMultiDecision(actions, response, GetClaims("501337"));
         result.Should().BeEquivalentTo(expected);
@@ -167,7 +167,7 @@ public class MultiDecisionHelperTests
             { "read", false },
             { "write", false },
             { "complete", false },
-            { "lookup", false }
+            { "lookup", false },
         };
         Action act = () => MultiDecisionHelper.ValidatePdpMultiDecision(actions, null!, GetClaims("501337"));
         act.Should().Throw<ArgumentNullException>().WithMessage("Value cannot be null. (Parameter 'results')");
@@ -182,7 +182,7 @@ public class MultiDecisionHelperTests
             { "read", false },
             { "write", false },
             { "complete", false },
-            { "lookup", false }
+            { "lookup", false },
         };
         Action act = () => MultiDecisionHelper.ValidatePdpMultiDecision(actions, response, null!);
         act.Should().Throw<ArgumentNullException>().WithMessage("Value cannot be null. (Parameter 'user')");
@@ -199,7 +199,7 @@ public class MultiDecisionHelperTests
                         new("urn:altinn:partyid", partyId, "#integer"),
                         new("urn:altinn:authlevel", "3", "#integer"),
                     }
-                )
+                ),
             }
         );
     }

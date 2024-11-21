@@ -29,9 +29,9 @@ public class InstanceEventExtensionsTests
                     Name = "Name",
                     Started = DateTime.Now,
                     Ended = DateTime.Now,
-                    Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now }
+                    Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now },
                 },
-                StartEvent = "StartEvent"
+                StartEvent = "StartEvent",
             },
             User = new PlatformUser
             {
@@ -39,8 +39,8 @@ public class InstanceEventExtensionsTests
                 EndUserSystemId = 1,
                 OrgId = "OrgId",
                 UserId = 3,
-                NationalIdentityNumber = "NationalIdentityNumber"
-            }
+                NationalIdentityNumber = "NationalIdentityNumber",
+            },
         };
         InstanceEvent copy = original.CopyValues();
         copy.Should().NotBeSameAs(original);
@@ -77,9 +77,9 @@ public class InstanceEventExtensionsTests
                     Name = "Name",
                     Started = now,
                     Ended = now,
-                    Validated = null
+                    Validated = null,
                 },
-                StartEvent = "StartEvent"
+                StartEvent = "StartEvent",
             },
             User = new PlatformUser
             {
@@ -87,8 +87,8 @@ public class InstanceEventExtensionsTests
                 EndUserSystemId = 1,
                 OrgId = "OrgId",
                 UserId = 3,
-                NationalIdentityNumber = "NationalIdentityNumber"
-            }
+                NationalIdentityNumber = "NationalIdentityNumber",
+            },
         };
         InstanceEvent expected = new InstanceEvent()
         {
@@ -109,9 +109,9 @@ public class InstanceEventExtensionsTests
                     Name = "Name",
                     Started = now,
                     Ended = now,
-                    Validated = new() { Timestamp = null, CanCompleteTask = false }
+                    Validated = new() { Timestamp = null, CanCompleteTask = false },
                 },
-                StartEvent = "StartEvent"
+                StartEvent = "StartEvent",
             },
             User = new PlatformUser
             {
@@ -119,8 +119,8 @@ public class InstanceEventExtensionsTests
                 EndUserSystemId = 1,
                 OrgId = "OrgId",
                 UserId = 3,
-                NationalIdentityNumber = "NationalIdentityNumber"
-            }
+                NationalIdentityNumber = "NationalIdentityNumber",
+            },
         };
         InstanceEvent copy = original.CopyValues();
         copy.Should().NotBeSameAs(original);
@@ -150,7 +150,7 @@ public class InstanceEventExtensionsTests
             {
                 Started = now,
                 CurrentTask = null,
-                StartEvent = "StartEvent"
+                StartEvent = "StartEvent",
             },
             User = new PlatformUser
             {
@@ -158,8 +158,8 @@ public class InstanceEventExtensionsTests
                 EndUserSystemId = 1,
                 OrgId = "OrgId",
                 UserId = 3,
-                NationalIdentityNumber = "NationalIdentityNumber"
-            }
+                NationalIdentityNumber = "NationalIdentityNumber",
+            },
         };
         InstanceEvent expected = new InstanceEvent()
         {
@@ -180,9 +180,9 @@ public class InstanceEventExtensionsTests
                     Name = null,
                     Started = null,
                     Ended = null,
-                    Validated = new() { Timestamp = null, CanCompleteTask = false }
+                    Validated = new() { Timestamp = null, CanCompleteTask = false },
                 },
-                StartEvent = "StartEvent"
+                StartEvent = "StartEvent",
             },
             User = new PlatformUser
             {
@@ -190,8 +190,8 @@ public class InstanceEventExtensionsTests
                 EndUserSystemId = 1,
                 OrgId = "OrgId",
                 UserId = 3,
-                NationalIdentityNumber = "NationalIdentityNumber"
-            }
+                NationalIdentityNumber = "NationalIdentityNumber",
+            },
         };
         InstanceEvent copy = original.CopyValues();
         copy.Should().NotBeSameAs(original);

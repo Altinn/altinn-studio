@@ -180,7 +180,11 @@ public sealed class MaskinportenClient : IMaskinportenClient
             IssuedAt = now.UtcDateTime,
             Expires = expiry.UtcDateTime,
             SigningCredentials = new SigningCredentials(settings.GetJsonWebKey(), SecurityAlgorithms.RsaSha256),
-            Claims = new Dictionary<string, object> { ["scope"] = formattedScopes, ["jti"] = Guid.NewGuid().ToString() }
+            Claims = new Dictionary<string, object>
+            {
+                ["scope"] = formattedScopes,
+                ["jti"] = Guid.NewGuid().ToString(),
+            },
         };
 
         return new JsonWebTokenHandler().CreateToken(jwtDescriptor);
@@ -202,7 +206,7 @@ public sealed class MaskinportenClient : IMaskinportenClient
             new Dictionary<string, string>
             {
                 ["grant_type"] = "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                ["assertion"] = jwtAssertion
+                ["assertion"] = jwtAssertion,
             }
         );
     }
@@ -267,7 +271,7 @@ public sealed class MaskinportenClient : IMaskinportenClient
         return new HybridCacheEntryOptions
         {
             LocalCacheExpiration = localExpiry,
-            Expiration = overallExpiry ?? localExpiry
+            Expiration = overallExpiry ?? localExpiry,
         };
     }
 }

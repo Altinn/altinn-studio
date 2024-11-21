@@ -54,7 +54,7 @@ public class UserDefinedMetadataControllerTests : ApiTestBase, IClassFixture<Web
             .BeEquivalentTo(
                 new List<KeyValueEntry>
                 {
-                    new() { Key = "TheKey", Value = "TheValue" }
+                    new() { Key = "TheKey", Value = "TheValue" },
                 }
             );
         TestData.DeleteInstanceAndData(Org, App, instanceId);

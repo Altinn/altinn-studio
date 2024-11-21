@@ -35,7 +35,7 @@ internal class MemoryAsStream : Stream
             SeekOrigin.Begin => offset,
             SeekOrigin.Current => Position + offset,
             SeekOrigin.End => Length + offset, // Assume offset is negative
-            _ => throw new ArgumentOutOfRangeException(nameof(origin), origin, "SeekOrigin not supported")
+            _ => throw new ArgumentOutOfRangeException(nameof(origin), origin, "SeekOrigin not supported"),
         };
         // Validate position?
 

@@ -32,7 +32,7 @@ public class DefaultEFormidlingServiceTests
         var eFormidlingReceivers = new Mock<IEFormidlingReceivers>();
         var eventClient = new Mock<IEventsClient>();
         var appSettings = Options.Create(
-            new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456", }
+            new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456" }
         );
         var platformSettings = Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key" });
         var eFormidlingClient = new Mock<IEFormidlingClient>();
@@ -46,49 +46,49 @@ public class DefaultEFormidlingServiceTests
         var instance = new Instance
         {
             Id = $"1337/{instanceGuid}",
-            InstanceOwner = new InstanceOwner { PartyId = "1337", },
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
             Data =
             [
-                new DataElement { Id = Guid.NewGuid().ToString(), DataType = modelDataType, },
+                new DataElement { Id = Guid.NewGuid().ToString(), DataType = modelDataType },
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = fileAttachmentsDataType,
-                    Filename = "attachment.txt"
+                    Filename = "attachment.txt",
                 },
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = fileAttachmentsDataType,
-                    Filename = "attachment.txt"
+                    Filename = "attachment.txt",
                 },
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = fileAttachmentsDataType,
-                    Filename = "no-extension"
+                    Filename = "no-extension",
                 },
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = fileAttachmentsDataType,
-                    Filename = null
+                    Filename = null,
                 },
                 //Same filename as the eFormidling metadata file.
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = fileAttachmentsDataType,
-                    Filename = eFormidlingMetadataFilename
+                    Filename = eFormidlingMetadataFilename,
                 },
                 //Same filename as model data type.
                 new DataElement
                 {
                     Id = Guid.NewGuid().ToString(),
                     DataType = fileAttachmentsDataType,
-                    Filename = modelDataType + ".xml"
-                }
-            ]
+                    Filename = modelDataType + ".xml",
+                },
+            ],
         };
 
         appMetadata
@@ -102,9 +102,9 @@ public class DefaultEFormidlingServiceTests
                         new DataType
                         {
                             Id = modelDataType,
-                            AppLogic = new ApplicationLogic { ClassRef = "SomeClass" }
+                            AppLogic = new ApplicationLogic { ClassRef = "SomeClass" },
                         },
-                        new DataType { Id = fileAttachmentsDataType }
+                        new DataType { Id = fileAttachmentsDataType },
                     ],
                     EFormidling = new EFormidlingContract
                     {
@@ -113,8 +113,8 @@ public class DefaultEFormidlingServiceTests
                         TypeVersion = "v8",
                         Type = "arkivmelding",
                         SecurityLevel = 3,
-                        DataTypes = [modelDataType, fileAttachmentsDataType]
-                    }
+                        DataTypes = [modelDataType, fileAttachmentsDataType],
+                    },
                 }
             );
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
@@ -160,7 +160,7 @@ public class DefaultEFormidlingServiceTests
         {
             { "Authorization", $"Bearer authz-token" },
             { General.EFormidlingAccessTokenHeaderName, "access-token" },
-            { General.SubscriptionKeyHeaderName, "subscription-key" }
+            { General.SubscriptionKeyHeaderName, "subscription-key" },
         };
 
         appMetadata.Verify(a => a.GetApplicationMetadata());
@@ -279,9 +279,9 @@ public class DefaultEFormidlingServiceTests
         var eFormidlingReceivers = new Mock<IEFormidlingReceivers>();
         var eventClient = new Mock<IEventsClient>();
         var appSettings = Options.Create(
-            new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456", }
+            new AppSettings { RuntimeCookieName = "AltinnStudioRuntime", EFormidlingSender = "980123456" }
         );
-        var platformSettings = Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key", });
+        var platformSettings = Options.Create(new PlatformSettings { SubscriptionKey = "subscription-key" });
         var eFormidlingClient = new Mock<IEFormidlingClient>();
         var tokenGenerator = new Mock<IAccessTokenGenerator>();
         var eFormidlingMetadata = new Mock<IEFormidlingMetadata>();
@@ -289,8 +289,8 @@ public class DefaultEFormidlingServiceTests
         var instance = new Instance
         {
             Id = $"1337/{instanceGuid}",
-            InstanceOwner = new InstanceOwner { PartyId = "1337", },
-            Data = new List<DataElement>()
+            InstanceOwner = new InstanceOwner { PartyId = "1337" },
+            Data = new List<DataElement>(),
         };
 
         appMetadata
@@ -306,9 +306,9 @@ public class DefaultEFormidlingServiceTests
                         TypeVersion = "v8",
                         Type = "arkivmelding",
                         SecurityLevel = 3,
-                        DataTypes = new List<string>()
+                        DataTypes = new List<string>(),
                     },
-                    DataTypes = []
+                    DataTypes = [],
                 }
             );
         tokenGenerator.Setup(t => t.GenerateAccessToken("ttd", "test-app")).Returns("access-token");
@@ -347,7 +347,7 @@ public class DefaultEFormidlingServiceTests
         {
             { "Authorization", $"Bearer authz-token" },
             { General.EFormidlingAccessTokenHeaderName, "access-token" },
-            { General.SubscriptionKeyHeaderName, "subscription-key" }
+            { General.SubscriptionKeyHeaderName, "subscription-key" },
         };
 
         appMetadata.Verify(a => a.GetApplicationMetadata());

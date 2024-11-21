@@ -80,7 +80,7 @@ public class DataClient : IDataClient
         where T : notnull
     {
         using var activity = _telemetry?.StartInsertFormDataActivity(instanceGuid, instanceOwnerPartyId);
-        Instance instance = new() { Id = $"{instanceOwnerPartyId}/{instanceGuid}", };
+        Instance instance = new() { Id = $"{instanceOwnerPartyId}/{instanceGuid}" };
         return await InsertFormData(instance, dataType, dataToSerialize, type);
     }
 
@@ -427,7 +427,7 @@ public class DataClient : IDataClient
             content.Headers.ContentDisposition = new ContentDispositionHeaderValue(DispositionTypeNames.Attachment)
             {
                 FileName = filename,
-                FileNameStar = filename
+                FileNameStar = filename,
             };
         }
 
@@ -502,7 +502,7 @@ public class DataClient : IDataClient
             content.Headers.ContentDisposition = new ContentDispositionHeaderValue(DispositionTypeNames.Attachment)
             {
                 FileName = filename,
-                FileNameStar = filename
+                FileNameStar = filename,
             };
         }
 

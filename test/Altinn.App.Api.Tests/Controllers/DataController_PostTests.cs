@@ -140,7 +140,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
                             Severity = ValidationIssueSeverity.Error,
                             Code = "ABANDONED",
                             Description = "BinaryData is incorrect",
-                        }
+                        },
                     ]
                 );
                 return Task.CompletedTask;
@@ -156,8 +156,8 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             Headers =
             {
                 ContentType = new MediaTypeHeaderValue("application/pdf"),
-                ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileName = "test.pdf" }
-            }
+                ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileName = "test.pdf" },
+            },
         };
 
         var response = await client.PostAsync(
@@ -224,8 +224,8 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             Headers =
             {
                 ContentType = new MediaTypeHeaderValue("application/pdf"),
-                ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileName = "test.pdf" }
-            }
+                ContentDisposition = new ContentDispositionHeaderValue("attachment") { FileName = "test.pdf" },
+            },
         };
 
         var response = await client.PostAsync(

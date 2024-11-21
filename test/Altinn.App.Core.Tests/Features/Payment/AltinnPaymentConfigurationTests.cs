@@ -25,8 +25,11 @@ public class AltinnPaymentConfigurationTests
     [InlineData(" ")]
     public void Validation_ThrowsException_When_PaymentReceiptPdfDataType_Is_Invalid(string? paymentReceiptPdfDataType)
     {
-        AltinnPaymentConfiguration paymentConfiguration =
-            new() { PaymentDataType = "paymentDataType", PaymentReceiptPdfDataType = paymentReceiptPdfDataType };
+        AltinnPaymentConfiguration paymentConfiguration = new()
+        {
+            PaymentDataType = "paymentDataType",
+            PaymentReceiptPdfDataType = paymentReceiptPdfDataType,
+        };
 
         var action = () => paymentConfiguration.Validate();
 
@@ -38,8 +41,11 @@ public class AltinnPaymentConfigurationTests
     {
         var paymentDataType = "paymentDataType";
         var paymentReceiptPdfDataType = "paymentReceiptPdfDataType";
-        AltinnPaymentConfiguration paymentConfiguration =
-            new() { PaymentDataType = paymentDataType, PaymentReceiptPdfDataType = paymentReceiptPdfDataType };
+        AltinnPaymentConfiguration paymentConfiguration = new()
+        {
+            PaymentDataType = paymentDataType,
+            PaymentReceiptPdfDataType = paymentReceiptPdfDataType,
+        };
 
         paymentConfiguration.PaymentDataType.Should().Be(paymentDataType);
         paymentConfiguration.PaymentReceiptPdfDataType.Should().Be(paymentReceiptPdfDataType);

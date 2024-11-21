@@ -54,7 +54,7 @@ public class JoinedAppOptionsProvider : IAppOptionsProvider
         {
             IsCacheable = Array.TrueForAll(appOptions, o => o.AppOption.IsCacheable),
             Options = options,
-            Parameters = parameters
+            Parameters = parameters,
         };
     }
 

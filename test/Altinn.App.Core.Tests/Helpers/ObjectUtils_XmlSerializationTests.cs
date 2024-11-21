@@ -138,7 +138,7 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
         var input = "'\u0002'"; // Represents start of text (␂)
         var output = "'\uFFFD'"; // Represents replacement character (�)
 
-        var test = new YttersteObjekt { NormalString = input, };
+        var test = new YttersteObjekt { NormalString = input };
 
         ObjectUtils.PrepareModelForXmlStorage(test);
 
@@ -217,8 +217,8 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
                 {
                     StringMedOrid = new StringMedORID { value = value },
                     NormalString = value,
-                }
-            }
+                },
+            },
         };
 
         test.DecimalMedOrid.Should().BeNull();
@@ -333,8 +333,8 @@ public class ObjectUtils_XmlSerializationTests(ITestOutputHelper _output)
                     DecimalMedOrid = new NullableDecimalMedORID { valueNullable = value },
                     NullableDecimal = value,
                     Decimal = value ?? default,
-                }
-            }
+                },
+            },
         };
 
         test.StringMedOrid.Should().BeNull();

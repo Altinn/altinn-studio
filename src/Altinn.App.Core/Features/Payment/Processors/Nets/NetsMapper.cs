@@ -33,8 +33,8 @@ internal static class NetsMapper
                         {
                             Prefix = consumer.Company.ContactDetails?.PhoneNumber?.Prefix,
                             Number = consumer.Company.ContactDetails?.PhoneNumber?.Number,
-                        }
-                    }
+                        },
+                    },
                 }
                 : null;
 
@@ -49,7 +49,7 @@ internal static class NetsMapper
                     {
                         Prefix = consumer.PrivatePerson.PhoneNumber?.Prefix,
                         Number = consumer.PrivatePerson.PhoneNumber?.Number,
-                    }
+                    },
                 }
                 : null;
 
@@ -84,7 +84,7 @@ internal static class NetsMapper
         return new NetsCheckoutConsumerDetails
         {
             Email = email,
-            PhoneNumber = new NetsPhoneNumber { Prefix = phoneNumber?.Prefix, Number = phoneNumber?.Number, },
+            PhoneNumber = new NetsPhoneNumber { Prefix = phoneNumber?.Prefix, Number = phoneNumber?.Number },
             Company =
                 payer.Company != null
                     ? new NetsCheckoutCompany
@@ -94,7 +94,7 @@ internal static class NetsMapper
                         {
                             FirstName = payer.Company.ContactPerson?.FirstName,
                             LastName = payer.Company.ContactPerson?.LastName,
-                        }
+                        },
                     }
                     : null,
             PrivatePerson =
@@ -141,7 +141,7 @@ internal static class NetsMapper
         if (netsInvoiceDetails == null)
             return null;
 
-        return new InvoiceDetails { InvoiceNumber = netsInvoiceDetails.InvoiceNumber, };
+        return new InvoiceDetails { InvoiceNumber = netsInvoiceDetails.InvoiceNumber };
     }
 
     /// <summary>

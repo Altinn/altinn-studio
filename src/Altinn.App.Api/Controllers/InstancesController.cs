@@ -260,8 +260,8 @@ public class InstancesController : ControllerBase
             {
                 InstanceOwner = new InstanceOwner
                 {
-                    PartyId = instanceOwnerPartyId.Value.ToString(CultureInfo.InvariantCulture)
-                }
+                    PartyId = instanceOwnerPartyId.Value.ToString(CultureInfo.InvariantCulture),
+                },
             };
         }
 
@@ -507,14 +507,13 @@ public class InstancesController : ControllerBase
             );
         }
 
-        Instance instanceTemplate =
-            new()
-            {
-                InstanceOwner = instansiationInstance.InstanceOwner,
-                VisibleAfter = instansiationInstance.VisibleAfter,
-                DueBefore = instansiationInstance.DueBefore,
-                Org = application.Org
-            };
+        Instance instanceTemplate = new()
+        {
+            InstanceOwner = instansiationInstance.InstanceOwner,
+            VisibleAfter = instansiationInstance.VisibleAfter,
+            DueBefore = instansiationInstance.DueBefore,
+            Org = application.Org,
+        };
 
         ConditionallySetReadStatus(instanceTemplate);
 
@@ -536,7 +535,7 @@ public class InstancesController : ControllerBase
             {
                 Instance = instanceTemplate,
                 User = User,
-                Prefill = instansiationInstance.Prefill
+                Prefill = instansiationInstance.Prefill,
             };
 
             processResult = await _processEngine.GenerateProcessStartEvents(request);
@@ -666,13 +665,12 @@ public class InstancesController : ControllerBase
         }
 
         // Multiple properties like Org and AppId will be set by Storage
-        Instance targetInstance =
-            new()
-            {
-                InstanceOwner = sourceInstance.InstanceOwner,
-                VisibleAfter = sourceInstance.VisibleAfter,
-                Status = new() { ReadStatus = ReadStatus.Read }
-            };
+        Instance targetInstance = new()
+        {
+            InstanceOwner = sourceInstance.InstanceOwner,
+            VisibleAfter = sourceInstance.VisibleAfter,
+            Status = new() { ReadStatus = ReadStatus.Read },
+        };
 
         InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(targetInstance);
         if (validationResult != null && !validationResult.Valid)
@@ -841,14 +839,13 @@ public class InstancesController : ControllerBase
         int instanceOwnerPartyId
     )
     {
-        Dictionary<string, StringValues> queryParams =
-            new()
-            {
-                { "appId", $"{org}/{app}" },
-                { "instanceOwner.partyId", instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture) },
-                { "status.isArchived", "false" },
-                { "status.isSoftDeleted", "false" }
-            };
+        Dictionary<string, StringValues> queryParams = new()
+        {
+            { "appId", $"{org}/{app}" },
+            { "instanceOwner.partyId", instanceOwnerPartyId.ToString(CultureInfo.InvariantCulture) },
+            { "status.isArchived", "false" },
+            { "status.isSoftDeleted", "false" },
+        };
 
         List<Instance> activeInstances = await _instanceClient.GetInstances(queryParams);
 
@@ -1161,7 +1158,7 @@ public class InstancesController : ControllerBase
                 {
                     Title = "Data type not found",
                     Detail =
-                        $"Data type with id {part.Name} from request part {partIndex} not found in application metadata"
+                        $"Data type with id {part.Name} from request part {partIndex} not found in application metadata",
                 };
             }
 

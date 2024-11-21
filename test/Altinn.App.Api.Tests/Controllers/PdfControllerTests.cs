@@ -57,10 +57,7 @@ public class PdfControllerTests
                         Org = _org,
                         AppId = $"{_org}/{_app}",
                         Id = $"{_partyId}/{_instanceId}",
-                        Process = new ProcessState()
-                        {
-                            CurrentTask = new ProcessElementInfo() { ElementId = _taskId, },
-                        }
+                        Process = new ProcessState() { CurrentTask = new ProcessElementInfo() { ElementId = _taskId } },
                     }
                 )
             );
@@ -118,7 +115,7 @@ public class PdfControllerTests
             var mockResponse = new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("PDF")
+                Content = new StringContent("PDF"),
             }
         )
         {
@@ -198,7 +195,7 @@ public class PdfControllerTests
             var mockResponse = new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("PDF")
+                Content = new StringContent("PDF"),
             }
         )
         {
@@ -280,7 +277,7 @@ public class PdfControllerTests
             var mockResponse = new HttpResponseMessage()
             {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("PDF")
+                Content = new StringContent("PDF"),
             }
         )
         {

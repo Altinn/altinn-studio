@@ -20,7 +20,7 @@ public class JoinedAppOptionsTests
     private static readonly List<AppOption> _appOptionsCountries =
     [
         new AppOption { Value = "no", Label = "Norway" },
-        new AppOption { Value = "se", Label = "Sweden" }
+        new AppOption { Value = "se", Label = "Sweden" },
     ];
 
     private static readonly List<AppOption> _appOptionsSentinel = [new AppOption { Value = null, Label = "Sentinel" }];
@@ -32,7 +32,7 @@ public class JoinedAppOptionsTests
             .Setup(p => p.GetAppOptionsAsync(_language, It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 (string language, Dictionary<string, string> keyValuePairs) =>
-                    new AppOptions() { Options = _appOptionsCountries, Parameters = keyValuePairs.ToDictionary()!, }
+                    new AppOptions() { Options = _appOptionsCountries, Parameters = keyValuePairs.ToDictionary()! }
             );
         _serviceCollection.AddSingleton(_countryAppOptionsMock.Object);
 
@@ -41,7 +41,7 @@ public class JoinedAppOptionsTests
             .Setup(p => p.GetAppOptionsAsync(_language, It.IsAny<Dictionary<string, string>>()))
             .ReturnsAsync(
                 (string language, Dictionary<string, string> keyValuePairs) =>
-                    new AppOptions() { Options = _appOptionsSentinel, Parameters = keyValuePairs.ToDictionary()!, }
+                    new AppOptions() { Options = _appOptionsSentinel, Parameters = keyValuePairs.ToDictionary()! }
             );
         _serviceCollection.AddSingleton(_sentinelOptionsProviderMock.Object);
 
@@ -133,7 +133,7 @@ public class JoinedAppOptionsTests
         options
             .Parameters.Should()
             .BeEquivalentTo(
-                new Dictionary<string, string> { { "country-no-sentinel_key", "value" }, { "sentinel_key", "value" }, }
+                new Dictionary<string, string> { { "country-no-sentinel_key", "value" }, { "sentinel_key", "value" } }
             );
 
         _neverUsedOptionsProviderMock.VerifyAll();

@@ -45,14 +45,14 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         {
             Options = new List<AppOption>()
             {
-                new() { Value = "", Label = "" }
+                new() { Value = "", Label = "" },
             },
             Parameters = new Dictionary<string, string?>
             {
                 { "language", "español" },
                 { "level", "1" },
                 { "variant", "Småviltjakt" },
-                { "special", ",\".%" }
+                { "special", ",\".%" },
             },
         };
         var provider = new Mock<IAppOptionsProvider>(MockBehavior.Strict);
@@ -93,7 +93,7 @@ public class OptionsControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                     "language=espa%C3%B1ol",
                     "level=1",
                     "variant=Sm%C3%A5viltjakt",
-                    "special=%2C%22.%25"
+                    "special=%2C%22.%25",
                 }
             );
         provider.Verify();
@@ -192,8 +192,8 @@ public class DummyProvider : IAppOptionsProvider
             Parameters = new() { { "lang", language } },
             Options = new List<AppOption>()
             {
-                new() { Value = null, Label = "", },
-                new() { Value = "SomeString", Label = "False", },
+                new() { Value = null, Label = "" },
+                new() { Value = "SomeString", Label = "False" },
                 new()
                 {
                     Value = "true",
@@ -212,9 +212,9 @@ public class DummyProvider : IAppOptionsProvider
                     ValueType = AppOptionValueType.Number,
                     Label = "One",
                     Description = "This is a description",
-                    HelpText = "This is a help text"
+                    HelpText = "This is a help text",
                 },
-            }
+            },
         };
 
         return Task.FromResult(appOptions);

@@ -44,16 +44,18 @@ public class EventsClientTest
     {
         TelemetrySink telemetrySink = new();
         // Arrange
-        Instance instance =
-            new()
-            {
-                AppId = "ttd/best-app",
-                Org = "ttd",
-                InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() }
-            };
+        Instance instance = new()
+        {
+            AppId = "ttd/best-app",
+            Org = "ttd",
+            InstanceOwner = new InstanceOwner { OrganisationNumber = "org", PartyId = 123.ToString() },
+        };
 
-        HttpResponseMessage httpResponseMessage =
-            new() { StatusCode = HttpStatusCode.OK, Content = new StringContent(Guid.NewGuid().ToString()) };
+        HttpResponseMessage httpResponseMessage = new()
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(Guid.NewGuid().ToString()),
+        };
 
         HttpRequestMessage actualRequest = null;
         void SetRequest(HttpRequestMessage request) => actualRequest = request;
@@ -61,17 +63,16 @@ public class EventsClientTest
 
         HttpClient httpClient = new(handlerMock.Object);
 
-        EventsClient target =
-            new(
-                platformSettingsOptions,
-                contextAccessor.Object,
-                httpClient,
-                accessTokenGeneratorMock.Object,
-                _appMetadataMock.Object,
-                appSettingsOptions.Object,
-                generalSettingsOptions,
-                telemetrySink.Object
-            );
+        EventsClient target = new(
+            platformSettingsOptions,
+            contextAccessor.Object,
+            httpClient,
+            accessTokenGeneratorMock.Object,
+            _appMetadataMock.Object,
+            appSettingsOptions.Object,
+            generalSettingsOptions,
+            telemetrySink.Object
+        );
 
         // Act
         await target.AddEvent("created", instance);
@@ -102,13 +103,13 @@ public class EventsClientTest
         {
             AppId = "ttd/best-app",
             Org = "ttd",
-            InstanceOwner = new InstanceOwner { PersonNumber = "43234123", PartyId = 321.ToString() }
+            InstanceOwner = new InstanceOwner { PersonNumber = "43234123", PartyId = 321.ToString() },
         };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
         {
             StatusCode = HttpStatusCode.OK,
-            Content = new StringContent(Guid.NewGuid().ToString())
+            Content = new StringContent(Guid.NewGuid().ToString()),
         };
 
         HttpRequestMessage actualRequest = null;
@@ -154,7 +155,7 @@ public class EventsClientTest
         {
             Org = "ttd",
             AppId = "tdd/test",
-            InstanceOwner = new InstanceOwner { OrganisationNumber = "org" }
+            InstanceOwner = new InstanceOwner { OrganisationNumber = "org" },
         };
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage

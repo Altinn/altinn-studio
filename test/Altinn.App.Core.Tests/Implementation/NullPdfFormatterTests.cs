@@ -18,8 +18,8 @@ public class NullPdfFormatterTests
             Pages = new Pages()
             {
                 Order = new List<string>() { "Page1", "PageExcludeFromPdf" },
-                ExcludeFromPdf = new List<string>() { "PageExcludeFromPdf" }
-            }
+                ExcludeFromPdf = new List<string>() { "PageExcludeFromPdf" },
+            },
         };
 
         var nullPdfFormatter = new NullPdfFormatter();

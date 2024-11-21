@@ -38,7 +38,7 @@ public class GenericValidatorTests
         )
         {
             AddValidationIssue(
-                new ValidationIssue() { Severity = ValidationIssueSeverity.Informational, Description = "Test info", }
+                new ValidationIssue() { Severity = ValidationIssueSeverity.Informational, Description = "Test info" }
             );
 
             CreateValidationIssue(c => c.Name, "Test warning", severity: ValidationIssueSeverity.Warning);

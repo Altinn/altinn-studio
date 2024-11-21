@@ -22,15 +22,15 @@ public class NetsMapperTests
                     FirstName = "Ola",
                     LastName = "Normann",
                     Email = "ola.normann@example.com",
-                    PhoneNumber = new NetsPhoneNumber { Prefix = "+47", Number = "12345678" }
-                }
+                    PhoneNumber = new NetsPhoneNumber { Prefix = "+47", Number = "12345678" },
+                },
             },
             PrivatePerson = new NetsPrivatePerson
             {
                 FirstName = "Kari",
                 LastName = "Normann",
                 Email = "ola.normann@example.com",
-                PhoneNumber = new NetsPhoneNumber { Prefix = "+47", Number = "87654321" }
+                PhoneNumber = new NetsPhoneNumber { Prefix = "+47", Number = "87654321" },
             },
             ShippingAddress = new NetsAddress
             {
@@ -39,7 +39,7 @@ public class NetsMapperTests
                 AddressLine2 = "Adresselinje 1",
                 PostalCode = "1234",
                 City = "By",
-                Country = "Land"
+                Country = "Land",
             },
             BillingAddress = new NetsAddress
             {
@@ -48,8 +48,8 @@ public class NetsMapperTests
                 AddressLine2 = "Adresselinje 2",
                 PostalCode = "5678",
                 City = "By",
-                Country = "Land"
-            }
+                Country = "Land",
+            },
         };
 
         // Act
@@ -107,8 +107,8 @@ public class NetsMapperTests
                     FirstName = "Ola",
                     LastName = "Normann",
                     Email = "ola.normann@example.com",
-                    PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" }
-                }
+                    PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" },
+                },
             },
             ShippingAddress = new Address
             {
@@ -117,7 +117,7 @@ public class NetsMapperTests
                 AddressLine2 = "Adresselinje 1",
                 PostalCode = "1234",
                 City = "By",
-                Country = "Land"
+                Country = "Land",
             },
             BillingAddress = new Address
             {
@@ -126,8 +126,8 @@ public class NetsMapperTests
                 AddressLine2 = "Adresselinje 2",
                 PostalCode = "5678",
                 City = "By",
-                Country = "Land"
-            }
+                Country = "Land",
+            },
         };
 
         // Act
@@ -176,7 +176,7 @@ public class NetsMapperTests
                 FirstName = "Kari",
                 LastName = "Normann",
                 Email = "ola.normann@example.com",
-                PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "87654321" }
+                PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "87654321" },
             },
             ShippingAddress = new Address
             {
@@ -185,7 +185,7 @@ public class NetsMapperTests
                 AddressLine2 = "Adresselinje 1",
                 PostalCode = "1234",
                 City = "By",
-                Country = "Land"
+                Country = "Land",
             },
             BillingAddress = new Address
             {
@@ -194,8 +194,8 @@ public class NetsMapperTests
                 AddressLine2 = "Adresselinje 2",
                 PostalCode = "5678",
                 City = "By",
-                Country = "Land"
-            }
+                Country = "Land",
+            },
         };
 
         // Act
@@ -235,7 +235,7 @@ public class NetsMapperTests
     public void MapPayerDetails_BothCompanyAndPrivatePersonIsSet_ThrowsArgumentException()
     {
         // Arrange
-        var payer = new Payer { Company = new PayerCompany(), PrivatePerson = new PayerPrivatePerson(), };
+        var payer = new Payer { Company = new PayerCompany(), PrivatePerson = new PayerPrivatePerson() };
 
         // Act & assert
         Assert.Throws<ArgumentException>(() => NetsMapper.MapConsumerDetails(payer));
@@ -303,7 +303,7 @@ public class NetsMapperTests
             AddressLine2 = "Adresselinje 2",
             PostalCode = "1234",
             City = "By",
-            Country = "Land"
+            Country = "Land",
         };
 
         // Act

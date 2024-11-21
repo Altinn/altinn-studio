@@ -14,13 +14,12 @@ namespace Altinn.App.Core.Internal.App;
 /// </summary>
 public class AppMetadata : IAppMetadata
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true,
+    };
 
     private readonly AppSettings _settings;
     private readonly IFrontendFeatures _frontendFeatures;

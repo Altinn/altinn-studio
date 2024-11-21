@@ -35,7 +35,7 @@ internal class HttpApiResult<T>
         {
             if (response.StatusCode == HttpStatusCode.NoContent)
             {
-                return new HttpApiResult<T> { Status = response.StatusCode, Result = default, };
+                return new HttpApiResult<T> { Status = response.StatusCode, Result = default };
             }
 
             try
@@ -50,7 +50,7 @@ internal class HttpApiResult<T>
             }
             catch (JsonException e)
             {
-                return new HttpApiResult<T>() { Status = response.StatusCode, RawError = e.Message, };
+                return new HttpApiResult<T>() { Status = response.StatusCode, RawError = e.Message };
             }
         }
 

@@ -68,7 +68,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
     {
         ProcessElement processTask = new ProcessTask()
         {
-            ExtensionElements = new() { TaskExtension = new() { SignatureConfiguration = null } }
+            ExtensionElements = new() { TaskExtension = new() { SignatureConfiguration = null } },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
         var user = new ClaimsPrincipal(
@@ -77,7 +77,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1000"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -105,7 +105,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1000"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -131,9 +131,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
         var user = new ClaimsPrincipal(
@@ -142,7 +142,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1000"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -181,9 +181,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
         var user = new ClaimsPrincipal(
@@ -192,7 +192,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1337"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -231,9 +231,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(processTask);
         var user = new ClaimsPrincipal(
@@ -242,7 +242,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1337"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -267,9 +267,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
             processTask,
@@ -281,7 +281,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1337"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -320,9 +320,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
             processTask,
@@ -334,7 +334,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1337"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -373,9 +373,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
             processTask,
@@ -387,7 +387,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1337"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -426,9 +426,9 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
             {
                 TaskExtension = new()
                 {
-                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } }
-                }
-            }
+                    SignatureConfiguration = new() { UniqueFromSignaturesInDataTypes = new() { "signature" } },
+                },
+            },
         };
         UniqueSignatureAuthorizer authorizer = CreateUniqueSignatureAuthorizer(
             processTask,
@@ -440,7 +440,7 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     new(AltinnCoreClaimTypes.UserId, "1337"),
                     new(AltinnCoreClaimTypes.AuthenticationLevel, "2"),
-                    new(AltinnCoreClaimTypes.Org, "tdd")
+                    new(AltinnCoreClaimTypes.Org, "tdd"),
                 }
             )
         );
@@ -484,8 +484,8 @@ public sealed class UniqueSignatureAuthorizerTests : IDisposable
                 {
                     Data = new List<DataElement>()
                     {
-                        new() { DataType = "signature", Id = "ca62613c-f058-4899-b962-89dd6496a751", }
-                    }
+                        new() { DataType = "signature", Id = "ca62613c-f058-4899-b962-89dd6496a751" },
+                    },
                 }
             );
         FileStream fileStream = File.OpenRead(Path.Combine("Features", "Action", "TestData", signatureFileToRead));

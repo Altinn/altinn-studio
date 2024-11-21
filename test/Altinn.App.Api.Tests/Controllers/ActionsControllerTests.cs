@@ -575,7 +575,7 @@ public class FillAction : IUserAction
                     {
                         TestCustomButtonReadOnlyInput = "Første runde",
                         TestCustomButtonInput = "Hello a",
-                        description = "Første runde"
+                        description = "Første runde",
                     }
                 );
                 break;
@@ -618,7 +618,7 @@ public class FillAction : IUserAction
                     {
                         Code = "machine-readable-error-code",
                         Message = "Her kommer det en feilmelding",
-                        Metadata = new Dictionary<string, string>() { { "key1", "value1" }, }
+                        Metadata = new Dictionary<string, string>() { { "key1", "value1" } },
                     },
                     [new ClientAction() { Id = "nextPage" }],
                     errorType: ProcessErrorType.Conflict

@@ -151,7 +151,7 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234, });
+            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
 
         // Act
         var response = await client.SendAsync(request);
@@ -179,7 +179,7 @@ public class StatelessDataControllerTests
             .Returns("Not.In.Valid.Namespace.ClassRef");
         factory
             .RegisterClientMoq.Setup(p => p.GetParty(234))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234, });
+            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 234 });
 
         // Act
         var response = await client.SendAsync(request);
@@ -252,7 +252,7 @@ public class StatelessDataControllerTests
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new List<ClaimsIdentity>()
             {
-                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", string.Empty, "#integer") })
+                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", string.Empty, "#integer") }),
             }
         );
 
@@ -296,7 +296,7 @@ public class StatelessDataControllerTests
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new List<ClaimsIdentity>()
             {
-                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") })
+                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") }),
             }
         );
         pdpMock
@@ -306,13 +306,11 @@ public class StatelessDataControllerTests
                 {
                     Response = new List<XacmlJsonResult>()
                     {
-                        new XacmlJsonResult() { Decision = XacmlContextDecision.Deny.ToString() }
-                    }
+                        new XacmlJsonResult() { Decision = XacmlContextDecision.Deny.ToString() },
+                    },
                 }
             );
-        registerMock
-            .Setup(r => r.GetParty(12345))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 12345, });
+        registerMock.Setup(r => r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party { PartyId = 12345 });
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
@@ -357,7 +355,7 @@ public class StatelessDataControllerTests
         statelessDataController.ControllerContext.HttpContext.User = new ClaimsPrincipal(
             new List<ClaimsIdentity>()
             {
-                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") })
+                new ClaimsIdentity(new List<Claim> { new Claim("urn:altinn:partyid", "12345", "#integer") }),
             }
         );
         pdpMock
@@ -367,14 +365,12 @@ public class StatelessDataControllerTests
                 {
                     Response = new List<XacmlJsonResult>()
                     {
-                        new XacmlJsonResult() { Decision = XacmlContextDecision.Permit.ToString() }
-                    }
+                        new XacmlJsonResult() { Decision = XacmlContextDecision.Permit.ToString() },
+                    },
                 }
             );
         appModelMock.Setup(a => a.Create(classRef)).Returns(new DummyModel());
-        registerMock
-            .Setup(r => r.GetParty(12345))
-            .ReturnsAsync(new Platform.Register.Models.Party { PartyId = 12345, });
+        registerMock.Setup(r => r.GetParty(12345)).ReturnsAsync(new Platform.Register.Models.Party { PartyId = 12345 });
 
         // Act
         appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(classRef);

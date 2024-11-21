@@ -28,7 +28,7 @@ public class DataElementAccessCheckerTests
         // Arrange
         var dataType = new DataType
         {
-            AllowedContributers = allowedContributors?.Split(',')?.ToList() ?? new List<string>()
+            AllowedContributers = allowedContributors?.Split(',')?.ToList() ?? new List<string>(),
         };
 
         // Act

@@ -93,7 +93,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         {
             { "Authorization", $"Bearer {authzToken}" },
             { General.EFormidlingAccessTokenHeaderName, accessToken },
-            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey }
+            { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey },
         };
 
         string instanceGuid = instance.Id.Split("/")[1];
@@ -140,8 +140,8 @@ public class DefaultEFormidlingService : IEFormidlingService
             {
                 // 0192 prefix for all Norwegian organisations.
                 Value = $"0192:{_appSettings.EFormidlingSender}",
-                Authority = "iso6523-actorid-upis"
-            }
+                Authority = "iso6523-actorid-upis",
+            },
         };
 
         List<Receiver> receivers = await _eFormidlingReceivers.GetEFormidlingReceivers(instance);
@@ -154,7 +154,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             Type = "ConversationId",
             ScopeInformation = new List<ScopeInformation>
             {
-                new ScopeInformation { ExpectedResponseDateTime = completedTime.AddHours(2) }
+                new ScopeInformation { ExpectedResponseDateTime = completedTime.AddHours(2) },
             },
         };
 
@@ -166,7 +166,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             Standard = appMetadata.EFormidling.Standard,
             TypeVersion = appMetadata.EFormidling.TypeVersion,
             CreationDateAndTime = completedTime,
-            Type = appMetadata.EFormidling.Type
+            Type = appMetadata.EFormidling.Type,
         };
 
         StandardBusinessDocumentHeader sbdHeader = new StandardBusinessDocumentHeader
@@ -175,7 +175,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             BusinessScope = businessScope,
             DocumentIdentification = documentIdentification,
             Receiver = receivers,
-            Sender = new List<Sender> { digdirSender }
+            Sender = new List<Sender> { digdirSender },
         };
 
         StandardBusinessDocument sbd = new StandardBusinessDocument

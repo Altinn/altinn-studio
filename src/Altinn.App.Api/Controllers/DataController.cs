@@ -165,8 +165,8 @@ public class DataController : ControllerBase
                             Description = response.Error.Detail,
                             Code = response.Error.Title,
                             Severity = ValidationIssueSeverity.Error,
-                            Source = response.Error.Type ?? "DataController"
-                        }
+                            Source = response.Error.Type ?? "DataController",
+                        },
                     ]
                 )
             );
@@ -640,7 +640,7 @@ public class DataController : ControllerBase
         var request = new DataPatchRequestMultiple()
         {
             Patches = [new(dataGuid, dataPatchRequest.Patch)],
-            IgnoredValidators = dataPatchRequest.IgnoredValidators
+            IgnoredValidators = dataPatchRequest.IgnoredValidators,
         };
         var response = await PatchFormDataMultiple(org, app, instanceOwnerPartyId, instanceGuid, request, language);
 
@@ -725,7 +725,7 @@ public class DataController : ControllerBase
                     {
                         Instance = res.Ok.Instance,
                         NewDataModels = GetNewDataModels(res.Ok.FormDataChanges),
-                        ValidationIssues = res.Ok.ValidationIssues
+                        ValidationIssues = res.Ok.ValidationIssues,
                     }
                 );
             }
@@ -1131,7 +1131,7 @@ public class DataController : ControllerBase
             HttpStatusCode.Forbidden => Forbid(),
             HttpStatusCode.NotFound => NotFound(),
             HttpStatusCode.Conflict => Conflict(),
-            _ => ExceptionResponse(e, defaultMessage)
+            _ => ExceptionResponse(e, defaultMessage),
         };
     }
 
@@ -1153,7 +1153,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Instance Not Found",
                     Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.NotFound
+                    Status = (int)HttpStatusCode.NotFound,
                 };
             }
 
@@ -1168,7 +1168,7 @@ public class DataController : ControllerBase
                     Title = "Data Element Not Found",
                     Detail =
                         $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.BadRequest
+                    Status = (int)HttpStatusCode.BadRequest,
                 };
             }
 
@@ -1180,7 +1180,7 @@ public class DataController : ControllerBase
                     Title = "Data Type Not Found",
                     Detail =
                         $"""Could not find the specified data type: "{dataElement.DataType}" in applicationmetadata.json""",
-                    Status = (int)HttpStatusCode.BadRequest
+                    Status = (int)HttpStatusCode.BadRequest,
                 };
             }
 
@@ -1192,7 +1192,7 @@ public class DataController : ControllerBase
             {
                 Title = "Instance Not Found",
                 Detail = e.Message,
-                Status = (int)e.Response.StatusCode
+                Status = (int)e.Response.StatusCode,
             };
         }
     }
@@ -1215,7 +1215,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Instance Not Found",
                     Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.NotFound
+                    Status = (int)HttpStatusCode.NotFound,
                 };
             }
 
@@ -1234,7 +1234,7 @@ public class DataController : ControllerBase
                         Title = "Data Element Not Found",
                         Detail =
                             $"Did not find data element {dataElementGuid} on instance {instanceOwnerPartyId}/{instanceGuid}",
-                        Status = (int)HttpStatusCode.NotFound
+                        Status = (int)HttpStatusCode.NotFound,
                     };
                 }
 
@@ -1246,7 +1246,7 @@ public class DataController : ControllerBase
                         Title = "Data Type Not Found",
                         Detail =
                             $"""Data element {dataElement.Id} requires data type "{dataElement.DataType}", but it was not found in applicationmetadata.json""",
-                        Status = (int)HttpStatusCode.InternalServerError
+                        Status = (int)HttpStatusCode.InternalServerError,
                     };
                 }
 
@@ -1261,7 +1261,7 @@ public class DataController : ControllerBase
             {
                 Title = "Instance Not Found",
                 Detail = e.Message,
-                Status = (int)e.Response.StatusCode
+                Status = (int)e.Response.StatusCode,
             };
         }
     }
@@ -1279,7 +1279,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Instance Not Found",
                     Detail = $"Did not find instance {instanceOwnerPartyId}/{instanceGuid}",
-                    Status = (int)HttpStatusCode.NotFound
+                    Status = (int)HttpStatusCode.NotFound,
                 };
             }
 
@@ -1292,7 +1292,7 @@ public class DataController : ControllerBase
                 {
                     Title = "Data Type Not Found",
                     Detail = $"""Could not find the specified data type: "{dataTypeId}" in applicationmetadata.json""",
-                    Status = (int)HttpStatusCode.BadRequest
+                    Status = (int)HttpStatusCode.BadRequest,
                 };
             }
 
@@ -1304,7 +1304,7 @@ public class DataController : ControllerBase
             {
                 Title = "Instance Not Found",
                 Detail = e.Message,
-                Status = (int)e.Response.StatusCode
+                Status = (int)e.Response.StatusCode,
             };
         }
     }

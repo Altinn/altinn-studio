@@ -62,7 +62,7 @@ public class EqualTests(ITestOutputHelper outputHelper)
             {
                 A = 1,
                 B = 2,
-                C = 3
+                C = 3,
             },
             new byte[] { 0x01, 0x02, 0x03 },
         };

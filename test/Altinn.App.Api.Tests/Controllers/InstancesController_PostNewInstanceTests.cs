@@ -156,7 +156,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         HttpClient client = GetRootedClient(org, app);
         string token = PrincipalUtil.GetToken(1337, null);
 
-        var prefill = new Dictionary<string, string> { { "melding.name", "TestName" }, };
+        var prefill = new Dictionary<string, string> { { "melding.name", "TestName" } };
         var createResponseParsed = await CreateInstanceSimplified(
             org,
             app,
@@ -284,7 +284,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         HttpClient client = GetRootedClient(org, app, userId, null);
 
         using var content = JsonContent.Create(
-            new Instance() { InstanceOwner = new InstanceOwner() { PartyId = instanceOwnerPartyId.ToString() }, }
+            new Instance() { InstanceOwner = new InstanceOwner() { PartyId = instanceOwnerPartyId.ToString() } }
         );
 
         var response = await client.PostAsync($"{org}/{app}/instances", content);
@@ -353,7 +353,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         using var content = new ByteArrayContent([])
         {
-            Headers = { ContentType = new MediaTypeHeaderValue("application/json") }
+            Headers = { ContentType = new MediaTypeHeaderValue("application/json") },
         };
 
         var response = await client.PostAsync(
@@ -476,7 +476,7 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var serializedPatch = JsonSerializer.Serialize(
-            new DataPatchRequest() { Patch = patch, IgnoredValidators = [], },
+            new DataPatchRequest() { Patch = patch, IgnoredValidators = [] },
             JsonSerializerOptions
         );
         OutputHelper.WriteLine(serializedPatch);

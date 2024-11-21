@@ -102,7 +102,7 @@ public class AuthorizationService : IAuthorizationService
                 {
                     Id = action.Value,
                     Authorized = authDecisions[action.Value],
-                    ActionType = action.ActionType
+                    ActionType = action.ActionType,
                 }
             );
         }

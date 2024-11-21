@@ -19,8 +19,10 @@ namespace Altinn.App.Api.Controllers;
 [ApiController]
 public class PdfController : ControllerBase
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly IInstanceClient _instanceClient;
 #pragma warning disable CS0618 // Type or member is obsolete

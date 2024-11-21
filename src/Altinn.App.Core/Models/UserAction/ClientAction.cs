@@ -50,7 +50,7 @@ public class ClientAction
         var frontendAction = new ClientAction()
         {
             Id = "navigateToPage",
-            Metadata = new Dictionary<string, object> { { "page", page } }
+            Metadata = new Dictionary<string, object> { { "page", page } },
         };
         return frontendAction;
     }

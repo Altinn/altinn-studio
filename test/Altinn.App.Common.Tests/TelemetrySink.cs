@@ -150,7 +150,7 @@ public sealed record TelemetrySink : IDisposable
         var testId = serviceProvider?.GetService<TestId>();
 
         var appId = new AppIdentifier(org, name);
-        var options = new AppSettings { AppVersion = version, };
+        var options = new AppSettings { AppVersion = version };
 
         Object = telemetry ?? new Telemetry(appId, Options.Create(options));
 
@@ -275,7 +275,7 @@ public class TelemetrySnapshot(
         a.IdFormat,
         a.Status,
         a.Events,
-        a.Kind
+        a.Kind,
     });
     public readonly IEnumerable<KeyValuePair<string, IReadOnlyList<MetricMeasurement>>>? Metrics = metrics
         ?.Select(m => new KeyValuePair<string, IReadOnlyList<MetricMeasurement>>(m.Key, m.Value))

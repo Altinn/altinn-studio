@@ -52,8 +52,8 @@ internal sealed class FakePaymentProcessor : IPaymentProcessor
                             FirstName = "Test",
                             LastName = "Testersen",
                             Email = "test@test.no",
-                            PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" }
-                        }
+                            PhoneNumber = new PhoneNumber { Prefix = "+47", Number = "12345678" },
+                        },
                     },
                     PaymentType = "CARD",
                     PaymentMethod = "MasterCard",
@@ -64,7 +64,7 @@ internal sealed class FakePaymentProcessor : IPaymentProcessor
                     {
                         ExpiryDate = new DateTime().AddYears(2).ToLongDateString(),
                         MaskedPan = "1234********1234",
-                    }
+                    },
                 }
             )
         );

@@ -36,14 +36,13 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
     private static readonly Guid _instanceGuid = new("5a2fa5ec-f97c-4816-b57a-dc78a981917e");
     private static readonly string _instanceId = $"{InstanceOwnerPartyId}/{_instanceGuid}";
     private static readonly Guid _dataGuid = new("cd691c32-ae36-4555-8aee-0b7054a413e4");
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true,
-            UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        UnknownTypeHandling = JsonUnknownTypeHandling.JsonElement,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     // Define mocks
     private readonly Mock<IDataProcessor> _dataProcessorMock = new(MockBehavior.Strict);
@@ -347,7 +346,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                         JsonNode.Parse("\"value that is hidden\"")
                     )
                 ),
-                IgnoredValidators = []
+                IgnoredValidators = [],
             },
             _jsonSerializerOptions
         );
@@ -406,7 +405,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                             {
                                 Id = saveToDataType,
                                 TaskId = "Task_1",
-                                AppLogic = new() { ClassRef = defaultDataType.AppLogic.ClassRef }
+                                AppLogic = new() { ClassRef = defaultDataType.AppLogic.ClassRef },
                             }
                         );
                 })
@@ -439,7 +438,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
                         JsonNode.Parse("\"value that is in shadow field\"")
                     )
                 ),
-                IgnoredValidators = []
+                IgnoredValidators = [],
             },
             _jsonSerializerOptions
         );
@@ -601,7 +600,7 @@ public class ProcessControllerTests : ApiTestBase, IClassFixture<WebApplicationF
         var start = "2024-10-16T10:33:54.935732Z";
         var processList = new ProcessHistoryList()
         {
-            ProcessHistory = [new() { ElementId = "Task_1", Started = DateTime.Parse(start).ToUniversalTime(), }],
+            ProcessHistory = [new() { ElementId = "Task_1", Started = DateTime.Parse(start).ToUniversalTime() }],
         };
         SendAsync = message =>
         {

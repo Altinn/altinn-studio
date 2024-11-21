@@ -20,8 +20,11 @@ namespace Altinn.App.Core.Tests.Internal.Process;
 
 public class ExpressionsExclusiveGatewayTests
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+    };
 
     private readonly Mock<IAppResources> _resources = new(MockBehavior.Strict);
     private readonly Mock<IAppModel> _appModel = new(MockBehavior.Strict);
@@ -50,16 +53,16 @@ public class ExpressionsExclusiveGatewayTests
             new()
             {
                 Id = DefaultDataTypeName,
-                AppLogic = new() { ClassRef = _classRef, }
-            }
+                AppLogic = new() { ClassRef = _classRef },
+            },
         };
 
         var data = new DummyModel();
 
         var outgoingFlows = new List<SequenceFlow>
         {
-            new SequenceFlow { Id = "1", ConditionExpression = null, },
-            new SequenceFlow { Id = "2", ConditionExpression = null, },
+            new SequenceFlow { Id = "1", ConditionExpression = null },
+            new SequenceFlow { Id = "2", ConditionExpression = null },
         };
         var instance = new Instance()
         {
@@ -69,10 +72,10 @@ public class ExpressionsExclusiveGatewayTests
             Process = new() { CurrentTask = new() { ElementId = TaskId } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName }
-            }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName },
+            },
         };
-        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
+        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm" };
 
         var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes: dataTypes, formData: data);
 
@@ -94,15 +97,15 @@ public class ExpressionsExclusiveGatewayTests
             new()
             {
                 Id = DefaultDataTypeName,
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel", }
-            }
+                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.DummyModel" },
+            },
         };
 
         var data = new DummyModel();
         var outgoingFlows = new List<SequenceFlow>
         {
-            new SequenceFlow { Id = "1", ConditionExpression = """["equals", ["gatewayAction"], "confirm"]""", },
-            new SequenceFlow { Id = "2", ConditionExpression = """["equals", ["gatewayAction"], "reject"]""", },
+            new SequenceFlow { Id = "1", ConditionExpression = """["equals", ["gatewayAction"], "confirm"]""" },
+            new SequenceFlow { Id = "2", ConditionExpression = """["equals", ["gatewayAction"], "reject"]""" },
         };
         var instance = new Instance()
         {
@@ -112,10 +115,10 @@ public class ExpressionsExclusiveGatewayTests
             Process = new() { CurrentTask = new() { ElementId = TaskId } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName }
-            }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName },
+            },
         };
-        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
+        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm" };
 
         var (gateway, dataAccessor) = SetupExpressionsGateway(instance, dataTypes, formData: data);
 
@@ -137,27 +140,26 @@ public class ExpressionsExclusiveGatewayTests
             {
                 Id = "not-found",
                 TaskId = TaskId,
-                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.NotFound", }
+                AppLogic = new() { ClassRef = "Altinn.App.Core.Tests.Internal.Process.TestData.NotFound" },
             },
             new()
             {
                 Id = DefaultDataTypeName,
                 TaskId = TaskId,
-                AppLogic = new() { ClassRef = _classRef, }
-            }
+                AppLogic = new() { ClassRef = _classRef },
+            },
         };
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        LayoutSet layoutSet =
-            new()
-            {
-                Id = "test",
-                Tasks = new() { "Task_1" },
-                DataType = DefaultDataTypeName
-            };
+        LayoutSet layoutSet = new()
+        {
+            Id = "test",
+            Tasks = new() { "Task_1" },
+            DataType = DefaultDataTypeName,
+        };
         var outgoingFlows = new List<SequenceFlow>
         {
-            new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]", },
-            new SequenceFlow { Id = "2", ConditionExpression = "[\"equals\", [\"dataModel\", \"Amount\"], 1000]", },
+            new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]" },
+            new SequenceFlow { Id = "2", ConditionExpression = "[\"equals\", [\"dataModel\", \"Amount\"], 1000]" },
         };
         var instance = new Instance()
         {
@@ -167,10 +169,10 @@ public class ExpressionsExclusiveGatewayTests
             Process = new() { CurrentTask = new() { ElementId = TaskId } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName }
-            }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = DefaultDataTypeName },
+            },
         };
-        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", };
+        var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm" };
 
         var (gateway, dataAccessor) = SetupExpressionsGateway(
             instance,
@@ -196,27 +198,26 @@ public class ExpressionsExclusiveGatewayTests
             new()
             {
                 Id = "aa",
-                AppLogic = new() { ClassRef = _classRef, }
+                AppLogic = new() { ClassRef = _classRef },
             },
             new()
             {
                 Id = DefaultDataTypeName,
-                AppLogic = new() { ClassRef = _classRef, }
-            }
+                AppLogic = new() { ClassRef = _classRef },
+            },
         };
 
         object formData = new DummyModel() { Amount = 1000, Submitter = "test" };
-        LayoutSet layoutSet =
-            new()
-            {
-                Id = "test",
-                Tasks = new() { "Task_1" },
-                DataType = DefaultDataTypeName
-            };
+        LayoutSet layoutSet = new()
+        {
+            Id = "test",
+            Tasks = new() { "Task_1" },
+            DataType = DefaultDataTypeName,
+        };
         var outgoingFlows = new List<SequenceFlow>
         {
-            new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]", },
-            new SequenceFlow { Id = "2", ConditionExpression = "[\"equals\", [\"dataModel\", \"Amount\"], 1000]", },
+            new SequenceFlow { Id = "1", ConditionExpression = "[\"notEquals\", [\"dataModel\", \"Amount\"], 1000]" },
+            new SequenceFlow { Id = "2", ConditionExpression = "[\"equals\", [\"dataModel\", \"Amount\"], 1000]" },
         };
         var instance = new Instance()
         {
@@ -226,8 +227,8 @@ public class ExpressionsExclusiveGatewayTests
             Process = new() { CurrentTask = new() { ElementId = "Task_1" } },
             Data = new()
             {
-                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "aa" }
-            }
+                new() { Id = "cd9204e7-9b83-41b4-b2f2-9b196b4fafcf", DataType = "aa" },
+            },
         };
         var processGatewayInformation = new ProcessGatewayInformation { Action = "confirm", DataTypeId = "aa" };
 

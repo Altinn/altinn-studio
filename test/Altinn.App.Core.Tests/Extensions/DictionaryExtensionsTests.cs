@@ -16,7 +16,7 @@ public class DictionaryExtensionsTests
 
         IHeaderDictionary headers = new HeaderDictionary
         {
-            { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') }
+            { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') },
         };
 
         Assert.Equal("lang=nb,level=1", headers["Altinn-DownstreamParameters"]);
@@ -29,7 +29,7 @@ public class DictionaryExtensionsTests
 
         IHeaderDictionary headers = new HeaderDictionary
         {
-            { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') }
+            { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') },
         };
 
         Assert.Equal(string.Empty, headers["Altinn-DownstreamParameters"]);
@@ -42,7 +42,7 @@ public class DictionaryExtensionsTests
 
         IHeaderDictionary headers = new HeaderDictionary
         {
-            { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') }
+            { "Altinn-DownstreamParameters", options.Parameters.ToUrlEncodedNameValueString(',') },
         };
 
         Assert.Equal(string.Empty, headers["Altinn-DownstreamParameters"]);
@@ -58,7 +58,7 @@ public class DictionaryExtensionsTests
                 { "lang", "nb" },
                 { "level", "1" },
                 { "name", "ÆØÅ" },
-                { "variant", "Småvilt1" }
+                { "variant", "Småvilt1" },
             },
         };
 

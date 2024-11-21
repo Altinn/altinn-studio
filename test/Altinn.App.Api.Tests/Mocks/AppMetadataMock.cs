@@ -16,13 +16,12 @@ public sealed record AppMetadataMutationHook(Action<ApplicationMetadata> Action)
 
 public class AppMetadataMock : IAppMetadata
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        AllowTrailingCommas = true,
+    };
 
     private readonly AppSettings _settings;
     private readonly IFrontendFeatures _frontendFeatures;

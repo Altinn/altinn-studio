@@ -196,7 +196,7 @@ public static class InstantiationHelper
     {
         if (!string.IsNullOrEmpty(party.SSN))
         {
-            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), PersonNumber = party.SSN, };
+            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), PersonNumber = party.SSN };
         }
         else if (!string.IsNullOrEmpty(party.OrgNumber))
         {
@@ -208,7 +208,7 @@ public static class InstantiationHelper
         }
         else if (party.PartyTypeName.Equals(PartyType.SelfIdentified))
         {
-            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), Username = party.Name, };
+            return new() { PartyId = party.PartyId.ToString(CultureInfo.InvariantCulture), Username = party.Name };
         }
         return new()
         {

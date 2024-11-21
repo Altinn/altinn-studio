@@ -207,7 +207,7 @@ public class ApiTestBase
                     {
                         LogLevel.Warning,
                         LogLevel.Error,
-                        LogLevel.Critical
+                        LogLevel.Critical,
                     };
                 }
                 options.OutputFormatter = FakeLoggerXunit.OutputFormatter;

@@ -19,8 +19,11 @@ public class DataClientMock : IDataClient
     private readonly IAppMetadata _appMetadata;
     private readonly ModelSerializationService _modelSerialization;
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly ILogger<DataClientMock> _logger;
 
@@ -137,20 +140,19 @@ public class DataClientMock : IDataClient
         List<AttachmentList> list = new();
         foreach (DataElement dataElement in dataElements)
         {
-            AttachmentList al =
-                new()
+            AttachmentList al = new()
+            {
+                Type = dataElement.DataType,
+                Attachments = new List<Attachment>()
                 {
-                    Type = dataElement.DataType,
-                    Attachments = new List<Attachment>()
+                    new Attachment()
                     {
-                        new Attachment()
-                        {
-                            Id = dataElement.Id,
-                            Name = dataElement.Filename,
-                            Size = dataElement.Size
-                        }
-                    }
-                };
+                        Id = dataElement.Id,
+                        Name = dataElement.Filename,
+                        Size = dataElement.Size,
+                    },
+                },
+            };
             list.Add(al);
         }
 
@@ -221,14 +223,13 @@ public class DataClientMock : IDataClient
         string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
         var (serializedBytes, contentType) = _modelSerialization.SerializeToStorage(dataToSerialize, dataType);
 
-        DataElement dataElement =
-            new()
-            {
-                Id = dataGuid.ToString(),
-                InstanceGuid = instanceGuid.ToString(),
-                DataType = dataTypeString,
-                ContentType = contentType,
-            };
+        DataElement dataElement = new()
+        {
+            Id = dataGuid.ToString(),
+            InstanceGuid = instanceGuid.ToString(),
+            DataType = dataTypeString,
+            ContentType = contentType,
+        };
 
         Directory.CreateDirectory(dataPath + @"blob");
 
@@ -291,14 +292,13 @@ public class DataClientMock : IDataClient
     {
         Guid dataGuid = Guid.NewGuid();
         string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerPartyId, instanceGuid);
-        DataElement dataElement =
-            new()
-            {
-                Id = dataGuid.ToString(),
-                InstanceGuid = instanceGuid.ToString(),
-                DataType = dataType,
-                ContentType = request.ContentType
-            };
+        DataElement dataElement = new()
+        {
+            Id = dataGuid.ToString(),
+            InstanceGuid = instanceGuid.ToString(),
+            DataType = dataType,
+            ContentType = request.ContentType,
+        };
 
         if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
         {
@@ -395,14 +395,13 @@ public class DataClientMock : IDataClient
 
         string dataPath = TestData.GetDataDirectory(org, app, instanceOwnerId, instanceGuid);
 
-        DataElement dataElement =
-            new()
-            {
-                Id = dataGuid.ToString(),
-                InstanceGuid = instanceGuid.ToString(),
-                DataType = dataType,
-                ContentType = contentType,
-            };
+        DataElement dataElement = new()
+        {
+            Id = dataGuid.ToString(),
+            InstanceGuid = instanceGuid.ToString(),
+            DataType = dataType,
+            ContentType = contentType,
+        };
 
         if (!Directory.Exists(Path.GetDirectoryName(dataPath)))
         {

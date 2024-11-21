@@ -15,8 +15,11 @@ namespace Altinn.App.Core.Features.Action;
 /// </summary>
 public class UniqueSignatureAuthorizer : IUserActionAuthorizer
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true, };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
 
     private readonly IAppMetadata _appMetadata;
     private readonly IProcessReader _processReader;

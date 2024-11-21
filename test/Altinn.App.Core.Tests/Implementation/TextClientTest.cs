@@ -106,7 +106,7 @@ public class TextClientTest
 
         HttpResponseMessage httpResponseMessage = new HttpResponseMessage
         {
-            StatusCode = HttpStatusCode.InternalServerError
+            StatusCode = HttpStatusCode.InternalServerError,
         };
 
         InitializeMocks(httpResponseMessage, "texts");
@@ -132,7 +132,7 @@ public class TextClientTest
         PlatformSettings platformSettings = new PlatformSettings
         {
             ApiStorageEndpoint = "http://localhost",
-            SubscriptionKey = "key"
+            SubscriptionKey = "key",
         };
         _platformSettingsOptions.Setup(s => s.Value).Returns(platformSettings);
 

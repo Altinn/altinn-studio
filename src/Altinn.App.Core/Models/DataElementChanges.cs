@@ -78,7 +78,7 @@ public enum ChangeType
     /// <summary>
     /// The data element was deleted and will have <see cref="DataElementChange.DataElement"/> set
     /// </summary>
-    Deleted
+    Deleted,
 }
 
 /// <summary>

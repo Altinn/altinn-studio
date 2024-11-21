@@ -29,8 +29,8 @@ public class NetsPaymentProcessorTests
                 TermsUrl = "termsUrl",
                 PaymentMethodsConfiguration =
                 [
-                    new NetsPaymentSettings.PaymentMethodConfigurationItem { Name = "Card", Enabled = true }
-                ]
+                    new NetsPaymentSettings.PaymentMethodConfigurationItem { Name = "Card", Enabled = true },
+                ],
             }
         );
         _generalSettings = Microsoft.Extensions.Options.Options.Create(new GeneralSettings());
@@ -47,7 +47,7 @@ public class NetsPaymentProcessorTests
             PaymentProcessorId = "paymentProcessorId",
             Currency = "NOK",
             OrderLines = [],
-            Receiver = new PaymentReceiver()
+            Receiver = new PaymentReceiver(),
         };
 
         NetsCreatePayment? capturedNetsCreatePayment = null;
@@ -60,8 +60,8 @@ public class NetsPaymentProcessorTests
                     Result = new NetsCreatePaymentSuccess
                     {
                         HostedPaymentPageUrl = "https://payment-url.com",
-                        PaymentId = "12345"
-                    }
+                        PaymentId = "12345",
+                    },
                 }
             );
 
@@ -96,7 +96,7 @@ public class NetsPaymentProcessorTests
                     Name = "Item 1",
                     Quantity = 1,
                     PriceExVat = 100,
-                    VatPercent = 25M
+                    VatPercent = 25M,
                 },
                 new PaymentOrderLine()
                 {
@@ -104,10 +104,10 @@ public class NetsPaymentProcessorTests
                     Name = "Item 2",
                     Quantity = 2,
                     PriceExVat = 200,
-                    VatPercent = 25M
-                }
+                    VatPercent = 25M,
+                },
             ],
-            Receiver = new PaymentReceiver()
+            Receiver = new PaymentReceiver(),
         };
 
         int expectedSum = orderDetails.OrderLines.Sum(x =>
@@ -122,8 +122,8 @@ public class NetsPaymentProcessorTests
                     Result = new NetsCreatePaymentSuccess
                     {
                         HostedPaymentPageUrl = "https://payment-url.com",
-                        PaymentId = "12345"
-                    }
+                        PaymentId = "12345",
+                    },
                 }
             );
 
@@ -154,7 +154,7 @@ public class NetsPaymentProcessorTests
             PaymentProcessorId = "paymentProcessorId",
             Currency = "NOK",
             OrderLines = [],
-            Receiver = new PaymentReceiver()
+            Receiver = new PaymentReceiver(),
         };
 
         _netsClientMock
@@ -170,30 +170,29 @@ public class NetsPaymentProcessorTests
     {
         // Arrange
         Instance instance = CreateInstance();
-        PaymentInformation paymentInformation =
-            new()
+        PaymentInformation paymentInformation = new()
+        {
+            TaskId = "taskId",
+            Status = PaymentStatus.Created,
+            OrderDetails = new OrderDetails
             {
-                TaskId = "taskId",
-                Status = PaymentStatus.Created,
-                OrderDetails = new OrderDetails
-                {
-                    PaymentProcessorId = "paymentProcessorId",
-                    Currency = "NOK",
-                    OrderReference = "orderReference",
-                    OrderLines =
-                    [
-                        new PaymentOrderLine
-                        {
-                            Id = "1",
-                            Name = "Item 1",
-                            PriceExVat = 500,
-                            VatPercent = 25,
-                        }
-                    ],
-                    Receiver = new PaymentReceiver()
-                },
-                PaymentDetails = new PaymentDetails { PaymentId = "paymentReference", RedirectUrl = "redirectUrl", },
-            };
+                PaymentProcessorId = "paymentProcessorId",
+                Currency = "NOK",
+                OrderReference = "orderReference",
+                OrderLines =
+                [
+                    new PaymentOrderLine
+                    {
+                        Id = "1",
+                        Name = "Item 1",
+                        PriceExVat = 500,
+                        VatPercent = 25,
+                    },
+                ],
+                Receiver = new PaymentReceiver(),
+            },
+            PaymentDetails = new PaymentDetails { PaymentId = "paymentReference", RedirectUrl = "redirectUrl" },
+        };
 
         _netsClientMock.Setup(x => x.TerminatePayment(paymentInformation.PaymentDetails.PaymentId)).ReturnsAsync(true);
 
@@ -225,11 +224,11 @@ public class NetsPaymentProcessorTests
                             Summary = new NetsSummary
                             {
                                 // All amounts sent to and received from Nets are in the lowest monetary unit for the given currency, without punctuation marks.
-                                ChargedAmount = expectedTotalIncVat * 100
+                                ChargedAmount = expectedTotalIncVat * 100,
                             },
-                            Checkout = new() { Url = "https://redirect-url.com", CancelUrl = "https://cancel-url.com" }
-                        }
-                    }
+                            Checkout = new() { Url = "https://redirect-url.com", CancelUrl = "https://cancel-url.com" },
+                        },
+                    },
                 }
             );
 
@@ -272,7 +271,7 @@ public class NetsPaymentProcessorTests
             AppId = "ttd/test",
             Process = new ProcessState
             {
-                CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1", },
+                CurrentTask = new ProcessElementInfo { AltinnTaskType = "payment", ElementId = "Task_1" },
             },
         };
     }

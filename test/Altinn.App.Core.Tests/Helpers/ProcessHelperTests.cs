@@ -49,7 +49,7 @@ public class ProcessHelperTests
                 new ProcessError()
                 {
                     Code = "Conflict",
-                    Text = "There is no such start event as 'NotPossibleStart' in the process definition."
+                    Text = "There is no such start event as 'NotPossibleStart' in the process definition.",
                 }
             );
     }
@@ -70,7 +70,7 @@ public class ProcessHelperTests
                 new ProcessError()
                 {
                     Code = "Conflict",
-                    Text = "There are more than one start events available. Chose one: [StartEvent, StartEvent2]"
+                    Text = "There are more than one start events available. Chose one: [StartEvent, StartEvent2]",
                 }
             );
     }
@@ -91,7 +91,7 @@ public class ProcessHelperTests
                 new ProcessError()
                 {
                     Code = "Conflict",
-                    Text = "There is no start events in process definition. Cannot start process!"
+                    Text = "There is no start events in process definition. Cannot start process!",
                 }
             );
     }
@@ -126,7 +126,7 @@ public class ProcessHelperTests
                 {
                     Code = "Conflict",
                     Text =
-                        $"There are more than one outgoing sequence flows, please select one 'System.Collections.Generic.List`1[System.String]'"
+                        $"There are more than one outgoing sequence flows, please select one 'System.Collections.Generic.List`1[System.String]'",
                 }
             );
     }
@@ -160,7 +160,7 @@ public class ProcessHelperTests
                 new ProcessError()
                 {
                     Code = "Conflict",
-                    Text = "The proposed next element id 'Foobar' is not among the available next process elements"
+                    Text = "The proposed next element id 'Foobar' is not among the available next process elements",
                 }
             );
     }
@@ -182,7 +182,7 @@ public class ProcessHelperTests
                 {
                     Code = "Conflict",
                     Text =
-                        "There are no outgoing sequence flows from current element. Cannot find next process element. Error in bpmn file!"
+                        "There are no outgoing sequence flows from current element. Cannot find next process element. Error in bpmn file!",
                 }
             );
     }
@@ -205,7 +205,7 @@ public class ProcessHelperTests
                 FlowType = "CompleteCurrentMoveToNext",
                 SourceRef = "Task2",
                 TargetRef = "Task3",
-            }
+            },
         };
         ProcessHelper
             .GetSequenceFlowType(sequenceFlows)
@@ -230,7 +230,7 @@ public class ProcessHelperTests
                 FlowType = "AbandonCurrentReturnToNext",
                 SourceRef = "Task2",
                 TargetRef = "Task3",
-            }
+            },
         };
         ProcessHelper
             .GetSequenceFlowType(sequenceFlows)
@@ -254,7 +254,7 @@ public class ProcessHelperTests
                 Id = "Flow2",
                 SourceRef = "Task2",
                 TargetRef = "Task3",
-            }
+            },
         };
         ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.CompleteCurrentMoveToNext);
     }
@@ -269,15 +269,15 @@ public class ProcessHelperTests
                 Id = "Flow1",
                 SourceRef = "Task1",
                 TargetRef = "Task2",
-                FlowType = "FooFlowType"
+                FlowType = "FooFlowType",
             },
             new SequenceFlow()
             {
                 Id = "Flow2",
                 SourceRef = "Task2",
                 TargetRef = "Task3",
-                FlowType = "BarFlowType"
-            }
+                FlowType = "BarFlowType",
+            },
         };
         ProcessHelper.GetSequenceFlowType(sequenceFlows).Should().Be(ProcessSequenceFlowType.CompleteCurrentMoveToNext);
     }

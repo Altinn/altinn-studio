@@ -125,8 +125,11 @@ public class DataModel
             .ToArray();
     }
 
-    private static readonly Regex _rowIndexRegex =
-        new(@"^([^[\]]+(\[(\d+)])?)+$", RegexOptions.Compiled, TimeSpan.FromMilliseconds(10));
+    private static readonly Regex _rowIndexRegex = new(
+        @"^([^[\]]+(\[(\d+)])?)+$",
+        RegexOptions.Compiled,
+        TimeSpan.FromMilliseconds(10)
+    );
 
     /// <summary>
     /// Get the row indices from a key

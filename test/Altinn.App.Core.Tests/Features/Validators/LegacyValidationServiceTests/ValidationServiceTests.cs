@@ -38,41 +38,40 @@ public sealed class ValidationServiceTests : IDisposable
     private const string DefaultAppId = $"{DefaultOrg}/{DefaultApp}";
     private const string DefaultLanguage = "defaultLanguageCode";
 
-    private static readonly DataElement _defaultDataElement =
-        new() { Id = _defaultDataElementId.ToString(), DataType = "MyType", };
+    private static readonly DataElement _defaultDataElement = new()
+    {
+        Id = _defaultDataElementId.ToString(),
+        DataType = "MyType",
+    };
 
-    private static readonly DataType _defaultDataType =
-        new()
-        {
-            Id = "MyType",
-            TaskId = DefaultTaskId,
-            AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName }
-        };
+    private static readonly DataType _defaultDataType = new()
+    {
+        Id = "MyType",
+        TaskId = DefaultTaskId,
+        AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName },
+    };
 
-    private static readonly DataType _neverataType =
-        new()
-        {
-            Id = "never",
-            TaskId = DefaultTaskId,
-            AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName }
-        };
+    private static readonly DataType _neverataType = new()
+    {
+        Id = "never",
+        TaskId = DefaultTaskId,
+        AppLogic = new ApplicationLogic { ClassRef = typeof(MyModel).FullName },
+    };
 
-    private static readonly Instance _defaultInstance =
-        new()
-        {
-            Id = $"{DefaultPartyId}/{_defaultInstanceId}",
-            InstanceOwner = new InstanceOwner() { PartyId = DefaultPartyId.ToString(), },
-            Org = DefaultOrg,
-            AppId = DefaultAppId,
-            Data = [_defaultDataElement],
-            Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } }
-        };
+    private static readonly Instance _defaultInstance = new()
+    {
+        Id = $"{DefaultPartyId}/{_defaultInstanceId}",
+        InstanceOwner = new InstanceOwner() { PartyId = DefaultPartyId.ToString() },
+        Org = DefaultOrg,
+        AppId = DefaultAppId,
+        Data = [_defaultDataElement],
+        Process = new ProcessState { CurrentTask = new ProcessElementInfo { ElementId = "Task_1" } },
+    };
 
-    private static readonly ApplicationMetadata _defaultAppMetadata =
-        new(DefaultAppId)
-        {
-            DataTypes = new List<DataType> { _defaultDataType, _neverataType },
-        };
+    private static readonly ApplicationMetadata _defaultAppMetadata = new(DefaultAppId)
+    {
+        DataTypes = new List<DataType> { _defaultDataType, _neverataType },
+    };
 
     private readonly Mock<ILogger<ValidationService>> _loggerMock = new();
     private readonly Mock<IDataClient> _dataClientMock = new(MockBehavior.Strict);
@@ -84,28 +83,46 @@ public sealed class ValidationServiceTests : IDisposable
     private readonly Mock<IAppMetadata> _appMetadataMock = new(MockBehavior.Strict);
 
     // Specific validators for this task.
-    private readonly Mock<ITaskValidator> _taskValidatorMock =
-        new(MockBehavior.Strict) { Name = "specificTaskValidator" };
-    private readonly Mock<IDataElementValidator> _dataElementValidatorMock =
-        new(MockBehavior.Strict) { Name = "specificDataElementValidator" };
-    private readonly Mock<IFormDataValidator> _formDataValidatorMock =
-        new(MockBehavior.Strict) { Name = "specificFormDataValidator" };
+    private readonly Mock<ITaskValidator> _taskValidatorMock = new(MockBehavior.Strict)
+    {
+        Name = "specificTaskValidator",
+    };
+    private readonly Mock<IDataElementValidator> _dataElementValidatorMock = new(MockBehavior.Strict)
+    {
+        Name = "specificDataElementValidator",
+    };
+    private readonly Mock<IFormDataValidator> _formDataValidatorMock = new(MockBehavior.Strict)
+    {
+        Name = "specificFormDataValidator",
+    };
 
     // Never run validators (to ensure that a validator with a specific task id is not run for other tasks)
-    private readonly Mock<ITaskValidator> _taskValidatorNeverMock =
-        new(MockBehavior.Strict) { Name = "neverTaskValidator" };
-    private readonly Mock<IDataElementValidator> _dataElementValidatorNeverMock =
-        new(MockBehavior.Strict) { Name = "neverDataElementValidator" };
-    private readonly Mock<IFormDataValidator> _formDataValidatorNeverMock =
-        new(MockBehavior.Strict) { Name = "neverFormDataValidator" };
+    private readonly Mock<ITaskValidator> _taskValidatorNeverMock = new(MockBehavior.Strict)
+    {
+        Name = "neverTaskValidator",
+    };
+    private readonly Mock<IDataElementValidator> _dataElementValidatorNeverMock = new(MockBehavior.Strict)
+    {
+        Name = "neverDataElementValidator",
+    };
+    private readonly Mock<IFormDataValidator> _formDataValidatorNeverMock = new(MockBehavior.Strict)
+    {
+        Name = "neverFormDataValidator",
+    };
 
     // Always run validators * for all tasks
-    private readonly Mock<ITaskValidator> _taskValidatorAlwaysMock =
-        new(MockBehavior.Strict) { Name = "alwaysTaskValidator" };
-    private readonly Mock<IDataElementValidator> _dataElementValidatorAlwaysMock =
-        new(MockBehavior.Strict) { Name = "alwaysDataElementValidator" };
-    private readonly Mock<IFormDataValidator> _formDataValidatorAlwaysMock =
-        new(MockBehavior.Strict) { Name = "alwaysFormDataValidator" };
+    private readonly Mock<ITaskValidator> _taskValidatorAlwaysMock = new(MockBehavior.Strict)
+    {
+        Name = "alwaysTaskValidator",
+    };
+    private readonly Mock<IDataElementValidator> _dataElementValidatorAlwaysMock = new(MockBehavior.Strict)
+    {
+        Name = "alwaysDataElementValidator",
+    };
+    private readonly Mock<IFormDataValidator> _formDataValidatorAlwaysMock = new(MockBehavior.Strict)
+    {
+        Name = "alwaysFormDataValidator",
+    };
     private readonly ModelSerializationService _modelSerialization;
 
     private readonly ServiceCollection _serviceCollection = new();
@@ -297,7 +314,7 @@ public sealed class ValidationServiceTests : IDisposable
                     {
                         {
                             new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" }
-                        }
+                        },
                     };
                 }
 
@@ -330,8 +347,8 @@ public sealed class ValidationServiceTests : IDisposable
                         PreviousFormData = previousData,
                         CurrentFormData = data,
                         PreviousBinaryData = null,
-                        CurrentBinaryData = null
-                    }
+                        CurrentBinaryData = null,
+                    },
                 ]
             ),
             null,
@@ -351,7 +368,7 @@ public sealed class ValidationServiceTests : IDisposable
             hasRelevantChanges: true,
             model => new List<ValidationIssue>
             {
-                new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" }
+                new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "NameNotOla" },
             }
         );
 
@@ -360,7 +377,7 @@ public sealed class ValidationServiceTests : IDisposable
             hasRelevantChanges: true,
             model => new List<ValidationIssue>
             {
-                new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "AlwaysNameNotOla" }
+                new() { Severity = ValidationIssueSeverity.Error, CustomTextKey = "AlwaysNameNotOla" },
             }
         );
 
@@ -368,22 +385,21 @@ public sealed class ValidationServiceTests : IDisposable
 
         var validatorService = serviceProvider.GetRequiredService<IValidationService>();
         var data = new MyModel { Name = "Kari" };
-        DataElementChanges dataElementChanges =
-            new(
-                [
-                    new FormDataChange()
-                    {
-                        Type = ChangeType.Updated,
-                        DataElement = _defaultDataElement,
-                        DataType = _defaultDataType,
-                        ContentType = "application/xml",
-                        CurrentFormData = data,
-                        PreviousFormData = data,
-                        PreviousBinaryData = null,
-                        CurrentBinaryData = null
-                    }
-                ]
-            );
+        DataElementChanges dataElementChanges = new(
+            [
+                new FormDataChange()
+                {
+                    Type = ChangeType.Updated,
+                    DataElement = _defaultDataElement,
+                    DataType = _defaultDataType,
+                    ContentType = "application/xml",
+                    CurrentFormData = data,
+                    PreviousFormData = data,
+                    PreviousBinaryData = null,
+                    CurrentBinaryData = null,
+                },
+            ]
+        );
         SetupDataClient(data);
         var dataAccessor = new InstanceDataUnitOfWork(
             _defaultInstance,
@@ -424,7 +440,7 @@ public sealed class ValidationServiceTests : IDisposable
         {
             return new List<ValidationIssue>
             {
-                new() { Code = code, Severity = ValidationIssueSeverity.Error, }
+                new() { Code = code, Severity = ValidationIssueSeverity.Error },
             };
         }
 

@@ -16,8 +16,11 @@ public class TestFunctions
 {
     private readonly ITestOutputHelper _output;
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     public TestFunctions(ITestOutputHelper output)
     {
@@ -185,13 +188,13 @@ public class TestFunctions
                     {
                         Id = dt,
                         MaxCount = 1,
-                        AppLogic = new() { ClassRef = "not-in-user" }
+                        AppLogic = new() { ClassRef = "not-in-user" },
                     })
             );
             dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
         }
 
-        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = dataTypes, };
+        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = dataTypes };
 
         LayoutModel? componentModel = null;
         if (test.Layouts is not null)

@@ -31,7 +31,7 @@ public class ProfileClientTests
     {
         var services = new ServiceCollection();
 
-        userProfileFactory ??= () => new UserProfile { UserId = 1234, };
+        userProfileFactory ??= () => new UserProfile { UserId = 1234 };
 
         var httpContextMock = new Mock<HttpContext>();
         httpContextMock.Setup(x => x.Request.Cookies["AltinnStudioRuntime"]).Returns("");
@@ -41,20 +41,19 @@ public class ProfileClientTests
         services.AddSingleton(httpContextAccessor.Object);
 
         var appMetadataMock = new Mock<IAppMetadata>();
-        ApplicationMetadata appMetadata =
-            new("ttd/test")
+        ApplicationMetadata appMetadata = new("ttd/test")
+        {
+            DataTypes = new List<DataType>()
             {
-                DataTypes = new List<DataType>()
+                new DataType()
                 {
-                    new DataType()
-                    {
-                        Id = "test",
-                        TaskId = "Task_1",
-                        EnableFileScan = false,
-                        ValidationErrorOnPendingFileScan = false,
-                    }
-                }
-            };
+                    Id = "test",
+                    TaskId = "Task_1",
+                    EnableFileScan = false,
+                    ValidationErrorOnPendingFileScan = false,
+                },
+            },
+        };
         appMetadataMock.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(appMetadata);
         services.AddSingleton(appMetadataMock.Object);
 
@@ -82,7 +81,7 @@ public class ProfileClientTests
                 return new HttpResponseMessage
                 {
                     StatusCode = profile is null ? HttpStatusCode.NotFound : HttpStatusCode.OK,
-                    Content = new StringContent(JsonSerializer.Serialize(profile))
+                    Content = new StringContent(JsonSerializer.Serialize(profile)),
                 };
             })
             .Verifiable();
@@ -108,7 +107,7 @@ public class ProfileClientTests
         const int userId = 1234;
         TelemetrySink telemetry;
         {
-            await using var fixture = BuildFixture(() => new UserProfile { UserId = userId, });
+            await using var fixture = BuildFixture(() => new UserProfile { UserId = userId });
             telemetry = fixture.ServiceProvider.GetRequiredService<TelemetrySink>();
 
             var client = fixture.ServiceProvider.GetRequiredService<IProfileClient>();
@@ -125,7 +124,7 @@ public class ProfileClientTests
     public async Task Returns_Test_Profile_Cached()
     {
         const int userId = 1234;
-        await using var fixture = BuildFixture(() => new UserProfile { UserId = userId, });
+        await using var fixture = BuildFixture(() => new UserProfile { UserId = userId });
 
         var client1 = fixture.ServiceProvider.GetRequiredService<IProfileClient>();
         var client2 = fixture.ServiceProvider.GetRequiredService<IProfileClient>();
@@ -143,7 +142,7 @@ public class ProfileClientTests
     public async Task Cache_Expires()
     {
         const int userId = 1234;
-        await using var fixture = BuildFixture(() => new UserProfile { UserId = userId, });
+        await using var fixture = BuildFixture(() => new UserProfile { UserId = userId });
 
         var client = fixture.ServiceProvider.GetRequiredService<IProfileClient>();
         var cacheExpirySeconds = fixture

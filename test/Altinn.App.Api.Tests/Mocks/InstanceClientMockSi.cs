@@ -236,7 +236,7 @@ public class InstanceClientMockSi : IInstanceClient
 
         instance.CompleteConfirmations = new List<CompleteConfirmation>
         {
-            new CompleteConfirmation { StakeholderId = org }
+            new CompleteConfirmation { StakeholderId = org },
         };
 
         return await Task.FromResult(instance);
@@ -426,42 +426,40 @@ public class InstanceClientMockSi : IInstanceClient
     /// </summary>
     public async Task<List<Instance>> GetInstances(Dictionary<string, StringValues> queryParams)
     {
-        List<string> validQueryParams =
-            new()
-            {
-                "org",
-                "appId",
-                "process.currentTask",
-                "process.isComplete",
-                "process.endEvent",
-                "process.ended",
-                "instanceOwner.partyId",
-                "lastChanged",
-                "created",
-                "visibleAfter",
-                "dueBefore",
-                "excludeConfirmedBy",
-                "size",
-                "language",
-                "status.isSoftDeleted",
-                "status.isArchived",
-                "status.isHardDeleted",
-                "status.isArchivedOrSoftDeleted",
-                "status.isActiveorSoftDeleted",
-                "sortBy",
-                "archiveReference"
-            };
+        List<string> validQueryParams = new()
+        {
+            "org",
+            "appId",
+            "process.currentTask",
+            "process.isComplete",
+            "process.endEvent",
+            "process.ended",
+            "instanceOwner.partyId",
+            "lastChanged",
+            "created",
+            "visibleAfter",
+            "dueBefore",
+            "excludeConfirmedBy",
+            "size",
+            "language",
+            "status.isSoftDeleted",
+            "status.isArchived",
+            "status.isHardDeleted",
+            "status.isArchivedOrSoftDeleted",
+            "status.isActiveorSoftDeleted",
+            "sortBy",
+            "archiveReference",
+        };
 
         string invalidKey = queryParams.FirstOrDefault(q => !validQueryParams.Contains(q.Key)).Key;
         if (!string.IsNullOrEmpty(invalidKey))
         {
             // platform exceptions.
-            HttpResponseMessage res =
-                new()
-                {
-                    StatusCode = System.Net.HttpStatusCode.BadRequest,
-                    Content = new StringContent($"Unknown query parameter: {invalidKey}")
-                };
+            HttpResponseMessage res = new()
+            {
+                StatusCode = System.Net.HttpStatusCode.BadRequest,
+                Content = new StringContent($"Unknown query parameter: {invalidKey}"),
+            };
 
             throw await PlatformHttpException.CreateAsync(res);
         }

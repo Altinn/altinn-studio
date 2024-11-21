@@ -25,8 +25,8 @@ public class TextsControllerTests
             Org = org,
             Resources = new List<TextResourceElement>
             {
-                new TextResourceElement { Id = "test", Value = "test" }
-            }
+                new TextResourceElement { Id = "test", Value = "test" },
+            },
         };
 
         var appResourceMock = new Mock<IAppResources>();
@@ -59,8 +59,8 @@ public class TextsControllerTests
             Org = org,
             Resources = new List<TextResourceElement>
             {
-                new TextResourceElement { Id = "test", Value = "test" }
-            }
+                new TextResourceElement { Id = "test", Value = "test" },
+            },
         };
 
         var appResourceMock = new Mock<IAppResources>();

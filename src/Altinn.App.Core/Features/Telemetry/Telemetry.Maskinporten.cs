@@ -50,7 +50,7 @@ partial class Telemetry
             New,
 
             [Display(Name = "error")]
-            Error
+            Error,
         }
     }
 }

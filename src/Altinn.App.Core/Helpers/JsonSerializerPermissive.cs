@@ -12,13 +12,12 @@ public static class JsonSerializerPermissive
     /// <summary>
     /// <see cref="JsonSerializerOptions"/> for the most permissive parsing of JSON.
     /// </summary>
-    public static readonly JsonSerializerOptions JsonSerializerOptionsDefaults =
-        new(JsonSerializerDefaults.Web)
-        {
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            Converters = { new JsonStringEnumConverter(), },
-        };
+    public static readonly JsonSerializerOptions JsonSerializerOptionsDefaults = new(JsonSerializerDefaults.Web)
+    {
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        Converters = { new JsonStringEnumConverter() },
+    };
 
     /// <summary>
     /// Simple wrapper of <see cref="JsonSerializer.Deserialize{TValue}(string, JsonSerializerOptions?)"/> with permissive defaults.

@@ -61,10 +61,10 @@ public class SignClientTests
             Signee = new() { UserId = "1337", PersonNumber = "0101011337" },
             DataElementSignatures = new()
             {
-                new() { DataElementId = dataElementId, Signed = true }
+                new() { DataElementId = dataElementId, Signed = true },
             },
             SignatureDocumentDataType = "sign-data-type",
-            GeneratedFromTask = "TheTask"
+            GeneratedFromTask = "TheTask",
         };
 
         await signClient.SignDataElements(signatureContext);

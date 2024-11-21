@@ -16,8 +16,11 @@ namespace Altinn.App.Core.Features.Validation.Default;
 /// </summary>
 public class ExpressionValidator : IValidator
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { ReadCommentHandling = JsonCommentHandling.Skip, PropertyNamingPolicy = JsonNamingPolicy.CamelCase, };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     private readonly ILogger<ExpressionValidator> _logger;
     private readonly IAppResources _appResourceService;
@@ -111,7 +114,7 @@ public class ExpressionValidator : IValidator
             var baseField = new DataReference()
             {
                 Field = validationObject.Key,
-                DataElementIdentifier = dataElementIdentifier
+                DataElementIdentifier = dataElementIdentifier,
             };
             var resolvedFields = await evaluatorState.GetResolvedKeys(baseField);
             var validations = validationObject.Value;

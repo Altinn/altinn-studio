@@ -31,22 +31,22 @@ public class RunTest3
                     {
                         Binding = default,
                         Binding2 = default,
-                        Binding3 = default
+                        Binding3 = default,
                     },
                     new()
                     {
                         Binding = "binding",
                         Binding2 = 2,
-                        Binding3 = default
+                        Binding3 = default,
                     },
                     new()
                     {
                         Binding = "hideRow",
                         Binding2 = 3,
-                        Binding3 = "text"
-                    }
-                }
-            }
+                        Binding3 = "text",
+                    },
+                },
+            },
         };
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "Test3");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
@@ -59,8 +59,8 @@ public class RunTest3
                     new DataReference()
                     {
                         Field = "some.data[2]",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
-                    }
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
+                    },
                 ]
             );
 
@@ -98,22 +98,22 @@ public class RunTest3
                     {
                         Binding = default,
                         Binding2 = default,
-                        Binding3 = default
+                        Binding3 = default,
                     },
                     new()
                     {
                         Binding = "binding",
                         Binding2 = 2,
-                        Binding3 = default
+                        Binding3 = default,
                     },
                     new()
                     {
                         Binding = "hideRow",
                         Binding2 = 3,
-                        Binding3 = "text"
-                    }
-                }
-            }
+                        Binding3 = "text",
+                    },
+                },
+            },
         };
         var state = await LayoutTestUtils.GetLayoutModelTools(data, "Test3");
         var hidden = await LayoutEvaluator.GetHiddenFieldsForRemoval(state);
@@ -126,8 +126,8 @@ public class RunTest3
                     new DataReference()
                     {
                         Field = "some.data[2]",
-                        DataElementIdentifier = state.GetDefaultDataElementId()
-                    }
+                        DataElementIdentifier = state.GetDefaultDataElementId(),
+                    },
                 ]
             );
 

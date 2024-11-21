@@ -47,15 +47,14 @@ public class PersonClientTests
     {
         // Arrange
         HttpRequestMessage? platformRequest = null;
-        DelegatingHandlerStub messageHandler =
-            new(
-                async (HttpRequestMessage request, CancellationToken token) =>
-                {
-                    platformRequest = request;
-                    Person person = new Person { LastName = "Lastname" };
-                    return await CreateHttpResponseMessage(person);
-                }
-            );
+        DelegatingHandlerStub messageHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                platformRequest = request;
+                Person person = new Person { LastName = "Lastname" };
+                return await CreateHttpResponseMessage(person);
+            }
+        );
 
         var target = new PersonClient(
             new HttpClient(messageHandler),
@@ -91,14 +90,13 @@ public class PersonClientTests
     {
         // Arrange
         HttpRequestMessage? platformRequest = null;
-        DelegatingHandlerStub messageHandler =
-            new(
-                async (HttpRequestMessage request, CancellationToken token) =>
-                {
-                    platformRequest = request;
-                    return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
-                }
-            );
+        DelegatingHandlerStub messageHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                platformRequest = request;
+                return await Task.FromResult(new HttpResponseMessage() { StatusCode = HttpStatusCode.NotFound });
+            }
+        );
 
         var target = new PersonClient(
             new HttpClient(messageHandler),
@@ -121,18 +119,17 @@ public class PersonClientTests
     {
         // Arrange
         HttpRequestMessage? platformRequest = null;
-        DelegatingHandlerStub messageHandler =
-            new(
-                async (HttpRequestMessage request, CancellationToken token) =>
+        DelegatingHandlerStub messageHandler = new(
+            async (HttpRequestMessage request, CancellationToken token) =>
+            {
+                platformRequest = request;
+                HttpResponseMessage responseMessage = new HttpResponseMessage
                 {
-                    platformRequest = request;
-                    HttpResponseMessage responseMessage = new HttpResponseMessage
-                    {
-                        StatusCode = HttpStatusCode.TooManyRequests
-                    };
-                    return await Task.FromResult(responseMessage);
-                }
-            );
+                    StatusCode = HttpStatusCode.TooManyRequests,
+                };
+                return await Task.FromResult(responseMessage);
+            }
+        );
 
         var target = new PersonClient(
             new HttpClient(messageHandler),

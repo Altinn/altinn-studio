@@ -42,7 +42,7 @@ public class ProcessNavigatorTests
                     ExtensionElements = new ExtensionElements()
                     {
                         TaskExtension = new() { TaskType = "confirmation", AltinnActions = new() },
-                    }
+                    },
                 }
             );
     }
@@ -52,7 +52,7 @@ public class ProcessNavigatorTests
     {
         var processFile = "with-double-sign.bpmn";
         var processNavigator = SetupProcessNavigator(processFile, [new SingleSignGateway()]);
-        var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
+        var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
         ProcessElement? nextElements = await processNavigator.GetNextTask(instance, "Task_Sign1", "sign");
         nextElements!.Id.Should().Be("EndEvent_1");
     }
@@ -89,7 +89,7 @@ public class ProcessNavigatorTests
     {
         var processFile = "with-double-sign.bpmn";
         var processNavigator = SetupProcessNavigator(processFile, [new ZeroPathsGateway()]);
-        var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
+        var instance = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
 
         await Assert.ThrowsAsync<ProcessException>(
             async () => await processNavigator.GetNextTask(instance, "Task_Sign1", "sign")
@@ -146,11 +146,11 @@ public class ProcessNavigatorTests
                         TaskExtension = new()
                         {
                             TaskType = "confirm",
-                            AltinnActions = new() { new("confirm"), new("reject") }
-                        }
+                            AltinnActions = new() { new("confirm"), new("reject") },
+                        },
                     },
                     Incoming = new List<string> { "Flow3" },
-                    Outgoing = new List<string> { "Flow5" }
+                    Outgoing = new List<string> { "Flow5" },
                 }
             );
     }
@@ -166,7 +166,7 @@ public class ProcessNavigatorTests
         {
             Id = $"123/{Guid.NewGuid()}",
             AppId = "org/app",
-            DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } }
+            DataValues = new Dictionary<string, string>() { { "choose", "Flow3" } },
         };
 
         ProcessElement? nextElements = await processNavigator.GetNextTask(i, "Task1", null);
@@ -182,11 +182,11 @@ public class ProcessNavigatorTests
                         TaskExtension = new()
                         {
                             TaskType = "data",
-                            AltinnActions = new() { new("submit") }
-                        }
+                            AltinnActions = new() { new("submit") },
+                        },
                     },
                     Incoming = new List<string> { "Flow3" },
-                    Outgoing = new List<string> { "Flow5" }
+                    Outgoing = new List<string> { "Flow5" },
                 }
             );
     }
@@ -219,7 +219,7 @@ public class ProcessNavigatorTests
         {
             Id = $"123/{Guid.NewGuid()}",
             AppId = "org/app",
-            DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" } }
+            DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" } },
         };
         ProcessElement? nextElements = await processNavigator.GetNextTask(i, "Task1", null);
         nextElements
@@ -230,7 +230,7 @@ public class ProcessNavigatorTests
                     Id = "EndEvent",
                     Name = null!,
                     Incoming = new List<string> { "Flow6" },
-                    Outgoing = new List<string>()
+                    Outgoing = new List<string>(),
                 }
             );
     }
@@ -243,14 +243,14 @@ public class ProcessNavigatorTests
             new List<IProcessExclusiveGateway>()
             {
                 new DataValuesFilter("Gateway1", "choose1"),
-                new DataValuesFilter("Gateway2", "choose2")
+                new DataValuesFilter("Gateway2", "choose2"),
             }
         );
         Instance i = new Instance()
         {
             Id = $"123/{Guid.NewGuid()}",
             AppId = "org/app",
-            DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" }, { "choose2", "Bar" } }
+            DataValues = new Dictionary<string, string>() { { "choose1", "Flow4" }, { "choose2", "Bar" } },
         };
 
         await Assert.ThrowsAsync<ProcessException>(async () => await processNavigator.GetNextTask(i, "Task1", null));
@@ -263,7 +263,7 @@ public class ProcessNavigatorTests
             "simple-gateway-with-join-gateway.bpmn",
             new List<IProcessExclusiveGateway>()
         );
-        Instance i = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app", };
+        Instance i = new Instance() { Id = $"123/{Guid.NewGuid()}", AppId = "org/app" };
 
         ProcessElement? nextElements = await processNavigator.GetNextTask(i, "EndEvent", null);
         nextElements.Should().BeNull();

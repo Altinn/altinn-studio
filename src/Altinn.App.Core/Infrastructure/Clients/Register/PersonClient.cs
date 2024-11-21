@@ -22,8 +22,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register;
 /// </summary>
 public class PersonClient : IPersonClient
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+    };
 
     private readonly HttpClient _httpClient;
     private readonly IAppMetadata _appMetadata;

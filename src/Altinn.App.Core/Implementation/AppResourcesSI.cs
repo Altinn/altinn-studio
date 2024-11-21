@@ -20,13 +20,12 @@ namespace Altinn.App.Core.Implementation;
 /// </summary>
 public class AppResourcesSI : IAppResources
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new()
-        {
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
-            PropertyNameCaseInsensitive = true,
-        };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        AllowTrailingCommas = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        PropertyNameCaseInsensitive = true,
+    };
 
     private readonly AppSettings _settings;
     private readonly IAppMetadata _appMetadata;

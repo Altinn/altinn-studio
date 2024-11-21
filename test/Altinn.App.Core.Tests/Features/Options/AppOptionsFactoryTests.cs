@@ -56,7 +56,7 @@ public class AppOptionsFactoryTests
             new List<IAppOptionsProvider>()
             {
                 new DefaultAppOptionsProvider(appOptionsFileHandler.Object),
-                new CountryAppOptionsProvider()
+                new CountryAppOptionsProvider(),
             }
         );
 
@@ -74,7 +74,7 @@ public class AppOptionsFactoryTests
             new List<IAppOptionsProvider>()
             {
                 new DefaultAppOptionsProvider(appOptionsFileHandler.Object),
-                new CountryAppOptionsProvider()
+                new CountryAppOptionsProvider(),
             }
         );
 
@@ -92,7 +92,7 @@ public class AppOptionsFactoryTests
             new List<IAppOptionsProvider>()
             {
                 new DefaultAppOptionsProvider(appOptionsFileHandler.Object),
-                new CountryAppOptionsProvider()
+                new CountryAppOptionsProvider(),
             }
         );
 
@@ -116,10 +116,10 @@ public class AppOptionsFactoryTests
                 Options = new List<AppOption>
                 {
                     new AppOption { Label = "Norge", Value = "47" },
-                    new AppOption { Label = "Sverige", Value = "46" }
+                    new AppOption { Label = "Sverige", Value = "46" },
                 },
 
-                Parameters = keyValuePairs!
+                Parameters = keyValuePairs!,
             };
 
             return Task.FromResult(options);

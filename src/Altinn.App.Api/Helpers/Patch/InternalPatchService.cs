@@ -33,8 +33,11 @@ public class InternalPatchService
     private readonly IEnumerable<IDataProcessor> _dataProcessors;
     private readonly IEnumerable<IDataWriteProcessor> _dataWriteProcessors;
 
-    private static readonly JsonSerializerOptions _jsonSerializerOptions =
-        new() { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow, PropertyNameCaseInsensitive = true, };
+    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        PropertyNameCaseInsensitive = true,
+    };
 
     /// <summary>
     /// Creates a new instance of the <see cref="InternalPatchService"/> class
@@ -119,7 +122,7 @@ public class InternalPatchService
                     {
                         { "previousModel", oldModel },
                         { "patchOperationIndex", patchResult.Operation },
-                    }
+                    },
                 };
             }
 
@@ -131,7 +134,7 @@ public class InternalPatchService
                     Title = "Patch operation did not deserialize",
                     Type = "https://datatracker.ietf.org/doc/html/rfc6902/",
                     Detail = newModelResult.Error,
-                    Status = (int)HttpStatusCode.UnprocessableContent
+                    Status = (int)HttpStatusCode.UnprocessableContent,
                 };
             }
 

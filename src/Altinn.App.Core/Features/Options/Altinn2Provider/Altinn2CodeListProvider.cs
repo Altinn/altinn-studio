@@ -95,12 +95,11 @@ public class Altinn2CodeListProvider : IAppOptionsProvider
     {
         var codelist = await GetRawAltinn2CodelistAsync(language);
 
-        AppOptions options =
-            new()
-            {
-                Options = codelist.Codes.Where(_filter ?? (c => true)).Select(_transform).ToList(),
-                IsCacheable = true
-            };
+        AppOptions options = new()
+        {
+            Options = codelist.Codes.Where(_filter ?? (c => true)).Select(_transform).ToList(),
+            IsCacheable = true,
+        };
         return options;
     }
 }

@@ -63,11 +63,11 @@ public class SignClient : ISignClient
             {
                 UserId = signatureContext.Signee.UserId,
                 PersonNumber = signatureContext.Signee.PersonNumber,
-                OrganisationNumber = signatureContext.Signee.OrganisationNumber
+                OrganisationNumber = signatureContext.Signee.OrganisationNumber,
             },
             SignatureDocumentDataType = signatureContext.SignatureDataTypeId,
             DataElementSignatures = new(),
-            GeneratedFromTask = signatureContext.GeneratedFromTask
+            GeneratedFromTask = signatureContext.GeneratedFromTask,
         };
         foreach (var dataElementSignature in signatureContext.DataElementSignatures)
         {
@@ -75,7 +75,7 @@ public class SignClient : ISignClient
                 new SignRequest.DataElementSignature()
                 {
                     DataElementId = dataElementSignature.DataElementId,
-                    Signed = dataElementSignature.Signed
+                    Signed = dataElementSignature.Signed,
                 }
             );
         }

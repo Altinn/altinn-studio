@@ -29,10 +29,10 @@ public static class ExpressionEvaluator
             var expr = property switch
             {
                 "hidden" => context.Component.Hidden,
-                "hiddenRow" when context.Component is RepeatingGroupComponent repeatingGroup
-                    => repeatingGroup.HiddenRow,
+                "hiddenRow" when context.Component is RepeatingGroupComponent repeatingGroup =>
+                    repeatingGroup.HiddenRow,
                 "required" => context.Component.Required,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}")
+                _ => throw new ExpressionEvaluatorTypeErrorException($"unknown boolean expression property {property}"),
             };
 
             return await EvaluateExpression(state, expr, context) switch
@@ -40,7 +40,7 @@ public static class ExpressionEvaluator
                 true => true,
                 false => false,
                 null => defaultReturn,
-                _ => throw new ExpressionEvaluatorTypeErrorException($"Return was not boolean (value)")
+                _ => throw new ExpressionEvaluatorTypeErrorException($"Return was not boolean (value)"),
             };
         }
         catch (Exception e)
@@ -123,10 +123,9 @@ public static class ExpressionEvaluator
             [string field, string dataType] => new ModelBinding { Field = field, DataType = dataType },
             [ModelBinding binding] => binding,
             [null] => throw new ExpressionEvaluatorTypeErrorException("Cannot lookup dataModel null"),
-            _
-                => throw new ExpressionEvaluatorTypeErrorException(
-                    $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
-                )
+            _ => throw new ExpressionEvaluatorTypeErrorException(
+                $"""Expected ["dataModel", ...] to have 1-2 argument(s), got {args.Length}"""
+            ),
         };
         return await DataModel(key, context.DataElementIdentifier, context.RowIndices, state);
     }
@@ -194,7 +193,7 @@ public static class ExpressionEvaluator
                 a switch
                 {
                     string s => s,
-                    _ => ToStringForEquals(a)
+                    _ => ToStringForEquals(a),
                 }
             )
         );
@@ -327,35 +326,28 @@ public static class ExpressionEvaluator
         {
             bool b => b,
             null => false,
-            string s
-                => s switch
-                {
-                    "true" => true,
-                    "false" => false,
-                    "1" => true,
-                    "0" => false,
-                    _
-                        => ParseNumber(s, throwException: false) switch
-                        {
-                            1 => true,
-                            0 => false,
-                            _
-                                => throw new ExpressionEvaluatorTypeErrorException(
-                                    $"Expected boolean, got value \"{s}\""
-                                ),
-                        }
-                },
-            double s
-                => s switch
+            string s => s switch
+            {
+                "true" => true,
+                "false" => false,
+                "1" => true,
+                "0" => false,
+                _ => ParseNumber(s, throwException: false) switch
                 {
                     1 => true,
                     0 => false,
-                    _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {s}"),
+                    _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value \"{s}\""),
                 },
-            _
-                => throw new ExpressionEvaluatorTypeErrorException(
-                    "Unknown data type encountered in expression: " + arg.GetType().Name
-                ),
+            },
+            double s => s switch
+            {
+                1 => true,
+                0 => false,
+                _ => throw new ExpressionEvaluatorTypeErrorException($"Expected boolean, got value {s}"),
+            },
+            _ => throw new ExpressionEvaluatorTypeErrorException(
+                "Unknown data type encountered in expression: " + arg.GetType().Name
+            ),
         };
     }
 
@@ -410,13 +402,12 @@ public static class ExpressionEvaluator
     {
         return arg switch
         {
-            bool ab
-                => throw new ExpressionEvaluatorTypeErrorException(
-                    $"Expected number, got value {(ab ? "true" : "false")}"
-                ),
+            bool ab => throw new ExpressionEvaluatorTypeErrorException(
+                $"Expected number, got value {(ab ? "true" : "false")}"
+            ),
             string s => ParseNumber(s),
             IConvertible c => Convert.ToDouble(c, CultureInfo.InvariantCulture),
-            _ => null
+            _ => null,
         };
     }
 
@@ -528,10 +519,9 @@ public static class ExpressionEvaluator
             DateOnly dateValue => JsonSerializer.Serialize(dateValue),
             TimeOnly timeValue => JsonSerializer.Serialize(timeValue),
             //TODO: Consider having JsonSerializer as a fallback for everything (including arrays and objects)
-            _
-                => throw new NotImplementedException(
-                    $"ToStringForEquals not implemented for type {value.GetType().Name}"
-                )
+            _ => throw new NotImplementedException(
+                $"ToStringForEquals not implemented for type {value.GetType().Name}"
+            ),
         };
 
     internal static bool? EqualsImplementation(object?[] args)

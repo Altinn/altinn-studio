@@ -65,5 +65,5 @@ public enum ActionType
     /// The action is a generic server action
     /// </summary>
     [XmlEnum("serverAction")]
-    ServerAction
+    ServerAction,
 }

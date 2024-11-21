@@ -208,11 +208,10 @@ public static class JsonHelper
                 var convertedValue = (current as JValue)?.Value switch
                 {
                     // BigInteger is not supported in json, so try to reduce to decimal, if possible, or string if too big
-                    BigInteger bigInt
-                        => bigInt <= new BigInteger(decimal.MaxValue)
-                            ? (decimal)bigInt
-                            : bigInt.ToString(System.Globalization.NumberFormatInfo.InvariantInfo),
-                    _ => (current as JValue)?.Value
+                    BigInteger bigInt => bigInt <= new BigInteger(decimal.MaxValue)
+                        ? (decimal)bigInt
+                        : bigInt.ToString(System.Globalization.NumberFormatInfo.InvariantInfo),
+                    _ => (current as JValue)?.Value,
                 };
                 dict.Add(prefix, convertedValue);
                 break;

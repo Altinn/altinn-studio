@@ -85,7 +85,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
                 EmailAddressProperty = "test@altinn.no",
                 RegularExpressionProperty = "12345",
                 StringLengthProperty = "12345",
-            }
+            },
         };
 
         // Act
@@ -102,7 +102,7 @@ public class DataAnnotationValidatorTests : IClassFixture<DataAnnotationsTestFix
         // Arrange
         var instance = new Instance();
         var dataElement = new DataElement();
-        var data = new TestClass() { NestedProperty = new(), };
+        var data = new TestClass() { NestedProperty = new() };
 
         // Act
         var result = await _validator.ValidateFormData(instance, dataElement, data, null);

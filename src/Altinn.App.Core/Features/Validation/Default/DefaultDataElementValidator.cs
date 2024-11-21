@@ -31,7 +31,7 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
                     DataElementId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = ValidationIssueCodes.DataElementCodes.MissingContentType
+                    Description = ValidationIssueCodes.DataElementCodes.MissingContentType,
                 }
             );
         }
@@ -55,7 +55,7 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
                         Severity = ValidationIssueSeverity.Error,
                         Description =
                             $"ContentType {contentTypeWithoutEncoding} not allowed for {string.Join(",", dataType.AllowedContentTypes)}",
-                        Field = dataType.Id
+                        Field = dataType.Id,
                     }
                 );
             }
@@ -74,7 +74,7 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
-                    Field = dataType.Id
+                    Field = dataType.Id,
                 }
             );
         }
@@ -88,7 +88,7 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
                     Code = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ValidationIssueCodes.DataElementCodes.DataElementFileInfected,
-                    Field = dataType.Id
+                    Field = dataType.Id,
                 }
             );
         }
@@ -106,7 +106,7 @@ public class DefaultDataElementValidator : IDataElementValidator //TODO: This sh
                     Code = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ValidationIssueCodes.DataElementCodes.DataElementFileScanPending,
-                    Field = dataType.Id
+                    Field = dataType.Id,
                 }
             );
         }

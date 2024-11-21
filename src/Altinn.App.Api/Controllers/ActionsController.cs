@@ -93,7 +93,7 @@ public class ActionsController : ControllerBase
                     Instance = instanceGuid.ToString(),
                     Status = 400,
                     Title = "Action is missing",
-                    Detail = "Action is missing in the request"
+                    Detail = "Action is missing in the request",
                 }
             );
         }
@@ -134,8 +134,13 @@ public class ActionsController : ControllerBase
             await _appMetadata.GetApplicationMetadata(),
             _modelSerialization
         );
-        UserActionContext userActionContext =
-            new(dataMutator, userId.Value, actionRequest.ButtonId, actionRequest.Metadata, language);
+        UserActionContext userActionContext = new(
+            dataMutator,
+            userId.Value,
+            actionRequest.ButtonId,
+            actionRequest.Metadata,
+            language
+        );
         IUserAction? actionHandler = _userActionService.GetActionHandler(action);
         if (actionHandler == null)
         {
@@ -147,7 +152,7 @@ public class ActionsController : ControllerBase
                     {
                         Code = "ActionNotFound",
                         Message = $"Action handler with id {action} not found",
-                    }
+                    },
                 }
             );
         }
@@ -162,13 +167,13 @@ public class ActionsController : ControllerBase
                     ProcessErrorType.Conflict => 409,
                     ProcessErrorType.Unauthorized => 401,
                     ProcessErrorType.BadRequest => 400,
-                    _ => 500
+                    _ => 500,
                 },
                 value: new UserActionResponse()
                 {
                     Instance = instance,
                     ClientActions = result.ClientActions,
-                    Error = result.Error
+                    Error = result.Error,
                 }
             );
         }

@@ -151,7 +151,7 @@ public class DataClientTests
 
                 HttpResponseMessage response = new HttpResponseMessage()
                 {
-                    Content = new StringContent(serializedModel)
+                    Content = new StringContent(serializedModel),
                 };
                 response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
                 return response;
@@ -220,7 +220,7 @@ public class DataClientTests
         DataElement expectedDataelement = new DataElement
         {
             Id = instanceIdentifier.ToString(),
-            InstanceGuid = instanceIdentifier.InstanceGuid.ToString()
+            InstanceGuid = instanceIdentifier.InstanceGuid.ToString(),
         };
         var dataClient = GetDataClient(
             async (HttpRequestMessage request, CancellationToken token) =>
@@ -231,7 +231,7 @@ public class DataClientTests
                 DataElement dataElement = new DataElement
                 {
                     Id = instanceIdentifier.ToString(),
-                    InstanceGuid = instanceIdentifier.InstanceGuid.ToString()
+                    InstanceGuid = instanceIdentifier.InstanceGuid.ToString(),
                 };
                 await Task.CompletedTask;
                 return new HttpResponseMessage() { Content = JsonContent.Create(dataElement) };
@@ -431,7 +431,7 @@ public class DataClientTests
                 {
                     Content = new StringContent(
                         "{\"dataElements\":[{\"Id\":\"aaaa-bbbb-cccc-dddd\",\"Size\":10,\"DataType\":\"cats\"},{\"Id\":\"eeee-ffff-gggg-hhhh\", \"Size\":20,\"DataType\":\"dogs\"}]}"
-                    )
+                    ),
                 };
             }
         );
@@ -455,25 +455,25 @@ public class DataClientTests
             {
                 Attachments = new List<Attachment>()
                 {
-                    new Attachment() { Id = "aaaa-bbbb-cccc-dddd", Size = 10 }
+                    new Attachment() { Id = "aaaa-bbbb-cccc-dddd", Size = 10 },
                 },
-                Type = "cats"
+                Type = "cats",
             },
             new AttachmentList()
             {
                 Attachments = new List<Attachment>()
                 {
-                    new Attachment() { Id = "eeee-ffff-gggg-hhhh", Size = 20 }
+                    new Attachment() { Id = "eeee-ffff-gggg-hhhh", Size = 20 },
                 },
-                Type = "dogs"
+                Type = "dogs",
             },
             new AttachmentList()
             {
                 Attachments = new List<Attachment>()
                 {
-                    new Attachment() { Id = "eeee-ffff-gggg-hhhh", Size = 20 }
+                    new Attachment() { Id = "eeee-ffff-gggg-hhhh", Size = 20 },
                 },
-                Type = "attachments"
+                Type = "attachments",
             },
         };
         response.Should().BeEquivalentTo(expectedList);
@@ -654,7 +654,7 @@ public class DataClientTests
         {
             Name = "Test",
             Age = 22,
-            ShouldError = true
+            ShouldError = true,
         };
         var instanceIdentifier = new InstanceIdentifier("501337/d3f3250d-705c-4683-a215-e05ebcbe6071");
         var dataGuid = new Guid("67a5ef12-6e38-41f8-8b42-f91249ebcec0");
@@ -738,7 +738,7 @@ public class DataClientTests
                 return new HttpResponseMessage()
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent("{\"id\":\"67a5ef12-6e38-41f8-8b42-f91249ebcec0\",\"locked\":true}")
+                    Content = new StringContent("{\"id\":\"67a5ef12-6e38-41f8-8b42-f91249ebcec0\",\"locked\":true}"),
                 };
             }
         );
@@ -798,7 +798,7 @@ public class DataClientTests
                 return new HttpResponseMessage()
                 {
                     StatusCode = HttpStatusCode.OK,
-                    Content = new StringContent("{\"id\":\"67a5ef12-6e38-41f8-8b42-f91249ebcec0\",\"locked\":true}")
+                    Content = new StringContent("{\"id\":\"67a5ef12-6e38-41f8-8b42-f91249ebcec0\",\"locked\":true}"),
                 };
             }
         );
