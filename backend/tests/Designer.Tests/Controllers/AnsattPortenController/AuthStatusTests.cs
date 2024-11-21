@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
+using Designer.Tests.Controllers.AnsattPortenController.Base;
 using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
@@ -15,7 +16,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AnsattPortenController;
 
-public class AuthStatusTest : DesignerEndpointsTestsBase<AuthStatusTest>, IClassFixture<WebApplicationFactory<Program>>
+public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix => "/designer/api/ansattporten/auth-status";
 

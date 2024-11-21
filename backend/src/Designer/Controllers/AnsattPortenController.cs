@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [FeatureGate(StudioFeatureFlags.AnsattPorten)]
 [Route("designer/api/[controller]")]
 [ApiController]
-public class AnsattPortenController(IAuthenticationService authService) : ControllerBase
+public class AnsattPortenController : ControllerBase
 {
     [Authorize(AnsattPortenConstants.AnsattportenAuthorizationPolicy)]
     [HttpGet("login")]
@@ -32,8 +32,7 @@ public class AnsattPortenController(IAuthenticationService authService) : Contro
     {
         await Task.CompletedTask;
         var authenticateResult =
-            await authService.AuthenticateAsync(HttpContext,
-                AnsattPortenConstants.AnsattportenAuthenticationScheme);
+            await HttpContext.AuthenticateAsync(AnsattPortenConstants.AnsattportenAuthenticationScheme);
 
         var authStatus = new AuthStatus
         {
@@ -42,6 +41,5 @@ public class AnsattPortenController(IAuthenticationService authService) : Contro
 
         return Ok(authStatus);
     }
-
 
 }
