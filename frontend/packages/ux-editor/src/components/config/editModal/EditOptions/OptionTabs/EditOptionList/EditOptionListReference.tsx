@@ -25,10 +25,10 @@ export function EditOptionListReference<T extends SelectionComponentType>({
   return (
     <div>
       <StudioParagraph spacing size='small'>
-        {t('ux_editor.options.codelist_referenceId.description')}
+        {t('ux_editor.options.code_list_referenceId.description')}
       </StudioParagraph>
       <StudioParagraph spacing size='small'>
-        {t('ux_editor.options.codelist_referenceId.description_details')}
+        {t('ux_editor.options.code_list_referenceId.description_details')}
       </StudioParagraph>
       <StudioTextfield
         type='text'

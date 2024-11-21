@@ -2,6 +2,7 @@ using Altinn.Studio.Designer.Filters.AppDevelopment;
 using Altinn.Studio.Designer.Filters.DataModeling;
 using Altinn.Studio.Designer.Filters.Git;
 using Altinn.Studio.Designer.Filters.IO;
+using Altinn.Studio.Designer.Filters.Options;
 using Altinn.Studio.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ namespace Altinn.Studio.Designer.Infrastructure
                     options.Filters.Add(typeof(DataModelingExceptionFilterAttribute));
                     options.Filters.Add(typeof(GitExceptionFilterAttribute));
                     options.Filters.Add(typeof(IoExceptionFilterAttribute));
+                    options.Filters.Add(typeof(OptionsExceptionFilterAttribute));
                 })
                 .AddNewtonsoftJson(options => options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter()));
 
