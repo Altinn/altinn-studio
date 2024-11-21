@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
 import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from '../../../../../../../../hooks/queries/useIsLoggedInWithAnsattportenQuery';
 
-export const Maskinporten = (): React.ReactElement => {
+export const Maskinporten = (): ReactElement => {
   const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
