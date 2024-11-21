@@ -54,7 +54,8 @@ function StoreOptionsInNodeWorker({ valueType }: GeneratorOptionProps) {
   // we don't store option values here so it makes no sense to do this,
   // consider solving this more elegantly in the future.
   // AFAIK, stale values are not removed from attachment tags, maybe they should?
-  const shouldRemoveStaleValues = !node.isType('FileUploadWithTag');
+  const shouldRemoveStaleValues =
+    !node.isType('FileUploadWithTag') && !('renderAsSummary' in item && item.renderAsSummary);
 
   return (
     <>
