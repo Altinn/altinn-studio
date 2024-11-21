@@ -89,7 +89,7 @@ export const getIsLoggedInWithAnsattporten = async (): Promise<boolean> =>
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
     setTimeout(() => {
-      return resolve(true);
+      return resolve(false);
     }, 1000);
   });
 
