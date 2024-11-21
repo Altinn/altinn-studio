@@ -8,8 +8,6 @@ import { renderWithProviders } from '../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { QueryKey } from 'app-shared/types/QueryKey';
-import { jsonMetadataMock, xsdMetadataMock } from 'app-shared/mocks/dataModelMetadataMocks';
 
 // Test data:
 const mockCreateDataModel = jest.fn();
@@ -18,6 +16,7 @@ const defaultProps: CreateNewWrapperProps = {
   isCreateNewOpen: false,
   disabled: false,
   setIsCreateNewOpen: mockSetIsCreateNewOpen,
+  dataModels: [],
 };
 
 describe('CreateNewWrapper', () => {
@@ -143,8 +142,6 @@ const renderCreateNewWrapper = (
   props: Partial<CreateNewWrapperProps> = {},
   queryClient = createQueryClientMock(),
 ) => {
-  queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadataMock]);
-  queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadataMock]);
   renderWithProviders(<CreateNewWrapper {...defaultProps} {...props} />, {
     queries: { createDataModel: mockCreateDataModel },
     startUrl: `${APP_DEVELOPMENT_BASENAME}/${org}/${app}/ui-editor`,

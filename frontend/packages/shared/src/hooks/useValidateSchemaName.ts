@@ -1,27 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  useAppMetadataQuery,
-  useDataModelsJsonQuery,
-  useDataModelsXsdQuery,
-} from '../hooks/queries';
-import { useStudioEnvironmentParams } from '../hooks/useStudioEnvironmentParams';
-import type { DataModelMetadata } from '../types/DataModelMetadata';
-import type { ApplicationMetadata, DataTypeElement } from '../types/ApplicationMetadata';
-import {
-  extractModelNamesFromMetadataList,
-  mergeJsonAndXsdData,
-} from '../../../../app-development/utils/metadataUtils';
 
-export const useValidateSchemaName = () => {
+export const useValidateSchemaName = (
+  existingDataModelNames: string[],
+  existingDataTypeNames: string[],
+) => {
   const [nameError, setNameError] = useState('');
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
-  const { data: jsonData } = useDataModelsJsonQuery(org, app);
-  const { data: xsdData } = useDataModelsXsdQuery(org, app);
   const { t } = useTranslation();
-
-  const dataModels = useMemo(() => mergeJsonAndXsdData(jsonData, xsdData), [jsonData, xsdData]);
 
   const validateName = (name: string): void => {
     if (!name) {
@@ -36,11 +21,11 @@ export const useValidateSchemaName = () => {
       setNameError(t('validation_errors.maxLength', { number: SCHEMA_NAME_MAX_LENGTH }));
       return;
     }
-    if (isExistingModelName(name, dataModels)) {
+    if (existingDataModelNames.includes(name)) {
       setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
       return;
     }
-    if (isExistingDataTypeName(name, appMetadata)) {
+    if (existingDataTypeNames.includes(name)) {
       setNameError(t('schema_editor.error_data_type_name_exists'));
       return;
     }
@@ -56,17 +41,6 @@ export const useValidateSchemaName = () => {
 
 export const SCHEMA_NAME_MAX_LENGTH: number = 100;
 const SCHEMA_NAME_REGEX: RegExp = /^[a-zA-Z][a-zA-Z0-9_\-æÆøØåÅ]*$/;
-
-const isExistingDataTypeName = (id: string, appMetaData: ApplicationMetadata): DataTypeElement => {
-  return appMetaData?.dataTypes?.find(
-    (dataType: DataTypeElement) => dataType.id.toLowerCase() === id.toLowerCase(),
-  );
-};
-
-const isExistingModelName = (name: string, dataModels: DataModelMetadata[]): boolean => {
-  const modelNames = extractModelNamesFromMetadataList(dataModels);
-  return modelNames.includes(name);
-};
 
 const isCSharpReservedKeyword = (word: string): boolean => {
   const cSharpKeywords = new Set([

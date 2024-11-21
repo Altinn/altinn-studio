@@ -6,11 +6,17 @@ import { PlusIcon } from '@studio/icons';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
+import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
+import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
   isCreateNewOpen: boolean;
   createPathOption?: boolean;
+  dataModels: DataModelMetadata[];
   setIsCreateNewOpen: (open: boolean) => void;
 }
 
@@ -18,12 +24,20 @@ export function CreateNewWrapper({
   disabled,
   createPathOption = false,
   isCreateNewOpen,
+  dataModels,
   setIsCreateNewOpen,
 }: CreateNewWrapperProps) {
-  const { t } = useTranslation();
-  const [newModelName, setNewModelName] = useState('');
-  const { validateName, nameError, setNameError } = useValidateSchemaName();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
   const { mutate: createDataModel } = useCreateDataModelMutation();
+  const dataModelNames = extractModelNamesFromMetadataList(dataModels);
+  const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
+  const { validateName, nameError, setNameError } = useValidateSchemaName(
+    dataModelNames,
+    dataTypeNames,
+  );
+  const [newModelName, setNewModelName] = useState('');
+  const { t } = useTranslation();
 
   const isConfirmButtonActivated = newModelName && !nameError;
   const relativePath = createPathOption ? '' : undefined;
@@ -89,3 +103,11 @@ export function CreateNewWrapper({
     </StudioPopover>
   );
 }
+
+const extractDataTypeNamesFromAppMetadata = (appMetadata?: ApplicationMetadata): string[] => {
+  if (appMetadata?.dataTypes) {
+    return appMetadata.dataTypes.map((dataType) => dataType.id);
+  } else {
+    return [];
+  }
+};

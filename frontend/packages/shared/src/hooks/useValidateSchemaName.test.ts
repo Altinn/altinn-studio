@@ -1,19 +1,12 @@
 import { SCHEMA_NAME_MAX_LENGTH, useValidateSchemaName } from './useValidateSchemaName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { act } from '@testing-library/react';
-import {
-  mockAppMetadata,
-  mockDataTypeId,
-} from '../../../../app-development/test/applicationMetadataMock';
-import { createQueryClientMock } from '../mocks/queryClientMock';
-import { QueryKey } from '../types/QueryKey';
-import { app, org } from '@studio/testing/testids';
-import { renderHookWithProviders } from '../../../../app-development/test/mocks';
-import {
-  dataModelNameMock,
-  jsonMetadataMock,
-  xsdMetadataMock,
-} from 'app-shared/mocks/dataModelMetadataMocks';
+import { act, renderHook } from '@testing-library/react';
+
+// Test data
+const existingModelName = 'existingModelName';
+const existingDataTypeName = 'existingDataTypeName';
+const dataModelNames = [existingModelName];
+const dataTypeNames = [existingDataTypeName, existingModelName];
 
 describe('useValidateSchemaName', () => {
   afterEach(() => {
@@ -57,21 +50,29 @@ describe('useValidateSchemaName', () => {
     const { result } = renderUseValidateSchemaName();
 
     act(() => {
-      result.current.validateName(dataModelNameMock);
+      result.current.validateName(existingModelName);
     });
 
     expect(result.current.nameError).toBe(
       textMock('schema_editor.error_model_name_exists', {
-        newModelName: dataModelNameMock,
+        newModelName: existingModelName,
       }),
     );
   });
 
-  it('should set error when data type in appMetadata with same name exists', () => {
+  it('should set error when data type in appMetadata with same name exists, when the data type is not also a data model', () => {
     const { result } = renderUseValidateSchemaName();
 
     act(() => {
-      result.current.validateName(mockDataTypeId);
+      result.current.validateName(existingModelName);
+    });
+
+    expect(result.current.nameError).not.toBe(
+      textMock('schema_editor.error_data_type_name_exists'),
+    );
+
+    act(() => {
+      result.current.validateName(existingDataTypeName);
     });
 
     expect(result.current.nameError).toBe(textMock('schema_editor.error_data_type_name_exists'));
@@ -181,14 +182,5 @@ describe('useValidateSchemaName', () => {
 });
 
 const renderUseValidateSchemaName = () => {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.AppMetadata, org, app], mockAppMetadata);
-  queryClient.setQueryData([QueryKey.DataModelsJson, org, app], [jsonMetadataMock]);
-  queryClient.setQueryData([QueryKey.DataModelsXsd, org, app], [xsdMetadataMock]);
-  const { renderHookResult: result } = renderHookWithProviders(
-    {},
-    queryClient,
-  )(() => useValidateSchemaName());
-
-  return result;
+  return renderHook(() => useValidateSchemaName(dataModelNames, dataTypeNames));
 };
