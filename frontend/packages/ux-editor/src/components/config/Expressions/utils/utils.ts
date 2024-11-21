@@ -18,7 +18,6 @@ export const expressionPropertiesOnFormItem = <T extends ComponentType>(
     case ComponentType.FileUploadWithTag:
     case ComponentType.Input:
     case ComponentType.Likert:
-    case ComponentType.LikertItem:
     case ComponentType.List:
     case ComponentType.Map:
     case ComponentType.MultipleSelect:
