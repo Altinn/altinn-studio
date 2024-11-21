@@ -775,7 +775,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Deletes the option list with the provided id.
+        /// Updates the ID of the option list by updating file name.
         /// </summary>
         /// <param name="oldOptionsListFileName">The file name of the option list to change filename of.</param>
         /// <param name="newOptionsListFileName">The new file name of the option list file.</param>
