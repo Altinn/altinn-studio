@@ -1,26 +1,25 @@
 import React, { type ReactNode, type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { loginWithAnsattPorten } from 'app-shared/api/paths';
 import { TabContent } from '../../TabContent';
 import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from 'app-development/hooks/queries/useIsLoggedInWithAnsattportenQuery';
 import { ScopeList } from './ScopeList';
 
 export const Maskinporten = (): ReactElement => {
-  const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
+  const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
   const { t } = useTranslation();
 
   const handleLoginWithAnsattporten = (): void => {
-    window.location.href = loginWithAnsattPorten(window.location.pathname + window.location.search);
+    console.log('Will be implemented in next iteration when backend is ready');
   };
 
   if (isPendingAuthStatus) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
-  if (ansattportenAuthStatus.isLoggedIn) {
+  if (isLoggedInWithAnsattporten) {
     return (
       <MaskinportenPageTemplate>
         <ScopeList />
