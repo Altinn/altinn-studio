@@ -14,13 +14,13 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const user = userEvent.setup();
 
-jest.mock('../../../../../hooks/mutations/useUploadDataModelMutation', () => ({
+jest.mock('../../../../hooks/mutations/useUploadDataModelMutation', () => ({
   __esModule: true,
-  ...jest.requireActual('../../../../../hooks/mutations/useUploadDataModelMutation'),
+  ...jest.requireActual('../../../../hooks/mutations/useUploadDataModelMutation'),
 }));
 
 const useUploadDataModelMutationSpy = jest.spyOn(
-  require('../../../../../hooks/mutations/useUploadDataModelMutation'),
+  require('../../../../hooks/mutations/useUploadDataModelMutation'),
   'useUploadDataModelMutation',
 );
 
