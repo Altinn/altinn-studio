@@ -1,11 +1,9 @@
 import React from 'react';
 import { EditOptionList } from './EditOptionList';
-import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import { renderWithProviders, optionListIdsMock } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

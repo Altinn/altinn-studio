@@ -113,7 +113,7 @@ export const OptionTabs = ({
             <EditOptionList component={component} handleComponentChange={handleComponentChange} />
           </StudioTabs.Content>
           <StudioTabs.Content value={SelectedOptionsType.Manual} className={classes.tabContent}>
-            <RenderManualOptions
+            <RenderManualOptionsV1
               component={component}
               handleComponentChange={handleComponentChange}
               areLayoutOptionsSupported={renderOptions.areLayoutOptionsSupported}
@@ -166,11 +166,12 @@ const RenderOptions = ({
   );
 };
 
+// Todo: Remove once featureFlag "optionListEditor" is removed.
 type RenderManualOptionsV1Props = {
   areLayoutOptionsSupported: boolean;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-const RenderManualOptions = ({
+const RenderManualOptionsV1 = ({
   component,
   handleComponentChange,
   areLayoutOptionsSupported,

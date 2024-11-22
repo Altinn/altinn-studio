@@ -267,7 +267,8 @@ describe('StudioCodeListEditor', () => {
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
     const newValue = 'new value';
     await user.type(validValueInput, newValue);
-    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onInvalid).toHaveBeenCalledTimes(1);
   });
 
   it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {

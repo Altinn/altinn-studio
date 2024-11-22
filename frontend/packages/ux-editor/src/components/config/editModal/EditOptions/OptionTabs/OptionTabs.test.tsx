@@ -157,8 +157,8 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  // V1 Todo: remove once featureFlag is gone
-  it('with V1 EditOptionList, should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
+  // Todo: Remove once featureFlag "optionListEditor" is removed
+  it('EditOptionList-v1, should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
     removeFeatureFlagFromLocalStorage('optionListEditor');
     const user = userEvent.setup();
     renderEditOptions({
