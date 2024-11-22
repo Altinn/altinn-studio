@@ -116,7 +116,6 @@ export const ProcessEditor = (): React.ReactElement => {
     return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} />;
   }
 
-  // TODO: Handle error will be handled better after issue #10735 is resolved
   return (
     <ProcessEditorImpl
       availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
