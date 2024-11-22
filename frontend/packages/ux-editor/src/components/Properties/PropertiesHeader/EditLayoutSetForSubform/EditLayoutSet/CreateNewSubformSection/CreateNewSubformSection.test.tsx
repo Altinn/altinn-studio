@@ -47,16 +47,18 @@ describe('CreateNewSubformLayoutSet ', () => {
     const user = userEvent.setup();
 
     renderCreateNewSubformLayoutSet({ hasSubforms: false });
-    expect(
-      screen.queryByRole('button', { name: textMock('general.close') }),
-    ).not.toBeInTheDocument();
 
     const displayDataModelInput = screen.getByRole('button', {
       name: textMock('ux_editor.component_properties.subform.create_new_data_model'),
     });
     await user.click(displayDataModelInput);
 
-    expect(screen.getByRole('button', { name: textMock('general.close') })).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+    await user.click(closeButton);
+
+    expect(
+      screen.queryByRole('button', { name: textMock('general.close') }),
+    ).not.toBeInTheDocument();
   });
 
   it('calls onComponentUpdate when save button is clicked', async () => {
