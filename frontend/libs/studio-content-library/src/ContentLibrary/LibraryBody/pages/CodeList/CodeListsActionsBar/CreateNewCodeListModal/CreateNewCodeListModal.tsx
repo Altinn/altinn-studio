@@ -11,12 +11,18 @@ import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeList';
+import { FileNameUtils, FileNameValidationResult } from '@studio/pure-functions';
+import { useValidateFileName } from '../../hooks/useValidateFileName';
 
 type CreateNewCodeListModalProps = {
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
+  codeListNames: string[];
 };
 
-export function CreateNewCodeListModal({ onUpdateCodeList }: CreateNewCodeListModalProps) {
+export function CreateNewCodeListModal({
+  onUpdateCodeList,
+  codeListNames,
+}: CreateNewCodeListModalProps) {
   const { t } = useTranslation();
   const modalRef = createRef<HTMLDialogElement>();
 
@@ -39,6 +45,7 @@ export function CreateNewCodeListModal({ onUpdateCodeList }: CreateNewCodeListMo
       >
         <CreateNewCodeList
           codeList={newCodeList}
+          codeListNames={codeListNames}
           onUpdateCodeList={onUpdateCodeList}
           onCloseModal={handleCloseModal}
         />
@@ -49,14 +56,22 @@ export function CreateNewCodeListModal({ onUpdateCodeList }: CreateNewCodeListMo
 
 type CreateNewCodeListProps = {
   codeList: CodeList;
+  codeListNames: string[];
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
   onCloseModal: () => void;
 };
 
-function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateNewCodeListProps) {
+function CreateNewCodeList({
+  codeList,
+  codeListNames,
+  onUpdateCodeList,
+  onCloseModal,
+}: CreateNewCodeListProps) {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+  const { getInvalidInputFileNameErrorMessage } = useValidateFileName();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
+  const [codeListTitleError, setCodeListTitleError] = useState<string>('');
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =
     useState<CodeListWithMetadata>({
       title: '',
@@ -69,10 +84,14 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
   };
 
   const handleCodeListTitleChange = (codeListTitle: string) => {
-    setCurrentCodeListWithMetadata({
-      title: codeListTitle,
-      codeList: currentCodeListWithMetadata.codeList,
-    });
+    const fileNameError = FileNameUtils.validateFileName(codeListTitle, codeListNames);
+    const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
+    setCodeListTitleError(errorMessage);
+    if (fileNameError === FileNameValidationResult.Valid)
+      setCurrentCodeListWithMetadata({
+        title: codeListTitle,
+        codeList: currentCodeListWithMetadata.codeList,
+      });
   };
 
   const handleCodeListChange = (updatedCodeList: CodeList) => {
@@ -87,7 +106,8 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
     setIsCodeListValid(false);
   };
 
-  const isSaveButtonDisabled = !isCodeListValid || !currentCodeListWithMetadata.title;
+  const isSaveButtonDisabled =
+    !isCodeListValid || !currentCodeListWithMetadata.title || codeListTitleError;
 
   return (
     <div className={classes.createNewCodeList}>
@@ -96,6 +116,7 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
         className={classes.codeListTitle}
         size='small'
         onChange={(event) => handleCodeListTitleChange(event.target.value)}
+        error={codeListTitleError}
       />
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor

@@ -7,6 +7,9 @@ import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeL
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
+import type { ApiError } from 'app-shared/types/api/ApiError';
+import { toast } from 'react-toastify';
+import type { AxiosError } from 'axios';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -25,7 +28,16 @@ export function AppContentLibrary(): React.ReactElement {
   const codeLists = convertOptionListsToCodeLists(optionLists);
 
   const handleUpload = (file: File) => {
-    uploadOptionList(file);
+    uploadOptionList(file, {
+      onSuccess: () => {
+        toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
+      },
+      onError: (error: AxiosError<ApiError>) => {
+        if (!error.response?.data?.errorCode) {
+          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
+        }
+      },
+    });
   };
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata) => {

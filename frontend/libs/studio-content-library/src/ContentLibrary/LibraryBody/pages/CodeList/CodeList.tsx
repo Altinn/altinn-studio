@@ -29,6 +29,8 @@ export function CodeList({
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
 
+  const codeListTitles = codeLists.map((codeList) => codeList.title);
+
   return (
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
@@ -36,6 +38,7 @@ export function CodeList({
       <CodeListsActionsBar
         onUploadCodeList={onUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
+        codeListNames={codeListTitles}
       />
       <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
     </div>

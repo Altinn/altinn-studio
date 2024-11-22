@@ -9,9 +9,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
-import { FileNameUtils } from '@studio/pure-functions';
-import { findFileNameError } from './utils/findFileNameError';
-import type { FileNameError } from './utils/findFileNameError';
+import { FileNameUtils, FileNameValidationResult } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -42,12 +40,12 @@ export function EditOptionList<T extends SelectionComponentType>({
   };
 
   const onSubmit = (file: File) => {
-    const fileNameError = findFileNameError(optionListIds, file.name);
-    if (fileNameError) {
-      handleInvalidFileName(fileNameError);
-    } else {
-      handleUpload(file);
-    }
+    const fileNameError = FileNameUtils.validateFileName(
+      FileNameUtils.removeExtension(file.name),
+      optionListIds,
+    );
+    if (fileNameError !== FileNameValidationResult.Valid) handleInvalidFileName(fileNameError);
+    else handleUpload(file);
   };
 
   const handleUpload = (file: File) => {
@@ -58,18 +56,20 @@ export function EditOptionList<T extends SelectionComponentType>({
       },
       onError: (error: AxiosError<ApiError>) => {
         if (!error.response?.data?.errorCode) {
-          toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);
+          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }
       },
     });
   };
 
-  const handleInvalidFileName = (fileNameError: FileNameError) => {
+  const handleInvalidFileName = (fileNameError: FileNameValidationResult) => {
     switch (fileNameError) {
-      case 'invalidFileName':
-        return toast.error(t('ux_editor.modal_properties_code_list_filename_error'));
-      case 'fileExists':
-        return toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+      case FileNameValidationResult.NoRegExMatch:
+        return toast.error(t('validation_errors.file_name_invalid'));
+      case FileNameValidationResult.FileExists:
+        return toast.error(t('validation_errors.upload_file_name_occupied'));
+      default:
+        return null;
     }
   };
 
