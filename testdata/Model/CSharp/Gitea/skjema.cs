@@ -331,7 +331,7 @@ namespace Altinn.App.Models
     public string SamfunnskritiskBransje { get; set; }
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
-    [XmlElement("BenyttesFraDato", Order = 15)]
+    [XmlElement("BenyttesFraDato", Order = 15, IsNullable = true)]
     [JsonProperty("BenyttesFraDato")]
     [JsonPropertyName("BenyttesFraDato")]
     public string BenyttesFraDato { get; set; }

@@ -63,12 +63,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("beskrivelse")]
     public string beskrivelse { get; set; }
 
-    [XmlElement("miljoe", Order = 6)]
+    [XmlElement("miljoe", Order = 6, IsNullable = true)]
     [JsonProperty("miljoe")]
     [JsonPropertyName("miljoe")]
     public string miljoe { get; set; }
 
-    [XmlElement("nettleserApplikasjonWebadresse", Order = 7)]
+    [XmlElement("nettleserApplikasjonWebadresse", Order = 7, IsNullable = true)]
     [JsonProperty("nettleserApplikasjonWebadresse")]
     [JsonPropertyName("nettleserApplikasjonWebadresse")]
     public string nettleserApplikasjonWebadresse { get; set; }
@@ -77,32 +77,32 @@ namespace Altinn.App.Models
 
   public class APIRessurs
   {
-    [XmlElement("profile", Order = 1)]
+    [XmlElement("profile", Order = 1, IsNullable = true)]
     [JsonProperty("profile")]
     [JsonPropertyName("profile")]
     public string profile { get; set; }
 
-    [XmlElement("organizationReportee", Order = 2)]
+    [XmlElement("organizationReportee", Order = 2, IsNullable = true)]
     [JsonProperty("organizationReportee")]
     [JsonPropertyName("organizationReportee")]
     public string organizationReportee { get; set; }
 
-    [XmlElement("meldingsboks", Order = 3)]
+    [XmlElement("meldingsboks", Order = 3, IsNullable = true)]
     [JsonProperty("meldingsboks")]
     [JsonPropertyName("meldingsboks")]
     public string meldingsboks { get; set; }
 
-    [XmlElement("lookup", Order = 4)]
+    [XmlElement("lookup", Order = 4, IsNullable = true)]
     [JsonProperty("lookup")]
     [JsonPropertyName("lookup")]
     public string lookup { get; set; }
 
-    [XmlElement("broker", Order = 5)]
+    [XmlElement("broker", Order = 5, IsNullable = true)]
     [JsonProperty("broker")]
     [JsonPropertyName("broker")]
     public string broker { get; set; }
 
-    [XmlElement("autorisasjon", Order = 6)]
+    [XmlElement("autorisasjon", Order = 6, IsNullable = true)]
     [JsonProperty("autorisasjon")]
     [JsonPropertyName("autorisasjon")]
     public string autorisasjon { get; set; }

@@ -291,7 +291,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
             optionListIds.Should().NotBeNull();
-            optionListIds.Should().HaveCount(2);
+            optionListIds.Should().HaveCount(3);
             return Task.CompletedTask;
         }
 

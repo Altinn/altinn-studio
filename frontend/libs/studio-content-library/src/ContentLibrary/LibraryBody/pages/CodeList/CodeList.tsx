@@ -33,7 +33,10 @@ export function CodeList({
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
       <CodeListsCounterMessage codeListsCount={codeLists.length} />
-      <CodeListsActionsBar onUploadCodeList={onUploadCodeList} />
+      <CodeListsActionsBar
+        onUploadCodeList={onUploadCodeList}
+        onUpdateCodeList={onUpdateCodeList}
+      />
       <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
     </div>
   );

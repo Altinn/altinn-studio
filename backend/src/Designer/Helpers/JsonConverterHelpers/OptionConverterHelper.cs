@@ -1,10 +1,11 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Exceptions.Options;
 
 namespace Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
-public class OptionConverter : JsonConverter<object>
+public class OptionValueConverter : JsonConverter<object>
 {
     public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -14,7 +15,7 @@ public class OptionConverter : JsonConverter<object>
             JsonTokenType.Number when reader.TryGetDouble(out double d) => d,
             JsonTokenType.True => true,
             JsonTokenType.False => false,
-            _ => throw new JsonException($"Unsupported JSON token for Option.Value: {reader.TokenType}")
+            _ => throw new InvalidOptionsFormatException($"Unsupported JSON token for Value field, {typeToConvert}: {reader.TokenType}.")
         };
     }
 
@@ -32,7 +33,7 @@ public class OptionConverter : JsonConverter<object>
                 writer.WriteBooleanValue(b);
                 break;
             default:
-                throw new JsonException("Unsupported type for Option.Value.");
+                throw new InvalidOptionsFormatException($"{value} is an unsupported type for Value field. Accepted types are string, double and bool.");
         }
     }
 }

@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dotnet ef # Version should be the same as Migrations docker file and project
-        run: dotnet tool install --version 8.0.7 --global dotnet-ef
+        run: dotnet tool install --version 9.0.0 --global dotnet-ef
 
       - name: Check if migrations script can be generated
         run: |

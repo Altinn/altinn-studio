@@ -42,8 +42,8 @@ export const GoBackButton = ({ className, text, to }: GoBackButtonProps): ReactN
   return (
     <NavLink className={cn(className, classes.backButton)} to={to}>
       <ArrowLeftIcon className={classes.icon} />
-      <Paragraph asChild size='small' variant='short' className={classes.buttonText}>
-        <span>{text}</span>
+      <Paragraph size='small' variant='short' className={classes.buttonText}>
+        {text}
       </Paragraph>
     </NavLink>
   );
