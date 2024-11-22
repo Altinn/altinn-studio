@@ -83,7 +83,7 @@ export function AddressComponent({ node }: IAddressProps) {
         >
           <Grid
             item
-            id={`form-content-${id}`}
+            id={`form-content-${id}-address`}
             xs={12}
           >
             <Input
@@ -119,7 +119,7 @@ export function AddressComponent({ node }: IAddressProps) {
           >
             <Grid
               item
-              id={`form-content-${id}`}
+              id={`form-content-${id}-care-of`}
               xs={12}
             >
               <Input
@@ -132,9 +132,9 @@ export function AddressComponent({ node }: IAddressProps) {
                 readOnly={readOnly}
                 autoComplete='address-line2'
               />
+              <ComponentValidations validations={bindingValidations?.careOf} />
             </Grid>
           </Label>
-          <ComponentValidations validations={bindingValidations?.careOf} />
         </div>
       )}
 
@@ -159,18 +159,25 @@ export function AddressComponent({ node }: IAddressProps) {
               />
             }
           >
-            <Input
-              id={`address_zip_code_${id}`}
-              data-bindingkey={bindingKeys.zipCode}
-              error={hasValidationErrors(bindingValidations?.zipCode)}
-              value={zipCode}
-              onChange={(ev) => setValue('zipCode', ev.target.value)}
-              onBlur={debounce}
-              readOnly={readOnly}
-              required={required}
-              inputMode='numeric'
-              autoComplete='postal-code'
-            />
+            <Grid
+              item
+              id={`form-content-${id}-zip-code`}
+              xs={12}
+            >
+              <Input
+                id={`address_zip_code_${id}`}
+                data-bindingkey={bindingKeys.zipCode}
+                error={hasValidationErrors(bindingValidations?.zipCode)}
+                value={zipCode}
+                onChange={(ev) => setValue('zipCode', ev.target.value)}
+                onBlur={debounce}
+                readOnly={readOnly}
+                required={required}
+                inputMode='numeric'
+                autoComplete='postal-code'
+              />
+              <ComponentValidations validations={bindingValidations?.zipCode} />
+            </Grid>
           </Label>
         </Grid>
         <Grid
@@ -190,20 +197,22 @@ export function AddressComponent({ node }: IAddressProps) {
               />
             }
           >
-            <Input
-              id={`address_post_place_${id}`}
-              data-bindingkey={bindingKeys.postPlace}
-              error={hasValidationErrors(bindingValidations?.postPlace)}
-              value={postPlace}
-              readOnly={true}
-              required={required}
-              autoComplete='address-level1'
-              style={{ width: '100%' }}
-            />
+            <Grid
+              item
+              id={`form-content-${id}-post-place`}
+              xs={12}
+            >
+              <Input
+                id={`address_post_place_${id}`}
+                data-bindingkey={bindingKeys.postPlace}
+                value={postPlace}
+                readOnly={true}
+                required={required}
+                autoComplete='address-level1'
+              />
+            </Grid>
           </Label>
         </Grid>
-        <ComponentValidations validations={bindingValidations?.zipCode} />
-        <ComponentValidations validations={bindingValidations?.postPlace} />
       </Grid>
 
       {!simplified && (
@@ -229,23 +238,28 @@ export function AddressComponent({ node }: IAddressProps) {
               </HelpText>
             }
           >
-            <div className={classes.addressComponentSmallInputs}>
-              <Input
-                id={`address_house_number_${id}`}
-                data-bindingkey={bindingKeys.houseNumber}
-                error={hasValidationErrors(bindingValidations?.houseNumber)}
-                value={houseNumber}
-                onChange={(ev) => setValue('houseNumber', ev.target.value)}
-                onBlur={debounce}
-                readOnly={readOnly}
-                autoComplete='address-line3'
-              />
-            </div>
+            <Grid
+              item
+              id={`form-content-${id}-house-number`}
+              xs={12}
+            >
+              <div className={classes.addressComponentSmallInputs}>
+                <Input
+                  id={`address_house_number_${id}`}
+                  data-bindingkey={bindingKeys.houseNumber}
+                  error={hasValidationErrors(bindingValidations?.houseNumber)}
+                  value={houseNumber}
+                  onChange={(ev) => setValue('houseNumber', ev.target.value)}
+                  onBlur={debounce}
+                  readOnly={readOnly}
+                  autoComplete='address-line3'
+                />
+              </div>
+            </Grid>
           </Label>
           <ComponentValidations validations={bindingValidations?.houseNumber} />
         </div>
       )}
-
       <ComponentValidations validations={componentValidations} />
     </div>
   );
