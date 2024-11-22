@@ -38,6 +38,14 @@ describe('getSelectedOptionsType', () => {
     const result = getSelectedOptionsType(codeListId, options);
     expect(result).toEqual(SelectedOptionsType.CodeList);
   });
+
+  it('should return SelectedOptionsType.CodeList if options is set and codeListId is not set', () => {
+    const codeListId = undefined;
+    const options = [{ label: 'label1', value: 'value1' }];
+    const optionListIds = ['anotherCodeListId'];
+    const result = getSelectedOptionsType(codeListId, options, optionListIds);
+    expect(result).toEqual(SelectedOptionsType.CodeList);
+  });
 });
 
 describe('getSelectedOptionsTypeV1', () => {

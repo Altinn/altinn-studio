@@ -94,6 +94,20 @@ describe('EditManualOptionsWithEditor', () => {
       options: [{ label: '', value: '' }],
     });
   });
+
+  it('should call setChosenOption when closing modal', async () => {
+    const user = userEvent.setup();
+    const mockSetChosenOption = jest.fn();
+    renderEditManualOptionsWithEditor({ setChosenOption: mockSetChosenOption });
+    await userFindAndClickOnOpenModalButton();
+
+    const closeBtn = screen.getByRole('button', {
+      name: 'close modal', // Todo: Replace 'close modal' with this.textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
+    });
+    await user.click(closeBtn);
+
+    expect(mockSetChosenOption).toHaveBeenCalledTimes(1);
+  });
 });
 
 async function userFindAndClickOnOpenModalButton() {
@@ -109,18 +123,23 @@ type renderProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
+  setChosenOption?: () => void;
 };
 
 function renderEditManualOptionsWithEditor<
   T extends ComponentType.Checkboxes | ComponentType.RadioButtons,
->({ componentProps = {}, handleComponentChange = jest.fn() }: renderProps<T> = {}) {
+>({
+  componentProps = {},
+  handleComponentChange = jest.fn(),
+  setChosenOption = jest.fn(),
+}: renderProps<T> = {}) {
   const component = {
     ...mockComponent,
     ...componentProps,
   };
   renderWithProviders(
     <EditManualOptionsWithEditor
-      setChosenOption={jest.fn()}
+      setChosenOption={setChosenOption}
       handleComponentChange={handleComponentChange}
       component={component}
     />,

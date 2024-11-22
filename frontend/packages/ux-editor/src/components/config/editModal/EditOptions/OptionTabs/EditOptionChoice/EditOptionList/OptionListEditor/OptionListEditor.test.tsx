@@ -58,8 +58,13 @@ describe('OptionListEditor', () => {
 
     it('should call doReloadPreview when editing', async () => {
       const user = userEvent.setup();
+      const componentWithOptionsId = mockComponent;
+      componentWithOptionsId.optionsId = 'optionsID';
       const handleComponentChange = jest.fn();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({ handleComponentChange });
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+        handleComponentChange,
+        component: componentWithOptionsId,
+      });
       const text = 'test';
 
       await openManualModal(user);
@@ -69,7 +74,7 @@ describe('OptionListEditor', () => {
       await user.type(textBox, text);
       await user.tab();
 
-      await waitFor(() => expect(handleComponentChange).toHaveBeenCalledTimes(1));
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
     });
   });
 
