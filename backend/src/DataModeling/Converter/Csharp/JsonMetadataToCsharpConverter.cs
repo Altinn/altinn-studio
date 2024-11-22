@@ -182,7 +182,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             else
             {
                 elementOrder += 1;
-                AddXmlElementAnnotation(element, classBuilder, elementOrder);
+                AddXmlElementAnnotation(element, classBuilder, elementOrder, !isValueType && (element.Nillable ?? false));
 
                 // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                 // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -265,16 +265,21 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void AddXmlElementAnnotation(ElementMetadata element, StringBuilder classBuilder, int elementOrder)
+        private void AddXmlElementAnnotation(ElementMetadata element, StringBuilder classBuilder, int elementOrder, bool addNillableAttribute = false)
         {
-            if (element.OrderOblivious)
+            string additionalAttributeParams = string.Empty;
+            if (!element.OrderOblivious)
             {
-                classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}")]""");
+                additionalAttributeParams += $", Order = {elementOrder}";
             }
-            else
+
+            if (addNillableAttribute)
             {
-                classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}", Order = {elementOrder})]""");
+                additionalAttributeParams += ", IsNullable = true";
             }
+
+
+            classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}"{additionalAttributeParams})]""");
         }
 
         private void AddShouldSerializeForTagContent(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata)

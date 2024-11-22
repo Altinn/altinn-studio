@@ -1,24 +1,24 @@
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 import React from 'react';
 import classes from './ResourceItem.module.css';
 import { useTranslation } from 'react-i18next';
+import { StudioLink } from '@studio/components';
+import { type Resource } from 'dashboard/types/Resource';
 
-export interface ResourceItemProps {
-  link: string;
-  label: string;
-  description: string;
-  icon: ReactNode;
-}
+export type ResourceItemProps = {
+  resource: Resource;
+};
 
-export function ResourceItem({ link, label, description, icon }: ResourceItemProps) {
+export function ResourceItem({ resource }: ResourceItemProps): ReactElement {
   const { t } = useTranslation();
+  const { url, label, description, icon } = resource;
   return (
     <div className={classes.resourceItem}>
       <div>{icon}</div>
       <div>
-        <a href={link} target='_blank' rel='noopener noreferrer'>
+        <StudioLink href={url} target='_blank' rel='noopener noreferrer'>
           {t(label)}
-        </a>
+        </StudioLink>
         <p style={{ marginTop: 0 }}>{t(description)}</p>
       </div>
     </div>
