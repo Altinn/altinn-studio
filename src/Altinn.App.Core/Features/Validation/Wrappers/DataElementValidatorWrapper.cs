@@ -11,17 +11,11 @@ internal class DataElementValidatorWrapper : IValidator
 {
     private readonly IDataElementValidator _dataElementValidator;
     private readonly string _taskId;
-    private readonly List<DataType> _dataTypes;
 
-    public DataElementValidatorWrapper(
-        IDataElementValidator dataElementValidator,
-        string taskId,
-        List<DataType> dataTypes
-    )
+    public DataElementValidatorWrapper(IDataElementValidator dataElementValidator, string taskId)
     {
         _dataElementValidator = dataElementValidator;
         _taskId = taskId;
-        _dataTypes = dataTypes;
     }
 
     /// <inheritdoc />
@@ -47,17 +41,10 @@ internal class DataElementValidatorWrapper : IValidator
     {
         var issues = new List<ValidationIssue>();
         var validateAllElements = _dataElementValidator.DataType == "*";
-        foreach (var dataElement in dataAccessor.DataElements)
+        foreach (var (dataType, dataElement) in dataAccessor.GetDataElementsForTask(taskId))
         {
             if (validateAllElements || _dataElementValidator.DataType == dataElement.DataType)
             {
-                var dataType = _dataTypes.Find(d => d.Id == dataElement.DataType);
-                if (dataType is null)
-                {
-                    throw new InvalidOperationException(
-                        $"DataType {dataElement.DataType} not found in dataTypes from applicationmetadata"
-                    );
-                }
                 var dataElementValidationResult = await _dataElementValidator.ValidateDataElement(
                     dataAccessor.Instance,
                     dataElement,

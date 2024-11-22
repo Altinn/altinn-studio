@@ -69,9 +69,10 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
             "Task_1",
             async (instanceDataMutator, changes, language) =>
             {
-                var originalDataElement = instanceDataMutator
-                    .DataElements.Should()
-                    .ContainSingle(d => d.Id == _formElementId)
+                var (_, originalDataElement) = instanceDataMutator
+                    .GetDataElements()
+                    .Should()
+                    .ContainSingle(d => d.dataElement.Id == _formElementId)
                     .Which;
                 var postedSkjema = changes
                     .FormDataChanges.Should()
@@ -208,7 +209,7 @@ public class DataController_PostTests : ApiTestBase, IClassFixture<WebApplicatio
                 var data = changes.BinaryDataChanges.Should().ContainSingle().Which;
                 data.CurrentBinaryData.ToArray().Should().BeEquivalentTo(binaryData);
                 instanceDataMutator.AddBinaryDataElement("specificFileType", "application/pdf", "test.pdf", binaryData);
-                var toDelete = instanceDataMutator.DataElements.Should().ContainSingle().Which;
+                var toDelete = instanceDataMutator.Instance.Data.Should().ContainSingle().Which;
                 toDelete.DataType.Should().Be("default");
                 instanceDataMutator.RemoveDataElement(toDelete);
                 await Task.CompletedTask;

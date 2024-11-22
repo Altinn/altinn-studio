@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features.Validation.Helpers;
-using Altinn.App.Core.Internal.App;
 using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -16,7 +15,6 @@ namespace Altinn.App.Core.Features.Validation.Default;
 public class LegacyIInstanceValidatorFormDataValidator : IValidator
 {
     private readonly IInstanceValidator _instanceValidator;
-    private readonly IAppMetadata _appMetadata;
     private readonly GeneralSettings _generalSettings;
 
     /// <summary>
@@ -24,12 +22,10 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
     /// </summary>
     public LegacyIInstanceValidatorFormDataValidator(
         IOptions<GeneralSettings> generalSettings,
-        IInstanceValidator instanceValidator,
-        IAppMetadata appMetadata
+        IInstanceValidator instanceValidator
     )
     {
         _instanceValidator = instanceValidator;
-        _appMetadata = appMetadata;
         _generalSettings = generalSettings.Value;
     }
 
@@ -57,12 +53,7 @@ public class LegacyIInstanceValidatorFormDataValidator : IValidator
     )
     {
         var issues = new List<ValidationIssue>();
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
-        var dataTypes = appMetadata
-            .DataTypes.Where(d => d.TaskId == taskId && d.AppLogic?.ClassRef != null)
-            .Select(d => d.Id)
-            .ToList();
-        foreach (var dataElement in dataAccessor.DataElements.Where(d => dataTypes.Contains(d.DataType)))
+        foreach (var (_, dataElement) in dataAccessor.GetDataElementsWithFormDataForTask(taskId))
         {
             var data = await dataAccessor.GetFormData(dataElement);
             var modelState = new ModelStateDictionary();

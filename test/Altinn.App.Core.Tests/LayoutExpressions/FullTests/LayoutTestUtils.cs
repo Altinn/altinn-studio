@@ -25,21 +25,7 @@ public static class LayoutTestUtils
     private static readonly Guid _instanceGuid = Guid.Parse("12345678-1234-1234-1234-123456789012");
     private static readonly Guid _dataGuid = Guid.Parse("12345678-1234-1234-1234-123456789013");
     private const string DataTypeId = "default";
-    private const string ClassRef = "NoClass";
     private const string TaskId = "Task_1";
-
-    private static readonly ApplicationMetadata _applicationMetadata = new(AppId)
-    {
-        DataTypes =
-        [
-            new DataType()
-            {
-                Id = DataTypeId,
-                TaskId = TaskId,
-                AppLogic = new() { ClassRef = ClassRef },
-            },
-        ],
-    };
 
     private static readonly Instance _instance = new()
     {
@@ -60,12 +46,27 @@ public static class LayoutTestUtils
     {
         var services = new ServiceCollection();
 
-        var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
-
-        appMetadata.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
-        var appModel = new Mock<IAppModel>(MockBehavior.Strict);
         var modelType = model.GetType();
-        appModel.Setup(am => am.GetModelType(ClassRef)).Returns(modelType);
+        var modelTypeFullName = modelType.FullName!;
+        var appMetadata = new Mock<IAppMetadata>(MockBehavior.Strict);
+        var applicationMetadata = new ApplicationMetadata(AppId)
+        {
+            DataTypes =
+            [
+                new()
+                {
+                    Id = DataTypeId,
+                    TaskId = TaskId,
+                    AppLogic = new() { ClassRef = modelTypeFullName },
+                    AllowedContentTypes = ["application/json"],
+                    MaxCount = 1,
+                },
+            ],
+        };
+
+        appMetadata.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(applicationMetadata);
+        var appModel = new Mock<IAppModel>(MockBehavior.Strict);
+        appModel.Setup(am => am.GetModelType(modelTypeFullName)).Returns(modelType);
 
         var resources = new Mock<IAppResources>();
         var pages = new List<PageComponent>();
@@ -96,7 +97,7 @@ public static class LayoutTestUtils
         using var scope = serviceProvider.CreateScope();
         var initializer = scope.ServiceProvider.GetRequiredService<ILayoutEvaluatorStateInitializer>();
 
-        var dataAccessor = new InstanceDataAccessorFake(_instance) { { _dataElement, model } };
+        var dataAccessor = new InstanceDataAccessorFake(_instance, applicationMetadata) { { _dataElement, model } };
 
         return await initializer.Init(dataAccessor, TaskId);
     }

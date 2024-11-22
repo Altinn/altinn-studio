@@ -7,18 +7,18 @@ namespace Altinn.App.Core.Tests.LayoutExpressions.TestUtilities;
 
 public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyValuePair<DataElement?, object>>
 {
-    private readonly ApplicationMetadata? _applicationMetadata;
+    private readonly ApplicationMetadata _applicationMetadata;
     private readonly string? _defaultTaskId;
     private readonly string _defaultDataType;
 
     public InstanceDataAccessorFake(
         Instance instance,
-        ApplicationMetadata? applicationMetadata = null,
+        ApplicationMetadata? applicationMetadata,
         string defaultTaskId = "Task_1",
         string defaultDataType = "default"
     )
     {
-        _applicationMetadata = applicationMetadata;
+        _applicationMetadata = applicationMetadata ?? new ApplicationMetadata("app/org") { DataTypes = [] };
         _defaultTaskId = defaultTaskId;
         _defaultDataType = defaultDataType;
         Instance = instance;
@@ -26,7 +26,6 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
     }
 
     private readonly Dictionary<DataElementIdentifier, object> _dataById = new();
-    private readonly Dictionary<string, object> _dataByType = new();
     private readonly List<KeyValuePair<DataElement, object>> _data = new();
 
     public void Add(DataElement? dataElement, object data, int maxCount = 1)
@@ -40,39 +39,28 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
         }
 
         _dataById.Add(dataElement, data);
-        if (_applicationMetadata is not null)
+        var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+        if (dataType is null)
         {
-            var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
-            if (dataType is null)
+            // Create a new dataType if it doesn't exist in the application metadata yet
+            dataType = new DataType()
             {
-                // Create a new dataType if it doesn't exist in the application metadata yet
-                dataType = new DataType()
-                {
-                    Id = dataElement.DataType,
-                    TaskId = _defaultTaskId,
-                    AppLogic = new() { ClassRef = data.GetType().FullName },
-                    MaxCount = maxCount,
-                };
-                _applicationMetadata.DataTypes.Add(dataType);
-            }
+                Id = dataElement.DataType,
+                TaskId = _defaultTaskId,
+                AppLogic = new() { ClassRef = data.GetType().FullName },
+                MaxCount = maxCount,
+            };
+            _applicationMetadata.DataTypes.Add(dataType);
+        }
 
-            if (dataType.AppLogic is not null)
-            {
-                if (dataType.AppLogic.ClassRef != data.GetType().FullName)
-                    throw new InvalidOperationException(
-                        $"Data object registered for {dataElement.DataType} is not of type {dataType.AppLogic.ClassRef ?? "NULL"} as specified in applicationmetadata"
-                    );
-                if (dataType.MaxCount == 1)
-                {
-                    _dataByType[dataType.Id] = data;
-                }
-            }
-        }
-        else
+        if (dataType.AppLogic is not null)
         {
-            // We don't have application metadata, so just add the first element we see
-            _dataByType.TryAdd(dataElement.DataType, data);
+            if (dataType.AppLogic.ClassRef != data.GetType().FullName)
+                throw new InvalidOperationException(
+                    $"Data object registered for {dataElement.DataType} is not of type {dataType.AppLogic.ClassRef ?? "NULL"} as specified in applicationmetadata, but was {data.GetType().FullName}"
+                );
         }
+
         _data.Add(KeyValuePair.Create(dataElement, data));
     }
 
@@ -96,17 +84,16 @@ public class InstanceDataAccessorFake : IInstanceDataAccessor, IEnumerable<KeyVa
             );
     }
 
-    public DataType GetDataType(DataElementIdentifier dataElementIdentifier)
+    public DataType? GetDataType(string dataTypeId)
     {
         if (_applicationMetadata is null)
         {
             throw new InvalidOperationException("Application metadata not set for InstanceDataAccessorFake");
         }
-        var dataElement = GetDataElement(dataElementIdentifier);
-        var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
+        var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataTypeId);
         if (dataType is null)
         {
-            throw new InvalidOperationException($"Data type {dataElement.DataType} not found in applicationmetadata");
+            throw new InvalidOperationException($"Data type {dataTypeId} not found in applicationmetadata");
         }
 
         return dataType;

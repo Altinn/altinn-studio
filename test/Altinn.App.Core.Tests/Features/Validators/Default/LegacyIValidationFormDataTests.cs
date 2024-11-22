@@ -19,7 +19,6 @@ public class LegacyIValidationFormDataTests
 {
     private readonly LegacyIInstanceValidatorFormDataValidator _validator;
     private readonly Mock<IInstanceValidator> _instanceValidator = new(MockBehavior.Strict);
-    private readonly Mock<IAppMetadata> _appMetadata = new(MockBehavior.Strict);
     private readonly InstanceDataAccessorFake _instanceDataAccessor;
 
     private readonly ApplicationMetadata _applicationMetadata = new ApplicationMetadata("ttd/test")
@@ -45,10 +44,8 @@ public class LegacyIValidationFormDataTests
         var generalSettings = new GeneralSettings();
         _validator = new LegacyIInstanceValidatorFormDataValidator(
             Microsoft.Extensions.Options.Options.Create(generalSettings),
-            _instanceValidator.Object,
-            _appMetadata.Object
+            _instanceValidator.Object
         );
-        _appMetadata.Setup(am => am.GetApplicationMetadata()).ReturnsAsync(_applicationMetadata);
 
         _dataElement = new DataElement() { DataType = "test", Id = _dataId.ToString() };
         _instance = new Instance()

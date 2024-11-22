@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Altinn.App.Core.Features;
@@ -80,7 +81,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
 
                 return _modelSerializationService.DeserializeFromStorage(
                     binaryData.Span,
-                    GetDataType(dataElementIdentifier)
+                    this.GetDataType(dataElementIdentifier)
                 );
             }
         );
@@ -89,10 +90,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public async Task<ReadOnlyMemory<byte>> GetBinaryData(DataElementIdentifier dataElementIdentifier)
     {
-        if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
-        {
-            throw new InvalidOperationException("Cannot access instance data before it has been created");
-        }
+        // Verify that the data element exists on the instance
+        GetDataElement(dataElementIdentifier);
 
         return await _binaryCache.GetOrCreate(
             dataElementIdentifier,
@@ -110,26 +109,19 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// <inheritdoc />
     public DataElement GetDataElement(DataElementIdentifier dataElementIdentifier)
     {
+        if (_instanceOwnerPartyId == 0 || _instanceGuid == Guid.Empty)
+        {
+            throw new InvalidOperationException("Cannot access instance data before it has been created");
+        }
+
         return Instance.Data.Find(d => d.Id == dataElementIdentifier.Id)
             ?? throw new InvalidOperationException(
-                $"Data element of id {dataElementIdentifier.Id} not found on instance"
+                $"Data element of id {dataElementIdentifier.Id} not found on instance with id {Instance.Id}"
             );
     }
 
     /// <inheritdoc />
-    public DataType GetDataType(DataElementIdentifier dataElementIdentifier)
-    {
-        var dataElement = GetDataElement(dataElementIdentifier);
-        var dataType = _appMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
-        if (dataType is null)
-        {
-            throw new InvalidOperationException(
-                $"Data type {dataElement.DataType} not found in applicationmetadata.json"
-            );
-        }
-
-        return dataType;
-    }
+    public DataType? GetDataType(string dataTypeId) => _appMetadata.DataTypes.Find(d => d.Id == dataTypeId);
 
     /// <inheritdoc />
     public FormDataChange AddFormDataElement(string dataTypeId, object model)
@@ -222,7 +214,17 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 $"Data element with id {dataElementIdentifier.Id} not found in instance"
             );
         }
-        var dataType = GetDataType(dataElementIdentifier);
+        var dataType =
+            GetDataType(dataElement.DataType)
+            ?? throw new InvalidOperationException(
+                $"Data element {dataElement.Id} has data type {dataElement.DataType}, but the data type is not found in app metadata"
+            );
+        if (_changesForDeletion.Any(c => c.DataElementIdentifier == dataElementIdentifier))
+        {
+            throw new InvalidOperationException(
+                $"Data element with id {dataElementIdentifier.Id} is already marked for deletion"
+            );
+        }
         if (dataType.AppLogic?.ClassRef is null)
         {
             _changesForDeletion.Add(
@@ -289,7 +291,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
                 // Deleted (and created) changes gets added bellow
                 continue;
             }
-            var dataType = GetDataType(dataElementIdentifier);
+            var dataType = this.GetDataType(dataElementIdentifier);
 
             if (!_formDataCache.TryGetCachedValue(dataElementIdentifier, out object? data))
             {
@@ -359,8 +361,8 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
         {
             BinaryDataChange bc => bc.CurrentBinaryData,
             FormDataChange fdc => fdc.CurrentBinaryData
-                ?? throw new InvalidOperationException("FormDataChange must set CurrentBinaryData before saving"),
-            _ => throw new InvalidOperationException("Change must be of type BinaryChange or FormDataChange"),
+                ?? throw new UnreachableException("FormDataChange must set CurrentBinaryData before saving"),
+            _ => throw new UnreachableException("Change must be of type BinaryChange or FormDataChange"),
         };
         // Use the BinaryData because we serialize before saving.
         var dataElement = await _dataClient.InsertBinaryData(
@@ -509,7 +511,7 @@ internal sealed class InstanceDataUnitOfWork : IInstanceDataMutator
     /// </summary>
     internal void SetFormData(DataElementIdentifier dataElementIdentifier, object data)
     {
-        var dataType = GetDataType(dataElementIdentifier);
+        var dataType = this.GetDataType(dataElementIdentifier);
         if (dataType.AppLogic?.ClassRef is not { } classRef)
         {
             throw new InvalidOperationException($"Data element {dataElementIdentifier.Id} don't have app logic");

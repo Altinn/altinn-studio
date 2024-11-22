@@ -29,12 +29,11 @@ public class LayoutEvaluatorState
         IInstanceDataAccessor dataAccessor,
         LayoutModel? componentModel,
         FrontEndSettings frontEndSettings,
-        ApplicationMetadata applicationMetadata,
         string? gatewayAction = null,
         string? language = null
     )
     {
-        _dataModel = new DataModel(dataAccessor, applicationMetadata);
+        _dataModel = new DataModel(dataAccessor);
         _componentModel = componentModel;
         _frontEndSettings = frontEndSettings;
         _instanceContext = dataAccessor.Instance;

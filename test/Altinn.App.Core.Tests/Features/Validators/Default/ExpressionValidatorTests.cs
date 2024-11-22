@@ -79,14 +79,14 @@ public class ExpressionValidatorTests
 
         var layout = new LayoutSetComponent(testCase.Layouts.Values.ToList(), "layout", dataType);
         var componentModel = new LayoutModel([layout], null);
-        var evaluatorState = new LayoutEvaluatorState(dataModel, componentModel, _frontendSettings.Value, appMedatada);
+        var evaluatorState = new LayoutEvaluatorState(dataModel, componentModel, _frontendSettings.Value);
         _layoutInitializer
             .Setup(init =>
                 init.Init(It.IsAny<IInstanceDataAccessor>(), "Task_1", It.IsAny<string?>(), It.IsAny<string?>())
             )
             .ReturnsAsync(evaluatorState);
 
-        var dataAccessor = new InstanceDataAccessorFake(instance) { { dataElement, dataModel } };
+        var dataAccessor = new InstanceDataAccessorFake(instance, appMedatada) { { dataElement, dataModel } };
 
         var validationIssues = await _validator.ValidateFormData(
             dataElement,

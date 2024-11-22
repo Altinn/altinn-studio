@@ -85,47 +85,7 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
                 );
         }
 
-        public DataType GetDataType(DataElementIdentifier dataElementIdentifier)
-        {
-            var dataElement = GetDataElement(dataElementIdentifier);
-            var dataType = _applicationMetadata.DataTypes.Find(d => d.Id == dataElement.DataType);
-            if (dataType is null)
-            {
-                throw new InvalidOperationException(
-                    $"Data type {dataElement.DataType} not found in applicationmetadata.json"
-                );
-            }
-
-            return dataType;
-        }
-
-        // Not implemented
-        public void AddFormDataElement(string dataType, object model)
-        {
-            throw new NotImplementedException(
-                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"
-            );
-        }
-
-        public void AddAttachmentDataElement(
-            string dataType,
-            string contentType,
-            string? filename,
-            ReadOnlyMemory<byte> data
-        )
-        {
-            throw new NotImplementedException(
-                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support adding data elements"
-            );
-        }
-
-        // Not implemented
-        public void RemoveDataElement(DataElementIdentifier dataElementIdentifier)
-        {
-            throw new NotImplementedException(
-                "The obsolete LayoutEvaluatorStateInitializer.Init method does not support removing data elements"
-            );
-        }
+        public DataType? GetDataType(string dataTypeId) => _applicationMetadata.DataTypes.Find(d => d.Id == dataTypeId);
     }
 
     /// <summary>
@@ -144,11 +104,11 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
         Debug.Assert(dataElement is not null);
         var appMetadata = await _appMetadata.GetApplicationMetadata();
         var dataAccessor = new SingleDataElementAccessor(instance, dataElement, appMetadata, data);
-        return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, appMetadata, gatewayAction);
+        return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction);
     }
 
     /// <inheritdoc />
-    public async Task<LayoutEvaluatorState> Init(
+    public Task<LayoutEvaluatorState> Init(
         IInstanceDataAccessor dataAccessor,
         string? taskId,
         string? gatewayAction = null,
@@ -156,8 +116,9 @@ public class LayoutEvaluatorStateInitializer : ILayoutEvaluatorStateInitializer
     )
     {
         LayoutModel? layouts = taskId is not null ? _appResources.GetLayoutModelForTask(taskId) : null;
-        var appMetadata = await _appMetadata.GetApplicationMetadata();
 
-        return new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, appMetadata, gatewayAction, language);
+        return Task.FromResult(
+            new LayoutEvaluatorState(dataAccessor, layouts, _frontEndSettings, gatewayAction, language)
+        );
     }
 }

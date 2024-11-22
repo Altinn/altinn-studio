@@ -194,8 +194,6 @@ public class TestFunctions
             dataAccessor = DynamicClassBuilder.DataAccessorFromJsonDocument(test.Instance, test.DataModels);
         }
 
-        var appMedatada = new ApplicationMetadata("org/app") { DataTypes = dataTypes };
-
         LayoutModel? componentModel = null;
         if (test.Layouts is not null)
         {
@@ -206,7 +204,6 @@ public class TestFunctions
             dataAccessor,
             componentModel,
             test.FrontEndSettings ?? new FrontEndSettings(),
-            appMedatada,
             test.GatewayAction,
             test.ProfileSettings?.Language
         );

@@ -132,8 +132,7 @@ public class ValidatorFactory : IValidatorFactory
         var dataTypes = _appMetadata.GetApplicationMetadata().Result.DataTypes;
 
         validators.AddRange(
-            GetDataElementValidators(taskId, dataTypes)
-                .Select(dev => new DataElementValidatorWrapper(dev, taskId, dataTypes))
+            GetDataElementValidators(taskId, dataTypes).Select(dev => new DataElementValidatorWrapper(dev, taskId))
         );
         validators.AddRange(
             GetFormDataValidators(taskId, dataTypes).Select(fdv => new FormDataValidatorWrapper(fdv, taskId))
@@ -143,9 +142,7 @@ public class ValidatorFactory : IValidatorFactory
         foreach (var instanceValidator in _instanceValidators)
         {
             validators.Add(new LegacyIInstanceValidatorTaskValidator(_generalSettings, instanceValidator));
-            validators.Add(
-                new LegacyIInstanceValidatorFormDataValidator(_generalSettings, instanceValidator, _appMetadata)
-            );
+            validators.Add(new LegacyIInstanceValidatorFormDataValidator(_generalSettings, instanceValidator));
         }
 
         return validators;

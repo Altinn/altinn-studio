@@ -141,7 +141,7 @@ public class DynamicClassBuilder
     )
     {
         object data = DataObjectFromJsonDocument(doc);
-        var dataAccessor = new InstanceDataAccessorFake(instance) { { dataElement, data } };
+        var dataAccessor = new InstanceDataAccessorFake(instance, applicationMetadata: null) { { dataElement, data } };
         return dataAccessor;
     }
 
@@ -150,7 +150,7 @@ public class DynamicClassBuilder
         List<DataModelAndElement> dataModels
     )
     {
-        var dataAccessor = new InstanceDataAccessorFake(instance);
+        var dataAccessor = new InstanceDataAccessorFake(instance, applicationMetadata: null);
         foreach (var pair in dataModels)
         {
             dataAccessor.Add(pair.DataElement, DataObjectFromJsonDocument(pair.Data));

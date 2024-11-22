@@ -51,7 +51,14 @@ public class ExpressionValidator : IValidator
     /// <summary>
     /// Only run for tasks that specifies a layout set
     /// </summary>
-    public bool ShouldRunForTask(string taskId) => GetDataTypesWithExpressionsForTask(taskId).Any();
+    public bool ShouldRunForTask(string taskId) =>
+        _appMetadata
+            .GetApplicationMetadata()
+            .Result.DataTypes.Exists(dt =>
+                dt.TaskId == taskId
+                && dt.AppLogic?.ClassRef is not null
+                && _appResourceService.GetValidationConfiguration(dt.Id) is not null
+            );
 
     /// <summary>
     /// This validator has the code "Expression" and this is known by the frontend, who may request this validator to not run for incremental validation.
@@ -75,10 +82,10 @@ public class ExpressionValidator : IValidator
     )
     {
         var validationIssues = new List<ValidationIssue>();
-        foreach (var (dataType, validationConfig) in GetDataTypesWithExpressionsForTask(taskId))
+        foreach (var (dataType, dataElement) in dataAccessor.GetDataElementsForTask(taskId))
         {
-            var formDataElementsForTask = dataAccessor.DataElements.Where(d => d.DataType == dataType.Id);
-            foreach (var dataElement in formDataElementsForTask)
+            var validationConfig = _appResourceService.GetValidationConfiguration(dataType.Id);
+            if (!string.IsNullOrEmpty(validationConfig))
             {
                 var issues = await ValidateFormData(dataElement, dataAccessor, validationConfig, taskId, language);
                 validationIssues.AddRange(issues);
@@ -425,20 +432,5 @@ public class ExpressionValidator : IValidator
             }
         }
         return expressionValidations;
-    }
-
-    private IEnumerable<KeyValuePair<DataType, string>> GetDataTypesWithExpressionsForTask(string taskId)
-    {
-        var appMetadata = _appMetadata.GetApplicationMetadata().Result;
-        foreach (
-            var dataType in appMetadata.DataTypes.Where(dt => dt.TaskId == taskId && dt.AppLogic?.ClassRef is not null)
-        )
-        {
-            var validationConfig = _appResourceService.GetValidationConfiguration(dataType.Id);
-            if (validationConfig != null)
-            {
-                yield return KeyValuePair.Create(dataType, validationConfig);
-            }
-        }
     }
 }
