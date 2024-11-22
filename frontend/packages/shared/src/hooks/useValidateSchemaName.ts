@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DATA_MODEL_NAME_MAX_LENGTH, DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
 
 export const useValidateSchemaName = (
   existingDataModelNames: string[],
@@ -13,12 +14,12 @@ export const useValidateSchemaName = (
       setNameError(t('validation_errors.required'));
       return;
     }
-    if (!name.match(SCHEMA_NAME_REGEX)) {
+    if (!name.match(DATA_MODEL_NAME_REGEX)) {
       setNameError(t('schema_editor.error_invalid_datamodel_name'));
       return;
     }
-    if (name.length > SCHEMA_NAME_MAX_LENGTH) {
-      setNameError(t('validation_errors.maxLength', { number: SCHEMA_NAME_MAX_LENGTH }));
+    if (name.length > DATA_MODEL_NAME_MAX_LENGTH) {
+      setNameError(t('validation_errors.maxLength', { number: DATA_MODEL_NAME_MAX_LENGTH }));
       return;
     }
     if (existingDataModelNames.includes(name)) {
@@ -38,9 +39,6 @@ export const useValidateSchemaName = (
 
   return { validateName, nameError, setNameError };
 };
-
-export const SCHEMA_NAME_MAX_LENGTH: number = 100;
-const SCHEMA_NAME_REGEX: RegExp = /^[a-zA-Z][a-zA-Z0-9_\-æÆøØåÅ]*$/;
 
 const isCSharpReservedKeyword = (word: string): boolean => {
   const cSharpKeywords = new Set([

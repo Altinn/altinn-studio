@@ -8,9 +8,9 @@ import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
-import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { extractDataTypeNamesFromAppMetadata } from '../../utils/validationUtils';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;
@@ -103,13 +103,3 @@ export function CreateNewWrapper({
     </StudioPopover>
   );
 }
-
-export const extractDataTypeNamesFromAppMetadata = (
-  appMetadata?: ApplicationMetadata,
-): string[] => {
-  if (appMetadata?.dataTypes) {
-    return appMetadata.dataTypes.map((dataType) => dataType.id);
-  } else {
-    return [];
-  }
-};

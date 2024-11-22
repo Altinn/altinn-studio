@@ -2,13 +2,12 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
-import { extractDataTypeNamesFromAppMetadata, CreateNewWrapper } from './CreateNewWrapper';
+import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { mockAppMetadata, mockDataTypeId } from '../../../../test/applicationMetadataMock';
 
 // Test data:
 const mockCreateDataModel = jest.fn();
@@ -124,27 +123,6 @@ describe('CreateNewWrapper', () => {
 
       expect(mockCreateDataModel).not.toHaveBeenCalled();
     });
-  });
-});
-
-describe('extractDataTypeNamesFromAppMetadata', () => {
-  it('should extract data type names when application metadata is provided', () => {
-    const dataTypeNames = extractDataTypeNamesFromAppMetadata(mockAppMetadata);
-    expect(dataTypeNames).toEqual([mockDataTypeId]);
-  });
-
-  it('should return an empty array when dataTypes is undefined', () => {
-    const mockAppMetadataCopy = { ...mockAppMetadata };
-    delete mockAppMetadataCopy.dataTypes;
-
-    const dataTypeNames = extractDataTypeNamesFromAppMetadata(mockAppMetadataCopy);
-
-    expect(dataTypeNames).toEqual([]);
-  });
-
-  it('should return an empty array when application metadata is undefined', () => {
-    const dataTypeNames = extractDataTypeNamesFromAppMetadata(undefined);
-    expect(dataTypeNames).toEqual([]);
   });
 });
 

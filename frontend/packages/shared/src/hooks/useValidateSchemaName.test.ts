@@ -1,6 +1,7 @@
-import { SCHEMA_NAME_MAX_LENGTH, useValidateSchemaName } from './useValidateSchemaName';
+import { useValidateSchemaName } from './useValidateSchemaName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { act, renderHook } from '@testing-library/react';
+import { DATA_MODEL_NAME_MAX_LENGTH } from 'app-shared/constants';
 
 // Test data
 const existingModelName = 'existingModelName';
@@ -34,7 +35,7 @@ describe('useValidateSchemaName', () => {
   });
 
   it('should set error when name exceeds max length', () => {
-    const longName = 'a'.repeat(SCHEMA_NAME_MAX_LENGTH + 1);
+    const longName = 'a'.repeat(DATA_MODEL_NAME_MAX_LENGTH + 1);
     const { result } = renderUseValidateSchemaName();
 
     act(() => {
@@ -42,7 +43,7 @@ describe('useValidateSchemaName', () => {
     });
 
     expect(result.current.nameError).toBe(
-      textMock('validation_errors.maxLength', { number: SCHEMA_NAME_MAX_LENGTH }),
+      textMock('validation_errors.maxLength', { number: DATA_MODEL_NAME_MAX_LENGTH }),
     );
   });
 
