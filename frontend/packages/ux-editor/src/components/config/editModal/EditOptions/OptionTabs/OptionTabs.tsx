@@ -1,4 +1,3 @@
-import { getSelectedOptionsType } from '@altinn/ux-editor/utils/optionsUtils';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTabs, StudioAlert, StudioErrorMessage } from '@studio/components';
@@ -6,12 +5,16 @@ import { EditOptionListReference } from './EditOptionChoice/EditOptionList';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { EditManualOptions } from './EditManualOptions';
 import { EditOptionChoice } from './EditOptionChoice';
-import { useComponentErrorMessage } from '@altinn/ux-editor/hooks';
-import { SelectedOptionsType } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions';
-import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
-import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+import { useComponentErrorMessage } from '../../../../../hooks';
+import { SelectedOptionsType } from '../EditOptions';
+import type { IGenericEditComponent } from '../../../componentConfig';
+import type { SelectionComponentType } from '../../../../../types/FormComponent';
 import classes from './OptionTabs.module.css';
 import { EditOptionList } from './EditOptionList-v1';
+import {
+  getSelectedOptionsTypeV1,
+  getSelectedOptionsType,
+} from '../../../../../utils/optionsUtils';
 
 type OptionTabsProps = {
   optionListIds: string[];
@@ -26,7 +29,7 @@ export const OptionTabs = ({
   optionListIds,
   renderOptions,
 }: OptionTabsProps) => {
-  const initialSelectedOptionsType = getSelectedOptionsType(
+  const initialSelectedOptionsType = getSelectedOptionsTypeV1(
     component.optionsId,
     component.options,
     optionListIds || [],
@@ -35,24 +38,33 @@ export const OptionTabs = ({
   const { t } = useTranslation();
 
   useEffect(() => {
-    const updatedSelectedOptionsType = getSelectedOptionsType(
-      component.optionsId,
-      component.options,
-      optionListIds,
-    );
-    setSelectedOptionsType(updatedSelectedOptionsType);
+    if (shouldDisplayFeature('optionListEditor')) {
+      const updatedSelectedOptionsType = getSelectedOptionsType(
+        component.optionsId,
+        component.options,
+        optionListIds,
+      );
+      setSelectedOptionsType(updatedSelectedOptionsType);
+    } else {
+      const updatedSelectedOptionsType = getSelectedOptionsTypeV1(
+        component.optionsId,
+        component.options,
+        optionListIds,
+      );
+      setSelectedOptionsType(updatedSelectedOptionsType);
+    }
   }, [optionListIds, component.optionsId, component.options, setSelectedOptionsType]);
 
   return (
-    <StudioTabs
-      value={selectedOptionsType}
-      size='small'
-      onChange={(value) => {
-        setSelectedOptionsType(value as SelectedOptionsType);
-      }}
-    >
+    <>
       {shouldDisplayFeature('optionListEditor') ? (
-        <>
+        <StudioTabs
+          value={selectedOptionsType}
+          size='small'
+          onChange={(value) => {
+            setSelectedOptionsType(value as SelectedOptionsType);
+          }}
+        >
           <StudioTabs.List>
             <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
               {t('ux_editor.options.tab_code_list')}
@@ -77,9 +89,15 @@ export const OptionTabs = ({
               handleComponentChange={handleComponentChange}
             />
           </StudioTabs.Content>
-        </>
+        </StudioTabs>
       ) : (
-        <>
+        <StudioTabs
+          value={selectedOptionsType}
+          size='small'
+          onChange={(value) => {
+            setSelectedOptionsType(value as SelectedOptionsType);
+          }}
+        >
           <StudioTabs.List>
             <StudioTabs.Tab value={SelectedOptionsType.CodeList}>
               {t('ux_editor.options.tab_code_list')}
@@ -110,9 +128,9 @@ export const OptionTabs = ({
               handleComponentChange={handleComponentChange}
             />
           </StudioTabs.Content>
-        </>
+        </StudioTabs>
       )}
-    </StudioTabs>
+    </>
   );
 };
 

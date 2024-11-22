@@ -25,7 +25,8 @@ export const componentUsesDynamicCodeList = (
  * @param optionListIds The list of available code list ids.
  * @returns The selected options type - either Manual, CodeList, ReferenceId or Unknown.
  */
-export function getSelectedOptionsType(
+// V1 Todo: Remove once featureFlag is removed.
+export function getSelectedOptionsTypeV1(
   codeListId: string | undefined,
   options: IOption[] | undefined,
   optionListIds: string[] = [],
@@ -37,6 +38,32 @@ export function getSelectedOptionsType(
 
   if (!!options) {
     return SelectedOptionsType.Manual;
+  }
+
+  return componentUsesDynamicCodeList(codeListId, optionListIds)
+    ? SelectedOptionsType.ReferenceId
+    : SelectedOptionsType.CodeList;
+}
+
+/**
+ * Function that determines the selected options type based on the provided parameters.
+ * @param codeListId The code list id (if it exists).
+ * @param options The list of manual options (if it exists).
+ * @param optionListIds The list of available code list ids.
+ * @returns The selected options type - either Manual, CodeList, ReferenceId or Unknown.
+ */
+export function getSelectedOptionsType(
+  codeListId: string | undefined,
+  options: IOption[] | undefined,
+  optionListIds: string[] = [],
+): SelectedOptionsType {
+  /** It is not permitted for a component to have both options and optionsId set on the same component. */
+  if (options?.length && codeListId) {
+    return SelectedOptionsType.Unknown;
+  }
+
+  if (!!options) {
+    return SelectedOptionsType.CodeList;
   }
 
   return componentUsesDynamicCodeList(codeListId, optionListIds)
