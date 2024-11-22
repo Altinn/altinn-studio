@@ -7,7 +7,7 @@ import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils } from '@studio/pure-functions';
-import { RemoveExtension } from './utils/RemoveExtension';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export type CodeListWithMetadata = {
   codeList: StudioComponentCodeList;
@@ -38,7 +38,7 @@ export function CodeListPage({
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
     onUploadCodeList(uploadedCodeList);
-    setCodeListInEditMode(RemoveExtension(uploadedCodeList.name));
+    setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
   };
 
   const handleUpdateCodeListId = (codeListId: string, newCodeListId: string) => {

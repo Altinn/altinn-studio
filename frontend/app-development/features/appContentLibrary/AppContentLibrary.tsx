@@ -34,7 +34,7 @@ export function AppContentLibrary(): React.ReactElement {
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
   const codeLists = convertOptionListsToCodeLists(optionLists);
-  
+
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
   };
