@@ -1,6 +1,7 @@
 import { useCreateDataModelMutation } from 'app-development/hooks/mutations';
 import { useAddLayoutSetMutation } from 'app-development/hooks/mutations/useAddLayoutSetMutation';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from './useAppContext';
 
 type CreateSubformProps = {
   layoutSetName: string;
@@ -22,6 +23,7 @@ export const useCreateSubform = (): UseCreateSubformReturn => {
   );
   const { mutate: createDataModel, isPending: isPendinDataModelMutation } =
     useCreateDataModelMutation();
+  const { updateLayoutSetsForPreview } = useAppContext();
 
   const createSubform = ({
     layoutSetName,
@@ -40,7 +42,8 @@ export const useCreateSubform = (): UseCreateSubformReturn => {
           },
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            await updateLayoutSetsForPreview();
             onSubformCreated(layoutSetName);
           },
         },
