@@ -2,21 +2,21 @@ import React from 'react';
 import type { StudioButtonProps } from '@studio/components';
 import { StudioFileUploader, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useUploadDataModelMutation } from '../../../../hooks/mutations/useUploadDataModelMutation';
+import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
-import type { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../../types/MetadataOption';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
-import { useValidationAlert } from '../../hooks/useValidationAlert';
+import { useValidationAlert } from './useValidationAlert';
 import { removeExtension } from 'app-shared/utils/filenameUtils';
 import {
   doesFileExistInMetadataWithClassRef,
   doesFileExistInMetadataWithoutClassRef,
   findFileNameError,
-} from '../../utils/validationUtils';
-import type { FileNameError } from '../../types/FileNameError';
+} from '../utils/validationUtils';
+import type { FileNameError } from '../types/FileNameError';
 
 export interface XSDUploadProps {
   selectedOption?: MetadataOption;

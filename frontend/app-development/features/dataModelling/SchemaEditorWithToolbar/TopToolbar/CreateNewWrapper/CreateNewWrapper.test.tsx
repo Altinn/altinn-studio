@@ -4,7 +4,7 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import type { CreateNewWrapperProps } from './CreateNewWrapper';
 import { CreateNewWrapper } from './CreateNewWrapper';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { renderWithProviders } from '../../../../test/testUtils';
+import { renderWithProviders } from '../../../../../test/testUtils';
 import { app, org } from '@studio/testing/testids';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';

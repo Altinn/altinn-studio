@@ -1,4 +1,4 @@
-import { mockAppMetadata, mockDataTypeId } from '../../../test/applicationMetadataMock';
+import { mockAppMetadata, mockDataTypeId } from '../../../../../test/applicationMetadataMock';
 import { extractDataTypeNamesFromAppMetadata } from './validationUtils';
 
 describe('extractDataTypeNamesFromAppMetadata', () => {

@@ -5,12 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { StudioButton, StudioPopover, StudioTextfield } from '@studio/components';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
-import { useCreateDataModelMutation } from '../../../../hooks/mutations';
+import { useCreateDataModelMutation } from '../../../../../hooks/mutations';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
-import { extractModelNamesFromMetadataList } from '../../../../utils/metadataUtils';
+import { extractModelNamesFromMetadataList } from '../../../../../utils/metadataUtils';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { extractDataTypeNamesFromAppMetadata } from '../../utils/validationUtils';
+import { extractDataTypeNamesFromAppMetadata } from '../utils/validationUtils';
 
 export interface CreateNewWrapperProps {
   disabled: boolean;

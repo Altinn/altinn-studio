@@ -2,8 +2,8 @@ import { Spinner } from '@digdir/designsystemet-react';
 import { CogIcon } from '@studio/icons';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSchemaQuery } from '../../../../hooks/queries';
-import { useGenerateModelsMutation } from '../../../../hooks/mutations';
+import { useSchemaQuery } from '../../../../../hooks/queries';
+import { useGenerateModelsMutation } from '../../../../../hooks/mutations';
 import { toast } from 'react-toastify';
 import { StudioButton } from '@studio/components';
 
