@@ -1,7 +1,7 @@
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { removeExtension } from 'app-shared/utils/filenameUtils';
 import type { FileNameError } from '../types/FileNameError';
 import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export const doesFileExistInMetadataWithClassRef = (
   appMetadata: ApplicationMetadata,
@@ -29,7 +29,7 @@ export const findFileNameError = (
   fileName: string,
   appMetadata: ApplicationMetadata,
 ): FileNameError | null => {
-  const fileNameWithoutExtension = removeExtension(fileName);
+  const fileNameWithoutExtension = FileNameUtils.removeExtension(fileName);
   if (!isNameFormatValid(fileNameWithoutExtension)) {
     return 'invalidFileName';
   } else if (doesFileExistInMetadata(appMetadata, fileNameWithoutExtension)) {

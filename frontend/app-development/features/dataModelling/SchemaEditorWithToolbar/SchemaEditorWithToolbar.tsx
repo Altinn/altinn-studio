@@ -7,7 +7,7 @@ import { SelectedSchemaEditor } from './SelectedSchemaEditor';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
 import { useAddXsdMutation } from '../../../hooks/mutations/useAddXsdMutation';
-import { isXsdFile } from 'app-shared/utils/filenameUtils';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export interface SchemaEditorWithToolbarProps {
   createPathOption?: boolean;
@@ -32,7 +32,7 @@ export const SchemaEditorWithToolbar = ({
 
   useEffect(() => {
     dataModels.forEach((model) => {
-      if (model.repositoryRelativeUrl && isXsdFile(model.repositoryRelativeUrl)) {
+      if (model.repositoryRelativeUrl && FileNameUtils.isXsdFile(model.repositoryRelativeUrl)) {
         addXsdFromRepo(model.repositoryRelativeUrl);
       }
     });

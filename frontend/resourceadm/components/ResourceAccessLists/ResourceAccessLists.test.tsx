@@ -66,9 +66,11 @@ const defaultProps: ResourceAccessListsProps = {
 
 const checkListMock = jest.fn();
 const uncheckListMock = jest.fn();
+const mockedNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedNavigate,
   useParams: () => ({
     org: org,
   }),
@@ -198,6 +200,21 @@ describe('ResourceAccessLists', () => {
         }),
       ),
     ).toBeInTheDocument();
+  });
+
+  it('should navigate back on back button click', async () => {
+    const user = userEvent.setup();
+
+    renderResourceAccessLists();
+
+    const spinnerTitle = screen.queryByText(textMock('resourceadm.loading_lists'));
+    await waitForElementToBeRemoved(spinnerTitle);
+
+    const backLink = screen.getByRole('link', { name: textMock('general.back') });
+    await user.click(backLink);
+
+    const expectedBackUrl = `/${org}/${org}-resources/resource/${resourceId}/about`;
+    expect(mockedNavigate).toHaveBeenCalledWith(expectedBackUrl);
   });
 });
 

@@ -23,7 +23,6 @@ export enum ComponentType {
   InstanceInformation = 'InstanceInformation',
   InstantiationButton = 'InstantiationButton',
   Likert = 'Likert',
-  LikertItem = 'LikertItem',
   Link = 'Link',
   List = 'List',
   Map = 'Map',

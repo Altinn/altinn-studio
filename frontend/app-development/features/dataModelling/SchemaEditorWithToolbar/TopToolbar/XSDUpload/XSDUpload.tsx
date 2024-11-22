@@ -1,6 +1,7 @@
 import React from 'react';
 import type { StudioButtonProps } from '@studio/components';
 import { StudioFileUploader, StudioSpinner } from '@studio/components';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
 import type { AxiosError } from 'axios';
@@ -10,7 +11,6 @@ import type { MetadataOption } from '../../../../../types/MetadataOption';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 import { useValidationAlert } from './useValidationAlert';
-import { removeExtension } from 'app-shared/utils/filenameUtils';
 import {
   doesFileExistInMetadataWithClassRef,
   doesFileExistInMetadataWithoutClassRef,
@@ -65,7 +65,7 @@ export const XSDUpload = ({
     if (fileNameError) {
       validationAlert(fileNameError);
     }
-    const fileNameWithoutExtension = removeExtension(file.name);
+    const fileNameWithoutExtension = FileNameUtils.removeExtension(file.name);
     if (doesFileExistInMetadataWithClassRef(appMetadata, fileNameWithoutExtension)) {
       const userConfirmed = window.confirm(
         t('schema_editor.error_upload_data_model_id_exists_override_option'),
