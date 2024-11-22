@@ -1,8 +1,9 @@
 import React, { forwardRef } from 'react';
 
 import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
-import { SimpleTableComponent, TableSummary } from 'src/layout/SimpleTable/SimpleTableComponent';
+import { SimpleTableComponent } from 'src/layout/SimpleTable/SimpleTableComponent';
 import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/SimpleTableFeatureFlagLayoutValidator';
+import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
@@ -32,7 +33,7 @@ export class SimpleTable extends SimpleTableDef {
     return '';
   }
   renderSummary2(props: Summary2Props<'SimpleTable'>): React.JSX.Element | null {
-    return <TableSummary componentNode={props.target} />;
+    return <SimpleTableSummary componentNode={props.target} />;
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {

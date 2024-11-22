@@ -4,8 +4,12 @@ import { PatternFormat } from 'react-number-format';
 import { Textfield } from '@digdir/designsystemet-react';
 import { format, isValid } from 'date-fns';
 
-import styles from 'src/layout/Datepicker/Calendar.module.css';
-import { getSaveFormattedDateString, strictParseFormat, strictParseISO } from 'src/utils/dateHelpers';
+import styles from 'src/app-components/Datepicker/Calendar.module.css';
+import {
+  getSaveFormattedDateString,
+  strictParseFormat,
+  strictParseISO,
+} from 'src/app-components/Datepicker/utils/dateHelpers';
 import { getFormatPattern } from 'src/utils/formatDateLocale';
 
 export interface DatePickerInputProps {

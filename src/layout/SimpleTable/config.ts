@@ -39,6 +39,28 @@ export const Config = new CG.component({
               .setTitle('Accessors')
               .setDescription('List of fields that should be included in the cell'),
           ),
+          new CG.prop(
+            'component',
+            new CG.obj(
+              new CG.prop('type', new CG.enum('radio', 'date')),
+              new CG.prop(
+                'format',
+                new CG.str()
+                  .setTitle('Date format')
+                  .setDescription('Date format used when displaying the date to the user')
+                  .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd')
+                  .optional(),
+              ),
+              new CG.prop(
+                'options',
+                new CG.arr(
+                  new CG.obj(new CG.prop('label', new CG.str()), new CG.prop('value', new CG.str())),
+                ).optional(),
+              ),
+            )
+              .optional()
+              .setTitle('Specify component to render'),
+          ),
         ).exportAs('Columns'),
       ),
     ),
@@ -53,6 +75,12 @@ export const Config = new CG.component({
     new CG.prop(
       'enableDelete',
       new CG.bool().setTitle('Enable delete').setDescription('If true, will allow user to delete row').optional(),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
+      'enableEdit',
+      new CG.bool().setTitle('Enable delete').setDescription('If true, will allow user to edit row').optional(),
     ),
   )
   .addProperty(

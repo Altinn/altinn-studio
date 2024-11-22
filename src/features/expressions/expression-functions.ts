@@ -1,13 +1,13 @@
 import dot from 'dot-object';
 import type { Mutable } from 'utility-types';
 
+import { isDate } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { ExprVal } from 'src/features/expressions/types';
 import { addError } from 'src/features/expressions/validation';
 import { SearchParams } from 'src/features/routing/AppRoutingContext';
 import { implementsDisplayData } from 'src/layout';
 import { buildAuthContext } from 'src/utils/authContext';
-import { isDate } from 'src/utils/dateHelpers';
 import { formatDateLocale } from 'src/utils/formatDateLocale';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';

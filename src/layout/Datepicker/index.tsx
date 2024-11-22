@@ -3,12 +3,17 @@ import type { JSX } from 'react';
 
 import { isAfter, isBefore } from 'date-fns';
 
+import {
+  formatISOString,
+  getDateConstraint,
+  getDateFormat,
+  strictParseISO,
+} from 'src/app-components/Datepicker/utils/dateHelpers';
 import { FrontendValidationSource, ValidationMask } from 'src/features/validation';
 import { DatepickerDef } from 'src/layout/Datepicker/config.def.generated';
 import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
 import { DatepickerSummary } from 'src/layout/Datepicker/DatepickerSummary';
 import { SummaryItemSimple } from 'src/layout/Summary/SummaryItemSimple';
-import { formatISOString, getDateConstraint, getDateFormat, strictParseISO } from 'src/utils/dateHelpers';
 import { getDatepickerFormat } from 'src/utils/formatDateLocale';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { DisplayDataProps } from 'src/features/displayData';

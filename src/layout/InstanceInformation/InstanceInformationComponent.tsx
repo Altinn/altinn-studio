@@ -6,6 +6,7 @@ import { formatDate, formatISO } from 'date-fns';
 
 import type { PropsFromGenericComponent } from '..';
 
+import { getDateFormat, PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useLaxInstanceData, useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -13,7 +14,6 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
-import { getDateFormat, PrettyDateAndTime } from 'src/utils/dateHelpers';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { getInstanceOwnerParty } from 'src/utils/party';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';

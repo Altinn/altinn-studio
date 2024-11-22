@@ -3,8 +3,8 @@ import type { PropsWithChildren, ReactNode } from 'react';
 
 import { Modal, Popover } from '@digdir/designsystemet-react';
 
+import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { useIsMobile } from 'src/hooks/useDeviceWidths';
-import styles from 'src/layout/Datepicker/Calendar.module.css';
 
 export function DatePickerDialog({
   children,

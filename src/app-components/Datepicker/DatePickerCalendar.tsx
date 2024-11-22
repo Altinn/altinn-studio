@@ -1,21 +1,22 @@
 import React from 'react';
 import { DayPicker } from 'react-day-picker';
+import type { Matcher, MonthCaption } from 'react-day-picker';
 
-import styles from 'src/layout/Datepicker/Calendar.module.css';
-import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
-import { getLocale } from 'src/utils/dateHelpers';
+import styles from 'src/app-components/Datepicker/Calendar.module.css';
+import { getLocale } from 'src/app-components/Datepicker/utils/dateHelpers';
 
 export interface CalendarDialogProps {
   id: string;
   isOpen?: boolean;
   selectedDate: Date | undefined;
   onSelect: (value: Date) => void;
-  maxDate: Date;
-  minDate: Date;
+  maxDate?: Date;
+  minDate?: Date;
   locale?: string;
   required?: boolean;
   autoFocus?: boolean;
   onBlur?: () => void;
+  DropdownCaption: typeof MonthCaption;
 }
 
 export const DatePickerCalendar = ({
@@ -26,8 +27,18 @@ export const DatePickerCalendar = ({
   locale,
   required,
   autoFocus,
+  DropdownCaption,
 }: CalendarDialogProps) => {
   const currentLocale = getLocale(locale ?? 'nb');
+
+  const disabledParams: Matcher[] = [];
+  if (minDate) {
+    disabledParams.push({ before: minDate });
+  }
+  if (maxDate) {
+    disabledParams.push({ after: maxDate });
+  }
+
   return (
     <DayPicker
       classNames={{
@@ -44,7 +55,7 @@ export const DatePickerCalendar = ({
       locale={currentLocale}
       today={new Date()}
       defaultMonth={selectedDate}
-      disabled={[{ before: minDate, after: maxDate }]}
+      disabled={disabledParams}
       weekStartsOn={1}
       mode='single'
       hideNavigation

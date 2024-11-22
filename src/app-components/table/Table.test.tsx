@@ -1,24 +1,21 @@
-// AppTable.test.tsx
 import React from 'react';
 
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { JSONSchema7 } from 'json-schema';
 
 import { AppTable } from 'src/app-components/table/Table';
 
-// Sample data
 const data = [
-  { id: 1, name: 'Alice', date: '2023-10-05', amount: 100 },
-  { id: 2, name: 'Bob', date: '2023-10-06', amount: 200 },
+  { id: 1, name: 'Alice', date: '05.10.2023', amount: 100 },
+  { id: 2, name: 'Bob', date: '06.10.2023', amount: 200 },
 ];
 
-// Columns configuration
 const columns = [
   { header: 'Name', accessors: ['name'] },
   { header: 'Date', accessors: ['date'] },
   { header: 'Amount', accessors: ['amount'] },
 ];
 
-// Action buttons configuration
 const actionButtons = [
   {
     onClick: jest.fn(),
@@ -32,12 +29,24 @@ const actionButtons = [
   },
 ];
 
+const schema: JSONSchema7 = {
+  type: 'object',
+  properties: {
+    id: { type: 'number' },
+    name: { type: 'string' },
+    date: { type: 'string', format: 'date' },
+    amount: { type: 'number' },
+  },
+  required: ['id', 'name', 'date', 'amount'],
+};
+
 describe('AppTable Component', () => {
   test('renders table with correct headers', () => {
     render(
       <AppTable
         data={data}
         columns={columns}
+        schema={schema}
       />,
     );
     expect(screen.getByText('Name')).toBeInTheDocument();
@@ -50,6 +59,7 @@ describe('AppTable Component', () => {
       <AppTable
         data={data}
         columns={columns}
+        schema={schema}
       />,
     );
     const rows = screen.getAllByRole('row');
@@ -62,17 +72,19 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         actionButtons={actionButtons}
+        schema={schema}
       />,
     );
     expect(screen.getAllByText('Edit').length).toBe(data.length);
     expect(screen.getAllByText('Delete').length).toBe(data.length);
   });
 
-  test('correctly formats dates in cells', () => {
+  test('correctly displays dates in cells', () => {
     render(
       <AppTable
         data={data}
         columns={columns}
+        schema={schema}
       />,
     );
     expect(screen.getByText('05.10.2023')).toBeInTheDocument();
@@ -92,6 +104,7 @@ describe('AppTable Component', () => {
       <AppTable
         data={data}
         columns={columnsWithRenderCell}
+        schema={schema}
       />,
     );
     expect(screen.getByText('Name: Alice, Amount: 100')).toBeInTheDocument();
@@ -113,6 +126,7 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         actionButtons={actionButtonsMock}
+        schema={schema}
       />,
     );
 
@@ -131,6 +145,7 @@ describe('AppTable Component', () => {
       <AppTable
         data={data}
         columns={columns}
+        schema={schema}
       />,
     );
     const headerCells = screen.getAllByRole('columnheader');
@@ -143,13 +158,14 @@ describe('AppTable Component', () => {
         data={data}
         columns={columns}
         actionButtons={actionButtons}
+        schema={schema}
       />,
     );
     const headerCells = screen.getAllByRole('columnheader');
     expect(headerCells.length).toBe(columns.length + 1);
   });
 
-  test('non-date values are not changed by formatIfDate', () => {
+  test('non-date values are not changed by formatValue', () => {
     const dataWithNonDate = [
       { id: 1, name: 'Alice', date: 'Not a date', amount: 100 },
       { id: 2, name: 'Bob', date: 'Also not a date', amount: 200 },
@@ -158,6 +174,7 @@ describe('AppTable Component', () => {
       <AppTable
         data={dataWithNonDate}
         columns={columns}
+        schema={schema}
       />,
     );
     expect(screen.getByText('Not a date')).toBeInTheDocument();

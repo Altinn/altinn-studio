@@ -1,8 +1,8 @@
 import { endOfDay, format, formatDate, formatISO, isValid, parse, parseISO, startOfDay } from 'date-fns';
 import type { Locale } from 'date-fns/locale';
 
+import { locales } from 'src/app-components/Datepicker/utils/dateLocales';
 import { DateFlags } from 'src/types';
-import { locales } from 'src/utils/dateLocales';
 
 export const DatepickerMinDateDefault = '1900-01-01T00:00:00Z';
 export const DatepickerMaxDateDefault = '2100-01-01T23:59:59Z';
