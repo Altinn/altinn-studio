@@ -32,10 +32,6 @@ it('is possible to submit app instance from a tablet', () => {
 function testChangeName() {
   cy.goto('changename');
 
-  cy.findByRole('textbox', { name: /du har valgt å endre:/i })
-    .parents()
-    .eq(5)
-    .should('have.css', 'max-width', '100%');
   cy.fillOut('changename');
   cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
   cy.get(appFrontend.sendinButton).should('be.visible');

@@ -40,9 +40,9 @@ export const Fieldset = ({
           {legend}
           <RequiredIndicator required={required} />
           <OptionalIndicator
-            labelSettings={labelSettings}
             readOnly={false}
             required={required}
+            showOptionalMarking={!!labelSettings?.optionalIndicator}
           />
           {helpText && (
             <HelpTextContainer
@@ -53,13 +53,13 @@ export const Fieldset = ({
         </div>
       }
       description={
-        description && (
+        description ? (
           <Description
             componentId={id}
             description={description}
             className={classes.description}
           />
-        )
+        ) : undefined
       }
       {...rest}
     >

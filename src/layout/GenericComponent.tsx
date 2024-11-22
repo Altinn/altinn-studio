@@ -233,7 +233,7 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         {...gridBreakpoints(grid)}
         key={`grid-${id}`}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
-        alignItems='baseline'
+        alignItems='flex-start'
       >
         <RenderComponent {...componentProps} />
       </Grid>

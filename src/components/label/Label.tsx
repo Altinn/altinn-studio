@@ -16,7 +16,7 @@ import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type LabelType = 'legend' | 'span' | 'label' | 'plainLabel';
+type LabelType = 'legend' | 'span' | 'plainLabel';
 
 export type LabelProps = PropsWithChildren<{
   node: LayoutNode;
@@ -84,26 +84,6 @@ export function Label(props: LabelProps) {
       );
     }
 
-    case 'label':
-      return (
-        <DesignsystemetLabel
-          id={labelId}
-          htmlFor={id}
-          style={{ width: '100%' }}
-          className={className}
-          {...designsystemetLabelProps}
-        >
-          <Grid
-            container
-            spacing={2}
-          >
-            <LabelGridItemWrapper labelGrid={grid?.labelGrid}>
-              <LabelContent {...labelContentProps} />
-            </LabelGridItemWrapper>
-            {children}
-          </Grid>
-        </DesignsystemetLabel>
-      );
     case 'plainLabel':
       return (
         <DesignsystemetLabel

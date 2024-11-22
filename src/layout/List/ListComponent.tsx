@@ -139,10 +139,12 @@ export const ListComponent = ({ node }: IListProps) => {
               <Lang id={title} />
               <RequiredIndicator required={required} />
             </Heading>
-            <Description
-              description={description && <Lang id={description} />}
-              componentId={node.id}
-            />
+            {description && (
+              <Description
+                description={<Lang id={description} />}
+                componentId={node.id}
+              />
+            )}
           </caption>
         )}
         <Table.Head>

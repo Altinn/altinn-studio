@@ -1,17 +1,16 @@
 import React from 'react';
 
 import { useLanguage } from 'src/features/language/useLanguage';
-import type { ILabelSettings } from 'src/layout/common.generated';
 
-interface IOptionalIndicatorProps {
-  required?: boolean;
+export type OptionalIndicatorProps = {
   readOnly?: boolean;
-  labelSettings?: ILabelSettings;
-}
+  required?: boolean;
+  showOptionalMarking?: boolean;
+};
 
-export const OptionalIndicator = (props: IOptionalIndicatorProps) => {
+export const OptionalIndicator = ({ readOnly, required, showOptionalMarking }: OptionalIndicatorProps) => {
   const { langAsString } = useLanguage();
-  const shouldShowOptionalMarking = props.labelSettings?.optionalIndicator && !props.required && !props.readOnly;
+  const shouldShowOptionalMarking = !required && showOptionalMarking && !readOnly;
   if (shouldShowOptionalMarking) {
     return (
       <span style={{ fontSize: '0.875rem', fontWeight: 400, color: '#6a6a6a' }}>{` (${langAsString(

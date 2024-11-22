@@ -55,10 +55,12 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
             >
               <Lang id={title} />
             </Heading>
-            <Description
-              description={description && <Lang id={description} />}
-              componentId={node.id}
-            />
+            {description && (
+              <Description
+                description={<Lang id={description} />}
+                componentId={node.id}
+              />
+            )}
           </div>
         )}
         <div

@@ -1,0 +1,16 @@
+.label {
+  display: flex;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+}
+
+.description {
+  padding-bottom: var(--fds-spacing-2);
+}
+
+.labelAndDescWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-1);
+  align-items: flex-start;
+}
