@@ -238,7 +238,7 @@ public class ActionsController : ControllerBase
         string,
         Dictionary<string, List<ValidationIssueWithSource>>
     >?> GetIncrementalValidations(
-        IInstanceDataAccessor dataAccessor,
+        InstanceDataUnitOfWork dataAccessor,
         DataElementChanges changes,
         List<string>? ignoredValidators,
         string? language

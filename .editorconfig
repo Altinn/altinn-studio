@@ -116,6 +116,9 @@ dotnet_diagnostic.IDE0005.severity = warning
 
 dotnet_diagnostic.CA1825.severity = warning
 
+# IDE0052: Remove unread private member
+dotnet_diagnostic.IDE0052.severity = warning
+
 # CA1848: Use the LoggerMessage delegates
 dotnet_diagnostic.CA1848.severity = none
 
@@ -130,6 +133,9 @@ dotnet_diagnostic.CA1822.severity = warning
 
 # IDE0080: Remove unnecessary suppression operator
 dotnet_diagnostic.IDE0080.severity = error
+
+# CA1859: Use concrete types when possible for improved performance
+dotnet_diagnostic.CA1859.severity = warning
 
 # CA1716: Rename namespace "" so that it no longer conflicts with the reserved language keyword 'Interface'
 # TODO: fixing this would be breaking

@@ -30,7 +30,6 @@ public class PdfController : ControllerBase
     private readonly IAppResources _resources;
     private readonly IAppModel _appModel;
     private readonly IDataClient _dataClient;
-    private readonly IWebHostEnvironment _env;
     private readonly IPdfService _pdfService;
 
     /// <summary>
@@ -41,7 +40,6 @@ public class PdfController : ControllerBase
     /// <param name="resources">The app resource service</param>
     /// <param name="appModel">The app model service</param>
     /// <param name="dataClient">The data client</param>
-    /// <param name="env">The environment</param>
     /// <param name="pdfService">The PDF service</param>
     public PdfController(
         IInstanceClient instanceClient,
@@ -50,7 +48,6 @@ public class PdfController : ControllerBase
         IAppResources resources,
         IAppModel appModel,
         IDataClient dataClient,
-        IWebHostEnvironment env,
         IPdfService pdfService
     )
     {
@@ -59,7 +56,6 @@ public class PdfController : ControllerBase
         _resources = resources;
         _appModel = appModel;
         _dataClient = dataClient;
-        _env = env;
         _pdfService = pdfService;
     }
 

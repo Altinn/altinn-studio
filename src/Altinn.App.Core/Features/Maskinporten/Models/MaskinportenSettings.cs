@@ -229,7 +229,7 @@ public record JwkWrapper
         /// <summary>
         /// Shorthand: Is the object in a valid state?
         /// </summary>
-        public bool IsValid() => InvalidProperties.IsNullOrEmpty();
+        public bool IsValid() => InvalidProperties is null || !InvalidProperties.Any();
 
         /// <summary>
         /// Helpful summary of the result

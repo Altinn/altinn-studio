@@ -14,15 +14,13 @@ namespace Altinn.App.Api.Controllers;
 public class ProfileController : Controller
 {
     private readonly IProfileClient _profileClient;
-    private readonly ILogger _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProfileController"/> class
     /// </summary>
-    public ProfileController(IProfileClient profileClient, ILogger<ProfileController> logger)
+    public ProfileController(IProfileClient profileClient)
     {
         _profileClient = profileClient;
-        _logger = logger;
     }
 
     /// <summary>
