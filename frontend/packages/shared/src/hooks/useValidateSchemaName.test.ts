@@ -1,7 +1,6 @@
-import { useValidateSchemaName } from './useValidateSchemaName';
+import { DATA_MODEL_NAME_MAX_LENGTH, useValidateSchemaName } from './useValidateSchemaName';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { act, renderHook } from '@testing-library/react';
-import { DATA_MODEL_NAME_MAX_LENGTH } from 'app-shared/constants';
 
 // Test data
 const existingModelName = 'existingModelName';

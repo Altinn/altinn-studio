@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DATA_MODEL_NAME_MAX_LENGTH, DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
+import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
 
 export const useValidateSchemaName = (
   existingDataModelNames: string[],
@@ -39,6 +39,8 @@ export const useValidateSchemaName = (
 
   return { validateName, nameError, setNameError };
 };
+
+export const DATA_MODEL_NAME_MAX_LENGTH = 100;
 
 const isCSharpReservedKeyword = (word: string): boolean => {
   const cSharpKeywords = new Set([
