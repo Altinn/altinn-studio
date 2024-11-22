@@ -42,8 +42,7 @@ jobs:
       - name: Pack
         run: |
           dotnet pack AppLibDotnet.sln --configuration Release --no-restore --no-build \
-            -p:Deterministic=true -p:BuildNumber=${{ github.run_number }} \
-            -p:PackageReleaseNotes="$(cat RELEASE_NOTES.md)"
+            -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
       - name: Versions
         run: |
           dotnet --version
