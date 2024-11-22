@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreateNewSubformSection } from './CreateNewSubformLayoutSet';
+import { CreateNewSubformSection } from './CreateNewSubformSection';
 import { SubformUtilsImpl } from '@altinn/ux-editor/classes/SubformUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';

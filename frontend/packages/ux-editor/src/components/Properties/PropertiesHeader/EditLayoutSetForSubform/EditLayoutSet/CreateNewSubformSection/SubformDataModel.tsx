@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 
-type SubformDataModelProps = {
+export type SubformDataModelProps = {
   handleDataModel: (dataModelId: string) => void;
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
   setDataModel: (dataModelId: string) => void;
@@ -51,7 +51,7 @@ export const SubformDataModel = ({
       </StudioNativeSelect>
       {displayDataModelInput ? (
         <StudioTextfield
-          name='subformDataModel'
+          name='newSubformDataModel'
           label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
           size='sm'
           onChange={(e) => handleDataModel(e.target.value)}

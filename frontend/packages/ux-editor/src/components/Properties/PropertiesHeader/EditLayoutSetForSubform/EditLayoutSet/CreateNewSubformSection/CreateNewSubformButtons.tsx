@@ -5,21 +5,21 @@ import { StudioButton, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 
 type CreateNewSubformButtonsProps = {
-  isPendingLayoutSetMutation: boolean;
+  isPendingNewSubformMutation: boolean;
   disableSaveButton: boolean;
   displayCloseButton: boolean;
   handleCloseButton: () => void;
 };
 
 export const CreateNewSubformButtons = ({
-  isPendingLayoutSetMutation,
+  isPendingNewSubformMutation,
   disableSaveButton,
   displayCloseButton,
   handleCloseButton,
 }: CreateNewSubformButtonsProps) => {
   const { t } = useTranslation();
 
-  const saveIcon = isPendingLayoutSetMutation ? (
+  const saveIcon = isPendingNewSubformMutation ? (
     <StudioSpinner size='sm' spinnerTitle={t('general.loading')} />
   ) : (
     <CheckmarkIcon />

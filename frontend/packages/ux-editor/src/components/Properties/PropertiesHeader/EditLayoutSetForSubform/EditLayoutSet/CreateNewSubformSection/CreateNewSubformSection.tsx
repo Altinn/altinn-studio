@@ -44,7 +44,8 @@ export const CreateNewSubformSection = ({
   };
 
   const handleDataModel = (dataModelId: string) => {
-    // Add data model validation here when this PR is merged: https://github.com/Altinn/altinn-studio/issues/13364
+    // Add data model validation here and replace dataModel useState with dataModelError
+    // when this PR is merged: https://github.com/Altinn/altinn-studio/issues/13364
     setDataModel(dataModelId);
   };
 
