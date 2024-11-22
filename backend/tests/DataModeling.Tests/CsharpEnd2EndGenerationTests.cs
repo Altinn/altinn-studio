@@ -76,7 +76,7 @@ namespace DataModeling.Tests
                 .Then.CompiledAssembly.Should().NotBeNull();
         }
 
-        private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath)
+        private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath, bool overwriteExpected = false)
         {
             string expectedClasses = SharedResourcesHelper.LoadTestDataAsString(expectedCsharpClassPath);
 
@@ -86,7 +86,10 @@ namespace DataModeling.Tests
             _testOutput.WriteLine(CSharpClasses);
 
             // Save the current generated classes to the expected file so they can be compared with git diff.
-            SharedResourcesHelper.WriteUpdatedTestData(expectedCsharpClassPath, CSharpClasses);
+            if (overwriteExpected)
+            {
+                SharedResourcesHelper.WriteUpdatedTestData(expectedCsharpClassPath, CSharpClasses);
+            }
 
             var expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
 

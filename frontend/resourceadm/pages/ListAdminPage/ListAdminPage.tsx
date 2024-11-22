@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/designsystemet-react';
-import { StudioSpinner, StudioButton } from '@studio/components';
+import { Heading, ToggleGroup } from '@digdir/designsystemet-react';
+import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
@@ -43,13 +43,18 @@ export const ListAdminPage = (): React.JSX.Element => {
     }
   }, [org, selectedEnv, navigateToListEnv]);
 
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(getResourceDashboardURL(org, app));
+  };
+
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
 
   return (
     <div className={classes.listAdminPageWrapper}>
-      <DigdirLink asChild>
-        <Link to={getResourceDashboardURL(org, app)}>{t('resourceadm.listadmin_back')}</Link>
-      </DigdirLink>
+      <StudioLink href={getResourceDashboardURL(org, app)} onClick={handleBackClick}>
+        {t('resourceadm.listadmin_back')}
+      </StudioLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_header')}
       </Heading>

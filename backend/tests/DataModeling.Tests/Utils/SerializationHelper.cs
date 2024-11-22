@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using SharedResources.Tests;
 
 namespace DataModeling.Tests.Utils
 {
@@ -20,7 +21,7 @@ namespace DataModeling.Tests.Utils
         public static string SerializeXml(object o)
         {
             var xmlSerializer = new XmlSerializer(o.GetType());
-            using var textWriter = new StringWriter();
+            using var textWriter = new Utf8StringWriter();
             xmlSerializer.Serialize(textWriter, o);
             return textWriter.ToString();
         }
