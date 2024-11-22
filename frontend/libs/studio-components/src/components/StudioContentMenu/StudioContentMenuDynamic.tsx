@@ -3,7 +3,7 @@ import type { ReactElement, ReactNode } from 'react';
 import type { StudioContentMenuBaseProps } from './StudioContentMenuBase';
 import { StudioContentMenuBase } from './StudioContentMenuBase';
 
-function StudioContentMenuForwarded<TabId extends string>(
+function StudioContentMenuDynamicForwarded<TabId extends string>(
   { children, selectedTabId, onChangeTab }: StudioContentMenuBaseProps<TabId>,
   ref: React.Ref<HTMLDivElement>,
 ): ReactElement {
@@ -22,9 +22,10 @@ function StudioContentMenuForwarded<TabId extends string>(
   );
 }
 
-export const StudioContentMenu = forwardRef<HTMLDivElement, StudioContentMenuBaseProps<string>>(
-  StudioContentMenuForwarded,
-);
+export const StudioContentMenuDynamic = forwardRef<
+  HTMLDivElement,
+  StudioContentMenuBaseProps<string>
+>(StudioContentMenuDynamicForwarded);
 
 const getFirstTabId = (children: ReactNode) => {
   return Children.toArray(children).filter((child): child is ReactElement =>

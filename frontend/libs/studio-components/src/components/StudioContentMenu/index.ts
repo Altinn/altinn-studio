@@ -1,17 +1,17 @@
 export type { StudioContentMenuButtonTabProps } from './StudioContentMenuButtonTab';
 export type { StudioContentMenuLinkTabProps } from './StudioContentMenuLinkTab';
-import { StudioContentMenu as StudioContentMenuRoot } from './StudioContentMenu';
+import { StudioContentMenuDynamic } from './StudioContentMenuDynamic';
 import { StudioContentMenuBase } from './StudioContentMenuBase';
 import { StudioContentMenuButtonTab } from './StudioContentMenuButtonTab';
 import { StudioContentMenuLinkTab } from './StudioContentMenuLinkTab';
 
-type StudioContentMenuComponent = typeof StudioContentMenuRoot & {
+type StudioContentMenuComponent = typeof StudioContentMenuDynamic & {
   ButtonTab: typeof StudioContentMenuButtonTab;
   LinkTab: typeof StudioContentMenuLinkTab;
   Static: typeof StudioContentMenuBase;
 };
 
-export const StudioContentMenu = StudioContentMenuRoot as StudioContentMenuComponent;
+export const StudioContentMenu = StudioContentMenuDynamic as StudioContentMenuComponent;
 
 StudioContentMenu.ButtonTab = StudioContentMenuButtonTab;
 StudioContentMenu.LinkTab = StudioContentMenuLinkTab;
