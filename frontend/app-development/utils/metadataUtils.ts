@@ -3,10 +3,9 @@ import type {
   DataModelMetadataJson,
   DataModelMetadataXsd,
 } from 'app-shared/types/DataModelMetadata';
-import { ArrayUtils, StringUtils } from '@studio/pure-functions';
+import { ArrayUtils, StringUtils, FileNameUtils } from '@studio/pure-functions';
 import type { MetadataOption } from '../types/MetadataOption';
 import type { MetadataOptionsGroup } from '../types/MetadataOptionsGroup';
-import { removeSchemaExtension } from 'app-shared/utils/filenameUtils';
 
 /**
  * Filters out items from the Xsd data list if there are items in the Json data list with the same name.
@@ -43,7 +42,7 @@ export const mergeJsonAndXsdData = (
  * @returns The MetadataOption object.
  */
 export const convertMetadataToOption = (metadata: DataModelMetadata): MetadataOption => {
-  let label = removeSchemaExtension(metadata.fileName);
+  let label = FileNameUtils.removeSchemaExtension(metadata.fileName);
   if (metadata.fileType === '.xsd') {
     label += ' (XSD)';
   }

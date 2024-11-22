@@ -5,6 +5,7 @@ import {
   SidebarBothIcon,
   ShieldLockIcon,
   TimerStartIcon,
+  CogIcon,
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
@@ -13,13 +14,7 @@ const aboutTabId: SettingsModalTabId = 'about';
 const setupTabId: SettingsModalTabId = 'setup';
 const policyTabId: SettingsModalTabId = 'policy';
 const accessControlTabId: SettingsModalTabId = 'access_control';
-
-export const allSettingsModalTabs: Array<SettingsModalTabId> = [
-  aboutTabId,
-  setupTabId,
-  policyTabId,
-  accessControlTabId,
-];
+const maskinportenTabId: SettingsModalTabId = 'maskinporten';
 
 export const useSettingsModalMenuTabConfigs =
   (): StudioContentMenuButtonTabProps<SettingsModalTabId>[] => {
@@ -45,6 +40,11 @@ export const useSettingsModalMenuTabConfigs =
         tabId: accessControlTabId,
         tabName: t(`settings_modal.left_nav_tab_${accessControlTabId}`),
         icon: <TimerStartIcon />,
+      },
+      {
+        tabId: maskinportenTabId,
+        tabName: t(`settings_modal.left_nav_tab_${maskinportenTabId}`),
+        icon: <CogIcon />,
       },
     ];
   };
