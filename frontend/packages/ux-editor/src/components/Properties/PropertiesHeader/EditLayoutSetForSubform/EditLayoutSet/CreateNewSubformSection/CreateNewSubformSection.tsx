@@ -10,7 +10,7 @@ import { useValidateLayoutSetName } from 'app-shared/hooks/useValidateLayoutSetN
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import { SubformDataModel } from './SubformDataModel';
 import { CreateNewSubformButtons } from './CreateNewSubformButtons';
-import { SubformInstructions } from '../SubformInstructions';
+import { SubformInstructions } from './SubformInstructions';
 import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
 
 type CreateNewSubformSectionProps = {
@@ -33,10 +33,10 @@ export const CreateNewSubformSection = ({
 }: CreateNewSubformSectionProps): React.ReactElement => {
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const [nameError, setNameError] = useState<string>('');
+  const [nameError, setNameError] = useState<string | Boolean>(true);
   const [dataModel, setDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
-  const { createSubform, isPendingLayoutSetMutation } = useCreateSubform();
+  const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
@@ -61,12 +61,14 @@ export const CreateNewSubformSection = ({
     e.preventDefault();
     const formData: FormData = new FormData(e.currentTarget);
     const newSubformName = formData.get('subform') as string;
-    const subformDataType = formData.get('subformDataType') as string;
+    const subformDataType = formData.get('subformDataModel') as string;
+    const newSubformDataType = formData.get('newSubformDataModel') as string;
 
     createSubform({
       layoutSetName: newSubformName,
       onSubformCreated: onComponentUpdate,
-      dataType: subformDataType,
+      dataType: subformDataType || newSubformDataType,
+      newDataModel: !!newSubformDataType,
     });
   };
 
@@ -92,9 +94,9 @@ export const CreateNewSubformSection = ({
             name='subform'
             label={t('ux_editor.component_properties.subform.created_layout_set_name')}
             size='sm'
-            disabled={isPendingLayoutSetMutation}
+            disabled={isPendingNewSubformMutation}
             onChange={(e) => handleSubformName(e.target.value)}
-            error={nameError}
+            error={typeof nameError === 'string' && nameError}
           />
           <SubformDataModel
             handleDataModel={handleDataModel}
@@ -103,8 +105,8 @@ export const CreateNewSubformSection = ({
             displayDataModelInput={displayDataModelInput}
           />
           <CreateNewSubformButtons
-            isPendingLayoutSetMutation={isPendingLayoutSetMutation}
-            disableSaveButton={!!nameError || !dataModel}
+            isPendingNewSubformMutation={isPendingNewSubformMutation}
+            disableSaveButton={Boolean(nameError) || !dataModel}
             displayCloseButton={hasSubforms || displayDataModelInput}
             handleCloseButton={handleCloseButton}
           />
