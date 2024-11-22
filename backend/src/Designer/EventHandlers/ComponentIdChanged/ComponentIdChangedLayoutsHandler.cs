@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,29 +69,37 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         // Should we check if node is string to avoid unnecessary upcoming checks?
         if (node is JsonObject jsonObject)
         {
-            if (jsonObject[oldComponentId] is not null)
+            foreach (var property in jsonObject.ToList())
             {
-                // When componentId is the propertyName
-                UpdateComponentIdActingAsPropertyName(jsonObject, oldComponentId, newComponentId);
-            }
-            else if (jsonObject["component"] is not null)
-            {
-                // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
-                UpdateComponentIdActingAsCellMemberInRepeatingGroup(jsonObject, oldComponentId, newComponentId);
-            }
-            else if (jsonObject["tableHeaders"] is JsonArray tableHeadersArray)
-            {
-                // Objects that references components in `tableHeaders` in RepeatingGroup
-                UpdateComponentIdActingAsTableHeaderInRepeatingGroup(tableHeadersArray, oldComponentId, newComponentId);
-            }
-            else if (jsonObject["componentRef"] is not null)
-            {
-                // Components that are used in summary components will have this ref
-                UpdateComponentIdActingAsComponentRefInSummary(jsonObject, oldComponentId, newComponentId);
-            }
-            foreach (var property in jsonObject)
-            {
-                FindIdOccurrencesRecursive(property.Value, oldComponentId, newComponentId);
+                switch (property.Key)
+                {
+                    case "component": // Objects that references components i.e. in `rowsAfter` in RepeatingGroup
+                    case "componentRef": // Components that are used in summary components will have this ref
+                        if (property.Value?.ToString() == oldComponentId)
+                        {
+                            jsonObject[property.Key] = newComponentId;
+                        }
+                        break;
+                    case "tableHeaders":
+                        if (property.Value is JsonArray tableHeadersArray)
+                        {
+                            // Objects that references components in `tableHeaders` in RepeatingGroup
+                            UpdateComponentIdActingAsTableHeaderInRepeatingGroup(tableHeadersArray, oldComponentId, newComponentId);
+                        }
+                        break;
+                    case "tableColumns":
+                        if (jsonObject["type"]?.ToString() == "RepeatingGroup"
+                            && property.Value is JsonObject tableColumns
+                            && tableColumns[oldComponentId] is not null
+                        )
+                        {
+                            UpdateComponentIdActingAsPropertyName(tableColumns, oldComponentId, newComponentId);
+                        }
+                        break;
+                    default:
+                        FindIdOccurrencesRecursive(property.Value, oldComponentId, newComponentId);
+                        break;
+                }
             }
         }
         else if (node is JsonArray jsonArray)
@@ -126,14 +135,6 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
         jsonArray[1] = newComponentId;
     }
 
-    private void UpdateComponentIdActingAsCellMemberInRepeatingGroup(JsonNode jsonNode, string oldComponentId, string newComponentId)
-    {
-        if (jsonNode["component"]?.ToString() == oldComponentId)
-        {
-            jsonNode["component"] = newComponentId;
-        }
-    }
-
     private void UpdateComponentIdActingAsTableHeaderInRepeatingGroup(JsonArray jsonArray, string oldComponentId, string newComponentId)
     {
         for (int i = 0; i < jsonArray.Count; i++)
@@ -151,13 +152,4 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
             }
         }
     }
-
-    private void UpdateComponentIdActingAsComponentRefInSummary(JsonNode jsonNode, string oldComponentId, string newComponentId)
-    {
-        if (jsonNode["componentRef"]?.ToString() == oldComponentId)
-        {
-            jsonNode["componentRef"] = newComponentId;
-        }
-    }
-
 }

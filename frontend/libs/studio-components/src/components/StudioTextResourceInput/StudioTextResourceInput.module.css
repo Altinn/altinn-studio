@@ -1,0 +1,42 @@
+.container {
+  display: grid;
+  gap: var(--fds-spacing-1);
+  grid-template-areas:
+    'inputbox toggle'
+    'id id';
+  grid-template-columns: 1fr auto;
+}
+
+.inputbox {
+  grid-area: inputbox;
+}
+
+.id {
+  align-items: center;
+  display: flex;
+  gap: var(--fds-spacing-1);
+  grid-area: id;
+}
+
+.id code {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+}
+
+.toggle {
+  border-radius: var(--fds-border_radius-interactive);
+  border-width: 0;
+  grid-area: toggle;
+  outline-offset: calc(-1 * var(--fds-border_width-default));
+  outline: var(--fds-semantic-border-neutral-default) solid var(--fds-border_width-default);
+}
+
+.toggle [role='radiogroup'] {
+  padding: 0;
+  gap: 0;
+}
+
+.toggle [role='radio'] {
+  scale: 0.9;
+}

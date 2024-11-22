@@ -34,7 +34,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("beroerteParter")]
     public BeroertPartListe beroerteParter { get; set; }
 
-    [XmlElement("kommunenavn")]
+    [XmlElement("kommunenavn", IsNullable = true)]
     [JsonProperty("kommunenavn")]
     [JsonPropertyName("kommunenavn")]
     public string kommunenavn { get; set; }
@@ -78,22 +78,22 @@ namespace Altinn.App.Models
     [JsonPropertyName("partstype")]
     public KodeType partstype { get; set; }
 
-    [XmlElement("foedselsnummer")]
+    [XmlElement("foedselsnummer", IsNullable = true)]
     [JsonProperty("foedselsnummer")]
     [JsonPropertyName("foedselsnummer")]
     public string foedselsnummer { get; set; }
 
-    [XmlElement("organisasjonsnummer")]
+    [XmlElement("organisasjonsnummer", IsNullable = true)]
     [JsonProperty("organisasjonsnummer")]
     [JsonPropertyName("organisasjonsnummer")]
     public string organisasjonsnummer { get; set; }
 
-    [XmlElement("navn")]
+    [XmlElement("navn", IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public string navn { get; set; }
 
-    [XmlElement("epost")]
+    [XmlElement("epost", IsNullable = true)]
     [JsonProperty("epost")]
     [JsonPropertyName("epost")]
     public string epost { get; set; }
@@ -103,7 +103,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("adresse")]
     public EnkelAdresseType adresse { get; set; }
 
-    [XmlElement("telefon")]
+    [XmlElement("telefon", IsNullable = true)]
     [JsonProperty("telefon")]
     [JsonPropertyName("telefon")]
     public string telefon { get; set; }
@@ -112,12 +112,12 @@ namespace Altinn.App.Models
 
   public class KodeType
   {
-    [XmlElement("kodeverdi")]
+    [XmlElement("kodeverdi", IsNullable = true)]
     [JsonProperty("kodeverdi")]
     [JsonPropertyName("kodeverdi")]
     public string kodeverdi { get; set; }
 
-    [XmlElement("kodebeskrivelse")]
+    [XmlElement("kodebeskrivelse", IsNullable = true)]
     [JsonProperty("kodebeskrivelse")]
     [JsonPropertyName("kodebeskrivelse")]
     public string kodebeskrivelse { get; set; }
@@ -126,32 +126,32 @@ namespace Altinn.App.Models
 
   public class EnkelAdresseType
   {
-    [XmlElement("adresselinje1")]
+    [XmlElement("adresselinje1", IsNullable = true)]
     [JsonProperty("adresselinje1")]
     [JsonPropertyName("adresselinje1")]
     public string adresselinje1 { get; set; }
 
-    [XmlElement("adresselinje2")]
+    [XmlElement("adresselinje2", IsNullable = true)]
     [JsonProperty("adresselinje2")]
     [JsonPropertyName("adresselinje2")]
     public string adresselinje2 { get; set; }
 
-    [XmlElement("adresselinje3")]
+    [XmlElement("adresselinje3", IsNullable = true)]
     [JsonProperty("adresselinje3")]
     [JsonPropertyName("adresselinje3")]
     public string adresselinje3 { get; set; }
 
-    [XmlElement("postnr")]
+    [XmlElement("postnr", IsNullable = true)]
     [JsonProperty("postnr")]
     [JsonPropertyName("postnr")]
     public string postnr { get; set; }
 
-    [XmlElement("poststed")]
+    [XmlElement("poststed", IsNullable = true)]
     [JsonProperty("poststed")]
     [JsonPropertyName("poststed")]
     public string poststed { get; set; }
 
-    [XmlElement("landkode")]
+    [XmlElement("landkode", IsNullable = true)]
     [JsonProperty("landkode")]
     [JsonPropertyName("landkode")]
     public string landkode { get; set; }
@@ -182,27 +182,27 @@ namespace Altinn.App.Models
     [JsonPropertyName("partstype")]
     public KodeType partstype { get; set; }
 
-    [XmlElement("foedselsnummer")]
+    [XmlElement("foedselsnummer", IsNullable = true)]
     [JsonProperty("foedselsnummer")]
     [JsonPropertyName("foedselsnummer")]
     public string foedselsnummer { get; set; }
 
-    [XmlElement("organisasjonsnummer")]
+    [XmlElement("organisasjonsnummer", IsNullable = true)]
     [JsonProperty("organisasjonsnummer")]
     [JsonPropertyName("organisasjonsnummer")]
     public string organisasjonsnummer { get; set; }
 
-    [XmlElement("navn")]
+    [XmlElement("navn", IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public string navn { get; set; }
 
-    [XmlElement("telefon")]
+    [XmlElement("telefon", IsNullable = true)]
     [JsonProperty("telefon")]
     [JsonPropertyName("telefon")]
     public string telefon { get; set; }
 
-    [XmlElement("epost")]
+    [XmlElement("epost", IsNullable = true)]
     [JsonProperty("epost")]
     [JsonPropertyName("epost")]
     public string epost { get; set; }
@@ -212,12 +212,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("adresse")]
     public EnkelAdresseType adresse { get; set; }
 
-    [XmlElement("beskrivelseForVarsel")]
+    [XmlElement("beskrivelseForVarsel", IsNullable = true)]
     [JsonProperty("beskrivelseForVarsel")]
     [JsonPropertyName("beskrivelseForVarsel")]
     public string beskrivelseForVarsel { get; set; }
 
-    [XmlElement("systemReferanse")]
+    [XmlElement("systemReferanse", IsNullable = true)]
     [JsonProperty("systemReferanse")]
     [JsonPropertyName("systemReferanse")]
     public string systemReferanse { get; set; }
@@ -263,17 +263,17 @@ namespace Altinn.App.Models
     [JsonPropertyName("adresse")]
     public EiendommensAdresseType adresse { get; set; }
 
-    [XmlElement("bygningsnummer")]
+    [XmlElement("bygningsnummer", IsNullable = true)]
     [JsonProperty("bygningsnummer")]
     [JsonPropertyName("bygningsnummer")]
     public string bygningsnummer { get; set; }
 
-    [XmlElement("bolignummer")]
+    [XmlElement("bolignummer", IsNullable = true)]
     [JsonProperty("bolignummer")]
     [JsonPropertyName("bolignummer")]
     public string bolignummer { get; set; }
 
-    [XmlElement("kommunenavn")]
+    [XmlElement("kommunenavn", IsNullable = true)]
     [JsonProperty("kommunenavn")]
     [JsonPropertyName("kommunenavn")]
     public string kommunenavn { get; set; }
@@ -282,7 +282,7 @@ namespace Altinn.App.Models
 
   public class MatrikkelnummerType
   {
-    [XmlElement("kommunenummer")]
+    [XmlElement("kommunenummer", IsNullable = true)]
     [JsonProperty("kommunenummer")]
     [JsonPropertyName("kommunenummer")]
     public string kommunenummer { get; set; }
@@ -315,47 +315,47 @@ namespace Altinn.App.Models
 
   public class EiendommensAdresseType
   {
-    [XmlElement("adresselinje1")]
+    [XmlElement("adresselinje1", IsNullable = true)]
     [JsonProperty("adresselinje1")]
     [JsonPropertyName("adresselinje1")]
     public string adresselinje1 { get; set; }
 
-    [XmlElement("adresselinje2")]
+    [XmlElement("adresselinje2", IsNullable = true)]
     [JsonProperty("adresselinje2")]
     [JsonPropertyName("adresselinje2")]
     public string adresselinje2 { get; set; }
 
-    [XmlElement("adresselinje3")]
+    [XmlElement("adresselinje3", IsNullable = true)]
     [JsonProperty("adresselinje3")]
     [JsonPropertyName("adresselinje3")]
     public string adresselinje3 { get; set; }
 
-    [XmlElement("postnr")]
+    [XmlElement("postnr", IsNullable = true)]
     [JsonProperty("postnr")]
     [JsonPropertyName("postnr")]
     public string postnr { get; set; }
 
-    [XmlElement("poststed")]
+    [XmlElement("poststed", IsNullable = true)]
     [JsonProperty("poststed")]
     [JsonPropertyName("poststed")]
     public string poststed { get; set; }
 
-    [XmlElement("landkode")]
+    [XmlElement("landkode", IsNullable = true)]
     [JsonProperty("landkode")]
     [JsonPropertyName("landkode")]
     public string landkode { get; set; }
 
-    [XmlElement("gatenavn")]
+    [XmlElement("gatenavn", IsNullable = true)]
     [JsonProperty("gatenavn")]
     [JsonPropertyName("gatenavn")]
     public string gatenavn { get; set; }
 
-    [XmlElement("husnr")]
+    [XmlElement("husnr", IsNullable = true)]
     [JsonProperty("husnr")]
     [JsonPropertyName("husnr")]
     public string husnr { get; set; }
 
-    [XmlElement("bokstav")]
+    [XmlElement("bokstav", IsNullable = true)]
     [JsonProperty("bokstav")]
     [JsonPropertyName("bokstav")]
     public string bokstav { get; set; }
@@ -378,12 +378,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("signaturdato")]
     public DateTime? signaturdato { get; set; }
 
-    [XmlElement("signertAv")]
+    [XmlElement("signertAv", IsNullable = true)]
     [JsonProperty("signertAv")]
     [JsonPropertyName("signertAv")]
     public string signertAv { get; set; }
 
-    [XmlElement("signertPaaVegneAv")]
+    [XmlElement("signertPaaVegneAv", IsNullable = true)]
     [JsonProperty("signertPaaVegneAv")]
     [JsonPropertyName("signertPaaVegneAv")]
     public string signertPaaVegneAv { get; set; }
@@ -409,7 +409,7 @@ namespace Altinn.App.Models
 
     public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
 
-    [XmlElement("navn")]
+    [XmlElement("navn", IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public string navn { get; set; }
@@ -423,12 +423,12 @@ namespace Altinn.App.Models
 
   public class MetadataType
   {
-    [XmlElement("ftbId")]
+    [XmlElement("ftbId", IsNullable = true)]
     [JsonProperty("ftbId")]
     [JsonPropertyName("ftbId")]
     public string ftbId { get; set; }
 
-    [XmlElement("hovedinnsendingsnummer")]
+    [XmlElement("hovedinnsendingsnummer", IsNullable = true)]
     [JsonProperty("hovedinnsendingsnummer")]
     [JsonPropertyName("hovedinnsendingsnummer")]
     public string hovedinnsendingsnummer { get; set; }
@@ -438,7 +438,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("klartForSigneringFraSluttbrukersystem")]
     public bool? klartForSigneringFraSluttbrukersystem { get; set; }
 
-    [XmlElement("fraSluttbrukersystem")]
+    [XmlElement("fraSluttbrukersystem", IsNullable = true)]
     [JsonProperty("fraSluttbrukersystem")]
     [JsonPropertyName("fraSluttbrukersystem")]
     public string fraSluttbrukersystem { get; set; }
@@ -447,17 +447,17 @@ namespace Altinn.App.Models
 
   public class PlanType
   {
-    [XmlElement("plannavn")]
+    [XmlElement("plannavn", IsNullable = true)]
     [JsonProperty("plannavn")]
     [JsonPropertyName("plannavn")]
     public string plannavn { get; set; }
 
-    [XmlElement("arealplanId")]
+    [XmlElement("arealplanId", IsNullable = true)]
     [JsonProperty("arealplanId")]
     [JsonPropertyName("arealplanId")]
     public string arealplanId { get; set; }
 
-    [XmlElement("hjemmesidePlanforslag")]
+    [XmlElement("hjemmesidePlanforslag", IsNullable = true)]
     [JsonProperty("hjemmesidePlanforslag")]
     [JsonPropertyName("hjemmesidePlanforslag")]
     public string hjemmesidePlanforslag { get; set; }
@@ -467,7 +467,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("kravKonsekvensUtredning")]
     public bool? kravKonsekvensUtredning { get; set; }
 
-    [XmlElement("planHensikt")]
+    [XmlElement("planHensikt", IsNullable = true)]
     [JsonProperty("planHensikt")]
     [JsonPropertyName("planHensikt")]
     public string planHensikt { get; set; }
@@ -477,7 +477,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("fristForInnspill")]
     public DateTime? fristForInnspill { get; set; }
 
-    [XmlElement("hjemmesidePlanprogram")]
+    [XmlElement("hjemmesidePlanprogram", IsNullable = true)]
     [JsonProperty("hjemmesidePlanprogram")]
     [JsonPropertyName("hjemmesidePlanprogram")]
     public string hjemmesidePlanprogram { get; set; }
@@ -487,7 +487,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("plantype")]
     public KodeType plantype { get; set; }
 
-    [XmlElement("begrunnelseKU")]
+    [XmlElement("begrunnelseKU", IsNullable = true)]
     [JsonProperty("begrunnelseKU")]
     [JsonPropertyName("begrunnelseKU")]
     public string begrunnelseKU { get; set; }
@@ -497,7 +497,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("kommunensSaksnummer")]
     public SaksnummerType kommunensSaksnummer { get; set; }
 
-    [XmlElement("saksgangOgMedvirkning")]
+    [XmlElement("saksgangOgMedvirkning", IsNullable = true)]
     [JsonProperty("saksgangOgMedvirkning")]
     [JsonPropertyName("saksgangOgMedvirkning")]
     public string saksgangOgMedvirkning { get; set; }

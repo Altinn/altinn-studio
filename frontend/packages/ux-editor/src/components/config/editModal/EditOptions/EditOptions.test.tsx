@@ -14,22 +14,20 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 const queryClientMock = createQueryClientMock();
 
 describe('EditOptions', () => {
-  afterEach(() => {
-    queryClientMock.clear();
-  });
+  afterEach(() => queryClientMock.clear());
 
   it('should render', async () => {
-    await renderEditOptions();
+    renderEditOptions();
     expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
   });
 
   it('should render spinner when loading data', async () => {
-    await renderEditOptions();
+    renderEditOptions();
     expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();
   });
 
   it('should render child component when loading is done', async () => {
-    await renderEditOptions({
+    renderEditOptions({
       componentProps: { options: undefined, optionsId: undefined },
     });
     expect(
@@ -52,7 +50,7 @@ describe('EditOptions', () => {
   });
 });
 
-const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
+function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps,
   handleComponentChange = jest.fn(),
   queries = {},
@@ -64,7 +62,7 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
   renderOptions?: {
     areLayoutOptionsSupported?: boolean;
   };
-} = {}) => {
+} = {}) {
   return renderWithProviders(
     <EditOptions
       handleComponentChange={handleComponentChange}
@@ -79,4 +77,4 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
       queryClient: queryClientMock,
     },
   );
-};
+}
