@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioDropdownMenu, StudioFileUploader, StudioSpinner } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { removeExtension } from 'app-shared/utils/filenameUtils';
+import { FileNameUtils } from '@studio/pure-functions';
 import { findFileNameError } from './utils/findFileNameError';
 import type { FileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
@@ -57,7 +57,7 @@ export function EditOptionList<T extends SelectionComponentType>({
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        handleOptionsIdChange(removeExtension(file.name));
+        handleOptionsIdChange(FileNameUtils.removeExtension(file.name));
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
       onError: (error: AxiosError<ApiError>) => {
@@ -140,6 +140,7 @@ function OptionListSelectorWithData({
       size='small'
       anchorButtonProps={{
         className: classes.modalTrigger,
+
         variant: 'secondary',
         children: t('ux_editor.modal_properties_code_list'),
       }}
