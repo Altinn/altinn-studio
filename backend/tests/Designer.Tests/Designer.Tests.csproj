@@ -10,10 +10,6 @@
     <TestRepoPrefix>test-repo-</TestRepoPrefix>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <CodeAnalisysCompatibleVersion>4.5.0</CodeAnalisysCompatibleVersion>
-  </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Altinn.ApiClients.Maskinporten" />
     <PackageReference Include="Basic.Reference.Assemblies" />
@@ -37,9 +33,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="$(CodeAnalisysCompatibleVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(CodeAnalisysCompatibleVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(CodeAnalisysCompatibleVersion)" />
   </ItemGroup>
 
   <ItemGroup>
