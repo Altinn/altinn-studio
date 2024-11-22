@@ -31,14 +31,12 @@ export const SubformMissingContentWarning = ({
       </StudioParagraph>
       <StudioButton
         onClick={handleOnRedirectClick}
-        variant='primary'
         color='second'
         icon={<PencilIcon />}
-        iconPlacement='left'
         disabled={!subformLayoutSetName}
         className={classes.redirectButton}
       >
-        {t('top_menu.create')}
+        {t('ux_editor.component_properties.navigate_to_subform_button')}
       </StudioButton>
     </StudioAlert>
   );

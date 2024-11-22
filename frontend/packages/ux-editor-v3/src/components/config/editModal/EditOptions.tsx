@@ -113,7 +113,7 @@ export function EditOptions({
         size='small'
       >
         <Radio value={SelectedOptionsType.CodeList}>
-          {t('ux_editor.modal_add_options_codelist')}
+          {t('ux_editor.modal_add_options_code_list')}
         </Radio>
         <Radio value={SelectedOptionsType.Manual}>{t('ux_editor.modal_add_options_manual')}</Radio>
       </Radio.Group>

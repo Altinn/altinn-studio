@@ -22,7 +22,6 @@ import InputSchema from './schemas/json/component/Input.schema.v1.json';
 import InstanceInformationSchema from './schemas/json/component/InstanceInformation.schema.v1.json';
 import InstantiationButtonSchema from './schemas/json/component/InstantiationButton.schema.v1.json';
 import LikertSchema from './schemas/json/component/Likert.schema.v1.json';
-import LikertItemSchema from './schemas/json/component/LikertItem.schema.v1.json';
 import LinkSchema from './schemas/json/component/Link.schema.v1.json';
 import ListSchema from './schemas/json/component/List.schema.v1.json';
 import MapSchema from './schemas/json/component/Map.schema.v1.json';
@@ -68,7 +67,6 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.InstanceInformation]: InstanceInformationSchema,
   [ComponentType.InstantiationButton]: InstantiationButtonSchema,
   [ComponentType.Likert]: LikertSchema,
-  [ComponentType.LikertItem]: LikertItemSchema,
   [ComponentType.Link]: LinkSchema,
   [ComponentType.List]: ListSchema,
   [ComponentType.Map]: MapSchema,

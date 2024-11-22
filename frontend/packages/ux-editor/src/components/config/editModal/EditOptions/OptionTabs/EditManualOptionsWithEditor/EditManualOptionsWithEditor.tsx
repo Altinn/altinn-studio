@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
-import classes from '../../EditOptions.module.css';
+import classes from './EditManualOptionsWithEditor.module.css';
 import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
-import { useCodeListButtonValue, useCodeListEditorTexts } from '../hooks';
+import { useOptionListButtonValue, useOptionListEditorTexts } from '../hooks';
 import type { EditManualOptionsProps } from '../EditManualOptions';
 
 export function EditManualOptionsWithEditor({
@@ -12,8 +12,8 @@ export function EditManualOptionsWithEditor({
 }: EditManualOptionsProps) {
   const { t } = useTranslation();
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
-  const buttonValue = useCodeListButtonValue(component.options);
-  const editorTexts = useCodeListEditorTexts();
+  const buttonValue = useOptionListButtonValue(component.options);
+  const editorTexts = useOptionListEditorTexts();
 
   const handleOptionsChange = (options: Option[]) => {
     if (component.optionsId) {
@@ -36,12 +36,13 @@ export function EditManualOptionsWithEditor({
       <StudioModal.Dialog
         ref={manualOptionsModalRef}
         className={classes.manualTabDialog}
+        contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.modal_add_options_codelist')}
+        heading={t('ux_editor.modal_add_options_code_list')}
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
-          onChange={(codeList) => handleOptionsChange(codeList)}
+          onChange={(optionList) => handleOptionsChange(optionList)}
           texts={editorTexts}
         />
       </StudioModal.Dialog>

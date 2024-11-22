@@ -1,20 +1,16 @@
 import React from 'react';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
-import type { ComponentType } from 'app-shared/types/ComponentType';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { screen, waitFor } from '@testing-library/react';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { app, org } from '@studio/testing/testids';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import { screen } from '@testing-library/react';
 import { layoutSets } from 'app-shared/mocks/mocks';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 import userEvent from '@testing-library/user-event';
-import type { FormComponent } from '../../../../../../types/FormComponent';
-import { AppContext } from '../../../../../../AppContext';
-import { appContextMock } from '../../../../../../testing/appContextMock';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
-const onSubformCreatedMock = jest.fn();
+const onUpdateLayoutSetMock = jest.fn();
+const setShowCreateSubformCardMock = jest.fn();
 const selectedOptionDataType = 'moped';
 
 jest.mock('./SubformDataModelSelect', () => ({
@@ -34,84 +30,102 @@ jest.mock('./SubformDataModelSelect', () => ({
 describe('CreateNewSubformLayoutSet ', () => {
   afterEach(jest.clearAllMocks);
 
-  it('displays the card with label and input field', () => {
-    renderCreateNewSubformLayoutSet();
-    const card = screen.getByRole('textbox', {
-      name: textMock('ux_editor.component_properties.subform.created_layout_set_name'),
-    });
-
-    expect(card).toBeInTheDocument();
-  });
-
-  it('displays the input field', () => {
-    renderCreateNewSubformLayoutSet();
-    const input = screen.getByRole('textbox');
-    expect(input).toBeInTheDocument();
-  });
-
-  it('displays the data model select', async () => {
-    renderCreateNewSubformLayoutSet();
+  it('displays the card with label, input field and data model select', () => {
+    renderCreateNewSubformLayoutSet({});
+    const subformNameInput = screen.getByRole('textbox');
     const dataModelSelect = screen.getByRole('combobox');
+
+    expect(subformNameInput).toBeInTheDocument();
     expect(dataModelSelect).toBeInTheDocument();
   });
 
-  it('displays the save button', () => {
-    renderCreateNewSubformLayoutSet();
-    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+  it('displays the save button and close button', () => {
+    renderCreateNewSubformLayoutSet({});
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    const closeButton = screen.getByRole('button', { name: textMock('general.close') });
+
     expect(saveButton).toBeInTheDocument();
+    expect(closeButton).toBeInTheDocument();
+  });
+
+  it('displays not the close button when hasSubforms is false', () => {
+    renderCreateNewSubformLayoutSet({ hasSubforms: false });
+    const closeButton = screen.queryByRole('button', { name: textMock('general.close') });
+    expect(closeButton).not.toBeInTheDocument();
   });
 
   it('calls onSubformCreated when save button is clicked', async () => {
     const user = userEvent.setup();
-    renderCreateNewSubformLayoutSet();
+    renderCreateNewSubformLayoutSet({});
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, ['moped']);
-    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
     await user.click(saveButton);
-    await waitFor(() => expect(onSubformCreatedMock).toHaveBeenCalledTimes(1));
-    expect(onSubformCreatedMock).toHaveBeenCalledWith('NewSubform');
+    expect(onUpdateLayoutSetMock).toHaveBeenCalledTimes(1);
+    expect(onUpdateLayoutSetMock).toHaveBeenCalledWith('NewSubform');
+  });
+
+  it('displays loading spinner when save button is clicked', async () => {
+    const user = userEvent.setup();
+
+    const addLayoutSetMock = jest.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        }),
+    );
+    renderCreateNewSubformLayoutSet({
+      queries: { addLayoutSet: addLayoutSetMock },
+    });
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'NewSubform');
+
+    const dataModelSelect = screen.getByRole('combobox');
+    await user.selectOptions(dataModelSelect, ['moped']);
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    await user.click(saveButton);
+
+    const spinner = await screen.findByText(textMock('general.loading'));
+    expect(spinner).toBeInTheDocument();
   });
 
   it('disables the save button when input is invalid', async () => {
     const user = userEvent.setup();
-    renderCreateNewSubformLayoutSet();
-
-    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
-    expect(saveButton).toBeDisabled();
-
-    const input = screen.getByRole('textbox');
-
-    await user.type(input, 'æøå');
-    expect(saveButton).toBeDisabled();
-
-    await user.clear(input);
-    await user.type(input, 'e re a');
-    expect(saveButton).toBeDisabled();
-
-    await user.clear(input);
-    await user.type(input, 'NewSubform');
+    renderCreateNewSubformLayoutSet({});
 
     const dataModelSelect = screen.getByRole('combobox');
     await user.selectOptions(dataModelSelect, ['moped']);
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+    expect(saveButton).toBeDisabled();
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'æøå');
+    expect(saveButton).toBeDisabled();
+    await user.clear(input);
+    await user.type(input, 'NewSubform');
+
     expect(saveButton).not.toBeDisabled();
   });
 
-  it('disables the save button when the input is valid and no data model is selected', async () => {
+  it('disables the save button when the input is valid and data model is invalid', async () => {
     const user = userEvent.setup();
-    renderCreateNewSubformLayoutSet();
+    renderCreateNewSubformLayoutSet({});
 
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
 
-    const saveButton = screen.getByRole('button', { name: textMock('general.close') });
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
     expect(saveButton).toBeDisabled();
   });
 
-  it('does not disable the save button when the input is valid and a data model is selected', async () => {
+  it('enables save button when both input and data model is valid', async () => {
     const user = userEvent.setup();
-    renderCreateNewSubformLayoutSet();
+    renderCreateNewSubformLayoutSet({});
 
     const input = screen.getByRole('textbox');
     await user.type(input, 'NewSubform');
@@ -124,20 +138,25 @@ describe('CreateNewSubformLayoutSet ', () => {
   });
 });
 
-const renderCreateNewSubformLayoutSet = (
-  layoutSetsMock: LayoutSets = layoutSets,
-  componentProps: Partial<FormComponent<ComponentType.Subform>> = {},
-) => {
-  const queryClient = createQueryClientMock();
-  queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
+type RenderCreateNewSubformLayoutSetProps = {
+  hasSubforms?: boolean;
+  queries?: Partial<ServicesContextProps>;
+};
+
+const renderCreateNewSubformLayoutSet = ({
+  hasSubforms = true,
+  queries,
+}: RenderCreateNewSubformLayoutSetProps) => {
   return renderWithProviders(
-    <AppContext.Provider value={{ ...appContextMock }}>
-      <CreateNewSubformLayoutSet
-        onSubformCreated={onSubformCreatedMock}
-        layoutSets={layoutSets}
-        {...componentProps}
-      />
-    </AppContext.Provider>,
-    { queryClient },
+    <CreateNewSubformLayoutSet
+      onUpdateLayoutSet={onUpdateLayoutSetMock}
+      layoutSets={layoutSets}
+      setShowCreateSubformCard={setShowCreateSubformCardMock}
+      hasSubforms={hasSubforms}
+    />,
+    {
+      queries: { ...queriesMock, ...queries },
+      queryClient: createQueryClientMock(),
+    },
   );
 };

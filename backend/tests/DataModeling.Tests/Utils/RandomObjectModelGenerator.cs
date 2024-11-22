@@ -78,6 +78,12 @@ public static class RandomObjectModelGenerator
             return;
         }
 
+        // Do not generate AltinnRowId
+        if (property.PropertyType == typeof(Guid) && property.Name.Equals("AltinnRowId"))
+        {
+            return;
+        }
+
         property.SetValue(obj, GeneratePrimitiveType(property.PropertyType, property.CustomAttributes));
     }
 
@@ -124,6 +130,11 @@ public static class RandomObjectModelGenerator
         if (type == typeof(bool))
         {
             return Random.Next(2) == 1;
+        }
+
+        if (type == typeof(Guid))
+        {
+            return Guid.NewGuid();
         }
 
         throw new Exception("Not primitive type");
@@ -283,7 +294,7 @@ public static class RandomObjectModelGenerator
 
     private static bool IsPrimitive(Type type)
     {
-        return type.IsPrimitive || type == typeof(string) || type == typeof(DateTime) || type == typeof(decimal);
+        return type.IsPrimitive || type == typeof(string) || type == typeof(DateTime) || type == typeof(decimal) || type == typeof(Guid);
     }
 
     private static bool IsNumberType(Type type)

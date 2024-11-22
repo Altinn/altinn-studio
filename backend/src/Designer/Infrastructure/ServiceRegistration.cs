@@ -48,10 +48,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddDbContext<DesignerdbContext>(options =>
             {
                 PostgreSQLSettings postgresSettings = configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-                string connectionString = string.Format(
-                    postgresSettings.ConnectionString,
-                    postgresSettings.DesignerDbPwd);
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(postgresSettings.FormattedConnectionString());
             });
 
             services.AddScoped<IReleaseRepository, ORMReleaseRepository>();
@@ -76,7 +73,6 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<IAppDevelopmentService, AppDevelopmentService>();
             services.AddTransient<IPreviewService, PreviewService>();
             services.AddTransient<IDataService, DataService>();
-            services.AddTransient<IResourceRegistry, ResourceRegistryService>();
             services.AddTransient<IProcessModelingService, ProcessModelingService>();
             services.AddTransient<IImagesService, ImagesService>();
             services.RegisterDatamodeling(configuration);

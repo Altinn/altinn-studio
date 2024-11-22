@@ -1,33 +1,35 @@
 import { Button } from '@digdir/designsystemet-react';
 import type { ButtonProps } from '@digdir/designsystemet-react';
-import type { ReactNode } from 'react';
+import type { ElementType, ReactNode } from 'react';
 import React, { forwardRef } from 'react';
 import cn from 'classnames';
 import classes from './StudioButton.module.css';
 import type { OverridableComponent } from '../../types/OverridableComponent';
 import type { IconPlacement } from '../../types/IconPlacement';
+import type { OverridableComponentRef } from '../../types/OverridableComponentRef';
+import type { OverridableComponentProps } from '../../types/OverridableComponentProps';
 
-export type StudioButtonProps = Omit<ButtonProps, 'icon' | 'color'> & {
+export type StudioButtonProps = Omit<ButtonProps, 'icon' | 'color' | 'asChild'> & {
   icon?: ReactNode;
   iconPlacement?: IconPlacement;
   color?: ButtonProps['color'] | 'inverted';
 };
 
-const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef<
-  HTMLButtonElement,
-  StudioButtonProps
->(
-  (
+const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef(
+  <As extends ElementType = 'button'>(
     {
-      icon,
-      iconPlacement = 'left',
-      size = 'small',
+      as,
       children,
       className: givenClassName,
       color,
+      fullWidth,
+      icon,
+      iconPlacement = 'left',
+      size = 'small',
+      variant,
       ...rest
-    },
-    ref,
+    }: OverridableComponentProps<StudioButtonProps, As>,
+    ref: OverridableComponentRef<As>,
   ) => {
     const iconComponent = (
       <span aria-hidden className={classes.iconWrapper}>
@@ -39,28 +41,33 @@ const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> =
     // Information can be found here: https://www.designsystemet.no/bloggen/2024/v1rc1#fargemodus
     const classNames = cn(givenClassName, classes.studioButton, {
       [classes.inverted]: color === 'inverted',
-      [classes.small]: size === 'small',
+      [classes.smallWithIconOnly]: size === 'small' && !children,
     });
     const selectedColor = color === 'inverted' ? undefined : color;
 
+    const Component = as || 'button';
+
     return (
       <Button
-        {...rest}
-        color={selectedColor}
+        asChild
         className={classNames}
+        color={selectedColor}
+        fullWidth={fullWidth}
         icon={!children}
         size={size}
-        ref={ref}
+        variant={variant}
       >
-        {icon ? (
-          <span className={classes.innerContainer}>
-            {iconPlacement === 'left' && iconComponent}
-            {children}
-            {iconPlacement === 'right' && iconComponent}
-          </span>
-        ) : (
-          children
-        )}
+        <Component ref={ref} {...rest}>
+          {icon ? (
+            <span className={classes.innerContainer}>
+              {iconPlacement === 'left' && iconComponent}
+              {children}
+              {iconPlacement === 'right' && iconComponent}
+            </span>
+          ) : (
+            children
+          )}
+        </Component>
       </Button>
     );
   },

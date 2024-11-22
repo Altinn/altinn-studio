@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Checkbox, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
+import { Checkbox, Heading } from '@digdir/designsystemet-react';
 import classes from './ResourceAccessLists.module.css';
-import { StudioSpinner, StudioButton } from '@studio/components';
+import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
@@ -14,6 +14,7 @@ import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import type { EnvId } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../AccessListErrorMessage';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export interface ResourceAccessListsProps {
   env: EnvId;
@@ -25,9 +26,11 @@ export const ResourceAccessLists = ({
   resourceData,
 }: ResourceAccessListsProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const { org, app } = useUrlParams();
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
+  const backUrl = getResourcePageURL(org, app, resourceData.identifier, 'about');
 
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
 
@@ -71,6 +74,11 @@ export const ResourceAccessLists = ({
     setSelectedLists((old) => [...old, listItemId]);
   };
 
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(backUrl);
+  };
+
   if (isLoadingAccessLists) {
     return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_lists')} />;
   }
@@ -93,11 +101,9 @@ export const ResourceAccessLists = ({
         )}/${env}/`}
         onClose={() => createAccessListModalRef.current?.close()}
       />
-      <DigdirLink asChild>
-        <Link to={getResourcePageURL(org, app, resourceData.identifier, 'about')}>
-          {t('general.back')}
-        </Link>
-      </DigdirLink>
+      <StudioLink href={backUrl} onClick={handleBackClick}>
+        {t('general.back')}
+      </StudioLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_resource_header', {
           resourceTitle: resourceData.title.nb,
@@ -124,23 +130,20 @@ export const ResourceAccessLists = ({
               >
                 {list.name}
               </Checkbox>
-              <StudioButton
-                variant='tertiary'
-                asChild
+              <ButtonRouterLink
                 aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                icon={<PencilWritingIcon />}
+                iconPlacement='right'
+                to={`${getResourcePageURL(
+                  org,
+                  app,
+                  resourceData.identifier,
+                  'accesslists',
+                )}/${env}/${list.identifier}`}
+                variant='tertiary'
               >
-                <Link
-                  to={`${getResourcePageURL(
-                    org,
-                    app,
-                    resourceData.identifier,
-                    'accesslists',
-                  )}/${env}/${list.identifier}`}
-                >
-                  {t('resourceadm.listadmin_edit_list')}
-                  <PencilWritingIcon />
-                </Link>
-              </StudioButton>
+                {t('resourceadm.listadmin_edit_list')}
+              </ButtonRouterLink>
             </div>
           );
         })}
