@@ -1,14 +1,16 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
-import { CodeLists } from './CodeLists';
+import { updateCodeListWithMetadata, CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeList';
 import type { UserEvent } from '@testing-library/user-event';
+import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 
 const codeListName = 'codeList';
-const codeListMock: CodeListWithMetadata = {
+const codeListWithMetadataMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: [{ value: 'value', label: 'label' }],
 };
@@ -31,15 +33,16 @@ describe('CodeLists', () => {
 
   it('calls onUpdateCodeList when changing a code list', async () => {
     const user = userEvent.setup();
+    const codeListValueText = 'codeListValueText';
     renderCodeLists();
     await openCodeList(user);
     const codeListFirstItemValue = screen.getByLabelText(
       textMock('code_list_editor.value_item', { number: 1 }),
     );
-    await user.type(codeListFirstItemValue, 'Test');
-    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(4);
+    await user.type(codeListFirstItemValue, codeListValueText);
+    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(codeListValueText.length);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
-      codeList: [expect.objectContaining({ value: 'Test' })],
+      codeList: [expect.objectContaining({ value: codeListValueText })],
       title: codeListName,
     });
   });
@@ -50,8 +53,35 @@ const openCodeList = async (user: UserEvent) => {
   await user.click(codeListAccordion);
 };
 
-const renderCodeLists = (
-  { codeLists }: Partial<CodeListsProps> = { codeLists: [codeListMock] },
-) => {
-  render(<CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeListMock} />);
+const defaultProps: CodeListsProps = {
+  codeLists: [codeListWithMetadataMock],
+  onUpdateCodeList: onUpdateCodeListMock,
 };
+
+const renderCodeLists = (props: Partial<CodeListsProps> = {}): RenderResult => {
+  return render(<CodeLists {...defaultProps} {...props} />);
+};
+
+describe('updateCodeListWithMetadata', () => {
+  it('returns an updated CodeListWithMetadata object', () => {
+    const updatedCodeList: StudioComponentsCodeList = [{ value: '', label: '' }];
+    const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
+      codeListName,
+      updatedCodeList,
+    );
+    expect(updatedCodeListWithMetadata).toEqual({ title: codeListName, codeList: updatedCodeList });
+  });
+
+  it('works with an empty code list', () => {
+    const updatedCodeList: StudioComponentsCodeList = [];
+    const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
+      codeListName,
+      updatedCodeList,
+    );
+
+    expect(updatedCodeListWithMetadata).toEqual({
+      title: codeListName,
+      codeList: updatedCodeList,
+    });
+  });
+});

@@ -24,8 +24,9 @@ type CodeListProps = {
 function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
 
-  const handleUpdateCodeList = (updatedCodeList: StudioComponentsCodeList) => {
-    onUpdateCodeList({ title: codeList.title, codeList: updatedCodeList });
+  const handleUpdateCodeList = (updatedCodeList: StudioComponentsCodeList): void => {
+    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList.title, updatedCodeList);
+    onUpdateCodeList(updatedCodeListWithMetadata);
   };
 
   return (
@@ -43,3 +44,10 @@ function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
     </Accordion>
   );
 }
+
+export const updateCodeListWithMetadata = (
+  codeListTitle: string,
+  updatedCodeList: StudioComponentsCodeList,
+): CodeListWithMetadata => {
+  return { title: codeListTitle, codeList: updatedCodeList };
+};
