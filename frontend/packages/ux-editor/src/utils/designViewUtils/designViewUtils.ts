@@ -27,7 +27,7 @@ export const getPageNameErrorKey = (
     return 'ux_editor.pages_error_empty';
   } else if (newNameCandidate.includes('.')) {
     return 'ux_editor.pages_error_invalid_format';
-  } else if (newNameCandidate.length >= 30) {
+  } else if (newNameCandidate.length > 30) {
     return 'ux_editor.pages_error_length';
   } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
     return 'ux_editor.pages_error_format';
