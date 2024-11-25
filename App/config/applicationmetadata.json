@@ -53,7 +53,8 @@
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "enabledFileValidators": [],
+      "allowedContributers": ["App"]
     },
     {
       "id": "signatureInformation-auditor",
@@ -67,7 +68,8 @@
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
-      "enabledFileValidators": []
+      "enabledFileValidators": [],
+      "allowedContributers": ["App"]
     }
   ],
   "partyTypesAllowed": {
