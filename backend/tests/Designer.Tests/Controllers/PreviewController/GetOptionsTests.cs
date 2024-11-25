@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -31,7 +32,8 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_options_exists_for_v4_app_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}/options/test-options";
+            Instance instance = await createInstance();
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

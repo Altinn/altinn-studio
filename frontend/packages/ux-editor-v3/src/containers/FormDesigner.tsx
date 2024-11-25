@@ -13,7 +13,6 @@ import { ErrorPage } from '../components/ErrorPage';
 import { StudioPageSpinner, StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentTypeV3 } from 'app-shared/types/ComponentTypeV3';
@@ -30,7 +29,6 @@ import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation'
 import { useSearchParams } from 'react-router-dom';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
-import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
 
 export interface FormDesignerProps {
   selectedLayout: string;
@@ -43,7 +41,6 @@ export const FormDesigner = ({
 }: FormDesignerProps): JSX.Element => {
   const dispatch = useDispatch();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
@@ -66,8 +63,7 @@ export const FormDesigner = ({
 
   const t = useText();
 
-  const formLayoutIsReady =
-    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
+  const formLayoutIsReady = formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -97,11 +93,10 @@ export const FormDesigner = ({
 
     if (isValidLayout(searchParamsLayout)) {
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
       dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
       return;
     }
-  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
+  }, [dispatch, formLayoutSettings?.receiptLayoutName, layoutPagesOrder, searchParams]);
 
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();

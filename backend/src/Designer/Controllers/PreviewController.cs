@@ -142,12 +142,6 @@ namespace Altinn.Studio.Designer.Controllers
             string appNugetVersionString = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)).ToString();
             // This property is populated at runtime by the apps, so we need to mock it here
             applicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appNugetVersionString);
-            if (altinnAppGitRepository.AppUsesLayoutSets())
-            {
-                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                applicationMetadata = SetMockDataTypeIfMissing(applicationMetadata, layoutSets);
-            }
-
             applicationMetadata = SetMockedPartyTypesAllowedAsAllFalse(applicationMetadata);
             return Ok(applicationMetadata);
         }
@@ -192,8 +186,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                LayoutSets layoutSetsWithMockedDataTypes = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
-                return Ok(layoutSetsWithMockedDataTypes);
+                return Ok(layoutSets);
             }
             catch (NotFoundException)
             {

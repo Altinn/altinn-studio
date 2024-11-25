@@ -20,36 +20,36 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_InstanceForNextProcess_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}";
+            Instance instance = await createInstance();
+            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{instance.Id}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal($"{PartyId}/{InstanceGuId}", instance.Id);
-            Assert.Equal("ttd", instance.Org);
+            Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
+            Assert.Equal(instance.Id, responseInstance.Id);
+            Assert.Equal(Org, responseInstance.Org);
         }
 
         [Fact]
         public async Task Get_InstanceForNextTaskForV4App_Ok_TaskIsIncreased()
         {
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}";
+            Instance instance = await createInstance();
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal($"{PartyId}/{InstanceGuId}", instance.Id);
-            Assert.Equal("ttd", instance.Org);
-            Assert.Equal("Task_1", instance.Process.CurrentTask.ElementId);
+            Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
+            Assert.Equal(instance.Id, responseInstance.Id);
+            Assert.Equal(Org, responseInstance.Org);
+            Assert.Equal(TaskId, instance.Process.CurrentTask.ElementId);
         }
     }
 }
