@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -17,7 +18,8 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Put_UpdateFormData_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}/data/test-datatask-id";
+            Instance instance = await createInstance();
+            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{instance.Id}/data/test-datatask-id";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
