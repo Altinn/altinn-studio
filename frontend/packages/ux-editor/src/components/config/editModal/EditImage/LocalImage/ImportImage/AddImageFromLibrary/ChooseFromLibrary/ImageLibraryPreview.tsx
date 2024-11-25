@@ -42,7 +42,7 @@ const ImageFromLibrary = ({
   onAddImageReference,
   imageSource,
 }: ImageFromLibraryProps) => {
-  const fileName = FileNameUtils.extractFilename(imageFilePath);
+  const fileName = FileNameUtils.extractFileName(imageFilePath);
   // The img component requires an alt which we can set to be the descriptions from the metadata in the library when this is available.
   // TODO: Add description when we know how to store them. See analysis issue: https://github.com/Altinn/altinn-studio/issues/13346
   return (
