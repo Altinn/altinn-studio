@@ -191,7 +191,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
-    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
 
     var maskinportenSettings = new MaskinportenClientSettings();
     configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);

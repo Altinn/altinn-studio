@@ -2,7 +2,7 @@ import type { ChangeEvent } from 'react';
 import React, { useState } from 'react';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions } from './helpers/options';
-import { Fieldset, Textfield, Switch } from '@digdir/designsystemet-react';
+import { Fieldset, Switch } from '@digdir/designsystemet-react';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { CombinationKind, UiSchemaNode } from '@altinn/schema-model';
@@ -30,7 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
 import { NameField } from './NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioNativeSelect, StudioTextarea } from '@studio/components';
+import { StudioNativeSelect, StudioTextarea, StudioTextfield } from '@studio/components';
 
 export type IItemDataComponentProps = {
   schemaNode: UiSchemaNode;
@@ -178,12 +178,13 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
       {hasCustomProps && <CustomProperties path={schemaPointer} />}
       <Fieldset legend={t('schema_editor.descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <Textfield
+          <StudioTextfield
             id={titleId}
             label={t('schema_editor.title')}
             aria-label={t('schema_editor.title')}
             onBlur={onChangeTitle}
-            onChange={(e: ChangeEvent) => setItemItemTitle((e.target as HTMLInputElement)?.value)}
+            size='small'
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setItemItemTitle(e.target.value)}
             value={itemTitle}
           />
         </div>
@@ -196,7 +197,7 @@ export function ItemDataComponent({ schemaNode }: IItemDataComponentProps) {
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
               setItemItemDescription(event.target.value)
             }
-            style={{ height: 100 }}
+            size='small'
             value={itemDescription}
           />
         </div>
