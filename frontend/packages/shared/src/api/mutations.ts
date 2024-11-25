@@ -33,7 +33,6 @@ import {
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
-  processEditorPathPut,
   layoutSetPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
@@ -43,6 +42,7 @@ import {
   addImagePath,
   optionListUploadPath,
   optionListUpdatePath,
+  processEditorPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -142,7 +142,7 @@ export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: s
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
-  put(processEditorPathPut(org, app), form, {
+  put(processEditorPath(org, app), form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
