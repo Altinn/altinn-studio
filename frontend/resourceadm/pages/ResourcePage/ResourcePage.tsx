@@ -210,31 +210,29 @@ export const ResourcePage = (): React.JSX.Element => {
           <StudioContentMenu.LinkTab
             tabId={'back'}
             tabName={t('resourceadm.left_nav_bar_back')}
-            icon={<ArrowLeftIcon className={classes.icon} />}
-            renderTab={(props) => {
-              return <Link to={getResourceDashboardURL(org, app)} {...props} />;
-            }}
+            icon={<ArrowLeftIcon />}
+            renderTab={(props) => <Link to={getResourceDashboardURL(org, app)} {...props} />}
           />
           <StudioContentMenu.ButtonTab
             tabId={'about'}
             tabName={t('resourceadm.left_nav_bar_about')}
-            icon={<InformationSquareIcon className={classes.icon} />}
+            icon={<InformationSquareIcon />}
           />
           <StudioContentMenu.ButtonTab
             tabId={'policy'}
             tabName={t('resourceadm.left_nav_bar_policy')}
-            icon={<GavelSoundBlockIcon className={classes.icon} />}
+            icon={<GavelSoundBlockIcon />}
           />
           <StudioContentMenu.ButtonTab
             tabId={'deploy'}
             tabName={t('resourceadm.left_nav_bar_deploy')}
-            icon={<UploadIcon className={classes.icon} />}
+            icon={<UploadIcon />}
           />
           {isMigrateEnabled() && (
             <StudioContentMenu.ButtonTab
               tabId={'migration'}
               tabName={t('resourceadm.left_nav_bar_migration')}
-              icon={<MigrationIcon className={classes.icon} />}
+              icon={<MigrationIcon />}
             />
           )}
         </StudioContentMenu.Static>

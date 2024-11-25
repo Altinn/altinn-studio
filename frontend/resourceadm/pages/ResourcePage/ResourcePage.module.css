@@ -15,8 +15,3 @@
 .spinnerWrapper {
   padding: 10%;
 }
-
-.icon {
-  color: var(--fds-semantic-text-neutral-default);
-  font-size: var(--fds-spacing-8);
-}
