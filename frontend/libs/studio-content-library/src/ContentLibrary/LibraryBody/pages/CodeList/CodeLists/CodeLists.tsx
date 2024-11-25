@@ -25,7 +25,7 @@ function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
 
   const handleUpdateCodeList = (updatedCodeList: StudioComponentsCodeList): void => {
-    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList.title, updatedCodeList);
+    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
     onUpdateCodeList(updatedCodeListWithMetadata);
   };
 
@@ -46,8 +46,8 @@ function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
 }
 
 export const updateCodeListWithMetadata = (
-  codeListTitle: string,
+  currentCodeListWithMetadata: CodeListWithMetadata,
   updatedCodeList: StudioComponentsCodeList,
 ): CodeListWithMetadata => {
-  return { title: codeListTitle, codeList: updatedCodeList };
+  return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };

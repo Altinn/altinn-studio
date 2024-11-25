@@ -66,7 +66,7 @@ describe('updateCodeListWithMetadata', () => {
   it('returns an updated CodeListWithMetadata object', () => {
     const updatedCodeList: StudioComponentsCodeList = [{ value: '', label: '' }];
     const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
-      codeListName,
+      codeListWithMetadataMock,
       updatedCodeList,
     );
     expect(updatedCodeListWithMetadata).toEqual({ title: codeListName, codeList: updatedCodeList });
@@ -75,7 +75,7 @@ describe('updateCodeListWithMetadata', () => {
   it('works with an empty code list', () => {
     const updatedCodeList: StudioComponentsCodeList = [];
     const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
-      codeListName,
+      codeListWithMetadataMock,
       updatedCodeList,
     );
 
