@@ -11,6 +11,7 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { CodeList } from '@studio/components';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
@@ -48,7 +49,7 @@ describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the AppContentLibrary with codeLists and images resources available in the content menu', () => {
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary();
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -60,14 +61,14 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders a spinner when waiting for option lists', () => {
-    renderAppContentLibrary();
+    renderAppContentLibrary({ optionLists: {} });
     const spinner = screen.getByText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
 
   it('calls onUploadOptionList when onUploadCodeList is triggered', async () => {
     const user = userEvent.setup();
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary();
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
@@ -75,9 +76,34 @@ describe('AppContentLibrary', () => {
     expect(queriesMock.uploadOptionList).toHaveBeenCalledWith(org, app, expect.any(FormData));
   });
 
+  it('renders success toast when onUploadOptionList is called successfully', async () => {
+    const user = userEvent.setup();
+    renderAppContentLibrary();
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    const successToastMessage = screen.getByText(
+      textMock('ux_editor.modal_properties_code_list_upload_success'),
+    );
+    expect(successToastMessage).toBeInTheDocument();
+  });
+
+  it('renders error toast when onUploadOptionList is rejected', async () => {
+    const user = userEvent.setup();
+    const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
+    renderAppContentLibrary({ queries: { uploadOptionList } });
+    await goToLibraryPage(user, 'code_lists');
+    const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
+    await user.click(uploadCodeListButton);
+    const successToastMessage = screen.getByText(
+      textMock('ux_editor.modal_properties_code_list_upload_generic_error'),
+    );
+    expect(successToastMessage).toBeInTheDocument();
+  });
+
   it('calls onUpdateOptionList when onUpdateCodeList is triggered', async () => {
     const user = userEvent.setup();
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary();
     await goToLibraryPage(user, 'code_lists');
     const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
     await user.click(updateCodeListButton);
@@ -99,10 +125,18 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
   await user.click(libraryPageNavTile);
 };
 
-const renderAppContentLibrary = (optionLists: OptionsLists = {}) => {
+type renderAppContentLibraryProps = {
+  queries?: Partial<ServicesContextProps>;
+  optionLists?: OptionsLists;
+};
+
+const renderAppContentLibrary = ({
+  queries = {},
+  optionLists = optionListsMock,
+}: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
   if (Object.keys(optionLists).length) {
     queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionLists);
   }
-  renderWithProviders({}, queryClientMock)(<AppContentLibrary />);
+  renderWithProviders(queries, queryClientMock)(<AppContentLibrary />);
 };

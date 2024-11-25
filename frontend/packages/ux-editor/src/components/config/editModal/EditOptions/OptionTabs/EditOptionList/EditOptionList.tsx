@@ -27,6 +27,7 @@ export function EditOptionList<T extends SelectionComponentType>({
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
   });
+  const generalFileNameRegEx = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -43,6 +44,7 @@ export function EditOptionList<T extends SelectionComponentType>({
     const fileNameError = FileNameUtils.validateFileName(
       FileNameUtils.removeExtension(file.name),
       optionListIds,
+      generalFileNameRegEx,
     );
     if (fileNameError !== FileNameValidationResult.Valid) handleInvalidFileName(fileNameError);
     else handleUpload(file);

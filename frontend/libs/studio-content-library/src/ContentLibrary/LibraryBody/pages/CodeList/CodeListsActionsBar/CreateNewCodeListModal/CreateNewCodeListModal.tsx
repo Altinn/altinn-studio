@@ -86,7 +86,7 @@ function CreateNewCodeList({
   const handleCodeListTitleChange = (codeListTitle: string) => {
     const fileNameError = FileNameUtils.validateFileName(codeListTitle, codeListNames);
     const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
-    setCodeListTitleError(errorMessage);
+    setCodeListTitleError(errorMessage ?? '');
     if (fileNameError === FileNameValidationResult.Valid)
       setCurrentCodeListWithMetadata({
         title: codeListTitle,

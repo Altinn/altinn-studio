@@ -115,7 +115,7 @@ describe('EditOptionList', () => {
     await userFindFileInputAndUploadFile(user, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
+      textMock('validation_errors.upload_file_name_occupied'),
     );
   });
 
@@ -131,7 +131,7 @@ describe('EditOptionList', () => {
     await userFindFileInputAndUploadFile(user, file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      textMock('ux_editor.modal_properties_code_list_filename_error'),
+      textMock('validation_errors.file_name_invalid'),
     );
   });
 

@@ -19,7 +19,9 @@ export function AppContentLibrary(): React.ReactElement {
     isPending: optionListsPending,
     isError: optionListsError,
   } = useOptionListsQuery(org, app);
-  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
+  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
+    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
+  });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
 
   if (optionListsPending)
