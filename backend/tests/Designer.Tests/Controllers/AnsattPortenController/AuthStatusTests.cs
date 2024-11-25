@@ -40,7 +40,7 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
             });
             builder.ConfigureTestServices(ConfigureTestServices);
             builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
-        }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
+        }).CreateDefaultClient(new CookieContainerHandler());
     }
 
     public AuthStatusTest(WebApplicationFactory<Program> factory) : base(factory)
