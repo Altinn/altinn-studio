@@ -25,6 +25,22 @@
         "required": true
       },
       {
+        "id": "PersonLookup-Header-Summary2",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Header.Summary2"
+        },
+        "size": "h3"
+      },
+      {
+        "id": "person-lookup-summary-on-person-lookup-page",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "personLookup"
+        }
+      },
+      {
         "id": "PersonLookupPage-NavigationButtons",
         "type": "NavigationButtons",
         "showBackButton": true,

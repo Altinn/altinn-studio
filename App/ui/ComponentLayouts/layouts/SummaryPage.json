@@ -50,6 +50,14 @@
         }
       },
       {
+        "id": "person-lookup-summary",
+        "type": "Summary2",
+        "target": {
+          "type": "component",
+          "id": "personLookup"
+        }
+      },
+      {
         "size": "M",
         "id": "whole-layoutset",
         "type": "Header",
