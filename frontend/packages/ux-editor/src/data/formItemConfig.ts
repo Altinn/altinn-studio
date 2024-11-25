@@ -187,10 +187,6 @@ export const formItemConfigs: FormItemConfigs = {
         {
           type: 'ClientAction',
           id: 'closeSubform',
-          validation: {
-            page: 'all',
-            show: ['All'],
-          },
         },
       ],
     },
