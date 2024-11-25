@@ -11,7 +11,7 @@ export const PreviewFileInfo = ({ existingImageUrl }: PreviewFileInfoProps) => {
   return (
     <div className={classes.fileInfoContainer}>
       <StudioParagraph size='small' className={classes.fileName} title={existingImageUrl}>
-        {FileNameUtils.extractFilename(existingImageUrl)}
+        {FileNameUtils.extractFileName(existingImageUrl)}
       </StudioParagraph>
     </div>
   );
