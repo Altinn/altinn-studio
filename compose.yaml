@@ -7,6 +7,7 @@ volumes:
   gitea-attachments-data:
   keys:
   pgdata:
+  redisdata:
 
 services:
   studio_azure_mock:
@@ -87,6 +88,9 @@ services:
       - FeatureManagement:Ansattporten=${FEATUREFLAGS_ANSATTPORTEN:-false}
       - AnsattPortenLoginSettings:ClientId=${ANSATTPORTEN_CLIENTID:-}
       - AnsattPortenLoginSettings:ClientSecret=${ANSATTPORTEN_CLIENTSECRET:-}
+      - RedisCacheSettings:true
+      - RedisCacheSettings:ConnectionString=redis:6379
+      - RedisCacheSettings:InstanceName=designer
 
     ports:
       - '6000:6000'
@@ -184,3 +188,22 @@ services:
       - PGUSER=designer_admin
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - PGDATABASE=designerdb
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  redis-commander:
+    container_name: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+        - REDIS_HOSTS=redis
+    ports:
+        - "8081:8081"
