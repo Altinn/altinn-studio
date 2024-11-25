@@ -9,10 +9,7 @@ describe('AnsattportenLogin', () => {
     render(<AnsattportenLogin />);
 
     expect(
-      screen.getByText(textMock('settings_modal.maskinporten_tab_login_with_description_1')),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(textMock('settings_modal.maskinporten_tab_login_with_description_2')),
+      screen.getByText(textMock('settings_modal.maskinporten_tab_login_with_description')),
     ).toBeInTheDocument();
   });
 

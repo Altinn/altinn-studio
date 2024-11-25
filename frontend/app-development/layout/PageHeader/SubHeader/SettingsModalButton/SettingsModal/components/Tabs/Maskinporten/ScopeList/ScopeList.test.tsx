@@ -130,16 +130,20 @@ describe('ScopeList', () => {
 
   it('should display an alert if no scopes are available', async () => {
     const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const mockGetSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([]));
 
     renderScopeList({
       queries: {
         getMaskinportenScopes: mockGetMaskinportenScopes,
+        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
       },
     });
     await waitForGetScopesCheckIsDone();
 
     expect(
-      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available')),
+      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
   });
 

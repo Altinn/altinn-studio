@@ -89,20 +89,23 @@ describe('Maskinporten', () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
       .mockImplementation(() => Promise.resolve(true));
-
     const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const mockGetSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([]));
 
     renderMaskinporten({
       queries: {
         getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
         getMaskinportenScopes: mockGetMaskinportenScopes,
+        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
       },
     });
 
     await waitForLoggedInStatusCheckIsDone();
 
     expect(
-      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available')),
+      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
   });
 });
