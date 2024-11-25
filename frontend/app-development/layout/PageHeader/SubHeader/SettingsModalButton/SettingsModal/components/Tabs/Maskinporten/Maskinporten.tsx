@@ -2,20 +2,16 @@ import React, { type ReactNode, type ReactElement } from 'react';
 import classes from './Maskinporten.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
-import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from 'app-development/hooks/queries/useIsLoggedInWithAnsattportenQuery';
 import { ScopeList } from './ScopeList';
-import { PencilBoardFillIcon } from '@studio/icons';
+import { AnsattportenLogin } from './AnsattportenLogin';
 
 export const Maskinporten = (): ReactElement => {
   const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
   const { t } = useTranslation();
-
-  const handleLoginWithAnsattporten = (): void => {
-    console.log('Will be implemented in next iteration when backend is ready');
-  };
 
   if (isPendingAuthStatus) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
@@ -31,20 +27,7 @@ export const Maskinporten = (): ReactElement => {
 
   return (
     <MaskinportenPageTemplate>
-      {/* TODO REPLACE WITH CORRECT ICON */}
-      <PencilBoardFillIcon className={classes.loginIcon} />
-      <StudioHeading level={3} spacing size='sm'>
-        {t('settings_modal.maskinporten_tab_login_with_ansattporten')}
-      </StudioHeading>
-      <StudioParagraph>
-        {t('settings_modal.maskinporten_tab_login_with_description_1')}
-      </StudioParagraph>
-      <StudioParagraph spacing>
-        {t('settings_modal.maskinporten_tab_login_with_description_2')}
-      </StudioParagraph>
-      <StudioButton onClick={handleLoginWithAnsattporten} className={classes.loginButton}>
-        {t('settings_modal.maskinporten_tab_login_with_ansattporten')}
-      </StudioButton>
+      <AnsattportenLogin />
     </MaskinportenPageTemplate>
   );
 };

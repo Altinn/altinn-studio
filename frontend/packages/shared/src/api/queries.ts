@@ -89,7 +89,7 @@ export const getIsLoggedInWithAnsattporten = async (): Promise<boolean> =>
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
     setTimeout(() => {
-      return resolve(false);
+      return resolve(true);
     }, 1000);
   });
 
@@ -106,7 +106,7 @@ export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
     setTimeout(() => {
-      //return resolve([]);
+      return resolve([]);
       return resolve(scopesMock);
     }, 1000);
   });
@@ -123,7 +123,7 @@ export const getSelectedMaskinportenScopes = async (): Promise<MaskinportenScope
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
     setTimeout(() => {
-      //return resolve([]);
+      return resolve([]);
       return resolve(selectedScopesMock);
     }, 1000);
   });

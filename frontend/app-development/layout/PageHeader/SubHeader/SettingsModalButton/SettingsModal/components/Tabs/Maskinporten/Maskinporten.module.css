@@ -6,12 +6,3 @@
   align-items: center;
   padding: var(--fds-spacing-4);
 }
-
-.loginIcon {
-  font-size: var(--fds-sizing-15);
-  padding-top: var(--fds-spacing-4);
-}
-
-.loginButton {
-  margin-bottom: var(--fds-spacing-15);
-}

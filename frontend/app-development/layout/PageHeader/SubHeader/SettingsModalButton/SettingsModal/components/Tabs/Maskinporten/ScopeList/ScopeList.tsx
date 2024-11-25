@@ -27,7 +27,7 @@ export const ScopeList = (): ReactElement => {
   const { data: maskinPortenScopes, isPending: isPendingMaskinportenScopes } = useGetScopesQuery();
   const { data: selectedScopes, isPending: isPendingSelectedScopes } = useGetSelectedScopesQuery();
 
-  const hasScopes: boolean = maskinPortenScopes?.length > 0;
+  const hasScopes: boolean = maskinPortenScopes?.length > 0 || selectedScopes?.length > 0;
   const isPendingScopeQueries: boolean = isPendingMaskinportenScopes || isPendingSelectedScopes;
 
   if (isPendingScopeQueries) {
@@ -59,11 +59,16 @@ const ScopeListContent = ({
     selectedScopes,
   );
 
+  const allScopesDisabled: boolean = checkboxTableRowElements.every(
+    (scope: StudioCheckboxTableRowElement) => scope.disabled,
+  );
+
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   // This useState is temporary to simulate correct behaviour in browser. It will be removed and replaced by a mutation function
   const [rowElements, setRowElements] =
     useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
+  // useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
 
   const areAllChecked = rowElements.every((element) => element.checked || element.disabled);
   const isAnyChecked = rowElements.some((element) => element.checked);
@@ -112,6 +117,7 @@ const ScopeListContent = ({
           checked={areAllChecked}
           indeterminate={isAnyChecked && !areAllChecked}
           onChange={handleChangeAllScopes}
+          disabled={allScopesDisabled}
         />
         <StudioCheckboxTable.Body>
           {
@@ -151,12 +157,15 @@ const NoScopesAlert = (): ReactElement => {
         <StudioHeading level={4} size='xs' spacing>
           {t('settings_modal.maskinporten_no_scopes_available_title')}
         </StudioHeading>
+        <StudioParagraph size='sm'>
+          {t('settings_modal.maskinporten_no_scopes_available_description')}
+        </StudioParagraph>
         <StudioLink
           href={contactByEmail.url('serviceOwner')}
           target='_blank'
           rel='noopener noreferrer'
         >
-          {t('settings_modal.maskinporten_no_scopes_available_description')}
+          {t('settings_modal.maskinporten_no_scopes_available_link')}
         </StudioLink>
       </StudioAlert>
     </div>
