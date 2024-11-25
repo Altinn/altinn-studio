@@ -66,11 +66,11 @@ export const ResourcePage = (): React.JSX.Element => {
   // Get metadata for resource
   const { refetch: refetchValidateResource } = useValidateResourceQuery(org, app, resourceId);
 
-  const {
-    data: loadedResourceData,
-    refetch: refetchResource,
-    isPending: resourcePending,
-  } = useSinlgeResourceQuery(org, app, resourceId);
+  const { data: loadedResourceData, isPending: resourcePending } = useSinlgeResourceQuery(
+    org,
+    app,
+    resourceId,
+  );
 
   const { data: accessList } = useGetAccessListQuery(org, accessListId, env);
 
@@ -96,9 +96,6 @@ export const ResourcePage = (): React.JSX.Element => {
    */
   const navigateToPage = async (page: NavigationBarPage) => {
     if (currentPage !== page) {
-      await editResource(resourceData);
-      await refetchResource();
-
       // Validate Resource and display errors + modal
       if (currentPage === 'about') {
         const data = await refetchValidateResource();
@@ -156,8 +153,6 @@ export const ResourcePage = (): React.JSX.Element => {
    */
   const navigateToPageWithError = async (page: NavigationBarPage) => {
     if (page === 'about') {
-      await refetchResource();
-      await refetchValidateResource();
       setShowResourceErrors(true);
     }
     if (page === 'policy') {
