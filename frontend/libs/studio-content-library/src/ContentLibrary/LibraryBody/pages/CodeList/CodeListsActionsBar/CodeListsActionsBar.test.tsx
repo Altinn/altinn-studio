@@ -37,5 +37,7 @@ describe('CodeListsActionsBar', () => {
 });
 
 const renderCodeListsActionsBar = () => {
-  render(<CodeListsActionsBar onUploadCodeList={onUploadCodeListMock} />);
+  render(
+    <CodeListsActionsBar onUploadCodeList={onUploadCodeListMock} onUpdateCodeList={jest.fn()} />,
+  );
 };
