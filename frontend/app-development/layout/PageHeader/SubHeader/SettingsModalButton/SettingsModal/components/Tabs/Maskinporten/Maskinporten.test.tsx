@@ -6,7 +6,6 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
-import { loginWithAnsattPorten } from 'app-shared/api/paths';
 
 jest.mock('app-shared/api/paths');
 
@@ -63,8 +62,8 @@ describe('Maskinporten', () => {
   });
 
   it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
-    const loginWithAnsattPortenMock = jest.fn();
-    (loginWithAnsattPorten as jest.Mock).mockImplementation(loginWithAnsattPortenMock);
+    // jsdom does not support .href navigation, therefore this mock is needed.
+    const hrefMock = mockWindowLocationHref();
 
     const user = userEvent.setup();
     renderMaskinporten();
@@ -75,13 +74,13 @@ describe('Maskinporten', () => {
     });
 
     await user.click(loginButton);
-    expect(loginWithAnsattPortenMock).toHaveBeenCalledTimes('/');
+    expect(hrefMock).toHaveBeenCalledTimes(1);
   });
 
   it('should show an alert with text that no scopes are available for user', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
 
     const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
 
@@ -110,4 +109,15 @@ const renderMaskinporten = ({ queries = queriesMock }: RenderMaskinporten = {}) 
 
 async function waitForLoggedInStatusCheckIsDone() {
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+}
+
+function mockWindowLocationHref(): jest.Mock {
+  const hrefMock = jest.fn();
+  delete window.location;
+  window.location = { href: '' } as Location;
+  Object.defineProperty(window.location, 'href', {
+    set: hrefMock,
+  });
+
+  return hrefMock;
 }
