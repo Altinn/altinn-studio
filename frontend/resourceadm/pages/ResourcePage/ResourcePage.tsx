@@ -98,6 +98,7 @@ export const ResourcePage = (): React.JSX.Element => {
     if (currentPage !== page) {
       // Validate Resource and display errors + modal
       if (currentPage === 'about') {
+        await editResource(resourceData);
         const data = await refetchValidateResource();
         const validationStatus = data?.data?.status ?? null;
 
