@@ -21,6 +21,7 @@ export { LongTextIcon } from './LongTextIcon';
 export { NavBarIcon } from './NavBarIcon';
 export { NumberIcon } from './NumberIcon';
 export { ObjectIcon } from './ObjectIcon';
+export { MaskinportenIcon } from './MaskinportenIcon';
 export { OrgResourceIcon } from './OrgResourceIcon';
 export { OperationStatusResourceIcon } from './OperationStatusResourceIcon';
 export { RoadmapResourceIcon } from './RoadmapResourceIcon';
