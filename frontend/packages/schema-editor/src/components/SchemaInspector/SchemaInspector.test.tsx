@@ -155,7 +155,7 @@ describe('SchemaInspector', () => {
     expect(saveDataModel).not.toHaveBeenCalled();
   });
 
-  it('Does not display the fields tab when the selected item is a combination', async () => {
+  it('Does not display the fields tab content when the selected item is a combination', async () => {
     const itemPointer = '#/properties/testcombination';
     const rootNode: FieldNode = {
       ...rootNodeMock,
@@ -171,7 +171,9 @@ describe('SchemaInspector', () => {
     validateTestUiSchema(testUiSchema);
     renderSchemaInspector(testUiSchema, item);
     await user.click(getFieldsTab());
-    expect(screen.getByText(textMock('app_data_modelling.fields_information'))).toBeInTheDocument();
+    expect(
+      screen.getByText(textMock('schema_editor.fields_not_available_on_type')),
+    ).toBeInTheDocument();
   });
 
   const getFieldsTab = () => screen.getByRole('tab', { name: textMock('schema_editor.fields') });

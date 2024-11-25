@@ -329,17 +329,6 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: LikertIcon,
   },
-  [ComponentType.LikertItem]: {
-    name: ComponentType.LikertItem,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      dataModelBindings: {
-        simpleBinding: '',
-      },
-    },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: LikertIcon,
-  },
   [ComponentType.Link]: {
     name: ComponentType.Link,
     itemType: LayoutItemType.Component,
@@ -529,7 +518,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Dropdown],
   formItemConfigs[ComponentType.MultipleSelect],
   formItemConfigs[ComponentType.Likert],
-  formItemConfigs[ComponentType.LikertItem],
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
