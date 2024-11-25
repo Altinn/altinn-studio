@@ -5,7 +5,6 @@ import {
   SidebarBothIcon,
   ShieldLockIcon,
   TimerStartIcon,
-  CogIcon,
   MaskinportenIcon,
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
