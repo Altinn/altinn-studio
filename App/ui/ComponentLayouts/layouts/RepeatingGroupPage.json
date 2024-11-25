@@ -272,6 +272,29 @@
         }
       },
       {
+        "id": "RepeatingGroup-Header-Summary2-table",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Displayed as table"
+        },
+        "size": "h3"
+      },
+      {
+        "id": "RepeatingGroup-Summary2-table",
+        "type": "Summary2",
+        "hidden": false,
+        "target": {
+          "type": "component",
+          "id": "RepeatingGroup"
+        },
+        "overrides": [
+          {
+            "componentId": "RepeatingGroup",
+            "display": "table"
+          }
+        ]
+      },
+      {
         "id": "RepeatingGroup-With-Group-Summary2",
         "type": "Summary2",
         "hidden": false,

@@ -3,7 +3,7 @@
   "sets": [
     {
       "id": "ComponentLayouts",
-      "dataType": "Model",
+      "dataType": "model",
       "tasks": [
         "Task_1"
       ]

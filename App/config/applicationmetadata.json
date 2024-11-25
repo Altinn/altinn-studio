@@ -24,7 +24,7 @@
       "enabledFileValidators": []
     },
     {
-      "id": "Model",
+      "id": "model",
       "allowedContentTypes": [
         "application/xml"
       ],
