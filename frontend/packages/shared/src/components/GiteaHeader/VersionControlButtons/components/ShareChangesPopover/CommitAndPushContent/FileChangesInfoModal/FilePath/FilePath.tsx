@@ -20,7 +20,7 @@ export const FilePath = ({ filePath, diff, repoDiffStatus }: FilePathProps) => {
     return <FilePathWithoutDiff filePath={filePath} />;
   }
 
-  const fileName = FileNameUtils.extractFilename(filePath);
+  const fileName = FileNameUtils.extractFileName(filePath);
   const linesToRender = convertPureGitDiffToUserFriendlyDiff(diff);
 
   return (
@@ -56,7 +56,7 @@ type FormattedFilePathProps = {
 };
 
 const FormattedFilePath = ({ filePath }: FormattedFilePathProps) => {
-  const fileName = FileNameUtils.extractFilename(filePath);
+  const fileName = FileNameUtils.extractFileName(filePath);
   const filePathWithoutName = FileNameUtils.removeFileNameFromPath(filePath, true);
 
   return (
