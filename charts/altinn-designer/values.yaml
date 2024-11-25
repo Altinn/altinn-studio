@@ -53,7 +53,7 @@ environmentVariables:
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
     - name: FeatureManagement__AnsattPorten
-      value: "false"
+      value: "true"
     - name: FeatureManagement__EidLogging
       value: "true"
   staging:
