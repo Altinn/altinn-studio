@@ -170,11 +170,10 @@ export const queriesMock: ServicesContextProps = {
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getIsLoggedInWithAnsattporten: jest
     .fn()
-    .mockImplementation(() => Promise.resolve<boolean>(false)),
+    .mockImplementation(() => Promise.resolve<{ isLoggedIn: false }>({ isLoggedIn: false })),
   getMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
-
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
