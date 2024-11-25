@@ -29,6 +29,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             {
                 { "other-options" },
                 { "test-options" },
+                { "options-with-null-fields" },
             };
 
             string url = $"{VersionPrefix(org, targetRepository)}/option-list-ids";
@@ -39,7 +40,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string responseContent = await response.Content.ReadAsStringAsync();
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseContent);
-            responseList.Count.Should().Be(2);
+            responseList.Count.Should().Be(3);
             foreach (string id in expectedOptionsListIds)
             {
                 responseList.Should().Contain(id);

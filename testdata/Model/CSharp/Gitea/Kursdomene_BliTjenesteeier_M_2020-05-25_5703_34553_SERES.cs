@@ -59,12 +59,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("sektor")]
     public string sektor { get; set; }
 
-    [XmlElement("navnNynorsk", Order = 4)]
+    [XmlElement("navnNynorsk", Order = 4, IsNullable = true)]
     [JsonProperty("navnNynorsk")]
     [JsonPropertyName("navnNynorsk")]
     public string navnNynorsk { get; set; }
 
-    [XmlElement("navnEngelsk", Order = 5)]
+    [XmlElement("navnEngelsk", Order = 5, IsNullable = true)]
     [JsonProperty("navnEngelsk")]
     [JsonPropertyName("navnEngelsk")]
     public string navnEngelsk { get; set; }
