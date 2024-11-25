@@ -67,7 +67,8 @@
   },
   "resolutions": {
     "@testing-library/dom": "10.4.0",
-    "@babel/traverse": "7.25.7"
+    "@babel/traverse": "7.25.7",
+    "caniuse-lite": "1.0.30001680"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
@@ -102,6 +103,12 @@
   "syncpack": {
     "semverRange": ""
   },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 8",
+    "not op_mini all"
+  ],
   "workspaces": [
     "development/azure-devops-mock",
     "frontend/app-development",
