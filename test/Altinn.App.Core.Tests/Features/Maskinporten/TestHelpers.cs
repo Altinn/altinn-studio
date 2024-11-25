@@ -120,9 +120,12 @@ internal static class TestHelpers
         (string Header, string Payload, string Signature) Components
     ) GetEncodedAccessToken()
     {
-        const string testTokenHeader = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
-        const string testTokenPayload = "eyJzdWIiOiJpdHMtYS1tZSJ9";
-        const string testTokenSignature = "wLLw4Timcl9gnQvA93RgREz-6S5y1UfzI_GYVI_XVDA";
+        const string testTokenHeader =
+            "eyJraWQiOiJiZFhMRVduRGpMSGpwRThPZnl5TUp4UlJLbVo3MUxCOHUxeUREbVBpdVQwIiwiYWxnIjoiUlMyNTYifQ";
+        const string testTokenPayload =
+            "eyJzY29wZSI6ImFsdGlubjpzZXJ2aWNlb3duZXIvaW5zdGFuY2VzLnJlYWQiLCJpc3MiOiJodHRwczovL3Rlc3QubWFza2lucG9ydGVuLm5vLyIsImNsaWVudF9hbXIiOiJwcml2YXRlX2tleV9qd3QiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNzMyMjg3NDUxLCJpYXQiOjE3MzIyODczMzEsImNsaWVudF9pZCI6ImQyMjEzMGNmLTMzZjEtNGI2Yy1hMjM4LTVmMjZmZTk1NTRiMyIsImp0aSI6Ik5rMWc1MXFZVlVBWWRmbWVSeWlrdXBCaXdJaVVzSzdOZGxHNFlCSjZFV3MiLCJjb25zdW1lciI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5OTE4MjU4MjcifX0";
+        const string testTokenSignature =
+            "Y-dNpwVXsaYBgCL_bT8EoEnY650KhpwZJW3QN-uvAFq2qxHMTuOEpg0PtZGL4GQtLT57_urHTAtspTG9-y30oOkAEYqggeQ0_TmnXCN17pd4wtPyZLFpYoHJe7ki3-9ITGv2JUuRiRN4gpN92zdsaAvafnEksxG0CjxbpWRCS8XA0Cr3wsKj1Fpd4zLit64iI3OSk_yW0Gfe15QkALnUCQgzJCQhTXlnuSGZgPLuQZcvWfONzdZojkAgxTJJg-hOC-TNNGq2IN8NJhg3GjrGypiB4-niVXyugPyP2MdnxWeZQiuuAsMRbe3mGNTlx9VPDXJIsrtDDYVHrndvL8CHqjHdkOLZxtdTdMOMz1IXi_ZTcTJreqP4ti8J_Fx5u-3AOSVZG0hOOxtONBZgoMul12QoztaOuX65rP4zzZq9Afz07m2XHGg72jbowhtRiJKlf_mn31EK75bmDxZHVlL5s0Crb3VvRu39Xnz4Z8n5-Yn5LqnCYhhvZz_vf8f0U5jv";
         const string testToken = testTokenHeader + "." + testTokenPayload + "." + testTokenSignature;
 
         return (testToken, (testTokenHeader, testTokenPayload, testTokenSignature));

@@ -67,6 +67,7 @@ public class CorrespondenceBuilderTests
             dueDateTime = DateTimeOffset.Now.AddDays(30),
             allowDeleteAfter = DateTimeOffset.Now.AddDays(60),
             ignoreReservation = true,
+            isConfirmationNeeded = true,
             requestedPublishTime = DateTimeOffset.Now.AddSeconds(45),
             propertyList = new Dictionary<string, string> { ["prop1"] = "value1", ["prop2"] = "value2" },
             content = new
@@ -180,6 +181,7 @@ public class CorrespondenceBuilderTests
             .WithDueDateTime(data.dueDateTime)
             .WithMessageSender(data.messageSender)
             .WithIgnoreReservation(data.ignoreReservation)
+            .WithIsConfirmationNeeded(data.isConfirmationNeeded)
             .WithRequestedPublishTime(data.requestedPublishTime)
             .WithPropertyList(data.propertyList)
             .WithAttachment(
@@ -260,6 +262,7 @@ public class CorrespondenceBuilderTests
         correspondence.DueDateTime.Should().Be(data.dueDateTime);
         correspondence.AllowSystemDeleteAfter.Should().Be(data.allowDeleteAfter);
         correspondence.IgnoreReservation.Should().Be(data.ignoreReservation);
+        correspondence.IsConfirmationNeeded.Should().Be(data.isConfirmationNeeded);
         correspondence.RequestedPublishTime.Should().Be(data.requestedPublishTime);
         correspondence.PropertyList.Should().BeEquivalentTo(data.propertyList);
         correspondence.MessageSender.Should().Be(data.messageSender);
@@ -346,7 +349,8 @@ public class CorrespondenceBuilderTests
             .WithPropertyList(new Dictionary<string, string> { ["prop1"] = "value1", ["prop2"] = "value2" })
             .WithExistingAttachment(Guid.Parse("a3ac4826-5873-4ecb-9fe7-dc4cfccd0afa"))
             .WithRequestedPublishTime(DateTime.Today)
-            .WithIgnoreReservation(true);
+            .WithIgnoreReservation(true)
+            .WithIsConfirmationNeeded(true);
 
         builder.WithResourceId("resourceId-2");
         builder.WithSender(TestHelpers.GetOrganisationNumber(2).Get(OrganisationNumberFormat.Local));
@@ -397,6 +401,8 @@ public class CorrespondenceBuilderTests
         builder.WithExistingAttachment(Guid.Parse("eeb67483-7d6d-40dc-9861-3fc1beff7608"));
         builder.WithExistingAttachments([Guid.Parse("9a12dfd9-6c70-489c-8b3d-77bb188c64b3")]);
         builder.WithRequestedPublishTime(DateTime.Today.AddDays(1));
+        builder.WithIgnoreReservation(false);
+        builder.WithIsConfirmationNeeded(false);
 
         // Act
         var correspondence = builder.Build();
@@ -487,7 +493,8 @@ public class CorrespondenceBuilderTests
                 ]
             );
         correspondence.RequestedPublishTime.Should().BeSameDateAs(DateTime.Today.AddDays(1));
-        correspondence.IgnoreReservation.Should().BeTrue();
+        correspondence.IgnoreReservation.Should().BeFalse();
+        correspondence.IsConfirmationNeeded.Should().BeFalse();
     }
 
     [Fact]

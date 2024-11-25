@@ -253,8 +253,14 @@ public interface ICorrespondenceRequestBuilder
     /// <summary>
     /// Sets whether the correspondence can override reservation against digital communication in KRR
     /// </summary>
-    /// <param name="ignoreReservation">A boolean value indicating whether or not reservations can be ignored</param>
+    /// <param name="ignoreReservation">A boolean value indicating if reservations can be ignored or not</param>
     ICorrespondenceRequestBuilder WithIgnoreReservation(bool ignoreReservation);
+
+    /// <summary>
+    /// Sets whether reading the correspondence needs to be confirmed by the recipient
+    /// </summary>
+    /// <param name="isConfirmationNeeded">A boolean value indicating if confirmation is needed or not</param>
+    ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded);
 
     /// <summary>
     /// Adds an existing attachment reference to the correspondence

@@ -105,7 +105,7 @@ public sealed record CorrespondenceNotification : MultipartCorrespondenceItem
         AddIfNotNull(content, ReminderSmsBody, "Correspondence.Notification.ReminderSmsBody");
         AddIfNotNull(content, NotificationChannel.ToString(), "Correspondence.Notification.NotificationChannel");
         AddIfNotNull(content, SendersReference, "Correspondence.Notification.SendersReference");
-        AddIfNotNull(content, RequestedSendTime?.ToString("O"), "Correspondence.Notification.RequestedSendTime");
+        AddIfNotNull(content, RequestedSendTime, "Correspondence.Notification.RequestedSendTime");
         AddIfNotNull(
             content,
             ReminderNotificationChannel.ToString(),

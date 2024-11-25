@@ -278,12 +278,13 @@ internal sealed class MaskinportenClient : IMaskinportenClient
             using HttpResponseMessage response = await client.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            string token = await response.Content.ReadAsStringAsync(cancellationToken);
+            string tokenResponse = await response.Content.ReadAsStringAsync(cancellationToken);
+            JwtToken token = JwtToken.Parse(tokenResponse);
 
-            _logger.LogDebug("Token retrieved successfully");
+            _logger.LogDebug("Token retrieved successfully: {Token}", token);
             _telemetry?.RecordMaskinportenAltinnTokenExchangeRequest(Telemetry.Maskinporten.RequestResult.New);
 
-            return JwtToken.Parse(token);
+            return token;
         }
         catch (MaskinportenException)
         {

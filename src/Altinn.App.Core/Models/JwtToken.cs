@@ -30,6 +30,11 @@ public readonly partial struct JwtToken : IEquatable<JwtToken>
         ExpiresAt < (timeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow);
 
     /// <summary>
+    /// The issuing authority of the token
+    /// </summary>
+    public string Issuer => _jwtSecurityToken.Issuer;
+
+    /// <summary>
     /// The scope(s) associated with the token
     /// </summary>
     public string? Scope => _jwtSecurityToken.Payload.TryGetValue("scope", out var scope) ? scope.ToString() : null;

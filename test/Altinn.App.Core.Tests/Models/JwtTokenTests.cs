@@ -114,23 +114,51 @@ public class AccessTokenTests
         tokenString.Should().Be(_validTokens[0]);
     }
 
-    // [Theory]
-    // [InlineData(true)]
-    // [InlineData(false)]
-    // public void ShouldIndicateExpiry(bool expired)
-    // {
-    //     // Arrange
-    //     var encodedToken = TestHelpers.GetEncodedAccessToken();
-    //     var jwtToken = JwtToken.Parse(encodedToken.AccessToken);
-    //     var expiry = jwtToken.ExpiresAt;
-    //     var fakeTimeProvider = new FakeTimeProvider(expiry.AddDays(expired ? -1 : 1));
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ShouldIndicateExpiry(bool expired)
+    {
+        // Arrange
+        var encodedToken = TestHelpers.GetEncodedAccessToken();
+        var jwtToken = JwtToken.Parse(encodedToken.AccessToken);
+        var expiry = jwtToken.ExpiresAt;
+        var fakeTimeProvider = new FakeTimeProvider(expiry.AddDays(expired ? 1 : -1));
 
-    //     // Act
-    //     var isExpired = jwtToken.IsExpired(fakeTimeProvider);
+        // Act
+        var isExpired = jwtToken.IsExpired(fakeTimeProvider);
 
-    //     // Assert
-    //     isExpired.Should().Be(expired);
-    // }
+        // Assert
+        isExpired.Should().Be(expired);
+    }
+
+    [Fact]
+    public void ShouldIndicateIssuer()
+    {
+        // Arrange
+        var encodedToken = TestHelpers.GetEncodedAccessToken();
+        var jwtToken = JwtToken.Parse(encodedToken.AccessToken);
+
+        // Act
+        var issuer = jwtToken.Issuer;
+
+        // Assert
+        issuer.Should().Be("https://test.maskinporten.no/");
+    }
+
+    [Fact]
+    public void ShouldIndicateScopes()
+    {
+        // Arrange
+        var encodedToken = TestHelpers.GetEncodedAccessToken();
+        var jwtToken = JwtToken.Parse(encodedToken.AccessToken);
+
+        // Act
+        var scope = jwtToken.Scope;
+
+        // Assert
+        scope.Should().Be("altinn:serviceowner/instances.read");
+    }
 
     [Fact]
     public void ToString_ShouldMask_AccessToken()

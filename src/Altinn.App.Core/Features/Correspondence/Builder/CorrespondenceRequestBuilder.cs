@@ -23,6 +23,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     private List<CorrespondenceReplyOption>? _replyOptions;
     private CorrespondenceNotification? _notification;
     private bool? _ignoreReservation;
+    private bool? _isConfirmationNeeded;
     private List<Guid>? _existingAttachments;
 
     private CorrespondenceRequestBuilder() { }
@@ -248,6 +249,13 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
     }
 
     /// <inheritdoc/>
+    public ICorrespondenceRequestBuilder WithIsConfirmationNeeded(bool isConfirmationNeeded)
+    {
+        _isConfirmationNeeded = isConfirmationNeeded;
+        return this;
+    }
+
+    /// <inheritdoc/>
     public ICorrespondenceRequestBuilder WithExistingAttachment(Guid existingAttachment)
     {
         return WithExistingAttachments([existingAttachment]);
@@ -308,6 +316,7 @@ public class CorrespondenceRequestBuilder : ICorrespondenceRequestBuilder
             Notification = _notification,
             IgnoreReservation = _ignoreReservation,
             ExistingAttachments = _existingAttachments,
+            IsConfirmationNeeded = _isConfirmationNeeded,
         };
     }
 }
