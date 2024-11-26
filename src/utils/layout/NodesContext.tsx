@@ -234,12 +234,6 @@ export function createNodesDataStore({ registry, validationsProcessedLast }: Cre
             continue;
           }
 
-          if (layouts !== state.layouts) {
-            // The layouts have changed since the request was added, so there's no need to remove the node (it was
-            // automatically removed when resetting the NodesContext state upon the layout change)
-            continue;
-          }
-
           delete nodeData[node.id];
           node.page._removeChild(node);
           count += 1;

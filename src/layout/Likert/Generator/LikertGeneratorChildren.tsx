@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { FD } from 'src/features/formData/FormDataWrite';
 import { getLikertStartStopIndex } from 'src/utils/formLayout';
@@ -69,7 +69,6 @@ interface GenerateRowProps {
 const GenerateRow = React.memo(function GenerateRow({ rowIndex, questionsBinding, plugin }: GenerateRowProps) {
   const parentItem = GeneratorInternal.useIntermediateItem() as CompIntermediate<'Likert'>;
   const node = GeneratorInternal.useParent() as LayoutNode<'Likert'>;
-  const removeRow = NodesInternal.useRemoveRow();
   const depth = GeneratorInternal.useDepth();
 
   const childId = `${parentItem.id}-item`;
@@ -127,12 +126,7 @@ const GenerateRow = React.memo(function GenerateRow({ rowIndex, questionsBinding
     [rowIndex, depth, questionsBinding],
   );
 
-  useEffect(
-    () => () => {
-      removeRow(node, plugin);
-    },
-    [node, plugin, removeRow],
-  );
+  NodesStateQueue.useRemoveRow({ node, plugin });
 
   return (
     <GeneratorRowProvider

@@ -13,7 +13,7 @@ import {
   type SetNodePropRequest,
   type SetPagePropRequest,
 } from 'src/utils/layout/NodesContext';
-import type { SetRowExtrasRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
+import type { RemoveRowRequest, SetRowExtrasRequest } from 'src/utils/layout/plugins/RepeatingChildrenStorePlugin';
 
 /**
  * Queues for changes that need to be committed to the nodes store.
@@ -21,6 +21,7 @@ import type { SetRowExtrasRequest } from 'src/utils/layout/plugins/RepeatingChil
 export interface RegistryCommitQueues {
   addNodes: AddNodeRequest[];
   removeNodes: RemoveNodeRequest[];
+  removeRows: RemoveRowRequest[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setNodeProps: SetNodePropRequest<any, any>[];
   setRowExtras: SetRowExtrasRequest[];
@@ -35,6 +36,8 @@ export function useGetAwaitingCommits() {
     const toCommit = registry.current.toCommit;
     return (
       toCommit.addNodes.length +
+      toCommit.removeNodes.length +
+      toCommit.removeRows.length +
       toCommit.setNodeProps.length +
       toCommit.setRowExtras.length +
       toCommit.setPageProps.length
@@ -45,6 +48,7 @@ export function useGetAwaitingCommits() {
 export function useCommit() {
   const addNodes = NodesInternal.useAddNodes();
   const removeNodes = NodesInternal.useRemoveNodes();
+  const removeRows = NodesInternal.useRemoveRows();
   const setNodeProps = NodesInternal.useSetNodeProps();
   const setPageProps = NodesInternal.useSetPageProps();
   const setRowExtras = NodesInternal.useSetRowExtras();
@@ -65,6 +69,13 @@ export function useCommit() {
       generatorLog('logCommits', 'Committing', toCommit.removeNodes.length, 'removeNodes requests');
       removeNodes(toCommit.removeNodes);
       toCommit.removeNodes.length = 0;
+      changes = true;
+    }
+
+    if (toCommit.removeRows.length) {
+      generatorLog('logCommits', 'Committing', toCommit.removeRows.length, 'removeRows requests');
+      removeRows(toCommit.removeRows);
+      toCommit.removeRows.length = 0;
       changes = true;
     }
 
@@ -99,7 +110,7 @@ export function useCommit() {
 
     updateCommitsPendingInBody(toCommit);
     return changes;
-  }, [addNodes, removeNodes, setNodeProps, setRowExtras, setPageProps, registry]);
+  }, [addNodes, removeNodes, removeRows, setNodeProps, setRowExtras, setPageProps, registry]);
 }
 
 export function SetWaitForCommits() {
@@ -136,7 +147,8 @@ export function SetWaitForCommits() {
  */
 export const NodesStateQueue = {
   useAddNode: (req: AddNodeRequest, condition = true) => useAddToQueue('addNodes', false, req, condition),
-  useRemoveNode: (req: Omit<RemoveNodeRequest, 'layouts'>) => useRemoveNode(req),
+  useRemoveNode: (req: Omit<RemoveNodeRequest, 'layouts'>) => useOnUnmount('removeNodes', req),
+  useRemoveRow: (req: Omit<RemoveRowRequest, 'layouts'>) => useOnUnmount('removeRows', req),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   useSetNodeProp: (req: SetNodePropRequest<any, any>, condition: boolean) =>
     useAddToQueue('setNodeProps', true, req, condition),
@@ -169,7 +181,10 @@ function useAddToQueue<T extends keyof RegistryCommitQueues>(
   }
 }
 
-function useRemoveNode(request: Omit<RemoveNodeRequest, 'layouts'>) {
+type QueueRequest<Q extends 'removeNodes' | 'removeRows'> = Q extends 'removeNodes'
+  ? Omit<RemoveNodeRequest, 'layouts'>
+  : Omit<RemoveRowRequest, 'layouts'>;
+function useOnUnmount<Q extends 'removeNodes' | 'removeRows'>(queue: Q, request: QueueRequest<Q>) {
   // This state is intentionally not reactive, as we want to commit _what the layout was when this node was created_,
   // so that we don't accidentally remove a node with the same ID from a future/different layout.
   const layoutsWas = NodesStore.useStaticSelector((s) => s.layouts!);
@@ -186,11 +201,12 @@ function useRemoveNode(request: Omit<RemoveNodeRequest, 'layouts'>) {
     return () => {
       reg.toCommitCount += 1;
 
-      toCommit.removeNodes.push({ ...request, layouts: layoutsWas });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toCommit[queue].push({ ...request, layouts: layoutsWas } as any);
       updateCommitsPendingInBody(toCommit);
       commit();
     };
-  }, [commit, ref, registry, toCommit, layoutsWas]);
+  }, [commit, ref, registry, toCommit, layoutsWas, queue]);
 }
 
 /**
