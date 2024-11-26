@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { AppContentLibrary } from './AppContentLibrary';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test/mocks';
@@ -11,11 +11,13 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { CodeList } from '@studio/components';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
 const codeListNameMock = 'codeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
+jest.useFakeTimers({ advanceTimers: true });
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeList',
   () => ({
@@ -81,6 +83,7 @@ describe('AppContentLibrary', () => {
     await goToLibraryPage(user, 'code_lists');
     const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
     await user.click(updateCodeListButton);
+    await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
       org,
@@ -88,6 +91,18 @@ describe('AppContentLibrary', () => {
       codeListNameMock,
       codeListMock,
     );
+  });
+
+  it('deBounces the updateOptionList function', async () => {
+    const user = userEvent.setup();
+    renderAppContentLibrary(optionListsMock);
+    await goToLibraryPage(user, 'code_lists');
+    const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
+    await user.click(updateCodeListButton);
+    expect(queriesMock.updateOptionList).not.toHaveBeenCalled();
+
+    await waitFor(() => jest.advanceTimersByTime(AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS));
+    expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
   });
 });
 
