@@ -197,6 +197,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
+
     services.RegisterServiceImplementations(configuration);
 
     services.AddHttpContextAccessor();
