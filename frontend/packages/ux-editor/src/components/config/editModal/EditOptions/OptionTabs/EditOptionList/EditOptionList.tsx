@@ -27,7 +27,7 @@ export function EditOptionList<T extends SelectionComponentType>({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
+    hideDefaultError: (error: AxiosError<ApiError>) => isUnknownError(error),
   });
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -57,8 +57,8 @@ export function EditOptionList<T extends SelectionComponentType>({
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
       onError: (error: AxiosError<ApiError>) => {
-        if (!error.response?.data?.errorCode) {
-          toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);
+        if (isUnknownError(error)) {
+          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }
       },
     });
@@ -101,6 +101,8 @@ export function EditOptionList<T extends SelectionComponentType>({
   );
 }
 
+const isUnknownError = (error: AxiosError<ApiError>) => !error.response?.data?.errorCode;
+
 type OptionListSelectorProps<T extends SelectionComponentType> = {
   handleOptionsIdChange: (optionsId: string) => void;
 } & Pick<IGenericEditComponent<T>, 'component'>;
@@ -111,7 +113,7 @@ function OptionListSelector<T extends SelectionComponentType>({
 }: OptionListSelectorProps<T>): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
 
   switch (status) {
     case 'pending':
@@ -122,11 +124,7 @@ function OptionListSelector<T extends SelectionComponentType>({
         />
       );
     case 'error':
-      return (
-        <ErrorMessage>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
-        </ErrorMessage>
-      );
+      return <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>;
     case 'success':
       return (
         <OptionListSelectorWithData
