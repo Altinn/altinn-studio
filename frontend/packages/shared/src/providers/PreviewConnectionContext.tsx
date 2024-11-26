@@ -17,7 +17,9 @@ export const PreviewConnectionContextProvider = ({
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
-      .withUrl(previewSignalRHubSubPath())
+      .withUrl(previewSignalRHubSubPath(), {
+        skipNegotiation: true,
+      })
       .configureLogging(LogLevel.Information)
       .build();
     setConnection(newConnection);

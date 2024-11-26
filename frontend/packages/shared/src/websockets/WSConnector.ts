@@ -30,7 +30,9 @@ export class WSConnector {
 
   private createConnection(webSocketUrl: string): void {
     this.connection = new HubConnectionBuilder()
-      .withUrl(webSocketUrl)
+      .withUrl(webSocketUrl, {
+        skipNegotiation: true,
+      })
       .withAutomaticReconnect()
       .build();
   }
