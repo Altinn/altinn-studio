@@ -27,13 +27,13 @@ export const DefaultItems = ({
   showAllButton,
 }: DefaultItemsProps) => {
   const layouts = useFormLayouts();
-  const { t } = useTranslation();
+  const { t } = useTranslation(['translation', 'addComponentModal']);
 
   return (
     <div className={classes.root}>
       <div className={classes.closeButtonContainer}>
         <StudioHeading level={4} size='xxsmall' className={classes.header}>
-          Legg til komponent
+          {t('select_component_header', { ns: 'addComponentModal' })}
         </StudioHeading>
         <StudioButton icon={<XMarkIcon />} onClick={onCancel} variant='tertiary' />
       </div>
