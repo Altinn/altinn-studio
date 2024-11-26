@@ -18,7 +18,6 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [FeatureGate(StudioFeatureFlags.AnsattPorten)]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/app-scopes")]
-
 public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     IAppScopesService appScopesService) : ControllerBase
 {
@@ -28,7 +27,7 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
     {
         var scopes = await maskinPortenHttpClient.GetAvailableScopes(cancellationToken);
 
-        var reponse = new AppScopesResponse()
+        var response = new AppScopesResponse()
         {
             Scopes = scopes.Select(x => new MaskinPortenScopeDto()
             {
@@ -37,9 +36,8 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
             }).ToHashSet()
         };
 
-        return Ok(reponse);
+        return Ok(response);
     }
-
 
     [Authorize]
     [HttpPut]
@@ -55,7 +53,6 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
         await appScopesService.UpsertScopesAsync(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer), scopes, cancellationToken);
     }
-
 
     [Authorize]
     [HttpGet]
@@ -74,5 +71,4 @@ public class AppScopesController(IMaskinPortenHttpClient maskinPortenHttpClient,
 
         return Ok(reponse);
     }
-
 }
