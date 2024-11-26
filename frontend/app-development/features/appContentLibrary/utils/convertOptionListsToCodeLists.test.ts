@@ -1,3 +1,4 @@
+import type { CodeListWithMetadata } from '@studio/content-library';
 import { convertOptionListsToCodeLists } from './convertOptionListsToCodeLists';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
@@ -13,7 +14,7 @@ describe('convertOptionListsToCodeLists', () => {
         { label: 'Option B', value: 'B' },
       ],
     };
-    const result = convertOptionListsToCodeLists(optionLists);
+    const result: CodeListWithMetadata[] = convertOptionListsToCodeLists(optionLists);
     expect(result).toEqual([
       {
         title: 'list1',
@@ -34,7 +35,7 @@ describe('convertOptionListsToCodeLists', () => {
 
   it('returns an empty array when the input map is empty', () => {
     const optionLists: OptionsLists = {};
-    const result = convertOptionListsToCodeLists(optionLists);
+    const result: CodeListWithMetadata[] = convertOptionListsToCodeLists(optionLists);
     expect(result).toEqual([]);
   });
 });

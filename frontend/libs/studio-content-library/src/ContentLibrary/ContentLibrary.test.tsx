@@ -6,7 +6,7 @@ import { mockPagesConfig } from '../../mocks/mockPagesConfig';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../contexts/RouterContext';
 import type { PageName } from '../types/PageName';
-import { renderWithBrowserRouter } from '../../test-utils/renderWithBrowserRouter';
+import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 const navigateMock = jest.fn();
 
@@ -52,7 +52,7 @@ describe('ContentLibrary', () => {
 });
 
 const renderContentLibrary = (currentPage: PageName = undefined) => {
-  renderWithBrowserRouter(
+  renderWithProviders(
     <RouterContext.Provider value={{ currentPage, navigate: navigateMock }}>
       <ContentLibrary pages={mockPagesConfig} />
     </RouterContext.Provider>,

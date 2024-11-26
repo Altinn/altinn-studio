@@ -7,21 +7,13 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 
+jest.mock('app-shared/api/paths');
+
 describe('Maskinporten', () => {
-  const consoleLogMock = jest.fn();
-  const originalConsoleLog = console.log;
-  beforeEach(() => {
-    console.log = consoleLogMock;
-  });
-
-  afterEach(() => {
-    console.log = originalConsoleLog;
-  });
-
   it('should check and verify if the user is logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(false));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: false }));
 
     renderMaskinporten({
       queries: {
@@ -54,7 +46,7 @@ describe('Maskinporten', () => {
   it('should display content if logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
     renderMaskinporten({
       queries: {
         getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
@@ -70,6 +62,9 @@ describe('Maskinporten', () => {
   });
 
   it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
+    // jsdom does not support .href navigation, therefore this mock is needed.
+    const hrefMock = mockWindowLocationHref();
+
     const user = userEvent.setup();
     renderMaskinporten();
     await waitForLoggedInStatusCheckIsDone();
@@ -79,16 +74,13 @@ describe('Maskinporten', () => {
     });
 
     await user.click(loginButton);
-
-    expect(consoleLogMock).toHaveBeenCalledWith(
-      'Will be implemented in next iteration when backend is ready',
-    );
+    expect(hrefMock).toHaveBeenCalledTimes(1);
   });
 
   it('should show an alert with text that no scopes are available for user', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
 
     const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
 
@@ -117,4 +109,15 @@ const renderMaskinporten = ({ queries = queriesMock }: RenderMaskinporten = {}) 
 
 async function waitForLoggedInStatusCheckIsDone() {
   await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('general.loading')));
+}
+
+function mockWindowLocationHref(): jest.Mock {
+  const hrefMock = jest.fn();
+  delete window.location;
+  window.location = { href: '' } as Location;
+  Object.defineProperty(window.location, 'href', {
+    set: hrefMock,
+  });
+
+  return hrefMock;
 }

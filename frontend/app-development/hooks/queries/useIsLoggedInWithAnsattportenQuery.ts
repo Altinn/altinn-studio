@@ -4,8 +4,8 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 
 export const useIsLoggedInWithAnsattportenQuery = () => {
   const { getIsLoggedInWithAnsattporten } = useServicesContext();
-  return useQuery<boolean>({
+  return useQuery<{ isLoggedIn: boolean }>({
     queryKey: [QueryKey.IsLoggedInWithAnsattporten],
-    queryFn: () => getIsLoggedInWithAnsattporten(),
+    queryFn: getIsLoggedInWithAnsattporten,
   });
 };
