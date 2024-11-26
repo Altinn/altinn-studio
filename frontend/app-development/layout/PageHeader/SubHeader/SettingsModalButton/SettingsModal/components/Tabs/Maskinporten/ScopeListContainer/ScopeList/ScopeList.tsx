@@ -1,19 +1,18 @@
-import React, { useState, type ChangeEvent, type ReactElement } from 'react';
+import React, { type ChangeEvent, useState, type ReactElement } from 'react';
 import classes from './ScopeList.module.css';
+
 import {
-  StudioAlert,
   StudioCheckboxTable,
   type StudioCheckboxTableRowElement,
-  StudioHeading,
   StudioLink,
   StudioParagraph,
-  StudioSpinner,
 } from '@studio/components';
-import { useGetScopesQuery } from 'app-development/hooks/queries/useGetScopesQuery';
 import { Trans, useTranslation } from 'react-i18next';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-import { useGetSelectedScopesQuery } from 'app-development/hooks/queries/useGetSelectedScopesQuery';
 import {
+  getAllElementsChecked,
+  getAllElementsDisabled,
+  getSomeElementsChecked,
   mapRowElementsToSelectedScopes,
   mapScopesToRowElements,
   toggleRowElementCheckedState,
@@ -21,37 +20,14 @@ import {
 } from './utils';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
+import { LoggedInTitle } from '../LoggedInTitle';
 
-export const ScopeList = (): ReactElement => {
-  const { t } = useTranslation();
-  const { data: maskinPortenScopes, isPending: isPendingMaskinportenScopes } = useGetScopesQuery();
-  const { data: selectedScopes, isPending: isPendingSelectedScopes } = useGetSelectedScopesQuery();
-
-  const hasScopes: boolean = maskinPortenScopes?.length > 0 || selectedScopes?.length > 0;
-  const isPendingScopeQueries: boolean = isPendingMaskinportenScopes || isPendingSelectedScopes;
-
-  if (isPendingScopeQueries) {
-    return <StudioSpinner spinnerTitle={t('general.loading')} />;
-  }
-
-  if (hasScopes) {
-    return (
-      <ScopeListContent maskinPortenScopes={maskinPortenScopes} selectedScopes={selectedScopes} />
-    );
-  }
-
-  return <NoScopesAlert />;
-};
-
-type ScopeListContentProps = {
+export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
   selectedScopes: MaskinportenScope[];
 };
 
-const ScopeListContent = ({
-  maskinPortenScopes,
-  selectedScopes,
-}: ScopeListContentProps): ReactElement => {
+export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement => {
   const { t } = useTranslation();
 
   const checkboxTableRowElements: StudioCheckboxTableRowElement[] = mapScopesToRowElements(
@@ -59,19 +35,15 @@ const ScopeListContent = ({
     selectedScopes,
   );
 
-  const allScopesDisabled: boolean = checkboxTableRowElements.every(
-    (scope: StudioCheckboxTableRowElement) => scope.disabled,
-  );
-
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
   // This useState is temporary to simulate correct behaviour in browser. It will be removed and replaced by a mutation function
   const [rowElements, setRowElements] =
     useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
-  // useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
 
-  const areAllChecked = rowElements.every((element) => element.checked || element.disabled);
-  const isAnyChecked = rowElements.some((element) => element.checked);
+  const areAllChecked = getAllElementsChecked(rowElements);
+  const isAnyChecked = getSomeElementsChecked(rowElements);
+  const allScopesDisabled: boolean = getAllElementsDisabled(rowElements);
 
   const handleChangeAllScopes = () => {
     const updatedRowElements: StudioCheckboxTableRowElement[] = updateRowElementsCheckedState(
@@ -123,10 +95,10 @@ const ScopeListContent = ({
           {
             // Replace "rowElements" with "checkboxTableRowElements" when ready to implement with mutation function
             rowElements.map((rowElement: StudioCheckboxTableRowElement) => (
-              <StudioCheckboxTable.Row
+              <ScopeListItem
                 key={rowElement.value}
                 rowElement={rowElement}
-                onChange={handleChangeScope}
+                onChangeScope={handleChangeScope}
               />
             ))
           }
@@ -136,38 +108,17 @@ const ScopeListContent = ({
   );
 };
 
-const LoggedInTitle = (): ReactElement => {
-  const { t } = useTranslation();
-  return (
-    <StudioHeading size='2xs' level={3} spacing>
-      {t('settings_modal.maskinporten_tab_available_scopes_title')}
-    </StudioHeading>
-  );
+type ScopeListItemProps = {
+  rowElement: StudioCheckboxTableRowElement;
+  onChangeScope: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
-const NoScopesAlert = (): ReactElement => {
-  const { t } = useTranslation();
-
-  const contactByEmail = new GetInTouchWith(new EmailContactProvider());
-
+const ScopeListItem = ({ rowElement, onChangeScope }: ScopeListItemProps): ReactElement => {
   return (
-    <div>
-      <LoggedInTitle />
-      <StudioAlert severity='info' className={classes.noScopeAlert}>
-        <StudioHeading level={4} size='xs' spacing>
-          {t('settings_modal.maskinporten_no_scopes_available_title')}
-        </StudioHeading>
-        <StudioParagraph size='sm'>
-          {t('settings_modal.maskinporten_no_scopes_available_description')}
-        </StudioParagraph>
-        <StudioLink
-          href={contactByEmail.url('serviceOwner')}
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          {t('settings_modal.maskinporten_no_scopes_available_link')}
-        </StudioLink>
-      </StudioAlert>
-    </div>
+    <StudioCheckboxTable.Row
+      key={rowElement.value}
+      rowElement={rowElement}
+      onChange={onChangeScope}
+    />
   );
 };

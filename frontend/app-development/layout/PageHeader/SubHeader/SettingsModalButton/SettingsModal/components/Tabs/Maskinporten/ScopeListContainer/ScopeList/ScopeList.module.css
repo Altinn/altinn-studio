@@ -3,11 +3,6 @@
   margin-top: var(--fds-spacing-4);
 }
 
-.noScopeAlert {
-  margin-top: var(--fds-spacing-6);
-  margin-bottom: var(--fds-spacing-4);
-}
-
 .link {
   display: inline;
 }

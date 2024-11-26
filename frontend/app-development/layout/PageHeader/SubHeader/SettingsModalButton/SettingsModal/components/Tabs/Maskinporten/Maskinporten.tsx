@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
 import { StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from 'app-development/hooks/queries/useIsLoggedInWithAnsattportenQuery';
-import { ScopeList } from './ScopeList';
+import { ScopeListContainer } from './ScopeListContainer';
 import { AnsattportenLogin } from './AnsattportenLogin';
 
 export const Maskinporten = (): ReactElement => {
@@ -20,7 +20,7 @@ export const Maskinporten = (): ReactElement => {
   if (isLoggedInWithAnsattporten) {
     return (
       <MaskinportenPageTemplate>
-        <ScopeList />
+        <ScopeListContainer />
       </MaskinportenPageTemplate>
     );
   }

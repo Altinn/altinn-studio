@@ -5,6 +5,9 @@ import {
   mapRowElementsToScopes,
   updateRowElementsCheckedState,
   toggleRowElementCheckedState,
+  getAllElementsChecked,
+  getSomeElementsChecked,
+  getAllElementsDisabled,
 } from './utils';
 import { type StudioCheckboxTableRowElement } from '@studio/components';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
@@ -212,6 +215,54 @@ describe('ScopeList utils functions', () => {
       const result = toggleRowElementCheckedState(mockRowElements, 'noMatch');
 
       expect(result).toEqual(mockRowElements);
+    });
+  });
+
+  describe('getAllElementsChecked', () => {
+    it('should return true if all elements are checked or disabled', () => {
+      const elements = [mockRowElement2, mockRowElement4];
+      expect(getAllElementsChecked(elements)).toBe(true);
+    });
+
+    it('should return false if any element is not checked and not disabled', () => {
+      const elements = [mockRowElement1, mockRowElement3];
+      expect(getAllElementsChecked(elements)).toBe(false);
+    });
+
+    it('should return true for an empty array', () => {
+      expect(getAllElementsChecked([])).toBe(true);
+    });
+  });
+
+  describe('getSomeElementsChecked', () => {
+    it('should return true if at least one element is checked', () => {
+      const elements = [mockRowElement1, mockRowElement2, mockRowElement3];
+      expect(getSomeElementsChecked(elements)).toBe(true);
+    });
+
+    it('should return false if no elements are checked', () => {
+      const elements = [mockRowElement1, mockRowElement3];
+      expect(getSomeElementsChecked(elements)).toBe(false);
+    });
+
+    it('should return false for an empty array', () => {
+      expect(getSomeElementsChecked([])).toBe(false);
+    });
+  });
+
+  describe('getAllElementsDisabled', () => {
+    it('should return true if all elements are disabled', () => {
+      const elements = [{ ...mockRowElement1, disabled: true }, mockRowElement4];
+      expect(getAllElementsDisabled(elements)).toBe(true);
+    });
+
+    it('should return false if any element is not disabled', () => {
+      const elements = [mockRowElement1, mockRowElement3];
+      expect(getAllElementsDisabled(elements)).toBe(false);
+    });
+
+    it('should return true for an empty array', () => {
+      expect(getAllElementsDisabled([])).toBe(true);
     });
   });
 });

@@ -2,17 +2,20 @@ import { type StudioCheckboxTableRowElement } from '@studio/components';
 import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 
 export const mapScopesToRowElements = (
-  maskinPortenScopes: MaskinportenScope[],
+  maskinportenScopes: MaskinportenScope[],
   selectedScopes: MaskinportenScope[],
 ): StudioCheckboxTableRowElement[] => {
-  const allScopes = mergeTwoScopeListsToOne(maskinPortenScopes, selectedScopes);
+  const combinedScopesList: MaskinportenScope[] = mergeTwoScopeListsToOne(
+    maskinportenScopes,
+    selectedScopes,
+  );
 
-  return allScopes.map((scope: MaskinportenScope) => ({
+  return combinedScopesList.map((scope: MaskinportenScope) => ({
     label: scope.scope,
     value: scope.scope,
     description: scope.description,
     checked: isScopeSelected(scope, selectedScopes),
-    disabled: !isScopeAvailable(scope, maskinPortenScopes),
+    disabled: !isScopeAvailable(scope, maskinportenScopes),
   }));
 };
 
@@ -84,4 +87,18 @@ export const toggleRowElementCheckedState = (
   return rowElements.map((element: StudioCheckboxTableRowElement) =>
     element.value === selectedScope ? { ...element, checked: !element.checked } : element,
   );
+};
+
+export const getAllElementsChecked = (elements: StudioCheckboxTableRowElement[]): boolean => {
+  return elements.every(
+    (element: StudioCheckboxTableRowElement) => element.checked || element.disabled,
+  );
+};
+
+export const getSomeElementsChecked = (elements: StudioCheckboxTableRowElement[]): boolean => {
+  return elements.some((element: StudioCheckboxTableRowElement) => element.checked);
+};
+
+export const getAllElementsDisabled = (elements: StudioCheckboxTableRowElement[]): boolean => {
+  return elements.every((scope: StudioCheckboxTableRowElement) => scope.disabled);
 };
