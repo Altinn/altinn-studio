@@ -16,7 +16,7 @@ namespace Altinn.Studio.Designer.Controllers;
 [ApiController]
 [ValidateAntiForgeryToken]
 [Route("designer/api/{org}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/feedbackform")]
-public class FeedbackFormController: ControllerBase
+public class FeedbackFormController : ControllerBase
 {
     private readonly ISlackClient _slackClient;
     private readonly GeneralSettings _generalSettings;

@@ -17,7 +17,6 @@ using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
 using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

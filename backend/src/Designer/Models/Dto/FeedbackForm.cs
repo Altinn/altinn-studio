@@ -9,6 +9,6 @@ namespace Altinn.Studio.Designer.Models.Dto
     public class FeedbackForm
     {
         [JsonPropertyName("answers")]
-        public Dictionary<string, string> Answers  { get; set; }
+        public Dictionary<string, string> Answers { get; set; }
     }
 }
