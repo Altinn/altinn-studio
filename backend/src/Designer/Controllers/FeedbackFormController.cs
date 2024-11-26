@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.Dto;
@@ -37,7 +38,7 @@ public class FeedbackFormController : ControllerBase
     /// </summary>
     [HttpPost]
     [Route("submit")]
-    public async Task<IActionResult> SubmitFeedback([FromRoute] string org, [FromRoute] string app, [FromBody] FeedbackForm feedback)
+    public async Task<IActionResult> SubmitFeedback([FromRoute] string org, [FromRoute] string app, [FromBody] FeedbackForm feedback, CancellationToken cancellationToken)
     {
         if (feedback == null)
         {
@@ -67,7 +68,7 @@ public class FeedbackFormController : ControllerBase
         await _slackClient.SendMessage(new SlackRequest
         {
             Text = JsonSerializer.Serialize(feedback.Answers, new JsonSerializerOptions { WriteIndented = true })
-        });
+        }, cancellationToken);
 
         return Ok();
     }
