@@ -6,7 +6,10 @@ import '@testing-library/jest-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
+import {
+  type MaskinportenScopes,
+  type MaskinportenScope,
+} from 'app-shared/types/MaskinportenScope';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -18,7 +21,7 @@ const scopeMock2: MaskinportenScope = {
   description: 'description2',
 };
 
-const maskinportenScopes: MaskinportenScope[] = [scopeMock1, scopeMock2];
+const maskinportenScopes: MaskinportenScopes = { scopes: [scopeMock1, scopeMock2] };
 
 describe('ScopeListContainer', () => {
   it('should display a spinner while loading', () => {
@@ -45,7 +48,7 @@ describe('ScopeListContainer', () => {
 
     expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
 
-    maskinportenScopes.forEach((scope: MaskinportenScope) => {
+    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
       expect(screen.getByRole('checkbox', { name: scope.scope }));
       expect(screen.getByText(scope.description));
       expect(screen.getByRole('checkbox', { name: scope.scope })).not.toBeChecked();
@@ -69,7 +72,7 @@ describe('ScopeListContainer', () => {
 
     expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
 
-    maskinportenScopes.forEach((scope: MaskinportenScope) => {
+    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
       expect(screen.getByRole('checkbox', { name: scope.scope }));
       expect(screen.getByText(scope.description));
       expect(screen.getByRole('checkbox', { name: scope.scope })).toBeChecked();
@@ -95,7 +98,7 @@ describe('ScopeListContainer', () => {
 
     expect(screen.getAllByRole('checkbox')).toHaveLength(3); // The two scopes + "select all"
 
-    maskinportenScopes.forEach((scope: MaskinportenScope) => {
+    maskinportenScopes.scopes.forEach((scope: MaskinportenScope) => {
       expect(screen.getByRole('checkbox', { name: scope.scope }));
       expect(screen.getByText(scope.description));
     });

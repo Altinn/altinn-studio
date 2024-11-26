@@ -9,12 +9,10 @@ import { ScopeList } from './ScopeList';
 export const ScopeListContainer = (): ReactElement => {
   const { t } = useTranslation();
   const { data: maskinPortenScopes, isPending: isPendingMaskinportenScopes } = useGetScopesQuery();
-
-  console.log('maskinportenScopes', maskinPortenScopes);
-
   const { data: selectedScopes, isPending: isPendingAppScopes } = useGetSelectedScopesQuery();
 
-  const hasScopes: boolean = maskinPortenScopes?.scopes.length > 0 || selectedScopes?.length > 0;
+  const hasScopes: boolean =
+    maskinPortenScopes?.scopes?.length > 0 || selectedScopes?.scopes?.length > 0;
   const hasPendingScopeQueries: boolean = isPendingMaskinportenScopes || isPendingAppScopes;
 
   if (hasPendingScopeQueries) {
@@ -23,7 +21,10 @@ export const ScopeListContainer = (): ReactElement => {
 
   if (hasScopes) {
     return (
-      <ScopeList maskinPortenScopes={maskinPortenScopes.scopes} selectedScopes={selectedScopes} />
+      <ScopeList
+        maskinPortenScopes={maskinPortenScopes.scopes}
+        selectedScopes={selectedScopes.scopes}
+      />
     );
   }
 

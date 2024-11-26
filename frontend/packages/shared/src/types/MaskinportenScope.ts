@@ -3,6 +3,6 @@ export type MaskinportenScope = {
   description: string;
 };
 
-export type MaskinPortenScopes = {
+export type MaskinportenScopes = {
   scopes: MaskinportenScope[];
 };
