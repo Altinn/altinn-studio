@@ -12,7 +12,7 @@ import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeList';
 import { FileNameUtils, FileNameValidationResult } from '@studio/pure-functions';
-import { useValidateInputCodeListName } from '../../hooks/useValidateInputCodeListName';
+import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 
 type CreateNewCodeListModalProps = {
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
@@ -69,7 +69,7 @@ function CreateNewCodeList({
 }: CreateNewCodeListProps) {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-  const getInvalidInputFileNameErrorMessage = useValidateInputCodeListName();
+  const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [codeListTitleError, setCodeListTitleError] = useState<string>('');
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =

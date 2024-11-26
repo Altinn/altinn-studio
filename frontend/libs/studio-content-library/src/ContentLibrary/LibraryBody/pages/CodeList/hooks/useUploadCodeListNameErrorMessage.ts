@@ -1,7 +1,7 @@
 import { FileNameValidationResult } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 
-export function useValidateUploadCodeListName() {
+export function useUploadCodeListNameErrorMessage() {
   const { t } = useTranslation();
 
   type FileNameValidationErrorResult = Exclude<
