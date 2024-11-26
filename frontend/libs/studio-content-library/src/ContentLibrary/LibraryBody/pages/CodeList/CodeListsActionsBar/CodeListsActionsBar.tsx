@@ -21,7 +21,7 @@ export function CodeListsActionsBar({
   codeListNames,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
-  const { getInvalidUploadFileNameErrorMessage } = useValidateUploadCodeListName();
+  const getInvalidUploadFileNameErrorMessage = useValidateUploadCodeListName();
 
   const onSubmit = (file: File) => {
     if (!isFileNameValid(file.name, codeListNames)) {

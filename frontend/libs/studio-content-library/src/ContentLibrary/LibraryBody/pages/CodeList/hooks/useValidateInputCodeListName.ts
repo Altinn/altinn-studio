@@ -14,9 +14,5 @@ export function useValidateInputCodeListName() {
     [FileNameValidationResult.FileExists]: t('validation_errors.file_name_occupied'),
   };
 
-  const getInvalidInputFileNameErrorMessage = (fileNameError: FileNameValidationResult) => {
-    return errorMessages[fileNameError];
-  };
-
-  return { getInvalidInputFileNameErrorMessage };
+  return (fileNameError: FileNameValidationResult) => errorMessages[fileNameError];
 }

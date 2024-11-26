@@ -30,7 +30,7 @@ export function CodeList({
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
 
-  const codeListTitles = ArrayUtils.mapByKey(codeLists, 'title');
+  const codeListTitles = ArrayUtils.mapByKey<CodeListWithMetadata, 'title'>(codeLists, 'title');
 
   return (
     <div className={classes.codeListsContainer}>

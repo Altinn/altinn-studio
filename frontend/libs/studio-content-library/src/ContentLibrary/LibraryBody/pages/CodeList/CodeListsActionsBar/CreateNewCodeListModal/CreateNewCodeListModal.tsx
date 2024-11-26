@@ -69,7 +69,7 @@ function CreateNewCodeList({
 }: CreateNewCodeListProps) {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-  const { getInvalidInputFileNameErrorMessage } = useValidateInputCodeListName();
+  const getInvalidInputFileNameErrorMessage = useValidateInputCodeListName();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [codeListTitleError, setCodeListTitleError] = useState<string>('');
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =

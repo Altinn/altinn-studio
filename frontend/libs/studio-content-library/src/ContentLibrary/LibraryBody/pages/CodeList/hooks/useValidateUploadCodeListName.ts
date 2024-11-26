@@ -14,9 +14,5 @@ export function useValidateUploadCodeListName() {
     [FileNameValidationResult.FileExists]: t('validation_errors.upload_file_name_occupied'),
   };
 
-  const getInvalidUploadFileNameErrorMessage = (fileNameError: FileNameValidationResult) => {
-    return errorMessages[fileNameError];
-  };
-
-  return { getInvalidUploadFileNameErrorMessage };
+  return (fileNameError: FileNameValidationResult) => errorMessages[fileNameError];
 }
