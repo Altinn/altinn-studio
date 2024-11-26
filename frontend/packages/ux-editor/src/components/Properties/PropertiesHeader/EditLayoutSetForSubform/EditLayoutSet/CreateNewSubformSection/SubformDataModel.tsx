@@ -4,6 +4,7 @@ import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import classes from './SubformDataModel.module.css';
 
 export type SubformDataModelProps = {
   handleDataModel: (dataModelId: string) => void;
@@ -59,6 +60,7 @@ export const SubformDataModel = ({
       ) : (
         <StudioProperty.Button
           icon={<LinkIcon />}
+          className={classes.displayDataModelButton}
           onClick={handleDisplayInput}
           property={t('ux_editor.component_properties.subform.create_new_data_model')}
         />
