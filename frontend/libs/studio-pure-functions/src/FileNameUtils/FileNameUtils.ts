@@ -1,5 +1,12 @@
 import { StringUtils } from '@studio/pure-functions';
 
+export enum FileNameValidationResult {
+  FileNameIsEmpty = 'fileNameIsEmpty',
+  NoRegExMatch = 'noRegExMatch',
+  FileExists = 'fileExists',
+  Valid = 'valid',
+}
+
 export class FileNameUtils {
   /**
    * Remove extension from filename.
@@ -26,17 +33,47 @@ export class FileNameUtils {
    */
   static isXsdFile = (filename: string): boolean => filename.toLowerCase().endsWith('.xsd');
 
-  static extractFilename = (path: string): string => {
+  static extractFileName = (path: string): string => {
     const indexOfLastSlash = path.lastIndexOf('/');
     return indexOfLastSlash < 0 ? path : path.substring(indexOfLastSlash + 1);
   };
 
   static removeFileNameFromPath = (path: string, excludeLastSlash: boolean = false): string => {
-    const fileName = this.extractFilename(path);
+    const fileName = this.extractFileName(path);
     const indexOfLastSlash = path.lastIndexOf('/');
     return path.slice(
       0,
       path.lastIndexOf(excludeLastSlash && indexOfLastSlash > 0 ? '/' + fileName : fileName),
     );
+  };
+
+  /**
+   * Validates if file name does not exist in list of invalid names and if name matches regEx, if provided.
+   * @param fileName
+   * @param invalidFileNames
+   * @param regEx
+   * @returns FileNameValidationResult
+   */
+  static validateFileName = (
+    fileName: string,
+    invalidFileNames: string[],
+    regEx?: RegExp,
+  ): FileNameValidationResult => {
+    if (fileName === '') {
+      return FileNameValidationResult.FileNameIsEmpty;
+    }
+
+    const isFileNameNotMatchingRegEx: boolean = regEx ? Boolean(!fileName.match(regEx)) : false;
+    const isFileNameInInvalidList: boolean = invalidFileNames.some(
+      (invalidFileName) => invalidFileName === fileName,
+    );
+
+    if (isFileNameNotMatchingRegEx) {
+      return FileNameValidationResult.NoRegExMatch;
+    }
+    if (isFileNameInInvalidList) {
+      return FileNameValidationResult.FileExists;
+    }
+    return FileNameValidationResult.Valid;
   };
 }

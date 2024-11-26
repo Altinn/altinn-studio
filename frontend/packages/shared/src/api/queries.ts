@@ -53,7 +53,9 @@ import {
   repoDiffPath,
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
+  authStatusAnsattporten,
 } from './paths';
+
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -85,13 +87,10 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
-export const getIsLoggedInWithAnsattporten = async (): Promise<boolean> =>
-  // TODO: replace with endpoint when it's ready in the backend.
-  new Promise((resolve) => {
-    setTimeout(() => {
-      return resolve(false);
-    }, 1000);
-  });
+export const getIsLoggedInWithAnsattporten = () =>
+  get<{
+    isLoggedIn: boolean;
+  }>(authStatusAnsattporten());
 export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
   // TODO: replace with endpoint when it's ready in the backend.
   new Promise((resolve) => {
@@ -99,7 +98,6 @@ export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
       return resolve([]);
     }, 1000);
   });
-
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));
