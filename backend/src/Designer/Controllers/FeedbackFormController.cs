@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.AspNetCore.Authorization;
@@ -19,14 +20,17 @@ namespace Altinn.Studio.Designer.Controllers;
 public class FeedbackFormController: ControllerBase
 {
     private readonly ISlackClient _slackClient;
+    private readonly GeneralSettings _generalSettings;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FeedbackFormController"/> class.
     /// </summary>
     /// <param name="slackClient">A http client to send messages to slack</param>
-    public FeedbackFormController(ISlackClient slackClient)
+    /// <param name="generalSettings">the general settings</param>
+    public FeedbackFormController(ISlackClient slackClient, GeneralSettings generalSettings)
     {
         _slackClient = slackClient;
+        _generalSettings = generalSettings;
     }
 
     /// <summary>
@@ -58,10 +62,8 @@ public class FeedbackFormController: ControllerBase
 
         if (!feedback.Answers.ContainsKey("env"))
         {
-            feedback.Answers.Add("env", GetEnvironmentName());
+            feedback.Answers.Add("env", GetEnvironmentNameForSlackMessage());
         }
-
-        Console.WriteLine(JsonSerializer.Serialize(feedback, new JsonSerializerOptions { WriteIndented = true }));
 
         await _slackClient.SendMessage(new SlackRequest
         {
@@ -71,12 +73,12 @@ public class FeedbackFormController: ControllerBase
         return Ok();
     }
 
-    private string GetEnvironmentName()
+    private string GetEnvironmentNameForSlackMessage()
     {
-        string hostname = Environment.GetEnvironmentVariable("GeneralSettings:HostName");
+        string hostname = _generalSettings.HostName;
         if (hostname == null)
         {
-            return "local";
+            return "unknown";
         }
         if (hostname.StartsWith("dev")) {
             return "dev";
