@@ -91,6 +91,26 @@ export function formatLayoutSchemaValidationError(error: DefinedError): string |
       return `Ugyldig verdi for egenskapen ${propertyString}, verdien \`${error.data}\` er ikke av typen \`${
         error.params.type
       }\` ${canBeExpression ? 'eller et uttrykk' : ''}`;
+    case 'minimum':
+      if (error.params.comparison === '>=') {
+        return `Ugyldig verdi for egenskapen ${propertyString}, verdien \`${error.data}\` er mindre enn minimumsverdien ${
+          error.params.limit
+        }`;
+      }
+
+      return `Ugyldig verdi for egenskapen ${propertyString}, verdien \`${error.data}\` er mindre enn eller lik minimumsverdien ${
+        error.params.limit
+      }`;
+    case 'maximum':
+      if (error.params.comparison === '<=') {
+        return `Ugyldig verdi for egenskapen ${propertyString}, verdien \`${error.data}\` er større enn maksimumsverdien ${
+          error.params.limit
+        }`;
+      }
+
+      return `Ugyldig verdi for egenskapen ${propertyString}, verdien \`${error.data}\` er større enn eller lik maksimumsverdien ${
+        error.params.limit
+      }`;
     case 'if':
     case 'anyOf':
     case 'oneOf':

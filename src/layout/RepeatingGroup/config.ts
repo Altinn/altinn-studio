@@ -256,7 +256,7 @@ export const Config = new CG.component({
       'maxCount',
       new CG.int()
         .optional()
-        .setMin(2)
+        .setMin(1)
         .setTitle('Max number of rows')
         .setDescription('Maximum number of rows that can be added.'),
     ),
@@ -265,7 +265,8 @@ export const Config = new CG.component({
     new CG.prop(
       'minCount',
       new CG.int()
-        .optional()
+        .setMin(0)
+        .optional({ default: 0 })
         .setTitle('Min number of rows')
         .setDescription(
           'Minimum number of rows that should be added. If the user has not added enough rows, ' +
