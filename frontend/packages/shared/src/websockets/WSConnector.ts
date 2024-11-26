@@ -1,4 +1,4 @@
-import { type HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import { HttpTransportType, type HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
 
 export class WSConnector {
   private connection: HubConnection;
@@ -32,6 +32,7 @@ export class WSConnector {
     this.connection = new HubConnectionBuilder()
       .withUrl(webSocketUrl, {
         skipNegotiation: true,
+        transport: HttpTransportType.WebSockets,
       })
       .withAutomaticReconnect()
       .build();
