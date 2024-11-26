@@ -50,6 +50,42 @@ describe('MigrationPanel', () => {
     await waitFor(() => screen.findByText(textMock('resourceadm.migration_not_needed')));
   });
 
+  it('should show message if link service does not exist in given environment', async () => {
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({ response: { status: ServerCodes.NotFound } });
+        }),
+      },
+    );
+    await waitFor(() => screen.findByText(textMock('resourceadm.migration_service_not_found')));
+  });
+
+  it('should show message if link service cannot be migrated in given environment', async () => {
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({ response: { status: ServerCodes.Forbidden } });
+        }),
+      },
+    );
+    await waitFor(() => screen.findByText(textMock('resourceadm.migration_cannot_migrate_in_env')));
+  });
+
+  it('should show message if get delegation count fails in given environment', async () => {
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({ response: { status: ServerCodes.InternalServerError } });
+        }),
+      },
+    );
+    await waitFor(() => screen.findByText(textMock('resourceadm.migration_technical_error')));
+  });
+
   it('should show error when user starts migrate delegations if user has no permission to migrate', async () => {
     const user = userEvent.setup();
     renderMigrationPanel(
