@@ -1,5 +1,5 @@
 import { renderWithProviders } from '../../../../test/renderWithProviders';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { SchemaNode } from './SchemaNode';
 import { userEvent } from '@testing-library/user-event';
 import type { FieldNode } from '@altinn/schema-model';
@@ -204,11 +204,11 @@ const render = ({
   return renderWithProviders({
     appContextProps: { save, schemaModel, selectedUniquePointer, setSelectedUniquePointer },
   })(
-    <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
-      <DragAndDropTree.Root>
+    <StudioDragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
+      <StudioDragAndDropTree.Root>
         <SchemaNode schemaPointer={schemaPointer} />
-      </DragAndDropTree.Root>
-    </DragAndDropTree.Provider>,
+      </StudioDragAndDropTree.Root>
+    </StudioDragAndDropTree.Provider>,
   );
 };
 

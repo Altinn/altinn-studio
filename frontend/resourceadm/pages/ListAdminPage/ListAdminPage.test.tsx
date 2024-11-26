@@ -137,6 +137,20 @@ describe('ListAdminPage', () => {
       ),
     ).toBeInTheDocument();
   });
+
+  it('should navigate back on back button click', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      org: 'ttd',
+    });
+
+    const user = userEvent.setup();
+    renderListAdminPage();
+
+    const backLink = screen.getByRole('link', { name: textMock('resourceadm.listadmin_back') });
+    await user.click(backLink);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/ttd/ttd-resources');
+  });
 });
 
 const renderListAdminPage = (isError?: boolean) => {

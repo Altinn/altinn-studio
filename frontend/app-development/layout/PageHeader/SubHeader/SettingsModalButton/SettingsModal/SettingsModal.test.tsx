@@ -14,6 +14,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
 import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 import type { SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
+import { typedLocalStorage } from '@studio/pure-functions';
 
 jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 
@@ -36,6 +37,26 @@ describe('SettingsModal', () => {
       name: 'close modal', // Todo: Replace 'close modal' with textMock('settings_modal.close_button_label') when https://github.com/digdir/designsystemet/issues/2195 is fixed
     });
     await user.click(closeButton);
+  });
+
+  it('should hide the "Maskinporten" tab when the feature flag is not enabled', async () => {
+    await resolveAndWaitForSpinnerToDisappear();
+    const maskinPortenTab = screen.queryByRole('tab', {
+      name: textMock('settings_modal.left_nav_tab_maskinporten'),
+    });
+
+    expect(maskinPortenTab).not.toBeInTheDocument();
+  });
+
+  it('should display the "Maskinporten" tab when the feature flag is enabled.', async () => {
+    typedLocalStorage.setItem<string[]>('featureFlags', ['maskinporten']);
+    await resolveAndWaitForSpinnerToDisappear();
+    const maskinPortenTab = screen.getByRole('tab', {
+      name: textMock('settings_modal.left_nav_tab_maskinporten'),
+    });
+
+    expect(maskinPortenTab).toBeInTheDocument();
+    typedLocalStorage.removeItem('featureFlags');
   });
 
   it('displays left navigation bar when promises resolve', async () => {

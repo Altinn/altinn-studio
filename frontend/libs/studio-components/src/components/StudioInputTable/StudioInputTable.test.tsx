@@ -92,14 +92,6 @@ describe('StudioInputTable', () => {
     expect(firstInput).toHaveFocus();
   });
 
-  it('Moves focus out of the table when the user first tabs into it and then tabs again', async () => {
-    const user = userEvent.setup();
-    render(<TestTable />);
-    await user.tab();
-    await user.tab();
-    expect(document.body).toHaveFocus();
-  });
-
   it('Lets the user focus on the input elements using the arrow and enter keys', async () => {
     const user = userEvent.setup();
     render(<TestTable />);

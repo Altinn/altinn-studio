@@ -187,10 +187,6 @@ export const formItemConfigs: FormItemConfigs = {
         {
           type: 'ClientAction',
           id: 'closeSubform',
-          validation: {
-            page: 'all',
-            show: ['All'],
-          },
         },
       ],
     },
@@ -328,17 +324,6 @@ export const formItemConfigs: FormItemConfigs = {
       dataModelBindings: {
         questions: '',
         answer: '',
-      },
-    },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: LikertIcon,
-  },
-  [ComponentType.LikertItem]: {
-    name: ComponentType.LikertItem,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      dataModelBindings: {
-        simpleBinding: '',
       },
     },
     propertyPath: 'definitions/radioAndCheckboxComponents',
@@ -533,7 +518,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Dropdown],
   formItemConfigs[ComponentType.MultipleSelect],
   formItemConfigs[ComponentType.Likert],
-  formItemConfigs[ComponentType.LikertItem],
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],

@@ -44,6 +44,8 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   AppConfig = 'AppConfig',
+  IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
+  AppScopes = 'AppScopes',
 
   // Resourceadm
   ResourceList = 'ResourceList',

@@ -29,8 +29,8 @@
     <PackageReference Update="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Update="HtmlAgilityPack" Version="1.11.67" />
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
     <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
     <PackageReference Update="Polly" Version="8.4.2" />

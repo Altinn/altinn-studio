@@ -6,7 +6,6 @@ import { getNextInputElement } from '../dom-utils/getNextInputElement';
 
 type DefaultProps<Element extends HTMLCellInputElement> = {
   onKeyDown?: (event: KeyboardEvent<Element>) => void;
-  tabIndex?: number;
 };
 
 export abstract class BaseInputCell<
@@ -37,7 +36,6 @@ export abstract class BaseInputCell<
 
   private defaultProps: Required<DefaultProps<Element>> = {
     onKeyDown: (event) => this.handleKeyDown(event),
-    tabIndex: -1,
   };
 
   private handleKeyDown(event: KeyboardEvent<Element>): void {
@@ -74,9 +72,7 @@ export abstract class BaseInputCell<
     const nextElement = this.getNextElement(event);
     if (nextElement) {
       event.preventDefault();
-      nextElement.tabIndex = 0;
       nextElement.focus();
-      event.currentTarget.tabIndex = -1;
     }
   }
 
