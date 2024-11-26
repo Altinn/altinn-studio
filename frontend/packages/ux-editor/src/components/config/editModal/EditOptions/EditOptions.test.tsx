@@ -16,12 +16,12 @@ const queryClientMock = createQueryClientMock();
 describe('EditOptions', () => {
   afterEach(() => queryClientMock.clear());
 
-  it('should render', async () => {
+  it('should render', () => {
     renderEditOptions();
     expect(screen.getByText(textMock('ux_editor.options.section_heading'))).toBeInTheDocument();
   });
 
-  it('should render spinner when loading data', async () => {
+  it('should render spinner when loading data', () => {
     renderEditOptions();
     expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();
   });
@@ -60,7 +60,7 @@ function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.Ra
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
   renderOptions?: {
-    areLayoutOptionsSupported?: boolean;
+    isOnlyOptionsIdSupported?: boolean;
   };
 } = {}) {
   return renderWithProviders(

@@ -20,12 +20,12 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 describe('EditOptions', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('should render component', async () => {
+  it('should render component', () => {
     renderEditOptions();
     expect(screen.getByText(textMock('ux_editor.options.tab_code_list'))).toBeInTheDocument();
   });
 
-  it('should show code list input by default when neither options nor optionId are set', async () => {
+  it('should show code list input by default when neither options nor optionId are set', () => {
     renderEditOptions({
       componentProps: { options: undefined, optionsId: undefined },
     });
@@ -37,7 +37,7 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show code list tab when component has optionsId defined matching an optionId in optionsID-list', async () => {
+  it('should show code list tab when component has optionsId defined matching an optionId in optionsID-list', () => {
     const optionsId = 'optionsId';
     renderEditOptions({
       componentProps: {
@@ -54,7 +54,7 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show referenceId tab when component has optionsId defined not matching an optionId in optionsId-list', async () => {
+  it('should show referenceId tab when component has optionsId defined not matching an optionId in optionsId-list', () => {
     const optionsId = 'optionsId';
     renderEditOptions({
       componentProps: {
@@ -71,7 +71,7 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should switch to code list tab when input clicking code list tab', async () => {
+  it('should switch to code list tab when clicking code list tab', async () => {
     const user = userEvent.setup();
     const optionsId = 'optionsId';
     renderEditOptions({
@@ -125,12 +125,12 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
+  it('should show alert message in CodeList tab when prop isOnlyOptionsIdSupported is false', async () => {
     addFeatureFlagToLocalStorage('optionListEditor');
     const user = userEvent.setup();
     renderEditOptions({
       componentProps: { options: undefined, optionsId: undefined },
-      renderOptions: { areLayoutOptionsSupported: false },
+      renderOptions: { isOnlyOptionsIdSupported: false },
     });
 
     const codeListTabElement = screen.getByRole('tab', {
@@ -150,6 +150,7 @@ describe('EditOptions', () => {
         options: undefined,
       },
       optionListIds: [optionsId],
+      renderOptions: { isOnlyOptionsIdSupported: true },
     });
 
     expect(
@@ -158,18 +159,18 @@ describe('EditOptions', () => {
   });
 
   // Todo: Remove once featureFlag "optionListEditor" is removed
-  it('EditOptionList-v1, should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
+  it('should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
     removeFeatureFlagFromLocalStorage('optionListEditor');
     const user = userEvent.setup();
     renderEditOptions({
       componentProps: { options: undefined, optionsId: undefined },
-      renderOptions: { areLayoutOptionsSupported: false },
+      renderOptions: { isOnlyOptionsIdSupported: false },
     });
 
-    const maunalTabElement = screen.getByRole('tab', {
+    const manualTabElement = screen.getByRole('tab', {
       name: textMock('ux_editor.options.tab_manual'),
     });
-    await user.click(maunalTabElement);
+    await user.click(manualTabElement);
 
     expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
@@ -180,7 +181,7 @@ type renderEditOptionsProps<T extends ComponentType.Checkboxes | ComponentType.R
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
   renderOptions?: {
-    areLayoutOptionsSupported?: boolean;
+    isOnlyOptionsIdSupported?: boolean;
   };
   optionListIds?: string[];
 };

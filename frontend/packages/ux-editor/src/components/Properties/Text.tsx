@@ -65,7 +65,7 @@ export const Text = () => {
           handleComponentChange={handleComponentChange}
           layoutName={selectedFormLayoutName}
           renderOptions={{
-            areLayoutOptionsSupported: schema.properties.optionsId! && schema.properties.options,
+            isOnlyOptionsIdSupported: schema.properties.optionsId && schema.properties.options,
           }}
         />
       )}

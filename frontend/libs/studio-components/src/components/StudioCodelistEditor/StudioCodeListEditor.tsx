@@ -146,7 +146,7 @@ function CodeLists({
     [codeList, onChange],
   );
 
-  const handleChange = useCallback(
+  const handleBlur = useCallback(
     (index: number, newItem: CodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
       onChange(updatedCodeList);
@@ -162,7 +162,7 @@ function CodeLists({
           item={item}
           key={index}
           number={index + 1}
-          onBlur={(newItem) => handleChange(index, newItem)}
+          onBlur={(newItem) => handleBlur(index, newItem)}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
         />
       ))}

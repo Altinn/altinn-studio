@@ -1,18 +1,18 @@
 import React from 'react';
-import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
-import classes from './EditOptions.module.css';
 import type { IGenericEditComponent } from '../../componentConfig';
+import type { SelectionComponentType } from '../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../hooks/queries/useOptionListIdsQuery';
+import { ErrorMessage, Heading } from '@digdir/designsystemet-react';
 import { StudioSpinner } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useTranslation } from 'react-i18next';
-import type { SelectionComponentType } from '../../../../types/FormComponent';
 import { OptionTabs } from './OptionTabs';
+import classes from './EditOptions.module.css';
 
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
   extends IGenericEditComponent<T> {
   renderOptions?: {
-    areLayoutOptionsSupported?: boolean;
+    isOnlyOptionsIdSupported?: boolean;
   };
 }
 
