@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../CodeList';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
 import { FileNameValidationResult, FileNameUtils } from '@studio/pure-functions';
-import { useValidateFileName } from '../hooks/useValidateFileName';
+import { useValidateUploadCodeListName } from '../hooks/useValidateUploadCodeListName';
 import { toast } from 'react-toastify';
 
 type CodeListsActionsBarProps = {
@@ -21,7 +21,7 @@ export function CodeListsActionsBar({
   codeListNames,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
-  const { getInvalidUploadFileNameErrorMessage } = useValidateFileName();
+  const { getInvalidUploadFileNameErrorMessage } = useValidateUploadCodeListName();
 
   const onSubmit = (file: File) => {
     if (!isFileNameValid(file.name, codeListNames)) {

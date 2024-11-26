@@ -20,7 +20,7 @@ export function AppContentLibrary(): React.ReactElement {
     isError: optionListsError,
   } = useOptionListsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
+    hideDefaultError: (error: AxiosError<ApiError>) => errorIsUnknown(error),
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
 
@@ -35,7 +35,7 @@ export function AppContentLibrary(): React.ReactElement {
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
       onError: (error: AxiosError<ApiError>) => {
-        if (!error.response?.data?.errorCode) {
+        if (errorIsUnknown(error)) {
           toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }
       },
@@ -67,3 +67,5 @@ export function AppContentLibrary(): React.ReactElement {
 
   return <div>{getContentResourceLibrary()}</div>;
 }
+
+const errorIsUnknown = (error: AxiosError<ApiError>) => !error.response?.data?.errorCode;

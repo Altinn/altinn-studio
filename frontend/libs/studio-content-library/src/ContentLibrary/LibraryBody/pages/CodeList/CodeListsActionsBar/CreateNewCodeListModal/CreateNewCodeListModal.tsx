@@ -12,7 +12,7 @@ import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeList';
 import { FileNameUtils, FileNameValidationResult } from '@studio/pure-functions';
-import { useValidateFileName } from '../../hooks/useValidateFileName';
+import { useValidateInputCodeListName } from '../../hooks/useValidateInputCodeListName';
 
 type CreateNewCodeListModalProps = {
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
@@ -69,7 +69,7 @@ function CreateNewCodeList({
 }: CreateNewCodeListProps) {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-  const { getInvalidInputFileNameErrorMessage } = useValidateFileName();
+  const { getInvalidInputFileNameErrorMessage } = useValidateInputCodeListName();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [codeListTitleError, setCodeListTitleError] = useState<string>('');
   const [currentCodeListWithMetadata, setCurrentCodeListWithMetadata] =
@@ -83,30 +83,33 @@ function CreateNewCodeList({
     onCloseModal();
   };
 
-  const handleCodeListTitleChange = (codeListTitle: string) => {
-    const fileNameError = FileNameUtils.validateFileName(codeListTitle, codeListNames);
+  const handleCodeListTitleChange = (updatedTitle: string) => {
+    const fileNameError = FileNameUtils.validateFileName(updatedTitle, codeListNames);
     const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
     setCodeListTitleError(errorMessage ?? '');
-    if (fileNameError === FileNameValidationResult.Valid)
-      setCurrentCodeListWithMetadata({
-        title: codeListTitle,
-        codeList: currentCodeListWithMetadata.codeList,
-      });
+    if (fileNameError === FileNameValidationResult.Valid) {
+      const updatedCodeListWithMetadata = updateTitleInCodeListWithMetadata(
+        currentCodeListWithMetadata,
+        updatedTitle,
+      );
+      setCurrentCodeListWithMetadata(updatedCodeListWithMetadata);
+    }
   };
 
   const handleCodeListChange = (updatedCodeList: CodeList) => {
     setIsCodeListValid(true);
-    setCurrentCodeListWithMetadata({
-      title: currentCodeListWithMetadata.title,
-      codeList: updatedCodeList,
-    });
+    const updatedCodeListWithMetadata = updateCodeListInCodeListWithMetadata(
+      currentCodeListWithMetadata,
+      updatedCodeList,
+    );
+    setCurrentCodeListWithMetadata(updatedCodeListWithMetadata);
   };
 
   const handleInvalidCodeList = () => {
     setIsCodeListValid(false);
   };
 
-  const isSaveButtonDisabled =
+  const shouldSaveButtonBeDisabled =
     !isCodeListValid || !currentCodeListWithMetadata.title || codeListTitleError;
 
   return (
@@ -132,10 +135,24 @@ function CreateNewCodeList({
         icon={<CheckmarkIcon />}
         onClick={handleSaveCodeList}
         variant='secondary'
-        disabled={isSaveButtonDisabled}
+        disabled={shouldSaveButtonBeDisabled}
       >
         {t('app_content_library.code_lists.save_new_code_list')}
       </StudioButton>
     </div>
   );
 }
+
+const updateCodeListInCodeListWithMetadata = (
+  currentCodeListWithMetadata: CodeListWithMetadata,
+  updatedCodeList: CodeList,
+): CodeListWithMetadata => {
+  return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
+};
+
+const updateTitleInCodeListWithMetadata = (
+  currentCodeListWithMetadata: CodeListWithMetadata,
+  updatedTitle: string,
+): CodeListWithMetadata => {
+  return { ...currentCodeListWithMetadata, title: updatedTitle };
+};

@@ -40,7 +40,7 @@ describe('CodeListsActionsBar', () => {
     expect(onUploadCodeListMock).toHaveBeenCalledTimes(1);
   });
 
-  it('renders correct toast error message when uploading a file with existing file name', async () => {
+  it('does not call onUploadCodeList when uploading a file with existing file name', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
     const fileUploaderButton = screen.getByLabelText(
@@ -49,6 +49,16 @@ describe('CodeListsActionsBar', () => {
     const file = new File(['test'], `${codeListName1}.json`, { type: 'application/json' });
     await user.upload(fileUploaderButton, file);
     expect(onUploadCodeListMock).not.toHaveBeenCalled();
+  });
+
+  it('renders correct toast error message when uploading a file with existing file name', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    const fileUploaderButton = screen.getByLabelText(
+      textMock('app_content_library.code_lists.upload_code_list'),
+    );
+    const file = new File(['test'], `${codeListName1}.json`, { type: 'application/json' });
+    await user.upload(fileUploaderButton, file);
     const toastErrorText = screen.getByText(
       textMock('validation_errors.upload_file_name_occupied'),
     );

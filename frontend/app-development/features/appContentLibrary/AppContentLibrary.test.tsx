@@ -88,17 +88,17 @@ describe('AppContentLibrary', () => {
     expect(successToastMessage).toBeInTheDocument();
   });
 
-  it('renders error toast when onUploadOptionList is rejected', async () => {
+  it('renders error toast when onUploadOptionList is rejected with unknown error code', async () => {
     const user = userEvent.setup();
     const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({ response: {} }));
     renderAppContentLibrary({ queries: { uploadOptionList } });
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
-    const successToastMessage = screen.getByText(
+    const errorToastMessage = screen.getByText(
       textMock('ux_editor.modal_properties_code_list_upload_generic_error'),
     );
-    expect(successToastMessage).toBeInTheDocument();
+    expect(errorToastMessage).toBeInTheDocument();
   });
 
   it('calls onUpdateOptionList when onUpdateCodeList is triggered', async () => {
