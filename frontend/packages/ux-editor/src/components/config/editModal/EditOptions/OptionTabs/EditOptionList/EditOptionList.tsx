@@ -58,7 +58,7 @@ export function EditOptionList<T extends SelectionComponentType>({
       },
       onError: (error: AxiosError<ApiError>) => {
         if (!error.response?.data?.errorCode) {
-          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
+          toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);
         }
       },
     });
@@ -70,8 +70,6 @@ export function EditOptionList<T extends SelectionComponentType>({
         return toast.error(t('validation_errors.file_name_invalid'));
       case FileNameValidationResult.FileExists:
         return toast.error(t('validation_errors.upload_file_name_occupied'));
-      default:
-        return null;
     }
   };
 
