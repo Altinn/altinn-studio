@@ -126,7 +126,6 @@ export const EditAutoComplete = ({ component, handleComponentChange }: IGenericE
         open={searchFieldFocused && autoCompleteOptions.length > 0}
         placement='bottom-start'
       >
-        <StudioPopover.Trigger asChild>{<div />}</StudioPopover.Trigger>
         <StudioPopover.Content>
           {autoCompleteOptions.map(
             (option): JSX.Element => (
