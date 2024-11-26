@@ -201,10 +201,10 @@ namespace LocalTest.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = null)
+        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = null, [FromQuery] string scopes = null)
         {
             // Create a test token with long duration
-            string token = await _authenticationService.GenerateTokenForOrg(id, orgNumber);
+            string token = await _authenticationService.GenerateTokenForOrg(id, orgNumber, scopes);
 
             return Ok(token);
         }

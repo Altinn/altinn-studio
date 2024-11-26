@@ -20,7 +20,7 @@ namespace LocalTest.Services.Authentication.Interface
         /// <param name="org">Three letter application owner name (eg, TST )</param>
         /// <param name="orgNumber">Optional Organization number for the application owner. Will be fetched if not provided</param>
         /// <returns>JWT token</returns>
-        public Task<string> GenerateTokenForOrg(string org, string? orgNumber = null);
+        public Task<string> GenerateTokenForOrg(string org, string? orgNumber = null, string? scopes = null);
 
         /// <summary>
         /// Get JWT token for user profile

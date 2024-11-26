@@ -56,7 +56,7 @@ public class AuthenticationService : IAuthentication
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateTokenForOrg(string org, string? orgNumber = null)
+    public async Task<string> GenerateTokenForOrg(string org, string? orgNumber = null, string? scopes = null)
     {
         if (orgNumber is null)
         {
@@ -69,7 +69,8 @@ public class AuthenticationService : IAuthentication
         claims.Add(new Claim(AltinnCoreClaimTypes.Org, org.ToLower(), ClaimValueTypes.String, issuer));
         // 3 is the default level for altinn tokens form Maskinporten
         claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
-        claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
+        scopes ??= "altinn:serviceowner/instances.read";
+        claims.Add(new Claim("urn:altinn:scope", scopes, ClaimValueTypes.String, issuer));
         if (!string.IsNullOrEmpty(orgNumber))
         {
             claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
