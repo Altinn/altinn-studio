@@ -20,7 +20,7 @@
 }
 
 .icon {
-  font-size: 2.3rem;
+  font-size: var(--fds-sizing-7);
 }
 
 .textContainer {

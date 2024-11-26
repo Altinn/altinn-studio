@@ -1,6 +1,5 @@
 import React from 'react';
 import classes from './ContactPage.module.css';
-import { Heading, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
 import { GetInTouchWith } from 'app-shared/getInTouch';
@@ -9,7 +8,11 @@ import {
   GitHubIssueContactProvider,
   SlackContactProvider,
 } from 'app-shared/getInTouch/providers';
-import { StudioPageImageBackgroundContainer } from '@studio/components';
+import {
+  StudioPageImageBackgroundContainer,
+  StudioHeading,
+  StudioParagraph,
+} from '@studio/components';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 
 export const ContactPage = (): React.ReactElement => {
@@ -32,13 +35,13 @@ export const ContactPage = (): React.ReactElement => {
       title: t('contact.slack.heading'),
       description: t('contact.slack.content'),
       additionalContent: (
-        <Paragraph spacing asChild>
+        <StudioParagraph spacing asChild>
           <ul>
             <Trans i18nKey='contact.slack.content_list'>
               <li />
             </Trans>
           </ul>
-        </Paragraph>
+        </StudioParagraph>
       ),
       link: {
         name: t('contact.slack.link'),
@@ -62,9 +65,9 @@ export const ContactPage = (): React.ReactElement => {
       <div className={classes.container}>
         <div className={classes.content}>
           <div>
-            <Heading size='medium' spacing>
+            <StudioHeading size='medium' spacing>
               {t('general.contact')}
-            </Heading>
+            </StudioHeading>
           </div>
           {contactSections.map((contactSection) => (
             <ContactSection {...contactSection} key={contactSection.title} />
