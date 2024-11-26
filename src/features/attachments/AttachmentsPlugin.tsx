@@ -1,7 +1,7 @@
 import { CG } from 'src/codegen/CG';
 import { NodeDefPlugin } from 'src/utils/layout/plugins/NodeDefPlugin';
 import type { ComponentConfig } from 'src/codegen/ComponentConfig';
-import type { IAttachment } from 'src/features/attachments/index';
+import type { IAttachment, IFailedAttachment } from 'src/features/attachments/index';
 import type { CompTypes } from 'src/layout/layout';
 import type { DefPluginStateFactoryProps } from 'src/utils/layout/plugins/NodeDefPlugin';
 
@@ -9,7 +9,7 @@ interface Config {
   componentType: CompTypes;
   extraState: {
     attachments: Record<string, IAttachment>;
-    attachmentsFailedToUpload: Record<string, string>; // Maps temporary attachment ID to error message
+    attachmentsFailedToUpload: Record<string, IFailedAttachment>; // Maps temporary attachment ID to error message
   };
 }
 

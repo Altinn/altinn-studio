@@ -61,7 +61,7 @@ describe('FileUploadComponent', () => {
     it('should show loading when file uploaded=false', async () => {
       const { mutations, id } = await render({ attachments: () => [] });
       const attachment = getDataElements({ count: 1, dataType: id })[0];
-      expect(mutations.doAttachmentUpload.mock).not.toHaveBeenCalled();
+      expect(mutations.doAttachmentUploadOld.mock).not.toHaveBeenCalled();
 
       const file = new File(['(⌐□_□)'], attachment?.filename || '', { type: attachment.contentType });
 
@@ -74,13 +74,13 @@ describe('FileUploadComponent', () => {
         expect(screen.getByText('Laster innhold')).toBeInTheDocument();
       });
 
-      mutations.doAttachmentUpload.resolve(attachment);
+      mutations.doAttachmentUploadOld.resolve(attachment);
 
       await waitFor(() => {
         expect(screen.queryByText('Laster innhold')).not.toBeInTheDocument();
       });
 
-      expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1);
+      expect(mutations.doAttachmentUploadOld.mock).toHaveBeenCalledTimes(1);
     });
 
     it('should not show loading when file uploaded=true', async () => {
@@ -255,7 +255,7 @@ describe('FileUploadWithTagComponent', () => {
         .querySelector('input') as HTMLInputElement;
       await userEvent.upload(dropZone, file);
 
-      await waitFor(() => expect(mutations.doAttachmentUpload.mock).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mutations.doAttachmentUploadOld.mock).toHaveBeenCalledTimes(1));
       expect(screen.getByText('Laster innhold')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Lagre' })).not.toBeInTheDocument();
     });

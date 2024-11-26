@@ -4,6 +4,7 @@ import type { JSONSchema7 } from 'json-schema';
 
 import { LAYOUT_SCHEMA_NAME } from 'src/features/devtools/utils/layoutSchemaValidation';
 import { cleanUpInstanceData } from 'src/features/instance/instanceUtils';
+import { getFileContentType } from 'src/utils/attachmentsUtils';
 import { httpDelete, httpGetRaw, httpPatch, httpPost, putWithoutConfig } from 'src/utils/network/networking';
 import { httpGet, httpPut } from 'src/utils/network/sharedNetworking';
 import {
@@ -23,6 +24,7 @@ import {
   getFetchFormDynamicsUrl,
   getFileTagUrl,
   getFileUploadUrl,
+  getFileUploadUrlOld,
   getFooterLayoutUrl,
   getInstantiateUrl,
   getJsonSchemaUrl,
@@ -45,6 +47,7 @@ import {
 } from 'src/utils/urls/appUrlHelper';
 import { customEncodeURI, orgsListUrl } from 'src/utils/urls/urlHelper';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
+import type { DataPostResponse } from 'src/features/attachments';
 import type { IDataList } from 'src/features/dataLists';
 import type { IFooterLayout } from 'src/features/footer/types';
 import type { IFormDynamics } from 'src/features/form/dynamics';
@@ -87,16 +90,28 @@ export const doInstantiate = async (partyId: number, language?: string): Promise
 export const doProcessNext = async (instanceId: string, language?: string, action?: IActionType) =>
   httpPut<IProcess>(getProcessNextUrl(instanceId, language), action ? { action } : null);
 
-export const doAttachmentUpload = async (instanceId: string, dataTypeId: string, file: File): Promise<IData> => {
-  const url = getFileUploadUrl(instanceId, dataTypeId);
-  let contentType: string;
-  if (!file.type) {
-    contentType = `application/octet-stream`;
-  } else if (file.name.toLowerCase().endsWith('.csv')) {
-    contentType = 'text/csv';
-  } else {
-    contentType = file.type;
-  }
+export const doAttachmentUploadOld = async (instanceId: string, dataTypeId: string, file: File): Promise<IData> => {
+  const url = getFileUploadUrlOld(instanceId, dataTypeId);
+  const contentType = getFileContentType(file);
+
+  const config: AxiosRequestConfig = {
+    headers: {
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
+    },
+  };
+
+  return (await httpPost(url, config, file)).data;
+};
+
+export const doAttachmentUpload = async (
+  instanceId: string,
+  dataTypeId: string,
+  language: string,
+  file: File,
+): Promise<DataPostResponse> => {
+  const url = getFileUploadUrl(instanceId, dataTypeId, language);
+  const contentType = getFileContentType(file);
 
   const config: AxiosRequestConfig = {
     headers: {

@@ -21,6 +21,7 @@ export type ValidationSeverity = 'error' | 'warning' | 'info' | 'success';
 
 export enum BuiltInValidationIssueSources {
   File = 'File',
+  MimeTypeValidator = 'MimeTypeValidator',
   DataAnnotations = 'DataAnnotations',
   Required = 'Required',
   Expression = 'Expression',
@@ -114,6 +115,12 @@ export type BackendValidationIssueGroupListItem = {
   source: string;
   issues: BackendValidationIssue[];
 };
+
+export function backendValidationIssueGroupListToObject(
+  groupList: BackendValidationIssueGroupListItem[],
+): BackendValidationIssueGroups {
+  return Object.fromEntries(groupList.map(({ source, issues }) => [source, issues]));
+}
 
 /**
  * Storage format for backend validations.

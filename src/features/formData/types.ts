@@ -52,6 +52,10 @@ export interface IDataModelMultiPatchResponse {
   instance: IInstance;
 }
 
+export function dataModelPairsToObject(pairs: IDataModelPairResponse[]): { [dataElementId: string]: object } {
+  return Object.fromEntries(pairs.map(({ dataElementId, data }) => [dataElementId, data]));
+}
+
 export interface IDataModelPairResponse {
   dataElementId: string;
   data: object;

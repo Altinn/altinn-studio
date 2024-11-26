@@ -16,4 +16,7 @@ export const validationTexts: IValidationTextMap = {
   File: {
     ContentTypeNotAllowed: 'altinn.standard_validation.file_content_type_not_allowed',
   },
+  MimeTypeValidator: {
+    ContentTypeNotAllowed: 'altinn.standard_validation.file_content_type_not_allowed',
+  },
 };

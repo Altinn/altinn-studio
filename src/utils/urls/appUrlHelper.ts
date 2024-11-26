@@ -34,8 +34,13 @@ export const getOrderDetailsUrl = (instanceId: string, language?: string) => {
   const queryString = getQueryStringFromObject({ language });
   return `${origin}/${org}/${app}/instances/${instanceId}/payment/order-details${queryString}`;
 };
-export const getFileUploadUrl = (instanceId: string, attachmentType: string) =>
-  `${appPath}/instances/${instanceId}/data?dataType=${attachmentType}`;
+export const getFileUploadUrlOld = (instanceId: string, attachmentDataType: string) =>
+  `${appPath}/instances/${instanceId}/data?dataType=${attachmentDataType}`;
+
+export const getFileUploadUrl = (instanceId: string, attachmentDataType: string, language?: string) => {
+  const queryString = getQueryStringFromObject({ language });
+  return `${appPath}/instances/${instanceId}/data/${attachmentDataType}${queryString}`;
+};
 
 export const getFileTagUrl = (instanceId: string, dataGuid: string, tag: string | undefined) => {
   if (tag) {

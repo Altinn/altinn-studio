@@ -83,3 +83,12 @@ export const getGroupingForAttachment = (
 
   return attachmentType.grouping;
 };
+
+export function getFileContentType(file: File): string {
+  if (!file.type) {
+    return 'application/octet-stream';
+  } else if (file.name.toLowerCase().endsWith('.csv')) {
+    return 'text/csv';
+  }
+  return file.type;
+}

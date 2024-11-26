@@ -1,12 +1,10 @@
 import React from 'react';
 import { toast } from 'react-toastify';
-import type { JSX } from 'react';
 import type { FileRejection } from 'react-dropzone';
 
 import { getDescriptionId, getLabelId, Label } from 'src/components/label/Label';
-import { useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
+import { useAddRejectedAttachments, useAttachmentsFor, useAttachmentsUploader } from 'src/features/attachments/hooks';
 import { Lang } from 'src/features/language/Lang';
-import { useLanguage } from 'src/features/language/useLanguage';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { useIsSubformPage } from 'src/features/routing/AppRoutingContext';
 import { ComponentValidations } from 'src/features/validation/ComponentValidations';
@@ -15,9 +13,10 @@ import { hasValidationErrors } from 'src/features/validation/utils';
 import { useIsMobileOrTablet } from 'src/hooks/useDeviceWidths';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
 import { DropzoneComponent } from 'src/layout/FileUpload/DropZone/DropzoneComponent';
+import { FailedAttachments } from 'src/layout/FileUpload/Error/FailedAttachments';
 import classes from 'src/layout/FileUpload/FileUploadComponent.module.css';
 import { FileTable } from 'src/layout/FileUpload/FileUploadTable/FileTable';
-import { handleRejectedFiles } from 'src/layout/FileUpload/handleRejectedFiles';
+import { RejectedFileError } from 'src/layout/FileUpload/RejectedFileError';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
@@ -32,7 +31,6 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
     readOnly,
     displayMode,
     maxNumberOfAttachments,
-    minNumberOfAttachments,
     hasCustomFileEndings,
     validFileEndings,
     textResourceBindings,
@@ -46,10 +44,10 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useIsMobileOrTablet();
   const attachments = useAttachmentsFor(node);
-  const uploadAttachment = useAttachmentsUploader();
+  const addRejectedAttachments = useAddRejectedAttachments();
+  const uploadAttachments = useAttachmentsUploader();
 
   const validations = useUnifiedValidationsForNode(node).filter((v) => !('attachmentId' in v) || !v.attachmentId);
-  const langTools = useLanguage();
 
   const { options, isFetching } = useGetOptions(node as LayoutNode<'FileUploadWithTag'>, 'single');
 
@@ -60,25 +58,11 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
   const shouldShowFileUpload =
     canUploadMoreAttachments && (isComplexMode || isSimpleModeWithNoAttachments || showFileUpload);
 
-  const AddMoreAttachmentsButton = (): JSX.Element | null => {
-    const canShowButton =
-      displayMode === 'simple' &&
-      !showFileUpload &&
-      attachments.length < maxNumberOfAttachments &&
-      attachments.length > 0;
-
-    if (!canShowButton) {
-      return null;
-    }
-    return (
-      <button
-        className={classes.fileUploadButton}
-        onClick={() => setShowFileUpload(true)}
-      >
-        <Lang id='form_filler.file_uploader_add_attachment' />
-      </button>
-    );
-  };
+  const shouldShowAddButton =
+    displayMode === 'simple' &&
+    !showFileUpload &&
+    attachments.length < maxNumberOfAttachments &&
+    attachments.length > 0;
 
   const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
@@ -95,29 +79,17 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
       return;
     }
     // we should upload all files, if any rejected files we should display an error
-    acceptedFiles.forEach(async (file: File) => {
-      await uploadAttachment({ file, node, dataModelBindings });
-    });
+    uploadAttachments({ files: acceptedFiles, node, dataModelBindings });
 
     if (acceptedFiles.length > 0) {
       setShowFileUpload(displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
     }
-    const rejections = handleRejectedFiles({
-      langTools,
-      rejectedFiles,
-      maxFileSizeInMB,
-    });
+
+    const rejections = rejectedFiles.map((fileRejection) => new RejectedFileError(fileRejection, maxFileSizeInMB));
     if (rejections?.length) {
-      toast(<Lang id={`- ${rejections.join('\n- ')}`} />, { type: 'error' });
+      addRejectedAttachments(node, rejections);
     }
   };
-
-  const AttachmentsCounter = () => (
-    <small style={{ fontWeight: 'normal' }}>
-      {langTools.langAsString('form_filler.file_uploader_number_of_files')}{' '}
-      {minNumberOfAttachments ? `${attachments.length}/${maxNumberOfAttachments}` : attachments.length}.
-    </small>
-  );
 
   return (
     <ComponentStructureWrapper node={node}>
@@ -145,7 +117,10 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
               descriptionId={textResourceBindings?.description ? getDescriptionId(id) : undefined}
             />
 
-            <AttachmentsCounter />
+            <AttachmentsCounter
+              numAttachments={attachments.length}
+              maxNumAttachments={maxNumberOfAttachments}
+            />
             <ComponentValidations
               validations={validations}
               node={node}
@@ -164,7 +139,10 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
 
         {!shouldShowFileUpload && (
           <>
-            <AttachmentsCounter />
+            <AttachmentsCounter
+              numAttachments={attachments.length}
+              maxNumAttachments={maxNumberOfAttachments}
+            />
             <ComponentValidations
               validations={validations}
               node={node}
@@ -172,8 +150,33 @@ export function FileUploadComponent({ node }: IFileUploadWithTagProps): React.JS
             <br />
           </>
         )}
-        <AddMoreAttachmentsButton />
+        {shouldShowAddButton && (
+          <button
+            className={classes.fileUploadButton}
+            onClick={() => setShowFileUpload(true)}
+          >
+            <Lang id='form_filler.file_uploader_add_attachment' />
+          </button>
+        )}
+        <FailedAttachments node={node} />
       </div>
     </ComponentStructureWrapper>
+  );
+}
+
+function AttachmentsCounter({
+  numAttachments,
+  maxNumAttachments,
+}: {
+  numAttachments: number;
+  maxNumAttachments: number;
+}) {
+  return (
+    <small style={{ fontWeight: 'normal' }}>
+      <Lang
+        id='form_filler.file_uploader_number_of_files'
+        params={[maxNumAttachments ? `${numAttachments}/${maxNumAttachments}` : numAttachments]}
+      />
+    </small>
   );
 }

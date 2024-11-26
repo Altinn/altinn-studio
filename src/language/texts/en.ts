@@ -88,8 +88,11 @@ export function en() {
       file_uploader_max_size: 'Maximum file size',
       file_uploader_mb: 'MB',
       file_uploader_upload: 'Upload file',
-      file_uploader_number_of_files: 'Number of files',
+      file_uploader_number_of_files: 'Number of files {0}.',
+      file_uploader_show_more_errors: 'Show {0} more',
+      file_uploader_show_fewer_errors: 'Show fewer',
       file_uploader_valid_file_format: 'Valid file types are:',
+      file_uploader_failed_to_upload_file: 'The file <u title="{1}">{0}</u> could not be uploaded',
       file_uploader_validation_error_delete: 'Something went wrong trying to delete the file, please try again.',
       file_uploader_validation_error_exceeds_max_files:
         'You can not upload more than {0} files. No files were uploaded.',

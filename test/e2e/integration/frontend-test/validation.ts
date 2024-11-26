@@ -155,7 +155,11 @@ describe('Validation', () => {
   it('Validation on uploaded attachment type', () => {
     cy.goto('changename');
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
-    cy.get(appFrontend.toast).should('contain.text', texts.attachmentError);
+    cy.findByRole('alert', { name: /test.png/ }).should('contain.text', texts.attachmentError);
+    cy.findByRole('alert', { name: /test.png/ })
+      .findByRole('button')
+      .click();
+    cy.findByRole('alert', { name: /test.png/ }).should('not.exist');
   });
 
   it('Validation on uploaded attachment type with tag', () => {
@@ -552,12 +556,22 @@ describe('Validation', () => {
       .should('exist');
 
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.png', { force: true });
-    cy.get(appFrontend.toast).should('contain.text', texts.invalidFileExtension);
+    cy.findByRole('alert', { name: /test.png/ }).should('contain.text', texts.invalidFileExtension);
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
 
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test-invalid.pdf', { force: true });
-    cy.get(appFrontend.toast).should('contain.text', texts.invalidMimeType);
+    cy.findByRole('alert', { name: /test-invalid.pdf/ }).should('contain.text', texts.invalidMimeType);
     cy.get(appFrontend.changeOfName.uploadedTable).find('tbody > tr').should('have.length', 1);
+
+    cy.findByRole('alert', { name: /test.png/ })
+      .findByRole('button')
+      .click();
+    cy.findByRole('alert', { name: /test-invalid.pdf/ })
+      .findByRole('button')
+      .click();
+
+    cy.findByRole('alert', { name: /test.png/ }).should('not.exist');
+    cy.findByRole('alert', { name: /test-invalid.pdf/ }).should('not.exist');
   });
 
   it('Submitting should be rejected if validation fails on field hidden by pageOrderConfig', () => {

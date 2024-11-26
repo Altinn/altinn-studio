@@ -88,8 +88,11 @@ export function nb(): FixedLanguageList {
       file_uploader_max_size: 'Maks filstørrelse',
       file_uploader_mb: 'MB.',
       file_uploader_upload: 'Last opp fil',
-      file_uploader_number_of_files: 'Antall filer',
+      file_uploader_number_of_files: 'Antall filer {0}.',
+      file_uploader_show_more_errors: 'Vis {0} flere',
+      file_uploader_show_fewer_errors: 'Vis færre',
       file_uploader_valid_file_format: 'Tillatte filformater er:',
+      file_uploader_failed_to_upload_file: 'Filen <u title="{1}">{0}</u> kunne ikke lastes opp',
       file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
       file_uploader_validation_error_exceeds_max_files:
         'Du kan ikke laste opp flere enn {0} filer. Ingen filer ble lastet opp.',

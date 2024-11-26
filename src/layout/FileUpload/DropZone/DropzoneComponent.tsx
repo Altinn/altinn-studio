@@ -44,10 +44,6 @@ export const baseStyle = {
 export const activeStyle = {
   borderStyle: 'solid',
 };
-export const rejectStyle = {
-  borderStyle: 'solid',
-  borderColor: AltinnAppTheme.altinnPalette.primary.red,
-};
 export const validationErrorStyle = {
   borderStyle: 'dotted',
   borderColor: AltinnAppTheme.altinnPalette.primary.red,
@@ -88,10 +84,9 @@ export function DropzoneComponent({
             : undefined
         }
       >
-        {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
+        {({ getRootProps, getInputProps, isDragActive }) => {
           let styles = { ...baseStyle, ...fileUploadButtonStyle };
           styles = isDragActive ? { ...styles, ...activeStyle } : styles;
-          styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
           styles = hasValidationMessages ? { ...styles, ...validationErrorStyle } : styles;
 
           const dragLabelId = `file-upload-drag-${id}`;
