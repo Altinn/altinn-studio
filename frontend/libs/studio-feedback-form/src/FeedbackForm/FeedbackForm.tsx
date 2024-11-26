@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
@@ -11,6 +11,7 @@ import type { AnswerType } from '../types/AnswerType';
 type FeedbackFormProps = {
   buttonTexts: ButtonTexts;
   heading: string;
+  description: string;
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
   onSubmit: (answers: Record<string, AnswerType>) => void;
@@ -20,6 +21,7 @@ export function FeedbackForm({
   questions,
   buttonTexts,
   heading,
+  description,
   position = 'inline',
   onSubmit,
 }: FeedbackFormProps): React.ReactElement {
@@ -77,6 +79,7 @@ export function FeedbackForm({
         closeButtonTitle={buttonTexts.close}
         ref={modalRef}
       >
+        <StudioParagraph spacing={true}>{description}</StudioParagraph>
         {questions.map((question) => {
           return renderQuestion(question);
         })}

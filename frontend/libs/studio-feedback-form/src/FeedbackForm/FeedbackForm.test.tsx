@@ -13,6 +13,7 @@ const buttonTexts: ButtonTexts = {
 };
 
 const heading = 'Heading';
+const description = 'Description';
 
 describe('FeedbackForm', () => {
   it('should render FeedbackForm', () => {
@@ -104,6 +105,7 @@ const renderFeedbackForm = ({
       <FeedbackForm
         buttonTexts={buttonTexts}
         heading={heading}
+        description={description}
         questions={questions}
         position={position || 'inline'}
         onSubmit={jest.fn()}
