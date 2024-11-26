@@ -5,6 +5,7 @@ import {
 import { StudioCheckboxTableBody } from './StudioCheckboxTableBody';
 import { StudioCheckboxTableHeader } from './StudioCheckboxTableHeader';
 import { StudioCheckboxTableRow } from './StudioCheckboxTableRow';
+import { type StudioCheckboxTableRowElement } from './types/StudioCheckboxTableRowElement';
 
 type StudioCheckboxTableComponent = typeof StudioCheckboxTableParent & {
   Header: typeof StudioCheckboxTableHeader;
@@ -18,4 +19,4 @@ StudioCheckboxTable.Header = StudioCheckboxTableHeader;
 StudioCheckboxTable.Body = StudioCheckboxTableBody;
 StudioCheckboxTable.Row = StudioCheckboxTableRow;
 
-export { StudioCheckboxTable, type StudioCheckboxTableProps };
+export { StudioCheckboxTable, type StudioCheckboxTableProps, type StudioCheckboxTableRowElement };
