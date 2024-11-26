@@ -9,6 +9,7 @@ import { getDefaultAnswerValueForQuestion } from '../utils/questionUtils';
 import type { AnswerType } from '../types/AnswerType';
 
 type FeedbackFormProps = {
+  id: string;
   buttonTexts: ButtonTexts;
   heading: string;
   description: string;
@@ -18,6 +19,7 @@ type FeedbackFormProps = {
 };
 
 export function FeedbackForm({
+  id,
   questions,
   buttonTexts,
   heading,
@@ -44,7 +46,10 @@ export function FeedbackForm({
   };
 
   const handleSubmit = () => {
-    onSubmit(answers);
+    onSubmit({
+      ...answers,
+      feedbackFormId: id,
+    });
     handleCloseModal();
   };
 

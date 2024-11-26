@@ -103,6 +103,7 @@ const renderFeedbackForm = ({
   render(
     <FeedbackFormContext.Provider value={{ answers: {}, setAnswers: setAnswers || jest.fn() }}>
       <FeedbackForm
+        id='test'
         buttonTexts={buttonTexts}
         heading={heading}
         description={description}

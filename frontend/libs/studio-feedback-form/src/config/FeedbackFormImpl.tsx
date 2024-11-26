@@ -5,6 +5,7 @@ import { FeedbackForm } from '../FeedbackForm/FeedbackForm';
 import type { AnswerType } from '../types/AnswerType';
 
 export class FeedbackFormImpl {
+  private readonly id: string;
   private readonly buttonTexts: ButtonTexts;
   private readonly heading: string;
   private readonly description: string;
@@ -13,6 +14,7 @@ export class FeedbackFormImpl {
   private readonly onSubmit: (answers: Record<string, any>) => void;
 
   constructor(config: {
+    id: string;
     buttonTexts: ButtonTexts;
     heading: string;
     description: string;
@@ -20,6 +22,7 @@ export class FeedbackFormImpl {
     position?: 'inline' | 'fixed';
     onSubmit: (answers: Record<string, AnswerType>) => void;
   }) {
+    this.id = config.id;
     this.buttonTexts = config.buttonTexts;
     this.heading = config.heading;
     this.description = config.description;
@@ -33,6 +36,7 @@ export class FeedbackFormImpl {
     return (
       <FeedbackFormContextProvider>
         <FeedbackForm
+          id={this.id}
           buttonTexts={this.buttonTexts}
           heading={this.heading}
           description={this.description}
