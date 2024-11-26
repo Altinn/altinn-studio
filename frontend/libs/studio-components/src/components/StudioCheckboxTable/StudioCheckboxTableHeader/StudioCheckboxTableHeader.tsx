@@ -7,6 +7,7 @@ export type StudioCheckboxTableHeaderProps = {
   title: string;
   checked: boolean;
   indeterminate: boolean;
+  disabled?: boolean;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -14,6 +15,7 @@ export const StudioCheckboxTableHeader = ({
   title,
   checked,
   indeterminate,
+  disabled,
   onChange,
 }: StudioCheckboxTableHeaderProps): ReactElement => {
   return (
@@ -28,6 +30,7 @@ export const StudioCheckboxTableHeader = ({
             aria-checked
             size='sm'
             value='all'
+            disabled={disabled}
           />
         </StudioTable.HeaderCell>
         <StudioTable.HeaderCell className={classes.header} aria-hidden>
