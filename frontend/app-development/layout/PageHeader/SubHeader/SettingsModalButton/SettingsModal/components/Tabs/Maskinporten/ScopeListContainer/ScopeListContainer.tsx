@@ -22,8 +22,8 @@ export const ScopeListContainer = (): ReactElement => {
   if (hasScopes) {
     return (
       <ScopeList
-        maskinPortenScopes={maskinPortenScopes.scopes}
-        selectedScopes={selectedScopes.scopes}
+        maskinPortenScopes={maskinPortenScopes?.scopes ?? []}
+        selectedScopes={selectedScopes?.scopes ?? []}
       />
     );
   }

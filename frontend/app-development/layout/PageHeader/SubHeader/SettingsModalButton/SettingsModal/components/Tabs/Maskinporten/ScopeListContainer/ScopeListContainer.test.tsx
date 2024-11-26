@@ -80,12 +80,15 @@ describe('ScopeListContainer', () => {
   });
 
   it('should display a merged list of scopes if both selected scopes and available scopes are available', async () => {
+    const availableScopes: MaskinportenScopes = { scopes: [scopeMock1] };
     const mockGetMaskinportenScopes = jest
       .fn()
-      .mockImplementation(() => Promise.resolve([scopeMock1]));
+      .mockImplementation(() => Promise.resolve(availableScopes));
+
+    const selectedScopes: MaskinportenScopes = { scopes: [scopeMock2] };
     const mockGetSelectedMaskinportenScopes = jest
       .fn()
-      .mockImplementation(() => Promise.resolve([scopeMock2]));
+      .mockImplementation(() => Promise.resolve(selectedScopes));
 
     renderScopeListContainer({
       queries: {

@@ -5,8 +5,12 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from 'app-development/test/mocks';
-import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
+import {
+  type MaskinportenScopes,
+  type MaskinportenScope,
+} from 'app-shared/types/MaskinportenScope';
 import userEvent from '@testing-library/user-event';
+import { app, org } from '@studio/testing/testids';
 
 const scopeMock1: MaskinportenScope = {
   scope: 'scope1',
@@ -118,21 +122,35 @@ describe('ScopeListContainer', () => {
     expect(selectAllCheckbox).not.toBeChecked();
     await user.click(selectAllCheckbox);
 
-    expect(screen.getByRole('checkbox', { name: scopeMock1.scope })).toBeChecked();
-    expect(screen.getByRole('checkbox', { name: scopeMock2.scope })).toBeChecked();
+    const allScopes: MaskinportenScopes = {
+      scopes: [...maskinportenScopesMock, ...selectedScopesMock],
+    };
+
+    expect(uploadScopesListMock).toHaveBeenCalledTimes(1);
+    expect(uploadScopesListMock).toHaveBeenCalledWith(org, app, allScopes);
   });
 
   it('should toggle individual scope checkbox when clicked', async () => {
-    const user = userEvent.setup();
+    const uploadScopesListMock = jest.fn().mockImplementation(() => Promise.resolve());
 
-    renderScopeList();
+    const user = userEvent.setup();
+    renderScopeList({
+      queries: {
+        updateSelectedMaskinportenScopes: uploadScopesListMock,
+      },
+    });
 
     const scopeCheckbox = screen.getByRole('checkbox', { name: scopeMock1.scope });
     expect(scopeCheckbox).not.toBeChecked();
 
     await user.click(scopeCheckbox);
 
-    expect(scopeCheckbox).toBeChecked();
+    const allSelectedScopes: MaskinportenScopes = {
+      scopes: [scopeMock1, ...selectedScopesMock],
+    };
+
+    expect(uploadScopesListMock).toHaveBeenCalledTimes(1);
+    expect(uploadScopesListMock).toHaveBeenCalledWith(org, app, allSelectedScopes);
   });
 });
 
