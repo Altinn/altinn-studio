@@ -102,8 +102,14 @@ describe('ScopeListContainer', () => {
   });
 
   it('should toggle all scopes when "select all" checkbox is clicked', async () => {
+    const uploadScopesListMock = jest.fn().mockImplementation(() => Promise.resolve());
+
     const user = userEvent.setup();
-    renderScopeList();
+    renderScopeList({
+      queries: {
+        updateSelectedMaskinportenScopes: uploadScopesListMock,
+      },
+    });
 
     const selectAllCheckbox = screen.getByRole('checkbox', {
       name: textMock('settings_modal.maskinporten_select_all_scopes'),
@@ -132,10 +138,14 @@ describe('ScopeListContainer', () => {
 
 type RenderScopeListProps = {
   props?: Partial<ScopeListProps>;
+  queries?: Partial<typeof queriesMock>;
 };
 
-const renderScopeList = ({ props }: Partial<RenderScopeListProps> = {}) => {
+const renderScopeList = ({ props, queries = queriesMock }: Partial<RenderScopeListProps> = {}) => {
   const queryClient = createQueryClientMock();
 
-  renderWithProviders({ ...queriesMock }, queryClient)(<ScopeList {...defaultProps} {...props} />);
+  renderWithProviders(
+    { ...queriesMock, ...queries },
+    queryClient,
+  )(<ScopeList {...defaultProps} {...props} />);
 };
