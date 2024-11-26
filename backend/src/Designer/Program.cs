@@ -198,6 +198,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
 
     services.AddMaskinportenHttpClient<MaskinPortenClientDefinition>("MaskinportenHttpClient", maskinportenSettings);
 
+    services.Configure<FeedbackFormSettings>(configuration.GetSection("FeedbackFormSettings"));
     services.RegisterServiceImplementations(configuration);
 
     services.AddHttpContextAccessor();
