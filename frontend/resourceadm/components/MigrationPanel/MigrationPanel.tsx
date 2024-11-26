@@ -35,8 +35,11 @@ export const MigrationPanel = ({
   const { mutate: migrateDelegations, isPending: isSettingMigrateDelegations } =
     useMigrateDelegationsMutation(org, env.id);
 
-  const { data: numberOfA2Delegations, isFetching: isLoadingDelegationCount } =
-    useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id);
+  const {
+    data: numberOfA2Delegations,
+    isFetching: isLoadingDelegationCount,
+    error: loadDelegationCountError,
+  } = useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id);
 
   const isErrorForbidden = (error: Error) => {
     return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
@@ -65,6 +68,44 @@ export const MigrationPanel = ({
 
   const closeSetServiceExpiredModal = (): void => {
     setServiceExpiredWarningModalRef.current?.close();
+  };
+
+  const getErrorMessage = (): React.ReactNode => {
+    const loadErrorStatus = (loadDelegationCountError as ResourceError)?.response.status;
+    if (migrateDelegationsError) {
+      return (
+        <Alert severity='danger' size='small'>
+          {isErrorForbidden(migrateDelegationsError)
+            ? t('resourceadm.migration_no_migration_access')
+            : t('resourceadm.migration_post_migration_failed')}
+        </Alert>
+      );
+    } else if (loadErrorStatus === ServerCodes.NotFound) {
+      return (
+        <Alert severity='success' size='small'>
+          {t('resourceadm.migration_service_not_found')}
+        </Alert>
+      );
+    } else if (loadErrorStatus === ServerCodes.Forbidden) {
+      return (
+        <Alert severity='danger' size='small'>
+          {t('resourceadm.migration_cannot_migrate_in_env')}
+        </Alert>
+      );
+    } else if (loadErrorStatus === ServerCodes.InternalServerError) {
+      return (
+        <Alert severity='danger' size='small'>
+          {t('resourceadm.migration_technical_error')}
+        </Alert>
+      );
+    } else if (!isPublishedInEnv) {
+      return (
+        <Alert severity='warning' size='sm'>
+          {t('resourceadm.migration_not_published')}
+        </Alert>
+      );
+    }
+    return null;
   };
 
   return (
@@ -109,26 +150,15 @@ export const MigrationPanel = ({
           <div>
             {t('resourceadm.migration_altinn3_delegations')} <strong>N/A</strong>
           </div>
-          {!isPublishedInEnv && (
-            <Alert severity='warning' size='sm'>
-              {t('resourceadm.migration_not_published')}
-            </Alert>
-          )}
           {isPublishedInEnv && numberOfA2Delegations?.numberOfDelegations === 0 && (
             <Alert severity='info' size='sm'>
               {t('resourceadm.migration_not_needed')}
             </Alert>
           )}
-          {migrateDelegationsError && (
-            <Alert severity='danger' size='small'>
-              {isErrorForbidden(migrateDelegationsError)
-                ? t('resourceadm.migration_no_migration_access')
-                : t('resourceadm.migration_post_migration_failed')}
-            </Alert>
-          )}
+          {getErrorMessage()}
         </div>
         <StudioButton
-          aria-disabled={!isPublishedInEnv || isSettingMigrateDelegations}
+          aria-disabled={!!getErrorMessage() || isSettingMigrateDelegations}
           onClick={() => {
             if (isPublishedInEnv && !isSettingMigrateDelegations) {
               setServiceExpiredWarningModalRef.current?.showModal();
