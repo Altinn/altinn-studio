@@ -1,4 +1,3 @@
-using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -62,7 +61,7 @@ public class FeedbackFormController: ControllerBase
 
         if (!feedback.Answers.ContainsKey("env"))
         {
-            feedback.Answers.Add("env", GetEnvironmentNameForSlackMessage());
+            feedback.Answers.Add("env", _generalSettings.HostName);
         }
 
         await _slackClient.SendMessage(new SlackRequest
@@ -71,25 +70,5 @@ public class FeedbackFormController: ControllerBase
         });
 
         return Ok();
-    }
-
-    private string GetEnvironmentNameForSlackMessage()
-    {
-        string hostname = _generalSettings.HostName;
-        if (hostname == null)
-        {
-            return "unknown";
-        }
-        if (hostname.StartsWith("dev")) {
-            return "dev";
-        }
-        if (hostname.StartsWith("staging")) {
-            return "staging";
-        }
-        if (hostname.Equals("altinn.studio")) {
-            return "prod";
-        }
-
-        return "local";
     }
 }
