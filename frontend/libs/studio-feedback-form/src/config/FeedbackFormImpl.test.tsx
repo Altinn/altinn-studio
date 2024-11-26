@@ -14,6 +14,7 @@ describe('FeedbackFormImpl', () => {
         close: 'Close',
       },
       heading: 'Give feedback - heading',
+      description: 'Description',
       questions: mockQuestions,
     });
 
@@ -32,6 +33,7 @@ describe('FeedbackFormImpl', () => {
         close: 'Close',
       },
       heading: 'Give feedback - heading',
+      description: 'Description',
       questions: mockQuestions,
     });
 

@@ -3,11 +3,17 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './FormDesignerToolbar.module.css';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from '../components/Elements/LayoutSetsContainer';
+import { FeedbackForm } from './DesignView/AddItemModal/FeedbackForm';
 
 export const FormDesignerToolbar = () => {
   const { org, app } = useStudioEnvironmentParams();
   const layoutSetsQuery = useLayoutSetsQuery(org, app);
   const layoutSetNames = layoutSetsQuery?.data?.sets;
 
-  return <section className={classes.toolbar}>{layoutSetNames && <LayoutSetsContainer />}</section>;
+  return (
+    <section className={classes.toolbar}>
+      {layoutSetNames && <LayoutSetsContainer />}
+      <FeedbackForm />
+    </section>
+  );
 };
