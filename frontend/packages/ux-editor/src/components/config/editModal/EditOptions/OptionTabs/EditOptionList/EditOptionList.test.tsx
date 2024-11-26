@@ -69,7 +69,7 @@ describe('EditOptionList', () => {
     expect(await screen.findByRole('combobox')).toHaveValue('test-2');
   });
 
-  it('should render error message if getOptionListIds returns an error', async () => {
+  it('should render error message if getOptionListIds returns an unknown error', async () => {
     renderEditOptionList({
       queries: {
         getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
@@ -77,19 +77,9 @@ describe('EditOptionList', () => {
     });
 
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
-    ).toBeInTheDocument();
-  });
-
-  it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
-    renderEditOptionList({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
-      },
-    });
-
-    expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_error_message'),
+      ),
     ).toBeInTheDocument();
   });
 

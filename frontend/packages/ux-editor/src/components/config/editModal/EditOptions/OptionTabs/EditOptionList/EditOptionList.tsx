@@ -124,7 +124,11 @@ function OptionListSelector<T extends SelectionComponentType>({
         />
       );
     case 'error':
-      return <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>;
+      return (
+        <ErrorMessage>
+          {t('ux_editor.modal_properties_fetch_option_list_error_message')}
+        </ErrorMessage>
+      );
     case 'success':
       return (
         <OptionListSelectorWithData
