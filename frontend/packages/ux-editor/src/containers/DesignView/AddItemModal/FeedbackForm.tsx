@@ -12,7 +12,7 @@ export function FeedbackForm(): React.ReactNode {
     // Using regular axios post rather than a mutation hook, since we are not storing
     // the feedback in the cache, nor do we need to update any state.
     try {
-      await post(submitFeedbackPath(org, app), { text: JSON.stringify(answers) });
+      await post(submitFeedbackPath(org, app), { answers: { ...answers } });
       toast.success('Takk for tilbakemeldingen!');
     } catch (error) {
       console.error('Failed to submit feedback', error);
