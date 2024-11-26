@@ -17,6 +17,7 @@ import { app, org } from '@studio/testing/testids';
 const defaultLabel = 'label';
 const defaultBindingKey = 'simpleBinding';
 const defaultDataModelField = 'field1';
+const secondDataModelField = 'field2';
 const defaultDataModel = 'defaultModel';
 const secondDataModel = 'secondModel';
 
@@ -42,9 +43,10 @@ const MockedParentComponent = (props: MockedParentComponentProps) => {
     <EditBinding
       {...props}
       handleComponentChange={(formItem) => {
+        const fieldBinding = formItem.dataModelBindings[defaultBindingKey] as InternalBindingFormat;
         setNewInternalBindingFormat((prev) => ({
           ...prev,
-          field: formItem.dataModelBindings[defaultBindingKey],
+          field: fieldBinding.field,
         }));
       }}
       internalBindingFormat={newInternalBindingFormat}
@@ -96,7 +98,7 @@ const getDataModelMetadataMock = jest
   .fn()
   .mockImplementation(() => Promise.resolve(dataModelMetadataResponseMock));
 
-describe('EditBinding without featureFlag', () => {
+describe('EditBinding', () => {
   it('should render loading spinner', async () => {
     renderEditBinding({});
 
@@ -119,7 +121,7 @@ describe('EditBinding without featureFlag', () => {
     expect(fieldSet).toBeInTheDocument();
   });
 
-  it('should render correct elements in field set', async () => {
+  it('should display two selectors: data model and a data model field', async () => {
     renderEditBinding({
       queries: {
         getAppMetadataModelIds: getAppMetadataModelIdsMock,
@@ -131,18 +133,15 @@ describe('EditBinding without featureFlag', () => {
       screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
     );
 
-    const label = screen.getByText(defaultEditBinding.label);
-    expect(label).toBeInTheDocument();
-
-    const selectedModel = screen.getByText(defaultDataModel);
-    const noneExistingDataModelSelector = screen.queryByRole('combobox', {
+    const dataModelSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_binding'),
     });
-    expect(selectedModel).toBeInTheDocument();
-    expect(noneExistingDataModelSelector).not.toBeInTheDocument();
+    expect(dataModelSelector).toBeInTheDocument();
 
-    const selectedField = screen.getByRole('combobox');
-    expect(selectedField).toBeInTheDocument();
+    const dataModelFieldSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_field_binding'),
+    });
+    expect(dataModelFieldSelector).toBeInTheDocument();
   });
 
   it('should display default data model and "choose datafield" when no bindings', async () => {
@@ -164,7 +163,10 @@ describe('EditBinding without featureFlag', () => {
       screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
     );
 
-    expect(screen.getByText(defaultDataModel)).toBeInTheDocument();
+    const dataModelSelector = screen.getByRole('combobox', {
+      name: textMock('ux_editor.modal_properties_data_model_binding'),
+    });
+    expect(dataModelSelector).toHaveValue(defaultDataModel);
 
     const chooseDataFieldOption: HTMLOptionElement = screen.getByRole('option', {
       name: textMock('ux_editor.modal_properties_data_model_field_choose'),
@@ -225,116 +227,12 @@ describe('EditBinding without featureFlag', () => {
     );
     expect(errorMessage).toBeInTheDocument();
 
-    const dataModelFieldSelector = screen.getByRole('combobox');
-    const option2 = screen.getByRole('option', { name: defaultDataModelField });
-    await user.selectOptions(dataModelFieldSelector, option2);
-
-    expect(errorMessage).not.toBeInTheDocument();
-  });
-
-  it('should call handleComponentChange with old binding format when data model field is changed', async () => {
-    const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
-    renderEditBinding({
-      editBindingProps: {
-        ...defaultEditBinding,
-        handleComponentChange,
-      },
-      queries: {
-        getAppMetadataModelIds: getAppMetadataModelIdsMock,
-        getDataModelMetadata: getDataModelMetadataMock,
-      },
-    });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
-
-    const dataModelFieldSelector = screen.getByRole('combobox');
-    const option2 = screen.getByRole('option', { name: 'field2' });
-    await user.selectOptions(dataModelFieldSelector, option2);
-
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    expect(handleComponentChange).toHaveBeenCalledWith(
-      {
-        ...componentMocks[ComponentType.Input],
-        dataModelBindings: {
-          [defaultEditBinding.bindingKey]: 'field2',
-        },
-        maxCount: undefined,
-        required: true,
-        timeStamp: undefined,
-      },
-      {
-        onSuccess: expect.any(Function),
-      },
-    );
-  });
-
-  it('should call handleComponentChange when click on delete button', async () => {
-    window.confirm = jest.fn(() => true);
-    const user = userEvent.setup();
-    const handleComponentChange = jest.fn();
-    renderEditBinding({
-      editBindingProps: {
-        ...defaultEditBinding,
-        handleComponentChange,
-      },
-      queries: {
-        getAppMetadataModelIds: getAppMetadataModelIdsMock,
-        getDataModelMetadata: getDataModelMetadataMock,
-      },
-    });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
-
-    const deleteButton = screen.getByRole('button', {
-      name: textMock('general.delete'),
-    });
-    await user.click(deleteButton);
-
-    expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    expect(handleComponentChange).toHaveBeenCalledWith(
-      {
-        ...componentMocks[ComponentType.Input],
-        dataModelBindings: {
-          simpleBinding: '',
-        },
-        maxCount: undefined,
-        required: undefined,
-        timeStamp: undefined,
-      },
-      {
-        onSuccess: expect.any(Function),
-      },
-    );
-  });
-});
-
-describe('EditBinding with featureFlag', () => {
-  it('should display two selectors: data model and a data model field', async () => {
-    renderEditBinding({
-      queries: {
-        getAppMetadataModelIds: getAppMetadataModelIdsMock,
-        getDataModelMetadata: getDataModelMetadataMock,
-      },
-    });
-
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
-    );
-
-    const dataModelSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.modal_properties_data_model_binding'),
-    });
-    expect(dataModelSelector).toBeInTheDocument();
-
     const dataModelFieldSelector = screen.getByRole('combobox', {
       name: textMock('ux_editor.modal_properties_data_model_field_binding'),
     });
-    expect(dataModelFieldSelector).toBeInTheDocument();
+    const option2 = screen.getByRole('option', { name: secondDataModelField });
+    await user.selectOptions(dataModelFieldSelector, option2);
+    expect(errorMessage).not.toBeInTheDocument();
   });
 
   it('should call handleComponentChange with new binding format when data model field is changed', async () => {
@@ -413,6 +311,50 @@ describe('EditBinding with featureFlag', () => {
           [defaultEditBinding.bindingKey]: {
             field: '',
             dataType: secondDataModel,
+          },
+        },
+        maxCount: undefined,
+        required: undefined,
+        timeStamp: undefined,
+      },
+      {
+        onSuccess: expect.any(Function),
+      },
+    );
+  });
+
+  it('should call handleComponentChange when click on delete button', async () => {
+    window.confirm = jest.fn(() => true);
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        handleComponentChange,
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteButton);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(
+      {
+        ...componentMocks[ComponentType.Input],
+        dataModelBindings: {
+          simpleBinding: {
+            dataType: '',
+            field: '',
           },
         },
         maxCount: undefined,
