@@ -11,8 +11,6 @@ export const Maskinporten = (): ReactElement => {
   const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
-  console.log('data', ansattportenAuthStatus);
-
   const { t } = useTranslation();
 
   if (isPendingAuthStatus) {
