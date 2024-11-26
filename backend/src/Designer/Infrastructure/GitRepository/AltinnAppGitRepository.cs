@@ -775,6 +775,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+<<<<<<< HEAD
         /// Updates the ID of the option list by updating file name.
         /// </summary>
         /// <param name="oldOptionsListFileName">The file name of the option list to change filename of.</param>
@@ -799,6 +800,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+=======
+>>>>>>> 73065a186 (remove backend changes from this PR)
         /// Saves the process definition file on disk.
         /// </summary>
         /// <param name="file">Stream of the file to be saved.</param>
