@@ -3,12 +3,13 @@ import classes from './AnsattportenLogin.module.css';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioParagraph } from '@studio/components';
 import { EnterIcon } from '@studio/icons';
+import { loginWithAnsattPorten } from 'app-shared/api/paths';
 
 export const AnsattportenLogin = (): ReactElement => {
   const { t } = useTranslation();
 
   const handleLoginWithAnsattporten = (): void => {
-    console.log('Will be implemented in next iteration when backend is ready');
+    window.location.href = loginWithAnsattPorten(window.location.pathname + window.location.search);
   };
 
   return (

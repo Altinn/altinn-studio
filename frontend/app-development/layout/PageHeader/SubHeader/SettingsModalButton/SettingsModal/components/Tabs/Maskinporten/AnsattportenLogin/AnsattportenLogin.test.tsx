@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 import { AnsattportenLogin } from './AnsattportenLogin';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
+jest.mock('app-shared/api/paths');
+
 describe('AnsattportenLogin', () => {
   it('should render the description paragraphs', () => {
     render(<AnsattportenLogin />);
@@ -22,20 +24,29 @@ describe('AnsattportenLogin', () => {
     expect(button).toBeInTheDocument();
   });
 
-  it('should call the handleLoginWithAnsattporten function when login button is clicked', async () => {
-    const user = userEvent.setup();
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(); // Mock console.log
+  it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
+    // jsdom does not support .href navigation, therefore this mock is needed.
+    const hrefMock = mockWindowLocationHref();
 
+    const user = userEvent.setup();
     render(<AnsattportenLogin />);
 
-    const button = screen.getByRole('button', {
+    const loginButton = screen.getByRole('button', {
       name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
     });
-    await user.click(button);
 
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Will be implemented in next iteration when backend is ready',
-    );
-    consoleSpy.mockRestore();
+    await user.click(loginButton);
+    expect(hrefMock).toHaveBeenCalledTimes(1);
   });
 });
+
+function mockWindowLocationHref(): jest.Mock {
+  const hrefMock = jest.fn();
+  delete window.location;
+  window.location = { href: '' } as Location;
+  Object.defineProperty(window.location, 'href', {
+    set: hrefMock,
+  });
+
+  return hrefMock;
+}

@@ -5,7 +5,7 @@ import { PagesRouter } from './PagesRouter';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { RouterContext } from '../../../contexts/RouterContext';
 import type { PageName } from '../../../types/PageName';
-import { renderWithBrowserRouter } from '../../../../test-utils/renderWithBrowserRouter';
+import { renderWithProviders } from '../../../../test-utils/renderWithProviders';
 
 const navigateMock = jest.fn();
 
@@ -35,7 +35,7 @@ describe('PagesRouter', () => {
 });
 
 const renderPagesRouter = (pageNames: PageName[] = ['codeList', 'images']) => {
-  renderWithBrowserRouter(
+  renderWithProviders(
     <RouterContext.Provider value={{ currentPage: 'codeList', navigate: navigateMock }}>
       <PagesRouter pageNames={pageNames} />
     </RouterContext.Provider>,

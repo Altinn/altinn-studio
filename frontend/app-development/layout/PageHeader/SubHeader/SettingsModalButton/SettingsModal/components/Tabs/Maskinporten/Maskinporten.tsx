@@ -8,7 +8,7 @@ import { ScopeListContainer } from './ScopeListContainer';
 import { AnsattportenLogin } from './AnsattportenLogin';
 
 export const Maskinporten = (): ReactElement => {
-  const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
+  const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
   const { t } = useTranslation();
@@ -17,7 +17,7 @@ export const Maskinporten = (): ReactElement => {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
-  if (isLoggedInWithAnsattporten) {
+  if (ansattportenAuthStatus.isLoggedIn) {
     return (
       <MaskinportenPageTemplate>
         <ScopeListContainer />
