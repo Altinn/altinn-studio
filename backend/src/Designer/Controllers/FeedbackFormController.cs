@@ -66,7 +66,7 @@ public class FeedbackFormController: ControllerBase
 
         await _slackClient.SendMessage(new SlackRequest
         {
-            Text = JsonSerializer.Serialize(feedback, new JsonSerializerOptions { WriteIndented = true })
+            Text = JsonSerializer.Serialize(feedback.Answers, new JsonSerializerOptions { WriteIndented = true })
         });
 
         return Ok();
