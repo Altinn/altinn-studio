@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Altinn.Studio.Designer.Models.Dto
@@ -7,7 +8,7 @@ namespace Altinn.Studio.Designer.Models.Dto
     /// </summary>
     public class FeedbackForm
     {
-        [JsonPropertyName("text")]
-        public string Text { get; set; }
+        [JsonPropertyName("answers")]
+        public Dictionary<string, string> Answers  { get; set; }
     }
 }

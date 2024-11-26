@@ -1,3 +1,5 @@
+using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.Slack;
@@ -39,16 +41,53 @@ public class FeedbackFormController: ControllerBase
             return BadRequest("Feedback object is null");
         }
 
-        if (string.IsNullOrEmpty(feedback.Text))
+        if (feedback.Answers == null || feedback.Answers.Count == 0)
         {
-            return BadRequest("Feedback text is null or empty");
+            return BadRequest("Feedback answers are null or empty");
         }
+
+        if (!feedback.Answers.ContainsKey("org"))
+        {
+            feedback.Answers.Add("org", org);
+        }
+
+        if (!feedback.Answers.ContainsKey("app"))
+        {
+            feedback.Answers.Add("app", app);
+        }
+
+        if (!feedback.Answers.ContainsKey("env"))
+        {
+            feedback.Answers.Add("env", GetEnvironmentName());
+        }
+
+        Console.WriteLine(JsonSerializer.Serialize(feedback, new JsonSerializerOptions { WriteIndented = true }));
 
         await _slackClient.SendMessage(new SlackRequest
         {
-            Text = feedback.Text,
+            Text = JsonSerializer.Serialize(feedback, new JsonSerializerOptions { WriteIndented = true })
         });
 
         return Ok();
+    }
+
+    private string GetEnvironmentName()
+    {
+        string hostname = Environment.GetEnvironmentVariable("GeneralSettings:HostName");
+        if (hostname == null)
+        {
+            return "local";
+        }
+        if (hostname.StartsWith("dev")) {
+            return "dev";
+        }
+        if (hostname.StartsWith("staging")) {
+            return "staging";
+        }
+        if (hostname.Equals("altinn.studio")) {
+            return "prod";
+        }
+
+        return "local";
     }
 }
