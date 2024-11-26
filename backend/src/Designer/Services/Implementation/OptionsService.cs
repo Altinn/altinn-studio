@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.Options;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
@@ -126,15 +125,5 @@ public class OptionsService : IOptionsService
         {
             return false;
         }
-    }
-
-    public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId,
-        string newOptionsListName, CancellationToken cancellationToken = default)
-    {
-        AltinnAppGitRepository altinnAppGitRepository =
-            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
-                altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-        altinnAppGitRepository.UpdateOptionsListId($"{optionsListId}.json", $"{newOptionsListName}.json");
-
     }
 }
