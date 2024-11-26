@@ -18,6 +18,11 @@ import { DefaultItems } from './DefaultItems';
 import { AddItemModal } from './AddItemModal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
+import { useTranslation } from 'react-i18next';
+import nb from './language/nb.json';
+import i18next from 'i18next';
+
+i18next.addResourceBundle('nb', 'addComponentModal', nb);
 
 export type AddItemProps = {
   containerId: string;
@@ -33,6 +38,7 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
 
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
+  const { t } = useTranslation(['translation', 'addComponentModal']);
 
   const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
     org,
@@ -79,8 +85,6 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
   const defaultComponents = getDefaultChildComponentsForContainer(layout, containerId);
   const shouldShowAllComponentsButton = defaultComponents.length > 8;
 
-  console.log('Show default components', showDefaultComponents);
-
   return (
     <div
       style={{
@@ -98,7 +102,7 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
           variant='tertiary'
           fullWidth={containerId === BASE_CONTAINER_ID}
         >
-          Legg til komponent
+          {t('add_component', { ns: 'addComponentModal' })}
         </StudioButton>
       )}
       {showDefaultComponents && (

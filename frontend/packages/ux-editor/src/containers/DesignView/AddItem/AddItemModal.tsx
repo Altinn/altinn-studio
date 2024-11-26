@@ -7,6 +7,7 @@ import { AddItemContent } from './AddItemContent';
 import { PlusIcon } from '@studio/icons';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import classes from './AddItemModal.module.css';
+import { useTranslation } from 'react-i18next';
 
 export type AddItemModalProps = {
   containerId: string;
@@ -23,6 +24,7 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
   };
 
   const modalRef = useRef<HTMLDialogElement>(null);
+  const { t } = useTranslation(['translation', 'addComponentModal']);
 
   const handleAddComponent = (addedItem: AddedItem) => {
     onAddComponent(addedItem);
@@ -49,9 +51,9 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
       </StudioButton>
       <StudioModal.Dialog
         onClose={handleCloseModal}
-        heading={'Velg komponent'}
-        closeButtonTitle='Lukk'
-        style={{ minWidth: '80vw', overflowY: 'hidden' }}
+        heading={t('select_component_header', { ns: 'addComponentModal' })}
+        closeButtonTitle={t('close', { ns: 'addComponentModal' })}
+        style={{ minWidth: '80vw' }}
         ref={modalRef}
       >
         <AddItemContent
