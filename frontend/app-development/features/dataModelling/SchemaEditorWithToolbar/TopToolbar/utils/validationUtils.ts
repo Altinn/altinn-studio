@@ -51,9 +51,5 @@ const doesFileExistInMetadata = (
 export const extractDataTypeNamesFromAppMetadata = (
   appMetadata?: ApplicationMetadata,
 ): string[] => {
-  if (appMetadata?.dataTypes) {
-    return appMetadata.dataTypes.map((dataType) => dataType.id);
-  } else {
-    return [];
-  }
+  return appMetadata?.dataTypes?.map((dataType) => dataType.id) || [];
 };
