@@ -1,5 +1,4 @@
-import React, { useRef } from 'react';
-import { Table, Checkbox } from '@digdir/designsystemet-react';
+import React, { type ReactElement, useRef } from 'react';
 import type { ApplicationMetadata, PartyTypesAllowed } from 'app-shared/types/ApplicationMetadata';
 import classes from './SelectAllowedPartyTypes.module.css';
 import { useTranslation } from 'react-i18next';
@@ -7,12 +6,15 @@ import { getPartyTypesAllowedOptions } from '../../../../utils/tabUtils/accessCo
 import { useAppMetadataMutation } from 'app-development/hooks/mutations';
 import { AccessControlWarningModal } from '../AccessControWarningModal';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { StudioCheckboxTable } from '@studio/components';
 
-export interface SelectAllowedPartyTypesProps {
+export type SelectAllowedPartyTypesProps = {
   appMetadata: ApplicationMetadata;
-}
+};
 
-export const SelectAllowedPartyTypes = ({ appMetadata }: SelectAllowedPartyTypesProps) => {
+export const SelectAllowedPartyTypes = ({
+  appMetadata,
+}: SelectAllowedPartyTypesProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
 
@@ -59,45 +61,27 @@ export const SelectAllowedPartyTypes = ({ appMetadata }: SelectAllowedPartyTypes
 
   return (
     <>
-      <Table className={classes.tableContent}>
-        <Table.Head>
-          <Table.Row>
-            <Table.HeaderCell className={classes.header}>
-              <Checkbox
-                aria-label={t('settings_modal.access_control_tab_option_all_types')}
-                checked={areAllCheckboxesChecked || isNoCheckboxesChecked}
-                indeterminate={!areAllCheckboxesChecked && isSomeCheckboxesChecked}
-                onChange={handleTableHeaderCheckboxChange}
-                aria-checked
-                size='small'
-                value='all'
-              />
-            </Table.HeaderCell>
-            <Table.HeaderCell className={classes.header} aria-hidden>
-              {t('settings_modal.access_control_tab_option_all_types')}
-            </Table.HeaderCell>
-          </Table.Row>
-        </Table.Head>
-        <Table.Body>
-          {getPartyTypesAllowedOptions().map((mappedOption, key) => (
-            <Table.Row key={mappedOption.value}>
-              <Table.Cell className={classes.checkboxContent}>
-                <Checkbox
-                  aria-label={t(mappedOption.label)}
-                  key={key}
-                  onChange={() =>
-                    handleAllowedPartyTypeChange(partyTypesAllowed, mappedOption.value)
-                  }
-                  size='small'
-                  value={mappedOption.value}
-                  checked={partyTypesAllowed[mappedOption.value] || isNoCheckboxesChecked}
-                />
-              </Table.Cell>
-              <Table.Cell>{t(mappedOption.label)}</Table.Cell>
-            </Table.Row>
+      <StudioCheckboxTable className={classes.tableContent}>
+        <StudioCheckboxTable.Header
+          title={t('settings_modal.access_control_tab_option_all_types')}
+          checked={areAllCheckboxesChecked || isNoCheckboxesChecked}
+          indeterminate={!areAllCheckboxesChecked && isSomeCheckboxesChecked}
+          onChange={handleTableHeaderCheckboxChange}
+        />
+        <StudioCheckboxTable.Body>
+          {getPartyTypesAllowedOptions().map((mappedOption) => (
+            <StudioCheckboxTable.Row
+              key={mappedOption.value}
+              rowElement={{
+                ...mappedOption,
+                label: t(mappedOption.label),
+                checked: partyTypesAllowed[mappedOption.value] || isNoCheckboxesChecked,
+              }}
+              onChange={() => handleAllowedPartyTypeChange(partyTypesAllowed, mappedOption.value)}
+            />
           ))}
-        </Table.Body>
-      </Table>
+        </StudioCheckboxTable.Body>
+      </StudioCheckboxTable>
       <AccessControlWarningModal modalRef={modalRef} />
     </>
   );

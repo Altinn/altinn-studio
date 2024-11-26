@@ -19,7 +19,6 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
 using Altinn.Studio.Designer.TypedHttpClients;
-using Community.Microsoft.Extensions.Caching.PostgreSql;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 using Microsoft.AspNetCore.Builder;
@@ -191,7 +190,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
-    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
 
     var maskinportenSettings = new MaskinportenClientSettings();
     configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
@@ -204,7 +203,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMemoryCache();
     services.AddResponseCompression();
     services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
-    services.AddSignalR();
 
     CreateDirectory(configuration);
 
@@ -253,19 +251,17 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddFeatureManagement();
     services.RegisterSynchronizationServices(configuration);
 
-    // Override the default distributed cache with a PostgreSQL implementation
-    services.AddDistributedPostgreSqlCache(setup =>
+    var signalRBuilder = services.AddSignalR();
+    var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
+    if (redisSettings.UseRedisCache)
     {
-        PostgreSQLSettings postgresSettings =
-            configuration.GetSection(nameof(PostgreSQLSettings)).Get<PostgreSQLSettings>();
-
-        setup.ConnectionString = postgresSettings.FormattedConnectionString();
-        setup.SchemaName = "designer";
-        setup.TableName = "distributedcache";
-        setup.DisableRemoveExpired = false;
-        setup.CreateInfrastructure = false;
-        setup.ExpiredItemsDeletionInterval = TimeSpan.FromMinutes(30);
-    });
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisSettings.ConnectionString;
+            options.InstanceName = redisSettings.InstanceName;
+        });
+        signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
+    }
 
     if (!env.IsDevelopment())
     {

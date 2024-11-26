@@ -54,7 +54,9 @@ import {
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
   resourceAccessPackagesPath,
+  authStatusAnsattporten,
 } from './paths';
+
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -83,8 +85,48 @@ import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResp
 import type { Policy } from 'app-shared/types/Policy';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
+import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 
+export const getIsLoggedInWithAnsattporten = () =>
+  get<{
+    isLoggedIn: boolean;
+  }>(authStatusAnsattporten());
+
+const scopesMock: MaskinportenScope[] = [
+  { scope: 'scope1', description: 'description1' },
+  { scope: 'scope2', description: 'description2' },
+  { scope: 'scope3', description: 'description3' },
+  { scope: 'scope7', description: 'description7' },
+  { scope: 'scope8', description: 'description8' },
+  { scope: 'scope9', description: 'description9' },
+];
+
+export const getMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
+  // TODO: replace with endpoint when it's ready in the backend.
+  new Promise((resolve) => {
+    setTimeout(() => {
+      //return resolve([]);
+      return resolve(scopesMock);
+    }, 1000);
+  });
+
+const selectedScopesMock: MaskinportenScope[] = [
+  { scope: 'scope1', description: 'description1' },
+  { scope: 'scope2', description: 'description2' },
+  { scope: 'scope4', description: 'description4' },
+  { scope: 'scope5', description: 'description5' },
+  { scope: 'scope6', description: 'description6' },
+];
+
+export const getSelectedMaskinportenScopes = async (): Promise<MaskinportenScope[]> =>
+  // TODO: replace with endpoint when it's ready in the backend.
+  new Promise((resolve) => {
+    setTimeout(() => {
+      //return resolve([]);
+      return resolve(selectedScopesMock);
+    }, 1000);
+  });
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
 export const getAppVersion = (org: string, app: string) => get<AppVersion>(appVersionPath(org, app));

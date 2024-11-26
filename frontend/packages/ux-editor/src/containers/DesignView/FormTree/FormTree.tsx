@@ -1,6 +1,6 @@
 import React from 'react';
 import type { IInternalLayout } from '../../../types/global';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { renderItemList } from './renderItemList';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useFormItemContext } from '../../FormItemContext';
@@ -19,12 +19,12 @@ export const FormTree = ({ layout, duplicateComponents }: FormTreeProps) => {
   const handleSelect = async (id: string) => handleEdit(getItem(layout, id));
 
   return (
-    <DragAndDropTree.Root
+    <StudioDragAndDropTree.Root
       onSelect={handleSelect}
       emptyMessage={t('ux_editor.container_empty')}
       selectedId={formId}
     >
       {renderItemList(layout, duplicateComponents, BASE_CONTAINER_ID)}
-    </DragAndDropTree.Root>
+    </StudioDragAndDropTree.Root>
   );
 };

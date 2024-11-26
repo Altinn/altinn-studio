@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ChooseFromLibrary.module.css';
 import { imagePath } from 'app-shared/api/paths';
-import { extractFilename } from 'app-shared/utils/filenameUtils';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { WWWROOT_FILE_PATH } from '../../../../../EditImage/constants';
 import { StudioCard, StudioHeading } from '@studio/components';
@@ -42,6 +42,7 @@ const ImageFromLibrary = ({
   onAddImageReference,
   imageSource,
 }: ImageFromLibraryProps) => {
+  const fileName = FileNameUtils.extractFileName(imageFilePath);
   // The img component requires an alt which we can set to be the descriptions from the metadata in the library when this is available.
   // TODO: Add description when we know how to store them. See analysis issue: https://github.com/Altinn/altinn-studio/issues/13346
   return (
@@ -51,12 +52,8 @@ const ImageFromLibrary = ({
           <img src={imageSource} alt={imageFilePath} />
         </StudioCard.Media>
         <StudioCard.Header>
-          <StudioHeading
-            size='xs'
-            className={classes.fileName}
-            title={extractFilename(imageFilePath)}
-          >
-            {extractFilename(imageFilePath)}
+          <StudioHeading size='xs' className={classes.fileName} title={fileName}>
+            {fileName}
           </StudioHeading>
         </StudioCard.Header>
       </StudioCard>

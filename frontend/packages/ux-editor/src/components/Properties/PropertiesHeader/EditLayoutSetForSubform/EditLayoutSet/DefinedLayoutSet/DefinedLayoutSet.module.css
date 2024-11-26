@@ -1,5 +1,4 @@
 .selectedLayoutSet {
-  align-items: center;
-  display: flex;
-  gap: var(--fds-spacing-1);
+  display: block;
+  padding: var(--fds-spacing-3);
 }

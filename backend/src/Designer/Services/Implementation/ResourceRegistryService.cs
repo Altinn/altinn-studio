@@ -70,7 +70,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 publishResourceToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}";
                 getResourceRegistryUrl = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
-                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
                 fullWritePolicyToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
             else

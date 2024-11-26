@@ -82,7 +82,7 @@ function OptionListEditorModal({
         className={classes.editOptionTabModal}
         contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.modal_add_options_codelist')}
+        heading={t('ux_editor.modal_add_options_code_list')}
         onBeforeClose={handleClose}
         onInteractOutside={handleClose}
       >

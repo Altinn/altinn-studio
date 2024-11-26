@@ -68,14 +68,10 @@ describe('ResourceDeployStatus', () => {
   it('renders error messages with links when error is an array', () => {
     render(<ResourceDeployStatus {...defaultProps} />);
 
-    const firstErrorMessageLink = screen.getByRole('button', {
-      name: textMock(mockDeployError1.message),
-    });
+    const firstErrorMessageLink = screen.getByText(textMock(mockDeployError1.message));
     expect(firstErrorMessageLink).toBeInTheDocument();
 
-    const secondErrorMessageLink = screen.getByRole('button', {
-      name: textMock(mockDeployError2.message),
-    });
+    const secondErrorMessageLink = screen.getByText(textMock(mockDeployError2.message));
 
     expect(secondErrorMessageLink).toBeInTheDocument();
   });
@@ -84,9 +80,7 @@ describe('ResourceDeployStatus', () => {
     const user = userEvent.setup();
     render(<ResourceDeployStatus {...defaultProps} />);
 
-    const linkButton = screen.getByRole('button', {
-      name: textMock(mockDeployError1.message),
-    });
+    const linkButton = screen.getByText(textMock(mockDeployError1.message));
 
     await user.click(linkButton);
 
