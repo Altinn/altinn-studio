@@ -7,7 +7,7 @@ import { useAppContext } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioCenter } from '@studio/components';
+import { StudioButton, StudioCenter, StudioErrorMessage, StudioSpinner } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
@@ -91,7 +91,11 @@ const PreviewFrame = () => {
 
   const { shouldReloadPreview, previewHasLoaded } = useAppContext();
   const checksum = useChecksum(shouldReloadPreview);
-  const { mutate: createInstance, data: instance } = useCreatePreviewInstanceMutation(org, app);
+  const {
+    mutate: createInstance,
+    data: instance,
+    isError: createInstanceError,
+  } = useCreatePreviewInstanceMutation(org, app);
 
   useEffect(() => {
     if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
@@ -106,7 +110,11 @@ const PreviewFrame = () => {
   if (!instance) {
     return (
       <StudioCenter>
-        <Paragraph size='medium'>{t('ux_editor.loading_preview')}</Paragraph>
+        {createInstanceError ? (
+          <StudioErrorMessage>{t('general.page_error_title')}</StudioErrorMessage>
+        ) : (
+          <StudioSpinner spinnerTitle={t('preview.loading_preview_controller')} />
+        )}
       </StudioCenter>
     );
   }
