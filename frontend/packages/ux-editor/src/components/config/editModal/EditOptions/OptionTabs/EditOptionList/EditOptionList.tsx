@@ -9,7 +9,7 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
-import { FileNameUtils, FileNameValidationResult } from '@studio/pure-functions';
+import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
@@ -41,12 +41,12 @@ export function EditOptionList<T extends SelectionComponentType>({
   };
 
   const onSubmit = (file: File) => {
-    const fileNameError = FileNameUtils.validateFileName(
+    const fileNameError = FileNameUtils.findFileNameError(
       FileNameUtils.removeExtension(file.name),
       optionListIds,
       generalFileNameRegEx,
     );
-    if (fileNameError !== FileNameValidationResult.Valid) handleInvalidFileName(fileNameError);
+    if (fileNameError) handleInvalidFileName(fileNameError);
     else handleUpload(file);
   };
 
@@ -64,11 +64,11 @@ export function EditOptionList<T extends SelectionComponentType>({
     });
   };
 
-  const handleInvalidFileName = (fileNameError: FileNameValidationResult) => {
+  const handleInvalidFileName = (fileNameError: FileNameErrorResult) => {
     switch (fileNameError) {
-      case FileNameValidationResult.NoRegExMatch:
+      case FileNameErrorResult.NoRegExMatch:
         return toast.error(t('validation_errors.file_name_invalid'));
-      case FileNameValidationResult.FileExists:
+      case FileNameErrorResult.FileExists:
         return toast.error(t('validation_errors.upload_file_name_occupied'));
     }
   };

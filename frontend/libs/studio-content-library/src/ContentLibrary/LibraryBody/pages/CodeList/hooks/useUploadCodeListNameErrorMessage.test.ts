@@ -1,26 +1,26 @@
-import { FileNameValidationResult } from '@studio/pure-functions';
+import { FileNameErrorResult } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from './useUploadCodeListNameErrorMessage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('useUploadCodeListNameErrorMessage', () => {
   it('returns correct errorMessage for empty uploaded file name', () => {
-    const FileNameIsEmptyValidationResult = FileNameValidationResult.FileNameIsEmpty;
+    const fileNameIsEmptyErrorResult = FileNameErrorResult.FileNameIsEmpty;
     const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
-    const errorMessage = getInvalidUploadFileNameErrorMessage(FileNameIsEmptyValidationResult);
+    const errorMessage = getInvalidUploadFileNameErrorMessage(fileNameIsEmptyErrorResult);
     expect(errorMessage).toBe(textMock('validation_errors.upload_file_name_required'));
   });
 
   it('returns correct errorMessage for existing uploaded file name', () => {
-    const FileExistsValidationResult = FileNameValidationResult.FileExists;
+    const fileExistsErrorResult = FileNameErrorResult.FileExists;
     const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
-    const errorMessage = getInvalidUploadFileNameErrorMessage(FileExistsValidationResult);
+    const errorMessage = getInvalidUploadFileNameErrorMessage(fileExistsErrorResult);
     expect(errorMessage).toBe(textMock('validation_errors.upload_file_name_occupied'));
   });
 
-  it('returns no errorMessage when result is valid', () => {
-    const ValidValidationResult = FileNameValidationResult.Valid;
+  it('returns no errorMessage when fileNameError is null', () => {
+    const nullErrorResult = null;
     const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
-    const errorMessage = getInvalidUploadFileNameErrorMessage(ValidValidationResult);
+    const errorMessage = getInvalidUploadFileNameErrorMessage(nullErrorResult);
     expect(errorMessage).toBeUndefined();
   });
 });

@@ -5,7 +5,7 @@ import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../CodeList';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
-import { FileNameValidationResult, FileNameUtils } from '@studio/pure-functions';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
 
@@ -24,8 +24,8 @@ export function CodeListsActionsBar({
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
   const onSubmit = (file: File) => {
-    if (!isFileNameValid(file.name, codeListNames)) {
-      const fileNameError = getFileNameError(file.name, codeListNames);
+    const fileNameError = getFileNameError(file.name, codeListNames);
+    if (fileNameError) {
       return toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));
     }
     onUploadCodeList(file);
@@ -50,11 +50,5 @@ export function CodeListsActionsBar({
   );
 }
 
-const getFileNameError = (fileName: string, invalidFileNames: string[]) => {
-  return FileNameUtils.validateFileName(FileNameUtils.removeExtension(fileName), invalidFileNames);
-};
-
-const isFileNameValid = (fileName: string, invalidFileNames: string[]) => {
-  const fileNameError = getFileNameError(fileName, invalidFileNames);
-  return fileNameError === FileNameValidationResult.Valid;
-};
+const getFileNameError = (fileName: string, invalidFileNames: string[]) =>
+  FileNameUtils.findFileNameError(FileNameUtils.removeExtension(fileName), invalidFileNames);

@@ -11,7 +11,7 @@ import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeList';
-import { FileNameUtils, FileNameValidationResult } from '@studio/pure-functions';
+import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 
 type CreateNewCodeListModalProps = {
@@ -84,10 +84,10 @@ function CreateNewCodeList({
   };
 
   const handleCodeListTitleChange = (updatedTitle: string) => {
-    const fileNameError = FileNameUtils.validateFileName(updatedTitle, codeListNames);
+    const fileNameError = FileNameUtils.findFileNameError(updatedTitle, codeListNames);
     const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
     setCodeListTitleError(errorMessage ?? '');
-    if (fileNameError === FileNameValidationResult.Valid) {
+    if (!fileNameError) {
       const updatedCodeListWithMetadata = updateTitleInCodeListWithMetadata(
         currentCodeListWithMetadata,
         updatedTitle,
