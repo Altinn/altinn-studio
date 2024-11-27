@@ -1352,6 +1352,7 @@
   "ux_editor.component_properties.stickyHeader": "Fest tittelraden",
   "ux_editor.component_properties.style": "Stil",
   "ux_editor.component_properties.subdomains": "Subdomener (kommaseparert)",
+  "ux_editor.component_properties.subform.choose_data_model": "Velg datamodell...",
   "ux_editor.component_properties.subform.choose_layout_set": "Velg et underskjema...",
   "ux_editor.component_properties.subform.choose_layout_set_description": "Velg først underskjemaet du vil bruke i Tabell for underskjema. Deretter kan du sette opp egenskapene for komponenten.",
   "ux_editor.component_properties.subform.choose_layout_set_header": "Velg underskjemaet du vil bruke",

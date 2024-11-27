@@ -33,20 +33,15 @@ export const CreateNewSubformSection = ({
 }: CreateNewSubformSectionProps): React.ReactElement => {
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const [nameError, setNameError] = useState<string | Boolean>(true);
+  const [nameError, setNameError] = useState<string>();
   const [dataModel, setDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
   const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
+  const hasInvalidFields = nameError === undefined || Boolean(nameError) || !dataModel;
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
     setNameError(subformNameValidation);
-  };
-
-  const handleDataModel = (dataModelId: string) => {
-    // Add data model validation here and replace dataModel useState with dataModelError
-    // when this PR is merged: https://github.com/Altinn/altinn-studio/issues/13364
-    setDataModel(dataModelId);
   };
 
   const handleCloseButton = () => {
@@ -97,17 +92,16 @@ export const CreateNewSubformSection = ({
             size='sm'
             disabled={isPendingNewSubformMutation}
             onChange={(e) => handleSubformName(e.target.value)}
-            error={typeof nameError === 'string' && nameError}
+            error={nameError}
           />
           <SubformDataModel
-            handleDataModel={handleDataModel}
             setDisplayDataModelInput={setDisplayDataModelInput}
             setDataModel={setDataModel}
             displayDataModelInput={displayDataModelInput}
           />
           <CreateNewSubformButtons
             isPendingNewSubformMutation={isPendingNewSubformMutation}
-            disableSaveButton={Boolean(nameError) || !dataModel}
+            disableSaveButton={hasInvalidFields}
             displayCloseButton={hasSubforms || displayDataModelInput}
             handleCloseButton={handleCloseButton}
           />

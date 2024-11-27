@@ -7,14 +7,12 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 import classes from './SubformDataModel.module.css';
 
 export type SubformDataModelProps = {
-  handleDataModel: (dataModelId: string) => void;
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
   setDataModel: (dataModelId: string) => void;
   displayDataModelInput: boolean;
 };
 
 export const SubformDataModel = ({
-  handleDataModel,
   setDisplayDataModelInput,
   setDataModel,
   displayDataModelInput,
@@ -22,6 +20,11 @@ export const SubformDataModel = ({
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
+
+  const handleDataModel = (dataModelId: string) => {
+    // TODO: https://github.com/Altinn/altinn-studio/issues/14184
+    setDataModel(dataModelId);
+  };
 
   const handleDisplayInput = () => {
     setDisplayDataModelInput(true);
@@ -37,7 +40,7 @@ export const SubformDataModel = ({
         disabled={displayDataModelInput}
         name='subformDataModel'
       >
-        <option value='' hidden></option>
+        <option value=''>{t('ux_editor.component_properties.subform.choose_data_model')}</option>
         {dataModelIds ? (
           dataModelIds.map((dataModelId) => (
             <option value={dataModelId} key={dataModelId}>
