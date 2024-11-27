@@ -48,10 +48,10 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Builds a JSON schema based on the uploaded XSD.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="modelName">The name of the new model.</param>
+        /// <param name="fileNameWithExtension">The name of the new file.</param>
         /// <param name="xsdStream">Stream representing the XSD.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task<string> BuildSchemaFromXsd(AltinnRepoEditingContext altinnRepoEditingContext, string modelName, Stream xsdStream, CancellationToken cancellationToken = default);
+        Task<string> BuildSchemaFromXsd(AltinnRepoEditingContext altinnRepoEditingContext, string fileNameWithExtension, Stream xsdStream, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a JSON schema based on a template.
