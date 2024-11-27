@@ -81,4 +81,30 @@ describe('objectUtils', () => {
       expect(ObjectUtils.flattenObjectValues(object)).toEqual(['value1', 'value2', 'value3']);
     });
   });
+
+  describe('sortEntriesInObjectByKeys', () => {
+    it('Sorts all entries in an object by its keys', () => {
+      const unSortedObject = { b: 'b', a: 'a', c: 'c' };
+      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unSortedObject);
+      const sortedObjectKeys = Object.keys(sortedObject);
+      expect(sortedObjectKeys[0]).toBe('a');
+      expect(sortedObjectKeys[1]).toBe('b');
+      expect(sortedObjectKeys[2]).toBe('c');
+    });
+
+    it('Returns same order if entries in is already sorted', () => {
+      const unSortedObject = { a: 'a', b: 'b', c: 'c' };
+      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unSortedObject);
+      const sortedObjectKeys = Object.keys(sortedObject);
+      expect(sortedObjectKeys[0]).toBe('a');
+      expect(sortedObjectKeys[1]).toBe('b');
+      expect(sortedObjectKeys[2]).toBe('c');
+    });
+
+    it('Returns empty list if entries to sort is empty', () => {
+      const emptyObject = {};
+      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(emptyObject);
+      expect(sortedObject).toEqual({});
+    });
+  });
 });

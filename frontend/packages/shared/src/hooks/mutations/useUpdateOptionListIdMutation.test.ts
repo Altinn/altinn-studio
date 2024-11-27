@@ -33,6 +33,10 @@ describe('useUpdateOptionListIdMutation', () => {
   });
 
   test('Sets the option lists cache with new id in correct alphabetical order', async () => {
+    const optionListA = 'optionListA';
+    const optionListB = 'optionListB';
+    const optionListC = 'optionListC';
+    const optionListZ = 'optionListZ';
     const queryClient = createQueryClientMock();
     const oldData: OptionsLists = {
       optionListA: optionListMock,
@@ -45,15 +49,14 @@ describe('useUpdateOptionListIdMutation', () => {
       { queryClient },
     ).result;
     await renderUpdateOptionListMutationResult.current.mutateAsync({
-      optionListId: 'optionListA',
-      newOptionListId: 'optionListC',
+      optionListId: optionListA,
+      newOptionListId: optionListC,
     });
     const cacheData = queryClient.getQueryData([QueryKey.OptionLists, org, app]);
-    expect(cacheData).toEqual({
-      optionListB: optionListMock,
-      optionListC: optionListMock,
-      optionListZ: optionListMock,
-    });
+    const cacheDataKeys = Object.keys(cacheData);
+    expect(cacheDataKeys[0]).toEqual(optionListB);
+    expect(cacheDataKeys[1]).toEqual(optionListC);
+    expect(cacheDataKeys[2]).toEqual(optionListZ);
   });
 
   test('Invalidates the optionListIds query cache', async () => {
