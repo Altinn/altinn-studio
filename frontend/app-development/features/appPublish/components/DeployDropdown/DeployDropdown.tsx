@@ -1,23 +1,22 @@
-import React, { useState } from 'react';
+import React, { type ReactElement } from 'react';
 import classes from './DeployDropdown.module.css';
-import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton, StudioError, StudioSpinner } from '@studio/components';
-import { Combobox, Spinner } from '@digdir/designsystemet-react';
-import type { ImageOption } from './ImageOption';
+import { StudioCombobox, StudioError, StudioSpinner } from '@studio/components';
+import type { ImageOption } from '../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
 import { BuildResult } from 'app-shared/types/Build';
 import { DateUtils } from '@studio/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { DeployPopover } from './DeployPopover';
 
-export interface DeployDropdownProps {
+export type DeployDropdownProps = {
   appDeployedVersion: string;
   disabled: boolean;
   setSelectedImageTag: (tag: string) => void;
   selectedImageTag: string;
   startDeploy: () => void;
   isPending: boolean;
-}
+};
 
 export const DeployDropdown = ({
   appDeployedVersion,
@@ -26,9 +25,8 @@ export const DeployDropdown = ({
   disabled,
   startDeploy,
   isPending,
-}: DeployDropdownProps) => {
+}: DeployDropdownProps): ReactElement => {
   const { org, app } = useStudioEnvironmentParams();
-  const [isConfirmDeployDialogOpen, setIsConfirmDeployDialogOpen] = useState<boolean>();
   const { t } = useTranslation();
 
   const {
@@ -57,7 +55,7 @@ export const DeployDropdown = ({
   return (
     <div className={classes.deployDropDown}>
       <div>
-        <Combobox
+        <StudioCombobox
           size='small'
           value={selectedImageTag && imageOptions?.length > 0 ? [selectedImageTag] : undefined}
           label={t('app_deployment.choose_version')}
@@ -68,47 +66,22 @@ export const DeployDropdown = ({
         >
           {imageOptions.map((imageOption) => {
             return (
-              <Combobox.Option key={imageOption.value} value={imageOption.value}>
+              <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
                 {imageOption.label}
-              </Combobox.Option>
+              </StudioCombobox.Option>
             );
           })}
-          <Combobox.Empty>{t('app_deployment.no_versions')}</Combobox.Empty>
-        </Combobox>
+          <StudioCombobox.Empty>{t('app_deployment.no_versions')}</StudioCombobox.Empty>
+        </StudioCombobox>
       </div>
       <div className={classes.deployButton}>
-        <AltinnConfirmDialog
-          open={isConfirmDeployDialogOpen}
-          confirmColor='first'
+        <DeployPopover
+          appDeployedVersion={appDeployedVersion}
+          selectedImageTag={selectedImageTag}
+          disabled={disabled}
+          isPending={isPending}
           onConfirm={startDeploy}
-          onClose={() => setIsConfirmDeployDialogOpen(false)}
-          placement='right'
-          trigger={
-            <StudioButton
-              disabled={!selectedImageTag || disabled}
-              onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
-            >
-              {isPending && (
-                <Spinner
-                  variant='interaction'
-                  title=''
-                  size='xsmall'
-                  data-testid='spinner-test-id'
-                />
-              )}
-              {t('app_deployment.btn_deploy_new_version')}
-            </StudioButton>
-          }
-        >
-          <p>
-            {appDeployedVersion
-              ? t('app_deployment.deploy_confirmation', {
-                  selectedImageTag,
-                  appDeployedVersion,
-                })
-              : t('app_deployment.deploy_confirmation_short', { selectedImageTag })}
-          </p>
-        </AltinnConfirmDialog>
+        />
       </div>
     </div>
   );
