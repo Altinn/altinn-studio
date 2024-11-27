@@ -3,7 +3,6 @@ import type { StudioPopoverTriggerProps } from '../../StudioPopover';
 import { StudioPopover } from '../../StudioPopover';
 import cn from 'classnames';
 import classes from '../common.module.css';
-
 import type { StudioPageHeaderColor } from '../types/StudioPageHeaderColor';
 import type { StudioPageHeaderVariant } from '../types/StudioPageHeaderVariant';
 
