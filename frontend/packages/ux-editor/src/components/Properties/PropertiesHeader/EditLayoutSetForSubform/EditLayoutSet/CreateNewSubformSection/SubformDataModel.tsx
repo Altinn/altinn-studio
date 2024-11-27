@@ -8,13 +8,15 @@ import classes from './SubformDataModel.module.css';
 
 export type SubformDataModelProps = {
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
-  setDataModel: (dataModelId: string) => void;
+  setNewDataModel: (dataModelId: string) => void;
   displayDataModelInput: boolean;
+  setSelectedDataModel: (dataModelId: string) => void;
 };
 
 export const SubformDataModel = ({
   setDisplayDataModelInput,
-  setDataModel,
+  setSelectedDataModel,
+  setNewDataModel,
   displayDataModelInput,
 }: SubformDataModelProps): React.ReactElement => {
   const { t } = useTranslation();
@@ -23,24 +25,23 @@ export const SubformDataModel = ({
 
   const handleDataModel = (dataModelId: string) => {
     // TODO: https://github.com/Altinn/altinn-studio/issues/14184
-    setDataModel(dataModelId);
+    setNewDataModel(dataModelId);
   };
 
   const handleDisplayInput = () => {
     setDisplayDataModelInput(true);
-    setDataModel('');
   };
 
   return (
     <>
       <StudioNativeSelect
         label={t('ux_editor.component_properties.subform.data_model_binding_label')}
-        onChange={(e) => handleDataModel(e.target.value)}
+        onChange={(e) => setSelectedDataModel(e.target.value)}
         size='small'
         disabled={displayDataModelInput}
         name='subformDataModel'
       >
-        <option value=''>{t('ux_editor.component_properties.subform.choose_data_model')}</option>
+        <option value='' hidden />
         {dataModelIds ? (
           dataModelIds.map((dataModelId) => (
             <option value={dataModelId} key={dataModelId}>

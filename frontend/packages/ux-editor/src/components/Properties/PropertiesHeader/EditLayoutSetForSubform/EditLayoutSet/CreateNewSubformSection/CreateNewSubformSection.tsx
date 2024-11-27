@@ -34,10 +34,10 @@ export const CreateNewSubformSection = ({
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
   const [nameError, setNameError] = useState<string>();
-  const [dataModel, setDataModel] = useState<string>('');
+  const [newDataModel, setNewDataModel] = useState<string>('');
+  const [selectedDataModel, setSelectedDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
   const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
-  const hasInvalidFields = nameError === undefined || Boolean(nameError) || !dataModel;
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
@@ -46,7 +46,7 @@ export const CreateNewSubformSection = ({
 
   const handleCloseButton = () => {
     if (displayDataModelInput) {
-      setDataModel('');
+      setNewDataModel('');
       setDisplayDataModelInput(false);
     } else {
       setShowCreateSubformCard(false);
@@ -67,6 +67,9 @@ export const CreateNewSubformSection = ({
       newDataModel: !!newSubformDataType,
     });
   };
+
+  const hasInvalidSubformName = nameError === undefined || Boolean(nameError);
+  const hasInvalidDataModel = displayDataModelInput ? !newDataModel : !selectedDataModel;
 
   return (
     <StudioRecommendedNextAction
@@ -96,12 +99,13 @@ export const CreateNewSubformSection = ({
           />
           <SubformDataModel
             setDisplayDataModelInput={setDisplayDataModelInput}
-            setDataModel={setDataModel}
+            setNewDataModel={setNewDataModel}
             displayDataModelInput={displayDataModelInput}
+            setSelectedDataModel={setSelectedDataModel}
           />
           <CreateNewSubformButtons
             isPendingNewSubformMutation={isPendingNewSubformMutation}
-            disableSaveButton={hasInvalidFields}
+            disableSaveButton={hasInvalidSubformName || hasInvalidDataModel}
             displayCloseButton={hasSubforms || displayDataModelInput}
             handleCloseButton={handleCloseButton}
           />

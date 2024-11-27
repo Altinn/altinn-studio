@@ -17,7 +17,7 @@ const mockDataModelIds = ['dataModelId1', 'dataModelId2'];
 describe('SubformDataModel', () => {
   afterEach(jest.clearAllMocks);
 
-  it('renders StudioNativeSelect with its label and options (with placeholder)', () => {
+  it('renders StudioNativeSelect with its label and options', () => {
     renderSubformDataModelSelect();
 
     const dataModelSelect = screen.getByRole('combobox', {
@@ -26,28 +26,30 @@ describe('SubformDataModel', () => {
     const options = screen.getAllByRole('option');
 
     expect(dataModelSelect).toBeInTheDocument();
-    expect(options).toHaveLength(mockDataModelIds.length + 1);
+    expect(options).toHaveLength(mockDataModelIds.length);
   });
 
   it('Renders placeholder option with an empty value', () => {
     renderSubformDataModelSelect();
+
     const placeholderOption = screen.getByRole('option', {
-      name: textMock('ux_editor.component_properties.subform.choose_data_model'),
+      hidden: true,
+      name: '',
     });
     expect(placeholderOption).toBeInTheDocument();
     expect(placeholderOption).toHaveAttribute('value', '');
   });
 
   it('Calls setDataModel when selecting an option', async () => {
-    const setDataModel = jest.fn();
-    renderSubformDataModelSelect({ setDataModel });
+    const setSelectedDataModel = jest.fn();
+    renderSubformDataModelSelect({ setSelectedDataModel });
 
     await user.selectOptions(
       screen.getByRole('combobox'),
       screen.getByRole('option', { name: mockDataModelIds[1] }),
     );
-    await waitFor(() => expect(setDataModel).toHaveBeenCalledTimes(1));
-    expect(setDataModel).toHaveBeenCalledWith(mockDataModelIds[1]);
+    await waitFor(() => expect(setSelectedDataModel).toHaveBeenCalledTimes(1));
+    expect(setSelectedDataModel).toHaveBeenCalledWith(mockDataModelIds[1]);
   });
 
   it('Should call setDisplayDataModelInput true when clicking create new data model button', async () => {
@@ -73,8 +75,9 @@ describe('SubformDataModel', () => {
 
 const defaultProps: SubformDataModelProps = {
   setDisplayDataModelInput: jest.fn(),
-  setDataModel: jest.fn(),
+  setNewDataModel: jest.fn(),
   displayDataModelInput: false,
+  setSelectedDataModel: jest.fn(),
 };
 
 const renderSubformDataModelSelect = (props: Partial<SubformDataModelProps> = {}) => {
