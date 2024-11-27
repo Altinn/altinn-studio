@@ -1,7 +1,7 @@
 import { FileNameErrorResult } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 
-export function useInputCodeListNameErrorMessage() {
+export function useInputCodeListNameErrorMessage(): (fileNameError: FileNameErrorResult) => string {
   const { t } = useTranslation();
 
   type FileNameInputErrorResult = Exclude<FileNameErrorResult, FileNameErrorResult.NoRegExMatch>;

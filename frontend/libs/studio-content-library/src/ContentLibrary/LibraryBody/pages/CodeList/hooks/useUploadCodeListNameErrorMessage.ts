@@ -1,7 +1,9 @@
 import { FileNameErrorResult } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 
-export function useUploadCodeListNameErrorMessage() {
+export function useUploadCodeListNameErrorMessage(): (
+  fileNameError: FileNameErrorResult,
+) => string {
   const { t } = useTranslation();
 
   type FileNameUploadErrorResult = Exclude<FileNameErrorResult, FileNameErrorResult.NoRegExMatch>;
