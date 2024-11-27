@@ -51,7 +51,9 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
             nameof(ProcessModelingController).Replace(RemoveControllerSuffix, string.Empty),
             GenerateFrozenSet(
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
-                nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata)
+                nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
+                nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
+                nameof(ProcessModelingController.SaveProcessDefinitionFromTemplate)
             )
         },
         {
