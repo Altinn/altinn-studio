@@ -594,7 +594,7 @@ Cypress.Commands.add('directSnapshot', (snapshotName, { width, minHeight }, rese
 });
 
 const DEFAULT_COMMAND_TIMEOUT = Cypress.config().defaultCommandTimeout;
-Cypress.Commands.add('testPdf', (snapshotName, callback, returnToForm = false) => {
+Cypress.Commands.add('testPdf', ({ snapshotName = false, beforeReload, callback, returnToForm = false }) => {
   cy.log('Testing PDF');
 
   // Store initial viewport size for later
@@ -628,6 +628,7 @@ Cypress.Commands.add('testPdf', (snapshotName, callback, returnToForm = false) =
     cy.visit(visitUrl);
   });
 
+  beforeReload?.();
   cy.reload();
 
   // Wait for readyForPrint, after this everything should be rendered so using timeout: 0

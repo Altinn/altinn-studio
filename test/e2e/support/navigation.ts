@@ -1,7 +1,7 @@
 import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 import { getLocalPartyId } from 'test/e2e/support/auth';
 import { getTargetUrl } from 'test/e2e/support/start-app-instance';
-import type { FrontendTestTask } from 'test/e2e/support/global';
+import type { FrontendTestTask, StartAppInstanceOptions } from 'test/e2e/support/global';
 
 const appFrontend = new AppFrontend();
 
@@ -77,34 +77,54 @@ function generateEvalString(target: FrontendTestTask, extra?: Extras): string {
  * These should always complete the task fully, i.e. end the task and move to the next one after it.
  * It never generates a PDF for the previous tasks.
  */
-const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras) => void } = {
-  message: () => {
+const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras, startOptions?: StartAppInstanceOptions) => void } = {
+  message: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
     cy.intercept('**/active', []).as('noActiveInstances');
-    cy.startAppInstance(appFrontend.apps.frontendTest);
+    if (extra) {
+      throw new Error('Extra not supported for message navigator');
+    }
+    cy.startAppInstance(appFrontend.apps.frontendTest, startOptions);
     cy.findByRole('button', { name: /lukk skjema/i }).should('be.visible');
   },
-  changename: (extra?: Extras) => {
+  changename: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
     cy.startAppInstance(appFrontend.apps.frontendTest, {
+      ...startOptions,
       evaluateBefore: generateEvalString('changename', extra),
     });
   },
-  group: () => {
+  group: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
+    if (extra) {
+      throw new Error('Extra not supported for group navigator');
+    }
     cy.startAppInstance(appFrontend.apps.frontendTest, {
+      ...startOptions,
       evaluateBefore: generateEvalString('group'),
     });
   },
-  likert: () => {
+  likert: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
+    if (extra) {
+      throw new Error('Extra not supported for likert navigator');
+    }
     cy.startAppInstance(appFrontend.apps.frontendTest, {
+      ...startOptions,
       evaluateBefore: generateEvalString('likert'),
     });
   },
-  datalist: () => {
+  datalist: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
+    if (extra) {
+      throw new Error('Extra not supported for datalist navigator');
+    }
     cy.startAppInstance(appFrontend.apps.frontendTest, {
+      ...startOptions,
       evaluateBefore: generateEvalString('datalist'),
     });
   },
-  confirm: () => {
+  confirm: (extra?: Extras, startOptions?: StartAppInstanceOptions) => {
+    if (extra) {
+      throw new Error('Extra not supported for confirm navigator');
+    }
     cy.startAppInstance(appFrontend.apps.frontendTest, {
+      ...startOptions,
       evaluateBefore: generateEvalString('datalist', ({ baseUrl }) => ({
         code: `await fetch('${baseUrl}/instances/' + instanceId + '/process/next', { method: 'PUT', headers });`,
       })),
@@ -112,8 +132,8 @@ const gotoFunctions: { [key in FrontendTestTask]: (extra?: Extras) => void } = {
   },
 };
 
-Cypress.Commands.add('goto', (task) => {
-  gotoFunctions[task]();
+Cypress.Commands.add('goto', (task, options) => {
+  gotoFunctions[task](undefined, options);
 });
 
 Cypress.Commands.add('gotoHiddenPage', (target) => {

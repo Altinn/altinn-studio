@@ -90,7 +90,7 @@ function getPath(hashFromState: string): string {
   return hash.slice(1).split('?')[0];
 }
 
-function getSearch(hashFromState: string): string {
+export function getSearch(hashFromState: string): string {
   const hash = window.inUnitTest ? hashFromState : window.location.hash;
   const search = hash.split('?')[1] ?? '';
   return search ? `?${search}` : '';

@@ -22,6 +22,13 @@ export type StartAppInstanceOptions = {
   urlSuffix?: string;
 };
 
+export interface TestPdfOptions {
+  snapshotName?: string;
+  beforeReload?: () => void;
+  callback: () => void;
+  returnToForm?: boolean;
+}
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -29,7 +36,7 @@ declare global {
       /**
        * Quickly go to a certain task in the app
        */
-      goto(target: FrontendTestTask): Chainable<Element>;
+      goto(target: FrontendTestTask, options?: StartAppInstanceOptions): Chainable<Element>;
 
       /**
        * In 'ttd/frontend-test' we're using a pattern of initially hidden pages to expand with new test cases.
@@ -231,7 +238,7 @@ declare global {
         options: { width: number; minHeight: number },
         reset?: boolean,
       ): Chainable<null>;
-      testPdf(snapshotName: string | false, callback: () => void, returnToForm?: boolean): Chainable<null>;
+      testPdf(options: TestPdfOptions): Chainable<null>;
       getCurrentPageId(): Chainable<string>;
 
       /**

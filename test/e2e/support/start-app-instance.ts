@@ -150,6 +150,7 @@ Cypress.Commands.add('startAppInstance', (appName, options) => {
 
   user && login(user, authenticationLevel);
   !user && cy.clearCookies();
+
   cy.visit(targetUrlRaw, visitOptions);
 
   if (evaluateBefore) {
