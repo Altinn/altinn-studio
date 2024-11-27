@@ -1,6 +1,6 @@
 .top {
   box-shadow: var(--fds-shadow-small);
-  margin-bottom: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-1);
 }
 
 .backButton {
