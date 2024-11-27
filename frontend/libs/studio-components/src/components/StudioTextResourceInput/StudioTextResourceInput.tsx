@@ -144,10 +144,10 @@ const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
 
 InputBox.displayName = 'InputBox';
 
-type ValueFieldProps = {
+type ValueFieldProps = StudioTextfieldProps & {
   textResource: TextResource;
   onChangeTextResource: (textResource: TextResource) => void;
-} & StudioTextfieldProps;
+};
 
 const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
   ({ textResource, onChange, onChangeTextResource, ...rest }, ref): ReactElement => {
