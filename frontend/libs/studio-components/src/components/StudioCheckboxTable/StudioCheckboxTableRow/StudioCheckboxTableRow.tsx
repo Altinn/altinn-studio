@@ -14,7 +14,7 @@ export const StudioCheckboxTableRow = ({
   rowElement,
   onChange,
 }: StudioCheckboxTableRowProps): ReactElement => {
-  const { value, label, description, checked } = rowElement;
+  const { value, label, description, checked, disabled } = rowElement;
   return (
     <StudioTable.Row>
       <StudioTable.Cell className={classes.checkboxCell}>
@@ -25,6 +25,7 @@ export const StudioCheckboxTableRow = ({
           value={value}
           description={description}
           checked={checked}
+          disabled={disabled}
         />
       </StudioTable.Cell>
       <StudioTable.Cell className={classes.chexboxTextContent}>

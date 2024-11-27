@@ -76,6 +76,15 @@ describe('StudioFileUploader', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  it('should call submit callback twice when uploading the same file consecutively', async () => {
+    const user = userEvent.setup();
+    renderFileUploader();
+    const file = new File(['test'], 'fileNameMock.json', { type: 'image/png' });
+    await user.upload(getFileInputElement(), file);
+    await user.upload(getFileInputElement(), file);
+    expect(onSubmit).toHaveBeenCalledTimes(2);
+  });
+
   it('Applies given class name to the root element', () => {
     testRootClassNameAppending((className: string) => renderFileUploader({ className }));
   });

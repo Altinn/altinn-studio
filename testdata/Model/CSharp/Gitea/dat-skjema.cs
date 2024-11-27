@@ -207,7 +207,7 @@ namespace Altinn.App.Models
     public bool? BekreftRiktig { get; set; }
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
-    [XmlElement("AnsatteInnen", Order = 4)]
+    [XmlElement("AnsatteInnen", Order = 4, IsNullable = true)]
     [JsonProperty("AnsatteInnen")]
     [JsonPropertyName("AnsatteInnen")]
     public string AnsatteInnen { get; set; }

@@ -1,4 +1,4 @@
-import { removeExtension } from 'app-shared/utils/filenameUtils';
+import { FileNameUtils } from '@studio/pure-functions';
 
 export type FileNameError = 'invalidFileName' | 'fileExists';
 
@@ -6,7 +6,7 @@ export const findFileNameError = (
   optionListIds: string[],
   fileName: string,
 ): FileNameError | null => {
-  const fileNameWithoutExtension = removeExtension(fileName);
+  const fileNameWithoutExtension = FileNameUtils.removeExtension(fileName);
 
   if (!isFilenameValid(fileNameWithoutExtension)) {
     return 'invalidFileName';
