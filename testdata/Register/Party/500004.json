@@ -1,0 +1,13 @@
+{
+    "partyId": "500004",
+    "partyTypeName": 2,
+    "orgNumber": "043871668",
+    "ssn": null,
+    "unitType": "BEDR",
+    "name": "Skog og Fjell Consulting",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": false,
+    "person": null,
+    "organisation": null,
+    "childParties": null
+}
