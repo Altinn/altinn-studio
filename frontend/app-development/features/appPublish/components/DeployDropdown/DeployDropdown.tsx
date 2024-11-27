@@ -54,26 +54,18 @@ export const DeployDropdown = ({
 
   return (
     <div className={classes.deployDropDown}>
-      <div>
-        <StudioCombobox
-          size='small'
-          value={selectedImageTag && imageOptions?.length > 0 ? [selectedImageTag] : undefined}
-          label={t('app_deployment.choose_version')}
-          onValueChange={(selectedImageOptions: string[]) =>
-            setSelectedImageTag(selectedImageOptions[0])
-          }
-          disabled={disabled}
-        >
-          {imageOptions.map((imageOption) => {
-            return (
-              <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
-                {imageOption.label}
-              </StudioCombobox.Option>
-            );
-          })}
-          <StudioCombobox.Empty>{t('app_deployment.no_versions')}</StudioCombobox.Empty>
-        </StudioCombobox>
-      </div>
+      <StudioCombobox
+        size='small'
+        value={selectedImageTag && imageOptions?.length > 0 ? [selectedImageTag] : undefined}
+        label={t('app_deployment.choose_version')}
+        onValueChange={(selectedImageOptions: string[]) =>
+          setSelectedImageTag(selectedImageOptions[0])
+        }
+        disabled={disabled}
+      >
+        <DeployComboboxOptions imageOptions={imageOptions} />
+        <StudioCombobox.Empty>{t('app_deployment.no_versions')}</StudioCombobox.Empty>
+      </StudioCombobox>
       <div className={classes.deployButton}>
         <DeployPopover
           appDeployedVersion={appDeployedVersion}
@@ -85,4 +77,17 @@ export const DeployDropdown = ({
       </div>
     </div>
   );
+};
+
+type DeployComboboxOptionsProps = {
+  imageOptions: ImageOption[];
+};
+const DeployComboboxOptions = ({ imageOptions }: DeployComboboxOptionsProps): ReactElement[] => {
+  return imageOptions.map((imageOption: ImageOption) => {
+    return (
+      <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
+        {imageOption.label}
+      </StudioCombobox.Option>
+    );
+  });
 };
