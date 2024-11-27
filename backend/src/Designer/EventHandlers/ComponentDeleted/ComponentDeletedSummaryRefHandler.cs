@@ -1,14 +1,14 @@
+using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Events;
-using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using MediatR;
-using System.Text.Json.Nodes;
 using Altinn.App.Core.Helpers;
+using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
-using System.Linq;
+using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 
