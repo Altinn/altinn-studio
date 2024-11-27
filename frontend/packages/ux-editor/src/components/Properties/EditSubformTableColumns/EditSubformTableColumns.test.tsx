@@ -148,7 +148,11 @@ describe('EditSubformTableColumns', () => {
         textMock('ux_editor.component_properties.subform.layout_set_is_missing_content_paragraph'),
       ),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: textMock('top_menu.create') })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_properties.navigate_to_subform_button'),
+      }),
+    ).toBeInTheDocument();
   });
 });
 

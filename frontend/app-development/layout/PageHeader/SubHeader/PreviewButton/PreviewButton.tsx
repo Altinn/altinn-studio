@@ -23,11 +23,16 @@ export const PreviewButton = (): ReactElement => {
   const previewLink: string = `${packagesRouter.getPackageNavigationUrl('preview')}${previewLinkQueryParams}`;
 
   return (
-    <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>
-      <a href={previewLink} className={classes.previewLink} aria-label={t('top_menu.preview')}>
-        <PlayFillIcon className={classes.playIcon} />
-        {shouldDisplayText && t('top_menu.preview')}
-      </a>
+    <StudioPageHeader.HeaderButton
+      aria-label={t('top_menu.preview')}
+      as='a'
+      className={classes.previewLink}
+      color='dark'
+      href={previewLink}
+      variant={variant}
+    >
+      <PlayFillIcon className={classes.playIcon} />
+      {shouldDisplayText && t('top_menu.preview')}
     </StudioPageHeader.HeaderButton>
   );
 };

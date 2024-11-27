@@ -1,5 +1,5 @@
 import React from 'react';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
@@ -17,12 +17,12 @@ export const SchemaTree = ({ schemaPointer }: SchemaTreeProps) => {
   const { t } = useTranslation();
 
   return (
-    <DragAndDropTree.Root
+    <StudioDragAndDropTree.Root
       emptyMessage={t('schema_editor.empty_node')}
       onSelect={setSelectedUniquePointer}
       selectedId={selectedUniquePointer}
     >
       {renderSchemaNodeList(savableModel, schemaPointer, uniquePointer)}
-    </DragAndDropTree.Root>
+    </StudioDragAndDropTree.Root>
   );
 };

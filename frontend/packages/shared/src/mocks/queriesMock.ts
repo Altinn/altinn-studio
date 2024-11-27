@@ -63,14 +63,13 @@ import {
   textResourcesWithLanguage,
   user,
   validation,
-  updateOptionListResponse,
 } from './mocks';
 import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResponseV3';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
+import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
-import type { Option } from 'app-shared/types/Option';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -169,6 +168,16 @@ export const queriesMock: ServicesContextProps = {
   // Queries - PrgetBpmnFile
   getBpmnFile: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getProcessTaskType: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
+  getIsLoggedInWithAnsattporten: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<{ isLoggedIn: false }>({ isLoggedIn: false })),
+  getMaskinportenScopes: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getSelectedMaskinportenScopes: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -214,9 +223,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppPolicy: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
-  updateOptionList: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve<Option[]>(updateOptionListResponse)),
+  updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   upsertTextResources: jest

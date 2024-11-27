@@ -1,81 +1,86 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { SelectLayoutSet } from './SelectLayoutSet/SelectLayoutSet';
-import { StudioParagraph, StudioProperty, StudioRecommendedNextAction } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
+import {
+  StudioButton,
+  StudioParagraph,
+  StudioProperty,
+  StudioRecommendedNextAction,
+} from '@studio/components';
+import { CheckmarkIcon, PlusIcon } from '@studio/icons';
 import classes from './EditLayoutSet.module.css';
 import { CreateNewSubformLayoutSet } from './CreateNewSubformLayoutSet';
-import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import { SubformUtilsImpl } from '@altinn/ux-editor/classes/SubformUtils';
+import { SubformInstructions } from './SubformInstructions';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 
-type EditLayoutSetProps = {
-  existingLayoutSetForSubform: string;
-  onUpdateLayoutSet: (layoutSetId: string) => void;
-  onSubformCreated: (layoutSetName: string) => void;
-  layoutSets: LayoutSets;
-};
-
-export const EditLayoutSet = ({
-  existingLayoutSetForSubform,
-  onUpdateLayoutSet,
-  onSubformCreated,
-  layoutSets,
-}: EditLayoutSetProps): React.ReactElement => {
+export const EditLayoutSet = <T extends ComponentType>({
+  handleComponentChange,
+  component,
+}: IGenericEditComponent<T>): React.ReactElement => {
   const { t } = useTranslation();
-  const [isLayoutSetSelectorVisible, setIsLayoutSetSelectorVisible] = useState<boolean>(false);
-  const [showCreateSubform, setShowCreateSubform] = useState<boolean>(false);
+  const [showCreateSubformCard, setShowCreateSubformCard] = useState<boolean>(false);
+  const [selectedSubform, setSelectedSubform] = useState<string>(undefined);
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  function handleClick() {
-    setShowCreateSubform(true);
-  }
+  const subformUtils = new SubformUtilsImpl(layoutSets.sets);
+  const hasSubforms = subformUtils.hasSubforms;
+  const { title, description } = subformUtils.recommendedNextActionText;
 
-  if (isLayoutSetSelectorVisible) {
-    return (
-      <SelectLayoutSet
-        existingLayoutSetForSubform={existingLayoutSetForSubform}
-        onUpdateLayoutSet={onUpdateLayoutSet}
-        onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
-        showButtons={true}
-      />
-    );
-  }
-  const layoutSetIsUndefined = !existingLayoutSetForSubform;
-  if (layoutSetIsUndefined) {
-    return (
-      <>
-        <StudioRecommendedNextAction
-          title={t('ux_editor.component_properties.subform.choose_layout_set_header')}
-          description={t('ux_editor.component_properties.subform.choose_layout_set_description')}
-          hideSaveButton={true}
-          hideSkipButton={true}
-        >
-          <StudioParagraph size='sm'>
-            {t('ux_editor.component_properties.subform.create_layout_set_description')}
-          </StudioParagraph>
-          <SelectLayoutSet
-            existingLayoutSetForSubform={existingLayoutSetForSubform}
-            onUpdateLayoutSet={onUpdateLayoutSet}
-            onSetLayoutSetSelectorVisible={setIsLayoutSetSelectorVisible}
-            showButtons={false}
-          />
-          <StudioProperty.Button
-            className={classes.button}
-            property={t('ux_editor.component_properties.subform.create_layout_set_button')}
-            icon={<PlusIcon />}
-            onClick={handleClick}
-          />
-        </StudioRecommendedNextAction>
-        {showCreateSubform && (
-          <CreateNewSubformLayoutSet layoutSets={layoutSets} onSubformCreated={onSubformCreated} />
-        )}
-      </>
-    );
-  }
+  const handleUpdatedLayoutSet = (layoutSet: string): void => {
+    const updatedComponent = { ...component, layoutSet };
+    handleComponentChange(updatedComponent);
+  };
 
   return (
-    <DefinedLayoutSet
-      existingLayoutSetForSubform={existingLayoutSetForSubform}
-      onClick={() => setIsLayoutSetSelectorVisible(true)}
-    />
+    <StudioRecommendedNextAction
+      title={t(title)}
+      description={t(description)}
+      hideSaveButton={true}
+      hideSkipButton={true}
+    >
+      {!hasSubforms && (
+        <>
+          <StudioParagraph size='sm'>
+            {t('ux_editor.component_properties.subform.no_existing_layout_set_empty_subform')}
+          </StudioParagraph>
+          <SubformInstructions />
+        </>
+      )}
+      {showCreateSubformCard || !hasSubforms ? (
+        <CreateNewSubformLayoutSet
+          layoutSets={layoutSets}
+          onUpdateLayoutSet={handleUpdatedLayoutSet}
+          setShowCreateSubformCard={setShowCreateSubformCard}
+          hasSubforms={hasSubforms}
+        />
+      ) : (
+        <>
+          <SelectLayoutSet
+            setSelectedSubform={setSelectedSubform}
+            selectedSubform={selectedSubform}
+          />
+          <StudioProperty.Button
+            className={classes.createSubformLinkButton}
+            property={t('ux_editor.component_properties.subform.create_layout_set_button')}
+            icon={<PlusIcon />}
+            onClick={() => setShowCreateSubformCard(true)}
+          />
+          <StudioButton
+            className={classes.saveSubformButton}
+            icon={<CheckmarkIcon />}
+            onClick={() => handleUpdatedLayoutSet(selectedSubform)}
+            title={t('general.save')}
+            disabled={!selectedSubform}
+            variant='secondary'
+            color='success'
+          />
+        </>
+      )}
+    </StudioRecommendedNextAction>
   );
 };

@@ -1,4 +1,9 @@
-.button {
-  padding-left: 0;
+.createSubformLinkButton {
+  padding-left: var(--fds-spacing-1);
   border-radius: var(--fds-sizing-1);
+}
+
+.saveSubformButton,
+.createSubformLinkButton {
+  align-self: flex-start;
 }

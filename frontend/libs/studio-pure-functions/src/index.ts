@@ -1,6 +1,7 @@
 export * from './ArrayUtils';
 export * from './BlobDownloader';
 export * from './DateUtils';
+export * from './FileNameUtils';
 export * from './NumberUtils';
 export * from './ObjectUtils';
 export * from './ScopedStorage';
