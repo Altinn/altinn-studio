@@ -229,7 +229,7 @@ describe('EditOptions', () => {
 
     expect(
       await screen.findByText(
-        textMock('ux_editor.modal_properties_fetch_option_list_error_message'),
+        textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message'),
       ),
     ).toBeInTheDocument();
     jest.clearAllMocks();

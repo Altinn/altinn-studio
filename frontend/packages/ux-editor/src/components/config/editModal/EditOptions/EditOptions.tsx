@@ -44,7 +44,7 @@ export function EditOptions<T extends SelectionComponentType>({
         />
       ) : isError ? (
         <ErrorMessage className={classes.errorMessage}>
-          {t('ux_editor.modal_properties_fetch_option_list_error_message')}
+          {t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
         </ErrorMessage>
       ) : (
         <OptionTabs
