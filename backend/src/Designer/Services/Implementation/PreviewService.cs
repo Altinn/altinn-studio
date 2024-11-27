@@ -131,24 +131,9 @@ public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFacto
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
         string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(altinnAppGitRepository) : dataType?.Id;
-        if (dataTypeForDataElement is null && altinnAppGitRepository.AppUsesLayoutSets())
-        {
-            int counter = 0;
-            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-            return layoutSets.Sets
-                .Where(set => string.IsNullOrEmpty(set.DataType))
-                .Select(_ => new DataElement
-                {
-                    DataType = $"{MockDataModelIdPrefix}-{counter++}",
-                    Id = MockDataTaskId
-                })
-                .ToList();
-        }
-
         ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
         List<DataElement> dataElements = applicationMetadata.DataTypes.Select(dataType => new DataElement
         {
-            DataType = dataType.Id,
             Id = (dataTypeForDataElement != dataType.Id) ? dataType.Id : MockDataTaskId
         }).ToList();
         return dataElements;

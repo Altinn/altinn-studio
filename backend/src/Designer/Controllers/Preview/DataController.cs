@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
+using Altinn.Studio.Designer.Helpers;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models.Preview;
+using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Routing;
 
 namespace Altinn.Studio.Designer.Controllers.Preview
 {
@@ -15,9 +20,32 @@ namespace Altinn.Studio.Designer.Controllers.Preview
     [Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances/{partyId}/{instanceGuid}/data")]
     public class DataController(
         IInstanceService instanceService,
-        IDataService dataService
+        IDataService dataService,
+        IAltinnGitRepositoryFactory altinnGitRepositoryFactory
+
     ) : Controller
     {
+        // <summary>
+        // Redirect requests from older versions of Studio to old controller
+        // </summary>
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            string org = context.RouteData.Values["org"] as string;
+            string app = context.RouteData.Values["app"] as string;
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
+            if (!altinnAppGitRepository.AppUsesLayoutSets())
+            {
+                RouteValueDictionary routeData = context.RouteData.Values;
+                foreach (var queryParam in context.HttpContext.Request.Query)
+                {
+                    routeData[queryParam.Key] = queryParam.Value.ToString();
+                }
+                context.Result = base.RedirectToActionPreserveMethod(controllerName: "OldData", routeValues: routeData);
+            }
+            base.OnActionExecuting(context);
+        }
+
         [HttpGet("{dataGuid}")]
         [UseSystemTextJson]
         public ActionResult Get(
@@ -110,4 +138,3 @@ namespace Altinn.Studio.Designer.Controllers.Preview
         }
     }
 }
-
