@@ -23,7 +23,8 @@ namespace Altinn.Studio.Designer.Controllers.Preview;
 public class InstancesController(IHttpContextAccessor httpContextAccessor,
     IPreviewService previewService,
     IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    IInstanceService instanceService
+    IInstanceService instanceService,
+    IApplicationMetadataService applicationMetadataService
 ) : Controller
 {
 
@@ -56,9 +57,7 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
         [FromQuery] string language = null
     )
     {
-        string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+        ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
 
         Instance instance = instanceService.CreateInstance(org, app, instanceOwnerPartyId, taskId, applicationMetadata.DataTypes);
         return Ok(instance);
