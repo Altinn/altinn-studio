@@ -18,6 +18,7 @@ import { toast } from 'react-toastify';
 import classes from './EditOptionList.module.css';
 import { OptionListEditor } from './OptionListEditor';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 
 export function EditOptionList<T extends SelectionComponentType>({
   component,
@@ -27,7 +28,7 @@ export function EditOptionList<T extends SelectionComponentType>({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => isUnknownError(error),
+    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
 
   const handleOptionsIdChange = (optionsId: string) => {
@@ -57,7 +58,7 @@ export function EditOptionList<T extends SelectionComponentType>({
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
       onError: (error: AxiosError<ApiError>) => {
-        if (isUnknownError(error)) {
+        if (isErrorUnknown(error)) {
           toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }
       },
@@ -100,8 +101,6 @@ export function EditOptionList<T extends SelectionComponentType>({
     </>
   );
 }
-
-const isUnknownError = (error: AxiosError<ApiError>) => !error.response?.data?.errorCode;
 
 type OptionListSelectorProps<T extends SelectionComponentType> = {
   handleOptionsIdChange: (optionsId: string) => void;
