@@ -1,38 +1,33 @@
 import React, { type ReactNode, type ReactElement } from 'react';
+import classes from './Maskinporten.module.css';
 import { useTranslation } from 'react-i18next';
 import { TabContent } from '../../TabContent';
-import { StudioButton, StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
+import { StudioHeading, StudioParagraph, StudioSpinner } from '@studio/components';
 import { useIsLoggedInWithAnsattportenQuery } from 'app-development/hooks/queries/useIsLoggedInWithAnsattportenQuery';
-import { ScopeList } from './ScopeList';
+import { ScopeListContainer } from './ScopeListContainer';
+import { AnsattportenLogin } from './AnsattportenLogin';
 
 export const Maskinporten = (): ReactElement => {
-  const { data: isLoggedInWithAnsattporten, isPending: isPendingAuthStatus } =
+  const { data: ansattportenAuthStatus, isPending: isPendingAuthStatus } =
     useIsLoggedInWithAnsattportenQuery();
 
   const { t } = useTranslation();
-
-  const handleLoginWithAnsattporten = (): void => {
-    console.log('Will be implemented in next iteration when backend is ready');
-  };
 
   if (isPendingAuthStatus) {
     return <StudioSpinner spinnerTitle={t('general.loading')} />;
   }
 
-  if (isLoggedInWithAnsattporten) {
+  if (ansattportenAuthStatus.isLoggedIn) {
     return (
       <MaskinportenPageTemplate>
-        <ScopeList />
+        <ScopeListContainer />
       </MaskinportenPageTemplate>
     );
   }
 
   return (
     <MaskinportenPageTemplate>
-      <StudioParagraph spacing>{t('settings_modal.maskinporten_tab_description')}</StudioParagraph>
-      <StudioButton onClick={handleLoginWithAnsattporten}>
-        {t('settings_modal.maskinporten_tab_login_with_ansattporten')}
-      </StudioButton>
+      <AnsattportenLogin />
     </MaskinportenPageTemplate>
   );
 };
@@ -48,7 +43,8 @@ const MaskinportenPageTemplate = ({ children }: MaskinportenPageTemplateProps): 
       <StudioHeading level={2} size='sm' spacing>
         {t('settings_modal.maskinporten_tab_title')}
       </StudioHeading>
-      {children}
+      <StudioParagraph spacing>{t('settings_modal.maskinporten_tab_description')}</StudioParagraph>
+      <div className={classes.contentWrapper}>{children}</div>
     </TabContent>
   );
 };

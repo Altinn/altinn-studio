@@ -43,6 +43,7 @@ import {
   optionListUploadPath,
   optionListUpdatePath,
   processEditorPath,
+  selectedMaskinportenScopesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -67,6 +68,7 @@ import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResp
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
+import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 
 const headers = {
   Accept: 'application/json',
@@ -149,3 +151,6 @@ export const updateBpmnXml = (org: string, app: string, form: any) =>
   });
 
 export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
+
+// Maskinporten
+export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);

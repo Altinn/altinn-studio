@@ -4,6 +4,12 @@ import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants'
 // Base path
 const basePath = '/designer/api';
 
+// Ansattporten
+export const authStatusAnsattporten = () => `${basePath}/ansattporten/auth-status`;
+export const loginWithAnsattPorten = (redirectTo) => `${basePath}/ansattporten/login?redirect_to=${redirectTo}`;
+export const availableMaskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes/maskinporten`; // Get
+export const selectedMaskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes`; // Get, Put
+
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
 export const appMetadataAttachmentPath = (org, app) => `${basePath}/${org}/${app}/metadata/attachment-component`; // Post, Put, Delete
