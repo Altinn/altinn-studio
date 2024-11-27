@@ -15,7 +15,7 @@ export type StudioPageHeaderPopoverTriggerProps = {
 export const StudioPageHeaderPopoverTrigger = forwardRef<
   HTMLButtonElement,
   StudioPageHeaderPopoverTriggerProps
->(({ color = 'dark', variant = 'regular', className: givenClass, ...rest }, ref) => {
+>(({ color = 'dark', variant = 'regular', className: givenClass, ...rest }, ref): React.ReactElement => {
   const className = cn(classes.linkOrButton, classes[variant], classes[color], givenClass);
   return <StudioPopover.Trigger className={className} {...rest} ref={ref} />;
 });
