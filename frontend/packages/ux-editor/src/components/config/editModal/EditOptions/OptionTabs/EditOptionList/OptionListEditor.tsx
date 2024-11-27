@@ -73,7 +73,7 @@ function OptionListEditorModal({
     modalRef.current?.close();
   };
 
-  const valueType = getValueType(optionsList);
+  const valueType = getOptionListValueType(optionsList);
   console.log(valueType);
 
   return (
@@ -101,13 +101,14 @@ function OptionListEditorModal({
   );
 }
 
-const getValueType = (optionList?: Option[]): CodeListValueType => {
-  if (optionList[0]?.value) {
-    const firstCodeListValue = optionList[0].value;
-    if (typeof firstCodeListValue === CodeListValueType.String) return CodeListValueType.String;
-    if (typeof firstCodeListValue === CodeListValueType.Number) return CodeListValueType.Number;
-    if (typeof firstCodeListValue === CodeListValueType.Boolean) return CodeListValueType.Boolean;
-  } else {
-    return CodeListValueType.String;
+const getOptionListValueType = (optionList: Option[]): CodeListValueType => {
+  const firstValue = optionList?.[0]?.value;
+  switch (typeof firstValue) {
+    case CodeListValueType.Number:
+      return CodeListValueType.Number;
+    case CodeListValueType.Boolean:
+      return CodeListValueType.Boolean;
+    default:
+      return CodeListValueType.String;
   }
 };
