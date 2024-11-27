@@ -155,6 +155,10 @@
       Kind: Server
     },
     {
+      ActivityName: PdfGeneratorClient.GeneratePdf,
+      IdFormat: W3C
+    },
+    {
       ActivityName: PdfService.GenerateAndStorePdf,
       Tags: [
         {

@@ -345,6 +345,15 @@ public static class ServiceCollectionExtensions
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
     }
 
+    /// <summary>
+    /// PDF generation works by using a headless browser to render the frontend of an app instance.
+    /// To make  debugging PDF generation failures easier, we want requests originating from the PDF generator to be
+    /// contained in the root trace (process/next) as children. The frontend will set this header when making requests to the app backend in PDF mode.
+    /// </summary>
+    /// <param name="headers">Request headers attached to the span</param>
+    /// <returns></returns>
+    private static bool IsPdfGeneratorRequest(IHeaderDictionary headers) => headers.ContainsKey("X-Altinn-IsPdf");
+
     internal sealed class OtelPropagator : TextMapPropagator
     {
         private readonly TextMapPropagator _inner;
@@ -359,8 +368,9 @@ public static class ServiceCollectionExtensions
             Func<T, string, IEnumerable<string>?> getter
         )
         {
-            if (carrier is HttpRequest)
+            if (carrier is HttpRequest req && !IsPdfGeneratorRequest(req.Headers))
                 return default;
+
             return _inner.Extract(context, carrier, getter);
         }
 
@@ -381,7 +391,7 @@ public static class ServiceCollectionExtensions
             PropagatorGetterCallback? getter
         )
         {
-            if (carrier is IHeaderDictionary)
+            if (carrier is IHeaderDictionary headers && !IsPdfGeneratorRequest(headers))
                 return null;
 
             return _inner.ExtractBaggage(carrier, getter);
@@ -394,7 +404,7 @@ public static class ServiceCollectionExtensions
             out string? traceState
         )
         {
-            if (carrier is IHeaderDictionary)
+            if (carrier is IHeaderDictionary headers && !IsPdfGeneratorRequest(headers))
             {
                 traceId = null;
                 traceState = null;

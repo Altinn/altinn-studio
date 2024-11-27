@@ -189,6 +189,7 @@ public class ApiTestBase
                     request.Headers,
                     (c, k, v) => c.TryAddWithoutValidation(k, v)
                 );
+                Assert.Contains(request.Headers, h => h.Key == "traceparent"); // traceparent is mandatory in W3C
             }
             return base.SendAsync(request, cancellationToken);
         }
