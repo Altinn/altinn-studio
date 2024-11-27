@@ -25,6 +25,9 @@ export const getLayoutSetIdValidationErrorKey = (
 
 export const getLayoutSetTypeTranslationKey = (layoutSet: LayoutSetModel): string => {
   if (layoutSet.type === 'subform') return 'ux_editor.subform';
+  if (layoutSet.task?.type === '' && layoutSet.task?.id === PROTECTED_TASK_NAME_CUSTOM_RECEIPT) {
+    return 'process_editor.configuration_panel_custom_receipt_accordion_header';
+  }
   if (layoutSet.task?.type) {
     return `process_editor.task_type.${layoutSet.task.type}`;
   }
