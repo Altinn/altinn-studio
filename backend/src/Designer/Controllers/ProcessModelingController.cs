@@ -48,27 +48,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         [HttpPut("process-definition")]
-        [Obsolete("This endpoint should be replaced by process-definition-latest, and url fixed after integration with frontend")]
-        public async Task<IActionResult> SaveProcessDefinition(string org, string repo,
-            CancellationToken cancellationToken)
-        {
-            Request.EnableBuffering();
-            try
-            {
-                await Guard.AssertValidXmlStreamAndRewindAsync(Request.Body);
-            }
-            catch (ArgumentException)
-            {
-                return BadRequest("BPMN file is not valid XML");
-            }
-
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            await _processModelingService.SaveProcessDefinitionAsync(
-                AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), Request.Body, cancellationToken);
-            return Ok();
-        }
-
-        [HttpPut("process-definition-latest")]
         public async Task<IActionResult> UpsertProcessDefinitionAndNotify(string org, string repo, [FromForm] IFormFile content, [FromForm] string metadata, CancellationToken cancellationToken)
         {
             Request.EnableBuffering();
