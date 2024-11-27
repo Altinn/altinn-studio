@@ -15,7 +15,8 @@ export type SupportedFeatureFlags =
   | 'summary2'
   | 'codeListEditor'
   | 'optionListEditor'
-  | 'maskinporten';
+  | 'maskinporten'
+  | 'undeploy';
 
 /*
  * Please add all the features that you want to be toggle on by default here.
