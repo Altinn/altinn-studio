@@ -9,6 +9,7 @@
       "map",
       "conflicting-options",
       "shifting-options",
+      "filtered-options",
       "summary",
       "grid"
     ],
