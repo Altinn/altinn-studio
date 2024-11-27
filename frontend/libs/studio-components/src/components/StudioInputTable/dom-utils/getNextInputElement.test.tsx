@@ -42,6 +42,14 @@ describe('getNextInputElement', () => {
       const result = getNextInputElement(input, key);
       expect(result).toBe(expectedResult);
     });
+
+    it('Returns the first input element in the cell below the given element when there are several interactive elements in the cell', () => {
+      render(<TableWithSeveralInteractiveElementsPerCell />);
+      const input = getInputByCoords({ row: 0, column: 0 });
+      const expectedResult = getInputByCoords({ row: 1, column: 0 });
+      const result = getNextInputElement(input, key);
+      expect(result).toBe(expectedResult);
+    });
   });
 
   describe('With ArrowUp key', () => {
@@ -73,6 +81,14 @@ describe('getNextInputElement', () => {
       render(<DiverseTable />);
       const input = getInputByCoords({ row: 4, column: 1 });
       const expectedResult = getInputByCoords({ row: 1, column: 1 });
+      const result = getNextInputElement(input, 'ArrowUp');
+      expect(result).toBe(expectedResult);
+    });
+
+    it('Returns the first input element in the cell above the given element when there are several interactive elements in the cell', () => {
+      render(<TableWithSeveralInteractiveElementsPerCell />);
+      const input = getInputByCoords({ row: 1, column: 0 });
+      const expectedResult = getInputByCoords({ row: 0, column: 0 });
       const result = getNextInputElement(input, 'ArrowUp');
       expect(result).toBe(expectedResult);
     });
@@ -110,6 +126,14 @@ describe('getNextInputElement', () => {
       const result = getNextInputElement(input, 'ArrowRight');
       expect(result).toBe(expectedResult);
     });
+
+    it('Returns the first input element in the cell to the right of the given element when there are several interactive elements in the cell', () => {
+      render(<TableWithSeveralInteractiveElementsPerCell />);
+      const input = getInputByCoords({ row: 0, column: 0 });
+      const expectedResult = getInputByCoords({ row: 0, column: 1 });
+      const result = getNextInputElement(input, 'ArrowRight');
+      expect(result).toBe(expectedResult);
+    });
   });
 
   describe('With ArrowLeft key', () => {
@@ -141,6 +165,14 @@ describe('getNextInputElement', () => {
       render(<DiverseTable />);
       const input = getInputByCoords({ row: 2, column: 3 });
       const expectedResult = getInputByCoords({ row: 2, column: 0 });
+      const result = getNextInputElement(input, 'ArrowLeft');
+      expect(result).toBe(expectedResult);
+    });
+
+    it('Returns the first input element in the cell to the left of the given element when there are several interactive elements in the cell', () => {
+      render(<TableWithSeveralInteractiveElementsPerCell />);
+      const input = getInputByCoords({ row: 0, column: 1 });
+      const expectedResult = getInputByCoords({ row: 0, column: 0 });
       const result = getNextInputElement(input, 'ArrowLeft');
       expect(result).toBe(expectedResult);
     });
@@ -268,6 +300,35 @@ function TableWithDifferentInputElements(): ReactElement {
           </td>
           <td>
             <input data-testid={generateInputId({ row: 1, column: 1 })} type='checkbox' />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function TableWithSeveralInteractiveElementsPerCell(): ReactElement {
+  return (
+    <table>
+      <tbody>
+        <tr>
+          <td>
+            <input data-testid={generateInputId({ row: 0, column: 0 })} type='text' />
+            <button />
+          </td>
+          <td>
+            <input data-testid={generateInputId({ row: 0, column: 1 })} type='text' />
+            <button />
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <input data-testid={generateInputId({ row: 1, column: 0 })} type='text' />
+            <button />
+          </td>
+          <td>
+            <input data-testid={generateInputId({ row: 1, column: 1 })} type='text' />
+            <button />
           </td>
         </tr>
       </tbody>

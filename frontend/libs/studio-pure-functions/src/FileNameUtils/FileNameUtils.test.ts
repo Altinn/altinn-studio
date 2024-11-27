@@ -1,4 +1,4 @@
-import { FileNameUtils, FileNameValidationResult } from './FileNameUtils';
+import { FileNameErrorResult, FileNameUtils } from './FileNameUtils';
 
 describe('FileNameUtils', () => {
   describe('removeExtension', () => {
@@ -91,78 +91,72 @@ describe('FileNameUtils', () => {
     });
   });
 
-  describe('validateFileName', () => {
+  describe('findFileNameError', () => {
     it('Returns "FileNameIsEmpty" when file name is empty', () => {
       const fileName: string = '';
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
-        fileName,
-        [],
-      );
-      expect(fileNameValidation).toBe(FileNameValidationResult.FileNameIsEmpty);
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      expect(fileNameError).toBe(FileNameErrorResult.FileNameIsEmpty);
     });
 
     it('Returns "NoRegExMatch" when file name does not match given regex', () => {
       const fileName: string = 'ABC';
       const fileNameRegEx: RegExp = /^[a-z]+$/;
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
         fileName,
         [],
         fileNameRegEx,
       );
-      expect(fileNameValidation).toBe(FileNameValidationResult.NoRegExMatch);
+      expect(fileNameError).toBe(FileNameErrorResult.NoRegExMatch);
     });
 
     it('Returns "FileExists" when file name matches regEx and exists in list', () => {
       const fileName: string = 'fileName1';
       const invalidFileNames: string[] = ['fileName1', 'fileName2', 'fileName3'];
       const fileNameRegEx: RegExp = /^[a-zA-Z0-9]+$/;
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
         fileNameRegEx,
       );
-      expect(fileNameValidation).toBe(FileNameValidationResult.FileExists);
+      expect(fileNameError).toBe(FileNameErrorResult.FileExists);
     });
 
     it('Returns "FileExists" when no regEx is provided and exists in list', () => {
       const fileName: string = 'fileName1';
       const invalidFileNames: string[] = ['fileName1', 'fileName2', 'fileName3'];
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
       );
-      expect(fileNameValidation).toBe(FileNameValidationResult.FileExists);
+      expect(fileNameError).toBe(FileNameErrorResult.FileExists);
     });
 
-    it('Returns "Valid" when file name matches regEx and does not exist in list of invalid names', () => {
+    it('Returns null when file name matches regEx and does not exist in list of invalid names', () => {
       const fileName: string = 'fileName';
       const invalidFileNames: string[] = ['fileName2', 'fileName3'];
       const fileNameRegEx: RegExp = /^[a-zA-Z]+$/;
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
         fileNameRegEx,
       );
-      expect(fileNameValidation).toBe(FileNameValidationResult.Valid);
+      expect(fileNameError).toBeNull();
     });
 
-    it('Returns "Valid" when no regEx is provided and file name does not exist in list of invalid names', () => {
+    it('Returns null when no regEx is provided and file name does not exist in list of invalid names', () => {
       const fileName: string = 'fileName';
       const invalidFileNames: string[] = ['fileName2', 'fileName3'];
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
         fileName,
         invalidFileNames,
       );
-      expect(fileNameValidation).toBe(FileNameValidationResult.Valid);
+      expect(fileNameError).toBeNull();
     });
 
-    it('Returns "Valid" when no regEx is provided and list of invalid names is empty', () => {
+    it('Returns null when no regEx is provided and list of invalid names is empty', () => {
       const fileName: string = 'fileName';
-      const fileNameValidation: FileNameValidationResult = FileNameUtils.validateFileName(
-        fileName,
-        [],
-      );
-      expect(fileNameValidation).toBe(FileNameValidationResult.Valid);
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      expect(fileNameError).toBeNull();
     });
   });
 });
