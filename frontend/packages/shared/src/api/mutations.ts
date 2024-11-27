@@ -45,6 +45,7 @@ import {
   optionListUpdatePath,
   optionListIdUpdatePath,
   selectedMaskinportenScopesPath,
+} from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
 import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
