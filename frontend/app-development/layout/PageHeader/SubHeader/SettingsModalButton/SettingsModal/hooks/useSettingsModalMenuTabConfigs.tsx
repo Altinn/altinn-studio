@@ -5,7 +5,7 @@ import {
   SidebarBothIcon,
   ShieldLockIcon,
   TimerStartIcon,
-  CogIcon,
+  MaskinportenIcon,
 } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
@@ -44,7 +44,7 @@ export const useSettingsModalMenuTabConfigs =
       {
         tabId: maskinportenTabId,
         tabName: t(`settings_modal.left_nav_tab_${maskinportenTabId}`),
-        icon: <CogIcon />,
+        icon: <MaskinportenIcon />,
       },
     ];
   };

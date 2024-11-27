@@ -1,6 +1,7 @@
 import { WSConnector } from 'app-shared/websockets/WSConnector';
 
 jest.mock('@microsoft/signalr', () => ({
+  ...jest.requireActual('@microsoft/signalr'),
   HubConnection: jest.fn().mockReturnValue({
     start: jest.fn().mockResolvedValue('started'),
   }),

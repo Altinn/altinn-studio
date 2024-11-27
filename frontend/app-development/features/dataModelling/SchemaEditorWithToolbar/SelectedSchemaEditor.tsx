@@ -111,6 +111,6 @@ const SchemaEditorWithDebounce = ({ jsonSchema, modelPath }: SchemaEditorWithDeb
 };
 
 const extractModelNameFromPath = (path: string): string => {
-  const filename = FileNameUtils.extractFilename(path);
+  const filename = FileNameUtils.extractFileName(path);
   return FileNameUtils.removeSchemaExtension(filename);
 };
