@@ -41,7 +41,7 @@ namespace LocalTest.Configuration
             }
         }
 
-        public string LocalFrontendHostname { get; set; }
+        public string LocalFrontendHostname { get; set; } = "localhost";
         
         public string LocalFrontendProtocol { get; set; } = "http";
         

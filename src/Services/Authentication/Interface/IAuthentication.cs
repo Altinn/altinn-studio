@@ -19,8 +19,15 @@ namespace LocalTest.Services.Authentication.Interface
         /// </summary>
         /// <param name="org">Three letter application owner name (eg, TST )</param>
         /// <param name="orgNumber">Optional Organization number for the application owner. Will be fetched if not provided</param>
+        /// <param name="scopes">Space separated scopes for the token. If null default to "altinn:serviceowner/instances.read"</param>
+        /// <param name="authenticationLevel">The authentication level of the generated token</param>
         /// <returns>JWT token</returns>
-        public Task<string> GenerateTokenForOrg(string org, string? orgNumber = null, string? scopes = null);
+        public Task<string> GenerateTokenForOrg(
+            string org,
+            string? orgNumber = null,
+            string? scopes = null,
+            int? authenticationLevel = null
+        );
 
         /// <summary>
         /// Get JWT token for user profile

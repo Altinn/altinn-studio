@@ -1,19 +1,16 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading.Tasks;
-using AuthSettings = Altinn.Platform.Authentication.Configuration.GeneralSettings;
+using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
+using AltinnCore.Authentication.Constants;
 using LocalTest.Clients.CdnAltinnOrgs;
+using LocalTest.Configuration;
 using LocalTest.Services.Authentication.Interface;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using LocalTest.Configuration;
-using AltinnCore.Authentication.Constants;
-using Altinn.Platform.Authorization.Services.Interface;
+using AuthSettings = Altinn.Platform.Authentication.Configuration.GeneralSettings;
 
 namespace LocalTest.Services.Authentication.Implementation;
 
@@ -24,13 +21,19 @@ public class AuthenticationService : IAuthentication
     private readonly GeneralSettings _generalSettings;
     private readonly IClaims _claimsService;
 
-    public AuthenticationService(AltinnOrgsClient orgsClient, IOptions<AuthSettings> authSettings, IOptions<GeneralSettings> generalSettings, IClaims claimsService)
+    public AuthenticationService(
+        AltinnOrgsClient orgsClient,
+        IOptions<AuthSettings> authSettings,
+        IOptions<GeneralSettings> generalSettings,
+        IClaims claimsService
+    )
     {
         _orgsClient = orgsClient;
         _authSettings = authSettings.Value;
         _generalSettings = generalSettings.Value;
         _claimsService = claimsService;
     }
+
     ///<inheritdoc/>
     public string GenerateToken(ClaimsPrincipal principal)
     {
@@ -56,7 +59,12 @@ public class AuthenticationService : IAuthentication
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateTokenForOrg(string org, string? orgNumber = null, string? scopes = null)
+    public async Task<string> GenerateTokenForOrg(
+        string org,
+        string? orgNumber = null,
+        string? scopes = null,
+        int? authenticationLevel = null
+    )
     {
         if (orgNumber is null)
         {
@@ -66,14 +74,27 @@ public class AuthenticationService : IAuthentication
 
         List<Claim> claims = new List<Claim>();
         string issuer = _generalSettings.Hostname;
-        claims.Add(new Claim(AltinnCoreClaimTypes.Org, org.ToLower(), ClaimValueTypes.String, issuer));
-        // 3 is the default level for altinn tokens form Maskinporten
-        claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
+        claims.Add(
+            new Claim(AltinnCoreClaimTypes.Org, org.ToLower(), ClaimValueTypes.String, issuer)
+        );
+        claims.Add(
+            new Claim(
+                AltinnCoreClaimTypes.AuthenticationLevel,
+                // 3 is the default authentication level from maskinporten
+                (authenticationLevel ?? 3).ToString(),
+                ClaimValueTypes.Integer32,
+                issuer
+            )
+        );
+
         scopes ??= "altinn:serviceowner/instances.read";
         claims.Add(new Claim("urn:altinn:scope", scopes, ClaimValueTypes.String, issuer));
+    
         if (!string.IsNullOrEmpty(orgNumber))
         {
-            claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
+            claims.Add(
+                new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer)
+            );
         }
 
         ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
@@ -89,11 +110,46 @@ public class AuthenticationService : IAuthentication
     {
         List<Claim> claims = new List<Claim>();
         string issuer = _generalSettings.Hostname;
-        claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-        claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, authenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+        claims.Add(
+            new Claim(
+                ClaimTypes.NameIdentifier,
+                profile.UserId.ToString(),
+                ClaimValueTypes.String,
+                issuer
+            )
+        );
+        claims.Add(
+            new Claim(
+                AltinnCoreClaimTypes.UserId,
+                profile.UserId.ToString(),
+                ClaimValueTypes.String,
+                issuer
+            )
+        );
+        claims.Add(
+            new Claim(
+                AltinnCoreClaimTypes.UserName,
+                profile.UserName,
+                ClaimValueTypes.String,
+                issuer
+            )
+        );
+        claims.Add(
+            new Claim(
+                AltinnCoreClaimTypes.PartyID,
+                profile.PartyId.ToString(),
+                ClaimValueTypes.Integer32,
+                issuer
+            )
+        );
+        claims.Add(
+            new Claim(
+                AltinnCoreClaimTypes.AuthenticationLevel,
+                authenticationLevel.ToString(),
+                ClaimValueTypes.Integer32,
+                issuer
+            )
+        );
         claims.AddRange(await _claimsService.GetCustomClaims(profile.UserId, issuer));
 
         ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
@@ -103,4 +159,3 @@ public class AuthenticationService : IAuthentication
         return GenerateToken(principal);
     }
 }
-

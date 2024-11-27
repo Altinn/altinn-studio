@@ -79,7 +79,7 @@ namespace LocalTest.Controllers
                     model.Org = model.TestApps[0].Value?.Split("/").FirstOrDefault();
                     model.App = model.TestApps[0].Value?.Split("/").LastOrDefault();
                 }
-                model.TestUsers = await GetTestUsersForList();
+                model.TestUsers = await GetTestUsersAndPartiesSelectList();
                 model.UserSelect = Request.Cookies["Localtest_User.Party_Select"];
                 var defaultAuthLevel = await GetAppAuthLevel(model.AppModeIsHttp, model.TestApps);
                 model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
@@ -112,6 +112,7 @@ namespace LocalTest.Controllers
         /// <summary>
         /// Method that logs inn test user
         /// </summary>
+        /// <param name="action">Set to "reauthenticate" if you want to set cookies with no redirect</param>
         /// <param name="startAppModel">An object with information about app and user.</param>
         /// <returns>Redirects to returnUrl</returns>
         [HttpPost]
@@ -175,13 +176,28 @@ namespace LocalTest.Controllers
             return Redirect($"/{app.Id}/");
         }
 
+        [HttpGet("/Home/Tokens")]
+        public async Task<IActionResult> Tokens()
+        {
+            var model = new TokensViewModel
+            {
+                AuthenticationLevels = GetAuthenticationLevels(2),
+                TestUsers = await GetUsersSelectList(),
+                DefaultOrg = _localPlatformSettings.LocalAppMode == "http" ? (await GetAppsList()).First().Value?.Split("/").FirstOrDefault() : null,
+            };
+
+            return View(model);
+        }
+
+
         /// <summary>
-        ///
+        /// Returns a user token with the given userId as claim
         /// </summary>
-        /// <param name="userId"></param>
+        /// <param name="userId">UserId of the token holder</param>
+        /// <param name="authenticationLevel">Authentication level of the token</param>
         /// <returns></returns>
-        [HttpGet("{userId}")]
-        public async Task<ActionResult> GetTestUserToken(int userId)
+        [HttpGet("/Home/GetTestUserToken/{userId?}")]
+        public async Task<ActionResult> GetTestUserToken(int userId, [FromQuery] int authenticationLevel = 2)
         {
             UserProfile profile = await _userProfileService.GetUser(userId);
 
@@ -191,25 +207,28 @@ namespace LocalTest.Controllers
             }
 
             // Create a test token with long duration
-            string token = await _authenticationService.GenerateTokenForProfile(profile, 2);
+            string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
             return Ok(token);
         }
 
         /// <summary>
         /// Returns a org token with the given org as claim
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="org">The short code used to identify the service owner org</param>
+        /// <param name="orgNumber">Organization number to be included in token (if not an official service owner)</param>
+        /// <param name="authenticationLevel">Authentication level of the token</param>
         /// <returns></returns>
-        [HttpGet("{id}")]
-        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = null, [FromQuery] string scopes = null)
+        [HttpGet("/Home/GetTestOrgToken/{org?}")]
+        public async Task<ActionResult> GetTestOrgToken(string org, [FromQuery] string orgNumber = null, [FromQuery] string scopes = null, [FromQuery] int? authenticationLevel = 3)
         {
+            
             // Create a test token with long duration
-            string token = await _authenticationService.GenerateTokenForOrg(id, orgNumber, scopes);
+            string token = await _authenticationService.GenerateTokenForOrg(org, orgNumber, scopes, authenticationLevel);
 
             return Ok(token);
         }
 
-        private async Task<IEnumerable<SelectListItem>> GetTestUsersForList()
+        private async Task<IEnumerable<SelectListItem>> GetTestUsersAndPartiesSelectList()
         {
             var data = await _testDataService.GetTestData();
             var userItems = new List<SelectListItem>();
@@ -252,6 +271,23 @@ namespace LocalTest.Controllers
             return userItems;
         }
 
+        private async Task<List<SelectListItem>> GetUsersSelectList()
+        {
+            var data = await _testDataService.GetTestData();
+            var testUsers = new List<SelectListItem>();
+            foreach (UserProfile profile in data.Profile.User.Values)
+            {
+                var properProfile = await _userProfileService.GetUser(profile.UserId);
+                testUsers.Add(new()
+                {
+                    Text = properProfile?.Party.Name,
+                    Value = profile.UserId.ToString(),
+                });
+            }
+
+            return testUsers;
+        }
+
         private async Task<int> GetAppAuthLevel(bool isHttp, IEnumerable<SelectListItem> testApps)
         {
             if (!isHttp)
@@ -276,7 +312,7 @@ namespace LocalTest.Controllers
             }
         }
 
-        private List<SelectListItem> GetAuthenticationLevels(int defaultAuthLevel)
+        private static List<SelectListItem> GetAuthenticationLevels(int defaultAuthLevel)
         {
             return new()
             {
