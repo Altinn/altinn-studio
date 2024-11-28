@@ -1,11 +1,12 @@
 import React from 'react';
-import { StudioButton, StudioCard, StudioHeading } from '@studio/components';
+import { StudioCard, StudioHeading } from '@studio/components';
 import classes from './ItemCategory.module.css';
 import { useTranslation } from 'react-i18next';
 import type { IToolbarElement } from '../../../../types/global';
 import type { AddedItem } from '../types';
 import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { getTitleByComponentType } from '../../../../utils/language';
+import { ComponentButton } from '../ComponentButton';
 
 export type ItemCategoryProps = {
   items: IToolbarElement[];
@@ -48,25 +49,3 @@ export const ItemCategory = ({
     </StudioCard>
   );
 };
-
-type ComponentButtonProps = {
-  tooltipContent: string;
-  selected: boolean;
-  icon: React.ComponentType;
-  onClick: () => void;
-};
-function ComponentButton({ tooltipContent, selected, icon, onClick }: ComponentButtonProps) {
-  return (
-    <StudioButton
-      variant={selected ? 'primary' : 'tertiary'}
-      onClick={onClick}
-      size='sm'
-      aria-label={tooltipContent}
-      className={classes.componentButton}
-      title={tooltipContent}
-      icon={React.createElement(icon, { fontSize: '1.5rem' } as any)}
-    >
-      {tooltipContent}
-    </StudioButton>
-  );
-}
