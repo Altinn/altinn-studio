@@ -42,8 +42,8 @@ export const FormDesignerToolbar = () => {
             å legge til komponenter?
           </StudioParagraph>
           <StudioParagraph spacing size='small'>
-            Du kan fortelle oss hva du synes om det nye designet ved å trykke på "Gi tilbakemelding"
-            nederst til høyre på siden.
+            Du kan fortelle oss hva du synes om det nye designet ved å trykke på &quot;Gi
+            tilbakemelding&quot; nederst til høyre på siden.
           </StudioParagraph>
         </HelpText>
       </div>
