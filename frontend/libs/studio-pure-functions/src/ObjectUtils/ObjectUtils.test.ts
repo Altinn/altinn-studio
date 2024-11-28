@@ -84,21 +84,23 @@ describe('objectUtils', () => {
 
   describe('sortEntriesInObjectByKeys', () => {
     it('Sorts all entries in an object by its keys', () => {
-      const unSortedObject = { b: 'b', a: 'a', c: 'c' };
-      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unSortedObject);
+      const unsortedObject = { b: 'some value', a: 'some value', c: 'some value' };
+      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unsortedObject);
       const sortedObjectKeys = Object.keys(sortedObject);
       expect(sortedObjectKeys[0]).toBe('a');
       expect(sortedObjectKeys[1]).toBe('b');
       expect(sortedObjectKeys[2]).toBe('c');
+      expect(sortedObject).toEqual(unsortedObject);
     });
 
     it('Returns same order if entries in object is already sorted', () => {
-      const unSortedObject = { a: 'a', b: 'b', c: 'c' };
-      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unSortedObject);
+      const unsortedObject = { a: 'some value', b: 'some value', c: 'some value' };
+      const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unsortedObject);
       const sortedObjectKeys = Object.keys(sortedObject);
       expect(sortedObjectKeys[0]).toBe('a');
       expect(sortedObjectKeys[1]).toBe('b');
       expect(sortedObjectKeys[2]).toBe('c');
+      expect(sortedObject).toEqual(unsortedObject);
     });
 
     it('Returns empty list if entries to sort is empty', () => {
