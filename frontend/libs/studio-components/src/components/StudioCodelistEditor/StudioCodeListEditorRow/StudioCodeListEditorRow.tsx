@@ -4,7 +4,7 @@ import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
 import type { FocusEvent, HTMLInputAutoCompleteAttribute } from 'react';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
+import { changeDescription, changeHelpText, changeLabel, changeValue, coerceValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
 import classes from './StudioCodeListEditorRow.module.css';
@@ -24,7 +24,7 @@ export function StudioCodeListEditorRow({
   onChange,
   onDeleteButtonClick,
 }: StudioCodeListEditorRowProps) {
-  const { texts, valueType } = useStudioCodeListEditorContext();
+  const { texts, codeListType } = useStudioCodeListEditorContext();
 
   const handleLabelChange = useCallback(
     (label: string) => {
@@ -44,10 +44,13 @@ export function StudioCodeListEditorRow({
 
   const handleValueChange = useCallback(
     (value: string) => {
-      const updatedItem = changeValue(item, value, valueType);
+      const coercedValue = coerceValue(value, codeListType);
+      if (isNaN(coercedValue)) return;
+
+      const updatedItem = changeValue(item, coercedValue);
       onChange(updatedItem);
     },
-    [item, onChange, valueType],
+    [item, onChange, codeListType],
   );
 
   const handleHelpTextChange = useCallback(

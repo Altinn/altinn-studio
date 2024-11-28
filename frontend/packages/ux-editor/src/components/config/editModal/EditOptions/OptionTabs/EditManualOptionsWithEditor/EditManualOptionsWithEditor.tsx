@@ -1,11 +1,15 @@
 import React, { useRef } from 'react';
 import classes from './EditManualOptionsWithEditor.module.css';
-import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
+import {
+  StudioCodeListEditor,
+  StudioModal,
+  StudioProperty,
+  CodeListType,
+} from '@studio/components';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { useOptionListButtonValue, useOptionListEditorTexts } from '../hooks';
 import type { EditManualOptionsProps } from '../EditManualOptions';
-import { CodeListValueType } from '@studio/components/src/components/StudioCodelistEditor/types/CodeListValueType';
 
 export function EditManualOptionsWithEditor({
   component,
@@ -15,8 +19,6 @@ export function EditManualOptionsWithEditor({
   const manualOptionsModalRef = useRef<HTMLDialogElement>(null);
   const buttonValue = useOptionListButtonValue(component.options);
   const editorTexts = useOptionListEditorTexts();
-
-  const valueType = getOptionListValueType(component.options);
 
   const handleOptionsChange = (options: Option[]) => {
     if (component.optionsId) {
@@ -45,23 +47,11 @@ export function EditManualOptionsWithEditor({
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
+          codeListType={CodeListType.String} // TODO: Implement type selector in UI
           onChange={(optionList) => handleOptionsChange(optionList)}
           texts={editorTexts}
-          valueType={valueType}
         />
       </StudioModal.Dialog>
     </>
   );
 }
-
-const getOptionListValueType = (optionList: Option[]): CodeListValueType => {
-  const firstValue = optionList?.[0]?.value;
-  switch (typeof firstValue) {
-    case CodeListValueType.Number:
-      return CodeListValueType.Number;
-    case CodeListValueType.Boolean:
-      return CodeListValueType.Boolean;
-    default:
-      return CodeListValueType.String;
-  }
-};

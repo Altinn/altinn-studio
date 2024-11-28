@@ -1,5 +1,6 @@
 import React, { createRef, useState } from 'react';
 import {
+  CodeListType,
   StudioButton,
   StudioCodeListEditor,
   StudioModal,
@@ -100,6 +101,7 @@ function CreateNewCodeList({ codeList, onUpdateCodeList, onCloseModal }: CreateN
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
+          codeListType={CodeListType.String} // TODO: Implement a type selector in UI
           onChange={handleCodeListChange}
           onInvalid={handleInvalidCodeList}
           texts={editorTexts}

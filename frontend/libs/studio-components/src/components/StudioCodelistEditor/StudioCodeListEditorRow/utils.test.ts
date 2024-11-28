@@ -1,7 +1,7 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
-import { changeDescription, changeHelpText, changeLabel, changeValue, convertValue } from './utils';
-import { CodeListValueType } from '../types/CodeListValueType';
+import { changeDescription, changeHelpText, changeLabel, changeValue, coerceValue } from './utils';
+import { CodeListType } from '../types/CodeListType';
 
 // Test data:
 const testItem: CodeListItem = {
@@ -46,15 +46,13 @@ describe('StudioCodeListEditorRow utils', () => {
     it('Changes the value of the code list item', () => {
       const item = createTestItem();
       const newValue = 'updatedValue';
-      const valueType = CodeListValueType.String;
-      const updatedItem = changeValue(item, newValue, valueType);
+      const updatedItem = changeValue(item, newValue);
       expect(updatedItem.value).toBe(newValue);
     });
 
     it('Returns a new instance', () => {
       const item = createTestItem();
-      const valueType = CodeListValueType.String;
-      const updatedItem = changeValue(item, 'updatedValue', valueType);
+      const updatedItem = changeValue(item, 'updatedValue');
       expect(updatedItem).not.toBe(item);
     });
   });
@@ -74,29 +72,44 @@ describe('StudioCodeListEditorRow utils', () => {
     });
   });
 
-  describe('convertValue', () => {
-    it('should return the correct string value', () => {
+  describe('coerceValue', () => {
+    it('Should coerce value to string, when codeListType is string', () => {
+      const codeListType = CodeListType.String;
+      const updatedValue = '123';
+      expect(coerceValue(updatedValue, codeListType)).toBe('123');
+    });
+
+    it('Should coerce value to number, when codeListType is number', () => {
+      const codeListType = CodeListType.Number;
       const value = '123';
-      const valueType = CodeListValueType.String;
-      expect(convertValue(value, valueType)).toBe('123');
+      expect(coerceValue(value, codeListType)).toBe(123);
     });
 
-    it('should return the correct number value', () => {
-      const value = '123';
-      const valueType = CodeListValueType.Number;
-      expect(convertValue(value, valueType)).toBe(123);
+    it('Should coerce value to NaN, when value is not number and codeListType is number', () => {
+      const codeListType = CodeListType.Number;
+      const value = 'test-string';
+      expect(coerceValue(value, codeListType)).toBe(NaN);
     });
 
-    it('should return the correct boolean value for true input', () => {
-      const value = 'true';
-      const valueType = CodeListValueType.Boolean;
-      expect(convertValue(value, valueType)).toBe(true);
+    it('Should coerce value to true, when string equals true and codeListType is boolean', () => {
+      const codeListType = CodeListType.Boolean;
+      const lowerCaseValue = 'true';
+      expect(coerceValue(lowerCaseValue, codeListType)).toBe(true);
+
+      const mixedCaseValue = 'True';
+      expect(coerceValue(mixedCaseValue, codeListType)).toBe(true);
     });
 
-    it('should return the correct boolean value for false input', () => {
-      const value = 'false';
-      const valueType = CodeListValueType.Boolean;
-      expect(convertValue(value, valueType)).toBe(false);
+    it('Should coerce value to false, when string does not equal true and codeListType is boolean', () => {
+      const codeListType = CodeListType.Boolean;
+      const emptyValue = '';
+      expect(coerceValue(emptyValue, codeListType)).toBe(false);
+
+      const falseValue = 'false';
+      expect(coerceValue(falseValue, codeListType)).toBe(false);
+
+      const randomValue = 'abc123øæå';
+      expect(coerceValue(randomValue, codeListType)).toBe(false);
     });
   });
 });

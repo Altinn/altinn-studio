@@ -17,7 +17,7 @@ import { useOptionListEditorTexts } from '../hooks/useOptionListEditorTexts';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import classes from './OptionListEditor.module.css';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
-import { CodeListValueType } from '@studio/components/src/components/StudioCodelistEditor/types/CodeListValueType';
+import { getOptionListValueType } from './utils/optionUtils';
 
 type OptionListEditorProps = {
   optionsId: string;
@@ -73,8 +73,7 @@ function OptionListEditorModal({
     modalRef.current?.close();
   };
 
-  const valueType = getOptionListValueType(optionsList);
-  console.log(valueType);
+  const optionListType = optionsList && getOptionListValueType(optionsList);
 
   return (
     <StudioModal.Root>
@@ -92,23 +91,11 @@ function OptionListEditorModal({
       >
         <StudioCodeListEditor
           codeList={optionsList}
+          codeListType={optionListType}
           onChange={handleOptionsChange}
           texts={editorTexts}
-          valueType={valueType}
         />
       </StudioModal.Dialog>
     </StudioModal.Root>
   );
 }
-
-const getOptionListValueType = (optionList: Option[]): CodeListValueType => {
-  const firstValue = optionList?.[0]?.value;
-  switch (typeof firstValue) {
-    case CodeListValueType.Number:
-      return CodeListValueType.Number;
-    case CodeListValueType.Boolean:
-      return CodeListValueType.Boolean;
-    default:
-      return CodeListValueType.String;
-  }
-};

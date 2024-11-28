@@ -1,4 +1,4 @@
-export enum CodeListValueType {
+export enum CodeListType {
   String = 'string',
   Number = 'number',
   Boolean = 'boolean',
