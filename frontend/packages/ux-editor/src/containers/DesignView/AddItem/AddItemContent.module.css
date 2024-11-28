@@ -8,12 +8,6 @@
   overflow-y: scroll;
 }
 
-.componentButton {
-  height: 50px;
-  width: 180px;
-  margin: 8px;
-}
-
 .componentCategory {
   padding-top: 12px;
 }
@@ -27,7 +21,7 @@
   background-color: var(--fds-semantic-surface-info-subtle);
   padding: 20px;
   height: 600px;
-  position: sticky;
+  max-width: 500px;
 }
 
 .root {

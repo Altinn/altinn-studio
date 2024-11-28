@@ -52,7 +52,7 @@ export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) 
           title={t('ux_editor.add_item.add_component_by_type', {
             type: getTitleByComponentType(item.componentType, t),
           })}
-          description={t('ux_editor.add_itemcomponent_info_generated_id_description')}
+          description={t('ux_editor.add_item.component_info_generated_id_description')}
         >
           <StudioIconTextfield
             icon={<PencilIcon />}

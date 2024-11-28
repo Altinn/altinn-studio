@@ -1,7 +1,8 @@
 .componentButton {
-  margin: 8px;
-  width: 160px;
+  margin: 4px;
+  width: 140px;
   height: 100px;
+  padding: 2px;
   overflow: wrap;
 }
 

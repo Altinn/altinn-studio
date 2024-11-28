@@ -53,7 +53,7 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
         onClose={handleCloseModal}
         heading={t('ux_editor.add_item.select_component_header')}
         closeButtonTitle={t('ux_editor.add_item.close')}
-        style={{ minWidth: '80vw' }}
+        style={{ minWidth: '85vw' }}
         ref={modalRef}
       >
         <AddItemContent
