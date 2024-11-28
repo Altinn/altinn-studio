@@ -31,9 +31,9 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
     handleCloseModal();
   };
 
-  const handleOpenModal = useCallback(() => {
+  const handleOpenModal = () => {
     modalRef.current?.showModal();
-  }, []);
+  };
 
   const availableComponents = getAvailableChildComponentsForContainer(layout, containerId);
 
@@ -46,7 +46,7 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <PlusIcon fontSize='1.5rem' />
-          Vis alle
+          {t('ux_editor.add_item.show_all')}
         </div>
       </StudioButton>
       <StudioModal.Dialog

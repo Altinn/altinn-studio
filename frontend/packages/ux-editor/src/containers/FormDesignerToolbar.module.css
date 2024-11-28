@@ -5,10 +5,3 @@
   border-bottom: 1px solid #c9c9c9;
   justify-content: space-between;
 }
-
-.switchContainer {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-}

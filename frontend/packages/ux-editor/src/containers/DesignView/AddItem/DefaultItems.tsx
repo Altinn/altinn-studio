@@ -12,8 +12,6 @@ import { getTitleByComponentType } from '../../../utils/language';
 import { useTranslation } from 'react-i18next';
 
 export type DefaultItemsProps = {
-  item: AddedItem | null;
-  setItem: (item: AddedItem | null) => void;
   onAddItem: (addedItem: AddedItem) => void;
   onCancel: () => void;
   availableComponents: IToolbarElement[];

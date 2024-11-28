@@ -26,7 +26,6 @@ export type AddItemProps = {
 };
 
 export const AddItem = ({ containerId, layout }: AddItemProps) => {
-  const [selectedItem, setSelectedItem] = React.useState<AddedItem | null>(null);
   const [showDefaultComponents, setShowDefaultComponents] = React.useState(false);
 
   const { doReloadPreview } = usePreviewContext();
@@ -104,8 +103,6 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
       {showDefaultComponents && (
         <div className={classes.addItemButtons}>
           <DefaultItems
-            item={selectedItem}
-            setItem={setSelectedItem}
             onAddItem={onAddComponent}
             onCancel={handleHideDefaultComponents}
             availableComponents={defaultComponents}
