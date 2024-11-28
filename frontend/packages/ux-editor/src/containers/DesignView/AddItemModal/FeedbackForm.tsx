@@ -12,7 +12,8 @@ export function FeedbackForm(): React.ReactNode {
     // Using regular axios post rather than a mutation hook, since we are not storing
     // the feedback in the cache, nor do we need to update any state.
     try {
-      await post(submitFeedbackPath(org, app), { answers: { ...answers } });
+      console.log('Submitting feedback', answers, org, app);
+      // await post(submitFeedbackPath(org, app), { answers: { ...answers } });
       toast.success('Takk for tilbakemeldingen!');
     } catch (error) {
       console.error('Failed to submit feedback', error);
@@ -36,7 +37,7 @@ export function FeedbackForm(): React.ReactNode {
     position: 'fixed',
     questions: [
       {
-        id: '1',
+        id: 'bedreJaNei',
         type: 'yesNo',
         questionText: 'Likte du dette designet bedre?',
         buttonLabels: {
@@ -45,7 +46,7 @@ export function FeedbackForm(): React.ReactNode {
         },
       },
       {
-        id: '2',
+        id: 'kommentar',
         type: 'text',
         questionText: 'Har du kommentarer eller forslag til forbedringer?',
       },
