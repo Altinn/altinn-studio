@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { previewSignalRHubSubPath } from 'app-shared/api/paths';
 import type { HubConnection } from '@microsoft/signalr';
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HttpTransportType, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 
 const PreviewConnectionContext = createContext<HubConnection>(null);
 
@@ -17,7 +17,10 @@ export const PreviewConnectionContextProvider = ({
 
   useEffect(() => {
     const newConnection = new HubConnectionBuilder()
-      .withUrl(previewSignalRHubSubPath())
+      .withUrl(previewSignalRHubSubPath(), {
+        skipNegotiation: true,
+        transport: HttpTransportType.WebSockets,
+      })
       .configureLogging(LogLevel.Information)
       .build();
     setConnection(newConnection);

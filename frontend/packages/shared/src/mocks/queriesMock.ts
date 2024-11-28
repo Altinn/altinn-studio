@@ -174,6 +174,11 @@ export const queriesMock: ServicesContextProps = {
   getMaskinportenScopes: jest
     .fn()
     .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  getSelectedMaskinportenScopes: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<MaskinportenScope[]>([])),
+  updateSelectedMaskinportenScopes: jest.fn().mockImplementation(() => Promise.resolve()),
+
   // Mutations
   addAppAttachmentMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   addDataTypeToAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -219,6 +224,7 @@ export const queriesMock: ServicesContextProps = {
   updateAppMetadata: jest.fn().mockImplementation(() => Promise.resolve()),
   updateAppConfig: jest.fn().mockImplementation(() => Promise.resolve()),
   updateOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
+  updateOptionListId: jest.fn().mockImplementation(() => Promise.resolve()),
   uploadDataModel: jest.fn().mockImplementation(() => Promise.resolve<JsonSchema>({})),
   uploadOptionList: jest.fn().mockImplementation(() => Promise.resolve()),
   upsertTextResources: jest

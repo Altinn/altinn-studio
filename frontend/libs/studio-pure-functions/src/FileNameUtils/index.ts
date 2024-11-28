@@ -1,2 +1,2 @@
 export { FileNameUtils } from './FileNameUtils';
-export { FileNameValidationResult } from './FileNameUtils';
+export { FileNameErrorResult } from './FileNameUtils';

@@ -38,6 +38,7 @@ class ResizeObserver {
   unobserve = jest.fn();
   disconnect = jest.fn();
 }
+
 window.ResizeObserver = ResizeObserver;
 
 // document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
@@ -77,8 +78,11 @@ jest.mock('react-i18next', () => ({
     },
 }));
 
-// SignalR PreviewHub mock to simulate setup of websockets.
-jest.mock('@microsoft/signalr', () => SignalR);
+// Mocked SignalR to be able to test in within the tests.
+jest.mock('@microsoft/signalr', () => ({
+  ...jest.requireActual('@microsoft/signalr'),
+  ...SignalR,
+}));
 
 // Mock org and app params
 jest.mock('react-router-dom', () => ({
