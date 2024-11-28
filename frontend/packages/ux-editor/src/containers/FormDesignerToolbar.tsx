@@ -3,7 +3,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './FormDesignerToolbar.module.css';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { LayoutSetsContainer } from '../components/Elements/LayoutSetsContainer';
-import { FeedbackForm } from './DesignView/AddItemModal/FeedbackForm';
+import { FeedbackForm } from './DesignView/AddItem/FeedbackForm';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
