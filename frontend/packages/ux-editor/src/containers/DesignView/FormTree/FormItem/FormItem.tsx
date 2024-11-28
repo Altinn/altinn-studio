@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
-import { renderItemList } from '../renderItemList';
+import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
 import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
-import { AddItem } from '../../AddItem';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemProps = {
@@ -39,6 +38,9 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
     </FormItemTitle>
   );
 
+  const shouldDisplayAddButton =
+    isContainer(layout, id) && shouldDisplayFeature('addComponentModal');
+
   return (
     <StudioDragAndDropTree.Item
       icon={Icon && <Icon />}
@@ -48,10 +50,9 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
       labelWrapper={labelWrapper}
       nodeId={id}
     >
-      {renderItemList(layout, duplicateComponents, id)}
-      {isContainer(layout, id) && shouldDisplayFeature('addComponentModal') && (
-        <AddItem containerId={id} layout={layout} />
-      )}
+      {shouldDisplayAddButton
+        ? renderItemListWithAddItemButton(layout, duplicateComponents, id)
+        : renderItemList(layout, duplicateComponents, id)}
     </StudioDragAndDropTree.Item>
   );
 };
