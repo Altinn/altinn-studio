@@ -44,7 +44,7 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../testing/layoutWithMultiPageGroupMocks';
 import { containerComponentTypes } from '../data/containerComponentTypes';
-import { allComponents, defaultComponents } from '../data/formItemConfig';
+import { allComponents, defaultComponents, formItemConfigs } from '../data/formItemConfig';
 
 // Test data:
 const baseContainer: FormContainer<ComponentType.Group> = {
@@ -714,20 +714,36 @@ describe('formLayoutUtils', () => {
       });
     });
 
-    it.each([
-      ComponentType.ButtonGroup,
-      ComponentType.Accordion,
-      ComponentType.AccordionGroup,
-      ComponentType.Group,
-      ComponentType.RepeatingGroup,
-    ])('Returns all default components for the given container type', (containerType) => {
+    it('Returns all default components for the ButtonGroup container', () => {
       const layout = { ...mockInternal };
-      const result = getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID);
+      const result = getDefaultChildComponentsForContainer(layout, buttonGroupId);
+      const expectedComponents = formItemConfigs[ComponentType.ButtonGroup].validChildTypes;
+      expect(result.length).toEqual(expectedComponents.length);
+      expectedComponents.forEach((componentType) => {
+        expect(result.find((c) => c.type === componentType)).toBeDefined();
+      });
+    });
+
+    it('Returns all default components for the Group container', () => {
+      const layout = { ...mockInternal };
+      const result = getDefaultChildComponentsForContainer(layout, groupId);
       expect(result.length).toEqual(defaultComponents.length);
       defaultComponents.forEach((componentType) => {
         expect(result.find((c) => c.type === componentType)).toBeDefined();
       });
     });
+
+    it.each([ComponentType.ButtonGroup, ComponentType.Group])(
+      'Returns all default components for the given container type',
+      (containerType) => {
+        const layout = { ...mockInternal };
+        const result = getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID);
+        expect(result.length).toEqual(defaultComponents.length);
+        defaultComponents.forEach((componentType) => {
+          expect(result.find((c) => c.type === componentType)).toBeDefined();
+        });
+      },
+    );
   });
 
   describe('getAllLayoutComponents', () => {
