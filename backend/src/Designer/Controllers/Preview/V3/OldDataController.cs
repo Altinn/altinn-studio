@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models.Preview;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
