@@ -1,10 +1,9 @@
 import { StringUtils } from '@studio/pure-functions';
 
-export enum FileNameValidationResult {
+export enum FileNameErrorResult {
   FileNameIsEmpty = 'fileNameIsEmpty',
   NoRegExMatch = 'noRegExMatch',
   FileExists = 'fileExists',
-  Valid = 'valid',
 }
 
 export class FileNameUtils {
@@ -52,15 +51,15 @@ export class FileNameUtils {
    * @param fileName
    * @param invalidFileNames
    * @param regEx
-   * @returns FileNameValidationResult
+   * @returns {FileNameErrorResult | null}
    */
-  static validateFileName = (
+  static findFileNameError = (
     fileName: string,
     invalidFileNames: string[],
     regEx?: RegExp,
-  ): FileNameValidationResult => {
+  ): FileNameErrorResult => {
     if (fileName === '') {
-      return FileNameValidationResult.FileNameIsEmpty;
+      return FileNameErrorResult.FileNameIsEmpty;
     }
 
     const isFileNameNotMatchingRegEx: boolean = regEx ? Boolean(!fileName.match(regEx)) : false;
@@ -69,11 +68,11 @@ export class FileNameUtils {
     );
 
     if (isFileNameNotMatchingRegEx) {
-      return FileNameValidationResult.NoRegExMatch;
+      return FileNameErrorResult.NoRegExMatch;
     }
     if (isFileNameInInvalidList) {
-      return FileNameValidationResult.FileExists;
+      return FileNameErrorResult.FileExists;
     }
-    return FileNameValidationResult.Valid;
+    return null;
   };
 }
