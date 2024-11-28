@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Card, Heading, Paragraph } from '@digdir/designsystemet-react';
 import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
@@ -16,6 +16,8 @@ import type { UpdateFormMutateOptions } from '../../containers/FormItemContext';
 import { useComponentPropertyDescription } from '../../hooks/useComponentPropertyDescription';
 import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
+import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
+import { StudioProperty } from '@studio/components';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -38,6 +40,7 @@ export const FormComponentConfig = ({
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
+  const [showOtherComponents, setShowOtherComponents] = useState(false);
 
   if (!schema?.properties) return null;
 
@@ -94,6 +97,18 @@ export const FormComponentConfig = ({
     );
   });
 
+  const defaultDisplayedBooleanKeys = booleanPropertyKeys.slice(0, 3);
+  const restOfBooleanKeys = booleanPropertyKeys.slice(3);
+
+  const renderIcon = showOtherComponents ? (
+    <ChevronUpIcon className={classes.upIcon} />
+  ) : (
+    <ChevronDownIcon className={classes.downIcon} />
+  );
+  const rendertext = showOtherComponents
+    ? t('ux_editor.component_other_properties_hide_many_settings')
+    : t('ux_editor.component_other_properties_show_many_settings');
+
   return (
     <>
       {layoutSet && component['layoutSet'] && (
@@ -118,8 +133,18 @@ export const FormComponentConfig = ({
       )}
 
       {/** Boolean fields, incl. expression type */}
-      {booleanPropertyKeys.map((propertyKey) => {
-        return (
+      {defaultDisplayedBooleanKeys.map((propertyKey) => (
+        <EditBooleanValue
+          component={component}
+          handleComponentChange={handleComponentUpdate}
+          propertyKey={propertyKey}
+          defaultValue={properties[propertyKey].default}
+          key={propertyKey}
+          helpText={properties[propertyKey]?.description}
+        />
+      ))}
+      {showOtherComponents &&
+        restOfBooleanKeys.map((propertyKey) => (
           <EditBooleanValue
             component={component}
             handleComponentChange={handleComponentUpdate}
@@ -128,8 +153,15 @@ export const FormComponentConfig = ({
             key={propertyKey}
             helpText={properties[propertyKey]?.description}
           />
-        );
-      })}
+        ))}
+      {restOfBooleanKeys.length > 0 && (
+        <StudioProperty.Button
+          className={classes.button}
+          icon={renderIcon}
+          onClick={() => setShowOtherComponents((prev) => !prev)}
+          property={rendertext}
+        />
+      )}
 
       {/** Custom logic for custom file endings */}
       {hasCustomFileEndings && (
