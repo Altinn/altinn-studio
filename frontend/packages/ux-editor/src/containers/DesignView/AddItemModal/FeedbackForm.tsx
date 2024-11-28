@@ -23,6 +23,7 @@ export function FeedbackForm(): React.ReactNode {
   // Using explicit texts here to avoid adding these potentially
   // temporary and unnecessary translations to the translation files.
   const feedbackForm = new FeedbackFormImpl({
+    id: 'add-component-poc-feedback',
     onSubmit: submitFeedback,
     buttonTexts: {
       submit: 'Send',
@@ -30,13 +31,14 @@ export function FeedbackForm(): React.ReactNode {
       close: 'Lukk',
     },
     heading: 'Gi tilbakemelding',
-    description: 'Vi ønsker å vite hva du synes om den nye løsningen.',
-    position: 'inline',
+    description:
+      'Hei! Vi ser du tester et nytt design for å legge til komponenter og vil gjerne høre hva du synes!',
+    position: 'fixed',
     questions: [
       {
         id: '1',
         type: 'yesNo',
-        questionText: 'Var dette bedre enn før?',
+        questionText: 'Likte du dette designet bedre?',
         buttonLabels: {
           yes: 'Ja',
           no: 'Nei',
@@ -45,7 +47,7 @@ export function FeedbackForm(): React.ReactNode {
       {
         id: '2',
         type: 'text',
-        questionText: 'Hva kan vi gjøre bedre?',
+        questionText: 'Har du kommentarer eller forslag til forbedringer?',
       },
     ],
   });
