@@ -6,15 +6,12 @@
   gap: var(--gap);
 }
 
-.heading {
-  display: contents;
-}
-
 .heading .headingButton {
+  display: flex;
   font: var(--fds-typography-paragraph-short-medium);
   border: none;
-  border-bottom-left-radius: 0;
-  border-top-left-radius: 0;
+  border-radius: 0;
+  color: var(--fds-semantic-text-neutral-default);
 }
 
 .root.selected .headingButton {
