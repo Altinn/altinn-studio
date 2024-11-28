@@ -7,10 +7,9 @@ import { componentMocks } from '../../../../../../../testing/componentMocks';
 import { renderWithProviders, optionListIdsMock } from '../../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import type { FormComponent } from '../../../../../../../types/FormComponent';
 
 // Test data:
-const mockComponent: FormComponent<ComponentType.Dropdown> = componentMocks[ComponentType.Dropdown];
+const mockComponent = componentMocks[ComponentType.RadioButtons];
 const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
