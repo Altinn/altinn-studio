@@ -19,10 +19,6 @@ import { AddItemModal } from './AddItemModal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import classes from './AddItem.module.css';
 import { useTranslation } from 'react-i18next';
-import nb from './language/nb.json';
-import i18next from 'i18next';
-
-i18next.addResourceBundle('nb', 'addComponentModal', nb);
 
 export type AddItemProps = {
   containerId: string;
@@ -102,7 +98,7 @@ export const AddItem = ({ containerId, layout }: AddItemProps) => {
           variant='tertiary'
           fullWidth={containerId === BASE_CONTAINER_ID}
         >
-          {t('add_component', { ns: 'addComponentModal' })}
+          {t('ux_editor.add_item.add_component')}
         </StudioButton>
       )}
       {showDefaultComponents && (

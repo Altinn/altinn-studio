@@ -51,8 +51,8 @@ export const AddItemModal = ({ containerId, layout, onAddComponent }: AddItemMod
       </StudioButton>
       <StudioModal.Dialog
         onClose={handleCloseModal}
-        heading={t('select_component_header', { ns: 'addComponentModal' })}
-        closeButtonTitle={t('close', { ns: 'addComponentModal' })}
+        heading={t('ux_editor.add_item.select_component_header')}
+        closeButtonTitle={t('ux_editor.add_item.close')}
         style={{ minWidth: '80vw' }}
         ref={modalRef}
       >

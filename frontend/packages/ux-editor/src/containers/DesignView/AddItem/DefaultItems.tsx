@@ -33,7 +33,7 @@ export const DefaultItems = ({
     <div className={classes.root}>
       <div className={classes.closeButtonContainer}>
         <StudioHeading level={4} size='xxsmall' className={classes.header}>
-          {t('select_component_header', { ns: 'addComponentModal' })}
+          {t('ux_editor.add_item.select_component_header')}
         </StudioHeading>
         <StudioButton icon={<XMarkIcon />} onClick={onCancel} variant='tertiary' />
       </div>

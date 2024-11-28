@@ -1,8 +1,0 @@
-{
-  "add_component": "Legg til komponent",
-  "add_component_by_type": "Legg til {{type}}",
-  "close": "Lukk",
-  "component_info_generated_id_description": "Vi lager automatisk en unik ID for komponenten. Du kan endre den her til noe du selv ønsker, eller la den være som den er. Du kan også endre denne id-en senere.",
-  "component_more_info_description": "Klikk på en komponent for å se mer informasjon om den.",
-  "select_component_header": "Velg komponent"
-}

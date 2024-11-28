@@ -33,7 +33,7 @@ export const AddItemContent = ({
     <div className={classes.root}>
       <div className={classes.allComponentsWrapper}>
         <StudioParagraph spacing size='small' style={{ width: '100%' }}>
-          {t('component_more_info_description', { ns: 'addComponentModal' })}
+          {t('ux_editor.add_item.component_more_info_description')}
         </StudioParagraph>
         {Object.keys(availableComponents).map((key) => {
           return (

@@ -49,11 +49,10 @@ export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) 
           }}
           saveButtonText='Legg til'
           skipButtonText='Avbryt'
-          title={t('add_component_by_type', {
+          title={t('ux_editor.add_item.add_component_by_type', {
             type: getTitleByComponentType(item.componentType, t),
-            ns: 'addComponentModal',
           })}
-          description={t('component_info_generated_id_description', { ns: 'addComponentModal' })}
+          description={t('ux_editor.add_itemcomponent_info_generated_id_description')}
         >
           <StudioIconTextfield
             icon={<PencilIcon />}
