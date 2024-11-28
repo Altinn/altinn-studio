@@ -9,15 +9,16 @@ export function FeedbackForm(): React.ReactNode {
   const { org, app } = useStudioEnvironmentParams();
 
   const submitFeedback = async (answers: Record<string, string>) => {
-    // Using regular axios post rather than a mutation hook, since we are not storing
-    // the feedback in the cache, nor do we need to update any state.
+    // Using explicit texts here to avoid adding these potentially
+    // temporary and unnecessary translations to the translation files.
     try {
-      console.log('Submitting feedback', answers, org, app);
-      // await post(submitFeedbackPath(org, app), { answers: { ...answers } });
+      // Using regular axios post rather than a mutation hook, since we are not storing
+      // the feedback in the cache, nor are we updating any state.
+      await post(submitFeedbackPath(org, app), { answers: { ...answers } });
       toast.success('Takk for tilbakemeldingen!');
     } catch (error) {
       console.error('Failed to submit feedback', error);
-      toast.error('Noe gikk galt. Vennligst prøv igjen senere.');
+      toast.error('Noe gikk galt. Prøv igjen senere.');
     }
   };
 
