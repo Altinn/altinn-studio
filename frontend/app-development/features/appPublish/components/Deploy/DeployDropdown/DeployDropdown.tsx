@@ -63,7 +63,13 @@ export const DeployDropdown = ({
         }
         disabled={disabled}
       >
-        <DeployComboboxOptions imageOptions={imageOptions} />
+        {imageOptions.map((imageOption: ImageOption) => {
+          return (
+            <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
+              {imageOption.label}
+            </StudioCombobox.Option>
+          );
+        })}
         <StudioCombobox.Empty>{t('app_deployment.no_versions')}</StudioCombobox.Empty>
       </StudioCombobox>
       <div className={classes.deployButton}>
@@ -77,17 +83,4 @@ export const DeployDropdown = ({
       </div>
     </div>
   );
-};
-
-type DeployComboboxOptionsProps = {
-  imageOptions: ImageOption[];
-};
-const DeployComboboxOptions = ({ imageOptions }: DeployComboboxOptionsProps): ReactElement[] => {
-  return imageOptions.map((imageOption: ImageOption) => {
-    return (
-      <StudioCombobox.Option key={imageOption.value} value={imageOption.value}>
-        {imageOption.label}
-      </StudioCombobox.Option>
-    );
-  });
 };
