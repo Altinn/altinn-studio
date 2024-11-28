@@ -8,11 +8,8 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { OptionTabs } from './OptionTabs';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import {
-  addFeatureFlagToLocalStorage,
-  removeFeatureFlagFromLocalStorage,
-} from 'app-shared/utils/featureToggleUtils';
+import { componentMocks } from '../../../../../testing/componentMocks';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -32,7 +29,6 @@ describe('EditOptions', () => {
     expect(
       screen.getByRole('tab', {
         name: textMock('ux_editor.options.tab_code_list'),
-        selected: true,
       }),
     ).toBeInTheDocument();
   });
@@ -106,39 +102,16 @@ describe('EditOptions', () => {
       componentProps: { options: [] },
     });
 
-    expect(
-      screen.queryByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
-        selected: true,
-      }),
-    ).not.toBeInTheDocument();
-
     const referenceIdElement = screen.getByRole('tab', {
       name: textMock('ux_editor.options.tab_referenceId'),
     });
     await user.click(referenceIdElement);
+
     expect(
       screen.getByRole('tab', {
         name: textMock('ux_editor.options.tab_referenceId'),
-        selected: true,
       }),
     ).toBeInTheDocument();
-  });
-
-  it('should show alert message in CodeList tab when prop isOnlyOptionsIdSupported is false', async () => {
-    addFeatureFlagToLocalStorage('optionListEditor');
-    const user = userEvent.setup();
-    renderEditOptions({
-      componentProps: { options: undefined, optionsId: undefined },
-      renderOptions: { isOnlyOptionsIdSupported: false },
-    });
-
-    const codeListTabElement = screen.getByRole('tab', {
-      name: textMock('ux_editor.options.tab_code_list'),
-    });
-    await user.click(codeListTabElement);
-
-    expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
 
   it('should render EditOptionChoice when featureFlag is enabled', async () => {
@@ -150,7 +123,6 @@ describe('EditOptions', () => {
         options: undefined,
       },
       optionListIds: [optionsId],
-      renderOptions: { isOnlyOptionsIdSupported: true },
     });
 
     expect(
@@ -158,21 +130,23 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  // Todo: Remove once featureFlag "optionListEditor" is removed
-  it('should show alert message in CodeList tab when prop areLayoutOptionsSupported is false', async () => {
-    removeFeatureFlagFromLocalStorage('optionListEditor');
+  it('should switch to referenceId input clicking referenceId tab', async () => {
+    addFeatureFlagToLocalStorage('optionListEditor');
     const user = userEvent.setup();
     renderEditOptions({
-      componentProps: { options: undefined, optionsId: undefined },
-      renderOptions: { isOnlyOptionsIdSupported: false },
+      componentProps: { options: [] },
     });
 
-    const manualTabElement = screen.getByRole('tab', {
-      name: textMock('ux_editor.options.tab_manual'),
+    const referenceIdElement = screen.getByRole('tab', {
+      name: textMock('ux_editor.options.tab_referenceId'),
     });
-    await user.click(manualTabElement);
+    await user.click(referenceIdElement);
 
-    expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
+    expect(
+      screen.getByRole('tab', {
+        name: textMock('ux_editor.options.tab_referenceId'),
+      }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -180,9 +154,6 @@ type renderEditOptionsProps<T extends ComponentType.Checkboxes | ComponentType.R
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
-  renderOptions?: {
-    isOnlyOptionsIdSupported?: boolean;
-  };
   optionListIds?: string[];
 };
 
@@ -190,7 +161,6 @@ function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.Ra
   componentProps = {},
   handleComponentChange = jest.fn(),
   queries = {},
-  renderOptions = {},
   optionListIds = [],
 }: renderEditOptionsProps<T> = {}) {
   return renderWithProviders(
@@ -201,7 +171,6 @@ function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.Ra
         ...mockComponent,
         ...componentProps,
       }}
-      renderOptions={renderOptions}
     />,
     {
       queries,

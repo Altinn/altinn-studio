@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs, StudioAlert, StudioErrorMessage } from '@studio/components';
+import { StudioTabs, StudioErrorMessage } from '@studio/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ManualTab } from './ManualTab';
@@ -18,17 +18,9 @@ import {
 
 type OptionTabsProps = {
   optionListIds: string[];
-  renderOptions?: {
-    isOnlyOptionsIdSupported?: boolean;
-  };
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-export function OptionTabs({
-  component,
-  handleComponentChange,
-  optionListIds,
-  renderOptions,
-}: OptionTabsProps) {
+export function OptionTabs({ component, handleComponentChange, optionListIds }: OptionTabsProps) {
   return (
     <>
       {shouldDisplayFeature('optionListEditor') ? (
@@ -36,14 +28,12 @@ export function OptionTabs({
           component={component}
           handleComponentChange={handleComponentChange}
           optionListIds={optionListIds}
-          renderOptions={renderOptions}
         />
       ) : (
         <OptionTabsSplitTabs
           component={component}
           handleComponentChange={handleComponentChange}
           optionListIds={optionListIds}
-          renderOptions={renderOptions}
         />
       )}
     </>
@@ -54,7 +44,6 @@ function OptionTabsMergedTabs({
   component,
   handleComponentChange,
   optionListIds,
-  renderOptions,
 }: OptionTabsProps) {
   const initialSelectedOptionsType = getSelectedOptionsTypeWithManualSupport(
     component.optionsId,
@@ -90,11 +79,7 @@ function OptionTabsMergedTabs({
         </StudioTabs.Tab>
       </StudioTabs.List>
       <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
-        <TabWithErrorHandling
-          component={component}
-          handleComponentChange={handleComponentChange}
-          isOnlyOptionsIdSupported={renderOptions.isOnlyOptionsIdSupported}
-        />
+        <TabWithErrorHandling component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
         <ReferenceTab component={component} handleComponentChange={handleComponentChange} />
@@ -104,12 +89,7 @@ function OptionTabsMergedTabs({
 }
 
 // Todo: Remove once featureFlag "optionListEditor" is removed.
-function OptionTabsSplitTabs({
-  component,
-  handleComponentChange,
-  optionListIds,
-  renderOptions,
-}: OptionTabsProps) {
+function OptionTabsSplitTabs({ component, handleComponentChange, optionListIds }: OptionTabsProps) {
   const initialSelectedOptionsType = getSelectedOptionsTypeWithManualSupport(
     component.optionsId,
     component.options,
@@ -150,11 +130,7 @@ function OptionTabsSplitTabs({
         <SelectTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.Manual} className={classes.tabContent}>
-        <TabWithErrorHandling
-          component={component}
-          handleComponentChange={handleComponentChange}
-          isOnlyOptionsIdSupported={renderOptions.isOnlyOptionsIdSupported}
-        />
+        <TabWithErrorHandling component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
         <ReferenceTab component={component} handleComponentChange={handleComponentChange} />
@@ -163,25 +139,13 @@ function OptionTabsSplitTabs({
   );
 }
 
-type TabWithErrorHandlingProps = {
-  isOnlyOptionsIdSupported: boolean;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+type TabWithErrorHandlingProps = Pick<
+  IGenericEditComponent<SelectionComponentType>,
+  'component' | 'handleComponentChange'
+>;
 
-function TabWithErrorHandling({
-  component,
-  handleComponentChange,
-  isOnlyOptionsIdSupported,
-}: TabWithErrorHandlingProps) {
-  const { t } = useTranslation();
+function TabWithErrorHandling({ component, handleComponentChange }: TabWithErrorHandlingProps) {
   const errorMessage = useComponentErrorMessage(component);
-
-  if (!isOnlyOptionsIdSupported) {
-    return (
-      <StudioAlert className={classes.tabAlert} severity='info'>
-        {t('ux_editor.options.code_list_only')}
-      </StudioAlert>
-    );
-  }
 
   return (
     <>

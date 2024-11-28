@@ -64,9 +64,6 @@ export const Text = () => {
           }
           handleComponentChange={handleComponentChange}
           layoutName={selectedFormLayoutName}
-          renderOptions={{
-            isOnlyOptionsIdSupported: schema.properties.optionsId && schema.properties.options,
-          }}
         />
       )}
       {form.type === ComponentType.Image && (

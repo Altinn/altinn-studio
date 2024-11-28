@@ -7,7 +7,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { renderWithProviders } from '../../../../testing/mocks';
-import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
+import { componentMocks } from '../../../../testing/componentMocks';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -54,14 +54,10 @@ function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.Ra
   componentProps,
   handleComponentChange = jest.fn(),
   queries = {},
-  renderOptions = {},
 }: {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
-  renderOptions?: {
-    isOnlyOptionsIdSupported?: boolean;
-  };
 } = {}) {
   return renderWithProviders(
     <EditOptions
@@ -70,7 +66,6 @@ function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.Ra
         ...mockComponent,
         ...componentProps,
       }}
-      renderOptions={renderOptions}
     />,
     {
       queries,

@@ -10,11 +10,7 @@ import { OptionTabs } from './OptionTabs';
 import classes from './EditOptions.module.css';
 
 export interface ISelectionEditComponentProvidedProps<T extends SelectionComponentType>
-  extends IGenericEditComponent<T> {
-  renderOptions?: {
-    isOnlyOptionsIdSupported?: boolean;
-  };
-}
+  extends IGenericEditComponent<T> {}
 
 export enum SelectedOptionsType {
   CodeList = 'codelist',
@@ -26,7 +22,6 @@ export enum SelectedOptionsType {
 export function EditOptions<T extends SelectionComponentType>({
   component,
   handleComponentChange,
-  renderOptions,
 }: ISelectionEditComponentProvidedProps<T>) {
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
@@ -50,7 +45,6 @@ export function EditOptions<T extends SelectionComponentType>({
         <OptionTabs
           component={component}
           handleComponentChange={handleComponentChange}
-          renderOptions={renderOptions}
           optionListIds={optionListIds}
         />
       )}
