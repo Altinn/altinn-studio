@@ -84,7 +84,7 @@ describe('objectUtils', () => {
 
   describe('sortEntriesInObjectByKeys', () => {
     it('Sorts all entries in an object by its keys', () => {
-      const unsortedObject = { b: 'some value', a: 'some value', c: 'some value' };
+      const unsortedObject = { b: 'value1', a: 'value2', c: 'value3' };
       const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unsortedObject);
       const sortedObjectKeys = Object.keys(sortedObject);
       expect(sortedObjectKeys[0]).toBe('a');
@@ -94,7 +94,7 @@ describe('objectUtils', () => {
     });
 
     it('Returns same order if entries in object is already sorted', () => {
-      const unsortedObject = { a: 'some value', b: 'some value', c: 'some value' };
+      const unsortedObject = { a: 'value1', b: 'value2', c: 'value3' };
       const sortedObject = ObjectUtils.sortEntriesInObjectByKeys(unsortedObject);
       const sortedObjectKeys = Object.keys(sortedObject);
       expect(sortedObjectKeys[0]).toBe('a');
