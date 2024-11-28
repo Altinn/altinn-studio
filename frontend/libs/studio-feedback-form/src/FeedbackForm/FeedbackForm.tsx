@@ -84,7 +84,9 @@ export function FeedbackForm({
         closeButtonTitle={buttonTexts.close}
         ref={modalRef}
       >
-        <StudioParagraph spacing={true}>{description}</StudioParagraph>
+        <StudioParagraph size='sm' spacing={true}>
+          {description}
+        </StudioParagraph>
         {questions.map((question) => {
           return renderQuestion(question);
         })}

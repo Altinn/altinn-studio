@@ -26,7 +26,7 @@ export function YesNoQuestion({ id, label, value, buttonLabels, onChange }: YesN
 
   return (
     <div>
-      <StudioLabelAsParagraph>{label}</StudioLabelAsParagraph>
+      <StudioLabelAsParagraph size='sm'>{label}</StudioLabelAsParagraph>
       <div className={classes.buttons}>
         <StudioButton
           variant='tertiary'

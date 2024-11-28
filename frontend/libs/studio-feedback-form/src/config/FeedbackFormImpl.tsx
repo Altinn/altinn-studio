@@ -32,7 +32,7 @@ export class FeedbackFormImpl {
     this.onSubmit = config.onSubmit;
   }
 
-  public getFeedbackForm(): React.ReactNode {
+  public getFeedbackForm(): React.ReactElement {
     return (
       <FeedbackFormContextProvider>
         <FeedbackForm
