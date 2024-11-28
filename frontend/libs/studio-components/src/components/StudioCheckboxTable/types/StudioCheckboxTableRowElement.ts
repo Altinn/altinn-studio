@@ -3,4 +3,5 @@ export type StudioCheckboxTableRowElement = {
   label: string;
   description?: string;
   checked: boolean;
+  disabled?: boolean;
 };
