@@ -1,6 +1,6 @@
 {
   "name": "merge-locale",
-  "packageManager": "yarn@4.5.1",
+  "packageManager": "yarn@4.5.2",
   "private": true,
   "dependencies": {
     "ini": "5.0.0"
