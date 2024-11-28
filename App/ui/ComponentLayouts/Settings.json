@@ -23,6 +23,7 @@
       "NumberPage",
       "DatePage",
       "PersonLookupPage",
+      "OrganisationLookupPage",
       "SummaryPage"
     ]
   }

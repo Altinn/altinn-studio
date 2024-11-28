@@ -3,12 +3,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Altinn.Application</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
+    <AppLibProjectFolder>/home/johauk/source/repos/altinn/app-lib-dotnet</AppLibProjectFolder>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="8.3.4">
-      <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
-    </PackageReference>
-    <PackageReference Include="Altinn.App.Core" Version="8.3.4" />
+    <ProjectReference Include="$(AppLibProjectFolder)/src/Altinn.App.Core/Altinn.App.Core.csproj" />
+    <ProjectReference Include="$(AppLibProjectFolder)/src/Altinn.App.Api/Altinn.App.Api.csproj" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
