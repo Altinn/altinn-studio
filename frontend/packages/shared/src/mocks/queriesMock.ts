@@ -70,6 +70,8 @@ import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 export const queriesMock: ServicesContextProps = {
   // Queries
@@ -103,6 +105,9 @@ export const queriesMock: ServicesContextProps = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
+  getLayoutSetsExtended: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<LayoutSetsModel>(layoutSetsExtendedMock)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
