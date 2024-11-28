@@ -6,7 +6,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { typedLocalStorage } from '@studio/pure-functions';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from './AppContext';
-import { layoutSetsExtendedMock, layoutSetsMock } from './testing/layoutSetsMock';
+import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -15,9 +15,6 @@ import { PreviewContextProvider } from 'app-development/contexts/PreviewContext'
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-  getLayoutSetsExtended: jest
-    .fn()
-    .mockImplementation(() => Promise.resolve(layoutSetsExtendedMock)),
   getFormLayoutSettings: jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
