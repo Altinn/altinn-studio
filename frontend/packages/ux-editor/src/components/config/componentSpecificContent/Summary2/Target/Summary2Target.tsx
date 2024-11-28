@@ -134,7 +134,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         {target.type === 'page' && (
           <Summmary2ComponentReferenceSelector
             key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            label={t('general.page')}
+            label={t('ux_editor.component_properties.target_unit_page')}
             value={target.id}
             options={pageOptions}
             onValueChange={handleTargetIdChange}
@@ -143,7 +143,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         {target.type === 'component' && (
           <Summmary2ComponentReferenceSelector
             key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
-            label={t('general.component')}
+            label={t('ux_editor.component_properties.target_unit_component')}
             value={target.id}
             options={componentOptions}
             onValueChange={handleTargetIdChange}
@@ -153,7 +153,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
           <StudioTextfield
             key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             size='sm'
-            label={t('general.layout_set')}
+            label={t('ux_editor.component_properties.target_unit_layout_set')}
             value={selectedLayoutSetName}
             disabled={true}
           />
