@@ -133,9 +133,9 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         </StudioNativeSelect>
         {target.type === 'page' && (
           <Summmary2ComponentReferenceSelector
-            key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
+            key={Boolean(target.id) ? target.id : selectedFormLayoutName} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             label={t('ux_editor.component_properties.target_unit_page')}
-            value={target.id}
+            value={Boolean(target.id) ? target.id : selectedFormLayoutName}
             options={pageOptions}
             onValueChange={handleTargetIdChange}
           />
