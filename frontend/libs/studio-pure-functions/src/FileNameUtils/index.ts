@@ -1,1 +1,2 @@
-export { FileNameUtils } from './FilenameUtils';
+export { FileNameUtils } from './FileNameUtils';
+export { FileNameErrorResult } from './FileNameUtils';
