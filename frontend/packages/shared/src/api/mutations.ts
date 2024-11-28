@@ -33,7 +33,6 @@ import {
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
-  processEditorPathPut,
   layoutSetPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
@@ -43,6 +42,8 @@ import {
   addImagePath,
   optionListUploadPath,
   optionListUpdatePath,
+  processEditorPath,
+  selectedMaskinportenScopesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -67,6 +68,7 @@ import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResp
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
 import type { Option } from 'app-shared/types/Option';
+import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 
 const headers = {
   Accept: 'application/json',
@@ -142,10 +144,13 @@ export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: s
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
-  put(processEditorPathPut(org, app), form, {
+  put(processEditorPath(org, app), form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
 
 export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
+
+// Maskinporten
+export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);
