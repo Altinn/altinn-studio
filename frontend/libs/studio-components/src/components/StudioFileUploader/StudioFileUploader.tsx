@@ -39,6 +39,11 @@ export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploade
       if (file) {
         onSubmit?.(file);
       }
+      resetRef(internalRef);
+    };
+
+    const handleButtonClick = () => {
+      internalRef.current?.click();
     };
 
     return (
@@ -56,7 +61,7 @@ export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploade
           color={color}
           disabled={disabled}
           icon={<UploadIcon />}
-          onClick={() => internalRef?.current?.click()}
+          onClick={handleButtonClick}
           size={size}
           variant={variant}
         >
@@ -70,3 +75,7 @@ export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploade
 StudioFileUploader.displayName = 'StudioFileUploader';
 
 const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current?.files?.item(0);
+
+const resetRef = (fileRef: RefObject<HTMLInputElement>): void => {
+  fileRef.current.value = '';
+};

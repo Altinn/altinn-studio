@@ -1,4 +1,4 @@
-import { FileNameUtils } from './FilenameUtils';
+import { FileNameErrorResult, FileNameUtils } from './FileNameUtils';
 
 describe('FileNameUtils', () => {
   describe('removeExtension', () => {
@@ -55,15 +55,15 @@ describe('FileNameUtils', () => {
     });
   });
 
-  describe('extractFilename', () => {
+  describe('extractFileName', () => {
     it('Returns filename if path contains a slash', () => {
-      expect(FileNameUtils.extractFilename('/path/to/filename')).toEqual('filename');
-      expect(FileNameUtils.extractFilename('/path/to/filename.json')).toEqual('filename.json');
+      expect(FileNameUtils.extractFileName('/path/to/filename')).toEqual('filename');
+      expect(FileNameUtils.extractFileName('/path/to/filename.json')).toEqual('filename.json');
     });
 
     it('Returns path if path does not contain a slash', () => {
-      expect(FileNameUtils.extractFilename('filename')).toEqual('filename');
-      expect(FileNameUtils.extractFilename('filename.json')).toEqual('filename.json');
+      expect(FileNameUtils.extractFileName('filename')).toEqual('filename');
+      expect(FileNameUtils.extractFileName('filename.json')).toEqual('filename.json');
     });
   });
 
@@ -88,6 +88,75 @@ describe('FileNameUtils', () => {
     it('Returns empty string if path is only fileName and "excludeLastSlash" is true', () => {
       expect(FileNameUtils.removeFileNameFromPath('filename', true)).toEqual('');
       expect(FileNameUtils.removeFileNameFromPath('filename.json', true)).toEqual('');
+    });
+  });
+
+  describe('findFileNameError', () => {
+    it('Returns "FileNameIsEmpty" when file name is empty', () => {
+      const fileName: string = '';
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      expect(fileNameError).toBe(FileNameErrorResult.FileNameIsEmpty);
+    });
+
+    it('Returns "NoRegExMatch" when file name does not match given regex', () => {
+      const fileName: string = 'ABC';
+      const fileNameRegEx: RegExp = /^[a-z]+$/;
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+        fileName,
+        [],
+        fileNameRegEx,
+      );
+      expect(fileNameError).toBe(FileNameErrorResult.NoRegExMatch);
+    });
+
+    it('Returns "FileExists" when file name matches regEx and exists in list', () => {
+      const fileName: string = 'fileName1';
+      const invalidFileNames: string[] = ['fileName1', 'fileName2', 'fileName3'];
+      const fileNameRegEx: RegExp = /^[a-zA-Z0-9]+$/;
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+        fileName,
+        invalidFileNames,
+        fileNameRegEx,
+      );
+      expect(fileNameError).toBe(FileNameErrorResult.FileExists);
+    });
+
+    it('Returns "FileExists" when no regEx is provided and exists in list', () => {
+      const fileName: string = 'fileName1';
+      const invalidFileNames: string[] = ['fileName1', 'fileName2', 'fileName3'];
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+        fileName,
+        invalidFileNames,
+      );
+      expect(fileNameError).toBe(FileNameErrorResult.FileExists);
+    });
+
+    it('Returns null when file name matches regEx and does not exist in list of invalid names', () => {
+      const fileName: string = 'fileName';
+      const invalidFileNames: string[] = ['fileName2', 'fileName3'];
+      const fileNameRegEx: RegExp = /^[a-zA-Z]+$/;
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+        fileName,
+        invalidFileNames,
+        fileNameRegEx,
+      );
+      expect(fileNameError).toBeNull();
+    });
+
+    it('Returns null when no regEx is provided and file name does not exist in list of invalid names', () => {
+      const fileName: string = 'fileName';
+      const invalidFileNames: string[] = ['fileName2', 'fileName3'];
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+        fileName,
+        invalidFileNames,
+      );
+      expect(fileNameError).toBeNull();
+    });
+
+    it('Returns null when no regEx is provided and list of invalid names is empty', () => {
+      const fileName: string = 'fileName';
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      expect(fileNameError).toBeNull();
     });
   });
 });
