@@ -1,6 +1,6 @@
 import { renderHookWithProviders } from '../test/mocks';
 import {
-  queryParamKey,
+  openSettingsModalWithTabQueryKey,
   useOpenSettingsModalBasedQueryParam,
 } from './useOpenSettingsModalBasedQueryParam';
 import { useSearchParams } from 'react-router-dom';
@@ -44,7 +44,7 @@ function setupSearchParamMock(searchParams: URLSearchParams): jest.Mock {
 
 function buildSearchParams(queryParamValue: string): URLSearchParams {
   const searchParams: URLSearchParams = new URLSearchParams();
-  searchParams.set(queryParamKey, queryParamValue);
+  searchParams.set(openSettingsModalWithTabQueryKey, queryParamValue);
   return searchParams;
 }
 
