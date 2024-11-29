@@ -162,9 +162,11 @@ describe('useValidateSchemaName', () => {
         act(() => {
           result.current.validateName(name);
         });
-      });
 
-      expect(result.current.nameError).toBe(textMock('schema_editor.error_invalid_datamodel_name'));
+        expect(result.current.nameError).toBe(
+          textMock('schema_editor.error_invalid_datamodel_name'),
+        );
+      });
     });
   });
 });
