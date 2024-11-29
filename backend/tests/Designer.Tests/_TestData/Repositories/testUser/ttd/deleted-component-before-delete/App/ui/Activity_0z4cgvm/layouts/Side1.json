@@ -1,0 +1,22 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "target": {
+          "type": "component",
+          "id": "Input-XDDxRp",
+          "taskId": "Task_1"
+        },
+        "id": "Summary2-QN78Y8",
+        "type": "Summary2"
+      },
+      {
+        "id": "NavigationButtons-DfcNol",
+        "showBackButton": true,
+        "textResourceBindings": {},
+        "type": "NavigationButtons"
+      }
+    ]
+  }
+}
