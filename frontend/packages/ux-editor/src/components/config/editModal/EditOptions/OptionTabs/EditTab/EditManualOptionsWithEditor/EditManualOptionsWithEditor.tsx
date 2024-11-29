@@ -32,7 +32,11 @@ export function EditManualOptionsWithEditor({
   };
 
   const handleClose = () => {
-    setChosenOption(true);
+    if (component.options !== undefined) {
+      setChosenOption(true);
+    }
+
+    manualOptionsModalRef.current?.close();
   };
 
   return (
