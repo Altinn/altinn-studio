@@ -89,31 +89,6 @@ describe('useValidateSchemaName', () => {
   });
 
   describe('regular expressions', () => {
-    it('should disallow Norwegian characters at start of name', () => {
-      const { result } = renderUseValidateSchemaName();
-      const invalidFirstCharacters = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å'];
-
-      invalidFirstCharacters.forEach((char) => {
-        act(() => {
-          result.current.validateName(char);
-        });
-
-        expect(result.current.nameError).toBe(
-          textMock('schema_editor.error_invalid_datamodel_name'),
-        );
-      });
-    });
-
-    it('should allow Norwegian characters in rest of name', () => {
-      const { result } = renderUseValidateSchemaName();
-
-      act(() => {
-        result.current.validateName('aÆØÅæøå');
-      });
-
-      expect(result.current.nameError).toBe('');
-    });
-
     it('should disallow numbers at start of name', () => {
       const { result } = renderUseValidateSchemaName();
       const invalidFirstCharacters = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
@@ -177,6 +152,16 @@ describe('useValidateSchemaName', () => {
           textMock('schema_editor.error_invalid_datamodel_name'),
         );
       });
+    });
+
+    it('should disallow Norwegian characters in name', () => {
+      const { result } = renderUseValidateSchemaName();
+
+      act(() => {
+        result.current.validateName('aÆØÅæøå');
+      });
+
+      expect(result.current.nameError).toBe(textMock('schema_editor.error_invalid_datamodel_name'));
     });
   });
 });
