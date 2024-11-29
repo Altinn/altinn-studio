@@ -12,11 +12,11 @@ import { TableIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations/useUpdateOptionListMutation';
-import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
 import { useOptionListEditorTexts } from '../hooks/useOptionListEditorTexts';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import classes from './OptionListEditor.module.css';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { useOptionListQuery } from 'app-shared/hooks/queries';
 
 type OptionListEditorProps = {
   optionsId: string;
@@ -25,7 +25,7 @@ type OptionListEditorProps = {
 export function OptionListEditor({ optionsId }: OptionListEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionsListMap, status } = useOptionListsQuery(org, app);
+  const { data: optionsList, status } = useOptionListQuery(org, app, optionsId);
 
   switch (status) {
     case 'pending':
@@ -37,9 +37,7 @@ export function OptionListEditor({ optionsId }: OptionListEditorProps): React.Re
         <StudioErrorMessage>{t('ux_editor.modal_properties_error_message')}</StudioErrorMessage>
       );
     case 'success': {
-      return (
-        <OptionListEditorModal optionsList={optionsListMap[optionsId]} optionsId={optionsId} />
-      );
+      return <OptionListEditorModal optionsList={optionsList} optionsId={optionsId} />;
     }
   }
 }

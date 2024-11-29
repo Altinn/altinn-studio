@@ -1,7 +1,6 @@
 import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
-import type { Option } from 'app-shared/types/Option';
+import type { OptionsList, OptionsLists } from 'app-shared/types/api/OptionsLists';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../../testing/mocks';
@@ -11,18 +10,16 @@ import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const mockComponentOptionsId = 'options';
-const getOptionLists = jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>(apiResult));
+const getOptionList = jest.fn().mockImplementation(() => Promise.resolve<OptionsList>(apiResult));
 const updateOptionList = jest
   .fn()
-  .mockImplementation(() => Promise.resolve<Option[]>([{ value: '', label: '' }]));
+  .mockImplementation(() => Promise.resolve<OptionsList>([{ value: '', label: '' }]));
 
-const apiResult: OptionsLists = {
-  options: [
-    { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-    { value: 2, label: 'label number', description: null, helpText: null },
-    { value: true, label: 'label boolean', description: null, helpText: null },
-  ],
-};
+const apiResult: OptionsList = [
+  { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
+  { value: 2, label: 'label number', description: null, helpText: null },
+  { value: true, label: 'label boolean', description: null, helpText: null },
+];
 
 describe('OptionListEditor', () => {
   afterEach(jest.clearAllMocks);
@@ -30,7 +27,7 @@ describe('OptionListEditor', () => {
   it('should render a spinner when there is no data', () => {
     renderOptionListEditor({
       queries: {
-        getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
+        getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionsList>([])),
       },
     });
 
@@ -42,7 +39,7 @@ describe('OptionListEditor', () => {
   it('should render an error message when api throws an error', async () => {
     await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
       queries: {
-        getOptionLists: jest.fn().mockRejectedValueOnce(new Error('Error')),
+        getOptionList: jest.fn().mockRejectedValueOnce(new Error('Error')),
       },
     });
 
@@ -99,7 +96,7 @@ describe('OptionListEditor', () => {
   it('should call updateOptionList with correct parameters when closing Dialog', async () => {
     const user = userEvent.setup();
     await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
-    const expectedResultAfterEdit: Option[] = [
+    const expectedResultAfterEdit: OptionsList = [
       { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
       { value: 2, label: 'label number', description: 'test', helpText: null },
       { value: true, label: 'label boolean', description: null, helpText: null },
@@ -130,7 +127,7 @@ const openModal = async (user: UserEvent) => {
 
 const renderOptionListEditor = ({ previewContextProps = {}, queries = {} } = {}) => {
   return renderWithProviders(<OptionListEditor optionsId={mockComponentOptionsId} />, {
-    queries: { getOptionLists, updateOptionList, ...queries },
+    queries: { getOptionList, updateOptionList, ...queries },
     queryClient: createQueryClientMock(),
     previewContextProps,
   });

@@ -40,15 +40,13 @@ jest.mock(
   }),
 );
 
-const optionListsMock: OptionsLists = {
-  list1: [{ label: 'label', value: 'value' }],
-};
+const optionListIdsMock: string[] = ['list1'];
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders the AppContentLibrary with codeLists and images resources available in the content menu', () => {
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary(optionListIdsMock);
     const libraryTitle = screen.getByRole('heading', {
       name: textMock('app_content_library.landing_page.title'),
     });
@@ -67,7 +65,7 @@ describe('AppContentLibrary', () => {
 
   it('calls onUploadOptionList when onUploadCodeList is triggered', async () => {
     const user = userEvent.setup();
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary(optionListIdsMock);
     await goToLibraryPage(user, 'code_lists');
     const uploadCodeListButton = screen.getByRole('button', { name: uploadCodeListButtonTextMock });
     await user.click(uploadCodeListButton);
@@ -77,7 +75,7 @@ describe('AppContentLibrary', () => {
 
   it('calls onUpdateOptionList when onUpdateCodeList is triggered', async () => {
     const user = userEvent.setup();
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary(optionListIdsMock);
     await goToLibraryPage(user, 'code_lists');
     const updateCodeListButton = screen.getByRole('button', { name: updateCodeListButtonTextMock });
     await user.click(updateCodeListButton);
@@ -99,10 +97,10 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
   await user.click(libraryPageNavTile);
 };
 
-const renderAppContentLibrary = (optionLists: OptionsLists = {}) => {
+const renderAppContentLibrary = (optionListIds: string[] = []) => {
   const queryClientMock = createQueryClientMock();
-  if (Object.keys(optionLists).length) {
-    queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionLists);
+  if (optionListIds.length) {
+    queryClientMock.setQueryData([QueryKey.OptionListIds, org, app], optionListIds);
   }
   renderWithProviders({}, queryClientMock)(<AppContentLibrary />);
 };
