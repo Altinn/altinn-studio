@@ -2453,6 +2453,11 @@ namespace Altinn.App.Models
         [JsonProperty("Ingredients")]
         [JsonPropertyName("Ingredients")]
         public List<Ingredient>? Ingredients { get; set; }
+
+        [XmlElement("Dislikes", Order = 3)]
+        [JsonProperty("Dislikes")]
+        [JsonPropertyName("Dislikes")]
+        public string? Dislikes { get; set; }
     }
 
     public class Ingredient

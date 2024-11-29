@@ -2782,6 +2782,9 @@
         "UsedTypes": {
           "type": "string"
         },
+        "Dislikes": {
+          "type": "string"
+        },
         "Ingredients": {
           "type": "array",
           "items": {

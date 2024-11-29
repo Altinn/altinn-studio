@@ -11,6 +11,22 @@
         "type": "NavigationBar"
       },
       {
+        "id": "dislikes",
+        "type": "Checkboxes",
+        "textResourceBindings": {
+          "title": "Hva liker du ikke?",
+          "description": "Velg de matvarene du ikke liker, så slipper du kunne velge disse i oppskriften. Alle liker selvfølgelig druer og banan, så disse kan du ikke velge bort."
+        },
+        "dataModelBindings": {
+          "simpleBinding": "FilteredOptions.Dislikes"
+        },
+        "optionsId": "foods",
+        "optionFilter": ["not", ["or",
+          ["equals", ["value", "label"], "foods.grape"],
+          ["equals", ["value", "value"], 5]
+        ]]
+      },
+      {
         "id": "ingredients",
         "type": "RepeatingGroup",
         "textResourceBindings": {
@@ -21,6 +37,7 @@
           "group": "FilteredOptions.Ingredients"
         },
         "children": [
+          "ingredientId",
           "ingredientType",
           "ingredientAmount"
         ],
@@ -29,6 +46,14 @@
           "mode": "onlyTable"
         },
         "maxCount": 9999
+      },
+      {
+        "id": "ingredientId",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "ID"
+        },
+        "value": ["dataModel", "FilteredOptions.Ingredients.Type"]
       },
       {
         "id": "ingredientType",
@@ -40,7 +65,17 @@
           "simpleBinding": "FilteredOptions.Ingredients.Type"
         },
         "optionsId": "foods",
-        "optionFilter": ["not", ["commaContains", ["dataModel", "FilteredOptions.UsedTypes"], ["value"]]]
+        "optionFilter": ["and",
+          // Always remove disliked foods
+          ["not", ["commaContains", ["dataModel", "FilteredOptions.Dislikes"], ["value"]]],
+          ["or",
+            // Remove those that have been used elsewhere
+            ["not", ["commaContains", ["dataModel", "FilteredOptions.UsedTypes"], ["value"]]],
+            // But not if it's the currently chosen ingredient here
+            ["equals", ["component", "ingredientType"], ["value"]]
+          ]
+        ],
+        "required": true
       },
       {
         "id": "ingredientAmount",
@@ -58,7 +93,8 @@
             "allowNegative": false
           },
           "align": "right"
-        }
+        },
+        "required": true
       },
       {
         "id": "filteredOptionsNavigate",
@@ -66,6 +102,10 @@
         "textResourceBindings": {
           "back": "Tilbake",
           "next": "Neste"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
         },
         "showBackButton": true
       }
