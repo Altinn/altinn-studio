@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -53,6 +55,8 @@ public class LayoutSetDeletedComponentRefHandler(IAltinnGitRepositoryFactory alt
             return false;
         }
 
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+
         bool hasChanges = false;
         layoutArray.RemoveAll(jsonNode =>
         {
@@ -61,6 +65,15 @@ public class LayoutSetDeletedComponentRefHandler(IAltinnGitRepositoryFactory alt
                 hasChanges = true;
                 return true;
             }
+
+            if (jsonNode["type"]?.GetValue<string>() == "Summary2" && jsonNode["target"] is JsonObject targetObject)
+            {
+                string summaryType = targetObject["type"]?.GetValue<string>();
+                string taskId = targetObject["taskId"]?.GetValue<string>();
+                string layouSetId = string.IsNullOrEmpty(taskId) ? layoutSetName : layoutSets.Sets.FirstOrDefault(item => item.Tasks.Contains(taskId))?.Id;
+                return summaryType == "layoutSet" && layouSetId == notification.LayoutSetId;
+            }
+
             return false;
         });
 
