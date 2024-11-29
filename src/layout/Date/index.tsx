@@ -6,9 +6,11 @@ import { formatDate, isValid, parseISO } from 'date-fns';
 import { useDisplayDataProps } from 'src/features/displayData/useDisplayData';
 import { DateDef } from 'src/layout/Date/config.def.generated';
 import { DateComponent } from 'src/layout/Date/DateComponent';
+import { DateSummary } from 'src/layout/Date/DateSummary';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Date extends DateDef {
@@ -41,6 +43,16 @@ export class Date extends DateDef {
       return <DateComponent {...props} />;
     },
   );
+
+  renderSummary2(props: Summary2Props<'Date'>): JSX.Element | null {
+    return (
+      <DateSummary
+        componentNode={props.target}
+        isCompact={props.isCompact}
+        emptyFieldText={props.override?.emptyFieldText}
+      />
+    );
+  }
 
   evalExpressions(props: ExprResolver<'Date'>) {
     return {

@@ -8,9 +8,11 @@ import { getMapToReactNumberConfig } from 'src/hooks/useMapToReactNumberConfig';
 import { evalFormatting } from 'src/layout/Input/formatting';
 import { NumberDef } from 'src/layout/Number/config.def.generated';
 import { NumberComponent } from 'src/layout/Number/NumberComponent';
+import { NumberSummary } from 'src/layout/Number/NumberSummary';
 import type { DisplayDataProps } from 'src/features/displayData';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ExprResolver } from 'src/layout/LayoutComponent';
+import type { Summary2Props } from 'src/layout/Summary2/SummaryComponent2/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 export class Number extends NumberDef {
@@ -41,6 +43,16 @@ export class Number extends NumberDef {
       return <NumberComponent {...props} />;
     },
   );
+
+  renderSummary2(props: Summary2Props<'Number'>): JSX.Element | null {
+    return (
+      <NumberSummary
+        componentNode={props.target}
+        isCompact={props.isCompact}
+        emptyFieldText={props.override?.emptyFieldText}
+      />
+    );
+  }
 
   evalExpressions(props: ExprResolver<'Number'>) {
     return {
