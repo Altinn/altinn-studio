@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioHeading, StudioPageError } from '@studio/components';
+import { StudioHeading } from '@studio/components';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
@@ -13,35 +13,41 @@ export type CodeListWithMetadata = {
   title: string;
 };
 
+export type OnGetCodeListResult = {
+  codeListWithMetadata: CodeListWithMetadata | undefined;
+  isError: boolean;
+};
+
 export type CodeListProps = {
-  codeLists: CodeListWithMetadata[];
+  codeListIds: string[];
+  onGetCodeList: (codeListId: string) => OnGetCodeListResult;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
-  fetchDataError: boolean;
 };
 export function CodeList({
-  codeLists,
+  codeListIds,
+  onGetCodeList,
   onUpdateCodeList,
   onUploadCodeList,
-  fetchDataError,
 }: CodeListProps): React.ReactElement {
   const { t } = useTranslation();
 
-  if (fetchDataError)
-    return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
-
   const codeListTitles = ArrayUtils.mapByKey<CodeListWithMetadata, 'title'>(codeLists, 'title');
-
+  
   return (
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
-      <CodeListsCounterMessage codeListsCount={codeLists.length} />
+      <CodeListsCounterMessage codeListsCount={codeListIds.length} />
       <CodeListsActionsBar
         onUploadCodeList={onUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
       />
-      <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
+      <CodeLists
+        codeListIds={codeListIds}
+        onGetCodeList={onGetCodeList}
+        onUpdateCodeList={onUpdateCodeList}
+      />
     </div>
   );
 }

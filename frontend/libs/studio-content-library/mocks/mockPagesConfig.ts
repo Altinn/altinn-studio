@@ -1,15 +1,17 @@
 import type { PagesConfig } from '../src/types/PagesProps';
+import type { OnGetCodeListResult } from '../src';
+
+const onGetCodeListResult = (codeListId: string): OnGetCodeListResult => {
+  return { codeListWithMetadata: { title: codeListId, codeList: [] }, isError: false };
+};
 
 export const mockPagesConfig: PagesConfig = {
   codeList: {
     props: {
-      codeLists: [
-        { title: 'CodeList1', codeList: [] },
-        { title: 'CodeList2', codeList: [] },
-      ],
+      codeListIds: ['CodeList1', 'CodeList2'],
+      onGetCodeList: onGetCodeListResult,
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
-      fetchDataError: false,
     },
   },
   images: {

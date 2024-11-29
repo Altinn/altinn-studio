@@ -48,10 +48,19 @@ describe('CodeLists', () => {
       title: codeListName,
     });
   });
+
+  it('renders error message if error fetching an option list occurred', () => {
+    const onGetCodeList = jest.fn((codeListId: string) => {
+      return { codeListWithMetadata: { title: codeListId, codeList: undefined }, isError: true };
+    });
+    renderCodeLists({ onGetCodeList });
+    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
+  });
 });
 
 const openCodeList = async (user: UserEvent) => {
-  const codeListAccordion = screen.getByRole('button', { name: codeListName });
+  const codeListAccordion = screen.getByRole('button', {name: codeListName});
   await user.click(codeListAccordion);
 };
 

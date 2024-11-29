@@ -1,9 +1,8 @@
-import type { CodeListWithMetadata } from '@studio/content-library';
+import type { CodeListWithMetadata, OnGetCodeListResult } from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import React from 'react';
-import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeLists';
+import { convertOptionsListToCodeListResult } from './utils/convertOptionsListToCodeListResult';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
@@ -11,6 +10,7 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
+import { useGetOptionListQuery } from 'app-shared/hooks/queries';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -23,12 +23,18 @@ export function AppContentLibrary(): React.ReactElement {
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
+  const { data: optionListIds, isPending: optionListIdsPending } = useOptionListIdsQuery(org, app);
+  const getOptionList = useGetOptionListQuery(org, app);
+  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
 
-  if (optionListsPending)
+  if (optionListIdsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
-  const codeLists = convertOptionListsToCodeLists(optionLists);
+  const handleGetOptionList = (optionListId: string): OnGetCodeListResult => {
+    const { data: optionList, isError: optionListError } = getOptionList(optionListId);
+    return convertOptionsListToCodeListResult(optionListId, optionList, optionListError);
+  };
 
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
@@ -51,10 +57,10 @@ export function AppContentLibrary(): React.ReactElement {
     pages: {
       codeList: {
         props: {
-          codeLists: codeLists,
+          codeListIds: optionListIds,
+          onGetCodeList: handleGetOptionList,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
-          fetchDataError: optionListsError,
         },
       },
       images: {

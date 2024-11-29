@@ -41,9 +41,7 @@ jest.mock(
   }),
 );
 
-const optionListsMock: OptionsLists = {
-  list1: [{ label: 'label', value: 'value' }],
-};
+const optionListIdsMock: string[] = ['list1'];
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
@@ -135,8 +133,8 @@ const renderAppContentLibrary = ({
   optionLists = optionListsMock,
 }: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
-  if (Object.keys(optionLists).length) {
-    queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionLists);
+  if (optionLists.length) {
+    queryClientMock.setQueryData([QueryKey.OptionListIds, org, app], optionLists);
   }
   renderWithProviders(queries, queryClientMock)(<AppContentLibrary />);
 };
