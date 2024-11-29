@@ -141,7 +141,7 @@ describe('useValidateSchemaName', () => {
 
     it('should disallow " " and "." in name', () => {
       const { result } = renderUseValidateSchemaName();
-      const invalidCharacters = [' ', '.'];
+      const invalidCharacters = [' ', '.', 'a ', 'a.'];
 
       invalidCharacters.forEach((char) => {
         act(() => {
@@ -154,8 +154,9 @@ describe('useValidateSchemaName', () => {
       });
     });
 
-    it('should disallow Norwegian characters in name', () => {
+    it('should disallow Norwegian special characters in name', () => {
       const { result } = renderUseValidateSchemaName();
+      const invalidNames = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å', 'aæ', 'aø', 'aå', 'aÆ', 'aØ', 'aÅ'];
 
       act(() => {
         result.current.validateName('aÆØÅæøå');
