@@ -158,8 +158,10 @@ describe('useValidateSchemaName', () => {
       const { result } = renderUseValidateSchemaName();
       const invalidNames = ['æ', 'ø', 'å', 'Æ', 'Ø', 'Å', 'aæ', 'aø', 'aå', 'aÆ', 'aØ', 'aÅ'];
 
-      act(() => {
-        result.current.validateName('aÆØÅæøå');
+      invalidNames.forEach((name) => {
+        act(() => {
+          result.current.validateName(name);
+        });
       });
 
       expect(result.current.nameError).toBe(textMock('schema_editor.error_invalid_datamodel_name'));
