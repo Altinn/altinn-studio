@@ -19,17 +19,10 @@ export type ItemInfoProps = {
   onAddItem: (item: AddedItem) => void;
   onCancel: () => void;
   setItem: (item: AddedItem | null) => void;
-  generateComponentId: (type: string) => string;
 };
 
-export const ItemInfo = ({
-  item,
-  onAddItem,
-  onCancel,
-  setItem,
-  generateComponentId,
-}: ItemInfoProps) => {
-  const { t } = useTranslation();
+export const ItemInfo = ({ item, onAddItem, onCancel, setItem }: ItemInfoProps) => {
+  const { t } = useTranslation(['translation', 'addComponentModal']);
   return (
     <div className={classes.root}>
       <StudioHeading level={2} size='medium' spacing>
@@ -56,8 +49,10 @@ export const ItemInfo = ({
           }}
           saveButtonText='Legg til'
           skipButtonText='Avbryt'
-          title={`Legg til ${getTitleByComponentType(item.componentType, t)}`}
-          description='Vi lager automatisk en unik ID for komponenten. Du kan endre den her til noe du selv ønsker, eller la den være som den er. Du kan også endre denne id-en senere.'
+          title={t('ux_editor.add_item.add_component_by_type', {
+            type: getTitleByComponentType(item.componentType, t),
+          })}
+          description={t('ux_editor.add_item.component_info_generated_id_description')}
         >
           <StudioIconTextfield
             icon={<PencilIcon />}
