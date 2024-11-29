@@ -18,7 +18,8 @@ import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { FormDataObject, TableActionButton } from 'src/app-components/Table/Table';
+import type { FormDataObject } from 'src/app-components/DynamicForm/DynamicForm';
+import type { TableActionButton } from 'src/app-components/Table/Table';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { IDataModelBindingsForTable } from 'src/layout/SimpleTable/config.generated';
 
