@@ -37,7 +37,7 @@ export function FeedbackForm(): ReactElement {
     },
     heading: 'Gi tilbakemelding',
     description:
-      'Hei! Vi ser du tester et nytt design for å legge til komponenter og vil gjerne høre hva du synes!',
+      'Hei! Så bra at du har testet det nye designet for å legge til komponenter! Vi vil gjerne høre hva du synes.',
     position: 'fixed',
     questions: [
       {
