@@ -120,7 +120,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton(sp =>
         {
-            var appIdentifier = GetApplicationId();
+            string appIdentifier = GetApplicationId();
             return new AppIdentifier(appIdentifier);
         });
     }
@@ -132,14 +132,10 @@ public static class ServiceCollectionExtensions
 
         var id = appMetadataJObject?.SelectToken("id")?.Value<string>();
 
-        if (id == null)
-        {
-            throw new KeyNotFoundException(
-                "Could not find id in applicationmetadata.json. Please ensure applicationmeta.json is well formed and contains a key for id."
+        return id
+            ?? throw new KeyNotFoundException(
+                "Could not find id in applicationmetadata.json. Please ensure the file is well formed and contains a key for `id`"
             );
-        }
-
-        return id;
     }
 
     /// <summary>
@@ -154,9 +150,7 @@ public static class ServiceCollectionExtensions
         IWebHostEnvironment env
     )
     {
-        // Services for Altinn App
         services.TryAddTransient<IPDP, PDPAppSI>();
-        AddValidationServices(services, configuration);
         services.TryAddTransient<IPrefill, PrefillSI>();
         services.TryAddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
         services.TryAddSingleton<IAppResources, AppResourcesSI>();
@@ -175,13 +169,14 @@ public static class ServiceCollectionExtensions
         services.TryAddTransient<ILayoutEvaluatorStateInitializer, LayoutEvaluatorStateInitializer>();
         services.TryAddTransient<LayoutEvaluatorStateInitializer>();
         services.AddTransient<IDataService, DataService>();
+        services.AddSingleton<ModelSerializationService>();
         services.Configure<Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
         services.Configure<Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
         services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
         services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
         services.Configure<PdfGeneratorSettings>(configuration.GetSection(nameof(PdfGeneratorSettings)));
-        services.AddSingleton<ModelSerializationService>();
 
+        AddValidationServices(services, configuration);
         AddAppOptions(services);
         AddExternalApis(services);
         AddActionServices(services);
@@ -209,32 +204,29 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<IValidatorFactory, ValidatorFactory>();
         services.AddTransient<IValidationService, ValidationService>();
-        if (configuration.GetSection("AppSettings").Get<AppSettings>()?.RequiredValidation == true)
+        services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
+        services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();
+        services.AddTransient<ITaskValidator, DefaultTaskValidator>();
+
+        var appSettings = configuration.GetSection("AppSettings").Get<AppSettings>();
+        if (appSettings?.RequiredValidation is true)
         {
             services.AddTransient<IValidator, RequiredLayoutValidator>();
         }
 
-        if (configuration.GetSection("AppSettings").Get<AppSettings>()?.ExpressionValidation == true)
+        if (appSettings?.ExpressionValidation is true)
         {
             services.AddTransient<IValidator, ExpressionValidator>();
         }
-        services.AddTransient<IFormDataValidator, DataAnnotationValidator>();
-        services.AddTransient<IDataElementValidator, DefaultDataElementValidator>();
-        services.AddTransient<ITaskValidator, DefaultTaskValidator>();
     }
 
     /// <summary>
     /// Checks if a service is already added to the collection.
     /// </summary>
-    /// <returns>true if the services allready exists in the collection, otherwise false</returns>
+    /// <returns>true if the services already exists in the collection, otherwise false</returns>
     public static bool IsAdded(this IServiceCollection services, Type serviceType)
     {
-        if (services.Any(x => x.ServiceType == serviceType))
-        {
-            return true;
-        }
-
-        return false;
+        return services.Any(x => x.ServiceType == serviceType);
     }
 
     private static void AddEventServices(IServiceCollection services)
@@ -243,7 +235,8 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
         services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
 
-        // The event subscription client depends uppon a maskinporten messagehandler beeing
+        // TODO: Event subs could be handled by the new automatic Maskinporten auth, once implemented.
+        // The event subscription client depends upon a Maskinporten message handler being
         // added to the client during setup. As of now this needs to be done in the apps
         // if subscription is to be added. This registration is to prevent the DI container
         // from failing for the apps not using event subscription. If you try to use
@@ -317,18 +310,17 @@ public static class ServiceCollectionExtensions
     private static void AddExternalApis(IServiceCollection services)
     {
         services.AddTransient<IExternalApiService, ExternalApiService>();
-
         services.TryAddTransient<IExternalApiFactory, ExternalApiFactory>();
     }
 
     private static void AddProcessServices(IServiceCollection services)
     {
+        services.AddTransient<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
         services.TryAddTransient<IProcessEngine, ProcessEngine>();
         services.TryAddTransient<IProcessNavigator, ProcessNavigator>();
         services.TryAddSingleton<IProcessReader, ProcessReader>();
         services.TryAddTransient<IProcessEventHandlerDelegator, ProcessEventHandlingDelegator>();
         services.TryAddTransient<IProcessEventDispatcher, ProcessEventDispatcher>();
-        services.AddTransient<IProcessExclusiveGateway, ExpressionsExclusiveGateway>();
         services.TryAddTransient<ExclusiveGatewayFactory>();
 
         services.AddTransient<IProcessTaskInitializer, ProcessTaskInitializer>();
@@ -340,14 +332,14 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAbandonTaskEventHandler, AbandonTaskEventHandler>();
         services.AddTransient<IEndEventEventHandler, EndEventEventHandler>();
 
-        //PROCESS TASKS
+        // Process tasks
         services.AddTransient<IProcessTask, DataProcessTask>();
         services.AddTransient<IProcessTask, ConfirmationProcessTask>();
         services.AddTransient<IProcessTask, FeedbackProcessTask>();
         services.AddTransient<IProcessTask, SigningProcessTask>();
         services.AddTransient<IProcessTask, NullTypeProcessTask>();
 
-        //SERVICE TASKS
+        // Service tasks
         services.AddTransient<IServiceTask, PdfServiceTask>();
         services.AddTransient<IServiceTask, EformidlingServiceTask>();
     }
