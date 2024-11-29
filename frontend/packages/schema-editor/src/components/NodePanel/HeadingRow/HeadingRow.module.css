@@ -1,26 +1,21 @@
 .root {
-  --gap: var(--fds-spacing-1);
+  --gap: var(--fds-spacing-2);
   align-items: center;
   display: flex;
   padding: var(--gap) 0;
   gap: var(--gap);
 }
 
-.heading {
-  display: contents;
-}
-
 .heading .headingButton {
-  border-bottom-left-radius: 0;
-  border-left-color: transparent;
-  border-left-style: solid;
-  border-left-width: var(--studio-treeitem-vertical-line-width);
-  border-top-left-radius: 0;
-  font: var(--fds-typography-paragraph-short-large);
-  min-height: var(--fds-sizing-12);
+  display: flex;
+  font: var(--fds-typography-paragraph-short-medium);
+  border: none;
+  border-radius: 0;
+  color: var(--fds-semantic-text-neutral-default);
 }
 
 .root.selected .headingButton {
   background-color: var(--studio-treeitem-selected-background-colour);
-  border-left-color: var(--studio-treeitem-vertical-line-colour-root);
+  box-shadow: inset var(--studio-treeitem-vertical-line-width) 0 0 0
+    var(--studio-treeitem-vertical-line-colour-root);
 }

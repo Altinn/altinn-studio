@@ -61,16 +61,17 @@ const clickMenuItem = async (name: string) => {
   await user.click(item);
 };
 
-const addNodeButtonTitle = textMock('schema_editor.add_node_of_type');
+const addNodeOnRootButtonTitle = textMock('schema_editor.add_node_of_type');
+const addNodeOnChildButtonTitle = textMock('schema_editor.add_node_of_type_in_child_node_title');
 
 const clickOpenAddNodeButton = async () => {
-  const buttons = screen.getAllByRole('button', { name: addNodeButtonTitle });
+  const buttons = screen.getAllByRole('button', { name: addNodeOnRootButtonTitle });
   await user.click(buttons[0]);
 };
 
 const clickOpenAddNodeButtonInTree = async () => {
   const tree = screen.getByRole('tree');
-  const buttons = within(tree).getAllByRole('button', { name: addNodeButtonTitle });
+  const buttons = within(tree).getAllByRole('button', { name: addNodeOnChildButtonTitle });
   await user.click(buttons[0]);
 };
 
