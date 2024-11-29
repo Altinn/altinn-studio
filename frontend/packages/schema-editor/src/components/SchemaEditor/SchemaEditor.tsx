@@ -39,7 +39,7 @@ export const SchemaEditor = () => {
             <TypesInspector schemaItems={definitions} />
           </aside>
         </StudioResizableLayout.Element>
-        <StudioResizableLayout.Element>
+        <StudioResizableLayout.Element minimumSize={250}>
           <div className={classes.editor}>
             <NodePanel schemaPointer={selectedType?.schemaPointer} />
           </div>
