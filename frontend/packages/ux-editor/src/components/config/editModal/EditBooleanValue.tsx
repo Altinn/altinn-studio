@@ -1,9 +1,8 @@
 import React from 'react';
 import { Switch } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { useText } from '../../../hooks';
+import { useText, useComponentPropertyLabel, useComponentPropertyHelpText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
@@ -20,6 +19,7 @@ export const EditBooleanValue = ({
 }: EditBooleanValueProps) => {
   const t = useText();
   const componentPropertyLabel = useComponentPropertyLabel();
+  const componentPropertyHelpText = useComponentPropertyHelpText();
 
   const handleChange = () => {
     handleComponentChange({
@@ -44,7 +44,7 @@ export const EditBooleanValue = ({
       helpText={
         isValueExpression(component[propertyKey])
           ? t('ux_editor.component_properties.config_is_expression_message')
-          : helpText
+          : helpText || componentPropertyHelpText(propertyKey)
       }
       renderField={({ fieldProps }) => {
         return (
