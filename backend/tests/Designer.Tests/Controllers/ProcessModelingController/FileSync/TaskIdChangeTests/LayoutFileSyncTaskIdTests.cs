@@ -25,7 +25,7 @@ public class LayoutFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutFileSy
 
     private static string GetVersionPrefix(string org, string repository)
     {
-        return $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
+        return $"/designer/api/{org}/{repository}/process-modelling/process-definition";
     }
 
     [Theory]

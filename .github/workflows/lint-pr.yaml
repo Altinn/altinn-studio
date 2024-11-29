@@ -51,6 +51,7 @@ jobs:
             resource-adm
             resource-registry
             settings
+            studio-root
             subform
             testing
             text
