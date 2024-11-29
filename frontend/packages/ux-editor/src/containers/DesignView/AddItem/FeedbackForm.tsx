@@ -1,16 +1,21 @@
-import { ReactElement } from 'react';
+import type { ReactElement } from 'react';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { post } from 'app-shared/utils/networking';
 import { FeedbackFormImpl } from '@studio/feedback-form';
 import { toast } from 'react-toastify';
 
+/**
+ * This is a feedback form to gather feedback on the new design for adding components.
+ * It uses the FeedbackForm component from the @studio/feedback-form package.
+ * The form is temporary, and will be removed once the new design is fully tested, or we decide to go in a different direction.
+ * As such, all texts are hardcoded in Norwegian, to avoid adding unnecessary translations.
+ * @returns The FeedbackForm component.
+ */
 export function FeedbackForm(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
 
   const submitFeedback = async (answers: Record<string, string>) => {
-    // Using explicit texts here to avoid adding these potentially
-    // temporary and unnecessary translations to the translation files.
     try {
       // Using regular axios post rather than a mutation hook, since we are not storing
       // the feedback in the cache, nor are we updating any state.
@@ -22,8 +27,6 @@ export function FeedbackForm(): ReactElement {
     }
   };
 
-  // Using explicit texts here to avoid adding these potentially
-  // temporary and unnecessary translations to the translation files.
   const feedbackForm = new FeedbackFormImpl({
     id: 'add-component-poc-feedback',
     onSubmit: submitFeedback,
