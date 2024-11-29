@@ -1,0 +1,10 @@
+.savingContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+  margin-top: var(--fds-spacing-4);
+}
+
+.savedIcon {
+  font-size: var(--fds-sizing-8);
+}
