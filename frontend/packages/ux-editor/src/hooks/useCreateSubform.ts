@@ -4,24 +4,38 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 type CreateSubformProps = {
   layoutSetName: string;
   onSubformCreated: (layoutSetName: string) => void;
-  dataType?: string;
+  dataType: string;
 };
 
-export const useCreateSubform = () => {
+type UseCreateSubformReturn = {
+  createSubform: (props: CreateSubformProps) => void;
+  isPendingLayoutSetMutation: boolean;
+};
+
+export const useCreateSubform = (): UseCreateSubformReturn => {
   const { org, app } = useStudioEnvironmentParams();
-  const { mutate: addLayoutSet } = useAddLayoutSetMutation(org, app);
+  const { mutate: addLayoutSet, isPending: isPendingLayoutSetMutation } = useAddLayoutSetMutation(
+    org,
+    app,
+  );
 
   const createSubform = ({ layoutSetName, onSubformCreated, dataType }: CreateSubformProps) => {
-    addLayoutSet({
-      layoutSetIdToUpdate: layoutSetName,
-      layoutSetConfig: {
-        id: layoutSetName,
-        type: 'subform',
-        dataType,
+    addLayoutSet(
+      {
+        layoutSetIdToUpdate: layoutSetName,
+        layoutSetConfig: {
+          id: layoutSetName,
+          type: 'subform',
+          dataType,
+        },
       },
-    });
-    onSubformCreated(layoutSetName);
+      {
+        onSuccess: () => {
+          onSubformCreated(layoutSetName);
+        },
+      },
+    );
   };
 
-  return { createSubform };
+  return { createSubform, isPendingLayoutSetMutation };
 };

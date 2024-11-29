@@ -51,6 +51,10 @@ export const EditColumnElement = ({
       })
     : [];
 
+  const componentsWithLabelAndDataModel = components.filter(
+    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
+  );
+
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
@@ -68,7 +72,7 @@ export const EditColumnElement = ({
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
-          components={components}
+          components={componentsWithLabelAndDataModel}
           onSelectComponent={selectComponent}
         />
         <StudioTextfield
@@ -112,27 +116,40 @@ const EditColumnElementHeader = ({ columnNumber }: EditColumnElementHeaderProps)
   );
 };
 
-type EditColumnElementComponentSelectProps = {
+export type EditColumnElementComponentSelectProps = {
   components: FormItem[];
   onSelectComponent: (values: string[]) => void;
 };
-const EditColumnElementComponentSelect = ({
+export const EditColumnElementComponentSelect = ({
   components,
   onSelectComponent,
 }: EditColumnElementComponentSelectProps) => {
   const { t } = useTranslation();
+
+  const subformComponentOptions =
+    components.length > 0 ? (
+      components.map((comp: FormItem) => (
+        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
+          {comp.id}
+        </StudioCombobox.Option>
+      ))
+    ) : (
+      <StudioCombobox.Empty key={'noComponentsWithLabel'}>
+        {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
+      </StudioCombobox.Empty>
+    );
+
   return (
     <StudioCombobox
       label={t('ux_editor.properties_panel.subform_table_columns.choose_component')}
+      description={t(
+        'ux_editor.properties_panel.subform_table_columns.choose_component_description',
+      )}
       size='sm'
       onValueChange={onSelectComponent}
       id='columncomponentselect'
     >
-      {components.map((comp: FormItem) => (
-        <StudioCombobox.Option key={comp.id} value={comp.id} description={comp.type}>
-          {comp.id}
-        </StudioCombobox.Option>
-      ))}
+      {subformComponentOptions}
     </StudioCombobox>
   );
 };

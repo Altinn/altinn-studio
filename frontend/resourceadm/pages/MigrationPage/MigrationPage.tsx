@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
 import { MigrationPanel } from '../../components/MigrationPanel';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export type MigrationPageProps = {
   id: string;
@@ -65,7 +66,10 @@ export const MigrationPage = ({
             <strong>{t('resourceadm.migration_ingress_warning')} </strong>
             <Link
               className={classes.migrationLink}
-              href='https://docs.altinn.studio/nb/authorization/what-do-you-get/resourceregistry/migration/#migrering-av-rettigheter'
+              href={altinnDocsUrl({
+                relativeUrl:
+                  'authorization/what-do-you-get/resourceregistry/migration/#migrering-av-rettigheter',
+              })}
               rel='noopener noreferrer'
               target='_blank'
             >

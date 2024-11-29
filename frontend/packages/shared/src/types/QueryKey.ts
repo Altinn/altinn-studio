@@ -26,6 +26,7 @@ export enum QueryKey {
   LayoutNames = 'LayoutNames',
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
+  LayoutSetsExtended = 'LayoutSetsExtended',
   OptionLists = 'OptionLists',
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
@@ -44,6 +45,9 @@ export enum QueryKey {
   TextResources = 'TextResources',
   Widgets = 'Widgets',
   AppConfig = 'AppConfig',
+  IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
+  AppScopes = 'AppScopes',
+  SelectedAppScopes = 'SelectedAppScopes',
 
   // Resourceadm
   ResourceList = 'ResourceList',

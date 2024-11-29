@@ -1,5 +1,5 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
+import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,

@@ -8,6 +8,8 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
@@ -425,20 +427,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public void ChangeLayoutSetFolderName(string oldLayoutSetName, string newLayoutSetName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (DirectoryExistsByRelativePath(GetPathToLayoutSet(newLayoutSetName)))
-            {
-                throw new NonUniqueLayoutSetIdException("Suggested new layout set name already exist");
-            }
-            string destAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(GetPathToLayoutSet(newLayoutSetName, true));
-
-            string sourceRelativePath = GetPathToLayoutSet(oldLayoutSetName, true);
-            if (!DirectoryExistsByRelativePath(sourceRelativePath))
-            {
-                throw new NotFoundException("Layout set you are trying to change doesn't exist");
-            }
-
-            string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
-            Directory.Move(sourceAbsolutePath, destAbsolutePath);
+            string currentDirectoryPath = GetPathToLayoutSet(oldLayoutSetName, true);
+            string newDirectoryPath = GetPathToLayoutSet(newLayoutSetName, true);
+            MoveDirectoryByRelativePath(currentDirectoryPath, newDirectoryPath);
         }
 
         /// <summary>
@@ -575,15 +566,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
             string newFilePath = GetPathToLayoutFile(layoutSetName, newFileName);
-            if (!FileExistsByRelativePath(currentFilePath))
-            {
-                throw new FileNotFoundException("Layout does not exist.");
-            }
-            if (FileExistsByRelativePath(newFilePath))
-            {
-                throw new ArgumentException("New layout name must be unique.");
-            }
-            File.Move(GetAbsoluteFileOrDirectoryPathSanitized(currentFilePath), GetAbsoluteFileOrDirectoryPathSanitized(newFilePath));
+            MoveFileByRelativePath(currentFilePath, newFilePath, newFileName);
         }
 
         public async Task<LayoutSets> GetLayoutSetsFile(CancellationToken cancellationToken = default)
@@ -821,6 +804,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        }
+
+        public Definitions GetDefinitions()
+        {
+            Stream processDefinitionStream = GetProcessDefinitionFile();
+            XmlSerializer serializer = new(typeof(Definitions));
+            return (Definitions)serializer.Deserialize(processDefinitionStream);
         }
 
         /// <summary>

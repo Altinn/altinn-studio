@@ -30,7 +30,15 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
         {
             nameof(AppDevelopmentController).Replace(RemoveControllerSuffix, string.Empty),
             GenerateFrozenSet(
-                nameof(AppDevelopmentController.SaveLayoutSettings)
+                nameof(AppDevelopmentController.SaveFormLayout),
+                nameof(AppDevelopmentController.UpdateFormLayoutName),
+                nameof(AppDevelopmentController.SaveLayoutSettings),
+                nameof(AppDevelopmentController.SaveRuleHandler),
+                nameof(AppDevelopmentController.SaveRuleConfig),
+                nameof(AppDevelopmentController.AddLayoutSet),
+                nameof(AppDevelopmentController.UpdateLayoutSetName),
+                nameof(AppDevelopmentController.DeleteFormLayout),
+                nameof(AppDevelopmentController.DeleteLayoutSet)
             )
         },
         {
@@ -43,7 +51,9 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
             nameof(ProcessModelingController).Replace(RemoveControllerSuffix, string.Empty),
             GenerateFrozenSet(
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
-                nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata)
+                nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
+                nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
+                nameof(ProcessModelingController.SaveProcessDefinitionFromTemplate)
             )
         },
         {

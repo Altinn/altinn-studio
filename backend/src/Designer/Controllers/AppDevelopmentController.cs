@@ -136,8 +136,11 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 if (!formLayouts.ContainsKey(layoutName))
                 {
+                    LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetName, cancellationToken);
                     await _mediator.Publish(new LayoutPageAddedEvent
                     {
+                        LayoutSetConfig = layoutSetConfig,
+                        LayoutName = layoutName,
                         EditingContext = editingContext,
                     }, cancellationToken);
                 }
@@ -331,6 +334,17 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(layoutSets);
         }
 
+        [HttpGet("layout-sets/extended")]
+        [UseSystemTextJson]
+        public async Task<LayoutSetsModel> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+            return layoutSetsModel;
+        }
+
         /// <summary>
         /// Add a new layout set
         /// </summary>
@@ -347,6 +361,11 @@ namespace Altinn.Studio.Designer.Controllers
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == TaskType.Payment;
             LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutIsInitialForPaymentTask, cancellationToken);
+            await _mediator.Publish(new LayoutSetCreatedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSet = layoutSetPayload.LayoutSetConfig
+            }, cancellationToken);
             return Ok(layoutSets);
         }
 

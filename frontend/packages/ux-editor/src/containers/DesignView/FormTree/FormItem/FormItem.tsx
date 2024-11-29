@@ -1,14 +1,15 @@
 import React from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
-import { renderItemList } from '../renderItemList';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { renderItemList, renderItemListWithAddItemButton } from '../renderItemList';
+import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useTranslation } from 'react-i18next';
 import { UnknownReferencedItem } from '../UnknownReferencedItem';
 import { QuestionmarkDiamondIcon } from '@studio/icons';
 import { useComponentTitle } from '@altinn/ux-editor/hooks';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export type FormItemProps = {
   layout: IInternalLayout;
@@ -37,8 +38,11 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
     </FormItemTitle>
   );
 
+  const shouldDisplayAddButton =
+    isContainer(layout, id) && shouldDisplayFeature('addComponentModal');
+
   return (
-    <DragAndDropTree.Item
+    <StudioDragAndDropTree.Item
       icon={Icon && <Icon />}
       emptyMessage={t('ux_editor.container_empty')}
       expandable={isContainer(layout, id)}
@@ -46,7 +50,9 @@ export const FormItem = ({ layout, id, duplicateComponents }: FormItemProps) => 
       labelWrapper={labelWrapper}
       nodeId={id}
     >
-      {renderItemList(layout, duplicateComponents, id)}
-    </DragAndDropTree.Item>
+      {shouldDisplayAddButton
+        ? renderItemListWithAddItemButton(layout, duplicateComponents, id)
+        : renderItemList(layout, duplicateComponents, id)}
+    </StudioDragAndDropTree.Item>
   );
 };

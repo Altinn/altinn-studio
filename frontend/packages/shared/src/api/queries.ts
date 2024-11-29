@@ -53,7 +53,11 @@ import {
   repoDiffPath,
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
+  authStatusAnsattporten,
+  availableMaskinportenScopesPath,
+  selectedMaskinportenScopesPath,
 } from './paths';
+
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
 import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsResponse';
 import type { BranchStatus } from 'app-shared/types/BranchStatus';
@@ -82,6 +86,13 @@ import type { FormLayoutsResponseV3 } from 'app-shared/types/api/FormLayoutsResp
 import type { Policy } from 'app-shared/types/Policy';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
+import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+
+export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
+export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
+export const getSelectedMaskinportenScopes = (org: string, app: String) => get<MaskinportenScopes>(selectedMaskinportenScopesPath(org, app));
 
 export const getAppMetadataModelIds = (org: string, app: string, onlyUnReferenced: boolean) => get<string[]>(appMetadataModelIdsPath(org, app, onlyUnReferenced));
 export const getAppReleases = (owner: string, app: string) => get<AppReleasesResponse>(releasesPath(owner, app, 'Descending'));
@@ -102,7 +113,8 @@ export const getImageFileNames = (owner: string, app: string) => get<string[]>(g
 export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
-export const getOptionLists = (owner: string, app: string) => get<string[]>(optionListsPath(owner, app));
+export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
+export const getOptionLists = (owner: string, app: string) => get<OptionsLists>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());

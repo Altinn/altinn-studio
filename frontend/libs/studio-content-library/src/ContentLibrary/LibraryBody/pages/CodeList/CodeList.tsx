@@ -1,37 +1,43 @@
 import React from 'react';
-import { Alert } from '@digdir/designsystemet-react';
-import { StudioHeading } from '@studio/components';
+import { StudioHeading, StudioPageError } from '@studio/components';
+import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { CodeListsActionsBar } from './CodeListsActionsBar';
+import { CodeLists } from './CodeLists';
+import { CodeListsCounterMessage } from './CodeListsCounterMessage';
+import classes from './CodeList.module.css';
 
-export type CodeList = {
+export type CodeListWithMetadata = {
+  codeList: StudioComponentCodeList;
   title: string;
-  codeList: any;
 };
 
 export type CodeListProps = {
-  codeLists: CodeList[];
-  onUpdateCodeList: (updatedCodeList: CodeList) => void;
+  codeLists: CodeListWithMetadata[];
+  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  onUploadCodeList: (uploadedCodeList: File) => void;
+  fetchDataError: boolean;
 };
-export function CodeList({ codeLists, onUpdateCodeList }: CodeListProps): React.ReactElement {
+export function CodeList({
+  codeLists,
+  onUpdateCodeList,
+  onUploadCodeList,
+  fetchDataError,
+}: CodeListProps): React.ReactElement {
   const { t } = useTranslation();
 
-  const noExistingCodeLists = codeLists.length === 0;
+  if (fetchDataError)
+    return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
 
   return (
-    <div>
-      <StudioHeading size='small' spacing>
-        {t('app_content_library.code_lists.page_name')}
-      </StudioHeading>
-      {noExistingCodeLists ? (
-        <Alert size='small'>{t('app_content_library.code_lists.no_content')}</Alert>
-      ) : (
-        codeLists.map((codeList) => (
-          <div key={codeList.title}>
-            {codeList.title}
-            <button onClick={() => onUpdateCodeList(codeList)}>Oppdater kodeliste</button>
-          </div>
-        ))
-      )}
+    <div className={classes.codeListsContainer}>
+      <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
+      <CodeListsCounterMessage codeListsCount={codeLists.length} />
+      <CodeListsActionsBar
+        onUploadCodeList={onUploadCodeList}
+        onUpdateCodeList={onUpdateCodeList}
+      />
+      <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
     </div>
   );
 }

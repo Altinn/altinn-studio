@@ -30,7 +30,8 @@ describe('DigdirLogoLink', () => {
     renderDigdirLogoLink({ providerProps: { variant: 'preview' } });
 
     const link = screen.getByRole('link');
-    expect(link).toHaveClass('previewLight');
+    expect(link).toHaveClass('preview');
+    expect(link).toHaveClass('light');
   });
 });
 

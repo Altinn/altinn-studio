@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -107,6 +108,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Extended version of layout sets with the intention of adding information not included in the raw layout-sets.json file.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+        public Task<LayoutSetsModel> GetLayoutSetsExtended(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets a layoutSet config.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
@@ -195,5 +203,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="version">Version of the frontend used in app.</param>
         /// <returns>A <see cref="bool"/> representing if frontend version if successfully found.</returns>
         public bool TryGetFrontendVersion(AltinnRepoEditingContext altinnRepoEditingContext, out string version);
+
+        /// <summary>
+        /// Add a component to layout
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="layoutSetName">The name of the layout set.</param>
+        /// <param name="layoutName">The name of the layout.</param>
+        /// <param name="component">The component to add.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public Task AddComponentToLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName, object component, CancellationToken cancellationToken = default);
     }
 }

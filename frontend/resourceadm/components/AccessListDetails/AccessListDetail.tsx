@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
-import { Textfield, Heading, Link as DigdirLink } from '@digdir/designsystemet-react';
+import { Textfield, Heading } from '@digdir/designsystemet-react';
 import classes from './AccessListDetail.module.css';
 import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
@@ -10,7 +10,7 @@ import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessLi
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioLink, StudioModal } from '@studio/components';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
@@ -81,6 +81,11 @@ export const AccessListDetail = ({
     deleteWarningModalRef.current?.close();
   };
 
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(backUrl);
+  };
+
   return (
     <div className={classes.accessListDetailWrapper}>
       <StudioModal.Root>
@@ -104,9 +109,9 @@ export const AccessListDetail = ({
         </StudioModal.Dialog>
       </StudioModal.Root>
       <div>
-        <DigdirLink asChild>
-          <Link to={backUrl}>{t('general.back')}</Link>
-        </DigdirLink>
+        <StudioLink href={backUrl} onClick={handleBackClick}>
+          {t('general.back')}
+        </StudioLink>
       </div>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_list_detail_header')}

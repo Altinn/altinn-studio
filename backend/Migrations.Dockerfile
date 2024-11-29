@@ -1,10 +1,10 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 
 WORKDIR /app
 
 COPY . .
 
-RUN dotnet tool install --version 8.0.7 --global dotnet-ef
+RUN dotnet tool install --version 9.0.0 --global dotnet-ef
 ENV PATH="$PATH:/root/.dotnet/tools"
 
 ENV OidcLoginSettings__FetchClientIdAndSecretFromRootEnvFile=false
