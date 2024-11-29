@@ -1,9 +1,11 @@
 import React, { forwardRef } from 'react';
 
+import { ApiTable } from 'src/layout/SimpleTable/ApiTable';
 import { SimpleTableDef } from 'src/layout/SimpleTable/config.def.generated';
 import { SimpleTableComponent } from 'src/layout/SimpleTable/SimpleTableComponent';
 import { SimpleTableFeatureFlagLayoutValidator } from 'src/layout/SimpleTable/SimpleTableFeatureFlagLayoutValidator';
 import { SimpleTableSummary } from 'src/layout/SimpleTable/SimpleTableSummary';
+import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutValidationCtx } from 'src/features/devtools/layoutValidation/types';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { NodeValidationProps } from 'src/layout/layout';
@@ -26,7 +28,15 @@ export class SimpleTable extends SimpleTableDef {
       }
     }
 
+    if (ctx.item.dataModelBindings && ctx.item.externalApi) {
+      return [`Du har spesifisert både dataModelBindings og externalApi. Vennligst bruk den ene eller den andre`];
+    }
+
     return [];
+  }
+
+  isDataModelBindingsRequired() {
+    return false;
   }
 
   getDisplayData(): string {
@@ -37,7 +47,26 @@ export class SimpleTable extends SimpleTableDef {
   }
   render = forwardRef<HTMLElement, PropsFromGenericComponent<'SimpleTable'>>(
     function LayoutComponentTableRender(props, _): React.JSX.Element | null {
-      return <SimpleTableComponent {...props} />;
+      const item = useNodeItem(props.node);
+      if (item.dataModelBindings) {
+        return (
+          <SimpleTableComponent
+            {...props}
+            dataModelBindings={item.dataModelBindings}
+          />
+        );
+      }
+
+      if (item.externalApi) {
+        return (
+          <ApiTable
+            {...props}
+            externalApi={item.externalApi}
+          />
+        );
+      }
+
+      return null;
     },
   );
 

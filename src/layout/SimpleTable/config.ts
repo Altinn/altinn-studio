@@ -25,7 +25,9 @@ export const Config = new CG.component({
         'tableData',
         new CG.dataModelBinding().setTitle('TableData').setDescription('Array of objects where the data is stored'),
       ),
-    ).exportAs('IDataModelBindingsForTable'),
+    )
+      .optional()
+      .exportAs('IDataModelBindingsForTable'),
   )
   .addProperty(
     new CG.prop(
@@ -39,27 +41,38 @@ export const Config = new CG.component({
               .setTitle('Accessors')
               .setDescription('List of fields that should be included in the cell'),
           ),
+
           new CG.prop(
             'component',
-            new CG.obj(
-              new CG.prop('type', new CG.enum('radio', 'date')),
-              new CG.prop(
-                'format',
-                new CG.str()
-                  .setTitle('Date format')
-                  .setDescription('Date format used when displaying the date to the user')
-                  .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd')
-                  .optional(),
+            new CG.union(
+              new CG.obj(
+                new CG.prop('type', new CG.const('link')),
+                new CG.prop('hrefPath', new CG.str()),
+                new CG.prop('textPath', new CG.str()),
               ),
-              new CG.prop(
-                'options',
-                new CG.arr(
-                  new CG.obj(new CG.prop('label', new CG.str()), new CG.prop('value', new CG.str())),
-                ).optional(),
+              new CG.obj(
+                new CG.prop('type', new CG.const('date')),
+                new CG.prop(
+                  'format',
+                  new CG.str()
+                    .setTitle('Date format')
+                    .setDescription('Date format used when displaying the date to the user')
+                    .addExample('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd')
+                    .optional(),
+                ),
+              ),
+              new CG.obj(
+                new CG.prop('type', new CG.const('radio')),
+                new CG.prop(
+                  'options',
+                  new CG.arr(
+                    new CG.obj(new CG.prop('label', new CG.str()), new CG.prop('value', new CG.str())),
+                  ).optional(),
+                ),
               ),
             )
-              .optional()
-              .setTitle('Specify component to render'),
+              .setUnionType('discriminated')
+              .optional(),
           ),
         ).exportAs('Columns'),
       ),
@@ -85,4 +98,10 @@ export const Config = new CG.component({
   )
   .addProperty(
     new CG.prop('size', new CG.enum('sm', 'md', 'lg').setTitle('Size').setDescription('Size of table.').optional()),
+  )
+  .addProperty(
+    new CG.prop(
+      'externalApi',
+      new CG.obj(new CG.prop('id', new CG.str()), new CG.prop('path', new CG.str())).optional().exportAs('DataConfig'),
+    ),
   );

@@ -27,6 +27,10 @@ export function SimpleTableSummary({ componentNode }: TableSummaryProps) {
 
   const { schemaLookup } = DataModels.useFullStateRef().current;
 
+  if (!dataModelBindings) {
+    return null;
+  }
+
   const schema = schemaLookup[dataModelBindings.tableData.dataType].getSchemaForPath(
     dataModelBindings.tableData.field,
   )[0];
