@@ -2,9 +2,9 @@ import React from 'react';
 
 import { render, screen } from '@testing-library/react';
 
-import { PANEL_VARIANT } from 'src/app-components/panel/constants';
-import { Panel } from 'src/app-components/panel/Panel';
-import type { PanelVariant } from 'src/app-components/panel/Panel';
+import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
+import { Panel } from 'src/app-components/Panel/Panel';
+import type { PanelVariant } from 'src/app-components/Panel/Panel';
 
 const MockLang = ({ text }: { text: string }) => text;
 

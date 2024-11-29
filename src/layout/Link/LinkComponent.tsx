@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/button/Button';
+import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/Button/Button';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

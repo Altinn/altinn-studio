@@ -1,8 +1,8 @@
 import React from 'react';
 import type { JSX } from 'react';
 
-import { PANEL_VARIANT } from 'src/app-components/panel/constants';
-import { Panel } from 'src/app-components/panel/Panel';
+import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
+import { Panel } from 'src/app-components/Panel/Panel';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

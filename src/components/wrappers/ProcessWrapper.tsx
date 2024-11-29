@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import Grid from '@material-ui/core/Grid';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import { Form } from 'src/components/form/Form';
 import { PresentationComponent } from 'src/components/presentation/Presentation';
 import classes from 'src/components/wrappers/ProcessWrapper.module.css';

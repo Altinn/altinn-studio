@@ -6,7 +6,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { pick } from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
-import classes from 'src/app-components/table/Table.module.css';
+import classes from 'src/app-components/Table/Table.module.css';
 
 export type FormDataValue = string | number | boolean | null | FormDataValue[] | { [key: string]: FormDataValue };
 

@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 import { useMutation } from '@tanstack/react-query';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import { useAppMutations } from 'src/core/contexts/AppQueriesProvider';
 import { useResetScrollPosition } from 'src/core/ui/useResetScrollPosition';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -17,7 +17,7 @@ import { isSpecificClientAction } from 'src/layout/CustomButton/typeHelpers';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { promisify } from 'src/utils/promisify';
-import type { ButtonColor, ButtonVariant } from 'src/app-components/button/Button';
+import type { ButtonColor, ButtonVariant } from 'src/app-components/Button/Button';
 import type { BackendValidationIssueGroups } from 'src/features/validation';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type * as CBTypes from 'src/layout/CustomButton/config.generated';

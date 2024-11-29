@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { PropsFromGenericComponent } from '..';
 
-import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/button/Button';
+import { Button, type ButtonColor, type ButtonVariant } from 'src/app-components/Button/Button';
 import { useProcessNavigation } from 'src/features/instance/ProcessNavigationContext';
 import { Lang } from 'src/features/language/Lang';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';

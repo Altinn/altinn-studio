@@ -2,8 +2,8 @@ import React from 'react';
 
 import { Grid } from '@material-ui/core';
 
-import { PANEL_VARIANT } from 'src/app-components/panel/constants';
-import { Panel } from 'src/app-components/panel/Panel';
+import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
+import { Panel } from 'src/app-components/Panel/Panel';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import classes from 'src/components/message/ErrorReport.module.css';
 import { useNavigateToNode } from 'src/features/form/layout/NavigateToNode';

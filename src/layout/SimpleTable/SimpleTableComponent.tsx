@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@navikt/ds-icons';
 
 import { FieldRenderer } from 'src/app-components/DynamicForm/DynamicForm';
-import { AppTable } from 'src/app-components/table/Table';
+import { AppTable } from 'src/app-components/Table/Table';
 import { Caption } from 'src/components/form/caption/Caption';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { FD } from 'src/features/formData/FormDataWrite';
@@ -16,7 +16,7 @@ import { AddToListModal } from 'src/layout/AddToList/AddToList';
 import { DropdownCaption } from 'src/layout/Datepicker/DropdownCaption';
 import { isFormDataObjectArray, isValidItemsSchema } from 'src/layout/SimpleTable/typeguards';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import type { FormDataObject, TableActionButton } from 'src/app-components/table/Table';
+import type { FormDataObject, TableActionButton } from 'src/app-components/Table/Table';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 type TableComponentProps = PropsFromGenericComponent<'SimpleTable'>;

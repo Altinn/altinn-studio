@@ -6,7 +6,7 @@ import { Combobox } from '@digdir/designsystemet-react';
 import { ArrowLeftIcon, ArrowRightIcon } from '@navikt/aksel-icons';
 import { addYears, max, min, setMonth, setYear, startOfMonth, subYears } from 'date-fns';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { getMonths, getYears } from 'src/app-components/Datepicker/DatePickerHelpers';
 import { getLocale } from 'src/app-components/Datepicker/utils/dateHelpers';

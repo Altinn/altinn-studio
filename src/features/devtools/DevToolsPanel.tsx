@@ -4,7 +4,7 @@ import type { PropsWithChildren } from 'react';
 
 import { Close } from '@navikt/ds-icons';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/DevTools.module.css';
 import { DevToolsControls } from 'src/features/devtools/DevToolsControls';
 

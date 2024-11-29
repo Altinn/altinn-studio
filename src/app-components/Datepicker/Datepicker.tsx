@@ -5,7 +5,7 @@ import { Grid } from '@material-ui/core';
 import { CalendarIcon } from '@navikt/aksel-icons';
 import { isValid as isValidDate } from 'date-fns';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { DatePickerCalendar } from 'src/app-components/Datepicker/DatePickerCalendar';
 import { DatePickerDialog } from 'src/app-components/Datepicker/DatepickerDialog';

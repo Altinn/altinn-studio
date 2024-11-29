@@ -6,7 +6,7 @@ import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon } from '@navikt/
 import cn from 'classnames';
 import dot from 'dot-object';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import { Caption } from 'src/components/form/caption/Caption';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useFormDataQuery } from 'src/features/formData/useFormDataQuery';

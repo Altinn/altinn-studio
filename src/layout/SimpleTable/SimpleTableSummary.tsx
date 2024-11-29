@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AppTable } from 'src/app-components/table/Table';
+import { AppTable } from 'src/app-components/Table/Table';
 import { Caption } from 'src/components/form/caption/Caption';
 import { DataModels } from 'src/features/datamodel/DataModelsProvider';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';

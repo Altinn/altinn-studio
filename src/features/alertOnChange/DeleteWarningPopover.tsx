@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Popover } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/alertOnChange/DeleteWarningPopover.module.css';
 import { Lang } from 'src/features/language/Lang';
 

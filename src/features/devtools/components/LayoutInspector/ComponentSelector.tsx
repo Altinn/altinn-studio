@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { FingerButtonIcon } from '@navikt/aksel-icons';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { setHighlightStyle } from 'src/features/devtools/hooks/useComponentHighlighter';
 

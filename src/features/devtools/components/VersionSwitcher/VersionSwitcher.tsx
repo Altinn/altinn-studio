@@ -4,7 +4,7 @@ import { Combobox, Fieldset, Spinner } from '@digdir/designsystemet-react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import comboboxClasses from 'src/styles/combobox.module.css';
 import { appFrontendCDNPath, appPath, frontendVersionsCDN } from 'src/utils/urls/appUrlHelper';
 

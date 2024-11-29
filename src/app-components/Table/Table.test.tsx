@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { JSONSchema7 } from 'json-schema';
 
-import { AppTable } from 'src/app-components/table/Table';
+import { AppTable } from 'src/app-components/Table/Table';
 
 const data = [
   { id: 1, name: 'Alice', date: '05.10.2023', amount: 100 },

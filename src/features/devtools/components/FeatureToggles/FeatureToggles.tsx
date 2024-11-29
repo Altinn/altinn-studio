@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 
 import { Checkbox, Heading, Label, Paragraph } from '@digdir/designsystemet-react';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/features/devtools/components/FeatureToggles/FeatureToggles.module.css';
 import { SplitView } from 'src/features/devtools/components/SplitView/SplitView';
 import { getAugmentedFeatures } from 'src/features/toggles';

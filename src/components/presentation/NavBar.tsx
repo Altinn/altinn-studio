@@ -3,7 +3,7 @@ import React from 'react';
 import { Close, FullscreenEnter, FullscreenExit, Left } from '@navikt/ds-icons';
 import cn from 'classnames';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
 import classes from 'src/components/presentation/NavBar.module.css';
 import { useReturnToView } from 'src/features/form/layout/PageNavigationContext';

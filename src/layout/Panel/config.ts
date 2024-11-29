@@ -1,4 +1,4 @@
-import { PANEL_VARIANT } from 'src/app-components/panel/constants';
+import { PANEL_VARIANT } from 'src/app-components/Panel/constants';
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 

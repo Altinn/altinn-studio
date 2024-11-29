@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Edit } from '@navikt/ds-icons';
 
-import { Button } from 'src/app-components/button/Button';
+import { Button } from 'src/app-components/Button/Button';
 import classes from 'src/layout/Summary/EditButton.module.css';
 
 export interface IEditButtonProps {
