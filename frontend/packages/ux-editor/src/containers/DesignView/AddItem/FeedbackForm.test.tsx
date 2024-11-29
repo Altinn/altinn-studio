@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event';
 import { FeedbackForm } from './FeedbackForm';
 
 describe('FeedbackForm', () => {
+  beforeAll(() => {
+    jest.mock('app-shared/utils/networking', () => {
+      return {
+        post: jest.fn(() => Promise.resolve()),
+      };
+    });
+  });
+
+  afterAll(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render feedback form', () => {
     renderFeedbackForm();
     expect(screen.getByRole('button', { name: 'Gi tilbakemelding' })).toBeInTheDocument();
