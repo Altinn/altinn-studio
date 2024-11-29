@@ -1,11 +1,11 @@
-import React from 'react';
+import { ReactElement } from 'react';
 import { submitFeedbackPath } from 'app-shared/api/paths';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { post } from 'app-shared/utils/networking';
 import { FeedbackFormImpl } from '@studio/feedback-form';
 import { toast } from 'react-toastify';
 
-export function FeedbackForm(): React.ReactElement {
+export function FeedbackForm(): ReactElement {
   const { org, app } = useStudioEnvironmentParams();
 
   const submitFeedback = async (answers: Record<string, string>) => {
