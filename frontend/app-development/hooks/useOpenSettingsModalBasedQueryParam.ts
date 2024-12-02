@@ -4,7 +4,7 @@ import { useSettingsModalContext } from '../contexts/SettingsModalContext';
 import type { SettingsModalTabId } from '../types/SettingsModalTabId';
 import { useSettingsModalMenuTabConfigs } from '../layout/PageHeader/SubHeader/SettingsModalButton/SettingsModal/hooks/useSettingsModalMenuTabConfigs';
 
-export const queryParamKey: string = 'openSettingsModalWithTab';
+export const openSettingsModalWithTabQueryKey: string = 'openSettingsModalWithTab';
 
 export function useOpenSettingsModalBasedQueryParam(): void {
   const [searchParams] = useSearchParams();
@@ -14,7 +14,9 @@ export function useOpenSettingsModalBasedQueryParam(): void {
   const tabIds = settingsModalTabs.map(({ tabId }) => tabId);
 
   useEffect((): void => {
-    const tabToOpen: SettingsModalTabId = searchParams.get(queryParamKey) as SettingsModalTabId;
+    const tabToOpen: SettingsModalTabId = searchParams.get(
+      openSettingsModalWithTabQueryKey,
+    ) as SettingsModalTabId;
     const shouldOpenModal: boolean = isValidTab(tabToOpen, tabIds);
     if (shouldOpenModal) {
       settingsRef.current.openSettings(tabToOpen);
