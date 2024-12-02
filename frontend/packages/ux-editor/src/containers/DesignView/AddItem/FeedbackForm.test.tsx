@@ -2,16 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FeedbackForm } from './FeedbackForm';
+import axios from 'axios';
+
+jest.mock('axios');
+var mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('FeedbackForm', () => {
-  beforeAll(() => {
-    jest.mock('app-shared/utils/networking', () => {
-      return {
-        post: jest.fn(() => Promise.resolve()),
-      };
-    });
-  });
-
   afterAll(() => {
     jest.clearAllMocks();
   });
@@ -31,6 +27,7 @@ describe('FeedbackForm', () => {
 
   it('should close the feedback form when clicking send', async () => {
     const user = userEvent.setup();
+    mockedAxios.post.mockResolvedValueOnce({});
     renderFeedbackForm();
     await user.click(screen.getByRole('button', { name: 'Gi tilbakemelding' }));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
