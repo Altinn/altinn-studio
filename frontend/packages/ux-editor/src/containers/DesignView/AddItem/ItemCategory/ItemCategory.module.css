@@ -1,0 +1,13 @@
+.componentsWrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: start;
+}
+
+.itemCategory {
+  margin-bottom: var(--fds-spacing-1);
+  margin-right: var(--fds-spacing-1);
+  max-width: calc(50% - 12px);
+}

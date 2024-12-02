@@ -9,6 +9,7 @@ import { ItemInfo } from './ItemInfo';
 import { useFormLayouts } from '../../../hooks';
 import { generateComponentId } from '../../../utils/generateId';
 import { StudioParagraph } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 export type AddItemContentProps = {
   item: AddedItem | null;
@@ -26,12 +27,13 @@ export const AddItemContent = ({
   availableComponents,
 }: AddItemContentProps) => {
   const layouts = useFormLayouts();
+  const { t } = useTranslation(['translation', 'addComponentModal']);
 
   return (
     <div className={classes.root}>
       <div className={classes.allComponentsWrapper}>
         <StudioParagraph spacing size='small' style={{ width: '100%' }}>
-          Klikk på en komponent for å se mer informasjon om den.
+          {t('ux_editor.add_item.component_more_info_description')}
         </StudioParagraph>
         {Object.keys(availableComponents).map((key) => {
           return (
@@ -47,13 +49,7 @@ export const AddItemContent = ({
         })}
       </div>
       <div className={classes.componentsInfoWrapper}>
-        <ItemInfo
-          onAddItem={onAddItem}
-          onCancel={onCancel}
-          generateComponentId={(type: ComponentType) => generateComponentId(type, layouts)}
-          item={item}
-          setItem={setItem}
-        />
+        <ItemInfo onAddItem={onAddItem} onCancel={onCancel} item={item} setItem={setItem} />
       </div>
     </div>
   );
