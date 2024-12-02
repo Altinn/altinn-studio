@@ -49,7 +49,8 @@
         "textResourceBindings": {
           "title": "aksjekapital.frist-innbetaling.title"
         },
-        "required": true
+        "required": true,
+        "showValidations": []
       },
       {
         "id": "NavigationButtons-pc5iGc",
