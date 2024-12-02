@@ -157,7 +157,7 @@ public class OldInstancesController(IHttpContextAccessor httpContextAccessor,
             CancellationToken cancellationToken
     )
     {
-        string refererHeader = Request.Headers["Referer"];
+        string refererHeader = Request.Headers.Referer;
         Uri refererUri = new(refererHeader);
         string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
         layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;

@@ -21,8 +21,9 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Put_ProcessNext_Ok()
         {
             Instance instance = await createInstance();
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{instance.Id}/process/next";
+            string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{instance.Id}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Put, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

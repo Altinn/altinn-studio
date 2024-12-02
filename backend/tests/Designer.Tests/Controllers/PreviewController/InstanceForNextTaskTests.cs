@@ -10,19 +10,14 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class InstanceForNextTaskTests : PreviewControllerTestsBase<InstanceForNextTaskTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class InstanceForNextTaskTests(WebApplicationFactory<Program> factory) : PreviewControllerTestsBase<InstanceForNextTaskTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public InstanceForNextTaskTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
-
         [Fact]
         public async Task Get_InstanceForNextProcess_Ok()
         {
-            Instance instance = await createInstance();
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{instance.Id}";
+            string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -30,7 +25,7 @@ namespace Designer.Tests.Controllers.PreviewController
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             Instance responseInstance = JsonConvert.DeserializeObject<Instance>(responseDocument.RootElement.ToString());
-            Assert.Equal(instance.Id, responseInstance.Id);
+            Assert.Equal(PartyId + "/" + V3InstanceId, responseInstance.Id);
             Assert.Equal(Org, responseInstance.Org);
         }
 

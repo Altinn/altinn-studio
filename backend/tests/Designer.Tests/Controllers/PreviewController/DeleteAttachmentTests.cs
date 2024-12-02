@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
@@ -17,10 +18,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Delete_Attachment_Ok()
         {
-            Instance instance = await createInstance();
-            DataElement dataElement = await createDataElement(instance, "attachment");
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{instance.Id}/data/{dataElement.Id}";
+            string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}/data/asdf";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

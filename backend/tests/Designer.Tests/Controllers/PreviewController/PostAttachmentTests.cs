@@ -20,7 +20,7 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Post_Attachment_Ok()
         {
             Instance instance = await createInstance();
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{instance.Id}/data?dataType=FileUploadId";
+            string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{instance.Id}/data?dataType=FileUploadId";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
