@@ -73,7 +73,7 @@ public class UpdateOptionListIdTests(WebApplicationFactory<Program> factory)
     }
 
     [Fact]
-    public async Task Put_Returns_400BadRequest_When_Updating_Id_Of_Un_Existing_Option_File()
+    public async Task Put_Returns_400BadRequest_When_Updating_Id_Of_NonExistent_Option_File()
     {
         // Arrange
         const string repo = "app-with-options";
