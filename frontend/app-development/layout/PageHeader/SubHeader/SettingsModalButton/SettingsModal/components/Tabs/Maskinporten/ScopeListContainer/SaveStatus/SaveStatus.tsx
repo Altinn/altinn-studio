@@ -4,7 +4,7 @@ import { StudioParagraph, StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CheckmarkIcon } from '@studio/icons';
 
-export type SaveStatusProps = {
+type SaveStatusProps = {
   isPending: boolean;
   isSaved: boolean;
 };
