@@ -2,7 +2,7 @@ import React from 'react';
 import { EditLayoutSet } from './EditLayoutSet';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import type { IGenericEditComponent } from '../../../../components/config/componentConfig';
-import { DefinedLayoutSet } from './EditLayoutSet/DefinedLayoutSet/DefinedLayoutSet';
+import { DefinedLayoutSet } from './DefinedLayoutSet/DefinedLayoutSet';
 import { StudioButton } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { PencilIcon } from '@studio/icons';

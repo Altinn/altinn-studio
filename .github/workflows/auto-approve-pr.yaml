@@ -10,7 +10,7 @@ jobs:
     if: github.event.label.name == 'skip-manual-testing'
     steps:
       - name: Checkout PR code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
