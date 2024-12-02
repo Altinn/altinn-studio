@@ -402,13 +402,14 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
-
             await _mediator.Publish(new LayoutSetDeletedEvent
             {
                 EditingContext = editingContext,
                 LayoutSetId = layoutSetIdToUpdate
             }, cancellationToken);
+
+            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+
             return Ok(layoutSets);
         }
 
