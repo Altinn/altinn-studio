@@ -378,8 +378,6 @@ public class CorrespondenceClientTests
         // Assert
         response.Should().BeEquivalentTo(correspondenceResponse);
         mockMaskinportenClient.Verify();
-        capturedMaskinportenScopes
-            .Should()
-            .BeEquivalentTo(["altinn:correspondence.write", "altinn:serviceowner/instances.read"]);
+        capturedMaskinportenScopes.Should().BeEquivalentTo(["altinn:correspondence.write", "altinn:serviceowner"]);
     }
 }

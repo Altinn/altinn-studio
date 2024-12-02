@@ -13,7 +13,7 @@ public abstract record MultipartCorrespondenceItem
     internal static void AddRequired(MultipartFormDataContent content, string value, string name)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new CorrespondenceValueException($"Required value is missing: {name}");
+            throw new CorrespondenceArgumentException($"Required value is missing: {name}");
 
         content.Add(new StringContent(value), name);
     }
@@ -21,7 +21,7 @@ public abstract record MultipartCorrespondenceItem
     internal static void AddRequired(MultipartFormDataContent content, DateTimeOffset value, string name)
     {
         if (value == default)
-            throw new CorrespondenceValueException($"Required value is missing: {name}");
+            throw new CorrespondenceArgumentException($"Required value is missing: {name}");
 
         var normalisedAndFormatted = NormaliseDateTime(value).ToString("O");
         content.Add(new StringContent(normalisedAndFormatted), name);
@@ -35,7 +35,7 @@ public abstract record MultipartCorrespondenceItem
     )
     {
         if (data.IsEmpty)
-            throw new CorrespondenceValueException($"Required value is missing: {name}");
+            throw new CorrespondenceArgumentException($"Required value is missing: {name}");
 
         content.Add(new ReadOnlyMemoryContent(data), name, filename);
     }
@@ -165,7 +165,7 @@ public abstract record MultipartCorrespondenceItem
 
         if (isValid is false)
         {
-            throw new CorrespondenceValueException(
+            throw new CorrespondenceArgumentException(
                 $"Validation failed for {dataTypeName}",
                 new AggregateException(validationResults.Select(x => new ValidationException(x.ErrorMessage)))
             );
@@ -355,7 +355,7 @@ public sealed record CorrespondenceRequest : MultipartCorrespondenceItem
         {
             OrganisationOrPersonIdentifier.Organisation org => org.Value.Get(OrganisationNumberFormat.International),
             OrganisationOrPersonIdentifier.Person person => person.Value.Value,
-            _ => throw new CorrespondenceValueException(
+            _ => throw new CorrespondenceArgumentException(
                 $"Unknown {nameof(OrganisationOrPersonIdentifier)} type `{recipient.GetType()}`"
             ),
         };

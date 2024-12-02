@@ -15,7 +15,7 @@ internal sealed class CorrespondenceAuthorisationFactory
             _maskinportenClient ??= _serviceProvider.GetRequiredService<IMaskinportenClient>();
 
             return await _maskinportenClient.GetAltinnExchangedToken(
-                ["altinn:correspondence.write", "altinn:serviceowner/instances.read"]
+                ["altinn:correspondence.write", "altinn:serviceowner"]
             );
         };
 

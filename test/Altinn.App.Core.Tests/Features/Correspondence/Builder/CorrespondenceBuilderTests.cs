@@ -104,7 +104,6 @@ public class CorrespondenceBuilderTests
                     data = "attachment-data-1",
                     dataLocationType = CorrespondenceDataLocationType.ExistingCorrespondenceAttachment,
                     isEncrypted = false,
-                    restrictionName = "restriction-name-1",
                 },
                 new
                 {
@@ -116,7 +115,6 @@ public class CorrespondenceBuilderTests
                     data = "attachment-data-2",
                     dataLocationType = CorrespondenceDataLocationType.NewCorrespondenceAttachment,
                     isEncrypted = true,
-                    restrictionName = "restriction-name-2",
                 },
                 new
                 {
@@ -128,7 +126,6 @@ public class CorrespondenceBuilderTests
                     data = "attachment-data-3",
                     dataLocationType = CorrespondenceDataLocationType.ExisitingExternalStorage,
                     isEncrypted = false,
-                    restrictionName = "restriction-name-3",
                 },
             },
             existingAttachments = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() },

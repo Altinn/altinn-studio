@@ -13,7 +13,7 @@ internal static class BuilderUtils
     /// </summary>
     /// <param name="value">The value to assert</param>
     /// <param name="errorMessage">The error message to throw, if the value was null</param>
-    /// <exception cref="CorrespondenceValueException"></exception>
+    /// <exception cref="CorrespondenceArgumentException"></exception>
     internal static void NotNullOrEmpty([NotNull] object? value, string? errorMessage = null)
     {
         if (
@@ -23,7 +23,7 @@ internal static class BuilderUtils
             || value is DateTimeOffset dt && dt == DateTimeOffset.MinValue
         )
         {
-            throw new CorrespondenceValueException(errorMessage);
+            throw new CorrespondenceArgumentException(errorMessage);
         }
     }
 }

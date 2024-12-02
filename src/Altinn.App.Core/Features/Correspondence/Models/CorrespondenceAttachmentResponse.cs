@@ -62,15 +62,6 @@ public sealed record CorrespondenceAttachmentResponse
     public required string Name { get; init; }
 
     /// <summary>
-    /// The name of the restriction policy restricting access to this element
-    /// </summary>
-    /// <remarks>
-    /// An empty value indicates no restriction above the ones governing the correspondence referencing this attachment
-    /// </remarks>
-    [JsonPropertyName("restrictionName")]
-    public string? RestrictionName { get; init; }
-
-    /// <summary>
     /// Indicates if the attachment is encrypted or not
     /// </summary>
     [JsonPropertyName("isEncrypted")]
