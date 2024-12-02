@@ -13,6 +13,7 @@ type FeedbackFormProps = {
   buttonTexts: ButtonTexts;
   heading: string;
   description: string;
+  disclaimer?: string;
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
   onSubmit: (answers: Record<string, AnswerType>) => void;
@@ -24,6 +25,7 @@ export function FeedbackForm({
   buttonTexts,
   heading,
   description,
+  disclaimer,
   position = 'inline',
   onSubmit,
 }: FeedbackFormProps): React.ReactElement {
@@ -90,6 +92,11 @@ export function FeedbackForm({
         {questions.map((question) => {
           return renderQuestion(question);
         })}
+        {disclaimer && (
+          <StudioParagraph size='xs' spacing={true} className={classes.disclaimer}>
+            {disclaimer}
+          </StudioParagraph>
+        )}
         <StudioButton className={classes.submit} onClick={handleSubmit} color='success'>
           {buttonTexts.submit}
         </StudioButton>

@@ -38,6 +38,8 @@ export function FeedbackForm(): ReactElement {
     heading: 'Gi tilbakemelding',
     description:
       'Hei! Så bra at du har testet det nye designet for å legge til komponenter! Vi vil gjerne høre hva du synes.',
+    disclaimer:
+      'Merk at KI-verktøy kan bli brukt til å analysere svarene. Påse at du ikke inkluderer personopplysninger i dine svar.',
     position: 'fixed',
     questions: [
       {
