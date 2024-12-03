@@ -13,8 +13,8 @@ public class SortPetsAction : IUserAction
 
     public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
-        var originalDataElement = context.DataMutator.DataElements.First(de => de.DataType == "nested-group");
-        var originalData = await context.DataMutator.GetFormData(originalDataElement);
+        var originalDataElements = context.DataMutator.GetDataElementsForType("nested-group");
+        var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as NestedGroup;
 
         // Valid sort orders can be found in 'pet-sort-order.json'

@@ -14,8 +14,8 @@ public class ShiftingOptionsAdd : IUserAction
 
     public async Task<UserActionResult> HandleAction(UserActionContext context)
     {
-        var originalDataElement = context.DataMutator.DataElements.First(de => de.DataType == "ServiceModel-test");
-        var originalData = await context.DataMutator.GetFormData(originalDataElement);
+        var originalDataElements = context.DataMutator.GetDataElementsForType("ServiceModel-test");
+        var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as Skjema;
 
         AddRows(data, 10);

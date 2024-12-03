@@ -23,8 +23,8 @@ public class FillAction : IUserAction
     {
         _logger.LogInformation("FillAction triggered");
 
-        var originalDataElement = context.DataMutator.DataElements.First(de => de.DataType == "ServiceModel-test");
-        var originalData = await context.DataMutator.GetFormData(originalDataElement);
+        var originalDataElements = context.DataMutator.GetDataElementsForType("ServiceModel-test");
+        var originalData = await context.DataMutator.GetFormData(originalDataElements.First());
         var data = originalData as Skjema;
 
         if (data.TestCustomButtonInput == "Hello b")
