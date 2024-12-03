@@ -54,7 +54,7 @@ public class AuditorSigneesProvider : ISigneeProvider
     
     private async Task<Skjemadata> GetFormData(Instance instance)
     {
-        DataElement modelData = instance.Data.Single(x => x.DataType == "model");
+        DataElement modelData = instance.Data.Single(x => x.DataType == "Skjemadata");
         InstanceIdentifier instanceIdentifier = new(instance);
 
         return (Skjemadata)await _dataClient.GetFormData(instanceIdentifier.InstanceGuid, typeof(Skjemadata), instance.Org,
