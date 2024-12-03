@@ -54,7 +54,7 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": [],
-      "allowedContributers": ["App"]
+      "allowedContributers": ["app:owned"]
     },
     {
       "id": "signatureInformation-auditor",
@@ -69,7 +69,7 @@
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
       "enabledFileValidators": [],
-      "allowedContributers": ["App"]
+      "allowedContributers": ["app:owned"]
     }
   ],
   "partyTypesAllowed": {
