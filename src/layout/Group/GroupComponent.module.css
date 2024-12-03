@@ -1,52 +1,53 @@
-.group {
+.groupWrapper {
+  padding-top: var(--fds-spacing-3);
+  padding-bottom: var(--fds-spacing-9);
   width: 100%;
-  padding: var(--fds-spacing-3);
+
+  .legend,
+  .description {
+    padding: 0 var(--fds-spacing-3);
+  }
 }
 
-.summary {
+.panelWrapper {
+  padding: var(--fds-spacing-3);
+  padding-bottom: 0;
   width: 100%;
+
+  &.summary {
+    padding: 0;
+  }
 }
 
 .groupContainer {
   display: flex;
   flex-wrap: wrap;
-  padding-bottom: var(--fds-spacing-9);
-  margin-right: calc(var(--fds-spacing-3) * -1);
-  margin-left: calc(var(--fds-spacing-3) * -1);
+
+  > * {
+    padding: var(--fds-spacing-3);
+  }
 }
 
-.groupContainer > * {
-  padding: var(--fds-spacing-3);
-}
-
-.panel {
-  width: auto;
-  padding-left: var(--panel-x-padding);
-  padding-right: var(--panel-x-padding);
-  background-color: var(--component-panel-color-background-default);
-}
-
-.panel > legend {
-  padding-top: var(--fds-spacing-9);
-}
-
-.panelPadding > .panel {
-  --panel-x-padding: var(--modal-padding-x);
-  margin-right: var(--fds-spacing-3);
-  margin-left: var(--fds-spacing-3);
-}
-
-.noFieldset.panel {
-  padding-left: calc(var(--panel-x-padding) - var(--fds-spacing-3));
-  padding-right: calc(var(--panel-x-padding) - var(--fds-spacing-3));
-}
-
-.groupingIndicator {
+.indented {
   border-left: 2px solid #949494;
-  margin-left: 0;
-  padding: var(--fds-spacing-3) 0 var(--fds-spacing-3) var(--fds-spacing-3);
+  padding: var(--fds-spacing-3);
+  padding-right: 0;
+  margin-left: var(--fds-spacing-3);
 }
 
-.noFieldset.groupingIndicator {
-  margin-left: var(--fds-spacing-3);
+.summary {
+  width: 100%;
+
+  .groupContainer > * {
+    padding: var(--fds-spacing-3) 0;
+  }
+
+  .legend,
+  .description {
+    padding: 0;
+  }
+
+  .indented {
+    margin-left: 0;
+  }
 }

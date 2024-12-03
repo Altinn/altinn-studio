@@ -49,13 +49,8 @@ describe('Summary', () => {
         cy.wrap(items).find('button').should('not.exist');
       });
 
-    cy.get(appFrontend.changeOfName.summaryNameChanges)
-      .parent()
-      .siblings()
-      .contains(mui.gridContainer, texts.dateOfEffect)
-      .then((summaryDate) => {
-        cy.wrap(summaryDate).children().find('button').click();
-      });
+    cy.findByRole('group', { name: 'Endringer til navn' });
+    cy.findByRole('button', { name: 'Endre: Når vil du at navnendringen skal skje?' }).click();
 
     cy.get(appFrontend.changeOfName.dateOfEffect).clear();
     cy.get(appFrontend.changeOfName.upload).selectFile('test/e2e/fixtures/test.pdf', { force: true });
@@ -79,7 +74,9 @@ describe('Summary', () => {
     cy.get(appFrontend.errorReport).should('contain.text', texts.requiredFieldDateFrom);
     cy.gotoNavPage('summary');
 
-    cy.get(appFrontend.changeOfName.summaryNameChanges)
+    cy.findByRole('group', { name: 'Endringer til navn' })
+      .parent()
+      .parent()
       .parent()
       .siblings()
       .then((summary) => {
@@ -95,7 +92,9 @@ describe('Summary', () => {
 
     // Summary displays error when required field is not filled
     // Navigate to form and fill the required field
-    cy.get(appFrontend.changeOfName.summaryNameChanges)
+    cy.findByRole('group', { name: 'Endringer til navn' })
+      .parent()
+      .parent()
       .parent()
       .siblings()
       .contains(mui.gridContainer, texts.dateOfEffect)
@@ -109,7 +108,9 @@ describe('Summary', () => {
       });
 
     // Error in summary field is removed when the required field is filled
-    cy.get(appFrontend.changeOfName.summaryNameChanges)
+    cy.findByRole('group', { name: 'Endringer til navn' })
+      .parent()
+      .parent()
       .parent()
       .siblings()
       .contains(mui.gridContainer, texts.dateOfEffect)

@@ -4,8 +4,9 @@ import type { JSX } from 'react';
 import { Heading } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { Fieldset } from 'src/app-components/Label/Fieldset';
+import { Panel } from 'src/app-components/Panel/Panel';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
-import { Fieldset } from 'src/components/form/Fieldset';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Group/GroupComponent.module.css';
@@ -61,53 +62,49 @@ export function GroupComponent({
   const legend = isSummary ? (summaryTitle ?? title) : title;
 
   return (
-    <ConditionalWrapper
-      condition={isPanel && !isSummary}
-      wrapper={(child) => <FullWidthWrapper className={classes.panelPadding}>{child}</FullWidthWrapper>}
-    >
-      {/* If the group does not have a legend, we don't want to render the Fieldset because it breaks WCAG tests*/}
+    <div className={cn(classes.groupWrapper, { [classes.panelWrapper]: isPanel, [classes.summary]: isSummary })}>
       <ConditionalWrapper
-        condition={!!legend}
+        condition={isPanel && !isSummary}
         wrapper={(child) => (
-          <Fieldset
-            legend={
-              legend && (
-                <Heading
-                  level={headingLevel}
-                  size={headingSize}
-                >
-                  <Lang id={legend} />
-                </Heading>
-              )
-            }
-            className={cn({
-              [classes.summary]: isSummary,
-              [classes.group]: !isSummary,
-              [classes.panel]: isPanel && !isSummary,
-            })}
-            description={description && !isSummary && <Lang id={description} />}
-          >
-            {child}
-          </Fieldset>
+          <FullWidthWrapper>
+            <Panel variant='info'>{child}</Panel>
+          </FullWidthWrapper>
         )}
       >
-        <div
-          data-componentid={container.id}
-          data-componentbaseid={container.baseComponentId || container.id}
-          ref={containerDivRef}
-          id={id ?? container.id}
-          data-testid='display-group-container'
-          className={cn(classes.groupContainer, {
-            [classes.groupingIndicator]: isIndented && !isNested,
-            [classes.summary]: isSummary && !legend,
-            [classes.group]: !isSummary && !legend,
-            [classes.panel]: isPanel && !isSummary && !legend,
-            [classes.noFieldset]: !isSummary && !legend,
-          })}
+        <Fieldset
+          legend={
+            legend ? (
+              <Heading
+                className={classes.legend}
+                level={headingLevel}
+                size={headingSize}
+              >
+                <Lang id={legend} />
+              </Heading>
+            ) : undefined
+          }
+          description={
+            description && !isSummary ? (
+              <div className={classes.description}>
+                <Lang id={description} />
+              </div>
+            ) : undefined
+          }
         >
-          {children.map((n) => renderLayoutNode(n))}
-        </div>
+          <div
+            data-componentid={container.id}
+            data-componentbaseid={container.baseComponentId || container.id}
+            ref={containerDivRef}
+            id={id ?? container.id}
+            data-testid='display-group-container'
+            className={cn(classes.groupContainer, {
+              [classes.indented]: isIndented && !isNested,
+            })}
+          >
+            {children.map((n) => renderLayoutNode(n))}
+          </div>
+        </Fieldset>
       </ConditionalWrapper>
-    </ConditionalWrapper>
+    </div>
   );
 }

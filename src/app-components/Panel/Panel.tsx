@@ -21,6 +21,7 @@ type PanelProps = PropsWithChildren<{
   showIcon?: boolean;
   forceMobileLayout?: boolean;
   title?: JSX.Element;
+  style?: React.CSSProperties;
 }>;
 
 type PanelIconProps = {
@@ -68,6 +69,7 @@ export const Panel: React.FC<PanelProps> = ({
   showIcon = false,
   forceMobileLayout = false,
   title,
+  style,
   children,
 }) => {
   const isMobile = useIsMobile();
@@ -78,6 +80,7 @@ export const Panel: React.FC<PanelProps> = ({
       className={cn(classes.panel, {
         [classes.panelMobileLayout]: isMobileLayout,
       })}
+      style={style}
     >
       <div className={cn(classes.panelContentWrapper, classes[`panelContentWrapper_${variant}`])}>
         {showIcon && (

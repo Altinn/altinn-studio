@@ -1,7 +1,7 @@
 import React from 'react';
 import type { PropsWithChildren } from 'react';
 
-import { Fieldset, Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
+import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
 import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
@@ -16,7 +16,7 @@ import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGridStyling, TRBLabel } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
-type LabelType = 'legend' | 'span' | 'plainLabel';
+type LabelType = 'span' | 'plainLabel';
 
 export type LabelProps = PropsWithChildren<{
   node: LayoutNode;
@@ -29,7 +29,7 @@ export type LabelProps = PropsWithChildren<{
   DesignsystemetLabelProps;
 
 export function Label(props: LabelProps) {
-  const { children, ...propsWithoutChildren } = props;
+  const { children } = props;
   const {
     node,
     overrideId,
@@ -67,23 +67,6 @@ export function Label(props: LabelProps) {
   };
 
   switch (renderLabelAs) {
-    case 'legend': {
-      return (
-        <Fieldset
-          className={cn(classes.fieldWrapper, classes.fullWidth)}
-          legend={
-            <Label
-              {...propsWithoutChildren}
-              renderLabelAs='span'
-              overrideId={id}
-            />
-          }
-        >
-          {children}
-        </Fieldset>
-      );
-    }
-
     case 'plainLabel':
       return (
         <DesignsystemetLabel

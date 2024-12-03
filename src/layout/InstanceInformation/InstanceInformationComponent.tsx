@@ -7,6 +7,7 @@ import { formatDate, formatISO } from 'date-fns';
 import type { PropsFromGenericComponent } from '..';
 
 import { getDateFormat, PrettyDateAndTime } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { AltinnSummaryTable } from 'src/components/table/AltinnSummaryTable';
 import { useAppReceiver } from 'src/core/texts/appTexts';
 import { useLaxInstanceData, useLaxInstanceId } from 'src/features/instance/InstanceContext';
@@ -14,6 +15,7 @@ import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
 import { ComponentStructureWrapper } from 'src/layout/ComponentStructureWrapper';
+import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { getInstanceOwnerParty } from 'src/utils/party';
 import type { SummaryDataObject } from 'src/components/table/AltinnSummaryTable';
@@ -115,14 +117,25 @@ export function InstanceInformation({ elements }: Pick<CompInternal<'InstanceInf
   );
 }
 
-export function InstanceInformationComponent({ node }: PropsFromGenericComponent<'InstanceInformation'>) {
+export function InstanceInformationComponent({
+  node,
+  overrideDisplay,
+}: PropsFromGenericComponent<'InstanceInformation'>) {
   const elements = useNodeItem(node, (i) => i.elements);
+
+  const { grid } = useNodeItem(node);
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
+
   return (
-    <ComponentStructureWrapper
-      node={node}
-      label={{ node, renderLabelAs: 'legend' }}
+    <Fieldset
+      grid={grid?.labelGrid}
+      legend={labelText}
+      description={getDescriptionComponent()}
+      help={getHelpTextComponent()}
     >
-      <InstanceInformation elements={elements} />
-    </ComponentStructureWrapper>
+      <ComponentStructureWrapper node={node}>
+        <InstanceInformation elements={elements} />
+      </ComponentStructureWrapper>
+    </Fieldset>
   );
 }

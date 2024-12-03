@@ -1,43 +1,48 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 
-import { Fieldset } from 'src/components/form/Fieldset';
-import { renderWithoutInstanceAndLayout } from 'src/test/renderWithProviders';
-import type { FieldsetProps } from 'src/components/form/Fieldset';
+import { Fieldset } from 'src/app-components/Label/Fieldset';
 
 describe('Fieldset', () => {
-  const render = async (props?: Partial<FieldsetProps>) =>
-    await renderWithoutInstanceAndLayout({
-      renderer: () => (
-        <Fieldset
-          legend='legend test'
-          description='description test'
-          {...props}
-        />
-      ),
-    });
-
   it('renders with accessible legend', async () => {
-    await render();
+    render(<Fieldset legend='legend test' />);
     const fieldset = screen.getByRole('group', { name: /legend test/i });
     expect(fieldset).toBeInTheDocument();
   });
 
   it('renders with accessible description', async () => {
-    await render();
+    render(
+      <Fieldset
+        legend='legend test'
+        description={<span>description test</span>}
+      />,
+    );
+
     const description = screen.getByText('description test');
     expect(description).toBeInTheDocument();
   });
 
   it('provides an optional indicator', async () => {
-    await render({ required: false, labelSettings: { optionalIndicator: true } });
+    render(
+      <Fieldset
+        legend='legend test'
+        required={false}
+        optionalIndicator={<span>(valgfri)</span>}
+      />,
+    );
     const fieldset = screen.getByRole('group', { name: /legend test \(valgfri\)/i });
     expect(fieldset).toBeInTheDocument();
   });
 
   it('provides an required indicator', async () => {
-    await render({ required: true });
+    render(
+      <Fieldset
+        legend='legend test'
+        required={true}
+        requiredIndicator={<span>*</span>}
+      />,
+    );
     const fieldset = screen.getByRole('group', { name: /legend test \*/i });
     expect(fieldset).toBeInTheDocument();
   });

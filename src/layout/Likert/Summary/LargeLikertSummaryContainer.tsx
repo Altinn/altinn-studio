@@ -3,7 +3,7 @@ import type { JSX } from 'react';
 
 import { Heading } from '@digdir/designsystemet-react';
 
-import { Fieldset } from 'src/components/form/Fieldset';
+import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { Lang } from 'src/features/language/Lang';
 import classes from 'src/layout/Likert/Summary/LikertSummaryComponent.module.css';
 import { Hidden } from 'src/utils/layout/NodesContext';

@@ -4,7 +4,6 @@ import { screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
-import { getDescriptionId } from 'src/components/label/Label';
 import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
 import { renderGenericComponentTest } from 'src/test/renderWithProviders';
 import type { RenderGenericComponentTestProps } from 'src/test/renderWithProviders';
@@ -66,16 +65,15 @@ describe('TextAreaComponent', () => {
     expect(formDataMethods.setLeafValue).not.toHaveBeenCalled();
   });
 
-  it('should have aria-describedby attribute if textResourceBindings.description is present', async () => {
+  it('should have aria-describedby attribute if title and description is present', async () => {
     await render({
       component: {
         id: 'id',
-        textResourceBindings: { description: 'tekst' },
+        textResourceBindings: { title: 'tittel', description: 'beskrivelse' },
       },
     });
 
-    const textarea = screen.getByRole('textbox');
-    expect(textarea.getAttribute('aria-describedby')).toContain(getDescriptionId('id'));
+    expect(screen.getByRole('textbox', { description: 'beskrivelse' })).toBeInTheDocument();
   });
 
   it('should not have aria-describedby attribute if textResourceBindings is present without description', async () => {

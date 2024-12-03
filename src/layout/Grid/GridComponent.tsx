@@ -4,9 +4,9 @@ import type { PropsWithChildren } from 'react';
 import { Table } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 
+import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { Caption } from 'src/components/form/caption/Caption';
-import { Fieldset } from 'src/components/form/Fieldset';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
 import { HelpTextContainer } from 'src/components/form/HelpTextContainer';
 import { LabelContent } from 'src/components/label/LabelContent';
@@ -26,6 +26,7 @@ import { getColumnStyles } from 'src/utils/formComponentUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { LayoutPage } from 'src/utils/layout/LayoutPage';
 import { Hidden, useNode } from 'src/utils/layout/NodesContext';
+import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
 import type { ITableColumnFormatting, ITableColumnProperties } from 'src/layout/common.generated';
@@ -287,19 +288,20 @@ function CellWithLabel({ className, columnStyleOptions, labelFrom, isHeader = fa
   );
 }
 
-function MobileGrid({ node }: PropsFromGenericComponent<'Grid'>) {
-  const { textResourceBindings, id, labelSettings } = useNodeItem(node);
-  const { title, description, help } = textResourceBindings ?? {};
+function MobileGrid({ node, overrideDisplay }: PropsFromGenericComponent<'Grid'>) {
+  const { id } = useNodeItem(node);
   const nodeIds = useNodeIdsFromGrid(node);
   const isHidden = Hidden.useIsHiddenSelector();
+
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay });
 
   return (
     <Fieldset
       id={id}
-      legend={title && <Lang id={title} />}
-      description={title && <Lang id={description} />}
-      helpText={help}
-      labelSettings={labelSettings}
+      size='sm'
+      legend={labelText}
+      description={getDescriptionComponent()}
+      help={getHelpTextComponent()}
       className={css.mobileFieldset}
     >
       {nodeIds

@@ -2,36 +2,37 @@ import React from 'react';
 import type { JSX, PropsWithChildren, ReactElement } from 'react';
 
 import { Label as DesignsystemetLabel } from '@digdir/designsystemet-react';
-import { Grid, type GridProps } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import cn from 'classnames';
 import type { LabelProps as DesignsystemetLabelProps } from '@digdir/designsystemet-react';
 
 import classes from 'src/app-components/Label/Label.module.css';
-
-type GridSize = Pick<GridProps, 'xs' | 'sm' | 'md' | 'lg' | 'xl'>;
+import type { GridSize } from 'src/app-components/Label/types';
 
 type LabelProps = {
-  label: string | undefined;
+  label: string | ReactElement | undefined;
+  htmlFor?: DesignsystemetLabelProps['htmlFor'];
+  required?: boolean;
+  requiredIndicator?: JSX.Element;
   optionalIndicator?: ReactElement;
   help?: ReactElement;
   description?: ReactElement;
   className?: string;
   grid?: GridSize;
-  required?: boolean;
-  requiredIndicator?: JSX.Element;
-} & Pick<DesignsystemetLabelProps, 'htmlFor' | 'style'>;
+  style?: DesignsystemetLabelProps['style'];
+};
 
 export function Label({
   label,
+  htmlFor,
   required,
   requiredIndicator,
   optionalIndicator,
   help,
   description,
-  htmlFor,
-  style,
   className,
   grid,
+  style,
   children,
 }: PropsWithChildren<LabelProps>) {
   if (!label) {
@@ -48,20 +49,20 @@ export function Label({
         {...(grid ?? { xs: 12 })}
       >
         <span className={classes.labelAndDescWrapper}>
-          <DesignsystemetLabel
-            weight='medium'
-            size='md'
-            htmlFor={htmlFor}
-            className={cn(classes.label, className)}
-            style={style}
-          >
-            <div>
+          <span className={classes.labelAndHelpWrapper}>
+            <DesignsystemetLabel
+              weight='medium'
+              size='md'
+              htmlFor={htmlFor}
+              className={cn(className)}
+              style={style}
+            >
               {label}
               {required && requiredIndicator}
               {!required && optionalIndicator}
-            </div>
+            </DesignsystemetLabel>
             {help}
-          </DesignsystemetLabel>
+          </span>
           {description && <div className={classes.description}>{description}</div>}
         </span>
       </Grid>

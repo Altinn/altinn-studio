@@ -5,9 +5,9 @@ import { Grid } from '@material-ui/core';
 import { Add as AddIcon } from '@navikt/ds-icons';
 
 import { Button } from 'src/app-components/Button/Button';
+import { Fieldset } from 'src/app-components/Label/Fieldset';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/components/form/FullWidthWrapper';
-import { Label } from 'src/components/label/Label';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { AllComponentValidations } from 'src/features/validation/ComponentValidations';
 import { RepeatingGroupsEditContainer } from 'src/layout/RepeatingGroup/EditContainer/RepeatingGroupsEditContainer';
@@ -22,6 +22,7 @@ import { useRepeatingGroupsFocusContext } from 'src/layout/RepeatingGroup/Provid
 import { RepeatingGroupTable } from 'src/layout/RepeatingGroup/Table/RepeatingGroupTable';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { Hidden } from 'src/utils/layout/NodesContext';
+import { useLabel } from 'src/utils/layout/useLabel';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 
 export const RepeatingGroupContainer = forwardRef((_, ref: React.ForwardedRef<HTMLDivElement>): JSX.Element | null => {
@@ -72,10 +73,15 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
   const { node } = useRepeatingGroup();
   const isNested = node.parent instanceof BaseLayoutNode;
 
+  const { grid } = useNodeItem(node);
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
+
   return (
-    <Label
-      renderLabelAs='legend'
-      node={node}
+    <Fieldset
+      grid={grid?.labelGrid}
+      legend={labelText}
+      description={getDescriptionComponent()}
+      help={getHelpTextComponent()}
     >
       <ConditionalWrapper
         condition={!isNested}
@@ -84,7 +90,7 @@ function ModeOnlyEdit({ editingId }: { editingId: string }) {
         <RepeatingGroupsEditContainer editId={editingId} />
       </ConditionalWrapper>
       <AddButton />
-    </Label>
+    </Fieldset>
   );
 }
 
@@ -96,10 +102,15 @@ function ModeShowAll() {
   const numRows = rowsToDisplay.length;
   const lastIndex = rowsToDisplay[numRows - 1];
 
+  const { grid } = useNodeItem(node);
+  const { labelText, getDescriptionComponent, getHelpTextComponent } = useLabel({ node, overrideDisplay: undefined });
+
   return (
-    <Label
-      renderLabelAs='legend'
-      node={node}
+    <Fieldset
+      grid={grid?.labelGrid}
+      legend={labelText}
+      description={getDescriptionComponent()}
+      help={getHelpTextComponent()}
     >
       <ConditionalWrapper
         condition={!isNested}
@@ -121,7 +132,7 @@ function ModeShowAll() {
         </>
       </ConditionalWrapper>
       <AddButton />
-    </Label>
+    </Fieldset>
   );
 }
 

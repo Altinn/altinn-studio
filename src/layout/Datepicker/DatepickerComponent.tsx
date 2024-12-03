@@ -34,9 +34,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
     required,
     id,
     dataModelBindings,
-    textResourceBindings,
     grid,
-    labelSettings,
   } = useNodeItem(node);
 
   const calculatedMinDate = getDateConstraint(minDate, 'min');
@@ -52,13 +50,7 @@ export function DatepickerComponent({ node, overrideDisplay }: IDatepickerProps)
   };
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
-    useLabel({
-      overrideDisplay,
-      textResourceBindings,
-      readOnly,
-      required,
-      showOptionalMarking: !!labelSettings?.optionalIndicator,
-    });
+    useLabel({ node, overrideDisplay });
 
   return (
     <Label
