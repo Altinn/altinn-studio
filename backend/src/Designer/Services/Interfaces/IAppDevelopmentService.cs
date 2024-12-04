@@ -3,6 +3,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 
@@ -205,5 +206,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="component">The component to add.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         public Task AddComponentToLayout(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetName, string layoutName, object component, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Delete references from layouts
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="referencesToDelete">The references to delete.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        public Task<bool> DeleteFromLayouts(AltinnRepoEditingContext altinnRepoEditingContext, List<Reference> referencesToDelete, CancellationToken cancellationToken);
     }
 }

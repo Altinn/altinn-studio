@@ -172,16 +172,26 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="layoutSetName">The name of the layout set the specific layout belongs to</param>
         /// <param name="layoutName">The form layout to be deleted</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
         [Route("form-layout/{layoutName}")]
-        public ActionResult DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName)
+        public async Task<ActionResult> DeleteFormLayout(string org, string app, [FromQuery] string layoutSetName, [FromRoute] string layoutName, CancellationToken cancellationToken)
         {
             try
             {
                 string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+                await _mediator.Publish(new LayoutPageDeletedEvent
+                {
+                    EditingContext = editingContext,
+                    LayoutSetName = layoutSetName,
+                    LayoutName = layoutName,
+                }, cancellationToken);
+
                 _appDevelopmentService.DeleteFormLayout(editingContext, layoutSetName, layoutName);
+
                 return Ok();
             }
             catch (FileNotFoundException exception)
@@ -404,13 +414,15 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
-            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
 
             await _mediator.Publish(new LayoutSetDeletedEvent
             {
                 EditingContext = editingContext,
-                LayoutSetId = layoutSetIdToUpdate
+                LayoutSetName = layoutSetIdToUpdate
             }, cancellationToken);
+
+            LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+
             return Ok(layoutSets);
         }
 

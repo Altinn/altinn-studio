@@ -16,6 +16,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
+using Altinn.App.Core.Helpers;
+using Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -551,6 +553,77 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             layoutArray.Add(component);
             await SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
+        }
+
+        public async Task<bool> DeleteFromLayouts(AltinnRepoEditingContext editingContext, List<Reference> referencesToDelete, CancellationToken cancellationToken)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                    editingContext.Org,
+                    editingContext.Repo,
+                    editingContext.Developer);
+
+            bool hasChanges = false;
+
+            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+
+            var deletedLayoutsSetIds = referencesToDelete.Where(item => item.Type == "layoutSet").Select(item => item.Id).ToList();
+            var deletedLayouts = referencesToDelete.Where(item => item.Type == "page").ToList();
+            var deletedComponents = referencesToDelete.Where(item => item.Type == "component").ToList();
+
+            var filteredLayoutSets = layoutSets.Sets.Where(item => !deletedLayoutsSetIds.Contains(item.Id)).ToList();
+            foreach (LayoutSetConfig layoutSet in filteredLayoutSets)
+            {
+                Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSet.Id, cancellationToken);
+
+                var deletedLayoutIds = deletedLayouts.Where(item => item.Type == "page" && item.LayoutSetName == layoutSet.Id).Select(item => item.Id).ToList();
+                var filteredLayouts = formLayouts.Where(item => !deletedLayoutIds.Contains(item.Key)).ToList();
+                foreach (KeyValuePair<string, JsonNode> formLayout in filteredLayouts)
+                {
+                    if (formLayout.Value["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
+                    {
+                        return false;
+                    }
+
+                    int initialCount = layoutArray.Count;
+                    layoutArray.RemoveAll(jsonNode =>
+                    {
+                        string componentType = jsonNode["type"]?.GetValue<string>();
+                        switch (componentType)
+                        {
+                            case "Subform":
+                                return deletedLayoutsSetIds.Contains(jsonNode["layoutSet"]?.GetValue<string>());
+                            case "Summary2":
+                                if (jsonNode["target"] is not JsonObject targetObject)
+                                {
+                                    return false;
+                                }
+
+                                string type = targetObject["type"]?.GetValue<string>();
+                                string id = targetObject["id"]?.GetValue<string>();
+                                string taskId = targetObject["taskId"]?.GetValue<string>();
+                                string layouSetId = string.IsNullOrEmpty(taskId) ? layoutSet.Id : layoutSets.Sets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
+
+                                return type switch
+                                {
+                                    "layoutSet" => deletedLayoutsSetIds.Contains(layouSetId),
+                                    "page" => deletedLayouts.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
+                                    "component" => deletedComponents.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
+                                    _ => false,
+                                };
+                        }
+
+                        return false;
+                    });
+
+                    if (layoutArray.Count != initialCount)
+                    {
+                        await altinnAppGitRepository.SaveLayout(layoutSet.Id, $"{formLayout.Key}.json", formLayout.Value, cancellationToken);
+                        hasChanges = true;
+                    }
+                }
+            }
+
+            return hasChanges;
         }
     }
 }
