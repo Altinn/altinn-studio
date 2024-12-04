@@ -318,6 +318,15 @@ export function nn(): FixedLanguageList {
         vat: 'MVA',
       },
     },
+    organisation_lookup: {
+      orgnr_label: 'Organisasjonsnummer',
+      org_name: 'Organisasjonsnamn',
+      from_registry_description: 'Frå enhetsregisteret',
+      validation_error_not_found: 'Organisasjonsnummeret er ikkje funne i registeret',
+      validation_invalid_response_from_server: 'Ugyldig respons frå server',
+      unknown_error: 'Ukjent feil. Ver venleg og prøv igjen seinare',
+      validation_error_orgnr: 'Organisasjonsnummeret er ugyldig',
+    },
     person_lookup: {
       ssn_label: 'Fødselsnummer',
       surname_label: 'Etternamn',

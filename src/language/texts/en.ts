@@ -317,6 +317,15 @@ export function en() {
         vat: 'VAT',
       },
     },
+    organisation_lookup: {
+      orgnr_label: 'Organisation number',
+      org_name: 'Organisation name',
+      from_registry_description: 'From the CCR',
+      validation_error_not_found: 'Organisation number not found in the registry',
+      validation_invalid_response_from_server: 'Invalid response from the server',
+      unknown_error: 'An unknown error occurred. Please try again later',
+      validation_error_orgnr: 'The organisation number is invalid',
+    },
     person_lookup: {
       ssn_label: 'National ID number/D-number',
       surname_label: 'Surname',

@@ -1,0 +1,29 @@
+/* breakpoints-xs */
+@media only screen and (min-width: 0) {
+  .organisationLookupSummary {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* breakpoints-md */
+@media only screen and (min-width: 840px) {
+  .organisationLookupSummary {
+    flex-direction: row;
+  }
+}
+
+.organisationSummaryWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+  width: 100%;
+}
+
+.organisationLookupSummaryNr {
+  flex-grow: 5;
+}
+.organisationLookupSummaryName {
+  flex-grow: 4;
+}
