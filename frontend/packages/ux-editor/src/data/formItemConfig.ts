@@ -472,7 +472,7 @@ export const formItemConfigs: FormItemConfigs = {
     itemType: LayoutItemType.Component,
     defaultProperties: {
       target: {
-        type: 'page',
+        type: 'layoutSet',
         id: '',
         taskId: '',
       },

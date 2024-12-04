@@ -180,7 +180,7 @@ const repeatingGroupContainer: FormContainer<ComponentType.RepeatingGroup> = {
 const summary2Component: FormComponent<ComponentType.Summary2> = {
   ...commonProps(ComponentType.Summary2),
   target: {
-    type: 'page',
+    type: 'layoutSet',
   },
 };
 
