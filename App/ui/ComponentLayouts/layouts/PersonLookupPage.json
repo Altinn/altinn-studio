@@ -8,19 +8,16 @@
         "type": "NavigationBar"
       },
       {
-        "id": "PersonLookupPage-Header",
-        "type": "Header",
-        "size": "h2",
-        "textResourceBindings": {
-          "title": "Person Lookup"
-        }
-      },
-      {
         "id": "personLookup",
         "type": "PersonLookup",
         "dataModelBindings": {
           "person_lookup_ssn": "GridExample.ExampleInputTwo",
           "person_lookup_name": "street"
+        },
+        "textResourceBindings": {
+          "title": "Legg til person",
+          "description": "Her legger du inn etternavn og fødselsnummer",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
         "required": true
       },
