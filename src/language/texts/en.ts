@@ -118,6 +118,8 @@ export function en() {
       zipCode: 'Zip Code',
       no_options_found: 'No matches found',
       clear_selection: 'Clear selection',
+      person_lookup_ssn: 'national ID number/D-number',
+      person_lookup_name: 'name',
     },
     navigation: {
       main: 'App navigation',
@@ -314,6 +316,21 @@ export function en() {
         total: 'Total',
         vat: 'VAT',
       },
+    },
+    person_lookup: {
+      ssn_label: 'National ID number/D-number',
+      surname_label: 'Surname',
+      name_label: 'Name',
+      from_registry_description: 'From the National Population Register',
+      validation_error_name_too_short: "The name can't be shorter than 2 characters",
+      validation_error_ssn: 'The national ID number/D-number is invalid.',
+      validation_error_not_found:
+        'No person is registered with this combination of national ID number/D-number and name. Please check the fields and try again. \n\nNote: After 5 failed attempts, the search functionality will be temporarily locked.',
+      validation_error_too_many_requests: 'Too many requests. Please try again later.',
+      validation_error_forbidden:
+        'You do not have permission to perform this action. A security level of minimum 2 is required.',
+      validation_invalid_response_from_server: 'An error occurred. Please try again later.',
+      unknown_error: 'An unknown error occurred. Please try again later.',
     },
     helptext: {
       button_title: 'Help',

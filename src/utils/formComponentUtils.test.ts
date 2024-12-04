@@ -1,47 +1,7 @@
-import { staticUseLanguageForTests } from 'src/features/language/useLanguage';
-import { getColumnStyles, getFieldName, gridBreakpoints, smartLowerCaseFirst } from 'src/utils/formComponentUtils';
+import { getColumnStyles, gridBreakpoints, smartLowerCaseFirst } from 'src/utils/formComponentUtils';
 import type { IGridStyling, ITableColumnProperties } from 'src/layout/common.generated';
 
 describe('formComponentUtils', () => {
-  describe('getFieldName', () => {
-    const textResources = {
-      title: { value: 'Component name' },
-      short: { value: 'name' },
-    };
-    const mockLanguage = {
-      form_filler: {
-        error_required: 'Du må fylle ut {0}',
-        address: 'Gateadresse',
-        postPlace: 'Poststed',
-        zipCode: 'Postnummer',
-      },
-      validation: {
-        generic_field: 'dette feltet',
-      },
-    };
-    const mockLangTools = staticUseLanguageForTests({ textResources, language: mockLanguage });
-
-    it('should return field text from languages when fieldKey is present', () => {
-      const result = getFieldName({ title: 'title' }, mockLangTools, 'address');
-      expect(result).toEqual('gateadresse');
-    });
-
-    it('should return component shortName (textResourceBindings) when no fieldKey is present', () => {
-      const result = getFieldName({ title: 'title', shortName: 'short' }, mockLangTools);
-      expect(result).toEqual('name');
-    });
-
-    it('should return component title (textResourceBindings) when no shortName (textResourceBindings) and no fieldKey is present', () => {
-      const result = getFieldName({ title: 'title' }, mockLangTools);
-      expect(result).toEqual('component name');
-    });
-
-    it('should return generic field name when fieldKey, shortName and title are all not available', () => {
-      const result = getFieldName({}, mockLangTools);
-      expect(result).toEqual('dette feltet');
-    });
-  });
-
   describe('smartLowerCaseFirst', () => {
     it.each([
       { input: 'Fornavn', expected: 'fornavn' },

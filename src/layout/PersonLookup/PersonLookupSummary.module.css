@@ -1,0 +1,29 @@
+/* breakpoints-xs */
+@media only screen and (min-width: 0) {
+  .personLookupComponent {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* breakpoints-md */
+@media only screen and (min-width: 840px) {
+  .personLookupComponent {
+    flex-direction: row;
+  }
+}
+
+.personSummaryWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-6);
+  width: 100%;
+}
+
+.personLookupComponentSsn {
+  flex-grow: 5;
+}
+.personLookupComponentName {
+  flex-grow: 4;
+}

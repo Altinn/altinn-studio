@@ -5,7 +5,6 @@ import printStyles from 'src/styles/print.module.css';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { IAttachment } from 'src/features/attachments';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type {
   IDataModelBindingsList,
   IGridStyling,
@@ -34,28 +33,6 @@ export const atLeastOneTagExists = (attachments: IAttachment[]): boolean => {
 
   return totalTagCount >= 1;
 };
-
-export function getFieldName(
-  textResourceBindings: ITextResourceBindings,
-  langTools: IUseLanguage,
-  fieldKey?: string,
-): string | undefined {
-  const { langAsString } = langTools;
-
-  if (fieldKey && fieldKey !== 'simpleBinding') {
-    return smartLowerCaseFirst(langAsString(`form_filler.${fieldKey}`));
-  }
-
-  if (textResourceBindings && 'shortName' in textResourceBindings && textResourceBindings.shortName) {
-    return langAsString(textResourceBindings.shortName);
-  }
-
-  if (textResourceBindings && 'title' in textResourceBindings && textResourceBindings.title) {
-    return smartLowerCaseFirst(langAsString(textResourceBindings.title));
-  }
-
-  return langAsString('validation.generic_field');
-}
 
 export function getFieldNameKey(textResourceBindings: ITextResourceBindings, fieldKey?: string): string | undefined {
   if (fieldKey && fieldKey !== 'simpleBinding') {

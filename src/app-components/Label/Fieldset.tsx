@@ -12,6 +12,7 @@ import type { GridSize } from 'src/app-components/Label/types';
 export type FieldsetProps = {
   id?: string;
   legend: string | ReactElement | undefined;
+  legendSize?: Extract<DesignsystemetLabelProps['size'], 'sm' | 'md' | 'lg' | 'xl'>;
   className?: string;
   grid?: GridSize;
   optionalIndicator?: ReactElement;
@@ -28,6 +29,7 @@ export function Fieldset({
   children,
   className,
   legend,
+  legendSize = 'md',
   grid,
   style,
   help,
@@ -72,7 +74,7 @@ export function Fieldset({
             <span className={cn(labelClasses.labelAndHelpWrapper)}>
               <DesignsystemetLabel
                 weight='medium'
-                size='md'
+                size={legendSize}
                 style={style}
                 asChild
               >

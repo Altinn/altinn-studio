@@ -31,7 +31,13 @@ describe('Render summary of previous task', () => {
 
     cy.get('#navigation-menu').find('button').contains('Oppsummering 2.0').click();
 
-    cy.contains('button', 'Send inn').click();
+    cy.changeLayout((component) => {
+      if (component.type === 'PersonLookup') {
+        component.required = false;
+      }
+    });
+
+    cy.findByRole('button', { name: 'Send inn' }).click();
 
     // Wait for the URL to contain the text "PreviousProcessSummary"
     cy.url({ timeout: 60000 }).should('include', 'PreviousProcessSummary');
