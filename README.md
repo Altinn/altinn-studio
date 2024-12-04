@@ -17,6 +17,10 @@ These libraries support the runtime of Altinn apps by
 
 See [/CONTRIBUTING.md](/CONTRIBUTING.md).
 
+## Documentation
+
+Documentation on how to develop Altinn apps can be found [here](https://docs.altinn.studio/).
+
 ## Architecture
 
 This template is built using .NET
