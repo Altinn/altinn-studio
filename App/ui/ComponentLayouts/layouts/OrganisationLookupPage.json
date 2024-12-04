@@ -8,19 +8,16 @@
                 "type": "NavigationBar"
             },
             {
-                "id": "OrganisationLookupPage-Header",
-                "type": "Header",
-                "size": "h2",
-                "textResourceBindings": {
-                    "title": "Organisation Lookup"
-                }
-            },
-            {
                 "id": "organisationLookup",
                 "type": "OrganisationLookup",
                 "dataModelBindings": {
                     "organisation_lookup_orgnr": "street",
                     "organisation_lookup_name": "co"
+                },
+                "textResourceBindings": {
+                    "title": "Legg til virksomhet",
+                    "description": "Her legger du inn organisasjonsnummer",
+                    "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
                 },
                 "required": true
             },
