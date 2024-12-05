@@ -5,8 +5,6 @@ import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
-import type { CreateDataModelMutationArgs } from '../../../../hooks/mutations/useCreateDataModelMutation';
-import { useCreateDataModelMutation } from '../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
 import { usePrevious } from '@studio/components';
@@ -14,47 +12,40 @@ import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
 import { useTranslation } from 'react-i18next';
 
 export interface TopToolbarProps {
-  createNewOpen: boolean;
+  isCreateNewOpen: boolean;
   createPathOption?: boolean;
   dataModels: DataModelMetadata[];
   selectedOption?: MetadataOption;
-  setCreateNewOpen: (open: boolean) => void;
+  setIsCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
   onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
 }
 
 export function TopToolbar({
-  createNewOpen,
+  isCreateNewOpen,
   createPathOption,
   dataModels,
   selectedOption,
-  setCreateNewOpen,
+  setIsCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
   const { t } = useTranslation();
-  const { mutate: createDataModel } = useCreateDataModelMutation();
   const prevDataModels = usePrevious(dataModels);
 
   useEffect(() => {
     setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
   }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
 
-  const handleCreateSchema = (model: CreateDataModelMutationArgs) => {
-    createDataModel(model);
-    setCreateNewOpen(false);
-  };
-
   return (
     <section className={classes.toolbar} role='toolbar'>
       <CreateNewWrapper
         dataModels={dataModels}
         disabled={false}
-        createNewOpen={createNewOpen}
-        setCreateNewOpen={setCreateNewOpen}
-        handleCreateSchema={handleCreateSchema}
+        isCreateNewOpen={isCreateNewOpen}
+        setIsCreateNewOpen={setIsCreateNewOpen}
         createPathOption={createPathOption}
       />
       <XSDUpload

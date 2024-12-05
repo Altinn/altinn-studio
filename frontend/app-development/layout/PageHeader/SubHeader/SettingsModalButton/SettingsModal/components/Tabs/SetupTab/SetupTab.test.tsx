@@ -8,7 +8,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
+import { mockAppMetadata } from '../../../../../../../../test/applicationMetadataMock';
 import { app, org } from '@studio/testing/testids';
 
 const getAppMetadata = jest.fn().mockImplementation(() => Promise.resolve({}));
