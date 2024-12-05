@@ -142,7 +142,7 @@ export const updateResource = (org: string, repo: string, payload: Resource) => 
 export const migrateDelegations = (org: string, env: string, payload: MigrateDelegationsRequest) => post(altinn2DelegationsMigrationPath(org, env), payload);
 
 // Preview
-export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post(createInstancePath(org, app, partyId, taskId), {});
+export const createPreviewInstance = (org: string, app: string, partyId: number, taskId: string) => post<any>(createInstancePath(org, app, partyId, taskId), {});
 
 // ProcessEditor
 

@@ -36,7 +36,11 @@ export const LandingPage = () => {
     'desktop',
   );
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
-  const { mutate: createInstance, data: instance } = useCreatePreviewInstanceMutation(org, app);
+  const {
+    mutate: createInstance,
+    data: instance,
+    isPending: instanceIsPending,
+  } = useCreatePreviewInstanceMutation(org, app);
 
   useEffect(() => {
     if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
@@ -64,7 +68,7 @@ export const LandingPage = () => {
     });
   }
 
-  if (isPendingUser || pendingLayoutsets || !instance)
+  if (isPendingUser || pendingLayoutsets || instanceIsPending)
     return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
   const previewUrl = previewPage(
