@@ -2,7 +2,7 @@ import React from 'react';
 import type { IInternalLayout } from '../../../../types/global';
 import { getItem, isContainer } from '../../../../utils/formLayoutUtils';
 import { renderItemList } from '../renderItemList';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { FormItemTitle } from './FormItemTitle';
 import { formItemConfigs } from '../../../../data/formItemConfig';
 import { useItemTitle } from './useItemTitle';
@@ -36,7 +36,7 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
   );
 
   return (
-    <DragAndDropTree.Item
+    <StudioDragAndDropTree.Item
       icon={Icon && <Icon />}
       emptyMessage={t('ux_editor.container_empty')}
       expandable={isContainer(layout, id)}
@@ -45,6 +45,6 @@ export const FormItem = ({ layout, id }: FormItemProps) => {
       nodeId={id}
     >
       {renderItemList(layout, id)}
-    </DragAndDropTree.Item>
+    </StudioDragAndDropTree.Item>
   );
 };

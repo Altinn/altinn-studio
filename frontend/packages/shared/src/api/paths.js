@@ -1,8 +1,14 @@
 import { stringify as s } from 'qs';
-import { APP_DEVELOPMENT_BASENAME, PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
+import { PREVIEW_MOCK_PARTY_ID, PREVIEW_MOCK_INSTANCE_GUID } from '../constants';
 
 // Base path
 const basePath = '/designer/api';
+
+// Ansattporten
+export const authStatusAnsattporten = () => `${basePath}/ansattporten/auth-status`;
+export const loginWithAnsattPorten = (redirectTo) => `${basePath}/ansattporten/login?redirect_to=${redirectTo}`;
+export const availableMaskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes/maskinporten`; // Get
+export const selectedMaskinportenScopesPath = (org, app) => `${basePath}/${org}/${app}/app-scopes`; // Get, Put
 
 // ApplicationMetadata
 export const appMetadataPath = (org, app) => `${basePath}/${org}/${app}/metadata`; // Get, Put, Post
@@ -16,7 +22,11 @@ export const serviceConfigPath = (org, app) => `${basePath}/${org}/${app}/config
 
 // DataModel
 export const createDataModelPath = (org, app) => `${basePath}/${org}/${app}/datamodels/new`; // Post
-export const dataModelPath = (org, app, modelPath, saveOnly = false) => `${basePath}/${org}/${app}/datamodels/datamodel?${s({ modelPath, saveOnly })}`; // Get, Put, Delete
+export const dataModelPath = (org, app, modelPath, saveOnly = false) =>
+  `${basePath}/${org}/${app}/datamodels/datamodel?${s({
+    modelPath,
+    saveOnly,
+  })}`; // Get, Put, Delete
 export const dataModelsPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-json`; // Get
 export const dataModelsXsdPath = (org, app) => `${basePath}/${org}/${app}/datamodels/all-xsd`; // Get
 export const dataModelsUploadPath = (org, app) => `${basePath}/${org}/${app}/datamodels/upload`; // Post
@@ -30,6 +40,9 @@ export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
+export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
+export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
+export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get
 export const dataModelMetadataPath = (org, app, layoutSetName, dataModelName) => `${basePath}/${org}/${app}/app-development/model-metadata?${s({ layoutSetName })}&${s({ dataModelName })}`; // Get
@@ -54,6 +67,13 @@ export const userLogoutPath = () => `/repos/user/logout`;
 
 // Home
 export const userLogoutAfterPath = () => `/Home/Logout`;
+
+// Images
+export const allImagesPath = (org, app) => `${basePath}/${org}/${app}/images/all`; // Get
+export const addImagePath = (org, app) => `${basePath}/${org}/${app}/images`; // Post
+export const imagePath = (org, app, imageFilePath) => `${basePath}/${org}/${app}/images/${encodeURIComponent(imageFilePath)}`; // Get, Delete
+export const validateImageFromExternalUrlPath = (org, app, url) => `${basePath}/${org}/${app}/images/validate?${s({ url })}`; // Get
+export const getImageFileNamesPath = (org, app) => `${basePath}/${org}/${app}/images/fileNames`; // Get
 
 // Languages - new text-format
 export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`; // Get
@@ -80,7 +100,12 @@ export const envConfigPath = () => `${basePath}/environments`;
 export const abortmergePath = (org, app) => `${basePath}/repos/repo/${org}/${app}/abort-merge`;
 export const branchStatusPath = (org, app, branch) => `${basePath}/repos/repo/${org}/${app}/branches/branch?${s({ branch })}`; // Get
 export const cloneAppPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/clone`; // Get
-export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) => `${basePath}/repos/repo/${org}/copy-app?${s({ sourceRepository, targetRepository, targetOrg })}`;
+export const copyAppPath = (org, sourceRepository, targetRepository, targetOrg) =>
+  `${basePath}/repos/repo/${org}/copy-app?${s({
+    sourceRepository,
+    targetRepository,
+    targetOrg,
+  })}`;
 export const createRepoPath = () => `${basePath}/repos/create-app`; // Post
 export const discardChangesPath = (org, app) => `${basePath}/repos/repo/${org}/${app}/discard`; // Get
 export const discardFileChangesPath = (org, app, filename) => `${basePath}/repos/repo/${org}/${app}/discard/${filename}`; // Get
@@ -139,10 +164,10 @@ export const accessListMemberPath = (org, listId, env, page) => `${basePath}/${e
 export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${page ? `?page=${page}` : ''}`; // Get
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
+export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}/resources/altinn2/delegationmigration/${env}`; // Post
 
 // Process Editor
 export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;
-export const processEditorPathPut = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition-latest`;
 export const processEditorDataTypesChangePath = (org, app) => `${basePath}/${org}/${app}/process-modelling/data-types`;
 export const processTaskTypePath = (org, app, taskId) => `${basePath}/${org}/${app}/process-modelling/task-type/${taskId}`; // Get
 export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${basePath}/${org}/${app}/process-modelling/data-type/${dataTypeId}?${s({ taskId })}`;

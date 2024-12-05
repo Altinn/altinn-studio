@@ -21,7 +21,7 @@ export const DeprecatedConditionalRenderingInfo = () => {
         </Heading>
         <Trans i18nKey={'right_menu.rules_conditional_rendering_deprecated_info'}>
           <a
-            href={altinnDocsUrl('altinn-studio/designer/build-app/expressions')}
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/designer/build-app/expressions' })}
             target='_newTab'
             rel='noopener noreferrer'
           />

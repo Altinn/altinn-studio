@@ -8,7 +8,7 @@ type CustomAttributes = {
 
 export function testCustomAttributes<
   Element extends HTMLElement = HTMLElement,
-  Props extends HTMLAttributes<Element> = HTMLAttributes<Element>,
+  Props extends {} = HTMLAttributes<Element>,
 >(
   renderComponent: (customAttributes: Props) => RenderResult,
   getTargetElement: (container: RenderResult['container']) => Element = getRootElementFromContainer,

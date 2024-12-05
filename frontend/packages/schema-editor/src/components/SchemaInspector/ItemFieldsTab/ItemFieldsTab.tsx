@@ -1,27 +1,41 @@
-import type { BaseSyntheticEvent } from 'react';
-import React, { useEffect, useState } from 'react';
-import type { FieldType, FieldNode } from '@altinn/schema-model';
-import { isField, isReference, ObjectKind } from '@altinn/schema-model';
+import React, { useEffect } from 'react';
+import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model';
+import { isField, isObject, isReference } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { StudioButton, usePrevious } from '@studio/components';
-import { PlusIcon } from '@studio/icons';
-import { useTranslation } from 'react-i18next';
+import { usePrevious } from '@studio/components';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
-import { DropdownMenu } from '@digdir/designsystemet-react';
-import { useTypeOptions } from '../hooks/useTypeOptions';
+import { AddPropertiesMenu } from '../../AddPropertiesMenu';
+import { Alert } from '@digdir/designsystemet-react';
+import type { UiSchemaNode } from '@altinn/schema-model/types';
+import { useTranslation } from 'react-i18next';
 
-export interface ItemFieldsTabProps {
-  selectedItem: FieldNode;
+export type ItemFieldsTabProps = {
+  selectedItem: UiSchemaNode;
+};
+
+export function ItemFieldsTab({ selectedItem }: ItemFieldsTabProps): React.ReactElement {
+  const { t } = useTranslation();
+
+  const shouldDisplayFieldsTabContent = isField(selectedItem) && isObject(selectedItem);
+
+  return shouldDisplayFieldsTabContent ? (
+    <ItemFieldsTabContent selectedItem={selectedItem} />
+  ) : (
+    <Alert size='small'>{t('schema_editor.fields_not_available_on_type')}</Alert>
+  );
 }
 
-export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
+type ItemFieldsTabContentProps = {
+  selectedItem: FieldNode;
+};
+
+const ItemFieldsTabContent = ({ selectedItem }: ItemFieldsTabContentProps) => {
   const addProperty = useAddProperty();
 
   const numberOfChildNodes = selectedItem.children.length;
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;
-  const typeOptions = useTypeOptions();
 
   useEffect(() => {
     // If the number of fields has increased, a new field has been added and should get focus
@@ -32,55 +46,18 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes]);
 
-  const { t } = useTranslation();
-  const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
-
-  const onAddPropertyClicked = (event: BaseSyntheticEvent, fieldType: FieldType) => {
+  const onAddPropertyClicked = (kind: ObjectKind, fieldType?: FieldType) => {
     event.preventDefault();
-
-    addProperty(ObjectKind.Field, fieldType, selectedItem.schemaPointer);
+    addProperty(kind, fieldType, selectedItem.schemaPointer);
   };
   const readonly = isReference(selectedItem);
 
-  const closeDropdown = () => setIsAddDropdownOpen(false);
   return (
     <div className={classes.root}>
       {isField(selectedItem) && numberOfChildNodes > 0 && (
         <ItemFieldsTable readonly={readonly} selectedItem={selectedItem} />
       )}
-      <DropdownMenu
-        open={isAddDropdownOpen}
-        onClose={closeDropdown}
-        size='small'
-        portal
-        placement='bottom-start'
-      >
-        <DropdownMenu.Trigger asChild>
-          {!readonly && (
-            <StudioButton
-              color='second'
-              icon={<PlusIcon />}
-              onClick={() => setIsAddDropdownOpen(true)}
-              variant='secondary'
-            >
-              {t('schema_editor.add_property')}
-            </StudioButton>
-          )}
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Group>
-            {typeOptions.map(({ value: fieldType, label }) => (
-              <DropdownMenu.Item
-                key={fieldType}
-                value={fieldType}
-                onClick={(e) => onAddPropertyClicked(e, fieldType)}
-              >
-                {label}
-              </DropdownMenu.Item>
-            ))}
-          </DropdownMenu.Group>
-        </DropdownMenu.Content>
-      </DropdownMenu>
+      <AddPropertiesMenu onItemClick={onAddPropertyClicked} />
     </div>
   );
 };

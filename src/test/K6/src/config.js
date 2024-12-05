@@ -79,22 +79,14 @@ export var platformEvents = {
   subscriptions: 'https://platform.' + baseUrl + '/events/api/v1/subscriptions',
 };
 
-//eFormidling
-export var eFormidling = {
-  conversations: 'https://platform.' + baseUrl + '/eformidling/api/conversations',
-  statuses: 'https://platform.' + baseUrl + '/eformidling/api/statuses',
-  health: 'https://platform.' + baseUrl + '/eformidling/api/manage/health',
-  capabilities: 'https://platform.' + baseUrl + '/eformidling/api/capabilities',
-};
-
 //sblBridge
 export var sblBridge = {
-  enterpriseUser: 'https://' + baseUrl + '/sblbridge/authentication/api/enterpriseuser'
+  enterpriseUser: 'https://' + baseUrl + '/sblbridge/authentication/api/enterpriseuser',
 };
 
 export var sbl = {
-  altinnBuildVersion: `https://${baseUrl}/pages/logout/AltinnBuildVersion.txt` 
-}
+  altinnBuildVersion: `https://${baseUrl}/pages/logout/AltinnBuildVersion.txt`,
+};
 
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint

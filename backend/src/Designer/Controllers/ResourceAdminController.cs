@@ -14,6 +14,7 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,10 +35,9 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly CacheSettings _cacheSettings;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
-        private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
+        private readonly IEnvironmentsService _environmentsService;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry, IUserRequestsSynchronizationService userRequestsSynchronizationService)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -45,9 +45,8 @@ namespace Altinn.Studio.Designer.Controllers
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
             _orgService = orgService;
-            _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
-            _userRequestsSynchronizationService = userRequestsSynchronizationService;
+            _environmentsService = environmentsService;
         }
 
         [HttpPost]
@@ -177,12 +176,14 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (includeEnvResources)
             {
-                foreach (string environment in _resourceRegistrySettings.Keys)
+                IEnumerable<string> environments = await GetEnvironmentsForOrg(org);
+                foreach (string environment in environments)
                 {
                     string cacheKey = $"resourcelist_${environment}";
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                     {
                         environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
@@ -241,7 +242,8 @@ namespace Altinn.Studio.Designer.Controllers
                 PublishedVersions = []
             };
 
-            foreach (string envir in _resourceRegistrySettings.Keys)
+            IEnumerable<string> environments = await GetEnvironmentsForOrg(org);
+            foreach (string envir in environments)
             {
                 resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
             }
@@ -274,20 +276,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/updateresource/{id}")]
         public async Task<ActionResult> UpdateResource(string org, string id, [FromBody] ServiceResource resource, CancellationToken cancellationToken = default)
         {
-            string repository = GetRepositoryName(org);
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            SemaphoreSlim semaphore = _userRequestsSynchronizationService.GetRequestsSemaphore(org, repository, developer);
-            await semaphore.WaitAsync(cancellationToken);
-            try
-            {
-                resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
-                return _repository.UpdateServiceResource(org, id, resource);
-            }
-            finally
-            {
-                semaphore.Release();
-            }
-
+            resource.HasCompetentAuthority = await GetCompetentAuthorityFromOrg(org);
+            return _repository.UpdateServiceResource(org, id, resource);
         }
 
         [HttpPost]
@@ -344,17 +334,30 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
         [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
-        public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEdition, string env)
+        public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
         {
-            return await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
+            if (!IsServiceOwner(resource, org))
+            {
+                return new UnauthorizedResult();
+            }
+
+            DelegationCountOverview overview = await _resourceRegistry.GetDelegationCount(serviceCode, serviceEdition, env);
+            return Ok(overview);
         }
 
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPublishResourcePermission)]
-        [Route("designer/api/{org}/resources/altinn2/exportdelegations/{env}")]
-        public async Task<ActionResult> ExportDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string environment)
+        [Route("designer/api/{org}/resources/altinn2/delegationmigration/{env}")]
+        public async Task<ActionResult> MigrateDelegations([FromBody] ExportDelegationsRequestBE delegationRequest, string org, string env)
         {
-            return await _resourceRegistry.StartMigrateDelegations(delegationRequest, environment);
+            ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(delegationRequest.ServiceCode, delegationRequest.ServiceEditionCode, env.ToLower());
+            if (!IsServiceOwner(resource, org))
+            {
+                return new UnauthorizedResult();
+            }
+
+            return await _resourceRegistry.StartMigrateDelegations(delegationRequest, env);
         }
 
         [HttpGet]
@@ -603,6 +606,24 @@ namespace Altinn.Studio.Designer.Controllers
             return orgList;
         }
 
+        private static bool IsServiceOwner(ServiceResource? resource, string loggedInOrg)
+        {
+            if (resource?.HasCompetentAuthority == null)
+            {
+                return false;
+            }
+
+            bool isOwnedByOrg = resource.HasCompetentAuthority.Orgcode.Equals(loggedInOrg, StringComparison.InvariantCultureIgnoreCase);
+
+            if (OrgUtil.IsTestEnv(loggedInOrg))
+            {
+                return isOwnedByOrg || resource.HasCompetentAuthority.Orgcode.Equals("acn", StringComparison.InvariantCultureIgnoreCase);
+            }
+
+            return isOwnedByOrg;
+
+        }
+
         private async Task<ResourceVersionInfo> AddEnvironmentResourceStatus(string env, string id)
         {
             ServiceResource resource = await _resourceRegistry.GetResource(id, env);
@@ -625,6 +646,12 @@ namespace Altinn.Studio.Designer.Controllers
         private string GetRepositoryName(string org)
         {
             return string.Format("{0}-resources", org);
+        }
+
+        private async Task<IEnumerable<string>> GetEnvironmentsForOrg(string org)
+        {
+            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
+            return environments.Select(environment => environment.Name == "production" ? "prod" : environment.Name);
         }
     }
 }

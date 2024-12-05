@@ -29,6 +29,14 @@ namespace Altinn.Studio.Designer.Filters.AppDevelopment
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.EmptyLayoutSetIdError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
             }
+            if (context.Exception is ConflictingFileNameException)
+            {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.ConflictingFileNameError, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+            }
+            if (context.Exception is InvalidExtensionImageUploadException)
+            {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, AppDevelopmentErrorCodes.UploadedImageNotValid, HttpStatusCode.BadRequest)) { StatusCode = (int)HttpStatusCode.BadRequest };
+            }
         }
     }
 }

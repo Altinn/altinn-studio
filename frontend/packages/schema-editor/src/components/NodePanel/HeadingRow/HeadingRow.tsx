@@ -10,6 +10,7 @@ import {
   isNodeValidParent,
   ObjectKind,
   ROOT_POINTER,
+  SchemaModel,
 } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioDeleteButton, StudioDropdownMenu } from '@studio/components';
@@ -46,7 +47,8 @@ export const HeadingRow = ({ schemaPointer }: HeadingRowProps) => {
       <Heading level={1} className={classes.heading}>
         <StudioButton
           className={classes.headingButton}
-          color='second'
+          color='first'
+          size='small'
           icon={<NodeIcon node={node} />}
           onClick={selectNodeRoot}
           variant='tertiary'
@@ -94,7 +96,10 @@ const useAddNodeMenuItems = (schemaPointer: string): AddNodeMenuItemProps[] => {
 
   const addAndSelectNode = (...params: Parameters<typeof addNode>) => {
     const newPointer = addNode(...params);
-    if (newPointer) setSelectedUniquePointer(newPointer);
+    if (newPointer) {
+      const newUniquePointer = SchemaModel.getUniquePointer(newPointer);
+      setSelectedUniquePointer(newUniquePointer);
+    }
   };
 
   return [

@@ -2,15 +2,20 @@ import React from 'react';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { Elements } from './Elements';
 import { renderWithProviders } from '../../testing/mocks';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { AppContextProps } from '../../AppContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
-import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import type { QueryClient } from '@tanstack/react-query';
 
 jest.mock('app-shared/hooks/useCustomReceiptLayoutSetName');
+jest.mock('../../hooks/useGetLayoutSetByName', () => ({
+  useGetLayoutSetByName: () => ({
+    id: 'test',
+  }),
+}));
 const mockUseCustomReceiptLayoutSetName = jest.mocked(useCustomReceiptLayoutSetName);
 
 describe('Elements', () => {
@@ -118,9 +123,9 @@ const renderElements = (
   queryClient?: QueryClient,
 ) => {
   return renderWithProviders(
-    <DragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
+    <StudioDragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
       <Elements collapsed={false} onCollapseToggle={collapseToggle} />
-    </DragAndDropTree.Provider>,
+    </StudioDragAndDropTree.Provider>,
     {
       appContextProps,
       queries,

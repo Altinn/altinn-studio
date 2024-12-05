@@ -3,7 +3,6 @@ import type { Expression, SubExpression } from '../../../../../../types/Expressi
 import { Operator } from '../../../../../../types/Expressions';
 import { SubExpressionContent } from './SubExpressionContent';
 import { useText } from '../../../../../../hooks';
-import { Divider } from 'app-shared/primitives';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 
 export type SimpleExpressionProps = {
@@ -25,7 +24,6 @@ export const SimpleExpression = ({
       {expression.subExpressions?.map((subExp: SubExpression, index: number) => {
         return (
           <React.Fragment key={index}>
-            <Divider marginless />
             <SubExpressionContent
               subExpression={subExp}
               onUpdateSubExpression={(subExpression: SubExpression) =>

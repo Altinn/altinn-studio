@@ -4,15 +4,15 @@ import { DesignView } from './DesignView';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContextProvider } from '../FormItemContext';
-import { DragAndDrop } from 'app-shared/components/dragAndDrop';
+import { StudioDragAndDrop } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import userEvent from '@testing-library/user-event';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import {
   externalLayoutsMock,
+  layout1Mock,
   layout1NameMock,
   layout2NameMock,
 } from '@altinn/ux-editor/testing/layoutMock';
@@ -20,6 +20,8 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
 import { appContextMock } from '../../testing/appContextMock';
 import { app, org } from '@studio/testing/testids';
+import type { ILayoutSettings } from 'app-shared/types/global';
+import type { FormLayoutsResponse } from 'app-shared/types/api';
 
 const mockSelectedLayoutSet = layoutSet1NameMock;
 const mockPageName1: string = layout1NameMock;
@@ -30,8 +32,8 @@ describe('DesignView', () => {
     jest.clearAllMocks();
   });
 
-  it('displays the correct number of accordions', async () => {
-    await render();
+  it('displays the correct number of accordions', () => {
+    renderDesignView();
 
     formLayoutSettingsMock.pages.order.forEach((page) => {
       const accordionButton = screen.getByRole('button', { name: page });
@@ -39,9 +41,50 @@ describe('DesignView', () => {
     });
   });
 
+  it('adds page with correct name', async () => {
+    const user = userEvent.setup();
+    renderDesignView({
+      ...formLayoutSettingsMock,
+      pages: { order: ['someName', 'someOtherName'] },
+    });
+    const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
+    await user.click(addButton);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      `${textMock('ux_editor.page')}${3}`,
+      mockSelectedLayoutSet,
+      expect.any(Object),
+    );
+  });
+
+  it('increments the page name for the new page if pdfLayoutName has the next incremental page name', async () => {
+    const user = userEvent.setup();
+    const pdfLayoutName = `${textMock('ux_editor.page')}${3}`;
+    renderDesignView(
+      {
+        ...formLayoutSettingsMock,
+        pages: {
+          order: [`${textMock('ux_editor.page')}${1}`, `${textMock('ux_editor.page')}${2}`],
+          pdfLayoutName,
+        },
+      },
+      { [pdfLayoutName]: layout1Mock },
+    );
+    const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
+    await user.click(addButton);
+    expect(queriesMock.saveFormLayout).toHaveBeenCalledWith(
+      org,
+      app,
+      `${textMock('ux_editor.page')}${4}`,
+      mockSelectedLayoutSet,
+      expect.any(Object),
+    );
+  });
+
   it('calls "setSelectedFormLayoutName" with undefined when current page the accordion is clicked', async () => {
     const user = userEvent.setup();
-    await render();
+    renderDesignView();
 
     const accordionButton1 = screen.getByRole('button', { name: mockPageName1 });
     await user.click(accordionButton1);
@@ -52,7 +95,7 @@ describe('DesignView', () => {
 
   it('calls "setSelectedFormLayoutName" with the new page when another page accordion is clicked', async () => {
     const user = userEvent.setup();
-    await render();
+    renderDesignView();
 
     const accordionButton2 = screen.getByRole('button', { name: mockPageName2 });
     await user.click(accordionButton2);
@@ -63,7 +106,7 @@ describe('DesignView', () => {
 
   it('calls "saveFormLayout" when add page is clicked', async () => {
     const user = userEvent.setup();
-    await render();
+    renderDesignView();
 
     const addButton = screen.getByRole('button', { name: textMock('ux_editor.pages_add') });
     await user.click(addButton);
@@ -71,29 +114,41 @@ describe('DesignView', () => {
     expect(queriesMock.saveFormLayout).toHaveBeenCalled();
   });
 
-  it('Displays the tree view version of the layout when the formTree feature flag is enabled', async () => {
-    typedLocalStorage.setItem('featureFlags', ['formTree']);
-    await render();
+  it('Displays the tree view version of the layout', () => {
+    renderDesignView();
     expect(screen.getByRole('tree')).toBeInTheDocument();
   });
+
+  it('Renders the page accordion as a pdfAccordion when pdfLayoutName is set', () => {
+    const pdfLayoutName = 'pdfLayoutName';
+    renderDesignView(
+      { ...formLayoutSettingsMock, pages: { order: [], pdfLayoutName } },
+      { [pdfLayoutName]: layout1Mock },
+    );
+    const pdfAccordionButton = screen.getByRole('button', { name: pdfLayoutName });
+    expect(pdfAccordionButton).toBeInTheDocument();
+  });
 });
-const render = async () => {
+const renderDesignView = (
+  layoutSettings: ILayoutSettings = formLayoutSettingsMock,
+  externalLayout: FormLayoutsResponse = externalLayoutsMock,
+) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData(
     [QueryKey.FormLayouts, org, app, mockSelectedLayoutSet],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
+    convertExternalLayoutsToInternalFormat(externalLayout),
   );
   queryClient.setQueryData(
     [QueryKey.FormLayoutSettings, org, app, mockSelectedLayoutSet],
-    formLayoutSettingsMock,
+    layoutSettings,
   );
 
   return renderWithProviders(
-    <DragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
+    <StudioDragAndDrop.Provider rootId={BASE_CONTAINER_ID} onMove={jest.fn()} onAdd={jest.fn()}>
       <FormItemContextProvider>
         <DesignView />
       </FormItemContextProvider>
-    </DragAndDrop.Provider>,
+    </StudioDragAndDrop.Provider>,
     {
       queryClient,
     },

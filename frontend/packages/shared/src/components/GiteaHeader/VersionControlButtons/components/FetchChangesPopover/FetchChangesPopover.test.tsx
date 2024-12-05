@@ -14,6 +14,9 @@ import {
   type VersionControlButtonsContextProps,
 } from '../../context';
 import { mockVersionControlButtonsContextValue } from '../../test/mocks/versionControlContextMock';
+import { useMediaQuery } from '@studio/components';
+
+jest.mock('@studio/components/src/hooks/useMediaQuery');
 
 const mockGetRepoPull = jest.fn();
 
@@ -120,6 +123,25 @@ describe('fetchChanges', () => {
     await waitFor(() => {
       expect(mockVersionControlButtonsContextValue.commitAndPushChanges).toHaveBeenCalledWith('');
     });
+  });
+
+  it('should render the button with text on a large screen', () => {
+    renderFetchChangesPopover();
+
+    expect(screen.getByText(textMock('sync_header.fetch_changes'))).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.fetch_changes') }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render the button text on a small screen', () => {
+    (useMediaQuery as jest.Mock).mockReturnValue(true);
+    renderFetchChangesPopover();
+
+    expect(screen.queryByText(textMock('sync_header.fetch_changes'))).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: textMock('sync_header.fetch_changes') }),
+    ).toBeInTheDocument();
   });
 });
 

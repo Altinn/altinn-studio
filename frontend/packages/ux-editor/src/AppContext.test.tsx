@@ -13,6 +13,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { layout1NameMock } from './testing/layoutMock';
 import { layoutSet1NameMock } from './testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
+import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
 
 const mockSelectedFormLayoutSetName = layoutSet1NameMock;
 const mockSelectedFormLayoutName = layout1NameMock;
@@ -22,7 +23,7 @@ const TestComponent = ({
   children,
 }: {
   queryClient: QueryClient;
-  children: (appContext: AppContextProps) => React.ReactNode;
+  children: (appContext: Partial<AppContextProps>) => React.ReactNode;
 }) => {
   const appContext = useAppContext();
   useEffect(() => {
@@ -128,10 +129,10 @@ describe('AppContext', () => {
     );
   });
 
-  it('invalidates layout query', async () => {
+  it('invalidates layouts query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ refetchLayouts, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchLayouts(selectedFormLayoutSetName)} />
+      ({ updateLayoutsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutsForPreview(selectedFormLayoutSetName)} />
       ),
     );
 
@@ -140,15 +141,15 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['FormLayouts', org, app, mockSelectedFormLayoutSetName],
+        queryKey: [AppsQueryKey.AppLayouts, mockSelectedFormLayoutSetName],
       }),
     );
   });
 
-  it('resets layout query', async () => {
+  it('resets layouts query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
-      ({ refetchLayouts, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchLayouts(selectedFormLayoutSetName, true)} />
+      ({ updateLayoutsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutsForPreview(selectedFormLayoutSetName, true)} />
       ),
     );
 
@@ -157,50 +158,14 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: ['FormLayouts', org, app, mockSelectedFormLayoutSetName],
+        queryKey: [AppsQueryKey.AppLayouts, mockSelectedFormLayoutSetName],
       }),
     );
   });
 
-  it('invalidates layout settings query', async () => {
-    const { queryClient } = renderAppContext(
-      ({ refetchLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchLayoutSettings(selectedFormLayoutSetName)} />
-      ),
-    );
-
-    await clickButton();
-
-    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
-      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['FormLayoutSettings', org, app, mockSelectedFormLayoutSetName],
-      }),
-    );
-  });
-
-  it('reset layout settings query', async () => {
-    const { queryClient } = renderAppContext(
-      ({ refetchLayoutSettings, selectedFormLayoutSetName }: AppContextProps) => (
-        <Button onClick={() => refetchLayoutSettings(selectedFormLayoutSetName, true)} />
-      ),
-    );
-
-    await clickButton();
-
-    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
-    await waitFor(async () =>
-      expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: ['FormLayoutSettings', org, app, mockSelectedFormLayoutSetName],
-      }),
-    );
-  });
-
-  it('invalidates text query', async () => {
-    const mockLanguage = 'nb';
-
-    const { queryClient } = renderAppContext(({ refetchTexts }: AppContextProps) => (
-      <Button onClick={() => refetchTexts(mockLanguage)} />
+  it('invalidates layout sets query for Apps in preview', async () => {
+    const { queryClient } = renderAppContext(({ updateLayoutSetsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateLayoutSetsForPreview()} />
     ));
 
     await clickButton();
@@ -208,16 +173,67 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['FetchTextResources', org, app, mockLanguage],
+        queryKey: [AppsQueryKey.AppLayoutSets],
       }),
     );
   });
 
-  it('resets text query', async () => {
+  it('invalidates layout settings query for Apps in preview', async () => {
+    const { queryClient } = renderAppContext(
+      ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutSettingsForPreview(selectedFormLayoutSetName)} />
+      ),
+    );
+
+    await clickButton();
+
+    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
+      }),
+    );
+  });
+
+  it('reset layout settings query for Apps in preview', async () => {
+    const { queryClient } = renderAppContext(
+      ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
+        <Button onClick={() => updateLayoutSettingsForPreview(selectedFormLayoutSetName, true)} />
+      ),
+    );
+
+    await clickButton();
+
+    await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.resetQueries).toHaveBeenCalledWith({
+        queryKey: [AppsQueryKey.AppLayoutSettings, mockSelectedFormLayoutSetName],
+      }),
+    );
+  });
+
+  it('invalidates text query for Apps in preview', async () => {
     const mockLanguage = 'nb';
 
-    const { queryClient } = renderAppContext(({ refetchTexts }: AppContextProps) => (
-      <Button onClick={() => refetchTexts(mockLanguage, true)} />
+    const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateTextsForPreview(mockLanguage)} />
+    ));
+
+    await clickButton();
+
+    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [AppsQueryKey.AppTextResources, mockLanguage],
+      }),
+    );
+  });
+
+  it('resets text query for Apps in preview', async () => {
+    const mockLanguage = 'nb';
+
+    const { queryClient } = renderAppContext(({ updateTextsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateTextsForPreview(mockLanguage, true)} />
     ));
 
     await clickButton();
@@ -225,7 +241,7 @@ describe('AppContext', () => {
     await waitFor(async () => expect(queryClient.resetQueries).toHaveBeenCalledTimes(1));
     await waitFor(async () =>
       expect(queryClient.resetQueries).toHaveBeenCalledWith({
-        queryKey: ['FetchTextResources', org, app, mockLanguage],
+        queryKey: [AppsQueryKey.AppTextResources, mockLanguage],
       }),
     );
   });

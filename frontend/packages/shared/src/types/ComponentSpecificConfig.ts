@@ -106,6 +106,8 @@ type SummarizableComponentProps = {
 
 export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
+export type SummaryCustomTargetType = 'list' | 'string' | 'notSet';
+
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -117,7 +119,7 @@ type LabelSettings = {
 type ButtonStyle = 'primary' | 'secondary';
 type LayoutStyle = 'column' | 'row' | 'table';
 
-type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage';
+type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage' | 'closeSubform';
 type ClientAction<T extends ClientActionId = ClientActionId> = {
   id: T;
   type: 'ClientAction';
@@ -131,6 +133,22 @@ type CustomAction = ClientAction | ServerAction;
 type PageValidation = {
   page: 'current' | 'currentAndPrevious' | 'all';
   show: AllowedValidationMasks;
+};
+
+export type Summary2OverrideConfig = {
+  componentId: string;
+  hidden?: boolean;
+  forceShow?: boolean;
+  emptyFieldText?: string;
+  hideEmptyFields?: boolean;
+  isCompact?: boolean;
+  displayType?: SummaryCustomTargetType;
+};
+
+export type Summary2TargetConfig = {
+  type?: SummaryTargetType;
+  id?: string;
+  taskId?: string;
 };
 
 export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
@@ -267,12 +285,6 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       dataModelBindings: DataModelBindingsLikert;
       filter?: { key: 'start' | 'stop'; value: string | number };
     };
-  [ComponentType.LikertItem]: FormComponentProps &
-    SummarizableComponentProps &
-    SelectionComponentFull & {
-      dataModelBindings: DataModelBindingsOptionsSimple;
-      layout?: LayoutStyle;
-    };
   [ComponentType.Link]: {
     style: 'primary' | 'secondary' | 'link';
     openInNewTab?: boolean;
@@ -358,7 +370,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
   };
-  [ComponentType.SubForm]: FormComponentProps;
+  [ComponentType.Subform]: FormComponentProps;
   [ComponentType.Summary]: SummarizableComponentProps & {
     componentRef: string;
     largeGroup?: boolean;
@@ -371,13 +383,10 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     };
   };
   [ComponentType.Summary2]: {
-    target: {
-      type?: SummaryTargetType;
-      id?: string;
-      taskId?: string;
-    };
+    target: Summary2TargetConfig;
     showPageInAccordion?: boolean;
     hideEmptyFields?: boolean;
+    overrides?: Summary2OverrideConfig[];
   };
   [ComponentType.TextArea]: FormComponentProps &
     SummarizableComponentProps &

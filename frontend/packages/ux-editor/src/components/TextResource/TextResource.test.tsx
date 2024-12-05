@@ -8,7 +8,7 @@ import { renderWithProviders } from '../../testing/mocks';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage } from '@studio/pure-functions';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { appContextMock } from '../../testing/appContextMock';
@@ -195,8 +195,8 @@ describe('TextResource', () => {
     expect(upsertTextResources).toHaveBeenCalledWith(org, app, DEFAULT_LANGUAGE, {
       [textResourceId]: textResources[0].value + 'a',
     });
-    expect(appContextMock.refetchTexts).toHaveBeenCalledTimes(1);
-    expect(appContextMock.refetchTexts).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
+    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledTimes(1);
+    expect(appContextMock.updateTextsForPreview).toHaveBeenCalledWith(DEFAULT_LANGUAGE);
   });
 
   it('Does not mutate text resource when value is cleared and close button is clicked', async () => {

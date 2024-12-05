@@ -150,6 +150,16 @@ describe('AccessListDetail', () => {
       screen.queryByText(textMock('resourceadm.listadmin_delete_list_header')),
     ).not.toBeInTheDocument();
   });
+
+  it('should call back on back click', async () => {
+    const user = userEvent.setup();
+    renderAccessListDetail();
+
+    const backLink = screen.getByRole('link', { name: textMock('general.back') });
+    await user.click(backLink);
+
+    expect(mockedNavigate).toHaveBeenCalledWith('/listadmin');
+  });
 });
 
 const renderAccessListDetail = (

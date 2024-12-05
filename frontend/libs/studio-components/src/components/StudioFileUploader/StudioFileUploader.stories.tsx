@@ -1,12 +1,12 @@
 import React from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioFileUploadWrapper } from './StudioFileUploaderWrapper';
+import { StudioFileUploader } from './StudioFileUploader';
 
-type Story = StoryFn<typeof StudioFileUploadWrapper>;
+type Story = StoryFn<typeof StudioFileUploader>;
 
 const meta: Meta = {
   title: 'Components/StudioFileUploader',
-  component: StudioFileUploadWrapper,
+  component: StudioFileUploader,
   argTypes: {
     size: {
       control: 'select',
@@ -23,32 +23,20 @@ const meta: Meta = {
       control: 'text',
       type: 'string',
     },
-    validateFileName: {
-      control: 'boolean',
-      description:
-        'Set to `true` to simulate that the file name is valid. Set to `false` to simulate that file name is invalid.',
-    },
-    onInvalidFileName: {
-      control: 'boolean',
-      description:
-        'Set to `true` to simulate that an invalid file name is handled. Set to `false` to simulate no file name validation handling.',
-    },
-    onUploadFile: {
+    onSubmit: {
       table: { disable: true },
     },
   },
 };
 
 export const Preview: Story = (args): React.ReactElement => {
-  return <StudioFileUploadWrapper {...args} />;
+  return <StudioFileUploader {...args} />;
 };
 
 Preview.args = {
   uploaderButtonText: 'Last opp fil',
   variant: 'tertiary',
-  onUploadFile: () => {},
-  validateFileName: false,
-  onInvalidFileName: true,
+  onSubmit: () => {},
   disabled: false,
 };
 export default meta;

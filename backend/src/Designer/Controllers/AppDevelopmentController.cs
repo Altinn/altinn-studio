@@ -45,6 +45,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">The source control service.</param>
         /// <param name="altinnGitRepositoryFactory"></param>
         /// <param name="applicationInsightsSettings">An <see cref="ApplicationInsightsSettings"/></param>
+        /// <param name="mediator"></param>
         public AppDevelopmentController(IAppDevelopmentService appDevelopmentService, IRepository repositoryService, ISourceControl sourceControl, IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ApplicationInsightsSettings applicationInsightsSettings, IMediator mediator)
         {
             _appDevelopmentService = appDevelopmentService;
@@ -135,8 +136,11 @@ namespace Altinn.Studio.Designer.Controllers
                 }
                 if (!formLayouts.ContainsKey(layoutName))
                 {
+                    LayoutSetConfig layoutSetConfig = await _appDevelopmentService.GetLayoutSetConfig(editingContext, layoutSetName, cancellationToken);
                     await _mediator.Publish(new LayoutPageAddedEvent
                     {
+                        LayoutSetConfig = layoutSetConfig,
+                        LayoutName = layoutName,
                         EditingContext = editingContext,
                     }, cancellationToken);
                 }
@@ -213,9 +217,9 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("layout-settings")]
         public async Task<ActionResult> SaveLayoutSettings(string org, string app, [FromQuery] string layoutSetName, [FromBody] JsonNode layoutSettings, CancellationToken cancellationToken)
         {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             try
             {
-                string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
                 var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
                 await _appDevelopmentService.SaveLayoutSettings(editingContext, layoutSettings, layoutSetName, cancellationToken);
                 return Ok();
@@ -330,6 +334,17 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(layoutSets);
         }
 
+        [HttpGet("layout-sets/extended")]
+        [UseSystemTextJson]
+        public async Task<LayoutSetsModel> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+            return layoutSetsModel;
+        }
+
         /// <summary>
         /// Add a new layout set
         /// </summary>
@@ -346,6 +361,11 @@ namespace Altinn.Studio.Designer.Controllers
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             bool layoutIsInitialForPaymentTask = layoutSetPayload.TaskType == TaskType.Payment;
             LayoutSets layoutSets = await _appDevelopmentService.AddLayoutSet(editingContext, layoutSetPayload.LayoutSetConfig, layoutIsInitialForPaymentTask, cancellationToken);
+            await _mediator.Publish(new LayoutSetCreatedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSet = layoutSetPayload.LayoutSetConfig
+            }, cancellationToken);
             return Ok(layoutSets);
         }
 
@@ -383,6 +403,12 @@ namespace Altinn.Studio.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
             LayoutSets layoutSets = await _appDevelopmentService.DeleteLayoutSet(editingContext, layoutSetIdToUpdate, cancellationToken);
+
+            await _mediator.Publish(new LayoutSetDeletedEvent
+            {
+                EditingContext = editingContext,
+                LayoutSetId = layoutSetIdToUpdate
+            }, cancellationToken);
             return Ok(layoutSets);
         }
 

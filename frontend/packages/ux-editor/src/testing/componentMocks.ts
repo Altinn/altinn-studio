@@ -1,5 +1,5 @@
 import type { FormComponent, FormComponentBase } from '../types/FormComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import type { FormContainer } from '../types/FormContainer';
 
@@ -21,6 +21,24 @@ const checkboxesComponent: FormComponent<ComponentType.Checkboxes> = {
   ],
   optionsId: '',
 };
+
+const customButton: FormComponent<ComponentType.CustomButton> = {
+  ...commonProps(ComponentType.CustomButton),
+  actions: [],
+  buttonStyle: 'primary',
+};
+
+const closeSubformButton: FormComponent<ComponentType.CustomButton> = {
+  ...commonProps(ComponentType.CustomButton),
+  actions: [
+    {
+      type: 'ClientAction',
+      id: 'closeSubform',
+    },
+  ],
+  buttonStyle: 'primary',
+};
+
 const radiosComponent: FormComponent<ComponentType.RadioButtons> = {
   ...commonProps(ComponentType.RadioButtons),
   dataModelBindings: { simpleBinding: '' },
@@ -44,6 +62,11 @@ const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
 };
 const imageComponent: FormComponent<ComponentType.Image> = {
   ...commonProps(ComponentType.Image),
+  image: {
+    src: {},
+    width: '100%',
+    align: 'center',
+  },
 };
 const datePickerComponent: FormComponent<ComponentType.Datepicker> = {
   ...commonProps(ComponentType.Datepicker),
@@ -59,6 +82,18 @@ const dropdownComponent: FormComponent<ComponentType.Dropdown> = {
 const textareaComponent: FormComponent<ComponentType.TextArea> = {
   ...commonProps(ComponentType.TextArea),
   dataModelBindings: { simpleBinding: '' },
+};
+const subformComponent: FormComponent<ComponentType.Subform> = {
+  ...commonProps(ComponentType.Subform),
+  tableColumns: [
+    {
+      headerContent: 'header content',
+      cellContent: {
+        query: 'query',
+        default: 'default',
+      },
+    },
+  ],
 };
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
@@ -157,6 +192,8 @@ export const componentMocks = {
   [ComponentType.ButtonGroup]: buttonGroupContainer,
   [ComponentType.Button]: buttonComponent,
   [ComponentType.Checkboxes]: checkboxesComponent,
+  [ComponentType.CustomButton]: customButton,
+  [CustomComponentType.CloseSubformButton]: closeSubformButton,
   [ComponentType.Datepicker]: datePickerComponent,
   [ComponentType.Dropdown]: dropdownComponent,
   [ComponentType.FileUploadWithTag]: fileUploadWithTagComponent,
@@ -171,6 +208,7 @@ export const componentMocks = {
   [ComponentType.Paragraph]: paragraphComponent,
   [ComponentType.RadioButtons]: radiosComponent,
   [ComponentType.RepeatingGroup]: repeatingGroupContainer,
+  [ComponentType.Subform]: subformComponent,
   [ComponentType.TextArea]: textareaComponent,
   [ComponentType.Custom]: thirdPartyComponent,
   [ComponentType.Summary2]: summary2Component,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text } from './Text';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { FormItemContext } from '../../containers/FormItemContext';
 import {
@@ -17,7 +17,17 @@ import { componentSchemaMocks } from '../../testing/componentSchemaMocks';
 import type { ITextResource, ITextResources } from 'app-shared/types/global';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
+import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
+import userEvent from '@testing-library/user-event';
+import type { FormItem } from '@altinn/ux-editor/types/FormItem';
+
+jest.mock('../../testing/componentSchemaMocks', () => ({
+  componentSchemaMocks: {
+    ...jest.requireActual('../../testing/componentSchemaMocks').componentSchemaMocks,
+    CustomComponentType: {},
+  },
+}));
 
 // Test data:
 const labelTextId = 'labelTextId';
@@ -56,6 +66,27 @@ describe('TextTab', () => {
 
     it('should render the component', async () => {
       render({ props });
+    });
+
+    it('should render alert when schema does not have text property', async () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            type: 'CustomComponentType' as ComponentType,
+          } as FormItem,
+        },
+      });
+      const alert = screen.getByText(textMock('ux_editor.properties_panel.texts.no_properties'));
+      expect(alert).toBeInTheDocument();
+    });
+
+    it('should render sub title for texts', () => {
+      render({ props });
+      const textsSubTitle = screen.getByText(
+        textMock('ux_editor.properties_panel.texts.sub_title_texts'),
+      );
+      expect(textsSubTitle).toBeInTheDocument();
     });
 
     it('should render all available textResourceBinding properties for the group component', () => {
@@ -163,10 +194,128 @@ describe('TextTab', () => {
         screen.queryByText(textMock('ux_editor.options.section_heading')),
       ).not.toBeInTheDocument();
     });
+
+    it('should render image section if component is image', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Image],
+          },
+        },
+      });
+      const addImageTabTitle = screen.getByRole('tab', {
+        name: textMock('ux_editor.properties_panel.images.add_image_tab_title'),
+      });
+      const pasteUrlTabTitle = screen.getByRole('tab', {
+        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
+      });
+      expect(addImageTabTitle).toBeInTheDocument();
+      expect(pasteUrlTabTitle).toBeInTheDocument();
+    });
+
+    it('should render sub title for images options when component is image', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Image],
+          },
+        },
+      });
+      const imagesSubTitle = screen.getByText(
+        textMock('ux_editor.properties_panel.texts.sub_title_images'),
+      );
+      expect(imagesSubTitle).toBeInTheDocument();
+    });
+
+    it('should call handleUpdate when handleComponentChange is triggered from EditTextResourceBindings', async () => {
+      const user = userEvent.setup();
+      const newText = 'newText';
+      render({ props });
+      const addTitleText = screen.getByRole('button', {
+        name: textMock('ux_editor.modal_properties_textResourceBindings_title'),
+      });
+      await user.click(addTitleText);
+      const enterTextField = screen.getByRole('textbox', {
+        name: textMock('ux_editor.text_resource_binding_text'),
+      });
+      await user.type(enterTextField, newText);
+      await waitFor(() => enterTextField.blur());
+      await waitFor(() => {
+        expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('should call handleUpdate when handleComponentChange is triggered from EditOptions', async () => {
+      const user = userEvent.setup();
+      const newOptionsRef = 'newOptionsRef';
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Checkboxes],
+          },
+        },
+      });
+      const addReferenceTab = await screen.findByRole('tab', {
+        name: textMock('ux_editor.options.tab_referenceId'),
+      });
+      await waitFor(() => user.click(addReferenceTab));
+      const enterReferenceField = screen.getByRole('textbox', {
+        name: textMock('ux_editor.modal_properties_custom_code_list_id'),
+      });
+      await user.type(enterReferenceField, newOptionsRef);
+      await waitFor(() => enterReferenceField.blur());
+      await waitFor(() => {
+        expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('should call handleUpdate when handleComponentChange is triggered from EditImage', async () => {
+      const user = userEvent.setup();
+      const newUrl = 'newUrl';
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Image],
+          },
+        },
+      });
+      const pasteUrlTab = screen.getByRole('tab', {
+        name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
+      });
+      await user.click(pasteUrlTab);
+      const enterUrlField = screen.getByRole('textbox', {
+        name: textMock('ux_editor.properties_panel.images.enter_external_url'),
+      });
+      await user.type(enterUrlField, newUrl);
+      await waitFor(() => enterUrlField.blur());
+      await waitFor(() => {
+        expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('should render subform tabel section if component is subform', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Subform],
+          },
+        },
+      });
+      const tabelHeading = screen.getByRole('heading', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.heading'),
+        level: 2,
+      });
+      expect(tabelHeading).toBeInTheDocument();
+    });
   });
 });
 
-const render = ({ props = {}, editId }: { props: Partial<FormItemContext>; editId?: string }) => {
+const render = ({ props = {} }: { props: Partial<FormItemContext> }) => {
   queryClientMock.setQueryData(
     [QueryKey.FormComponent, props.formItem.type],
     componentSchemaMocks[props.formItem.type],

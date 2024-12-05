@@ -3,8 +3,7 @@ import classes from './ThreeDotsMenu.module.css';
 import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { Link } from '@digdir/designsystemet-react';
-import { StudioButton, StudioPopover } from '@studio/components';
+import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
 import { ClonePopoverContent } from './ClonePopoverContent';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -23,11 +22,11 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
   return (
     <StudioPopover>
       <StudioPopover.Trigger asChild>
-        <StudioButton
-          color='inverted'
+        <StudioPageHeader.HeaderButton
           icon={<MenuElipsisVerticalIcon />}
           title={t('sync_header.gitea_menu')}
-          variant='tertiary'
+          color='light'
+          variant='regular'
         />
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popover}>
@@ -53,20 +52,16 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
           )}
           <li>
             <StudioButton
-              asChild
+              as='a'
+              className={classes.menuButton + ' ' + classes.link}
+              fullWidth
+              href={repositoryPath(org, app)}
+              icon={<GiteaIcon />}
+              rel='noopener noreferrer'
               size='small'
               variant='tertiary'
-              fullWidth
-              className={classes.menuButton}
             >
-              <Link
-                href={repositoryPath(org, app)}
-                rel='noopener noreferrer'
-                className={classes.link}
-              >
-                <GiteaIcon />
-                {t('sync_header.repository')}
-              </Link>
+              {t('sync_header.repository')}
             </StudioButton>
           </li>
           <li>

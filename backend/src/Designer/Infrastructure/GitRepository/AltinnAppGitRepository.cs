@@ -8,6 +8,8 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
@@ -203,6 +205,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string filePath = Path.Combine(ModelFolderPath, fileName);
             await WriteTextByRelativePathAsync(filePath, xsd, true);
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Saves the image to the disk.
+        /// </summary>
+        /// <param name="image">Stream representing the image to be saved.</param>
+        /// <param name="imageFileName">The file name of the image to be saved.</param>
+        /// <returns>A string containing the relative path to the file saved.</returns>
+        public async Task<string> SaveImageAsMemoryStream(MemoryStream image, string imageFileName)
+        {
+            string filePath = Path.Combine(ImagesFolderName, imageFileName);
+            image.Position = 0;
+            await WriteStreamByRelativePathAsync(filePath, image, true);
+            image.Position = 0;
 
             return filePath;
         }
@@ -409,20 +427,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public void ChangeLayoutSetFolderName(string oldLayoutSetName, string newLayoutSetName, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (DirectoryExistsByRelativePath(GetPathToLayoutSet(newLayoutSetName)))
-            {
-                throw new NonUniqueLayoutSetIdException("Suggested new layout set name already exist");
-            }
-            string destAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(GetPathToLayoutSet(newLayoutSetName, true));
-
-            string sourceRelativePath = GetPathToLayoutSet(oldLayoutSetName, true);
-            if (!DirectoryExistsByRelativePath(sourceRelativePath))
-            {
-                throw new NotFoundException("Layout set you are trying to change doesn't exist");
-            }
-
-            string sourceAbsolutePath = GetAbsoluteFileOrDirectoryPathSanitized(sourceRelativePath);
-            Directory.Move(sourceAbsolutePath, destAbsolutePath);
+            string currentDirectoryPath = GetPathToLayoutSet(oldLayoutSetName, true);
+            string newDirectoryPath = GetPathToLayoutSet(newLayoutSetName, true);
+            MoveDirectoryByRelativePath(currentDirectoryPath, newDirectoryPath);
         }
 
         /// <summary>
@@ -559,15 +566,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string currentFilePath = GetPathToLayoutFile(layoutSetName, layoutFileName);
             string newFilePath = GetPathToLayoutFile(layoutSetName, newFileName);
-            if (!FileExistsByRelativePath(currentFilePath))
-            {
-                throw new FileNotFoundException("Layout does not exist.");
-            }
-            if (FileExistsByRelativePath(newFilePath))
-            {
-                throw new ArgumentException("New layout name must be unique.");
-            }
-            File.Move(GetAbsoluteFileOrDirectoryPathSanitized(currentFilePath), GetAbsoluteFileOrDirectoryPathSanitized(newFilePath));
+            MoveFileByRelativePath(currentFilePath, newFilePath, newFileName);
         }
 
         public async Task<LayoutSets> GetLayoutSetsFile(CancellationToken cancellationToken = default)
@@ -751,12 +750,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="payload">The contents of the new options list as a string</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The new options list as a string.</returns>
-        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, string payload, CancellationToken cancellationToken = default)
+        public async Task<string> CreateOrOverwriteOptionsList(string optionsListId, List<Option> payload, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            var serialiseOptions = new JsonSerializerOptions { WriteIndented = true };
+            string payloadString = JsonSerializer.Serialize(payload, serialiseOptions);
+
             string optionsFilePath = Path.Combine(OptionsFolderPath, $"{optionsListId}.json");
-            await WriteTextByRelativePathAsync(optionsFilePath, payload, true, cancellationToken);
+            await WriteTextByRelativePathAsync(optionsFilePath, payloadString, true, cancellationToken);
             string fileContent = await ReadTextByRelativePathAsync(optionsFilePath, cancellationToken);
 
             return fileContent;
@@ -804,17 +806,76 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return OpenStreamByRelativePath(ProcessDefinitionFilePath);
         }
 
+        public Definitions GetDefinitions()
+        {
+            Stream processDefinitionStream = GetProcessDefinitionFile();
+            XmlSerializer serializer = new(typeof(Definitions));
+            return (Definitions)serializer.Deserialize(processDefinitionStream);
+        }
+
+        /// <summary>
+        /// Checks if image already exists in wwwroot
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image from wwwroot</param>
+        /// <returns>A boolean indication if image exists</returns>
+        public bool DoesImageExist(string imageFilePath)
+        {
+            return FileExistsByRelativePath(GetPathToImage(imageFilePath));
+        }
+
         /// <summary>
         /// Gets specified image from App/wwwroot folder of local repo
         /// </summary>
         /// <param name="imageFilePath">The file path of the image</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>The image as stream</returns>
-        public Stream GetImage(string imageFilePath, CancellationToken cancellationToken = default)
+        public Stream GetImageAsStreamByFilePath(string imageFilePath, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             string imagePath = GetPathToImage(imageFilePath);
             return OpenStreamByRelativePath(imagePath);
+        }
+
+        /// <summary>
+        /// Delete specified image from App/wwwroot folder of local repo
+        /// </summary>
+        /// <param name="imageFilePath">The file path of the image</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>The image as stream</returns>
+        public Task DeleteImageByImageFilePath(string imageFilePath, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string imagePath = GetPathToImage(imageFilePath);
+            DeleteFileByRelativePath(imagePath);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Gets all image filePathNames from App/wwwroot folder of local repo
+        /// </summary>
+        /// <returns>Array of file paths to all images in App/wwwroot</returns>
+        public List<string> GetAllImageFileNames()
+        {
+            List<string> allFilePaths = new List<string>();
+            if (!DirectoryExistsByRelativePath(ImagesFolderName))
+            {
+                return allFilePaths;
+            }
+
+            // Make sure to sync this list of fileExtensions in frontend if changed until the below issue is done:
+            // ISSUE: https://github.com/Altinn/altinn-studio/issues/13649
+            string[] allowedExtensions =
+            {
+                ".png", ".jpg", ".jpeg", ".svg", ".gif",
+                ".bmp", ".webp", ".tiff", ".ico", ".heif", ".heic"
+            };
+
+            IEnumerable<string> files = GetFilesByRelativeDirectory(ImagesFolderName, "*.*", true)
+                .Where(file => allowedExtensions.Contains(Path.GetExtension(file).ToLower())).Select(file => Path.GetRelativePath(GetAbsoluteFileOrDirectoryPathSanitized(ImagesFolderName), file));
+
+            allFilePaths.AddRange(files);
+
+            return allFilePaths;
         }
 
         /// <summary>
@@ -825,11 +886,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private string GetPathToModelJsonSchema(string modelName)
         {
             return Path.Combine(ModelFolderPath, $"{modelName}.schema.json");
-        }
-
-        private string GetPathToModelMetadata(string modelName)
-        {
-            return Path.Combine(ModelFolderPath, $"{modelName}.metadata.json");
         }
 
         private static string GetPathToTexts()

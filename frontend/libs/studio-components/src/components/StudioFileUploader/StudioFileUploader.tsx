@@ -1,75 +1,68 @@
-import type { RefObject } from 'react';
+import type { InputHTMLAttributes, RefObject } from 'react';
 import React, { forwardRef } from 'react';
 import classes from './StudioFileUploader.module.css';
 import { UploadIcon } from '@studio/icons';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
-
-export type FileNameValidation = {
-  validateFileName: (fileName: string) => boolean;
-  onInvalidFileName: (file?: FormData, fileName?: string) => void;
-};
+import { useForwardedRef } from '@studio/hooks';
 
 export type StudioFileUploaderProps = {
-  onUploadFile: (file: FormData, fileName: string) => void;
-  accept?: string;
-  size?: StudioButtonProps['size'];
-  variant?: StudioButtonProps['variant'];
-  disabled?: boolean;
   uploaderButtonText?: string;
-  customFileNameValidation?: FileNameValidation;
-  dataTestId?: string;
-};
+  onSubmit?: (file: File) => void;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size' | 'onSubmit'> &
+  Pick<StudioButtonProps, 'size' | 'variant' | 'color'>;
 
-/**
- * @component
- *    Component for uploading a file from a studio button and show spinner during uploading
- */
-export const StudioFileUploader = forwardRef<HTMLElement, StudioFileUploaderProps>(
+export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploaderProps>(
   (
     {
-      onUploadFile,
-      accept,
-      size,
-      variant = 'tertiary',
+      className,
+      color,
       disabled,
+      onSubmit,
+      size,
       uploaderButtonText,
-      customFileNameValidation,
-      dataTestId,
+      variant = 'tertiary',
+      ...rest
     },
-    ref: RefObject<HTMLInputElement>,
+    ref,
   ): React.ReactElement => {
+    const internalRef = useForwardedRef(ref);
+
     const handleInputChange = () => {
-      const file = getFile(ref);
+      const file = getFile(internalRef);
       if (file) handleSubmit();
     };
 
     const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
-      const file = getFile(ref);
-      if (isFileNameValid(file, ref, customFileNameValidation)) {
-        const formData = new FormData();
-        formData.append('file', file);
-        onUploadFile(formData, file.name);
+      const file = getFile(internalRef);
+      if (file) {
+        onSubmit?.(file);
       }
+      resetRef(internalRef);
+    };
+
+    const handleButtonClick = () => {
+      internalRef.current?.click();
     };
 
     return (
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className={className}>
         <input
-          data-testid={dataTestId}
-          type='file'
-          accept={accept}
-          ref={ref}
+          aria-label={uploaderButtonText}
+          className={classes.fileInput}
           disabled={disabled}
           onChange={handleInputChange}
-          className={classes.fileInput}
+          ref={internalRef}
+          type='file'
+          {...rest}
         />
         <StudioButton
-          size={size}
-          icon={<UploadIcon />}
-          onClick={() => ref?.current?.click()}
+          color={color}
           disabled={disabled}
+          icon={<UploadIcon />}
+          onClick={handleButtonClick}
+          size={size}
           variant={variant}
         >
           {uploaderButtonText}
@@ -83,19 +76,6 @@ StudioFileUploader.displayName = 'StudioFileUploader';
 
 const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current?.files?.item(0);
 
-const isFileNameValid = (
-  file: File,
-  fileRef: RefObject<HTMLInputElement>,
-  customFileNameValidation: FileNameValidation,
-): boolean => {
-  if (!file) return false;
-  if (!customFileNameValidation) return true;
-  if (!customFileNameValidation.validateFileName(file.name)) {
-    const formData = new FormData();
-    formData.append('file', file);
-    customFileNameValidation.onInvalidFileName(formData, file.name);
-    fileRef.current.value = '';
-    return false;
-  }
-  return true;
+const resetRef = (fileRef: RefObject<HTMLInputElement>): void => {
+  fileRef.current.value = '';
 };

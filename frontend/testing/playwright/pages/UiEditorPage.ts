@@ -117,7 +117,7 @@ export class UiEditorPage extends BasePage {
 
   public async waitForDraggableToolbarItemToBeVisible(component: ComponentType): Promise<void> {
     const textTreeItem = this.page
-      .getByTestId(DataTestId.DraggableToolbarItem)
+      .getByTestId(DataTestId.DraggableToolbarItem as string)
       .getByText(this.textMock(`ux_editor.component_title.${component}`));
 
     await expect(textTreeItem).toBeVisible();
@@ -261,12 +261,12 @@ export class UiEditorPage extends BasePage {
   }
 
   private getDroppableList(): Locator {
-    return this.page.getByTestId(DataTestId.DroppableList);
+    return this.page.getByTestId(DataTestId.DroppableList as string);
   }
 
   private async getDraggableComponent(componentToDrag: ComponentType): Promise<Locator> {
     return this.page
-      .getByTestId(DataTestId.DraggableToolbarItem)
+      .getByTestId(DataTestId.DraggableToolbarItem as string)
       .getByText(this.textMock(`ux_editor.component_title.${componentToDrag}`));
   }
 

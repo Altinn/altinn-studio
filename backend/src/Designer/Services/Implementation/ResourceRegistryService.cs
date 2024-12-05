@@ -19,7 +19,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Altinn2DelegationMigration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -34,7 +33,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
         private readonly ResourceRegistryMaskinportenIntegrationSettings _maskinportenIntegrationSettings;
-        private readonly IAltinn2DelegationMigrationClient _altinn2DelegationMigrationClient;
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true };
 
         public ResourceRegistryService()
@@ -42,7 +40,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         }
 
-        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings, IAltinn2DelegationMigrationClient altinn2DelegationMigrationClient)
+        public ResourceRegistryService(HttpClient httpClient, IHttpClientFactory httpClientFactory, IMaskinportenService maskinportenService, IClientDefinition maskinPortenClientDefinition, PlatformSettings platformSettings, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IOptions<ResourceRegistryMaskinportenIntegrationSettings> maskinportenIntegrationSettings)
         {
             _httpClient = httpClient;
             _httpClientFactory = httpClientFactory;
@@ -51,7 +49,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _platformSettings = platformSettings;
             _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _maskinportenIntegrationSettings = maskinportenIntegrationSettings.Value;
-            _altinn2DelegationMigrationClient = altinn2DelegationMigrationClient;
         }
 
         public async Task<ActionResult> PublishServiceResource(ServiceResource serviceResource, string env, string policyPath = null)
@@ -73,7 +70,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 publishResourceToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}";
                 getResourceRegistryUrl = $"{publishResourceToResourceRegistryUrl}/{serviceResource.Identifier}";
-                tokenResponse = await _maskinPortenService.ExchangeToAltinnToken(tokenResponse, env);
                 fullWritePolicyToResourceRegistryUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/{serviceResource.Identifier}/policy";
             }
             else
@@ -301,13 +297,53 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         public async Task<DelegationCountOverview> GetDelegationCount(string serviceCode, int serviceEditionCode, string environment)
         {
-            return await _altinn2DelegationMigrationClient.GetNumberOfDelegations(serviceCode, serviceEditionCode, environment);
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
+            TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
+
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/delegationcount/?serviceCode={serviceCode}&serviceEditionCode={serviceEditionCode}";
+
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsAsync<DelegationCountOverview>();
         }
+
         public async Task<ActionResult> StartMigrateDelegations(ExportDelegationsRequestBE delegationRequest, string environment)
         {
-            // TODO
+            _maskinportenClientDefinition.ClientSettings = GetMaskinportenIntegrationSettings(environment);
+            TokenResponse tokenResponse = await GetBearerTokenFromMaskinporten();
 
-            return new StatusCodeResult(201);
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(environment);
+
+            // set service expired
+            string setServiceEditionExpiredUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/setserviceeditionexpired?externalServiceCode={delegationRequest.ServiceCode}&externalServiceEditionCode={delegationRequest.ServiceEditionCode}";
+
+            using HttpRequestMessage setServiceEditionExpiredRequest = new HttpRequestMessage(HttpMethod.Get, setServiceEditionExpiredUrl);
+            setServiceEditionExpiredRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+
+            using HttpResponseMessage setServiceEditionExpiredResponse = await _httpClient.SendAsync(setServiceEditionExpiredRequest);
+            setServiceEditionExpiredResponse.EnsureSuccessStatusCode();
+
+            // set batch start time
+            string migrateDelegationsUrl = $"{resourceRegisterUrl}/resourceregistry/api/v1/altinn2export/exportdelegations";
+            delegationRequest.DateTimeForExport = DateTimeOffset.UtcNow.AddMinutes(10); // set batch start time 10 minutes from now
+            string serializedContent = JsonSerializer.Serialize(delegationRequest, _serializerOptions);
+            using HttpRequestMessage migrateDelegationsRequest = new HttpRequestMessage()
+            {
+                RequestUri = new Uri(migrateDelegationsUrl),
+                Method = HttpMethod.Post,
+                Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
+            };
+            migrateDelegationsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResponse.AccessToken);
+
+            using HttpResponseMessage migrateDelegationsResponse = await _httpClient.SendAsync(migrateDelegationsRequest);
+            migrateDelegationsResponse.EnsureSuccessStatusCode();
+
+            return new StatusCodeResult(202);
         }
 
         // RRR

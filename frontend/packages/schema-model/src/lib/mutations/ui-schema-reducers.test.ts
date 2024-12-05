@@ -47,13 +47,13 @@ import { expect } from '@jest/globals';
 import { CombinationKind, FieldType, Keyword, ObjectKind, StrRestrictionKey } from '../../types';
 import { ROOT_POINTER } from '../constants';
 import { getPointers } from '../mappers/getPointers';
-import { substringAfterLast, substringBeforeLast } from 'app-shared/utils/stringUtils';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { validateTestUiSchema } from '../../../test/validateTestUiSchema';
 import { SchemaModel } from '../SchemaModel';
 import type { FieldNode } from '../../types/FieldNode';
 import type { ReferenceNode } from '../../types/ReferenceNode';
 import type { CombinationNode } from '../../types/CombinationNode';
+import { StringUtils } from '@studio/pure-functions';
 
 describe('ui-schema-reducers', () => {
   let result: SchemaModel;
@@ -73,7 +73,7 @@ describe('ui-schema-reducers', () => {
     it('Converts a property to a root level definition', () => {
       const { schemaPointer } = stringNodeMock;
       result = promoteProperty(createNewModelMock(), schemaPointer);
-      const expectedPointer = `${ROOT_POINTER}/$defs/${substringAfterLast(schemaPointer, '/')}`;
+      const expectedPointer = `${ROOT_POINTER}/$defs/${StringUtils.substringAfterLast(schemaPointer, '/')}`;
       expect(getPointers(result.asArray())).toContain(expectedPointer);
       expect(result.getNodeBySchemaPointer(expectedPointer)).toMatchObject({
         fieldType: stringNodeMock.fieldType,
@@ -223,7 +223,7 @@ describe('ui-schema-reducers', () => {
     const name = 'new name';
     const callback = jest.fn();
     const args: SetPropertyNameArgs = { path: schemaPointer, name, callback };
-    const expectedPointer = substringBeforeLast(schemaPointer, '/') + '/' + name;
+    const expectedPointer = StringUtils.substringBeforeLast(schemaPointer, '/') + '/' + name;
 
     it('Sets the name of the given property', () => {
       result = setPropertyName(createNewModelMock(), args);

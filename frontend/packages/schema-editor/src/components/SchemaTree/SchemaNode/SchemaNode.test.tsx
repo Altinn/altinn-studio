@@ -1,5 +1,5 @@
 import { renderWithProviders } from '../../../../test/renderWithProviders';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { SchemaNode } from './SchemaNode';
 import { userEvent } from '@testing-library/user-event';
 import type { FieldNode } from '@altinn/schema-model';
@@ -41,7 +41,7 @@ describe('SchemaNode', () => {
     const save = jest.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, schemaPointer });
-    await user.click(getAddButton());
+    await user.click(getAddNodeInChildButton());
     const addTextButtonName = textMock('schema_editor.add_string');
     const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
     await user.click(addTextButton);
@@ -57,7 +57,7 @@ describe('SchemaNode', () => {
     const save = jest.fn();
     const numberOfChildren = objectNodeMock.children.length;
     render({ schemaModel, save, schemaPointer });
-    await user.click(getAddButton());
+    await user.click(getAddNodeInChildButton());
     const addCombinationButtonName = textMock('schema_editor.add_combination');
     const addCombinationButton = screen.getByRole('menuitem', { name: addCombinationButtonName });
     await user.click(addCombinationButton);
@@ -76,7 +76,7 @@ describe('SchemaNode', () => {
     const definitionName = extractNameFromPointer(definitionPointer);
     jest.spyOn(window, 'prompt').mockImplementation(() => definitionName);
     render({ schemaModel, save, schemaPointer });
-    await user.click(getAddButton());
+    await user.click(getAddNodeInChildButton());
     const addReferenceButtonName = textMock('schema_editor.add_reference');
     const addReferenceButton = screen.getByRole('menuitem', { name: addReferenceButtonName });
     await user.click(addReferenceButton);
@@ -174,7 +174,7 @@ describe('SchemaNode', () => {
     const schemaModel = setupSchemaModel();
     const save = jest.fn();
     render({ schemaModel, save, schemaPointer });
-    await user.click(getAddButton());
+    await user.click(getAddNodeInChildButton());
     const addTextButtonName = textMock('schema_editor.add_string');
     const addTextButton = screen.getByRole('menuitem', { name: addTextButtonName });
     await user.click(addTextButton);
@@ -204,13 +204,15 @@ const render = ({
   return renderWithProviders({
     appContextProps: { save, schemaModel, selectedUniquePointer, setSelectedUniquePointer },
   })(
-    <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
-      <DragAndDropTree.Root>
+    <StudioDragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={ROOT_POINTER}>
+      <StudioDragAndDropTree.Root>
         <SchemaNode schemaPointer={schemaPointer} />
-      </DragAndDropTree.Root>
-    </DragAndDropTree.Provider>,
+      </StudioDragAndDropTree.Root>
+    </StudioDragAndDropTree.Provider>,
   );
 };
 
-const getAddButton = () =>
-  screen.getByRole('button', { name: textMock('schema_editor.add_node_of_type') });
+const getAddNodeInChildButton = () =>
+  screen.getByRole('button', {
+    name: textMock('schema_editor.add_node_of_type_in_child_node_title'),
+  });

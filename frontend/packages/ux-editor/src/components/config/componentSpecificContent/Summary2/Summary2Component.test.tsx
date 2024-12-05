@@ -6,13 +6,8 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import React from 'react';
 import { componentMocks } from '../../../../testing/componentMocks';
-import {
-  component1IdMock,
-  layout1NameMock,
-  layout2NameMock,
-  layoutMock,
-} from '../../../../testing/layoutMock';
-import { layoutSet1NameMock } from '../../../../testing/layoutSetsMock';
+import { component1IdMock, layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
+import { layoutSet1NameMock, layoutSetsMock } from '../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { Summary2Component } from './Summary2Component';
@@ -30,9 +25,49 @@ describe('Summary2ComponentTargetSelector', () => {
       screen.getByRole('heading', { name: textMock('ux_editor.component_properties.target') }),
     ).toBeInTheDocument();
 
+    expect(targetTaskIdSelect()).toBeInTheDocument();
+
     expect(targetTypeSelect()).toBeInTheDocument();
 
+    expect(addNewOverrideButton()).toBeInTheDocument();
+
     expect(componentTargetSelect()).toBeInTheDocument();
+  });
+
+  it('should select the task id from the current layout when the task id of the target is not defined', async () => {
+    render();
+
+    const select = targetTaskIdSelect();
+    expect(select).toHaveValue(layoutSetsMock.sets[0].tasks[0]);
+  });
+
+  it('should select the task id from the target when the task id of the target is defined', async () => {
+    render({
+      component: { ...defaultProps.component, target: { taskId: 'Task_2' } },
+    });
+
+    const select = targetTaskIdSelect();
+    expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
+  });
+
+  it('should allow selecting a task id', async () => {
+    const user = userEvent.setup();
+    render();
+
+    await user.selectOptions(targetTaskIdSelect(), 'Task_2');
+    expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ target: { taskId: 'Task_2', type: 'component', id: '' } }),
+    );
+  });
+
+  it('should remove the task id from the target if the task id is the same as the current layout set', async () => {
+    const user = userEvent.setup();
+    render();
+
+    await user.selectOptions(targetTaskIdSelect(), 'Task_1');
+    expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ target: { type: 'component', id: '' } }),
+    );
   });
 
   it('should allow selecting page target and defaults to same page', async () => {
@@ -51,7 +86,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     await user.selectOptions(targetTypeSelect(), 'layoutSet');
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'layoutSet' } }),
+      expect.objectContaining({ target: { type: 'layoutSet', id: '' } }),
     );
   });
 
@@ -80,7 +115,7 @@ describe('Summary2ComponentTargetSelector', () => {
       component: { ...defaultProps.component, target: { type: 'page', id: layout1NameMock } },
     });
 
-    const pageId = layout2NameMock;
+    const pageId = layout1NameMock;
 
     await user.click(pageTargetSelect());
     await user.click(
@@ -112,7 +147,21 @@ describe('Summary2ComponentTargetSelector', () => {
       screen.getByText(textMock('ux_editor.component_properties.target_invalid')),
     ).toBeInTheDocument();
   });
+
+  it('can add new override', async () => {
+    const user = userEvent.setup();
+    render();
+    await user.click(addNewOverrideButton());
+    expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
+      expect.objectContaining({ overrides: expect.arrayContaining([expect.any(Object)]) }),
+    );
+  });
 });
+
+const targetTaskIdSelect = () =>
+  screen.getByRole('combobox', {
+    name: textMock('ux_editor.component_properties.target_taskId'),
+  });
 
 const targetTypeSelect = () =>
   screen.getByRole('combobox', {
@@ -129,15 +178,20 @@ const pageTargetSelect = () =>
     name: textMock('general.page'),
   });
 
+const addNewOverrideButton = () =>
+  screen.getByRole('button', {
+    name: textMock('ux_editor.component_properties.summary.add_override'),
+  });
+
 const defaultProps = {
   component: componentMocks[ComponentType.Summary2],
   handleComponentChange: jest.fn(),
 };
 const render = (props?: Partial<IGenericEditComponent<ComponentType.Summary2>>) => {
   const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   queryClient.setQueryData([QueryKey.FormLayouts, org, app, layoutSet1NameMock], {
     [layout1NameMock]: layoutMock,
-    [layout2NameMock]: layoutMock,
   });
   renderWithProviders(<Summary2Component {...defaultProps} {...props} />, {
     queryClient,

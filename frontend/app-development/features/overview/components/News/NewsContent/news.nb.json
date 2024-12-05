@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2024-10-25",
+      "title": "Prosess har blitt voksen!",
+      "content": "Vi har nå fjernet Beta-merket på Prosess, fordi den er godt testet og i aktiv bruk."
+    },
+    {
       "date": "2024-09-04",
       "title": "Vi har endret noen begreper i Studio",
       "content": "Accordion - Trekkspilliste, Lage - Utforming, Grid - Rutenett, Paragraf - Avsnitt og Likert - Likert-skala. Vi har også endret Kort svar og Langt svar til Lite tekstefelt og Stort tekstfelt."

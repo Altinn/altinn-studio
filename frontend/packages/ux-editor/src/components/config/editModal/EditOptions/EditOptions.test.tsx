@@ -1,8 +1,6 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-
 import { EditOptions } from './EditOptions';
-import { renderWithProviders } from '../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../../../../types/FormComponent';
@@ -10,6 +8,7 @@ import type { FormItem } from '../../../../types/FormItem';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from '../../../../testing/mocks';
 
 const mockComponent: FormComponent<ComponentType.RadioButtons> = {
   id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
@@ -34,17 +33,16 @@ const renderEditOptions = async <T extends ComponentType.Checkboxes | ComponentT
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
   renderOptions?: {
-    onlyCodeListOptions?: boolean;
+    areLayoutOptionsSupported?: boolean;
   };
 } = {}) => {
-  const component = {
-    ...mockComponent,
-    ...componentProps,
-  };
-  renderWithProviders(
+  return renderWithProviders(
     <EditOptions
       handleComponentChange={handleComponentChange}
-      component={component}
+      component={{
+        ...mockComponent,
+        ...componentProps,
+      }}
       renderOptions={renderOptions}
     />,
     {
@@ -69,7 +67,7 @@ describe('EditOptions', () => {
     });
     expect(
       await screen.findByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).toBeInTheDocument();
@@ -123,7 +121,7 @@ describe('EditOptions', () => {
 
     expect(
       await screen.findByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).toBeInTheDocument();
@@ -162,18 +160,18 @@ describe('EditOptions', () => {
 
     expect(
       screen.queryByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).not.toBeInTheDocument();
 
     const codelistTabElement = await screen.findByRole('tab', {
-      name: textMock('ux_editor.options.tab_codelist'),
+      name: textMock('ux_editor.options.tab_code_list'),
     });
     await waitFor(() => user.click(codelistTabElement));
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_codelist'),
+        name: textMock('ux_editor.options.tab_code_list'),
         selected: true,
       }),
     ).toBeInTheDocument();
@@ -204,11 +202,11 @@ describe('EditOptions', () => {
     ).toBeInTheDocument();
   });
 
-  it('should show alert message in Manual tab when prop onlyCodeListOptions is true', async () => {
+  it('should show alert message in Manual tab when prop areLayoutOptionsSupported is false', async () => {
     const user = userEvent.setup();
     await renderEditOptions({
       componentProps: { optionsId: '' },
-      renderOptions: { onlyCodeListOptions: true },
+      renderOptions: { areLayoutOptionsSupported: false },
       queries: {
         getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
       },
@@ -219,7 +217,7 @@ describe('EditOptions', () => {
     });
 
     await waitFor(() => user.click(manualTabElement));
-    expect(screen.getByText(textMock('ux_editor.options.codelist_only'))).toBeInTheDocument();
+    expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
 
   it('should show error message if query fails', async () => {

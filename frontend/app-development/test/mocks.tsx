@@ -10,8 +10,6 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { QueryClient } from '@tanstack/react-query';
 import { queryClientConfigMock } from 'app-shared/mocks/queryClientMock';
 
-export const textLanguagesMock = ['nb', 'nn', 'en'];
-
 export const renderWithProviders =
   (queries: Partial<ServicesContextProps> = {}, queryClient?: QueryClient) =>
   (component: ReactNode) => {

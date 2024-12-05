@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import classes from './ResourceDashboardPage.module.css';
 import { PlusCircleIcon, MigrationIcon, TasklistIcon } from '@studio/icons';
@@ -7,10 +7,8 @@ import { Spinner, Heading } from '@digdir/designsystemet-react';
 import { ResourceTable } from '../../components/ResourceTable';
 import { SearchBox } from '../../components/ResourceSeachBox';
 import { useGetResourceListQuery, useOrganizationsQuery } from '../../hooks/queries';
-import { MergeConflictModal } from '../../components/MergeConflictModal';
 import { NewResourceModal } from '../../components/NewResourceModal';
 import { ImportResourceModal } from '../../components/ImportResourceModal';
-import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { filterTableData } from '../../utils/resourceListUtils';
 import { useTranslation } from 'react-i18next';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
@@ -21,6 +19,7 @@ import { ImportAltinn3ResourceModal } from '../../components/ImportAltinn3Resour
 import { useImportResourceFromAltinn3Mutation } from '../../hooks/mutations/useImportResourceFromAltinn3Mutation';
 import type { EnvId } from '../../utils/resourceUtils';
 import type { Resource } from 'app-shared/types/ResourceAdm';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 /**
  * @component
@@ -30,6 +29,7 @@ import type { Resource } from 'app-shared/types/ResourceAdm';
  */
 export const ResourceDashboardPage = (): React.JSX.Element => {
   const createResourceModalRef = useRef<HTMLDialogElement>(null);
+  const importAltinn2ServiceModalRef = useRef<HTMLDialogElement>(null);
   const importAltinn3ResourceModalRef = useRef<HTMLDialogElement>(null);
   const { org, app } = useUrlParams();
   const { data: organizations } = useOrganizationsQuery();
@@ -47,10 +47,6 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
     availableEnvs: EnvId[];
   } | null>(null);
 
-  const [importModalOpen, setImportModalOpen] = useState(false);
-
-  // Get metadata with queries
-  const { data: repoStatus } = useRepoStatusQuery(org, app);
   const {
     data: resourceListData,
     isPending: resourceListPending,
@@ -133,17 +129,20 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
           })}
         </Heading>
         <div className={classes.topRightWrapper}>
-          <StudioButton asChild variant='tertiary' color='second' size='medium'>
-            <Link to={`${getResourceDashboardURL(org, app)}/accesslists`}>
-              <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
-              <TasklistIcon />
-            </Link>
-          </StudioButton>
+          <ButtonRouterLink
+            variant='tertiary'
+            color='second'
+            size='medium'
+            to={`${getResourceDashboardURL(org, app)}/accesslists`}
+          >
+            <strong>{t('resourceadm.dashboard_change_organization_lists')}</strong>
+            <TasklistIcon />
+          </ButtonRouterLink>
           <div className={classes.verticalDivider} />
           <StudioButton
             variant='tertiary'
             color='second'
-            onClick={() => setImportModalOpen(true)}
+            onClick={() => importAltinn2ServiceModalRef.current.showModal()}
             size='medium'
             icon={<MigrationIcon />}
             iconPlacement='right'
@@ -165,14 +164,14 @@ export const ResourceDashboardPage = (): React.JSX.Element => {
       </div>
       <div className={classes.horizontalDivider} />
       <div className={classes.componentWrapper}>{displayContent()}</div>
-      {repoStatus?.hasMergeConflict && (
-        <MergeConflictModal isOpen={repoStatus.hasMergeConflict} org={org} repo={app} />
-      )}
       <NewResourceModal
         ref={createResourceModalRef}
         onClose={() => createResourceModalRef.current?.close()}
       />
-      <ImportResourceModal isOpen={importModalOpen} onClose={() => setImportModalOpen(false)} />
+      <ImportResourceModal
+        ref={importAltinn2ServiceModalRef}
+        onClose={() => importAltinn2ServiceModalRef.current.close()}
+      />
       <ImportAltinn3ResourceModal
         ref={importAltinn3ResourceModalRef}
         availableEnvs={importData?.availableEnvs ?? []}

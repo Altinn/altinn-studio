@@ -22,7 +22,7 @@ public class LayoutSetsFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutSe
     IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) =>
-        $"/designer/api/{org}/{repository}/process-modelling/process-definition-latest";
+        $"/designer/api/{org}/{repository}/process-modelling/process-definition";
 
     public LayoutSetsFileSyncTaskIdTests(WebApplicationFactory<Program> factory) : base(factory)
     {
@@ -39,8 +39,6 @@ public class LayoutSetsFileSyncTaskIdTests : DesignerEndpointsTestsBase<LayoutSe
 
         string processContent = SharedResourcesHelper.LoadTestDataAsString(bpmnFilePath);
         processContent.Replace(metadata.TaskIdChange.OldId, metadata.TaskIdChange.NewId);
-        //processContent = metadata.TaskIdChange.Aggregate(processContent,
-        //  (current, metadataTaskIdChange) => current.Replace(metadataTaskIdChange.OldId, metadataTaskIdChange.NewId));
         using var processStream = new MemoryStream(Encoding.UTF8.GetBytes(processContent));
 
         string url = VersionPrefix(org, targetRepository);

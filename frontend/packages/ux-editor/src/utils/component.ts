@@ -6,7 +6,7 @@ import type {
   FormRadioButtonsComponent,
   SelectionComponentType,
 } from '../types/FormComponent';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { formItemConfigs } from '../data/formItemConfig';
 import type { FormItem } from '../types/FormItem';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
@@ -59,8 +59,11 @@ export const propertyTypeMatcher = (property: KeyValuePairs, propertyType: Prope
 
   switch (propertyType) {
     case PropertyTypes.string:
-      // Not all schemas with enum value explicitly specifies type as string
-      return baseMatch || !!property.enum;
+      // Not all schemas with enum value explicitly specify type as string
+      return baseMatch || (!!property.enum && typeof property.enum[0] === 'string');
+    case PropertyTypes.number:
+      // Not all schemas with enum value explicitly specify type as number
+      return baseMatch || (!!property.enum && typeof property.enum[0] === 'number');
     case PropertyTypes.array:
       // Currently only supporting array of strings with specified enum values
       return baseMatch && !!property.items?.enum;
@@ -134,9 +137,15 @@ export const generateRandomOption = (): IOption => ({ label: '', value: generate
  * @param id The id of the component to generate.
  * @returns A component of the given type.
  */
-export const generateFormItem = <T extends ComponentType>(type: T, id: string): FormItem<T> => {
+export const generateFormItem = <T extends ComponentType | CustomComponentType>(
+  type: T,
+  id: string,
+): FormItem<T> => {
   const { defaultProperties, itemType } = formItemConfigs[type];
-  return { ...defaultProperties, id, type, itemType } as FormItem<T>;
+  const componentType = formItemConfigs[type].componentRef
+    ? formItemConfigs[type].componentRef
+    : type;
+  return { ...defaultProperties, id, type: componentType, itemType } as FormItem<T>;
 };
 
 /**

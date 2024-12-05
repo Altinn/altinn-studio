@@ -1,15 +1,19 @@
 import React from 'react';
 import { useFormItemContext } from '../../containers/FormItemContext';
 import { useTranslation } from 'react-i18next';
-import { Alert } from '@digdir/designsystemet-react';
+import { Alert, Heading } from '@digdir/designsystemet-react';
 import { EditTextResourceBindings } from '../config/editModal/EditTextResourceBindings/EditTextResourceBindings';
 import { useComponentSchemaQuery } from '../../hooks/queries/useComponentSchemaQuery';
 import { StudioSpinner } from '@studio/components';
 import { EditOptions } from '../config/editModal/EditOptions';
-import type { FormComponentBase } from '../../types/FormComponent';
-import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormComponent, FormComponentBase } from '../../types/FormComponent';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useAppContext } from '../../hooks';
+import { EditImage } from '../config/editModal/EditImage';
+import classes from './Text.module.css';
+import { EditSubformTableColumns } from './EditSubformTableColumns';
+import { type FormContainer } from '@altinn/ux-editor/types/FormContainer';
 
 export const Text = () => {
   const { formItemId: formId, formItem: form, handleUpdate, debounceSave } = useFormItemContext();
@@ -17,6 +21,11 @@ export const Text = () => {
 
   const { data: schema } = useComponentSchemaQuery(form.type);
   const { selectedFormLayoutName } = useAppContext();
+
+  const handleComponentChange = async (updatedComponent: FormContainer | FormComponent) => {
+    handleUpdate(updatedComponent);
+    await debounceSave(formId, updatedComponent);
+  };
 
   if (!schema) {
     return (
@@ -33,15 +42,14 @@ export const Text = () => {
 
   return (
     <>
+      <Heading level={2} size='2xs' className={classes.heading}>
+        {t('ux_editor.properties_panel.texts.sub_title_texts')}
+      </Heading>
       {schema.properties.textResourceBindings?.properties && (
         <EditTextResourceBindings
           component={form}
-          handleComponentChange={async (updatedComponent) => {
-            handleUpdate(updatedComponent);
-            debounceSave(formId, updatedComponent);
-          }}
+          handleComponentChange={handleComponentChange}
           textResourceBindingKeys={Object.keys(schema.properties.textResourceBindings.properties)}
-          editFormId={formId}
           layoutName={selectedFormLayoutName}
         />
       )}
@@ -54,16 +62,23 @@ export const Text = () => {
               | (FormComponentBase<ComponentType.RadioButtons> &
                   ComponentSpecificConfig<ComponentType.RadioButtons>)
           }
-          handleComponentChange={async (updatedComponent) => {
-            handleUpdate(updatedComponent);
-            debounceSave(formId, updatedComponent);
-          }}
-          editFormId={formId}
+          handleComponentChange={handleComponentChange}
           layoutName={selectedFormLayoutName}
           renderOptions={{
-            onlyCodeListOptions: schema.properties.optionsId && !schema.properties.options,
+            areLayoutOptionsSupported: schema.properties.optionsId! && schema.properties.options,
           }}
         />
+      )}
+      {form.type === ComponentType.Image && (
+        <>
+          <Heading level={2} size='2xs' className={classes.heading}>
+            {t('ux_editor.properties_panel.texts.sub_title_images')}
+          </Heading>
+          <EditImage component={form} handleComponentChange={handleComponentChange} />
+        </>
+      )}
+      {form.type === ComponentType.Subform && (
+        <EditSubformTableColumns component={form} handleComponentChange={handleComponentChange} />
       )}
     </>
   );

@@ -7,19 +7,26 @@ import {
   ROOT_POINTER,
   SchemaModel,
   validateTestUiSchema,
+  UNIQUE_POINTER_PREFIX,
+  Keyword,
 } from '@altinn/schema-model';
 import {
+  childOfReferredNodeMock,
   combinationNodeMock,
   fieldNode1Mock,
   nodeWithSameNameAsObjectChildMock,
   objectChildMock,
   objectNodeMock,
+  referenceNodeMock,
+  referredNodeMock,
   rootNodeMock,
   toggableNodeMock,
   uiSchemaNodesMock,
 } from '../../../../test/mocks/uiSchemaMock';
 import type { SavableSchemaModel } from '../../../classes/SavableSchemaModel';
 import { ArrayUtils } from '@studio/pure-functions';
+
+const uniquePointerOfRoot = UNIQUE_POINTER_PREFIX + ROOT_POINTER;
 
 describe('useMoveProperty', () => {
   const setup = (schemaEditorAppContextProps?: Partial<SchemaEditorAppContextProps>) => {
@@ -32,7 +39,7 @@ describe('useMoveProperty', () => {
     };
     const { result } = renderHookWithProviders({ appContextProps })(useMoveProperty);
     const move: HandleMove = result.current;
-    return { move, save };
+    return { move, save, schemaModel };
   };
 
   it('Moves a property to the given position', () => {
@@ -56,7 +63,7 @@ describe('useMoveProperty', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = fieldNode1Mock.schemaPointer;
     const indexInNewParent = 1;
-    const target: ItemPosition = { parentId: ROOT_POINTER, index: indexInNewParent };
+    const target: ItemPosition = { parentId: uniquePointerOfRoot, index: indexInNewParent };
     move(pointerOfNodeToMove, target);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
@@ -71,7 +78,7 @@ describe('useMoveProperty', () => {
   it('Moves a property to the given position when it is on the root and the target index is 0', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = fieldNode1Mock.schemaPointer;
-    const target: ItemPosition = { parentId: ROOT_POINTER, index: 0 };
+    const target: ItemPosition = { parentId: uniquePointerOfRoot, index: 0 };
     move(pointerOfNodeToMove, target);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
@@ -87,7 +94,7 @@ describe('useMoveProperty', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = fieldNode1Mock.schemaPointer;
     const index = rootNodeMock.children.length;
-    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    const target: ItemPosition = { parentId: uniquePointerOfRoot, index };
     move(pointerOfNodeToMove, target);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
@@ -103,7 +110,7 @@ describe('useMoveProperty', () => {
     const { move, save } = setup();
     const pointerOfNodeToMove = objectNodeMock.schemaPointer;
     const index = -1;
-    const target: ItemPosition = { parentId: ROOT_POINTER, index };
+    const target: ItemPosition = { parentId: uniquePointerOfRoot, index };
     move(pointerOfNodeToMove, target);
     expect(save).toHaveBeenCalledTimes(1);
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
@@ -154,37 +161,84 @@ describe('useMoveProperty', () => {
     expect(save).toHaveBeenCalledTimes(0);
   });
 
-  it('Updates the selected node pointer if moving a node that is selected into an object', () => {
-    const setSelectedNodePointerMock = jest.fn();
+  it('Updates the selected unique node pointer if moving a node that is selected into an object', () => {
+    const setSelectedUniquePointerMock = jest.fn();
     const { move, save } = setup({
-      selectedUniquePointer: fieldNode1Mock.schemaPointer,
-      setSelectedUniquePointer: setSelectedNodePointerMock,
+      selectedUniquePointer: `${UNIQUE_POINTER_PREFIX}${fieldNode1Mock.schemaPointer}`,
+      setSelectedUniquePointer: setSelectedUniquePointerMock,
     });
-    const pointerOfNodeToMove = fieldNode1Mock.schemaPointer;
+    const pointerOfNodeToMove = `${UNIQUE_POINTER_PREFIX}${fieldNode1Mock.schemaPointer}`;
     const index = rootNodeMock.children.length;
     const target: ItemPosition = { parentId: ROOT_POINTER, index };
     move(pointerOfNodeToMove, target);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
     const savedModel: SavableSchemaModel = save.mock.lastCall[0];
     const rootChildren = savedModel.getRootChildren();
     const addedRootChild = rootChildren[index];
-    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(addedRootChild.schemaPointer);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(
+      `${UNIQUE_POINTER_PREFIX}${addedRootChild.schemaPointer}`,
+    );
   });
 
-  it('Updates the selected node pointer if moving a node that is selected into a combination node', () => {
-    const setSelectedNodePointerMock = jest.fn();
+  it('Updates the selected unique node pointer if moving a node that is selected into a combination node', () => {
+    const setSelectedUniquePointerMock = jest.fn();
+    const pointerOfNodeToMove = UNIQUE_POINTER_PREFIX + toggableNodeMock.schemaPointer;
     const { move } = setup({
-      selectedUniquePointer: toggableNodeMock.schemaPointer,
-      setSelectedUniquePointer: setSelectedNodePointerMock,
+      selectedUniquePointer: pointerOfNodeToMove,
+      setSelectedUniquePointer: setSelectedUniquePointerMock,
     });
-    const pointerOfNodeToMove = toggableNodeMock.schemaPointer;
-    const pointerOfNewParent = combinationNodeMock.schemaPointer;
+    const pointerOfNewParent = `${UNIQUE_POINTER_PREFIX}${combinationNodeMock.schemaPointer}`;
     const indexInNewParent = 0;
     const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
     move(pointerOfNodeToMove, target);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledTimes(1);
-    expect(setSelectedNodePointerMock).toHaveBeenCalledWith(
-      `${combinationNodeMock.schemaPointer}/anyOf/${indexInNewParent}`,
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(
+      `${pointerOfNewParent}/anyOf/${indexInNewParent}`,
     );
+  });
+
+  it('Updates the selected unique node pointer when moving a node that is selected out of a referenced object', () => {
+    const setSelectedUniquePointerMock = jest.fn();
+    const schemaPointerOfNodeToMove = childOfReferredNodeMock.schemaPointer;
+    const nameOfNodeToMove = extractNameFromPointer(schemaPointerOfNodeToMove);
+    const uniquePointerOfParent = UNIQUE_POINTER_PREFIX + referenceNodeMock.schemaPointer;
+    const uniquePointerOfNodeToMove = `${uniquePointerOfParent}/${Keyword.Properties}/${nameOfNodeToMove}`;
+    const expectedFinalUniquePointer = `${uniquePointerOfRoot}/${Keyword.Properties}/${nameOfNodeToMove}`;
+    const { move } = setup({
+      selectedUniquePointer: uniquePointerOfNodeToMove,
+      setSelectedUniquePointer: setSelectedUniquePointerMock,
+    });
+    const target: ItemPosition = { parentId: uniquePointerOfRoot, index: 0 };
+    move(uniquePointerOfNodeToMove, target);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(expectedFinalUniquePointer);
+  });
+
+  it('Updates the selected unique node pointer when moving a node that is selected into a referenced object', () => {
+    const setSelectedUniquePointerMock = jest.fn();
+    const schemaPointerOfNodeToMove = objectNodeMock.schemaPointer;
+    const nameOfNodeToMove = extractNameFromPointer(schemaPointerOfNodeToMove);
+    const uniquePointerOfNodeToMove = `${uniquePointerOfRoot}/${Keyword.Properties}/${nameOfNodeToMove}`;
+    const uniquePointerOfTargetParent = UNIQUE_POINTER_PREFIX + referenceNodeMock.schemaPointer;
+    const expectedFinalUniquePointer = `${uniquePointerOfTargetParent}/${Keyword.Properties}/${nameOfNodeToMove}`;
+    const { move } = setup({
+      selectedUniquePointer: uniquePointerOfNodeToMove,
+      setSelectedUniquePointer: setSelectedUniquePointerMock,
+    });
+    const target: ItemPosition = { parentId: uniquePointerOfTargetParent, index: 0 };
+    move(uniquePointerOfNodeToMove, target);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledTimes(1);
+    expect(setSelectedUniquePointerMock).toHaveBeenCalledWith(expectedFinalUniquePointer);
+  });
+
+  it('Does not move the node when it would result in circular references', () => {
+    const { move, save } = setup();
+    const pointerOfNodeToMove = referenceNodeMock.schemaPointer;
+    const pointerOfNewParent = referredNodeMock.schemaPointer;
+    const indexInNewParent = 0;
+    const target: ItemPosition = { parentId: pointerOfNewParent, index: indexInNewParent };
+    jest.spyOn(window, 'alert').mockImplementation(jest.fn());
+    move(pointerOfNodeToMove, target);
+    expect(save).not.toHaveBeenCalled();
   });
 });

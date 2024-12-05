@@ -33,11 +33,18 @@ import {
   createAccessListsPath,
   accessListMemberPath,
   resourceAccessListPath,
-  processEditorPathPut,
   layoutSetPath,
   processEditorDataTypePath,
   processEditorDataTypesChangePath,
   dataModelsUploadPath,
+  altinn2DelegationsMigrationPath,
+  imagePath,
+  addImagePath,
+  optionListUploadPath,
+  optionListUpdatePath,
+  optionListIdUpdatePath,
+  processEditorPath,
+  selectedMaskinportenScopesPath,
 } from 'app-shared/api/paths';
 import type { AddLanguagePayload } from 'app-shared/types/api/AddLanguagePayload';
 import type { AddRepoParams } from 'app-shared/types/api';
@@ -45,7 +52,7 @@ import type { ApplicationAttachmentMetadata } from 'app-shared/types/Application
 import type { CreateDeploymentPayload } from 'app-shared/types/api/CreateDeploymentPayload';
 import type { CreateReleasePayload } from 'app-shared/types/api/CreateReleasePayload';
 import type { CreateRepoCommitPayload } from 'app-shared/types/api/CreateRepoCommitPayload';
-import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetPayload } from 'app-shared/types/api/LayoutSetPayload';
 import type { ILayoutSettings, ITextResourcesObjectFormat } from 'app-shared/types/global';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
 import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
@@ -53,7 +60,7 @@ import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
 import type { CreateDataModelPayload } from 'app-shared/types/api/CreateDataModelPayload';
 import type { Policy } from '@altinn/policy-editor';
-import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag } from 'app-shared/types/ResourceAdm';
+import type { NewResource, AccessList, Resource, AccessListOrganizationNumbers, HeaderEtag, MigrateDelegationsRequest } from 'app-shared/types/ResourceAdm';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { Repository } from 'app-shared/types/Repository';
@@ -61,6 +68,8 @@ import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment
 import type { AddLayoutSetResponse } from 'app-shared/types/api/AddLayoutSetResponse';
 import type { DataTypesChange } from 'app-shared/types/api/DataTypesChange';
 import type { FormLayoutRequest } from 'app-shared/types/api/FormLayoutRequest';
+import type { Option } from 'app-shared/types/Option';
+import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 
 const headers = {
   Accept: 'application/json',
@@ -70,6 +79,9 @@ const headers = {
 export const addAppAttachmentMetadata = (org: string, app: string, payload: ApplicationAttachmentMetadata) => post<void, ApplicationAttachmentMetadata>(appMetadataAttachmentPath(org, app), payload);
 export const addLanguageCode = (org: string, app: string, language: string, payload: AddLanguagePayload) => post<void, AddLanguagePayload>(textResourcesPath(org, app, language), payload);
 export const addLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string, payload: LayoutSetPayload) => post<AddLayoutSetResponse>(layoutSetPath(org, app, layoutSetIdToUpdate), payload);
+export const addImage = (org: string, app: string, form: FormData) => post<FormData>(addImagePath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteImage = (org: string, app: string, imageName: string) => del(imagePath(org, app, imageName));
+
 export const deleteLayoutSet = (org: string, app: string, layoutSetIdToUpdate: string) => del(layoutSetPath(org, app, layoutSetIdToUpdate));
 export const updateLayoutSetId = (org: string, app: string, layoutSetIdToUpdate: string, newLayoutSetId: string) => put(layoutSetPath(org, app, layoutSetIdToUpdate), newLayoutSetId, { headers: { 'Content-Type': 'application/json' } });
 export const addRepo = (repoToAdd: AddRepoParams) => post<Repository>(`${createRepoPath()}${buildQueryParams(repoToAdd)}`);
@@ -107,6 +119,9 @@ export const updateAppPolicy = (org: string, app: string, payload: Policy) => pu
 export const updateAppMetadata = (org: string, app: string, payload: ApplicationMetadata) => put(appMetadataPath(org, app), payload);
 export const updateAppConfig = (org: string, app: string, payload: AppConfig) => post(serviceConfigPath(org, app), payload);
 export const uploadDataModel = (org: string, app: string, form: FormData) => post<void, FormData>(dataModelsUploadPath(org, app), form, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const uploadOptionList = (org: string, app: string, payload: FormData) => post<void, FormData>(optionListUploadPath(org, app), payload, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateOptionList = (org: string, app: string, optionsListId: string, payload: Option[]) => put<Option[]>(optionListUpdatePath(org, app, optionsListId), payload);
+export const updateOptionListId = (org: string, app: string, optionsListId: string, newOptionsListId: string) => put<void, string>(optionListIdUpdatePath(org, app, optionsListId), JSON.stringify(newOptionsListId), { headers: { 'Content-Type': 'application/json' } });
 export const upsertTextResources = (org: string, app: string, language: string, payload: ITextResourcesObjectFormat) => put<ITextResourcesObjectFormat>(textResourcesPath(org, app, language), payload);
 
 // Resourceadm
@@ -123,6 +138,7 @@ export const removeResourceAccessList = (org: string, resourceId: string, listId
 export const publishResource = (org: string, repo: string, id: string, env: string) => post(publishResourcePath(org, repo, id, env), { headers: { 'Content-Type': 'application/json' } });
 export const updatePolicy = (org: string, repo: string, id: string, payload: Policy) => put(resourcePolicyPath(org, repo, id), payload);
 export const updateResource = (org: string, repo: string, payload: Resource) => put(resourceEditPath(org, repo), payload);
+export const migrateDelegations = (org: string, env: string, payload: MigrateDelegationsRequest) => post(altinn2DelegationsMigrationPath(org, env), payload);
 
 // ProcessEditor
 
@@ -130,10 +146,13 @@ export const addDataTypeToAppMetadata = (org: string, app: string, dataTypeId: s
 export const deleteDataTypeFromAppMetadata = (org: string, app: string, dataTypeId: string) => del(processEditorDataTypePath(org, app, dataTypeId));
 
 export const updateBpmnXml = (org: string, app: string, form: any) =>
-  put(processEditorPathPut(org, app), form, {
+  put(processEditorPath(org, app), form, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
 
 export const updateProcessDataTypes = (org: string, app: string, dataTypesChange: DataTypesChange) => put(processEditorDataTypesChangePath(org, app), dataTypesChange);
+
+// Maskinporten
+export const updateSelectedMaskinportenScopes = (org: string, app: string, appScopesUpsertRequest: MaskinportenScopes) => put(selectedMaskinportenScopesPath(org, app), appScopesUpsertRequest);

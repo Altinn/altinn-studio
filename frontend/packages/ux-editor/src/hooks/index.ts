@@ -1,6 +1,6 @@
 export type { UseText } from './useText';
 export { useComponentErrorMessage } from './useComponentErrorMessage';
-export { useComponentTypeName } from './useComponentTypeName';
+export { useComponentTitle } from './useComponentTitle';
 export { useFormLayouts } from './useFormLayouts';
 export { useFormLayout } from './useFormLayout';
 export { useSelectedFormLayout } from './useSelectedFormLayout';
@@ -11,3 +11,4 @@ export type { ComponentValidationResult, ErrorCode } from './useValidateComponen
 export { useValidateComponent } from './useValidateComponent';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
 export { useAppContext } from './useAppContext';
+export { useGetLayoutSetByName } from './useGetLayoutSetByName';

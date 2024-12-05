@@ -9,8 +9,8 @@ import {
   stringDefinitionNodeMock,
   uiSchemaNodesMock,
 } from '../../../test/mocks/uiSchemaMock';
-import type { DragAndDropTreeProviderProps } from 'app-shared/components/DragAndDropTree/DragAndDropTreeProvider';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import type { StudioDragAndDropTreeProviderProps } from '@studio/components';
+import { StudioDragAndDropTree } from '@studio/components';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -37,7 +37,7 @@ const defaultAppContextProps: SchemaEditorAppContextProps = {
 };
 
 const defaultDragAndDropTreeProviderProps: Omit<
-  DragAndDropTreeProviderProps<string>,
+  StudioDragAndDropTreeProviderProps<string>,
   'children'
 > = {
   onAdd: jest.fn(),
@@ -153,7 +153,7 @@ describe('NodePanel', () => {
 type RenderNodePanelProps = {
   props?: Partial<NodePanelProps>;
   appContextProps?: Partial<SchemaEditorAppContextProps>;
-  dragAndDropTreeProviderProps?: Partial<DragAndDropTreeProviderProps<string>>;
+  dragAndDropTreeProviderProps?: Partial<StudioDragAndDropTreeProviderProps<string>>;
 };
 
 const renderNodePanel = (
@@ -164,10 +164,10 @@ const renderNodePanel = (
   },
 ) =>
   renderWithProviders({ appContextProps: { ...defaultAppContextProps, ...appContextProps } })(
-    <DragAndDropTree.Provider<string>
+    <StudioDragAndDropTree.Provider<string>
       {...defaultDragAndDropTreeProviderProps}
       {...dragAndDropTreeProviderProps}
     >
       <NodePanel {...defaultProps} {...props} />
-    </DragAndDropTree.Provider>,
+    </StudioDragAndDropTree.Provider>,
   );
