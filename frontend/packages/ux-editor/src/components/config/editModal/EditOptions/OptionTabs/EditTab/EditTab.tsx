@@ -19,9 +19,9 @@ export function EditTab({
   component,
   handleComponentChange,
 }: EditOptionChoiceProps): React.ReactElement {
-  const initialComponentHAsOptionList: boolean = !!component.optionsId || !!component.options;
+  const initialComponentHasOptionList: boolean = !!component.optionsId || !!component.options;
   const [componentHasOptionList, setComponentHasOptionList] = useState<boolean>(
-    initialComponentHAsOptionList,
+    initialComponentHasOptionList,
   );
   const errorMessage = useComponentErrorMessage(component);
 
