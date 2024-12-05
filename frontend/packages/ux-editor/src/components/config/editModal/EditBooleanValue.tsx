@@ -6,7 +6,6 @@ import { FormField } from '../../FormField';
 
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
-  helpText?: string;
   defaultValue?: boolean;
 }
 
@@ -14,7 +13,6 @@ export const EditBooleanValue = ({
   component,
   handleComponentChange,
   propertyKey,
-  helpText,
   defaultValue,
 }: EditBooleanValueProps) => {
   const t = useText();
@@ -44,7 +42,7 @@ export const EditBooleanValue = ({
       helpText={
         isValueExpression(component[propertyKey])
           ? t('ux_editor.component_properties.config_is_expression_message')
-          : helpText || componentPropertyHelpText(propertyKey)
+          : componentPropertyHelpText(propertyKey)
       }
       renderField={({ fieldProps }) => {
         return (

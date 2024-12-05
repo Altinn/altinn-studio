@@ -8,7 +8,7 @@ export const useComponentPropertyHelpText = () => {
     (propertyKey: string): string | undefined => {
       const translationKey: string = `ux_editor.component_properties_help_text.${propertyKey}`;
       const translation = t(translationKey);
-      console.log(translation, translationKey);
+
       return translation !== translationKey ? translation : undefined;
     },
     [t],
