@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
@@ -91,6 +92,52 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 : $"App/ui/{layoutSetName}/layouts/{layoutName}.json";
             string savedLayout = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, relativePath);
             JsonUtils.DeepEquals(layout, savedLayout).Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData("ttd", "testUser", "Side1", "form")]
+        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutName, string layoutSetName)
+        {
+            string actualApp = "deleted-component-before-delete";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, actualApp, developer, app);
+
+            string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
+            JsonNode layoutWithDeletedComponent = JsonNode.Parse(layout);
+            JsonArray layoutArray = layoutWithDeletedComponent["data"]["layout"] as JsonArray;
+            layoutArray.RemoveAt(0);
+
+            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            var payload = new JsonObject
+            {
+                ["componentIdsChange"] = new JsonArray() {
+                    new JsonObject
+                    {
+                        ["oldComponentId"] = "Input-XDDxRp",
+                    }
+                },
+                ["layout"] = layoutWithDeletedComponent
+            };
+            HttpResponseMessage response = await SendHttpRequest(url, payload);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            string expectedApp = "deleted-component-after-delete";
+
+            string[] layoutPaths = [
+                "form/layouts/Side1.json",
+                "form/layouts/Side2.json",
+                "form/layouts/Side3.json",
+                "Activity_0z4cgvm/layouts/Side1.json",
+                "Activity_0z4cgvm/layouts/Side2.json",
+                "Activity_0z4cgvm/layouts/Side3.json"
+            ];
+
+            layoutPaths.ToList().ForEach(file =>
+            {
+                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                JsonUtils.DeepEquals(actual, expected).Should().BeTrue();
+            });
         }
 
         [Theory]
