@@ -44,4 +44,14 @@ export class ObjectUtils {
       })
       .flat();
   };
+
+  /**
+   * Sorts all entries in an object by its keys.
+   * @param object The object to sort.
+   * @returns A new object with the entries sorted by key.
+   */
+  static sortEntriesInObjectByKeys = <T extends object>(object: T): T =>
+    Object.fromEntries(
+      Object.entries(object).sort(([keyA], [keyB]) => keyA.localeCompare(keyB)),
+    ) as T;
 }

@@ -84,7 +84,7 @@ namespace Designer.Tests.Controllers.PreviewController
         public async Task Call_To_Get_Designer_Iframe_Does_Not_Hit_Image_EndPoint()
         {
             Mock<IAltinnGitRepositoryFactory> factMock = new();
-            ConfigureTestForSpecificTest = s =>
+            ConfigureTestServicesForSpecificTest = s =>
             {
                 s.AddTransient(_ => factMock.Object);
             };
