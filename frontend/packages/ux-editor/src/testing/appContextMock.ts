@@ -13,6 +13,7 @@ export const appContextMock: AppContextProps = {
   setSelectedFormLayoutSetName: jest.fn(),
   selectedFormLayoutName: layout1NameMock,
   setSelectedFormLayoutName: jest.fn(),
+  updateLayoutSetsForPreview: jest.fn(),
   updateLayoutsForPreview: jest.fn(),
   updateLayoutSettingsForPreview: jest.fn(),
   updateTextsForPreview: jest.fn(),

@@ -39,7 +39,7 @@ describe('OptionListEditor', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render an error message when api throws an error', async () => {
+  it('should render an error message when getOptionLists throws an error', async () => {
     await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
       queries: {
         getOptionLists: jest.fn().mockRejectedValueOnce(new Error('Error')),
@@ -47,7 +47,7 @@ describe('OptionListEditor', () => {
     });
 
     expect(
-      screen.getByText(textMock('ux_editor.modal_properties_error_message')),
+      screen.getByText(textMock('ux_editor.modal_properties_fetch_option_list_error_message')),
     ).toBeInTheDocument();
   });
 
