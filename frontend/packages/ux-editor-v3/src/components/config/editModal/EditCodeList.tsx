@@ -13,7 +13,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
 
-  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending, isError } = useOptionListIdsQuery(org, app);
   const [useCustomCodeList, setUseCustomCodeList] = useState<boolean>(optionListIds?.length === 0);
   const handleOptionsIdChange = (e) => {
     handleComponentChange({
@@ -31,7 +31,7 @@ export function EditCodeList({ component, handleComponentChange }: IGenericEditC
         />
       ) : isError ? (
         <ErrorMessage>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
+          {t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
         </ErrorMessage>
       ) : optionListIds?.length === 0 ? (
         <ErrorMessage>{t('ux_editor.modal_properties_no_options_found_message')}</ErrorMessage>

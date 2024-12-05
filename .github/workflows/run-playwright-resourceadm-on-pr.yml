@@ -61,4 +61,4 @@ jobs:
         if: failure()
         with:
           name: playwright-resourceadm-screenshots
-          path: frontend/testing/playwright/test-results
+          path: frontend/resourceadm/testing/playwright/test-results

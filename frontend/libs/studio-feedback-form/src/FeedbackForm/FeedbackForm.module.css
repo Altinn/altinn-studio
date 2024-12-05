@@ -5,6 +5,10 @@
   z-index: 99999999; /* Make sure this is on top of everything */
 }
 
+.disclaimer {
+  margin-top: var(--fds-spacing-2);
+}
+
 .submit {
   margin-top: var(--fds-spacing-2);
 }

@@ -60,8 +60,7 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      if (isCodeListValid(newCodeList)) onChange(newCodeList);
-      else onInvalid();
+      isCodeListValid(newCodeList) ? onChange(newCodeList) : onInvalid?.();
     },
     [onChange, onInvalid],
   );
@@ -105,19 +104,19 @@ function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactEleme
 
 function EmptyCodeListTable(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
-  return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
+  return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
 function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {
   return (
     <StudioInputTable>
-      <Headings />
-      <CodeLists {...props} />
+      <TableHeadings />
+      <TableBody {...props} />
     </StudioInputTable>
   );
 }
 
-function Headings(): ReactElement {
+function TableHeadings(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
 
   return (
@@ -133,7 +132,7 @@ function Headings(): ReactElement {
   );
 }
 
-function CodeLists({
+function TableBody({
   codeList,
   onChange,
   errorMap,
@@ -146,7 +145,7 @@ function CodeLists({
     [codeList, onChange],
   );
 
-  const handleChange = useCallback(
+  const handleBlur = useCallback(
     (index: number, newItem: CodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
       onChange(updatedCodeList);
@@ -162,7 +161,7 @@ function CodeLists({
           item={item}
           key={index}
           number={index + 1}
-          onChange={(newItem) => handleChange(index, newItem)}
+          onBlur={(newItem) => handleBlur(index, newItem)}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
         />
       ))}
