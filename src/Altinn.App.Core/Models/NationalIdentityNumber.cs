@@ -3,15 +3,13 @@ using System.Globalization;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Represents a Norwegian national identity number
-/// <remarks>
-/// The validation in this type is hard coded to the Norwegian national identity number format
-/// </remarks>
+/// <p>Represents a Norwegian national identity number.</p>
+/// <p>Note: The validation in this type is hard coded to the Norwegian national identity number format.</p>
 /// </summary>
 public readonly struct NationalIdentityNumber : IEquatable<NationalIdentityNumber>
 {
     /// <summary>
-    /// The national identity number value
+    /// The national identity number value.
     /// </summary>
     public string Value { get; }
 
@@ -21,7 +19,7 @@ public readonly struct NationalIdentityNumber : IEquatable<NationalIdentityNumbe
     }
 
     /// <summary>
-    /// Parses a national identity number
+    /// Parses a national identity number.
     /// </summary>
     /// <param name="value">The value to parse</param>
     /// <exception cref="FormatException">The number is not valid</exception>
@@ -33,11 +31,11 @@ public readonly struct NationalIdentityNumber : IEquatable<NationalIdentityNumbe
     }
 
     /// <summary>
-    /// Attempt to parse a national identity number
+    /// Attempt to parse a national identity number.
     /// </summary>
     /// <param name="value">The value to parse</param>
     /// <param name="nationalIdentityNumber">The resulting <see cref="NationalIdentityNumber"/> instance</param>
-    /// <returns>`true` on successful parse, `false` otherwise</returns>
+    /// <returns><c>true</c> on successful parse, <c>false</c> otherwise</returns>
     public static bool TryParse(string value, out NationalIdentityNumber nationalIdentityNumber)
     {
         nationalIdentityNumber = default;
@@ -99,38 +97,32 @@ public readonly struct NationalIdentityNumber : IEquatable<NationalIdentityNumbe
         return 11 - (value % 11);
     }
 
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object
-    /// </summary>
+    /// <inheritdoc/>
     public bool Equals(NationalIdentityNumber other) => Value == other.Value;
 
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object
-    /// </summary>
+    /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is NationalIdentityNumber other && Equals(other);
 
-    /// <summary>
-    /// Returns the hash code for the national identity number value
-    /// </summary>
+    /// <inheritdoc/>
     public override int GetHashCode() => Value.GetHashCode();
 
     /// <summary>
-    /// Returns a string representation of the national identity number
+    /// Returns a string representation of the national identity number.
     /// </summary>
     public override string ToString() => Value;
 
     /// <summary>
-    /// Determines whether two specified instances of <see cref="NationalIdentityNumber"/> are equal
+    /// Determines whether two specified instances of <see cref="NationalIdentityNumber"/> are equal.
     /// </summary>
     public static bool operator ==(NationalIdentityNumber left, NationalIdentityNumber right) => left.Equals(right);
 
     /// <summary>
-    /// Determines whether two specified instances of <see cref="NationalIdentityNumber"/> are not equal
+    /// Determines whether two specified instances of <see cref="NationalIdentityNumber"/> are not equal.
     /// </summary>
     public static bool operator !=(NationalIdentityNumber left, NationalIdentityNumber right) => !left.Equals(right);
 
     /// <summary>
-    /// Implicit conversion from <see cref="NationalIdentityNumber"/> to string
+    /// Implicit conversion from <see cref="NationalIdentityNumber"/> to string.
     /// </summary>
     /// <param name="nationalIdentityNumber">The national identity number instance</param>
     public static implicit operator string(NationalIdentityNumber nationalIdentityNumber)

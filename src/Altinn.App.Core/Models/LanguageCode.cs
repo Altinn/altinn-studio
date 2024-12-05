@@ -5,7 +5,7 @@ namespace Altinn.App.Core.Models;
 #pragma warning disable CA1000
 
 /// <summary>
-/// Specification details for language code ISO 639-1
+/// Specification details for language code ISO 639-1.
 /// </summary>
 public readonly partial struct Iso6391 : ILanguageCodeStandard
 {
@@ -28,32 +28,32 @@ public readonly partial struct Iso6391 : ILanguageCodeStandard
 }
 
 /// <summary>
-/// Specifications for language code standards
+/// Specifications for language code standards.
 /// </summary>
 public interface ILanguageCodeStandard
 {
     /// <summary>
-    /// Validation instructions for the language code implementation
+    /// Validation instructions for the language code implementation.
     /// </summary>
     /// <param name="code">The code to validate, e.g. "no" in the case of ISO 639-1</param>
     static abstract LanguageCodeValidationResult Validate(string code);
 };
 
 /// <summary>
-/// The result of a language code validation
+/// The result of a language code validation.
 /// </summary>
 /// <param name="IsValid">Is the code valid?</param>
 /// <param name="ErrorMessage">If not valid, what is the reason given?</param>
 public sealed record LanguageCodeValidationResult(bool IsValid, string? ErrorMessage);
 
 /// <summary>
-/// Represents a language code
+/// Represents a language code.
 /// </summary>
 public readonly struct LanguageCode<TLangCodeStandard> : IEquatable<LanguageCode<TLangCodeStandard>>
     where TLangCodeStandard : struct, ILanguageCodeStandard
 {
     /// <summary>
-    /// The language code value
+    /// The language code value.
     /// </summary>
     public string Value { get; }
 
@@ -63,7 +63,7 @@ public readonly struct LanguageCode<TLangCodeStandard> : IEquatable<LanguageCode
     }
 
     /// <summary>
-    /// Parses a language code
+    /// Parses a language code.
     /// </summary>
     /// <param name="code">The language code</param>
     /// <exception cref="FormatException">The language code format is invalid</exception>
@@ -77,7 +77,7 @@ public readonly struct LanguageCode<TLangCodeStandard> : IEquatable<LanguageCode
     }
 
     /// <summary>
-    /// Attempts to parse a language code
+    /// Attempts to parse a language code.
     /// </summary>
     /// <param name="code">The code to parse</param>
     /// <param name="result">The resulting <see cref="LanguageCodeValidationResult"/></param>
@@ -94,40 +94,34 @@ public readonly struct LanguageCode<TLangCodeStandard> : IEquatable<LanguageCode
         return new LanguageCodeValidationResult(true, null);
     }
 
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object
-    /// </summary>
+    /// <inheritdoc/>
     public bool Equals(LanguageCode<TLangCodeStandard> other) => Value == other.Value;
 
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object
-    /// </summary>
+    /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is LanguageCode<TLangCodeStandard> other && Equals(other);
 
-    /// <summary>
-    /// Returns the hash code for the language code value
-    /// </summary>
+    /// <inheritdoc/>
     public override int GetHashCode() => Value.GetHashCode();
 
     /// <summary>
-    /// Returns a string representation of the language code
+    /// Returns a string representation of the language code.
     /// </summary>
     public override string ToString() => Value;
 
     /// <summary>
-    /// Determines whether two specified instances of <see cref="LanguageCode{TLangCodeStandard}"/> are equal
+    /// Determines whether two specified instances of <see cref="LanguageCode{TLangCodeStandard}"/> are equal.
     /// </summary>
     public static bool operator ==(LanguageCode<TLangCodeStandard> left, LanguageCode<TLangCodeStandard> right) =>
         left.Equals(right);
 
     /// <summary>
-    /// Determines whether two specified instances of <see cref="LanguageCode{TLangCodeStandard}"/> are not equal
+    /// Determines whether two specified instances of <see cref="LanguageCode{TLangCodeStandard}"/> are not equal.
     /// </summary>
     public static bool operator !=(LanguageCode<TLangCodeStandard> left, LanguageCode<TLangCodeStandard> right) =>
         !left.Equals(right);
 
     /// <summary>
-    /// Implicit conversion from <see cref="LanguageCode{TLangCodeStandard}"/> to string
+    /// Implicit conversion from <see cref="LanguageCode{TLangCodeStandard}"/> to string.
     /// </summary>
     /// <param name="languageCode">The language code instance</param>
     public static implicit operator string(LanguageCode<TLangCodeStandard> languageCode)

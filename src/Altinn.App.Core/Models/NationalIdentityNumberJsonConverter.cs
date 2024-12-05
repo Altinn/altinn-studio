@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Json converter to transform between <see cref="string"/> and <see cref="NationalIdentityNumber"/>
+/// Json converter to transform between <see cref="string"/> and <see cref="NationalIdentityNumber"/>.
 /// </summary>
 internal class NationalIdentityNumberJsonConverter : JsonConverter<NationalIdentityNumber>
 {

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Json converter to transform between <see cref="string"/> and <see cref="JwtToken"/>
+/// Json converter to transform between <see cref="string"/> and <see cref="JwtToken"/>.
 /// </summary>
 internal class JwtTokenJsonConverter : JsonConverter<JwtToken>
 {

@@ -8,13 +8,9 @@ namespace Altinn.App.Core.Features.Maskinporten;
 public interface IMaskinportenClient
 {
     /// <summary>
-    /// <para>
-    /// Sends an authorization request to Maskinporten and retrieves a JWT Bearer token for successful requests.
-    /// </para>
-    /// <para>
-    /// Will cache tokens per scope, for the lifetime duration as defined in the Maskinporten token payload,
-    /// which means this method is safe to call in a loop or concurrent environment without encountering rate concerns.
-    /// </para>
+    /// <p>Sends an authorization request to Maskinporten and retrieves a JWT Bearer token for successful requests.</p>
+    /// <p>Will cache tokens per scope, for the lifetime duration as defined in the Maskinporten token payload,
+    /// which means this method is safe to call in a loop or concurrent environment without encountering rate concerns.</p>
     /// </summary>
     /// <param name="scopes">A list of scopes to claim authorization for with Maskinporten.</param>
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>
@@ -29,13 +25,9 @@ public interface IMaskinportenClient
     public Task<JwtToken> GetAccessToken(IEnumerable<string> scopes, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// <para>
-    /// Sends an authorization request to Maskinporten, then exchanges the grant for an Altinn issued token.
-    /// </para>
-    /// <para>
-    /// Will cache tokens per scope, for the lifetime duration as defined in the Altinn token payload,
-    /// which means this method is safe to call in a loop or concurrent environment without encountering rate concerns.
-    /// </para>
+    /// <p>Sends an authorization request to Maskinporten, then exchanges the grant for an Altinn issued token.</p>
+    /// <p>Will cache tokens per scope, for the lifetime duration as defined in the Altinn token payload,
+    /// which means this method is safe to call in a loop or concurrent environment without encountering rate concerns.</p>
     /// </summary>
     /// <param name="scopes">A list of scopes to claim authorization for with Maskinporten. These scopes will carry through to the Altinn issued token.</param>
     /// <param name="cancellationToken">An optional cancellation token to be forwarded to internal http calls.</param>

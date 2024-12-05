@@ -3,7 +3,7 @@ using Altinn.App.Core.Features.Correspondence.Models;
 namespace Altinn.App.Core.Features.Correspondence.Builder;
 
 /// <summary>
-/// Builder factory for creating <see cref="CorrespondenceAttachment"/> objects
+/// Builder factory for creating <see cref="CorrespondenceAttachment"/> objects.
 /// </summary>
 public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
 {
@@ -19,7 +19,7 @@ public class CorrespondenceAttachmentBuilder : ICorrespondenceAttachmentBuilder
     private CorrespondenceAttachmentBuilder() { }
 
     /// <summary>
-    /// Creates a new <see cref="CorrespondenceAttachmentBuilder"/> instance
+    /// Creates a new <see cref="CorrespondenceAttachmentBuilder"/> instance.
     /// </summary>
     public static ICorrespondenceAttachmentBuilderFilename Create() => new CorrespondenceAttachmentBuilder();
 

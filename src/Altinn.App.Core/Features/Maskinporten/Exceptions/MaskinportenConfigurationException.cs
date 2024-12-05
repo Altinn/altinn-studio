@@ -1,7 +1,7 @@
 namespace Altinn.App.Core.Features.Maskinporten.Exceptions;
 
 /// <summary>
-/// An exception that indicates a missing or invalid `maskinporten-settings.json` file
+/// An exception that indicates a missing or invalid <c>maskinporten-settings.json</c> file.
 /// </summary>
 public sealed class MaskinportenConfigurationException : MaskinportenException
 {

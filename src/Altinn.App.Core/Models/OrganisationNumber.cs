@@ -3,7 +3,7 @@ using System.Globalization;
 namespace Altinn.App.Core.Models;
 
 /// <summary>
-/// Represents the format of an organisation number
+/// Represents the format of an organisation number.
 /// </summary>
 public enum OrganisationNumberFormat
 {
@@ -19,10 +19,8 @@ public enum OrganisationNumberFormat
 }
 
 /// <summary>
-/// Represents a Norwegian organisation number
-/// <remarks>
-/// The validation in this type is hard coded to the Norwegian organisation number format
-/// </remarks>
+/// <p>Represents a Norwegian organisation number.</p>
+/// <p>Note: The validation in this type is hard coded to the Norwegian organisation number format.</p>
 /// </summary>
 public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
 {
@@ -30,7 +28,7 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     private readonly string _international;
 
     /// <summary>
-    /// Gets the organisation number as a string in the specified format
+    /// Gets the organisation number as a string in the specified format.
     /// </summary>
     /// <param name="format">The format to get</param>
     /// <exception cref="ArgumentOutOfRangeException">Invalid format provided</exception>
@@ -49,7 +47,7 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     }
 
     /// <summary>
-    /// Parses an organisation number
+    /// Parses an organisation number.
     /// </summary>
     /// <param name="value">The value to parse</param>
     /// <exception cref="FormatException">The organisation number is not valid</exception>
@@ -61,11 +59,11 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
     }
 
     /// <summary>
-    /// Attempt to parse an organisation number
+    /// Attempt to parse an organisation number.
     /// </summary>
     /// <param name="value">The value to parse</param>
     /// <param name="organisationNumber">The resulting <see cref="OrganisationNumber"/> instance</param>
-    /// <returns>`true` on successful parse, `false` otherwise</returns>
+    /// <returns><c>true</c> on successful parse, <c>false</c> otherwise</returns>
     public static bool TryParse(string value, out OrganisationNumber organisationNumber)
     {
         organisationNumber = default;
@@ -115,33 +113,27 @@ public readonly struct OrganisationNumber : IEquatable<OrganisationNumber>
         return true;
     }
 
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object
-    /// </summary>
+    /// <inheritdoc/>
     public bool Equals(OrganisationNumber other) => _local == other._local;
 
-    /// <summary>
-    /// Determines whether the specified object is equal to the current object
-    /// </summary>
+    /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is OrganisationNumber other && Equals(other);
 
-    /// <summary>
-    /// Returns the hash code for the <see cref="OrganisationNumberFormat.Local"/> value
-    /// </summary>
+    /// <inheritdoc/>
     public override int GetHashCode() => _local.GetHashCode();
 
     /// <summary>
-    /// Returns a string representation of the <see cref="OrganisationNumberFormat.Local"/> organisation number
+    /// Returns a string representation of the <see cref="OrganisationNumberFormat.Local"/> organisation number.
     /// </summary>
     public override string ToString() => _local;
 
     /// <summary>
-    /// Determines whether two specified instances of <see cref="OrganisationNumber"/> are equal
+    /// Determines whether two specified instances of <see cref="OrganisationNumber"/> are equal.
     /// </summary>
     public static bool operator ==(OrganisationNumber left, OrganisationNumber right) => left.Equals(right);
 
     /// <summary>
-    /// Determines whether two specified instances of <see cref="OrganisationNumber"/> are not equal
+    /// Determines whether two specified instances of <see cref="OrganisationNumber"/> are not equal.
     /// </summary>
     public static bool operator !=(OrganisationNumber left, OrganisationNumber right) => !left.Equals(right);
 }

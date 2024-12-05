@@ -4,22 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.App.Core.Features.Correspondence.Exceptions;
 
 /// <summary>
-/// An exception that indicates an error was returned from the correspondence server
+/// An exception that indicates an error was returned from the correspondence server.
 /// </summary>
 public class CorrespondenceRequestException : CorrespondenceException
 {
     /// <summary>
-    /// Problem details object from the Correspondence API server, if available
+    /// Problem details object from the Correspondence API server, if available.
     /// </summary>
     public ProblemDetails? ProblemDetails { get; init; }
 
     /// <summary>
-    /// Http status code related to the request, if available
+    /// Http status code related to the request, if available.
     /// </summary>
     public HttpStatusCode? HttpStatusCode { get; init; }
 
     /// <summary>
-    /// The request body, if available
+    /// The request body, if available.
     /// </summary>
     public string? ResponseBody { get; init; }
 

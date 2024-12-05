@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Altinn.App.Core.Features.Maskinporten.Converters;
 
 /// <summary>
-/// Utility class that facilitates <see cref="JsonWebKey"/> conversion
+/// Utility class that facilitates <see cref="JsonWebKey"/> conversion.
 /// </summary>
 internal static class JsonWebKeyConverter
 {

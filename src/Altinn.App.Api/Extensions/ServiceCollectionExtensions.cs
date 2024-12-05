@@ -122,13 +122,9 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// <para>
-    /// Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.
-    /// </para>
-    /// <para>
-    /// If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
-    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.
-    /// </para>
+    /// <p>Configures the <see cref="MaskinportenClient"/> service with a configuration object which will be static for the lifetime of the service.</p>
+    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
+    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.</p>
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="configureOptions">
@@ -145,13 +141,9 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// <para>
-    /// Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path.
-    /// </para>
-    /// <para>
-    /// If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
-    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.
-    /// </para>
+    /// <p>Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path.</p>
+    /// <p>If you have already provided a <see cref="MaskinportenSettings"/> configuration, either manually or
+    /// implicitly via <see cref="WebHostBuilderExtensions.ConfigureAppWebHost"/>, this will be overridden.</p>
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="configSectionPath">The configuration section path (Eg. "MaskinportenSettings")</param>

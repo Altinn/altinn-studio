@@ -4,7 +4,7 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Features.Correspondence.Builder;
 
 /// <summary>
-/// Builder factory for creating <see cref="CorrespondenceContent"/> objects
+/// Builder factory for creating <see cref="CorrespondenceContent"/> objects.
 /// </summary>
 public class CorrespondenceContentBuilder : ICorrespondenceContentBuilder
 {
@@ -16,7 +16,7 @@ public class CorrespondenceContentBuilder : ICorrespondenceContentBuilder
     private CorrespondenceContentBuilder() { }
 
     /// <summary>
-    /// Creates a new <see cref="CorrespondenceContentBuilder"/> instance
+    /// Creates a new <see cref="CorrespondenceContentBuilder"/> instance.
     /// </summary>
     /// <returns></returns>
     public static ICorrespondenceContentBuilderLanguage Create() => new CorrespondenceContentBuilder();

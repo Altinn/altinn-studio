@@ -5,13 +5,13 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Features.Correspondence.Models;
 
 /// <summary>
-/// Represents either an organisation or a person
+/// Represents either an organisation or a person.
 /// </summary>
 [OrganisationOrPersonIdentifierJsonConverter(OrganisationNumberFormat.International)]
 public abstract record OrganisationOrPersonIdentifier
 {
     /// <summary>
-    /// Represents an organisation
+    /// Represents an organisation.
     /// </summary>
     /// <param name="Value">The organisation number</param>
     public sealed record Organisation(OrganisationNumber Value) : OrganisationOrPersonIdentifier
@@ -24,7 +24,7 @@ public abstract record OrganisationOrPersonIdentifier
     }
 
     /// <summary>
-    /// Represents a person
+    /// Represents a person.
     /// </summary>
     /// <param name="Value">The national identity number</param>
     public sealed record Person(NationalIdentityNumber Value) : OrganisationOrPersonIdentifier
@@ -37,7 +37,7 @@ public abstract record OrganisationOrPersonIdentifier
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="OrganisationOrPersonIdentifier.Organisation"/>
+    /// Creates a new instance of <see cref="OrganisationOrPersonIdentifier.Organisation"/>.
     /// </summary>
     /// <param name="value">The organisation number</param>
     public static Organisation Create(OrganisationNumber value)
@@ -46,7 +46,7 @@ public abstract record OrganisationOrPersonIdentifier
     }
 
     /// <summary>
-    /// Creates a new instance of <see cref="OrganisationOrPersonIdentifier.Person"/>
+    /// Creates a new instance of <see cref="OrganisationOrPersonIdentifier.Person"/>.
     /// </summary>
     /// <param name="value">The national identity number</param>
     public static Person Create(NationalIdentityNumber value)
@@ -55,7 +55,7 @@ public abstract record OrganisationOrPersonIdentifier
     }
 
     /// <summary>
-    /// Attempts to parse a string containing either an <see cref="OrganisationNumber"/> or a <see cref="NationalIdentityNumber"/>
+    /// Attempts to parse a string containing either an <see cref="OrganisationNumber"/> or a <see cref="NationalIdentityNumber"/>.
     /// </summary>
     /// <param name="value">The string to parse</param>
     /// <exception cref="FormatException">The supplied string is not a valid format for either type</exception>
@@ -78,7 +78,7 @@ public abstract record OrganisationOrPersonIdentifier
 }
 
 /// <summary>
-/// Json converter to transform between <see cref="string"/> and <see cref="OrganisationOrPersonIdentifier"/>
+/// Json converter to transform between <see cref="string"/> and <see cref="OrganisationOrPersonIdentifier"/>.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false)]
 internal class OrganisationOrPersonIdentifierJsonConverterAttribute : JsonConverterAttribute

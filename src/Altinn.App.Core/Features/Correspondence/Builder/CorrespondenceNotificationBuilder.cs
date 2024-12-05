@@ -3,7 +3,7 @@ using Altinn.App.Core.Features.Correspondence.Models;
 namespace Altinn.App.Core.Features.Correspondence.Builder;
 
 /// <summary>
-/// Builder factory for creating <see cref="CorrespondenceNotification"/> objects
+/// Builder factory for creating <see cref="CorrespondenceNotification"/> objects.
 /// </summary>
 public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuilder
 {
@@ -23,9 +23,8 @@ public class CorrespondenceNotificationBuilder : ICorrespondenceNotificationBuil
     private CorrespondenceNotificationBuilder() { }
 
     /// <summary>
-    /// Creates a new <see cref="CorrespondenceNotificationBuilder"/> instance
+    /// Creates a new <see cref="CorrespondenceNotificationBuilder"/> instance.
     /// </summary>
-    /// <returns></returns>
     public static ICorrespondenceNotificationBuilderTemplate Create() => new CorrespondenceNotificationBuilder();
 
     /// <inheritdoc/>

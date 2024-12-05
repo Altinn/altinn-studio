@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Core.Features.Maskinporten.Delegates;
 
 /// <summary>
-/// A <see cref="DelegatingHandler"/> middleware that provides authorization for all http requests
+/// A <see cref="DelegatingHandler"/> middleware that provides authorization for all http requests.
 /// </summary>
 internal sealed class MaskinportenDelegatingHandler : DelegatingHandler
 {

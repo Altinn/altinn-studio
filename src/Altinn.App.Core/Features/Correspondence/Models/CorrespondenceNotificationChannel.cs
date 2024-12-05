@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Features.Correspondence.Models;
 
 /// <summary>
-/// Available notification channels (methods)
+/// Available notification channels (methods).
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CorrespondenceNotificationChannel

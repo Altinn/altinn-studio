@@ -3,33 +3,33 @@ using System.Text.Json.Serialization;
 namespace Altinn.App.Core.Features.Correspondence.Models;
 
 /// <summary>
-/// Represents the status of an attachment
+/// Represents the status of an attachment.
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum CorrespondenceAttachmentStatusResponse
 {
     /// <summary>
-    /// Attachment has been Initialized.
+    /// Attachment has been initialised.
     /// </summary>
     Initialized,
 
     /// <summary>
-    /// Awaiting processing of upload
+    /// Awaiting processing of upload.
     /// </summary>
     UploadProcessing,
 
     /// <summary>
-    /// Published and available for download
+    /// Published and available for download.
     /// </summary>
     Published,
 
     /// <summary>
-    /// Purged
+    /// Purged.
     /// </summary>
     Purged,
 
     /// <summary>
-    /// Failed
+    /// Failed.
     /// </summary>
     Failed,
 }

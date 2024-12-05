@@ -1,17 +1,17 @@
 namespace Altinn.App.Core.Features.Maskinporten.Constants;
 
 /// <summary>
-/// Supported token authorities
+/// Supported token authorities.
 /// </summary>
 internal enum TokenAuthorities
 {
     /// <summary>
-    /// Maskinporten
+    /// Maskinporten.
     /// </summary>
     Maskinporten,
 
     /// <summary>
-    /// Altinn Authentication token exchange
+    /// Altinn Authentication token exchange.
     /// </summary>
     AltinnTokenExchange,
 }

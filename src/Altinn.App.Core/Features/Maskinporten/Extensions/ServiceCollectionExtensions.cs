@@ -35,7 +35,7 @@ internal static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path and options name
+    /// Binds a <see cref="MaskinportenClient"/> configuration to the supplied config section path and options name.
     /// </summary>
     /// <param name="services">The service collection</param>
     /// <param name="configSectionPath">The configuration section path, e.g. "MaskinportenSettingsInternal"</param>
