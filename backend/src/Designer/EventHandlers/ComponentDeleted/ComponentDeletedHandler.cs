@@ -19,9 +19,9 @@ public class ComponentDeletedHandler(IFileSyncHandlerExecutor fileSyncHandlerExe
             "layouts",
             async () =>
             {
-                List<Reference> deletedIds = [new Reference("component", notification.LayoutSetName, notification.ComponentId)];
+                List<Reference> referencesToDelete = [new Reference("component", notification.LayoutSetName, notification.ComponentId)];
 
-                return await appDevelopmentService.DeleteFromLayouts(notification.EditingContext, deletedIds, cancellationToken);
+                return await appDevelopmentService.DeleteFromLayouts(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }
 }

@@ -1,14 +1,14 @@
 
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
-using System.Text.Json.Nodes;
-using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutPageDeleted;
 
@@ -32,7 +32,7 @@ public class LayoutPageDeletedHandler(
 
                 JsonNode deletedLayout = await altinnAppGitRepository.GetLayout(notification.LayoutSetName, notification.LayoutName, cancellationToken);
 
-                List<Reference> deletedIds = [new Reference("page", notification.LayoutSetName, notification.LayoutName)];
+                List<Reference> referencesToDelete = [new Reference("page", notification.LayoutSetName, notification.LayoutName)];
                 if (deletedLayout["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
                 {
                     return false;
@@ -41,10 +41,10 @@ public class LayoutPageDeletedHandler(
                 foreach (JsonNode component in layoutArray)
                 {
                     string deletedId = component["id"]?.GetValue<string>();
-                    deletedIds.Add(new Reference("component", notification.LayoutSetName, deletedId));
+                    referencesToDelete.Add(new Reference("component", notification.LayoutSetName, deletedId));
                 }
 
-                return await appDevelopmentService.DeleteFromLayouts(notification.EditingContext, deletedIds, cancellationToken);
+                return await appDevelopmentService.DeleteFromLayouts(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }
 }

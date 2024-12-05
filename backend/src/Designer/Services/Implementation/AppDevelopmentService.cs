@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
@@ -16,8 +17,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
 using LayoutSets = Altinn.Studio.Designer.Models.LayoutSets;
-using Altinn.App.Core.Helpers;
-using Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {

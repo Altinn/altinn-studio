@@ -3,7 +3,6 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
-using Altinn.Studio.Designer.EventHandlers.ComponentDeleted;
 using Altinn.Studio.Designer.Models;
 using JetBrains.Annotations;
 
