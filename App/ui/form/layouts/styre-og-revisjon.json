@@ -185,7 +185,7 @@
           "title": "styre-og-revisjon.Group-hMnQkh.title"
         },
         "hidden": ["notEquals", ["component", "revisor-radio"], "ja"],
-        "children": ["org-nr-revisor", "Input-VOCYsx", "Address-zMK6HS"]
+        "children": ["org-nr-revisor", "Address-zMK6HS"]
       },
       {
         "id": "org-nr-revisor",
