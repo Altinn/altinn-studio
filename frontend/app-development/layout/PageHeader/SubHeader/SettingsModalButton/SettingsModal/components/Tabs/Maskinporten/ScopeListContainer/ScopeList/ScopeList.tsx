@@ -1,6 +1,5 @@
 import React, { type ChangeEvent, type ReactElement } from 'react';
 import classes from './ScopeList.module.css';
-
 import {
   StudioCheckboxTable,
   type StudioCheckboxTableRowElement,
@@ -25,6 +24,7 @@ import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { LoggedInTitle } from '../LoggedInTitle';
 import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
+import { SaveStatus } from '../SaveStatus';
 
 export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
@@ -33,8 +33,11 @@ export type ScopeListProps = {
 
 export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement => {
   const { t } = useTranslation();
-  const { mutate: mutateSelectedMaskinportenScopes } =
-    useUpdateSelectedMaskinportenScopesMutation();
+  const {
+    mutate: mutateSelectedMaskinportenScopes,
+    isPending: isPendingSaveScopes,
+    isSuccess: scopesSaved,
+  } = useUpdateSelectedMaskinportenScopesMutation();
 
   const checkboxTableRowElements: StudioCheckboxTableRowElement[] = mapScopesToRowElements(
     maskinPortenScopes,
@@ -103,6 +106,7 @@ export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps
           ))}
         </StudioCheckboxTable.Body>
       </StudioCheckboxTable>
+      <SaveStatus isPending={isPendingSaveScopes} isSaved={scopesSaved} />
     </div>
   );
 };

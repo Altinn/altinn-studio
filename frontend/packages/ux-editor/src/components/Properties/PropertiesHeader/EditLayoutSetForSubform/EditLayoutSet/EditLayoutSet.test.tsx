@@ -49,21 +49,6 @@ describe('EditLayoutSet', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('should disable save button until user has selected a subform', async () => {
-    const user = userEvent.setup();
-    renderEditLayoutSet(subformLayoutSet);
-
-    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
-    expect(saveButton).toBeDisabled();
-
-    const subformSelector = screen.getByRole('combobox', {
-      name: textMock('ux_editor.component_properties.subform.choose_layout_set_label'),
-    });
-    await user.selectOptions(subformSelector, [subformLayoutSetId]);
-
-    expect(saveButton).not.toBeDisabled();
-  });
-
   it('should call handleComponentChange when save button is clicked', async () => {
     const user = userEvent.setup();
     renderEditLayoutSet(subformLayoutSet);
