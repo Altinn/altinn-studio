@@ -46,7 +46,7 @@ export function OptionListEditor({
     case 'success': {
       if (optionsListMap[optionsId] !== undefined) {
         return (
-          <LibraryOptionListEditorModal
+          <EditLibraryOptionListEditorModal
             label={label}
             optionsId={optionsId}
             optionsList={optionsListMap[optionsId]}
@@ -55,7 +55,7 @@ export function OptionListEditor({
       }
       if (component.options !== undefined) {
         return (
-          <ManualOptionListEditorModal
+          <EditManualOptionListEditorModal
             label={label}
             component={component}
             handleComponentChange={handleComponentChange}
@@ -66,17 +66,17 @@ export function OptionListEditor({
   }
 }
 
-type LibraryOptionListEditorModalProps = {
+type EditLibraryOptionListEditorModalProps = {
   label: string;
   optionsId: string;
   optionsList: Option[];
 };
 
-function LibraryOptionListEditorModal({
+function EditLibraryOptionListEditorModal({
   label,
   optionsId,
   optionsList,
-}: LibraryOptionListEditorModalProps): React.ReactNode {
+}: EditLibraryOptionListEditorModalProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { doReloadPreview } = usePreviewContext();
@@ -132,15 +132,15 @@ function LibraryOptionListEditorModal({
   );
 }
 
-type ManualOptionListEditorModalProps = {
+type EditManualOptionListEditorModalProps = {
   label: string;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-function ManualOptionListEditorModal({
+function EditManualOptionListEditorModal({
   label,
   component,
   handleComponentChange,
-}: ManualOptionListEditorModalProps): React.ReactNode {
+}: EditManualOptionListEditorModalProps): React.ReactNode {
   const { t } = useTranslation();
   const modalRef = useRef<HTMLDialogElement>(null);
   const editorTexts = useOptionListEditorTexts();

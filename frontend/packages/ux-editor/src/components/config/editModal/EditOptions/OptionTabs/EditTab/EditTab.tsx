@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioDeleteButton, StudioErrorMessage } from '@studio/components';
-import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
+import { AddManualOptionsModal } from './AddManualOptionsModal';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './/OptionListEditor';
@@ -35,7 +35,7 @@ export function EditTab({
         />
       ) : (
         <div className={classes.optionButtons}>
-          <EditManualOptionsWithEditor
+          <AddManualOptionsModal
             setComponentHasOptionList={setComponentHasOptionList}
             component={component}
             handleComponentChange={handleComponentChange}

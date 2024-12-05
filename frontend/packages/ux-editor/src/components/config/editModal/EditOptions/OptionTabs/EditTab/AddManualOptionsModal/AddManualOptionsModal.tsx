@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { useOptionListEditorTexts } from '../../hooks';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
-import classes from './EditManualOptionsWithEditor.module.css';
+import classes from './AddManualOptionsModal.module.css';
 
 export type EditManualOptionsWithEditorProps = {
   setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
-export function EditManualOptionsWithEditor({
+export function AddManualOptionsModal({
   setComponentHasOptionList,
   component,
   handleComponentChange,

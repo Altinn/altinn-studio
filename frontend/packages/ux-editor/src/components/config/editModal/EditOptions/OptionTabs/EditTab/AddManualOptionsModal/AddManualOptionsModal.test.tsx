@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
+import { AddManualOptionsModal } from './AddManualOptionsModal';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -14,7 +14,7 @@ mockComponent.optionsId = undefined;
 
 const handleComponentChange = jest.fn();
 
-describe('EditManualOptionsWithEditor', () => {
+describe('AddManualOptionsModal', () => {
   it('should display a button when no code list is defined in the layout', () => {
     renderEditManualOptionsWithEditor();
 
@@ -109,7 +109,7 @@ function renderEditManualOptionsWithEditor<
     ...componentProps,
   };
   renderWithProviders(
-    <EditManualOptionsWithEditor
+    <AddManualOptionsModal
       setComponentHasOptionList={setComponentHasOptionList}
       handleComponentChange={handleComponentChange}
       component={component}
