@@ -55,12 +55,5 @@ export function behavesLikeDataTask(task: string | null | undefined, layoutSets:
     return false;
   }
 
-  return (
-    layoutSets?.sets.some((set) => {
-      if (layoutSetIsDefault(set) && set.tasks?.length) {
-        return set.tasks.includes(task);
-      }
-      return false;
-    }) || false
-  );
+  return !!layoutSets?.sets.some((set) => layoutSetIsDefault(set) && set.tasks?.includes(task));
 }

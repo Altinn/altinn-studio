@@ -357,7 +357,7 @@ export function nb(): FixedLanguageList {
       ref_num: 'Referansenummer',
       sender: 'Avsender',
       subtitle: 'Kopi av din kvittering er sendt til ditt arkiv',
-      title: 'Skjema er sendt inn',
+      title: 'Skjemaet er sendt inn',
       title_submitted: 'Følgende er sendt inn:',
     },
     receipt_platform: {

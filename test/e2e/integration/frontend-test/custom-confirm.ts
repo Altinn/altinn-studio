@@ -31,6 +31,6 @@ describe('Custom confirm page', () => {
     cy.get('[data-componentid="confirmBody"]').should('contain.text', `på forrige side valgte du Petter.`);
     cy.findByRole('button', { name: /send inn/i }).click();
 
-    cy.get('#ReceiptContainer').should('contain.text', 'Skjema er sendt inn');
+    cy.get('#ReceiptContainer').should('contain.text', 'Skjemaet er sendt inn');
   });
 });

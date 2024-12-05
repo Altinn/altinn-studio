@@ -96,7 +96,9 @@ function Root() {
                       <PartyProvider>
                         <KeepAliveProvider>
                           <HelmetProvider>
-                            <App />
+                            <TaskStoreProvider>
+                              <App />
+                            </TaskStoreProvider>
                             <ToastContainer
                               position='top-center'
                               theme='colored'

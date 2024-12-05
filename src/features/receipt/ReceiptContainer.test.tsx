@@ -137,7 +137,7 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Skjema er sendt inn',
+        name: 'Skjemaet er sendt inn',
       }),
     ).toBeInTheDocument();
 

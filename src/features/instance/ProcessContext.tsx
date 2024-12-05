@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import { skipToken, useQuery } from '@tanstack/react-query';
@@ -11,7 +11,7 @@ import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { TaskKeys, useNavigateToTask } from 'src/hooks/useNavigatePage';
 import { fetchProcessState } from 'src/queries/queries';
-import { ProcessTaskType } from 'src/types';
+import { isProcessTaskType, ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { IProcess } from 'src/types/shared';
@@ -73,8 +73,6 @@ export const useReFetchProcessData = () => useContext(ProcessContext)?.refetch;
 
 /**
  * This returns the task type of the current process task, as we got it from the backend
- *
- * @see useRealTaskType
  */
 export function useTaskTypeFromBackend() {
   const processData = useLaxProcessData();
@@ -83,22 +81,12 @@ export function useTaskTypeFromBackend() {
     return ProcessTaskType.Archived;
   }
 
-  if (processData?.currentTask?.altinnTaskType) {
-    return processData.currentTask.altinnTaskType as ProcessTaskType;
+  const altinnTaskType = processData?.currentTask?.altinnTaskType;
+  if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
+    return altinnTaskType;
   }
 
   return ProcessTaskType.Unknown;
-}
-
-/**
- * This returns the task type of the current process task, as we want to use it in the frontend. Some tasks
- * are configured to behave like data tasks, and we want to treat them as such.
- *
- * @see useTaskTypeFromBackend
- */
-export function useRealTaskType() {
-  const taskId = useLaxProcessData()?.currentTask?.elementId;
-  return useRealTaskTypeById(taskId || undefined);
 }
 
 /**
@@ -112,53 +100,27 @@ export function useGetTaskTypeById() {
   const isStateless = useApplicationMetadata().isStatelessApp;
   const layoutSets = useLayoutSets();
 
-  return useCallback(
-    (taskId: string | undefined) => {
-      const task =
-        (processData?.processTasks?.find((t) => t.elementId === taskId) ??
-        processData?.currentTask?.elementId === taskId)
-          ? processData?.currentTask
-          : undefined;
+  return (taskId: string | undefined) => {
+    const task =
+      (processData?.processTasks?.find((t) => t.elementId === taskId) ?? processData?.currentTask?.elementId === taskId)
+        ? processData?.currentTask
+        : undefined;
 
-      if (isStateless) {
-        // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
-        // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
-        return ProcessTaskType.Data;
-      }
+    if (isStateless || taskId === TaskKeys.CustomReceipt || behavesLikeDataTask(taskId, layoutSets)) {
+      // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
+      // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
+      return ProcessTaskType.Data;
+    }
 
-      if (taskId === TaskKeys.CustomReceipt) {
-        return ProcessTaskType.Data;
-      }
+    if (taskId === TaskKeys.ProcessEnd || processData?.ended) {
+      return ProcessTaskType.Archived;
+    }
 
-      if (taskId === TaskKeys.ProcessEnd) {
-        return ProcessTaskType.Archived;
-      }
+    const altinnTaskType = task?.altinnTaskType;
+    if (altinnTaskType && isProcessTaskType(altinnTaskType)) {
+      return altinnTaskType;
+    }
 
-      if (processData?.ended) {
-        return ProcessTaskType.Archived;
-      }
-      if (task === undefined || task?.altinnTaskType === undefined) {
-        return ProcessTaskType.Unknown;
-      }
-
-      const isDataTask = behavesLikeDataTask(task.elementId, layoutSets);
-      return isDataTask ? ProcessTaskType.Data : (task.altinnTaskType as ProcessTaskType);
-    },
-    [isStateless, layoutSets, processData?.currentTask, processData?.ended, processData?.processTasks],
-  );
-}
-
-export function useRealTaskTypeById(taskId: string | undefined) {
-  const isStateless = useApplicationMetadata().isStatelessApp;
-  const taskType = useTaskTypeFromBackend();
-  const layoutSets = useLayoutSets();
-
-  if (isStateless) {
-    // Stateless apps only have data tasks. As soon as they start creating an instance from that stateless step,
-    // applicationMetadata.isStatelessApp will return false and we'll proceed as normal.
-    return ProcessTaskType.Data;
-  }
-
-  const isDataTask = behavesLikeDataTask(taskId, layoutSets);
-  return isDataTask ? ProcessTaskType.Data : taskType;
+    return ProcessTaskType.Unknown;
+  };
 }

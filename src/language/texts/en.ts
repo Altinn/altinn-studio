@@ -356,7 +356,7 @@ export function en() {
       ref_num: 'Reference number',
       sender: 'Sender',
       subtitle: 'A copy of your receipt has been sent to your archive',
-      title: 'Form is submitted',
+      title: 'The form is submitted',
       title_submitted: 'The following is submitted:',
     },
     receipt_platform: {

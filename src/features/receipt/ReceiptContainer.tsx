@@ -1,25 +1,36 @@
 import React, { useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Route, Routes } from 'react-router-dom';
 
 import { formatDate } from 'date-fns';
 
 import { AltinnContentIconReceipt } from 'src/components/atoms/AltinnContentIconReceipt';
+import { Form } from 'src/components/form/Form';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { ReceiptComponent } from 'src/components/organisms/AltinnReceipt';
 import { ReceiptComponentSimple } from 'src/components/organisms/AltinnReceiptSimple';
+import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { ReadyForPrint } from 'src/components/ReadyForPrint';
+import { ComponentRouting } from 'src/components/wrappers/ProcessWrapper';
 import { useAppName, useAppOwner, useAppReceiver } from 'src/core/texts/appTexts';
 import { useApplicationMetadata } from 'src/features/applicationMetadata/ApplicationMetadataProvider';
+import { useCurrentDataModelGuid } from 'src/features/datamodel/useBindingSchema';
+import { FormProvider } from 'src/features/form/FormContext';
+import { useLayoutSets } from 'src/features/form/layoutSets/LayoutSetsProvider';
 import { useLaxInstanceAllDataElements, useLaxInstanceData } from 'src/features/instance/InstanceContext';
 import { Lang } from 'src/features/language/Lang';
 import { useLanguage } from 'src/features/language/useLanguage';
 import { useParties } from 'src/features/party/PartiesProvider';
+import { PDFWrapper } from 'src/features/pdf/PDFWrapper';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
+import { TaskKeys } from 'src/hooks/useNavigatePage';
+import { ProcessTaskType } from 'src/types';
 import {
   filterDisplayAttachments,
   filterDisplayPdfAttachments,
   getAttachmentGroupings,
 } from 'src/utils/attachmentsUtils';
+import { behavesLikeDataTask } from 'src/utils/formLayout';
 import { getPageTitle } from 'src/utils/getPageTitle';
 import { getInstanceOwnerParty } from 'src/utils/party';
 import { returnUrlToArchive } from 'src/utils/urls/urlHelper';
@@ -77,6 +88,57 @@ export const getSummaryDataObject = ({
 
   return obj;
 };
+
+export function DefaultReceipt() {
+  return (
+    <PresentationComponent type={ProcessTaskType.Archived}>
+      <ReceiptContainer />
+    </PresentationComponent>
+  );
+}
+
+export function CustomReceipt() {
+  const layoutSets = useLayoutSets();
+  const dataModelGuid = useCurrentDataModelGuid();
+  const hasCustomReceipt = behavesLikeDataTask(TaskKeys.CustomReceipt, layoutSets);
+  const customReceiptDataModelNotFound = hasCustomReceipt && !dataModelGuid;
+
+  if (customReceiptDataModelNotFound) {
+    window.logWarnOnce(
+      'You specified a custom receipt, but the data model is missing. Falling back to default receipt.',
+    );
+    return (
+      <PresentationComponent type={ProcessTaskType.Archived}>
+        <ReceiptContainer />
+      </PresentationComponent>
+    );
+  }
+
+  return (
+    <FormProvider>
+      <Routes>
+        <Route
+          path=':pageKey/:componentId/*'
+          element={
+            <PresentationComponent type={ProcessTaskType.Archived}>
+              <ComponentRouting />
+            </PresentationComponent>
+          }
+        />
+        <Route
+          path='*'
+          element={
+            <PDFWrapper>
+              <PresentationComponent type={ProcessTaskType.Archived}>
+                <Form />
+              </PresentationComponent>
+            </PDFWrapper>
+          }
+        />
+      </Routes>
+    </FormProvider>
+  );
+}
 
 export const ReceiptContainer = () => {
   const applicationMetadata = useApplicationMetadata();

@@ -108,10 +108,6 @@ export interface SubRouting<Type extends CompTypes> {
   subRouting: (props: { node: LayoutNode<Type> }) => ReactNode;
 }
 
-export function implementsSubRouting<Def extends CompDef>(def: Def): def is Def & SubRouting<TypeFromDef<Def>> {
-  return 'subRouting' in def;
-}
-
 export type ValidationFilterFunction = (
   validation: BaseValidation,
   index: number,
