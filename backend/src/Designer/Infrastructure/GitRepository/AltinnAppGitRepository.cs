@@ -710,7 +710,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundException("Options folder not found.");
             }
 
-            string[] fileNames = GetFilesByRelativeDirectorySorted(optionsFolder, "*.json");
+            string[] fileNames = GetFilesByRelativeDirectoryAscSorted(optionsFolder, "*.json");
             IEnumerable<string> optionsListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
             return optionsListIds.ToArray();
         }

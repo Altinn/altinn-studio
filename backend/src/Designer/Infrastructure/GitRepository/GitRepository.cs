@@ -84,17 +84,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets all the files within the specified directory in a alphabetically sorted order.
+        /// Gets all the files within the specified directory in an alphabetically sorted order.
         /// </summary>
         /// <param name="relativeDirectory">Relative path to a directory within the repository.</param>
         /// <param name="patternMatch">An optional pattern that the retrieved files must match</param>
         /// <param name="searchInSubdirectories">An optional parameter to also get files in sub directories</param>
-        /// <param name="ascSorted">Sorts the files by file name. Asc is default</param>
-        protected string[] GetFilesByRelativeDirectorySorted(string relativeDirectory, string patternMatch = null, bool searchInSubdirectories = false, bool ascSorted = true)
+        protected string[] GetFilesByRelativeDirectoryAscSorted(string relativeDirectory, string patternMatch = null, bool searchInSubdirectories = false)
         {
             string[] fileNames = GetFilesByRelativeDirectory(relativeDirectory, patternMatch, searchInSubdirectories);
 
-            return ascSorted ? fileNames.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray() : fileNames.OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+            return fileNames.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
         }
 
         /// <summary>
