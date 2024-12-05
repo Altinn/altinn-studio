@@ -60,8 +60,7 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      if (isCodeListValid(newCodeList)) onChange(newCodeList);
-      else onInvalid();
+      isCodeListValid(newCodeList) ? onChange(newCodeList) : onInvalid?.();
     },
     [onChange, onInvalid],
   );
