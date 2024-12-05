@@ -68,7 +68,7 @@
   "resolutions": {
     "@testing-library/dom": "10.4.0",
     "@babel/traverse": "7.25.9",
-    "caniuse-lite": "1.0.30001684"
+    "caniuse-lite": "1.0.30001685"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
