@@ -5,9 +5,9 @@ import { SchemaSelect } from './SchemaSelect';
 import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,
-} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+} from '../../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
-import { convertMetadataToOption } from '../../../../utils/metadataUtils';
+import { convertMetadataToOption } from '../../../../../utils/metadataUtils';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
