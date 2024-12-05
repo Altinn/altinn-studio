@@ -68,7 +68,11 @@ describe('EditManualOptionsWithEditor', () => {
   it('should call setChosenOption when closing modal', async () => {
     const user = userEvent.setup();
     const mockSetChosenOption = jest.fn();
-    renderEditManualOptionsWithEditor({ setChosenOption: mockSetChosenOption });
+    const componentOptions = [];
+    renderEditManualOptionsWithEditor({
+      setChosenOption: mockSetChosenOption,
+      componentProps: { options: componentOptions },
+    });
 
     await user.click(getOpenModalButton());
 
