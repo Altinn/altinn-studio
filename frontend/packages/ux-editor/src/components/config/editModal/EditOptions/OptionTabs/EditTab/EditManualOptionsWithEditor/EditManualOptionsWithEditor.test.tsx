@@ -67,10 +67,10 @@ describe('EditManualOptionsWithEditor', () => {
 
   it('should call setChosenOption when closing modal', async () => {
     const user = userEvent.setup();
-    const mockSetChosenOption = jest.fn();
+    const mockSetComponentHasOptionList = jest.fn();
     const componentOptions = [];
     renderEditManualOptionsWithEditor({
-      setChosenOption: mockSetChosenOption,
+      setComponentHasOptionList: mockSetComponentHasOptionList,
       componentProps: { options: componentOptions },
     });
 
@@ -81,8 +81,8 @@ describe('EditManualOptionsWithEditor', () => {
     });
     await user.click(closeButton);
 
-    expect(mockSetChosenOption).toHaveBeenCalledTimes(1);
-    expect(mockSetChosenOption).toHaveBeenCalledWith(true);
+    expect(mockSetComponentHasOptionList).toHaveBeenCalledTimes(1);
+    expect(mockSetComponentHasOptionList).toHaveBeenCalledWith(true);
   });
 });
 
@@ -98,19 +98,19 @@ function getAddNewOptionButton() {
 
 type renderProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
   componentProps?: Partial<FormItem<T>>;
-  setChosenOption?: () => void;
+  setComponentHasOptionList?: () => void;
 };
 
 function renderEditManualOptionsWithEditor<
   T extends ComponentType.Checkboxes | ComponentType.RadioButtons,
->({ componentProps = {}, setChosenOption = jest.fn() }: renderProps<T> = {}) {
+>({ componentProps = {}, setComponentHasOptionList = jest.fn() }: renderProps<T> = {}) {
   const component = {
     ...mockComponent,
     ...componentProps,
   };
   renderWithProviders(
     <EditManualOptionsWithEditor
-      setChosenOption={setChosenOption}
+      setComponentHasOptionList={setComponentHasOptionList}
       handleComponentChange={handleComponentChange}
       component={component}
     />,

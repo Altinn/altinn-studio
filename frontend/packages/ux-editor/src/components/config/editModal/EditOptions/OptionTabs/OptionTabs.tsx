@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioTabs, StudioErrorMessage } from '@studio/components';
+import { StudioTabs } from '@studio/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { ManualTab } from './ManualTab';
 import { EditTab } from './EditTab';
-import { useComponentErrorMessage } from '../../../../../hooks';
 import { SelectedOptionsType } from '../EditOptions';
 import type { IGenericEditComponent } from '../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../types/FormComponent';
@@ -79,7 +78,7 @@ function OptionTabsMergedTabs({
         </StudioTabs.Tab>
       </StudioTabs.List>
       <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
-        <TabWithErrorHandling component={component} handleComponentChange={handleComponentChange} />
+        <EditTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
         <ReferenceTab component={component} handleComponentChange={handleComponentChange} />
@@ -130,35 +129,11 @@ function OptionTabsSplitTabs({ component, handleComponentChange, optionListIds }
         <SelectTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.Manual} className={classes.tabContent}>
-        <TabWithErrorHandling component={component} handleComponentChange={handleComponentChange} />
+        <ManualTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
       <StudioTabs.Content value={SelectedOptionsType.ReferenceId} className={classes.tabContent}>
         <ReferenceTab component={component} handleComponentChange={handleComponentChange} />
       </StudioTabs.Content>
     </StudioTabs>
-  );
-}
-
-type TabWithErrorHandlingProps = Pick<
-  IGenericEditComponent<SelectionComponentType>,
-  'component' | 'handleComponentChange'
->;
-
-function TabWithErrorHandling({ component, handleComponentChange }: TabWithErrorHandlingProps) {
-  const errorMessage = useComponentErrorMessage(component);
-
-  return (
-    <>
-      {shouldDisplayFeature('optionListEditor') ? (
-        <EditTab component={component} handleComponentChange={handleComponentChange} />
-      ) : (
-        <ManualTab component={component} handleComponentChange={handleComponentChange} />
-      )}
-      {errorMessage && (
-        <StudioErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </StudioErrorMessage>
-      )}
-    </>
   );
 }

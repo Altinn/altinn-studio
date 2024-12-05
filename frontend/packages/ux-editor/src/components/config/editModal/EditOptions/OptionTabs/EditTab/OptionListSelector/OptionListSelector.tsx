@@ -10,11 +10,11 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import classes from './OptionListSelector.module.css';
 
 type OptionListSelectorProps<T extends SelectionComponentType> = {
-  setChosenOption: (value: boolean) => void;
+  setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
 
 export function OptionListSelector<T extends SelectionComponentType>({
-  setChosenOption,
+  setComponentHasOptionList,
   component,
   handleComponentChange,
 }: OptionListSelectorProps<T>): React.ReactNode {
@@ -32,7 +32,7 @@ export function OptionListSelector<T extends SelectionComponentType>({
       optionsId,
     });
 
-    setChosenOption(true);
+    setComponentHasOptionList(true);
   };
 
   switch (status) {

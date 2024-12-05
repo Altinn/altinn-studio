@@ -14,11 +14,11 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 
 type EditOptionListProps<T extends SelectionComponentType> = {
-  setChosenOption: (value: boolean) => void;
+  setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
 
 export function OptionListUploader<T extends SelectionComponentType>({
-  setChosenOption,
+  setComponentHasOptionList,
   component,
   handleComponentChange,
 }: EditOptionListProps<T>) {
@@ -39,7 +39,7 @@ export function OptionListUploader<T extends SelectionComponentType>({
       optionsId,
     });
 
-    setChosenOption(true);
+    setComponentHasOptionList(true);
   };
 
   const onSubmit = (file: File) => {

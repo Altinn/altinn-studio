@@ -8,11 +8,11 @@ import type { SelectionComponentType } from '@altinn/ux-editor/types/FormCompone
 import classes from './EditManualOptionsWithEditor.module.css';
 
 export type EditManualOptionsWithEditorProps = {
-  setChosenOption: (value: boolean) => void;
+  setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export function EditManualOptionsWithEditor({
-  setChosenOption,
+  setComponentHasOptionList,
   component,
   handleComponentChange,
 }: EditManualOptionsWithEditorProps) {
@@ -33,7 +33,7 @@ export function EditManualOptionsWithEditor({
 
   const handleClose = () => {
     if (component.options !== undefined) {
-      setChosenOption(true);
+      setComponentHasOptionList(true);
     }
 
     manualOptionsModalRef.current?.close();

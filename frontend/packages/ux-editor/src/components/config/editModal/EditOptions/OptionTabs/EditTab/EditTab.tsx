@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioDeleteButton } from '@studio/components';
+import { StudioDeleteButton, StudioErrorMessage } from '@studio/components';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './/OptionListEditor';
+import { useComponentErrorMessage } from '../../../../../../hooks';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import classes from './EditTab.module.css';
@@ -18,63 +19,71 @@ export function EditTab({
   component,
   handleComponentChange,
 }: EditOptionChoiceProps): React.ReactElement {
-  const componentHasOptionList: boolean = !!component.optionsId || !!component.options;
-  const [chosenOption, setChosenOption] = useState<boolean>(componentHasOptionList);
+  const initialComponentHAsOptionList: boolean = !!component.optionsId || !!component.options;
+  const [componentHasOptionList, setComponentHasOptionList] = useState<boolean>(
+    initialComponentHAsOptionList,
+  );
+  const errorMessage = useComponentErrorMessage(component);
 
   return (
     <>
-      {chosenOption ? (
+      {componentHasOptionList ? (
         <SelectedOptionList
-          setChosenOption={setChosenOption}
+          setComponentHasOptionList={setComponentHasOptionList}
           component={component}
           handleComponentChange={handleComponentChange}
         />
       ) : (
         <div className={classes.optionButtons}>
           <EditManualOptionsWithEditor
-            setChosenOption={setChosenOption}
+            setComponentHasOptionList={setComponentHasOptionList}
             component={component}
             handleComponentChange={handleComponentChange}
           />
           <OptionListSelector
-            setChosenOption={setChosenOption}
+            setComponentHasOptionList={setComponentHasOptionList}
             component={component}
             handleComponentChange={handleComponentChange}
           />
           <OptionListUploader
-            setChosenOption={setChosenOption}
+            setComponentHasOptionList={setComponentHasOptionList}
             component={component}
             handleComponentChange={handleComponentChange}
           />
         </div>
+      )}
+      {errorMessage && (
+        <StudioErrorMessage className={classes.errorMessage} size='small'>
+          {errorMessage}
+        </StudioErrorMessage>
       )}
     </>
   );
 }
 
 type SelectedOptionListProps = {
-  setChosenOption: (value: boolean) => void;
+  setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 function SelectedOptionList({
-  setChosenOption,
+  setComponentHasOptionList,
   component,
   handleComponentChange,
 }: SelectedOptionListProps) {
   const { t } = useTranslation();
 
-  const handleClick = () => {
-    const emptyOptionsId = '';
+  const handleDelete = () => {
     if (component.options) {
       delete component.options;
     }
 
+    const emptyOptionsId = '';
     handleComponentChange({
       ...component,
       optionsId: emptyOptionsId,
     });
 
-    setChosenOption(false);
+    setComponentHasOptionList(false);
   };
 
   const label =
@@ -93,7 +102,7 @@ function SelectedOptionList({
       <div className={classes.deleteButtonContainer}>
         <StudioDeleteButton
           className={classes.deleteButton}
-          onDelete={handleClick}
+          onDelete={handleDelete}
           title={t('ux_editor.options.option_remove_text')}
           variant={'tertiary'}
         />

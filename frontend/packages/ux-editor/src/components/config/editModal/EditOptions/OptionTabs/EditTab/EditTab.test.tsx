@@ -12,7 +12,7 @@ import { screen } from '@testing-library/react';
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 
-describe('EditOptionChoice', () => {
+describe('EditTab', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('should render DisplayChosenOption', async () => {

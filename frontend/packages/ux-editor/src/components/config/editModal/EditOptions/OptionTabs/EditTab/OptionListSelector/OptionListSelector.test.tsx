@@ -36,9 +36,8 @@ describe('OptionListSelector', () => {
       screen.queryByText(textMock('ux_editor.modal_properties_loading')),
     );
 
-    await user.click(getDropDownButton());
-    const dropdownOption = screen.getByText(optionListIdsMock[0]);
-    await user.click(dropdownOption);
+    await user.click(getDropdownButton());
+    await user.click(getDropdownOption());
 
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
   });
@@ -54,9 +53,8 @@ describe('OptionListSelector', () => {
       screen.queryByText(textMock('ux_editor.modal_properties_loading')),
     );
 
-    await user.click(getDropDownButton());
-    const dropdownOption = screen.getByText(optionListIdsMock[0]);
-    await user.click(dropdownOption);
+    await user.click(getDropdownButton());
+    await user.click(getDropdownOption());
 
     expect(handleComponentChangeMock).toHaveBeenCalledWith({
       ...mockComponent,
@@ -88,14 +86,18 @@ describe('OptionListSelector', () => {
   });
 });
 
-function getDropDownButton(): HTMLElement {
+function getDropdownButton(): HTMLElement {
   return screen.getByRole('button', { name: textMock('ux_editor.modal_properties_code_list') });
+}
+
+function getDropdownOption(): HTMLElement {
+  return screen.getByText(optionListIdsMock[0]);
 }
 
 function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
   return renderWithProviders(
     <OptionListSelector
-      setChosenOption={jest.fn()}
+      setComponentHasOptionList={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,
