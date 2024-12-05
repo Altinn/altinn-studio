@@ -10,6 +10,7 @@ import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-share
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
+import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -20,7 +21,7 @@ export function AppContentLibrary(): React.ReactElement {
     isError: optionListsError,
   } = useOptionListsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => errorIsUnknown(error),
+    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
 
@@ -35,7 +36,7 @@ export function AppContentLibrary(): React.ReactElement {
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
       onError: (error: AxiosError<ApiError>) => {
-        if (errorIsUnknown(error)) {
+        if (isErrorUnknown(error)) {
           toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }
       },
@@ -67,5 +68,3 @@ export function AppContentLibrary(): React.ReactElement {
 
   return <div>{getContentResourceLibrary()}</div>;
 }
-
-const errorIsUnknown = (error: AxiosError<ApiError>) => !error.response?.data?.errorCode;
