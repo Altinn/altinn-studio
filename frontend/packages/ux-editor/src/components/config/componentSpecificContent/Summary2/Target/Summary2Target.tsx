@@ -51,10 +51,28 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const getComponentTitle = useComponentTitle();
 
   const excludedComponents = [
-    ComponentType.Summary2,
-    ComponentType.NavigationButtons,
+    ComponentType.ActionButton,
+    ComponentType.Alert,
+    ComponentType.AttachmentList,
+    ComponentType.Button,
+    ComponentType.ButtonGroup,
+    ComponentType.CustomButton,
+    ComponentType.Grid,
+    ComponentType.Header,
+    ComponentType.IFrame,
+    ComponentType.Image,
+    ComponentType.InstantiationButton,
+    ComponentType.InstanceInformation,
+    ComponentType.Link,
     ComponentType.NavigationBar,
+    ComponentType.NavigationButtons,
+    ComponentType.Panel,
+    ComponentType.Paragraph,
+    ComponentType.PrintButton,
+    ComponentType.Summary,
+    ComponentType.Summary2,
   ];
+
   const components = formLayoutsData
     ? Object.values(formLayoutsData).flatMap((layout) =>
         getAllLayoutComponents(layout, excludedComponents),
