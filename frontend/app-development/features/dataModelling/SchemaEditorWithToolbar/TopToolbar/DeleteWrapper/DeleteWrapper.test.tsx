@@ -7,11 +7,11 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import {
   jsonMetadata1Mock,
   jsonMetadata2Mock,
-} from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
+} from '../../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { convertMetadataToOption } from '../../../../utils/metadataUtils';
-import { renderWithProviders } from '../../../../test/mocks';
+import { convertMetadataToOption } from '../../../../../utils/metadataUtils';
+import { renderWithProviders } from '../../../../../test/mocks';
 import type { QueryClient } from '@tanstack/react-query';
 import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

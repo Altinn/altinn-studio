@@ -3,8 +3,8 @@ import {
   convertMetadataListToOptions,
   findMetadataOptionByRelativeUrl,
   groupMetadataOptions,
-} from '../../../../utils/metadataUtils';
-import type { MetadataOption } from '../../../../types/MetadataOption';
+} from '../../../../../utils/metadataUtils';
+import type { MetadataOption } from '../../../../../types/MetadataOption';
 import { NativeSelect } from '@digdir/designsystemet-react';
 import classes from './SchemaSelect.module.css';
 import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';

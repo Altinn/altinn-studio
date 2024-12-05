@@ -24,25 +24,6 @@
   flex: 1;
 }
 
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.statusPopover {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.statusPopover.success {
-  animation: fadeOut 1.5s;
-}
-
 .toggleButtonGroupWrapper {
   flex: 0.5;
 }

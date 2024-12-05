@@ -6,7 +6,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
-import { mockAppMetadata } from '../../../mocks/applicationMetadataMock';
+import { mockAppMetadata } from '../../../../../../../../test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 import { MemoryRouter } from 'react-router-dom';

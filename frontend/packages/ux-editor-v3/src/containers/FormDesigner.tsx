@@ -104,8 +104,8 @@ export const FormDesigner = ({
   }
 
   if (formLayoutIsReady) {
-    const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
-    const triggerInvalidChildAlert = () => alert(t('schema_editor.invalid_child_error'));
+    const triggerDepthAlert = () => alert(t('schema_editor.error_depth'));
+    const triggerInvalidChildAlert = () => alert(t('schema_editor.error_invalid_child'));
     const layout = formLayouts[selectedLayout];
 
     const addItem: HandleAdd<ComponentTypeV3> = (type, { parentId, index }) => {

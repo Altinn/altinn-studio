@@ -1,6 +1,7 @@
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
+import type { FileNameError } from '../types/FileNameError';
+import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
 import { FileNameUtils } from '@studio/pure-functions';
-import type { FileNameError } from './FileNameError';
 
 export const doesFileExistInMetadataWithClassRef = (
   appMetadata: ApplicationMetadata,
@@ -39,11 +40,16 @@ export const findFileNameError = (
 };
 
 const isNameFormatValid = (fileNameWithoutExtension: string): boolean => {
-  const fileNameRegex: RegExp = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
-  return Boolean(fileNameWithoutExtension.match(fileNameRegex));
+  return Boolean(fileNameWithoutExtension.match(DATA_MODEL_NAME_REGEX));
 };
 
 const doesFileExistInMetadata = (
   appMetadata: ApplicationMetadata,
   fileNameWithoutExtension: string,
 ): boolean => appMetadata.dataTypes?.some((dataType) => dataType.id === fileNameWithoutExtension);
+
+export const extractDataTypeNamesFromAppMetadata = (
+  appMetadata?: ApplicationMetadata,
+): string[] => {
+  return appMetadata?.dataTypes?.map((dataType) => dataType.id) || [];
+};

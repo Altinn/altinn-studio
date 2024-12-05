@@ -15,8 +15,8 @@ import {
   doesFileExistInMetadataWithClassRef,
   doesFileExistInMetadataWithoutClassRef,
   findFileNameError,
-} from './validationUtils';
-import type { FileNameError } from './FileNameError';
+} from '../utils/validationUtils';
+import type { FileNameError } from '../types/FileNameError';
 
 export interface XSDUploadProps {
   selectedOption?: MetadataOption;
