@@ -84,7 +84,7 @@ describe('Preview', () => {
   });
 
   it('reloads preview when the selected form layout name changes', async () => {
-    const view = render();
+    render();
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
         previewPage(
@@ -99,9 +99,8 @@ describe('Preview', () => {
     const newSelectedFormLayoutName = 'test';
     appContextMock.selectedFormLayoutName = newSelectedFormLayoutName;
 
-    view.rerender(<Preview collapsed={false} onCollapseToggle={jest.fn()} />);
-
-    expect(appContextMock.previewIframeRef?.current?.src).toBe(
+    render();
+    expect(appContextMock.previewIframeRef.current.src).toBe(
       'http://localhost' +
         previewPage(
           org,
