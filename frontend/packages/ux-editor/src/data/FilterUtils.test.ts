@@ -33,7 +33,7 @@ describe('FilterUtils', () => {
         component: formItemConfigs[ComponentType.Payment],
       },
       {
-        component: formItemConfigs[ComponentType.SubForm],
+        component: formItemConfigs[ComponentType.Subform],
       },
     ])(
       'should return false for unsupported subform component: $component.name',

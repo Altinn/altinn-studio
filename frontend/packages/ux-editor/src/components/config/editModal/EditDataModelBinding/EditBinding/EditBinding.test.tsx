@@ -8,9 +8,12 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage } from '@studio/pure-functions';
 import userEvent from '@testing-library/user-event';
 import type { InternalBindingFormat } from '@altinn/ux-editor/utils/dataModelUtils';
+import { layoutSet1NameMock } from '../../../../../testing/layoutSetsMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 const defaultLabel = 'label';
 const defaultBindingKey = 'simpleBinding';
@@ -63,6 +66,15 @@ const renderEditBinding = ({
   queries,
   shouldRenderWithMockedParent = false,
 }: RenderEditBinding) => {
+  queryClient.setQueryData([QueryKey.LayoutSets, org, app], {
+    sets: [{ id: layoutSet1NameMock, dataType: defaultDataModel }],
+  });
+  queryClient.setQueryData([QueryKey.AppMetadata, org, app], {
+    dataTypes: [
+      { id: defaultDataModel, maxCount: 1, appLogic: {} },
+      { id: secondDataModel, maxCount: 1, appLogic: {} },
+    ],
+  });
   return {
     ...renderWithProviders(
       shouldRenderWithMockedParent ? (

@@ -3,6 +3,7 @@ export const APP_DEVELOPMENT_BASENAME = '/editor';
 export const DASHBOARD_BASENAME = '/dashboard';
 export const DASHBOARD_ROOT_ROUTE = '/';
 export const RESOURCEADM_BASENAME = '/resourceadm';
+export const STUDIO_LIBRARY_BASENAME = '/library';
 export const PREVIEW_BASENAME = '/preview';
 export const STUDIO_ROOT_BASENAME = '/';
 export const DEFAULT_LANGUAGE = 'nb';
@@ -18,5 +19,5 @@ export const PROD_ENV_TYPE = 'production';
 export const PROTECTED_TASK_NAME_CUSTOM_RECEIPT = 'CustomReceipt';
 export const PREVIEW_MOCK_PARTY_ID = '51001';
 export const PREVIEW_MOCK_INSTANCE_GUID = 'f1e23d45-6789-1bcd-8c34-56789abcdef0';
-
 export const MEDIA_QUERY_MAX_WIDTH = '(max-width: 1024px)';
+export const DATA_MODEL_NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_\-]*$/;

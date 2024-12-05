@@ -33,18 +33,22 @@ const HeaderButtonListItem = ({ menuItem }: HeaderButtonListItemProps): ReactEle
 
   return (
     <li key={menuItem.name}>
-      <StudioPageHeader.HeaderButton asChild color='dark' variant={variant}>
-        <NavLink to={menuItem.link}>
-          <span
-            className={cn({
-              [classes.active]: extractLastRouterParam(menuItem.link) === currentRoutePath,
-            })}
-          >
-            {menuItem.name}
-          </span>
-          {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
-        </NavLink>
-      </StudioPageHeader.HeaderButton>
+      <StudioPageHeader.HeaderLink
+        color='dark'
+        variant={variant}
+        renderLink={(props) => (
+          <NavLink to={menuItem.link} {...props}>
+            <span
+              className={cn({
+                [classes.active]: extractLastRouterParam(menuItem.link) === currentRoutePath,
+              })}
+            >
+              {menuItem.name}
+            </span>
+            {menuItem.isBeta && <StudioBetaTag className={classes.betaTag} />}
+          </NavLink>
+        )}
+      />
     </li>
   );
 };

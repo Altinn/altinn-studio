@@ -13,14 +13,7 @@ export const HeaderCellCheckbox = forwardRef<HTMLInputElement, HeaderCellCheckbo
     const value = givenValue ?? defaultValue;
     return (
       <StudioTable.HeaderCell className={className}>
-        <StudioCheckbox
-          onKeyDown={handleKeyDown}
-          ref={ref}
-          size='small'
-          tabIndex={-1}
-          value={value}
-          {...rest}
-        />
+        <StudioCheckbox onKeyDown={handleKeyDown} ref={ref} size='small' value={value} {...rest} />
       </StudioTable.HeaderCell>
     );
   },
@@ -36,9 +29,7 @@ function moveFocus(event: React.KeyboardEvent<HTMLCellInputElement>) {
   const nextElement = getNextElement(event);
   if (nextElement) {
     event.preventDefault();
-    nextElement.tabIndex = 0;
     nextElement.focus();
-    event.currentTarget.tabIndex = -1;
   }
 }
 

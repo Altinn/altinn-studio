@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import classes from './DeploymentContainer.module.css';
-import { AltinnContentLoader } from 'app-shared/components/molecules/AltinnContentLoader';
 import {
   useOrgListQuery,
   useEnvironmentsQuery,
@@ -12,7 +11,7 @@ import { DeploymentEnvironment } from '../components/DeploymentEnvironment';
 import { getAppLink } from 'app-shared/ext-urls';
 import { useTranslation } from 'react-i18next';
 import { PROD_ENV_TYPE } from 'app-shared/constants';
-import { StudioError } from '@studio/components';
+import { StudioError, StudioPageSpinner } from '@studio/components';
 
 export const DeploymentContainer = () => {
   const { org, app } = useStudioEnvironmentParams();
@@ -45,12 +44,7 @@ export const DeploymentContainer = () => {
   if (environmentListIsPending || orgsIsPending || appDeploymentIsPending) {
     return (
       <div className={classes.deployContainer}>
-        <AltinnContentLoader width={900} height={320} title={t('app_deployment.loading')}>
-          <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
-          <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
-          <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
-          <rect x='487' y='111' rx='0' ry='0' width='220' height='42' />
-        </AltinnContentLoader>
+        <StudioPageSpinner spinnerTitle={t('app_deployment.loading')} />
       </div>
     );
   }

@@ -7,15 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { schemaComponents, textComponents, advancedItems } from '../../data/formItemConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { Accordion } from '@digdir/designsystemet-react';
-import {
-  getCollapsableMenuTitleByType,
-  getComponentTitleByComponentType,
-} from '../../utils/language';
+import { getCollapsableMenuTitleByType } from '../../utils/language';
 import { ToolbarItem } from './ToolbarItem';
+import { useComponentTitle } from '@altinn/ux-editor/hooks';
 
 export const DefaultToolbar = () => {
   const { t } = useTranslation();
-
+  const getComponentTitle = useComponentTitle();
   const componentList: IToolbarElement[] = schemaComponents.map(mapComponentToToolbarElement);
   const textComponentList: IToolbarElement[] = textComponents.map(mapComponentToToolbarElement);
   const advancedComponentsList: IToolbarElement[] = advancedItems.map(mapComponentToToolbarElement);
@@ -39,7 +37,7 @@ export const DefaultToolbar = () => {
           <Accordion.Content className={classes.accordionContent}>
             {allComponentLists[key].map((component: IToolbarElement) => (
               <ToolbarItem
-                text={getComponentTitleByComponentType(component.type, t) || component.label}
+                componentTitle={getComponentTitle(component)}
                 icon={component.icon}
                 componentType={component.type}
                 key={component.type}

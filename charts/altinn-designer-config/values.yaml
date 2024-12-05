@@ -2,3 +2,4 @@ chartVersion: ""
 imageTag: ""
 dbMigrationsTag: ""
 environmentName: ""
+replicas: 1

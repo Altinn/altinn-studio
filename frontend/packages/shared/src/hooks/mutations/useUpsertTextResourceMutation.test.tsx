@@ -1,11 +1,8 @@
-import React from 'react';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useUpsertTextResourceMutation } from './useUpsertTextResourceMutation';
 import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
-import { renderHook } from '@testing-library/react';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { ServicesContextProvider } from '../../contexts/ServicesContext';
 import { app, org } from '@studio/testing/testids';
+import { renderHookWithProviders } from 'app-shared/mocks/renderHookWithProviders';
 
 // Test data:
 const language = 'nb';
@@ -25,12 +22,5 @@ describe('useUpsertTextResourceMutation', () => {
 });
 
 const renderUpsertTextResourceMutation = () => {
-  const client = createQueryClientMock();
-  return renderHook(() => useUpsertTextResourceMutation(org, app), {
-    wrapper: ({ children }) => (
-      <ServicesContextProvider {...queriesMock} client={client}>
-        {children}
-      </ServicesContextProvider>
-    ),
-  });
+  return renderHookWithProviders(() => useUpsertTextResourceMutation(org, app));
 };

@@ -8,7 +8,7 @@ export type LoggerConfig = IConfiguration & IConfig;
 
 const LoggerContext = createContext<ApplicationInsights | null>(null);
 
-type LoggerContextProviderProps = {
+export type LoggerContextProviderProps = {
   config: LoggerConfig;
   children: ReactNode;
 };
@@ -19,8 +19,8 @@ export const LoggerContextProvider = ({
   const reactPlugin = useMemo(() => new ReactPlugin(), []);
 
   const applicationInsights = useMemo(() => {
-    // check if we have a instrumentationKey, if not, don't initialize app insights (we do not want AI to run on localhost)
-    if (!config.instrumentationKey) return null;
+    // check if we have a connectionString, if not, don't initialize app insights (we do not want AI to run on localhost)
+    if (!config.connectionString) return null;
 
     const insights = new ApplicationInsights({
       config: {

@@ -182,7 +182,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             else
             {
                 elementOrder += 1;
-                classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+                AddXmlElementAnnotation(element, classBuilder, elementOrder, !isValueType && (element.Nillable ?? false));
 
                 // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                 // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -223,7 +223,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
             elementOrder += 1;
-            classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+            AddXmlElementAnnotation(element, classBuilder, elementOrder);
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -263,6 +263,23 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             {
                 referredTypes.Add(element);
             }
+        }
+
+        private void AddXmlElementAnnotation(ElementMetadata element, StringBuilder classBuilder, int elementOrder, bool addNillableAttribute = false)
+        {
+            string additionalAttributeParams = string.Empty;
+            if (!element.OrderOblivious)
+            {
+                additionalAttributeParams += $", Order = {elementOrder}";
+            }
+
+            if (addNillableAttribute)
+            {
+                additionalAttributeParams += ", IsNullable = true";
+            }
+
+
+            classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}"{additionalAttributeParams})]""");
         }
 
         private void AddShouldSerializeForTagContent(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata)
@@ -502,6 +519,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     or BaseValueType.Time
                     or BaseValueType.TimePeriod
                     or BaseValueType.Date
+                    or BaseValueType.AnyURI
                     or null => ("string", false),
                 BaseValueType.Int => ("int", true),
                 BaseValueType.Short => ("short", true),

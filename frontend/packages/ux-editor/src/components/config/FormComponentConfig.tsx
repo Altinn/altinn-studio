@@ -53,6 +53,8 @@ export const FormComponentConfig = ({
     'children',
     'dataTypeIds',
     'target',
+    'tableColumns',
+    'overrides',
   ];
 
   const booleanPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(

@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, ToggleGroup } from '@digdir/designsystemet-react';
-import { StudioSpinner, StudioButton } from '@studio/components';
+import { Heading, ToggleGroup } from '@digdir/designsystemet-react';
+import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
 import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
@@ -13,6 +13,7 @@ import type { EnvId } from '../../utils/resourceUtils';
 import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
 import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
 import type { ResourceError } from 'app-shared/types/ResourceAdm';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
@@ -42,13 +43,18 @@ export const ListAdminPage = (): React.JSX.Element => {
     }
   }, [org, selectedEnv, navigateToListEnv]);
 
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(getResourceDashboardURL(org, app));
+  };
+
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
 
   return (
     <div className={classes.listAdminPageWrapper}>
-      <DigdirLink asChild>
-        <Link to={getResourceDashboardURL(org, app)}>{t('resourceadm.listadmin_back')}</Link>
-      </DigdirLink>
+      <StudioLink href={getResourceDashboardURL(org, app)} onClick={handleBackClick}>
+        {t('resourceadm.listadmin_back')}
+      </StudioLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_header')}
       </Heading>
@@ -94,16 +100,15 @@ export const ListAdminPage = (): React.JSX.Element => {
                   return (
                     <div key={list.identifier} className={classes.tableRowContent}>
                       <div>{list.name}</div>
-                      <StudioButton
-                        variant='tertiary'
+                      <ButtonRouterLink
                         aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
-                        asChild
+                        icon={<PencilWritingIcon />}
+                        iconPlacement='right'
+                        to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}
+                        variant='tertiary'
                       >
-                        <Link to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}>
-                          {t('resourceadm.listadmin_edit_list')}
-                          <PencilWritingIcon />
-                        </Link>
-                      </StudioButton>
+                        {t('resourceadm.listadmin_edit_list')}
+                      </ButtonRouterLink>
                     </div>
                   );
                 })}

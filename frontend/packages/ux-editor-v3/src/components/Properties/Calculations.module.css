@@ -11,3 +11,7 @@
   gap: 1rem;
   margin-bottom: 1rem;
 }
+
+.ruleModalWrapper {
+  border-bottom: var(--studio-border-divider);
+}

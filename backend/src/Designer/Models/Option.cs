@@ -1,5 +1,5 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Altinn.Studio.Designer.Helpers.JsonConverterHelpers;
 
 namespace Altinn.Studio.Designer.Models;
 
@@ -11,16 +11,17 @@ public class Option
     /// <summary>
     /// Value that connects the option to the data model.
     /// </summary>
-    [Required]
+    [NotNullable]
     [JsonPropertyName("value")]
-    public string Value { get; set; }
+    [JsonConverter(typeof(OptionValueConverter))]
+    public required object Value { get; set; }
 
     /// <summary>
     /// Label to present to the user.
     /// </summary>
-    [Required]
+    [NotNullable]
     [JsonPropertyName("label")]
-    public string Label { get; set; }
+    public required string Label { get; set; }
 
     /// <summary>
     /// Description, typically displayed below the label.

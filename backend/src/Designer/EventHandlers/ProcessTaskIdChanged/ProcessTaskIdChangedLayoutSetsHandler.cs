@@ -23,44 +23,45 @@ public class ProcessTaskIdChangedLayoutSetsHandler : INotificationHandler<Proces
 
     public async Task Handle(ProcessTaskIdChangedEvent notification, CancellationToken cancellationToken)
     {
-        bool hasChanges = false;
+        var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+            notification.EditingContext.Org,
+            notification.EditingContext.Repo,
+            notification.EditingContext.Developer);
+
+        if (!repository.AppUsesLayoutSets())
+        {
+            return;
+        }
+
         await _fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
             SyncErrorCodes.LayoutSetsTaskIdSyncError,
             "App/ui/layout-sets.json",
             async () =>
             {
-                var repository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
-                    notification.EditingContext.Org,
-                    notification.EditingContext.Repo,
-                    notification.EditingContext.Developer);
-
-                if (!repository.AppUsesLayoutSets())
-                {
-                    return hasChanges;
-                }
+                bool hasChanged = false;
 
                 var layoutSets = await repository.GetLayoutSetsFile(cancellationToken);
-                if (TryChangeTaskIds(layoutSets, notification.OldId, notification.NewId))
+                if (TryChangeLayoutSetTaskIds(layoutSets, notification.OldId, notification.NewId))
                 {
                     await repository.SaveLayoutSets(layoutSets);
-                    hasChanges = true;
+                    hasChanged = true;
                 }
 
-                return hasChanges;
+                return hasChanged;
             });
     }
 
-    private static bool TryChangeTaskIds(LayoutSets layoutSets, string oldId, string newId)
+    private static bool TryChangeLayoutSetTaskIds(LayoutSets layoutSets, string oldId, string newId)
     {
-        bool changed = false;
-        foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks.Contains(oldId)))
+        bool hasChanged = false;
+        foreach (var layoutSet in layoutSets.Sets.Where(layoutSet => layoutSet.Tasks != null && layoutSet.Tasks.Contains(oldId)))
         {
-            layoutSet.Tasks.Remove(oldId);
-            layoutSet.Tasks.Add(newId);
-            changed = true;
+            layoutSet.Tasks!.Remove(oldId);
+            layoutSet.Tasks!.Add(newId);
+            hasChanged = true;
         }
 
-        return changed;
+        return hasChanged;
     }
 }

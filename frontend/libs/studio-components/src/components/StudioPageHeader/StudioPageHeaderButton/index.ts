@@ -1,1 +1,0 @@
-export { StudioPageHeaderButton } from './StudioPageHeaderButton';

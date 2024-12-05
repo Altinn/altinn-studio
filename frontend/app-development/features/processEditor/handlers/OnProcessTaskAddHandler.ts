@@ -87,11 +87,12 @@ export class OnProcessTaskAddHandler {
   }
 
   /**
-   * Adds a dataType to the added signing task
+   * Adds a dataType and layoutset to the added signing task
    * @param taskMetadata
    * @private
    */
   private handleSigningTaskAdd(taskMetadata: OnProcessTaskEvent): void {
+    this.addLayoutSet(this.createLayoutSetConfig(taskMetadata));
     const studioModeler = new StudioModeler(taskMetadata.taskEvent.element as any);
     const dataTypeId = studioModeler.getDataTypeIdFromBusinessObject(
       taskMetadata.taskType,

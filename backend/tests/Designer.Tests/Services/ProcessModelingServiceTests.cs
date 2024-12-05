@@ -19,7 +19,6 @@ namespace Designer.Tests.Services
     {
         private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly IAppDevelopmentService _appDevelopmentService;
-        private readonly IUserRequestsSynchronizationService _userRequestsSynchronizationService;
         public string CreatedTestRepoPath { get; set; }
 
         public ProcessModelingServiceTests()
@@ -27,7 +26,6 @@ namespace Designer.Tests.Services
             var schemaModelServiceMock = new Mock<ISchemaModelService>();
             _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
             _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, schemaModelServiceMock.Object);
-            _userRequestsSynchronizationService = new Mock<IUserRequestsSynchronizationService>().Object;
         }
 
         [Theory]
@@ -36,7 +34,7 @@ namespace Designer.Tests.Services
         {
             SemanticVersion version = SemanticVersion.Parse(versionString);
 
-            IProcessModelingService processModelingService = new ProcessModelingService(new Mock<IAltinnGitRepositoryFactory>().Object, _appDevelopmentService, _userRequestsSynchronizationService);
+            IProcessModelingService processModelingService = new ProcessModelingService(new Mock<IAltinnGitRepositoryFactory>().Object, _appDevelopmentService);
 
             var result = processModelingService.GetProcessDefinitionTemplates(version).ToList();
 
@@ -56,7 +54,7 @@ namespace Designer.Tests.Services
 
             CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-            IProcessModelingService processModelingService = new ProcessModelingService(_altinnGitRepositoryFactory, _appDevelopmentService, _userRequestsSynchronizationService);
+            IProcessModelingService processModelingService = new ProcessModelingService(_altinnGitRepositoryFactory, _appDevelopmentService);
 
             // Act
             string taskType = await processModelingService.GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), "layoutSet1");

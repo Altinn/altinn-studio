@@ -215,6 +215,7 @@ const addNewSigningTaskToProcessEditor = async (page: Page): Promise<string> => 
     extraMovingDistanceX,
     extraMovingDistanceY,
   );
+  await processEditorPage.skipRecommendedTask();
   await processEditorPage.waitForTaskToBeVisibleInConfigPanel(signingTask);
 
   return signingTask;

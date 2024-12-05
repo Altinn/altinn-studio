@@ -36,6 +36,9 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
 
             public bool XmlText { get; set; }
 
+
+            public bool OrderOblivious { get; set; } = false;
+
             public Dictionary<string, Restriction> Restrictions { get; set; } = new();
         }
 
@@ -185,6 +188,10 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     ProcessPropertiesKeyword(path, k, context);
                     break;
 
+                case XsdStructureKeyword { Value: "all" }:
+                    context.OrderOblivious = true;
+                    break;
+
                 default:
                     throw new MetamodelConvertException($"Keyword {keyword.Keyword()} not processed!. It's not supported in the current version of the JsonSchemaToMetamodelConverter.");
             }
@@ -267,7 +274,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
         {
             foreach (var (name, property) in keyword.Properties)
             {
-                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
+                var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name), OrderOblivious = context.OrderOblivious };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
 
                 if (property.TryGetKeyword(out XsdTextKeyword xsdTextKeyword))
@@ -364,7 +371,7 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
             {
                 ProcessRegularType(path, subSchema, context);
 
-                foreach (var keyword in subSchema.Keywords)
+                foreach (var keyword in subSchema.Keywords.OrderByPriority())
                 {
                     var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
 
@@ -478,7 +485,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs),
                     IsTagContent = context.XmlText,
-                    Nillable = context.IsNillable
+                    Nillable = context.IsNillable,
+                    OrderOblivious = context.OrderOblivious
                 });
         }
 
@@ -534,7 +542,8 @@ namespace Altinn.Studio.DataModeling.Converter.Metadata
                     DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs),
                     IsTagContent = context.XmlText,
-                    Nillable = context.IsNillable
+                    Nillable = context.IsNillable,
+                    OrderOblivious = context.OrderOblivious
                 });
         }
 

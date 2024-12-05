@@ -296,6 +296,22 @@ describe('TextTab', () => {
         expect(formItemContextProviderMock.handleUpdate).toHaveBeenCalled();
       });
     });
+
+    it('should render subform tabel section if component is subform', () => {
+      render({
+        props: {
+          ...props,
+          formItem: {
+            ...componentMocks[ComponentType.Subform],
+          },
+        },
+      });
+      const tabelHeading = screen.getByRole('heading', {
+        name: textMock('ux_editor.properties_panel.subform_table_columns.heading'),
+        level: 2,
+      });
+      expect(tabelHeading).toBeInTheDocument();
+    });
   });
 });
 

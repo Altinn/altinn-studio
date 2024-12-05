@@ -1,14 +1,15 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import {
   confOnScreenComponents,
   paymentLayoutComponents,
   subformLayoutComponents,
 } from '../../data/formItemConfig';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { ConfPageType } from './types/ConfigPageType';
+import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 
 describe('ConfPageToolbar', () => {
   it('should render', () => {
@@ -50,9 +51,9 @@ describe('ConfPageToolbar', () => {
 });
 
 const renderConfPageToolbar = (confPageType: ConfPageType) => {
-  return render(
-    <DragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
+  return renderWithProviders(
+    <StudioDragAndDropTree.Provider rootId='test' onAdd={jest.fn()} onMove={jest.fn()}>
       <ConfPageToolbar confPageType={confPageType} />
-    </DragAndDropTree.Provider>,
+    </StudioDragAndDropTree.Provider>,
   );
 };

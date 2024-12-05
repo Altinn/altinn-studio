@@ -12,7 +12,7 @@ import {
   propertyTypeMatcher,
   getSupportedPropertyKeysForPropertyType,
 } from './component';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import type {
   FormCheckboxesComponent,
   FormComponent,
@@ -20,6 +20,7 @@ import type {
 } from '../types/FormComponent';
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { containerComponentTypes } from '../data/containerComponentTypes';
+import { formItemConfigs } from '../data/formItemConfig';
 
 describe('Component utils', () => {
   describe('changeTextResourceBinding', () => {
@@ -169,6 +170,24 @@ describe('Component utils', () => {
         );
       },
     );
+
+    it('maps custom component type to correct component reference', () => {
+      expect(formItemConfigs[CustomComponentType.CloseSubformButton].componentRef).toBe(
+        ComponentType.CustomButton,
+      );
+    });
+
+    it('generates a form item with the correct structure for a custom component type', () => {
+      const component = generateFormItem(CustomComponentType.CloseSubformButton, 'testId');
+
+      expect(component).toEqual(
+        expect.objectContaining({
+          id: 'testId',
+          type: ComponentType.CustomButton,
+          itemType: 'COMPONENT',
+        }),
+      );
+    });
 
     it.each(containerComponentTypes)(
       'Generates container of type %s with given ID',

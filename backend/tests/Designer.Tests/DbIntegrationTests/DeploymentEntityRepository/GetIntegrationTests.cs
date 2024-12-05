@@ -23,7 +23,7 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
     public async Task Get_ShouldReturnCorrectRecordsFromDatabase(string org, string app, int top, SortDirection sortDirection)
     {
         int allEntitiesCount = 10;
-        var deploymentEntities = EntityGenerationUtils.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
+        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
@@ -46,7 +46,7 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
         SortDirection sortDirection)
     {
         int allEntitiesCount = 10;
-        var deploymentEntities = EntityGenerationUtils.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
+        var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(deploymentEntities);
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);

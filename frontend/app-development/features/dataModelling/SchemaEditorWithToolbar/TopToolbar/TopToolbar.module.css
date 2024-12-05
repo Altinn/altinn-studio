@@ -7,7 +7,7 @@
 }
 
 .toolbar > *,
-.toolbar > :global(.MuiGrid-item) {
+.toolbar > {
   margin-right: 1rem;
 }
 
@@ -22,25 +22,6 @@
 
 .generateButtonWrapper {
   flex: 1;
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.statusPopover {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.statusPopover.success {
-  animation: fadeOut 1.5s;
 }
 
 .toggleButtonGroupWrapper {

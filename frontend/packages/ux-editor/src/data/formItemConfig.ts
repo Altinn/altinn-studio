@@ -1,6 +1,6 @@
 import type React from 'react';
-import type { RefAttributes, SVGProps } from 'react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { type RefAttributes, type SVGProps } from 'react';
+import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import {
   AccordionIcon,
@@ -37,19 +37,24 @@ import {
 import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
-export type FormItemConfig<T extends ComponentType = ComponentType> = {
-  name: T;
+export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
+  name: ComponentType | CustomComponentType;
+  getDisplayName?: (
+    formItem: ComponentSpecificConfig<ComponentType>,
+  ) => ComponentType | CustomComponentType;
+  componentRef?: ComponentType;
   itemType: T extends ContainerComponentType ? LayoutItemType.Container : LayoutItemType.Component;
-  defaultProperties: ComponentSpecificConfig<T>;
+  defaultProperties: ComponentSpecificConfig;
   icon?: React.ComponentType<SVGProps<SVGSVGElement> & { title?: string; titleId?: string }> &
     RefAttributes<SVGSVGElement>;
   propertyPath?: string;
 } & (T extends ContainerComponentType ? { validChildTypes: ComponentType[] } : {});
 
-export type FormItemConfigs = { [T in ComponentType]: FormItemConfig<T> };
+export type FormItemConfigs = { [T in ComponentType | CustomComponentType]: FormItemConfig<T> };
 
 export const formItemConfigs: FormItemConfigs = {
   [ComponentType.Alert]: {
@@ -122,7 +127,9 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/buttonGroupComponent',
     icon: FingerButtonIcon,
     validChildTypes: [
+      ComponentType.ActionButton,
       ComponentType.Button,
+      ComponentType.CustomButton,
       ComponentType.NavigationButtons,
       ComponentType.PrintButton,
       ComponentType.InstantiationButton,
@@ -151,12 +158,41 @@ export const formItemConfigs: FormItemConfigs = {
   [ComponentType.CustomButton]: {
     name: ComponentType.CustomButton,
     itemType: LayoutItemType.Component,
+    getDisplayName: ({
+      actions,
+    }: ComponentSpecificConfig<ComponentType.CustomButton>):
+      | ComponentType
+      | CustomComponentType => {
+      const isCloseSubformAction =
+        actions?.length === 1 &&
+        actions[0]?.id === 'closeSubform' &&
+        actions[0]?.type === 'ClientAction';
+
+      return isCloseSubformAction
+        ? CustomComponentType.CloseSubformButton
+        : ComponentType.CustomButton;
+    },
     defaultProperties: {
       actions: [],
       buttonStyle: 'primary',
     },
     icon: FingerButtonIcon,
   },
+  [CustomComponentType.CloseSubformButton]: {
+    name: CustomComponentType.CloseSubformButton,
+    componentRef: ComponentType.CustomButton,
+    itemType: LayoutItemType.Component,
+    defaultProperties: {
+      actions: [
+        {
+          type: 'ClientAction',
+          id: 'closeSubform',
+        },
+      ],
+    },
+    icon: FingerButtonIcon,
+  },
+
   [ComponentType.Datepicker]: {
     name: ComponentType.Datepicker,
     itemType: LayoutItemType.Component,
@@ -293,17 +329,6 @@ export const formItemConfigs: FormItemConfigs = {
     propertyPath: 'definitions/radioAndCheckboxComponents',
     icon: LikertIcon,
   },
-  [ComponentType.LikertItem]: {
-    name: ComponentType.LikertItem,
-    itemType: LayoutItemType.Component,
-    defaultProperties: {
-      dataModelBindings: {
-        simpleBinding: '',
-      },
-    },
-    propertyPath: 'definitions/radioAndCheckboxComponents',
-    icon: LikertIcon,
-  },
   [ComponentType.Link]: {
     name: ComponentType.Link,
     itemType: LayoutItemType.Component,
@@ -426,11 +451,11 @@ export const formItemConfigs: FormItemConfigs = {
     icon: RepeatingGroupIcon,
     validChildTypes: Object.values(ComponentType),
   },
-  [ComponentType.SubForm]: {
-    name: ComponentType.SubForm,
+  [ComponentType.Subform]: {
+    name: ComponentType.Subform,
     itemType: LayoutItemType.Component,
     defaultProperties: {},
-    propertyPath: 'definitions/subForm',
+    propertyPath: 'definitions/subform',
     icon: ClipboardIcon,
   },
   [ComponentType.Summary]: {
@@ -482,7 +507,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.SubForm],
+  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -493,7 +518,6 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Dropdown],
   formItemConfigs[ComponentType.MultipleSelect],
   formItemConfigs[ComponentType.Likert],
-  formItemConfigs[ComponentType.LikertItem],
   formItemConfigs[ComponentType.Datepicker],
   formItemConfigs[ComponentType.FileUpload],
   formItemConfigs[ComponentType.FileUploadWithTag],
@@ -530,8 +554,72 @@ export const paymentLayoutComponents: FormItemConfigs[ComponentType][] = [
   ...confOnScreenComponents,
 ];
 
+export type ComponentCategory =
+  | 'form'
+  | 'select'
+  | 'button'
+  | 'text'
+  | 'info'
+  | 'container'
+  | 'attachment'
+  | 'advanced';
+
+export const defaultComponents: ComponentType[] = [
+  ComponentType.Input,
+  ComponentType.TextArea,
+  ComponentType.RadioButtons,
+  ComponentType.Dropdown,
+  ComponentType.Datepicker,
+  ComponentType.FileUpload,
+  ComponentType.Header,
+  ComponentType.Paragraph,
+  ComponentType.Button,
+];
+
+export const allComponents: KeyValuePairs<ComponentType[]> = {
+  form: [ComponentType.Input, ComponentType.TextArea, ComponentType.Datepicker],
+  select: [
+    ComponentType.Checkboxes,
+    ComponentType.RadioButtons,
+    ComponentType.Dropdown,
+    ComponentType.MultipleSelect,
+    ComponentType.Likert,
+  ],
+  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
+  info: [
+    ComponentType.InstanceInformation,
+    ComponentType.Image,
+    ComponentType.Link,
+    ComponentType.IFrame,
+    ComponentType.Summary,
+  ],
+  button: [
+    ComponentType.Button,
+    ComponentType.CustomButton,
+    ComponentType.NavigationButtons,
+    ComponentType.PrintButton,
+    ComponentType.InstantiationButton,
+    ComponentType.ActionButton,
+  ],
+  attachment: [
+    ComponentType.AttachmentList,
+    ComponentType.FileUpload,
+    ComponentType.FileUploadWithTag,
+  ],
+  container: [
+    ComponentType.Group,
+    ComponentType.Grid,
+    ComponentType.Accordion,
+    ComponentType.AccordionGroup,
+    ComponentType.ButtonGroup,
+    ComponentType.List,
+    ComponentType.RepeatingGroup,
+  ],
+  advanced: [ComponentType.Address, ComponentType.Map, ComponentType.Custom],
+};
 export const subformLayoutComponents: Array<FormItemConfigs[ComponentType]> = [
   ...schemaComponents,
   ...textComponents,
   ...advancedItems,
+  formItemConfigs[CustomComponentType.CloseSubformButton],
 ].filter(FilterUtils.filterUnsupportedSubformComponents);

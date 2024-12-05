@@ -14,6 +14,9 @@
     }
   ],
   "ignorePaths": ["testdata/**", "src/**"],
-  "ignoreDeps": ["Moq", "Altinn.App.Core"],
+  "ignoreDeps": [
+    "Moq",
+    "Altinn.App.Core"
+  ],
   "schedule": ["before 07:00 on Monday"]
 }

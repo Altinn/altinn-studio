@@ -2,8 +2,8 @@ import type { ForwardedRef } from 'react';
 import React from 'react';
 import type { RenderResult } from '@testing-library/react';
 import { render, screen } from '@testing-library/react';
-import type { FileValidation, StudioFileUploaderProps } from './StudioFileUploader';
-import { BITS_IN_A_MEGA_BYTE, StudioFileUploader } from './StudioFileUploader';
+import type { StudioFileUploaderProps } from './';
+import { StudioFileUploader } from './';
 import userEvent from '@testing-library/user-event';
 import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
 import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
@@ -11,9 +11,9 @@ import { testRefForwarding } from '../../test-utils/testRefForwarding';
 
 // Test data:
 const uploaderButtonText = 'Upload file';
-const onUploadFile = jest.fn();
+const onSubmit = jest.fn();
 const defaultProps: StudioFileUploaderProps = {
-  onUploadFile,
+  onSubmit,
   uploaderButtonText,
 };
 
@@ -37,10 +37,8 @@ describe('StudioFileUploader', () => {
     renderFileUploader();
     const file = new File(['test'], fileNameMock, { type: 'image/png' });
     await user.upload(getFileInputElement(), file);
-    const formDataMock = new FormData();
-    formDataMock.append('file', file);
-    expect(onUploadFile).toHaveBeenCalledTimes(1);
-    expect(onUploadFile).toHaveBeenCalledWith(formDataMock, fileNameMock);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledWith(file);
   });
 
   it('should render uploadButton as disabled and not trigger callback on upload when disabled prop is set', async () => {
@@ -50,7 +48,7 @@ describe('StudioFileUploader', () => {
 
     const file = new File(['test'], 'fileNameMock', { type: 'image/png' });
     await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('should not do callback if uploaded file does not match provided accept prop', async () => {
@@ -59,7 +57,7 @@ describe('StudioFileUploader', () => {
     renderFileUploader({ accept });
     const file = new File(['test'], 'fileNameMock.someOtherExtension', { type: 'image/png' });
     await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('should do callback if uploaded file does match provided accept prop', async () => {
@@ -68,86 +66,23 @@ describe('StudioFileUploader', () => {
     renderFileUploader({ accept });
     const file = new File(['test'], `fileNameMock${accept}`, { type: 'image/png' });
     await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
-  it('should validate file as valid if customFileNameValidation is not defined', async () => {
-    const user = userEvent.setup();
-    renderFileUploader();
-    const file = new File(['test'], 'fileNameMock', { type: 'image/png' });
-    await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call onInvalidFileName and not upload callback when validateFileName returns false', async () => {
-    const user = userEvent.setup();
-    const onInvalidFileName = jest.fn();
-    const customFileValidation: FileValidation = {
-      validateFileName: () => false,
-      onInvalidFileName,
-    };
-    renderFileUploader({ customFileValidation });
-    const file = new File(['test'], 'fileNameMock', { type: 'image/png' });
-    await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).not.toHaveBeenCalled();
-    expect(onInvalidFileName).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not call onInvalidFileName and upload callback when validateFileName returns true', async () => {
-    const user = userEvent.setup();
-    const onInvalidFileName = jest.fn();
-    const customFileValidation: FileValidation = {
-      validateFileName: () => true,
-      onInvalidFileName,
-    };
-    renderFileUploader({ customFileValidation });
-    const file = new File(['test'], 'fileNameMock', { type: 'image/png' });
-    await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).toHaveBeenCalledTimes(1);
-    expect(onInvalidFileName).not.toHaveBeenCalled();
-  });
-
-  it('should call onInvalidFileSize and not upload callback when fileSize is larger than fileSizeLimit', async () => {
-    const user = userEvent.setup();
-    const onInvalidFileSize = jest.fn();
-    const fileSizeLimitMb = 1;
-    const customFileValidation: FileValidation = {
-      onInvalidFileSize,
-      fileSizeLimitMb,
-    };
-    renderFileUploader({ customFileValidation });
-    const file = new File(
-      [new Blob([new Uint8Array(fileSizeLimitMb * BITS_IN_A_MEGA_BYTE + 1)])],
-      'fileNameMock',
-      { type: 'image/png' },
-    );
-    await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).not.toHaveBeenCalled();
-    expect(onInvalidFileSize).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not call onInvalidFileSize and upload callback when fileSize is smaller than fileSizeLimit', async () => {
-    const user = userEvent.setup();
-    const onInvalidFileSize = jest.fn();
-    const fileSizeLimitMb = 1;
-    const customFileValidation: FileValidation = {
-      onInvalidFileSize,
-      fileSizeLimitMb,
-    };
-    renderFileUploader({ customFileValidation });
-    const file = new File([new Uint8Array(fileSizeLimitMb * BITS_IN_A_MEGA_BYTE)], 'fileNameMock', {
-      type: 'image/png',
-    });
-    await user.upload(getFileInputElement(), file);
-    expect(onUploadFile).toHaveBeenCalledTimes(1);
-    expect(onInvalidFileSize).not.toHaveBeenCalled();
-  });
-
-  it('should not call upload callback when no file is uploaded', async () => {
+  it('should not call submit callback when no file is uploaded', async () => {
     const user = userEvent.setup();
     renderFileUploader();
     await user.upload(getFileInputElement(), undefined);
-    expect(onUploadFile).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('should call submit callback twice when uploading the same file consecutively', async () => {
+    const user = userEvent.setup();
+    renderFileUploader();
+    const file = new File(['test'], 'fileNameMock.json', { type: 'image/png' });
+    await user.upload(getFileInputElement(), file);
+    await user.upload(getFileInputElement(), file);
+    expect(onSubmit).toHaveBeenCalledTimes(2);
   });
 
   it('Applies given class name to the root element', () => {

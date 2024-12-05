@@ -1,18 +1,21 @@
 import React, { useEffect } from 'react';
-import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useText, useAppContext } from '../../hooks';
+import { useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
-import { SubFormWrapper } from './SubForm/SubFormWrapper';
 import { StudioCombobox } from '@studio/components';
+import { DeleteSubformWrapper } from './Subform/DeleteSubformWrapper';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
+import { getLayoutSetTypeTranslationKey } from 'app-shared/utils/layoutSetsUtils';
+import { useTranslation } from 'react-i18next';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 export function LayoutSetsContainer() {
   const { org, app } = useStudioEnvironmentParams();
   const { data: layoutSetsResponse } = useLayoutSetsQuery(org, app);
-  const layoutSets = layoutSetsResponse?.sets;
-  const t = useText();
+  const { data: layoutSets } = useLayoutSetsExtendedQuery(org, app);
+  const { t } = useTranslation();
   const {
     selectedFormLayoutSetName,
     setSelectedFormLayoutSetName,
@@ -26,7 +29,7 @@ export function LayoutSetsContainer() {
     onLayoutSetNameChange(selectedFormLayoutSetName);
   }, [onLayoutSetNameChange, selectedFormLayoutSetName]);
 
-  if (!layoutSets) return null;
+  if (!layoutSetsResponse || !layoutSets) return null;
 
   const handleLayoutSetChange = async (layoutSetName: string) => {
     if (selectedFormLayoutSetName !== layoutSetName && layoutSetName) {
@@ -47,11 +50,11 @@ export function LayoutSetsContainer() {
         value={[selectedFormLayoutSetName]}
         onValueChange={([value]) => handleLayoutSetChange(value)}
       >
-        {layoutSets.map((layoutSet) => (
+        {layoutSets.sets.map((layoutSet) => (
           <StudioCombobox.Option
             value={layoutSet.id}
             key={layoutSet.id}
-            description={layoutSet.type === 'subform' && t('ux_editor.subform')}
+            description={t(getLayoutSetTypeTranslationKey(layoutSet))}
           >
             {layoutSet.id}
           </StudioCombobox.Option>
@@ -59,9 +62,8 @@ export function LayoutSetsContainer() {
       </StudioCombobox>
       {shouldDisplayFeature('exportForm') && <ExportForm />}
       {shouldDisplayFeature('subform') && (
-        <SubFormWrapper
+        <DeleteSubformWrapper
           layoutSets={layoutSetsResponse}
-          onSubFormCreated={handleLayoutSetChange}
           selectedLayoutSet={selectedFormLayoutSetName}
         />
       )}

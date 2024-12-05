@@ -16,10 +16,6 @@ const resourcePublishStatus = {
   resourceVersion: '1',
   publishedVersions: [
     {
-      version: null,
-      environment: 'at21',
-    },
-    {
       version: '1',
       environment: 'at22',
     },

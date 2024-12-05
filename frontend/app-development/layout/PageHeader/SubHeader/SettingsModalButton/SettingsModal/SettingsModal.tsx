@@ -1,33 +1,34 @@
 import type { ReactElement } from 'react';
 import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import classes from './SettingsModal.module.css';
+import { CogIcon } from '@studio/icons';
 import {
-  CogIcon,
-  InformationSquareIcon,
-  TimerStartIcon,
-  ShieldLockIcon,
-  SidebarBothIcon,
-} from '@studio/icons';
-import { StudioModal } from '@studio/components';
-import type { LeftNavigationTab } from 'app-shared/types/LeftNavigationTab';
-import { LeftNavigationBar } from 'app-shared/components/LeftNavigationBar';
-import type { SettingsModalTab } from 'app-development/types/SettingsModalTab';
-import { createNavigationTab } from './utils';
+  StudioModal,
+  StudioContentMenu,
+  type StudioContentMenuButtonTabProps,
+} from '@studio/components';
+import type { SettingsModalTabId } from '../../../../../types/SettingsModalTabId';
 import { useTranslation } from 'react-i18next';
 import { PolicyTab } from './components/Tabs/PolicyTab';
 import { AboutTab } from './components/Tabs/AboutTab';
 import { AccessControlTab } from './components/Tabs/AccessControlTab';
 import { SetupTab } from './components/Tabs/SetupTab';
-import { type SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
+import { type SettingsModalHandle } from '../../../../../types/SettingsModalHandle';
+import { useSettingsModalMenuTabConfigs } from './hooks/useSettingsModalMenuTabConfigs';
+import { Maskinporten } from './components/Tabs/Maskinporten';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
 
-  const [currentTab, setCurrentTab] = useState<SettingsModalTab>('about');
+  const [currentTab, setCurrentTab] = useState<SettingsModalTabId>('about');
   const dialogRef = useRef<HTMLDialogElement>();
+  const menuTabConfigs = useSettingsModalMenuTabConfigs();
+
+  const menuTabsToRender = filterFeatureFlag(menuTabConfigs);
 
   const openSettings = useCallback(
-    (tab: SettingsModalTab = currentTab) => {
+    (tab: SettingsModalTabId = currentTab) => {
       setCurrentTab(tab);
       dialogRef.current?.showModal();
     },
@@ -37,38 +38,6 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
   useImperativeHandle<SettingsModalHandle, SettingsModalHandle>(ref, () => ({ openSettings }), [
     openSettings,
   ]);
-
-  const aboutTabId: SettingsModalTab = 'about';
-  const setupTabId: SettingsModalTab = 'setup';
-  const policyTabId: SettingsModalTab = 'policy';
-  const accessControlTabId: SettingsModalTab = 'access_control';
-
-  const leftNavigationTabs: LeftNavigationTab[] = [
-    createNavigationTab(
-      <InformationSquareIcon className={classes.icon} />,
-      aboutTabId,
-      () => setCurrentTab(aboutTabId),
-      currentTab,
-    ),
-    createNavigationTab(
-      <SidebarBothIcon className={classes.icon} />,
-      setupTabId,
-      () => setCurrentTab(setupTabId),
-      currentTab,
-    ),
-    createNavigationTab(
-      <ShieldLockIcon className={classes.icon} />,
-      policyTabId,
-      () => setCurrentTab(policyTabId),
-      currentTab,
-    ),
-    createNavigationTab(
-      <TimerStartIcon className={classes.icon} />,
-      accessControlTabId,
-      () => setCurrentTab(accessControlTabId),
-      currentTab,
-    ),
-  ];
 
   const displayTabs = () => {
     switch (currentTab) {
@@ -84,6 +53,9 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
       case 'access_control': {
         return <AccessControlTab />;
       }
+      case 'maskinporten': {
+        return shouldDisplayFeature('maskinporten') ? <Maskinporten /> : null;
+      }
     }
   };
 
@@ -98,7 +70,19 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
       contentClassName={classes.modalContent}
     >
       <div className={classes.leftNavWrapper}>
-        <LeftNavigationBar tabs={leftNavigationTabs} selectedTab={currentTab} />
+        <StudioContentMenu
+          selectedTabId={currentTab}
+          onChangeTab={(tabId: SettingsModalTabId) => setCurrentTab(tabId)}
+        >
+          {menuTabsToRender.map((contentTab) => (
+            <StudioContentMenu.ButtonTab
+              key={contentTab.tabId}
+              tabName={contentTab.tabName}
+              tabId={contentTab.tabId}
+              icon={contentTab.icon}
+            />
+          ))}
+        </StudioContentMenu>
       </div>
       <div className={classes.contentWrapper}>{displayTabs()}</div>
     </StudioModal.Dialog>
@@ -106,3 +90,11 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
 });
 
 SettingsModal.displayName = 'SettingsModal';
+
+function filterFeatureFlag(
+  menuTabConfigs: Array<StudioContentMenuButtonTabProps<SettingsModalTabId>>,
+) {
+  return shouldDisplayFeature('maskinporten')
+    ? menuTabConfigs
+    : menuTabConfigs.filter((tab) => tab.tabId !== 'maskinporten');
+}

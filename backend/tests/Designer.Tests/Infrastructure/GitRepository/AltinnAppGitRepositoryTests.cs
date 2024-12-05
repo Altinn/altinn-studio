@@ -291,7 +291,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string[] optionListIds = altinnAppGitRepository.GetOptionsListIds();
 
             optionListIds.Should().NotBeNull();
-            optionListIds.Should().HaveCount(2);
+            optionListIds.Should().HaveCount(3);
             return Task.CompletedTask;
         }
 
@@ -336,7 +336,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
 
             // Act
-            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsListString);
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsList);
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);
@@ -372,7 +372,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string newOptionsListString = JsonSerializer.Serialize(newOptionsList, jsonOptions);
 
             // Act
-            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsListString);
+            string savedOptionsList = await altinnAppGitRepository.CreateOrOverwriteOptionsList(newOptionName, newOptionsList);
 
             // Assert
             Assert.Equal(newOptionsListString, savedOptionsList);

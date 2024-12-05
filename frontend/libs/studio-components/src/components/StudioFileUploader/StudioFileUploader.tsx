@@ -6,21 +6,10 @@ import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
 import { useForwardedRef } from '@studio/hooks';
 
-const NUMBER_BITS_IN_A_BYTE = 1024;
-export const BITS_IN_A_MEGA_BYTE = NUMBER_BITS_IN_A_BYTE * NUMBER_BITS_IN_A_BYTE;
-
-export type FileValidation = {
-  validateFileName?: (fileName: string) => boolean;
-  fileSizeLimitMb?: number;
-  onInvalidFileName?: (file?: FormData, fileName?: string) => void;
-  onInvalidFileSize?: () => void;
-};
-
 export type StudioFileUploaderProps = {
-  onUploadFile: (file: FormData, fileName: string) => void;
   uploaderButtonText?: string;
-  customFileValidation?: FileValidation;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> &
+  onSubmit?: (file: File) => void;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size' | 'onSubmit'> &
   Pick<StudioButtonProps, 'size' | 'variant' | 'color'>;
 
 export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploaderProps>(
@@ -28,9 +17,8 @@ export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploade
     {
       className,
       color,
-      customFileValidation,
       disabled,
-      onUploadFile,
+      onSubmit,
       size,
       uploaderButtonText,
       variant = 'tertiary',
@@ -48,11 +36,14 @@ export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploade
     const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
       event?.preventDefault();
       const file = getFile(internalRef);
-      if (isFileValid(file, internalRef, customFileValidation)) {
-        const formData = new FormData();
-        formData.append('file', file);
-        onUploadFile(formData, file.name);
+      if (file) {
+        onSubmit?.(file);
       }
+      resetRef(internalRef);
+    };
+
+    const handleButtonClick = () => {
+      internalRef.current?.click();
     };
 
     return (
@@ -70,7 +61,7 @@ export const StudioFileUploader = forwardRef<HTMLInputElement, StudioFileUploade
           color={color}
           disabled={disabled}
           icon={<UploadIcon />}
-          onClick={() => internalRef?.current?.click()}
+          onClick={handleButtonClick}
           size={size}
           variant={variant}
         >
@@ -85,27 +76,6 @@ StudioFileUploader.displayName = 'StudioFileUploader';
 
 const getFile = (fileRef: RefObject<HTMLInputElement>): File => fileRef?.current?.files?.item(0);
 
-const isFileValid = (
-  file: File,
-  fileRef: RefObject<HTMLInputElement>,
-  customFileValidation: FileValidation,
-): boolean => {
-  if (!file) return false;
-  if (!customFileValidation) return true;
-  if (customFileValidation.validateFileName && !customFileValidation.validateFileName(file.name)) {
-    const formData = new FormData();
-    formData.append('file', file);
-    customFileValidation.onInvalidFileName(formData, file.name);
-    fileRef.current.value = '';
-    return false;
-  }
-  if (
-    customFileValidation.fileSizeLimitMb &&
-    file.size > customFileValidation.fileSizeLimitMb * BITS_IN_A_MEGA_BYTE
-  ) {
-    customFileValidation.onInvalidFileSize();
-    fileRef.current.value = '';
-    return false;
-  }
-  return true;
+const resetRef = (fileRef: RefObject<HTMLInputElement>): void => {
+  fileRef.current.value = '';
 };
