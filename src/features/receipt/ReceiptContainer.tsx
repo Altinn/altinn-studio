@@ -54,7 +54,6 @@ export const getSummaryDataObject = ({
   receiver,
 }: ReturnInstanceMetaDataObjectProps) => {
   const obj: SummaryDataObject = {};
-
   obj[langTools.langAsString('receipt.date_sent')] = {
     value: lastChangedDateTime,
     hideFromVisualTesting: true,

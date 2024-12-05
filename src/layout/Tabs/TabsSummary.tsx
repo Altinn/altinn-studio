@@ -27,7 +27,7 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
       data-testid='summary-tabs-component'
     >
       {tabs.map((tab, index) => (
-        <>
+        <div key={index}>
           {index != 0 && (
             <hr
               key={`${tab.title}-${index}-divider`}
@@ -60,7 +60,7 @@ export const TabsSummary = ({ componentNode }: TabsSummaryProps) => {
               ))}
             </Grid>
           </div>
-        </>
+        </div>
       ))}
     </div>
   );
