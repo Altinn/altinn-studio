@@ -95,6 +95,7 @@ const PreviewFrame = () => {
     mutate: createInstance,
     data: instance,
     isError: createInstanceError,
+    isPending: createInstancePending,
   } = useCreatePreviewInstanceMutation(org, app);
 
   useEffect(() => {
@@ -107,7 +108,7 @@ const PreviewFrame = () => {
     };
   }, [previewIframeRef]);
 
-  if (!instance) {
+  if (createInstancePending) {
     return (
       <StudioCenter>
         {createInstanceError ? (
@@ -118,6 +119,14 @@ const PreviewFrame = () => {
       </StudioCenter>
     );
   }
+  const previewURL = previewPage(
+    org,
+    app,
+    selectedFormLayoutSetName,
+    taskId,
+    selectedFormLayoutName,
+    instance?.id,
+  );
 
   return (
     <div className={classes.root}>
@@ -129,14 +138,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(
-              org,
-              app,
-              selectedFormLayoutSetName,
-              taskId,
-              selectedFormLayoutName,
-              instance?.id,
-            )}
+            src={previewURL}
             onLoad={previewHasLoaded}
           />
         </div>
