@@ -23,10 +23,7 @@
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-02BCRt.title"
         },
-        "children": [
-          "Input-pwsJeJ",
-          "Input-quTwIG"
-        ]
+        "children": ["Input-pwsJeJ", "Input-quTwIG"]
       },
       {
         "dataModelBindings": {
@@ -48,18 +45,8 @@
         "id": "Group-7sWmxA",
         "type": "Group",
         "textResourceBindings": {},
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "har-nestleder-checkbox"
-          ],
-          null
-        ],
-        "children": [
-          "Input-O3dFrw",
-          "Input-jrEjP2"
-        ]
+        "hidden": ["equals", ["component", "har-nestleder-checkbox"], null],
+        "children": ["Input-O3dFrw", "Input-jrEjP2"]
       },
       {
         "dataModelBindings": {
@@ -71,10 +58,7 @@
           "title": "styre-og-revisjon.RepeatingGroup-ThvmON.title"
         },
         "maxCount": 99999,
-        "children": [
-          "Input-Xsnqfr",
-          "Input-apAWap"
-        ]
+        "children": ["Input-Xsnqfr", "Input-apAWap"]
       },
       {
         "id": "Group-ZQZ86T",
@@ -82,10 +66,7 @@
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-ZQZ86T.title"
         },
-        "children": [
-          "revisor-radio",
-          "Group-hMnQkh"
-        ]
+        "children": ["revisor-radio", "Group-hMnQkh"]
       },
       {
         "id": "NavigationButtons-uebNGK",
@@ -203,49 +184,23 @@
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-hMnQkh.title"
         },
-        "hidden": [
-          "notEquals",
-          [
-            "component",
-            "revisor-radio"
-          ],
-          "ja"
-        ],
-        "children": [
-          "org-nr-revisor",
-          "Input-VOCYsx",
-          "Address-zMK6HS"
-        ]
+        "hidden": ["notEquals", ["component", "revisor-radio"], "ja"],
+        "children": ["org-nr-revisor", "Input-VOCYsx", "Address-zMK6HS"]
       },
       {
-        "dataModelBindings": {
-          "simpleBinding": "Revisor.Organisasjonsnummer"
-        },
         "id": "org-nr-revisor",
-        "type": "Input",
+        "type": "OrganisationLookup",
+        "hidden": ["equals", ["dataModel", "Revisor.HarRevisor"], "nei"],
+        "dataModelBindings": {
+          "organisation_lookup_orgnr": "Revisor.Organisasjonsnummer",
+          "organisation_lookup_name": "Revisor.Navn"
+        },
         "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-X4c6ij.title"
+          "title": "styre-og-revisjon.Input-X4c6ij.title",
+          "description": "Her legger du inn organisasjonsnummer",
+          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
         },
         "required": true
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Revisor.Navn"
-        },
-        "id": "Input-VOCYsx",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-VOCYsx.title"
-        },
-        "hidden": [
-          "equals",
-          [
-            "dataModel",
-            "Revisor.Navn"
-          ],
-          null
-        ],
-        "readOnly": true
       },
       {
         "dataModelBindings": {
@@ -262,10 +217,7 @@
         },
         "hidden": [
           "equals",
-          [
-            "dataModel",
-            "Revisor.Adresse.Adresselinje"
-          ],
+          ["dataModel", "Revisor.Adresse.Adresselinje"],
           null
         ],
         "readOnly": true
