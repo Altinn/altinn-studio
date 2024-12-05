@@ -29,7 +29,7 @@ export function EditOptions<T extends SelectionComponentType>({
   renderOptions,
 }: ISelectionEditComponentProvidedProps<T>) {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, isPending, isError, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending, isError } = useOptionListIdsQuery(org, app);
   const { t } = useTranslation();
 
   return (
@@ -44,7 +44,7 @@ export function EditOptions<T extends SelectionComponentType>({
         />
       ) : isError ? (
         <ErrorMessage className={classes.errorMessage}>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
+          {t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
         </ErrorMessage>
       ) : (
         <OptionTabs

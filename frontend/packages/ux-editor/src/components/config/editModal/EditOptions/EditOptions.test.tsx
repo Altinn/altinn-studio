@@ -220,15 +220,18 @@ describe('EditOptions', () => {
     expect(screen.getByText(textMock('ux_editor.options.code_list_only'))).toBeInTheDocument();
   });
 
-  it('should show error message if query fails', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+  it('should show error message if getOptionListIds fails', async () => {
     renderEditOptions({
       queries: {
-        getOptionListIds: jest.fn().mockRejectedValueOnce(new Error('Error')),
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
       },
     });
 
-    expect(await screen.findByText('Error')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message'),
+      ),
+    ).toBeInTheDocument();
     jest.clearAllMocks();
   });
 });

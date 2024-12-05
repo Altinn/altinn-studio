@@ -1,6 +1,5 @@
-import React, { type ChangeEvent, useState, type ReactElement } from 'react';
+import React, { type ChangeEvent, type ReactElement } from 'react';
 import classes from './ScopeList.module.css';
-
 import {
   StudioCheckboxTable,
   type StudioCheckboxTableRowElement,
@@ -8,7 +7,10 @@ import {
   StudioParagraph,
 } from '@studio/components';
 import { Trans, useTranslation } from 'react-i18next';
-import { type MaskinportenScope } from 'app-shared/types/MaskinportenScope';
+import {
+  type MaskinportenScopes,
+  type MaskinportenScope,
+} from 'app-shared/types/MaskinportenScope';
 import {
   getAllElementsChecked,
   getAllElementsDisabled,
@@ -21,6 +23,8 @@ import {
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import { EmailContactProvider } from 'app-shared/getInTouch/providers';
 import { LoggedInTitle } from '../LoggedInTitle';
+import { useUpdateSelectedMaskinportenScopesMutation } from 'app-development/hooks/mutations/useUpdateSelectedMaskinportenScopesMutation';
+import { SaveStatus } from '../SaveStatus';
 
 export type ScopeListProps = {
   maskinPortenScopes: MaskinportenScope[];
@@ -29,6 +33,11 @@ export type ScopeListProps = {
 
 export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps): ReactElement => {
   const { t } = useTranslation();
+  const {
+    mutate: mutateSelectedMaskinportenScopes,
+    isPending: isPendingSaveScopes,
+    isSuccess: scopesSaved,
+  } = useUpdateSelectedMaskinportenScopesMutation();
 
   const checkboxTableRowElements: StudioCheckboxTableRowElement[] = mapScopesToRowElements(
     maskinPortenScopes,
@@ -37,17 +46,13 @@ export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps
 
   const contactByEmail = new GetInTouchWith(new EmailContactProvider());
 
-  // This useState is temporary to simulate correct behaviour in browser. It will be removed and replaced by a mutation function
-  const [rowElements, setRowElements] =
-    useState<StudioCheckboxTableRowElement[]>(checkboxTableRowElements);
-
-  const areAllChecked = getAllElementsChecked(rowElements);
-  const isAnyChecked = getSomeElementsChecked(rowElements);
-  const allScopesDisabled: boolean = getAllElementsDisabled(rowElements);
+  const areAllChecked = getAllElementsChecked(checkboxTableRowElements);
+  const isAnyChecked = getSomeElementsChecked(checkboxTableRowElements);
+  const allScopesDisabled: boolean = getAllElementsDisabled(checkboxTableRowElements);
 
   const handleChangeAllScopes = () => {
     const updatedRowElements: StudioCheckboxTableRowElement[] = updateRowElementsCheckedState(
-      rowElements,
+      checkboxTableRowElements,
       areAllChecked,
     );
     saveUpdatedScopes(updatedRowElements);
@@ -56,18 +61,18 @@ export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps
   const handleChangeScope = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedScope = event.target.value;
     const updatedRowElements: StudioCheckboxTableRowElement[] = toggleRowElementCheckedState(
-      rowElements,
+      checkboxTableRowElements,
       selectedScope,
     );
     saveUpdatedScopes(updatedRowElements);
   };
 
   const saveUpdatedScopes = (updatedRowElements: StudioCheckboxTableRowElement[]) => {
-    const updatedScopes: MaskinportenScope[] = mapRowElementsToSelectedScopes(updatedRowElements);
-    console.log('SelectedScopes', updatedScopes);
+    const updatedScopeList: MaskinportenScope[] =
+      mapRowElementsToSelectedScopes(updatedRowElements);
+    const updatedScopes: MaskinportenScopes = { scopes: updatedScopeList };
 
-    // TODO: Replace line below with mutation call to update the database
-    setRowElements(updatedRowElements);
+    mutateSelectedMaskinportenScopes(updatedScopes);
   };
 
   return (
@@ -92,18 +97,16 @@ export const ScopeList = ({ maskinPortenScopes, selectedScopes }: ScopeListProps
           disabled={allScopesDisabled}
         />
         <StudioCheckboxTable.Body>
-          {
-            // Replace "rowElements" with "checkboxTableRowElements" when ready to implement with mutation function
-            rowElements.map((rowElement: StudioCheckboxTableRowElement) => (
-              <ScopeListItem
-                key={rowElement.value}
-                rowElement={rowElement}
-                onChangeScope={handleChangeScope}
-              />
-            ))
-          }
+          {checkboxTableRowElements.map((rowElement: StudioCheckboxTableRowElement) => (
+            <ScopeListItem
+              key={rowElement.value}
+              rowElement={rowElement}
+              onChangeScope={handleChangeScope}
+            />
+          ))}
         </StudioCheckboxTable.Body>
       </StudioCheckboxTable>
+      <SaveStatus isPending={isPendingSaveScopes} isSaved={scopesSaved} />
     </div>
   );
 };

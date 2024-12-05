@@ -39,13 +39,14 @@ export class DataModelPage extends BasePage {
 
   public async clickOnAddPropertyButton(): Promise<void> {
     await this.page
-      .getByRole('button', { name: this.textMock('schema_editor.add_node_of_type') })
-      .first()
+      .getByRole('button', { name: this.textMock('schema_editor.add_node_of_type'), exact: true })
       .click();
   }
 
   public async clickOnObjectAddPropertyButton(): Promise<void> {
-    await this.page.getByTitle(this.textMock('schema_editor.add_node_of_type')).click();
+    await this.page
+      .getByTitle(this.textMock('schema_editor.add_node_of_type_in_child_node_title'))
+      .click();
   }
 
   public async clickOnAddObjectPropertyMenuItem(): Promise<void> {
