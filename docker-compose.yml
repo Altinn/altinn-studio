@@ -3,7 +3,7 @@ version: '3.6'
 services:
   webpack:
     container_name: app-frontend-react
-    image: node:20
+    image: node:22
     volumes:
       - ./:/usr/src/app
     working_dir: /usr/src/app
