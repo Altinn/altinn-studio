@@ -47,7 +47,7 @@
           "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
         "children": [
-          "organisasjonsnummer"
+          "organisationLookup"
         ]
       },
       {
@@ -60,8 +60,7 @@
         "id": "Group-vvXQVJ",
         "type": "Group",
         "children": [
-          "etternavn",
-          "foedselsnummer",
+          "personLookup",
           "Address-ORk7vt"
         ]
       },
@@ -89,40 +88,34 @@
         ]
       },
       {
+        "id": "organisationLookup",
+        "type": "OrganisationLookup",
         "dataModelBindings": {
-          "simpleBinding": "StifterVirksomhet.Organisasjonsnummer"
+          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
         },
-        "id": "organisasjonsnummer",
-        "type": "Input",
         "textResourceBindings": {
-          "title": "stiftere-og-aksjetegning.organisasjonsnummer.title"
+          "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
+          "description": "Her legger du inn organisasjonsnummer",
+          "help": "Du kan finne organisasjonsnummeret ved å søke i Brønnøysundregistrene"
         },
+        "required": true,
         "grid": {
           "md": 6
         }
       },
       {
+        "id": "personLookup",
+        "type": "PersonLookup",
         "dataModelBindings": {
-          "simpleBinding": "StifterPerson.Etternavn"
+          "person_lookup_ssn": "StifterPerson.Foedselsnummer",
+          "person_lookup_name": "StifterPerson.Etternavn"
         },
-        "id": "etternavn",
-        "type": "Input",
         "textResourceBindings": {
-          "title": "stiftere-og-aksjetegning.etternavn.title"
+          "title": "Legg til person",
+          "description": "Her legger du inn etternavn og fødselsnummer",
+          "help": "For å kunne søke i registeret må du ha fødselsnummeret til personen"
         },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "StifterPerson.Foedselsnummer"
-        },
-        "id": "foedselsnummer",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "stiftere-og-aksjetegning.Input-NQacsF.title"
-        },
+        "required": true,
         "grid": {
           "md": 6
         }
@@ -139,7 +132,7 @@
         "type": "Address",
         "required": true,
         "grid": {
-          "md": 6
+          "md": 12
         }
       },
       {
