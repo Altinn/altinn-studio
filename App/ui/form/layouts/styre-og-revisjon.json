@@ -18,12 +18,16 @@
         }
       },
       {
-        "id": "Group-02BCRt",
-        "type": "Group",
+        "id": "Styreleder-lookup",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "person_lookup_ssn": "Styre.Styreleder.Foedselsnummer",
+          "person_lookup_name": "Styre.Styreleder.Etternavn"
+        },
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-02BCRt.title"
         },
-        "children": ["Input-pwsJeJ", "Input-quTwIG"]
+        "required": true
       },
       {
         "dataModelBindings": {
@@ -42,11 +46,26 @@
         ]
       },
       {
-        "id": "Group-7sWmxA",
-        "type": "Group",
-        "textResourceBindings": {},
+        "id": "Nestleder-lookup",
+        "type": "PersonLookup",
         "hidden": ["equals", ["component", "har-nestleder-checkbox"], null],
-        "children": ["Input-O3dFrw", "Input-jrEjP2"]
+        "dataModelBindings": {
+          "person_lookup_ssn": "Styre.Nestleder.Foedselsnummer",
+          "person_lookup_name": "Styre.Nestleder.Etternavn"
+        },
+        "textResourceBindings": {
+          "title": "Nestleder"
+        },
+        "required": true
+      },
+      {
+        "id": "Group-RepeatingGroup-ThvmON",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "styre-og-revisjon.RepeatingGroup-ThvmON.title"
+        },
+        "headingLevel": 4,
+        "children": ["RepeatingGroup-ThvmON"]
       },
       {
         "dataModelBindings": {
@@ -54,12 +73,18 @@
         },
         "id": "RepeatingGroup-ThvmON",
         "type": "RepeatingGroup",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.RepeatingGroup-ThvmON.title"
-        },
         "maxCount": 99999,
-        "children": ["Input-Xsnqfr", "Input-apAWap"]
+        "children": ["Styremedlem-lookup"]
       },
+      {
+        "id": "Styremedlem-lookup",
+        "type": "PersonLookup",
+        "dataModelBindings": {
+          "person_lookup_ssn": "Styre.Styremedlem.Foedselsnummer",
+          "person_lookup_name": "Styre.Styremedlem.Etternavn"
+        }
+      },
+
       {
         "id": "Group-ZQZ86T",
         "type": "Group",
@@ -73,88 +98,6 @@
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Styre.Styreleder.Etternavn"
-        },
-        "id": "Input-pwsJeJ",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-pwsJeJ.title"
-        },
-        "required": true,
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Styre.Styreleder.Foedselsnummer"
-        },
-        "id": "Input-quTwIG",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-quTwIG.title"
-        },
-        "required": true,
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Styre.Nestleder.Etternavn"
-        },
-        "id": "Input-O3dFrw",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-O3dFrw.title"
-        },
-        "required": true,
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Styre.Nestleder.Foedselsnummer"
-        },
-        "id": "Input-jrEjP2",
-        "type": "Input",
-        "required": true,
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-jrEjP2.title"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Styre.Styremedlem.Etternavn"
-        },
-        "id": "Input-Xsnqfr",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-Xsnqfr.title"
-        },
-        "grid": {
-          "md": 6
-        }
-      },
-      {
-        "dataModelBindings": {
-          "simpleBinding": "Styre.Styremedlem.Foedselsnummer"
-        },
-        "id": "Input-apAWap",
-        "type": "Input",
-        "textResourceBindings": {
-          "title": "styre-og-revisjon.Input-apAWap.title"
-        },
-        "grid": {
-          "md": 6
-        }
       },
       {
         "dataModelBindings": {

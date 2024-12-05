@@ -28,11 +28,7 @@
           "title": "stiftere-og-aksjetegning.RepeatingGroup-hkXdP3.title",
           "add_button_full": "stiftere-og-aksjetegning.stifter-personer-repeating-group.add_button_full"
         },
-        "children": [
-          "Group-vvXQVJ",
-          "Group-0GS4J3",
-          "Group-xCsfYx"
-        ]
+        "children": ["Group-vvXQVJ", "Group-0GS4J3", "Group-xCsfYx"]
       },
       {
         "dataModelBindings": {
@@ -46,9 +42,7 @@
           "summaryTitle": "stiftere-og-aksjetegning.stiftere-virksomheter.summaryTitle",
           "add_button_full": "stiftere-og-aksjetegning.stiftere-virksomheter.add_button_full"
         },
-        "children": [
-          "organisationLookup"
-        ]
+        "children": ["organisationLookup"]
       },
       {
         "id": "NavigationButtons-A564Nt",
@@ -59,10 +53,7 @@
       {
         "id": "Group-vvXQVJ",
         "type": "Group",
-        "children": [
-          "personLookup",
-          "Address-ORk7vt"
-        ]
+        "children": ["personLookup", "Address-ORk7vt"]
       },
       {
         "id": "Group-0GS4J3",
@@ -70,10 +61,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Group-0GS4J3.title"
         },
-        "children": [
-          "Input-Vq1fOU",
-          "Input-f5s6V5"
-        ]
+        "children": ["Input-Vq1fOU", "Input-f5s6V5"]
       },
       {
         "id": "Group-xCsfYx",
@@ -81,17 +69,13 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Group-xCsfYx.title"
         },
-        "children": [
-          "fullmektig-checkbox",
-          "Input-WmFYXj",
-          "Input-G9nlUc"
-        ]
+        "children": ["fullmektig-checkbox", "Input-WmFYXj", "Input-G9nlUc"]
       },
       {
         "id": "organisationLookup",
         "type": "OrganisationLookup",
         "dataModelBindings": {
-          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
@@ -186,14 +170,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Input-WmFYXj.title"
         },
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "fullmektig-checkbox"
-          ],
-          null
-        ],
+        "hidden": ["equals", ["component", "fullmektig-checkbox"], null],
         "grid": {
           "xl": 6,
           "xs": 12,
@@ -209,14 +186,7 @@
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.Input-G9nlUc.title"
         },
-        "hidden": [
-          "equals",
-          [
-            "component",
-            "fullmektig-checkbox"
-          ],
-          null
-        ],
+        "hidden": ["equals", ["component", "fullmektig-checkbox"], null],
         "grid": {
           "xl": 6,
           "md": 6
