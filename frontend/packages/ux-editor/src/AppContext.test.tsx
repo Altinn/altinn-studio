@@ -163,6 +163,21 @@ describe('AppContext', () => {
     );
   });
 
+  it('invalidates layout sets query for Apps in preview', async () => {
+    const { queryClient } = renderAppContext(({ updateLayoutSetsForPreview }: AppContextProps) => (
+      <Button onClick={() => updateLayoutSetsForPreview()} />
+    ));
+
+    await clickButton();
+
+    await waitFor(async () => expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(1));
+    await waitFor(async () =>
+      expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [AppsQueryKey.AppLayoutSets],
+      }),
+    );
+  });
+
   it('invalidates layout settings query for Apps in preview', async () => {
     const { queryClient } = renderAppContext(
       ({ updateLayoutSettingsForPreview, selectedFormLayoutSetName }: AppContextProps) => (
