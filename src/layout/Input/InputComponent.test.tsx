@@ -167,13 +167,33 @@ describe('InputComponent', () => {
     expect(inputComponent).toHaveValue(formattedValue);
   });
 
+  it('should prevent pasting when readOnly is true', async () => {
+    const initialValue = 'initial value';
+    await render({
+      component: {
+        readOnly: true,
+      },
+      queries: {
+        fetchFormData: () => Promise.resolve({ some: { field: initialValue } }),
+      },
+    });
+
+    const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
+    expect(inputComponent).toHaveValue(initialValue);
+
+    await userEvent.click(inputComponent);
+
+    await userEvent.paste('pasted text');
+
+    expect(inputComponent).toHaveValue(initialValue);
+  });
+
   const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Input',
       renderer: (props) => <InputComponent {...props} />,
       component: {
         id: 'mock-id',
-        readOnly: false,
         required: false,
         dataModelBindings: {
           simpleBinding: { dataType: defaultDataTypeMock, field: 'some.field' },

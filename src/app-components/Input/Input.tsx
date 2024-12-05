@@ -34,7 +34,13 @@ export type InputProps = {
 >;
 
 export function Input(props: InputProps) {
-  const { size = 'sm', ...rest } = props;
+  const { size = 'sm', readOnly, ...rest } = props;
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    if (readOnly) {
+      event.preventDefault();
+    }
+  };
 
   if (props.textonly) {
     const { value, id, className } = props;
@@ -56,7 +62,9 @@ export function Input(props: InputProps) {
 
   return (
     <Textfield
+      onPaste={handlePaste}
       size={size}
+      readOnly={readOnly}
       {...rest}
     />
   );
