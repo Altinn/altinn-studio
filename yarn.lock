@@ -6342,7 +6342,7 @@ __metadata:
     leaflet: "npm:^1.9.4"
     lint-staged: "npm:15.2.10"
     lru-cache: "npm:^11.0.0"
-    marked: "npm:14.1.4"
+    marked: "npm:15.0.3"
     marked-mangle: "npm:^1.0.1"
     mime: "npm:4.0.4"
     mini-css-extract-plugin: "npm:2.9.2"
@@ -13497,12 +13497,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:14.1.4":
-  version: 14.1.4
-  resolution: "marked@npm:14.1.4"
+"marked@npm:15.0.3":
+  version: 15.0.3
+  resolution: "marked@npm:15.0.3"
   bin:
     marked: bin/marked.js
-  checksum: 10c0/7ccc4c9b58d430b68eb878133fc284235ef3022b1a465345d2464712bf7d47507203b54639826839b6cb8d8847cf46f2e382588b9e1fc1d98b657520e16bfa62
+  checksum: 10c0/2e08d50b2ad96509a8ca93a5b57e9c7bf64ea44c8f504392191955dac5b117996ee39ceaafe0330e87a3bd93f7af5942bb87ef9bf55664a8d660012e7a43c3cc
   languageName: node
   linkType: hard
 
