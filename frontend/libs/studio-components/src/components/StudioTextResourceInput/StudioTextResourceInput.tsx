@@ -1,142 +1,198 @@
-import type { ChangeEvent, ReactElement } from 'react';
-import React, { useState } from 'react';
+import type { ChangeEvent, HTMLAttributes, ReactElement } from 'react';
+import React, { forwardRef, useState } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import { StudioTextResourcePicker } from '../StudioTextResourcePicker';
 import { StudioCodeFragment } from '../StudioCodeFragment';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import { PencilIcon, MagnifyingGlassIcon } from '@studio/icons';
 import classes from './StudioTextResourceInput.module.css';
+import type { StudioTextfieldProps } from '../StudioTextfield';
 import { StudioTextfield } from '../StudioTextfield';
 import { changeTextResourceInList, editTextResourceValue, getTextResourceById } from './utils';
 import { usePropState } from '@studio/hooks';
 import type { TextResourceInputTexts } from './types/TextResourceInputTexts';
+import cn from 'classnames';
 
-export type StudioTextResourceInputProps = {
+export type StudioTextResourceInputProps = TextResourceInputPropsBase &
+  HTMLAttributes<HTMLInputElement>;
+
+type TextResourceInputPropsBase = {
   currentId: string;
+  currentIdClass?: string;
+  inputClass?: string;
   onChangeCurrentId: (id: string) => void;
   onChangeTextResource: (textResource: TextResource) => void;
   textResources: TextResource[];
   texts: TextResourceInputTexts;
+  toggleClass?: string;
 };
 
-export function StudioTextResourceInput({
-  currentId: givenCurrentId,
-  onChangeTextResource,
-  onChangeCurrentId,
-  textResources: givenTextResources,
-  texts,
-}: StudioTextResourceInputProps): ReactElement {
-  const [inputMode, setInputMode] = useState<InputMode>(InputMode.EditValue);
-  const [currentId, setCurrentId] = usePropState<string>(givenCurrentId);
-  const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
+export const StudioTextResourceInput = forwardRef<HTMLInputElement, StudioTextResourceInputProps>(
+  (
+    {
+      className: givenClass,
+      currentId: givenCurrentId,
+      currentIdClass,
+      inputClass,
+      onChangeTextResource,
+      onChangeCurrentId,
+      onKeyDown,
+      textResources: givenTextResources,
+      texts,
+      toggleClass,
+      ...rest
+    },
+    ref,
+  ): ReactElement => {
+    const [mode, setMode] = useState<Mode>(Mode.EditValue);
+    const [currentId, setCurrentId] = usePropState<string>(givenCurrentId);
+    const [textResources, setTextResources] = usePropState<TextResource[]>(givenTextResources);
 
-  const handleChangeCurrentId = (id: string) => {
-    setCurrentId(id);
-    onChangeCurrentId(id);
-  };
+    const handleChangeCurrentId = (id: string): void => {
+      setCurrentId(id);
+      onChangeCurrentId(id);
+    };
 
-  const handleTextResourceChange = (newTextResource: TextResource) => {
-    const newList = changeTextResourceInList(textResources, newTextResource);
-    setTextResources(newList);
-    onChangeTextResource(newTextResource);
-  };
+    const handleTextResourceChange = (newTextResource: TextResource): void => {
+      const newList = changeTextResourceInList(textResources, newTextResource);
+      setTextResources(newList);
+      onChangeTextResource(newTextResource);
+    };
 
-  return (
-    <div className={classes.container}>
-      <InputBox
-        currentId={currentId}
-        inputMode={inputMode}
-        onChangeCurrentId={handleChangeCurrentId}
-        onChangeTextResource={handleTextResourceChange}
-        textResources={textResources}
-        texts={texts}
-      />
-      <InputModeToggle inputMode={inputMode} onToggle={setInputMode} texts={texts} />
-      <CurrentId currentId={currentId} label={texts.idLabel} />
-    </div>
-  );
-}
+    const rootClass = cn(givenClass, classes.container);
 
-enum InputMode {
+    return (
+      <div className={rootClass}>
+        <InputBox
+          currentId={currentId}
+          inputClass={inputClass}
+          mode={mode}
+          onChangeCurrentId={handleChangeCurrentId}
+          onChangeTextResource={handleTextResourceChange}
+          onKeyDown={onKeyDown}
+          ref={ref}
+          textResources={textResources}
+          texts={texts}
+          {...rest}
+        />
+        <ModeToggle className={toggleClass} inputMode={mode} onToggle={setMode} texts={texts} />
+        <CurrentId className={currentIdClass} currentId={currentId} label={texts.idLabel} />
+      </div>
+    );
+  },
+);
+
+StudioTextResourceInput.displayName = 'StudioTextResourceInput';
+
+enum Mode {
   EditValue = 'editValue',
   Search = 'search',
 }
 
 type InputBoxProps = StudioTextResourceInputProps & {
-  inputMode: InputMode;
+  mode: Mode;
 };
 
-function InputBox({
-  currentId,
-  inputMode,
-  onChangeCurrentId,
-  onChangeTextResource,
-  textResources,
-  texts,
-}: InputBoxProps): ReactElement {
-  const currentTextResource = getTextResourceById(textResources, currentId);
+const InputBox = forwardRef<HTMLInputElement, InputBoxProps>(
+  (
+    {
+      currentId,
+      inputClass,
+      mode,
+      onChangeCurrentId,
+      onChangeTextResource,
+      onKeyDown,
+      textResources,
+      texts,
+      ...rest
+    },
+    ref,
+  ): ReactElement => {
+    const currentTextResource = getTextResourceById(textResources, currentId);
+    const className = cn(inputClass, classes.inputbox);
 
-  switch (inputMode) {
-    case InputMode.EditValue:
-      return (
-        <ValueField
-          label={texts.valueLabel}
-          onChange={onChangeTextResource}
-          textResource={currentTextResource}
-        />
-      );
-    case InputMode.Search:
-      return (
-        <StudioTextResourcePicker
-          className={classes.inputbox}
-          emptyListText={texts.emptyResourceList}
-          label={texts.textResourcePickerLabel}
-          onValueChange={onChangeCurrentId}
-          textResources={textResources}
-          value={currentId}
-        />
-      );
-  }
-}
+    switch (mode) {
+      case Mode.EditValue:
+        return (
+          <ValueField
+            className={className}
+            label={texts.valueLabel}
+            onChangeTextResource={onChangeTextResource}
+            onKeyDown={onKeyDown}
+            ref={ref}
+            textResource={currentTextResource}
+            {...rest}
+          />
+        );
+      case Mode.Search:
+        return (
+          <StudioTextResourcePicker
+            className={className}
+            emptyListText={texts.emptyResourceList}
+            label={texts.textResourcePickerLabel}
+            onValueChange={onChangeCurrentId}
+            onKeyDown={onKeyDown}
+            textResources={textResources}
+            ref={ref}
+            value={currentId}
+            {...rest}
+          />
+        );
+    }
+  },
+);
 
-type ValueFieldProps = {
-  label: string;
+InputBox.displayName = 'InputBox';
+
+type ValueFieldProps = StudioTextfieldProps & {
   textResource: TextResource;
-  onChange: (textResource: TextResource) => void;
+  onChangeTextResource: (textResource: TextResource) => void;
 };
 
-function ValueField({ textResource, onChange, label }: ValueFieldProps): ReactElement {
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    const newTextResource = editTextResourceValue(textResource, value);
-    onChange(newTextResource);
-  };
+const ValueField = forwardRef<HTMLInputElement, ValueFieldProps>(
+  ({ textResource, onChange, onChangeTextResource, ...rest }, ref): ReactElement => {
+    const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
+      const { value } = event.target;
+      const newTextResource = editTextResourceValue(textResource, value);
+      onChangeTextResource(newTextResource);
+      onChange?.(event);
+    };
 
-  return (
-    <StudioTextfield
-      label={label}
-      hideLabel
-      size='sm'
-      value={textResource.value}
-      onChange={handleChange}
-      className={classes.inputbox}
-    />
-  );
-}
+    return (
+      <StudioTextfield
+        hideLabel
+        onChange={handleChange}
+        ref={ref}
+        size='sm'
+        value={textResource.value}
+        {...rest}
+      />
+    );
+  },
+);
+
+ValueField.displayName = 'ValueField';
 
 type InputModeToggleProps = {
-  inputMode: InputMode;
-  onToggle: (mode: InputMode) => void;
+  className?: string;
+  inputMode: Mode;
+  onToggle: (mode: Mode) => void;
   texts: TextResourceInputTexts;
 };
 
-function InputModeToggle({ inputMode, onToggle, texts }: InputModeToggleProps): ReactElement {
+function ModeToggle({
+  className: givenClass,
+  inputMode,
+  onToggle,
+  texts,
+}: InputModeToggleProps): ReactElement {
+  const className = cn(givenClass, classes.toggle);
   return (
-    <ToggleGroup onChange={onToggle} value={inputMode} size='sm' className={classes.toggle}>
-      <ToggleGroup.Item icon value={InputMode.EditValue} title={texts.editValue}>
+    <ToggleGroup onChange={onToggle} value={inputMode} size='sm' className={className}>
+      <ToggleGroup.Item icon value={Mode.EditValue} title={texts.editValue}>
         <PencilIcon />
       </ToggleGroup.Item>
-      <ToggleGroup.Item icon value={InputMode.Search} title={texts.search}>
+      <ToggleGroup.Item icon value={Mode.Search} title={texts.search}>
         <MagnifyingGlassIcon />
       </ToggleGroup.Item>
     </ToggleGroup>
@@ -144,13 +200,15 @@ function InputModeToggle({ inputMode, onToggle, texts }: InputModeToggleProps): 
 }
 
 type CurrentIdProps = {
+  className?: string;
   currentId: string;
   label: string;
 };
 
-function CurrentId({ currentId, label }: CurrentIdProps): ReactElement {
+function CurrentId({ className: givenClass, currentId, label }: CurrentIdProps): ReactElement {
+  const className = cn(givenClass, classes.id);
   return (
-    <div className={classes.id}>
+    <div className={className}>
       {label}
       <StudioCodeFragment>{currentId}</StudioCodeFragment>
     </div>

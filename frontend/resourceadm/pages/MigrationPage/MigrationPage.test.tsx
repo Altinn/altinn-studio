@@ -25,10 +25,6 @@ describe('MigrationPage', () => {
           publishedVersions: [
             {
               version: null,
-              environment: 'at21',
-            },
-            {
-              version: null,
               environment: 'at22',
             },
             {
@@ -62,10 +58,6 @@ describe('MigrationPage', () => {
           policyVersion: null,
           resourceVersion: '2',
           publishedVersions: [
-            {
-              version: null,
-              environment: 'at21',
-            },
             {
               version: null,
               environment: 'at22',
