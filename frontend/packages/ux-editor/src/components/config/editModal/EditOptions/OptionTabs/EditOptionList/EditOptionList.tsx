@@ -3,21 +3,21 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
-import { useTranslation, Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { FileNameUtils } from '@studio/pure-functions';
-import { findFileNameError } from './utils/findFileNameError';
 import type { FileNameError } from './utils/findFileNameError';
+import { findFileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditOptionList.module.css';
 import { OptionListEditor } from './OptionListEditor';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 export function EditOptionList<T extends SelectionComponentType>({
   component,
@@ -78,9 +78,10 @@ export function EditOptionList<T extends SelectionComponentType>({
   return (
     <>
       <OptionListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('optionListEditor') && componentHasConnectedOptionListToEdit && (
-        <OptionListEditor optionsId={component.optionsId} />
-      )}
+      {shouldDisplayFeature(FeatureFlag.OptionListEditor) &&
+        componentHasConnectedOptionListToEdit && (
+          <OptionListEditor optionsId={component.optionsId} />
+        )}
       <StudioFileUploader
         accept='.json'
         variant={'tertiary'}

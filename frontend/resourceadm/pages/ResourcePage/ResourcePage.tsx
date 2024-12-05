@@ -18,20 +18,20 @@ import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
 import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
+import { LeftNavigationBar } from '../../components/LeftNavigationBar';
 import {
   GavelSoundBlockIcon,
   InformationSquareIcon,
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { LeftNavigationBar } from '../../components/LeftNavigationBar';
-import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
+import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * @component
@@ -175,7 +175,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    return !!altinn2References && shouldDisplayFeature('resourceMigration');
+    return !!altinn2References && shouldDisplayFeature(FeatureFlag.ResourceMigration);
   };
 
   const aboutPageId = 'about';

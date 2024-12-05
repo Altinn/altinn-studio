@@ -4,9 +4,9 @@ import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/rea
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
-import { renderWithProviders, optionListIdsMock } from '../../../../../../testing/mocks';
+import { optionListIdsMock, renderWithProviders } from '../../../../../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import type { FormComponent } from '../../../../../../types/FormComponent';
@@ -136,7 +136,7 @@ describe('EditOptionList', () => {
   });
 
   it('should render OptionListEditor when featureFlag is active', async () => {
-    addFeatureFlagToLocalStorage('optionListEditor');
+    addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
     renderEditOptionList({
       queries: {
         getOptionLists: jest.fn().mockImplementation(() =>

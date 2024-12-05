@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 import classes from './OptionTabs.module.css';
 import { EditOptionList, EditOptionListReference } from './EditOptionList';
 import { SelectedOptionsType } from '@altinn/ux-editor/components/config/editModal/EditOptions/EditOptions';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { EditManualOptionsWithEditor } from './EditManualOptionsWithEditor';
 import { EditManualOptions } from './EditManualOptions';
-import { StudioTabs, StudioAlert, StudioErrorMessage } from '@studio/components';
+import { StudioAlert, StudioErrorMessage, StudioTabs } from '@studio/components';
 import { useComponentErrorMessage } from '@altinn/ux-editor/hooks';
 import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
 import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
@@ -109,7 +109,7 @@ const RenderManualOptions = ({
 
   return (
     <>
-      {shouldDisplayFeature('optionListEditor') ? (
+      {shouldDisplayFeature(FeatureFlag.OptionListEditor) ? (
         <EditManualOptionsWithEditor
           component={component}
           handleComponentChange={handleComponentChange}
