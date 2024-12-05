@@ -1,10 +1,13 @@
-import type { MutableRefObject } from 'react';
-import React, { useMemo, useRef, createContext, useCallback } from 'react';
-import type { QueryClient, QueryKey as TanStackQueryKey } from '@tanstack/react-query';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { QueryKey } from 'app-shared/types/QueryKey';
+import type { MutableRefObject, ReactElement, ReactNode } from 'react';
+import React, { createContext, useCallback, useMemo, useRef } from 'react';
+import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
 import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { AppsQueryKey } from 'app-shared/types/AppsQueryKey';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { StudioPageSpinner } from '@studio/components';
+import { useTranslation } from 'react-i18next';
 
 export interface WindowWithQueryClient extends Window {
   queryClient?: QueryClient;
@@ -16,9 +19,10 @@ export interface AppContextProps {
   setSelectedFormLayoutSetName: (selectedFormLayoutSetName: string) => void;
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
-  refetchLayouts: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  refetchLayoutSettings: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
-  refetchTexts: (language: string, resetQueries?: boolean) => Promise<void>;
+  updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
+  updateLayoutSetsForPreview: (resetQueries?: boolean) => Promise<void>;
+  updateLayoutSettingsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
+  updateTextsForPreview: (language: string, resetQueries?: boolean) => Promise<void>;
   shouldReloadPreview: boolean;
   previewHasLoaded: () => void;
   onLayoutSetNameChange: (layoutSetName: string) => void;
@@ -39,15 +43,19 @@ export const AppContextProvider = ({
   previewHasLoaded,
   onLayoutSetNameChange,
 }: AppContextProviderProps): React.JSX.Element => {
-  const { org, app } = useStudioEnvironmentParams();
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
+
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
+
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
-    useSelectedFormLayoutSetName();
+    useSelectedFormLayoutSetName(layoutSets);
+
   const { selectedFormLayoutName, setSelectedFormLayoutName } =
     useSelectedFormLayoutName(selectedFormLayoutSetName);
 
   const refetch = useCallback(
-    async (queryKey: TanStackQueryKey, resetQueries: boolean = false): Promise<void> => {
+    async (queryKey: QueryKey, resetQueries: boolean = false): Promise<void> => {
       const contentWindow: WindowWithQueryClient = previewIframeRef?.current?.contentWindow;
 
       resetQueries
@@ -61,25 +69,32 @@ export const AppContextProvider = ({
     [],
   );
 
-  const refetchLayouts = useCallback(
+  const updateLayoutsForPreview = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([QueryKey.FormLayouts, org, app, layoutSetName], resetQueries);
+      return await refetch([AppsQueryKey.AppLayouts, layoutSetName], resetQueries);
     },
-    [refetch, org, app],
+    [refetch],
   );
 
-  const refetchLayoutSettings = useCallback(
-    async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([QueryKey.FormLayoutSettings, org, app, layoutSetName], resetQueries);
+  const updateLayoutSetsForPreview = useCallback(
+    async (resetQueries: boolean = false): Promise<void> => {
+      return await refetch([AppsQueryKey.AppLayoutSets], resetQueries);
     },
-    [refetch, org, app],
+    [refetch],
   );
 
-  const refetchTexts = useCallback(
+  const updateLayoutSettingsForPreview = useCallback(
+    async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
+      return await refetch([AppsQueryKey.AppLayoutSettings, layoutSetName], resetQueries);
+    },
+    [refetch],
+  );
+
+  const updateTextsForPreview = useCallback(
     async (language: string, resetQueries: boolean = false): Promise<void> => {
-      return await refetch([QueryKey.FetchTextResources, org, app, language], resetQueries);
+      return await refetch([AppsQueryKey.AppTextResources, language], resetQueries);
     },
-    [refetch, org, app],
+    [refetch],
   );
 
   const value = useMemo(
@@ -89,9 +104,10 @@ export const AppContextProvider = ({
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
-      refetchLayouts,
-      refetchLayoutSettings,
-      refetchTexts,
+      updateLayoutsForPreview,
+      updateLayoutSetsForPreview,
+      updateLayoutSettingsForPreview,
+      updateTextsForPreview,
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
@@ -101,14 +117,35 @@ export const AppContextProvider = ({
       setSelectedFormLayoutSetName,
       selectedFormLayoutName,
       setSelectedFormLayoutName,
-      refetchLayouts,
-      refetchLayoutSettings,
-      refetchTexts,
+      updateLayoutsForPreview,
+      updateLayoutSetsForPreview,
+      updateLayoutSettingsForPreview,
+      updateTextsForPreview,
       shouldReloadPreview,
       previewHasLoaded,
       onLayoutSetNameChange,
     ],
   );
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      <ChildrenComponent pendingLayoutsets={pendingLayoutsets}>{children}</ChildrenComponent>
+    </AppContext.Provider>
+  );
+};
+
+type ChildrenComponentProps = {
+  pendingLayoutsets: boolean;
+  children: ReactNode;
+};
+const ChildrenComponent = ({
+  pendingLayoutsets,
+  children,
+}: ChildrenComponentProps): ReactElement => {
+  const { t } = useTranslation();
+
+  if (pendingLayoutsets) {
+    return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_page')} />;
+  }
+  return <>{children}</>;
 };

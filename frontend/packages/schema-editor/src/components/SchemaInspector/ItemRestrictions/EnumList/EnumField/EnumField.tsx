@@ -53,6 +53,7 @@ export const EnumField = ({
         onChange={handleChange}
         onKeyDown={onKeyDown}
         error={!isValid}
+        size='sm'
       />
       <StudioButton
         title={t('schema_editor.delete_field')}
@@ -62,7 +63,7 @@ export const EnumField = ({
         onClick={() => onDelete()}
         color='danger'
         variant='tertiary'
-        size='medium'
+        size='sm'
       />
     </div>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
 import type { FieldType, ObjectKind } from '@altinn/schema-model';
-import { useSavableSchemaModel } from '../../../../hooks/useSavableSchemaModel';
+import { SchemaModel } from '@altinn/schema-model';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { AddPropertiesMenu } from '../../../AddPropertiesMenu';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +14,6 @@ interface AddPropertyMenuProps {
 
 export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMenuProps) => {
   const { setSelectedUniquePointer } = useSchemaEditorAppContext();
-  const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
 
   const addProperty = useAddProperty();
@@ -22,7 +21,7 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
   const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
     const childPointer = addProperty(kind, fieldType, schemaPointer);
     if (childPointer) {
-      const uniqueChildPointer = savableModel.getUniquePointer(childPointer, uniquePointer);
+      const uniqueChildPointer = SchemaModel.getUniquePointer(childPointer, uniquePointer);
       setSelectedUniquePointer(uniqueChildPointer);
     }
   };
@@ -32,7 +31,7 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
       onItemClick={addPropertyAndClose}
       anchorButtonProps={{
         children: '',
-        title: t('schema_editor.add_node_of_type'),
+        title: t('schema_editor.add_node_of_type_in_child_node_title'),
         variant: 'tertiary',
         className: classes.actionButton,
       }}

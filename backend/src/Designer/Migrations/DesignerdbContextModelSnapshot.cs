@@ -17,10 +17,61 @@ namespace Altinn.Studio.Designer.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "9.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
+
+            modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.AppScopesDbObject", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("App")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("app");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("character varying")
+                        .HasColumnName("last_modified_by");
+
+                    b.Property<string>("Org")
+                        .IsRequired()
+                        .HasColumnType("character varying")
+                        .HasColumnName("org");
+
+                    b.Property<string>("Scopes")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("scopes");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("app_scopes_pkey");
+
+                    b.HasIndex(new[] { "Org", "App" }, "idx_app_scopes_org_app")
+                        .IsUnique();
+
+                    b.ToTable("app_scopes", "designer");
+                });
 
             modelBuilder.Entity("Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment", b =>
                 {

@@ -14,7 +14,7 @@ import classes from './HiddenExpressionOnLayout.module.css';
 export const HiddenExpressionOnLayout = () => {
   const { app, org } = useStudioEnvironmentParams();
   const { layout, layoutName } = useSelectedFormLayoutWithName();
-  const { selectedFormLayoutSetName, refetchLayouts } = useAppContext();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
   const { mutate: saveLayout } = useFormLayoutMutation(
     org,
     app,
@@ -30,7 +30,7 @@ export const HiddenExpressionOnLayout = () => {
         { internalLayout: { ...updatedLayout, hidden: expression } },
         {
           onSuccess: async () => {
-            await refetchLayouts(selectedFormLayoutSetName);
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
           },
         },
       ),

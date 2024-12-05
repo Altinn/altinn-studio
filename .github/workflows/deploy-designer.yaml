@@ -47,7 +47,7 @@ jobs:
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
             echo "tag=${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           else
-            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-')
+            sanitized_branch_name=$(echo "${{ github.ref_name }}" | tr -d '()' | tr '/' '-' | tr '_' '-')
             echo "tag=${sanitized_branch_name}-${{ needs.get-short-sha.outputs.short-sha }}" >> $GITHUB_OUTPUT
           fi
 
@@ -106,8 +106,12 @@ jobs:
       artifact-environment: ${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }}
       config-chart-name: altinn-designer-config
       artifact-name: altinn-designer
-      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }}
+      helm-set-arguments: environmentName=${{ matrix.environment == 'preapproved-prod' && 'prod' ||  matrix.environment }},chartVersion=0.1.0+${{ needs.determine-tag.outputs.tag }},imageTag=${{ needs.determine-tag.outputs.tag }},dbMigrationsTag=${{ needs.determine-tag.outputs.tag }},replicas=${{ matrix.environment == 'dev' && 1 || 2 }}
+      trace-workflow: true
+      trace-team-name: 'team-studio'
     secrets:
       client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
       tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
       subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID_FC }}
+      trace-connection-string: ${{ secrets.APP_INSIGHTS_CONNECTION_STRING }}
+      trace-repo-token: ${{ secrets.GITHUB_TOKEN }}

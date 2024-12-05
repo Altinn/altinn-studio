@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
@@ -118,7 +119,7 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [Route("{optionsListId}")]
-    public async Task<ActionResult> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<Dictionary<string, List<Option>>>> CreateOrOverwriteOptionsList(string org, string repo, [FromRoute] string optionsListId, [FromBody] List<Option> payload, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -126,6 +127,32 @@ public class OptionsController : ControllerBase
         var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, payload, cancellationToken);
 
         return Ok(newOptionsList);
+    }
+
+    /// <summary>
+    /// Create new options list.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="file">File being uploaded.</param>
+    /// <param name="cancellationToken"><see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPost]
+    [Route("upload")]
+    public async Task<IActionResult> UploadFile(string org, string repo, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        string fileName = file.FileName.Replace(".json", "");
+
+        try
+        {
+            List<Option> newOptionsList = await _optionsService.UploadNewOption(org, repo, developer, fileName, file, cancellationToken);
+            return Ok(newOptionsList);
+        }
+        catch (JsonException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     /// <summary>

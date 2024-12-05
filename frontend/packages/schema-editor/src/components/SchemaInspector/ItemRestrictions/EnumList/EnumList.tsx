@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { PlusIcon } from '@studio/icons';
 import { findDuplicateValues } from './utils';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { removeEmptyStrings } from 'app-shared/utils/arrayUtils';
 import { StudioButton } from '@studio/components';
 
 export type EnumListProps = {
@@ -44,7 +43,7 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
     const duplicates: string[] = findDuplicateValues(newEnumList);
 
     if (duplicates === null) {
-      const newNode = { ...schemaNode, enum: removeEmptyStrings(newEnumList) };
+      const newNode = { ...schemaNode, enum: ArrayUtils.removeEmptyStrings(newEnumList) };
       save(schemaModel.updateNode(newNode.schemaPointer, newNode));
     }
 
@@ -56,6 +55,8 @@ export const EnumList = ({ schemaNode }: EnumListProps): JSX.Element => {
     <Fieldset
       legend={t('schema_editor.enum_legend')}
       description={!schemaNode.enum?.length && t('schema_editor.enum_empty')}
+      size='sm'
+      className={classes.enumListFieldsset}
     >
       {duplicateValues !== null && (
         <ErrorMessage>{t('schema_editor.enum_error_duplicate')}</ErrorMessage>

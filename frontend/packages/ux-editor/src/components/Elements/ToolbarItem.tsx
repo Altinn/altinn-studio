@@ -1,21 +1,31 @@
 import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { StudioDragAndDropTree } from '@studio/components';
 
 type ToolbarItemProps = {
-  text: string;
+  componentTitle: string;
   notDraggable?: boolean;
-  componentType: ComponentType;
+  componentType: ComponentType | CustomComponentType;
   icon?: React.ComponentType;
 };
 
-export const ToolbarItem = ({ notDraggable, componentType, text, icon }: ToolbarItemProps) => {
+export const ToolbarItem = ({
+  notDraggable,
+  componentType,
+  componentTitle,
+  icon,
+}: ToolbarItemProps) => {
   return (
-    <div>
-      <DragAndDropTree.NewItem<ComponentType> notDraggable={notDraggable} payload={componentType}>
-        <ToolbarItemComponent componentType={componentType} thirdPartyLabel={text} icon={icon} />
-      </DragAndDropTree.NewItem>
-    </div>
+    <StudioDragAndDropTree.NewItem<ComponentType | CustomComponentType>
+      notDraggable={notDraggable}
+      payload={componentType}
+    >
+      <ToolbarItemComponent
+        componentType={componentType}
+        componentTitle={componentTitle}
+        icon={icon}
+      />
+    </StudioDragAndDropTree.NewItem>
   );
 };

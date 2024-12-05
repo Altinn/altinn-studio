@@ -106,6 +106,8 @@ type SummarizableComponentProps = {
 
 export type SummaryTargetType = 'page' | 'layoutSet' | 'component';
 
+export type SummaryCustomTargetType = 'list' | 'string' | 'notSet';
+
 type LabeledComponentProps = {
   labelSettings?: LabelSettings;
 };
@@ -117,7 +119,7 @@ type LabelSettings = {
 type ButtonStyle = 'primary' | 'secondary';
 type LayoutStyle = 'column' | 'row' | 'table';
 
-type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage';
+type ClientActionId = 'nextPage' | 'previousPage' | 'navigateToPage' | 'closeSubform';
 type ClientAction<T extends ClientActionId = ClientActionId> = {
   id: T;
   type: 'ClientAction';
@@ -139,6 +141,8 @@ export type Summary2OverrideConfig = {
   forceShow?: boolean;
   emptyFieldText?: string;
   hideEmptyFields?: boolean;
+  isCompact?: boolean;
+  displayType?: SummaryCustomTargetType;
 };
 
 export type Summary2TargetConfig = {
@@ -281,12 +285,6 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
       dataModelBindings: DataModelBindingsLikert;
       filter?: { key: 'start' | 'stop'; value: string | number };
     };
-  [ComponentType.LikertItem]: FormComponentProps &
-    SummarizableComponentProps &
-    SelectionComponentFull & {
-      dataModelBindings: DataModelBindingsOptionsSimple;
-      layout?: LayoutStyle;
-    };
   [ComponentType.Link]: {
     style: 'primary' | 'secondary' | 'link';
     openInNewTab?: boolean;
@@ -372,7 +370,7 @@ export type ComponentSpecificConfig<T extends ComponentType = ComponentType> = {
     rowsAfter?: GridRow[];
     labelSettings?: LabelSettings;
   };
-  [ComponentType.SubForm]: FormComponentProps;
+  [ComponentType.Subform]: FormComponentProps;
   [ComponentType.Summary]: SummarizableComponentProps & {
     componentRef: string;
     largeGroup?: boolean;

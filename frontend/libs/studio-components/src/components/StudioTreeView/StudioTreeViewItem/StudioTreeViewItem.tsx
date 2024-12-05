@@ -103,6 +103,7 @@ export const StudioTreeViewItem = ({
       aria-level={level}
       aria-owns={listId}
       aria-selected={selected}
+      as='div'
       className={classes.button}
       color='first'
       icon={<Icon customIcon={icon} hasChildren={hasChildren} open={open} />}
@@ -115,9 +116,8 @@ export const StudioTreeViewItem = ({
       tabIndex={focusable ? 0 : -1}
       type='button'
       variant='tertiary'
-      asChild
     >
-      <div className={classes.label}>{label}</div>
+      <span className={classes.label}>{label}</span>
     </StudioButton>
   );
 

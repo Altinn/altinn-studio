@@ -3,10 +3,9 @@ import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { formLayoutSettingsMock, renderWithProviders } from './testing/mocks';
 import { App } from './App';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { typedLocalStorage } from '@studio/components/src/hooks/webStorage';
+import { typedLocalStorage } from '@studio/pure-functions';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppContextProps } from './AppContext';
-import ruleHandlerMock from './testing/ruleHandlerMock';
 import { layoutSetsMock } from './testing/layoutSetsMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { user as userMock } from 'app-shared/mocks/mocks';
@@ -15,7 +14,6 @@ import { PreviewContextProvider } from 'app-development/contexts/PreviewContext'
 
 const mockQueries: Partial<ServicesContextProps> = {
   getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
-  getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
   getFormLayoutSettings: jest
     .fn()

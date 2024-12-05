@@ -3,11 +3,12 @@ import React from 'react';
 import { StudioButton } from '@studio/components';
 import { PlusIcon } from '@studio/icons';
 import type { UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypeItem';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
+import { NoItemSelectedMessage } from '../NoItemSelectedMessage';
 
 export interface TypesInspectorProps {
   schemaItems: UiSchemaNode[];
@@ -25,7 +26,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
 
   const setSelectedType = (schemaPointer: string) => {
     setSelectedTypePointer(schemaPointer);
-    const uniquePointer = schemaModel.getUniquePointer(schemaPointer);
+    const uniquePointer = SchemaModel.getUniquePointer(schemaPointer);
     setSelectedUniquePointer(uniquePointer);
   };
 
@@ -38,14 +39,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   };
 
   if (!schemaItems) {
-    return (
-      <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {t('schema_editor.no_item_selected')}
-        </p>
-        <Divider />
-      </div>
-    );
+    return <NoItemSelectedMessage />;
   }
 
   return (
@@ -58,6 +52,7 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
             variant='tertiary'
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
+            title={t('schema_editor.add_type')}
           />
         </div>
 

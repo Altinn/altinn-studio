@@ -1,8 +1,11 @@
-﻿using System.Text.Encodings.Web;
+﻿using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Designer.Tests.Controllers.ApiTests;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
@@ -22,12 +25,19 @@ namespace Designer.Tests.Controllers.PreviewController
         protected const string InstanceGuId = "f1e23d45-6789-1bcd-8c34-56789abcdef0";
         protected const string AttachmentGuId = "f47ac10b-58cc-4372-a567-0e02b2c3d479";
         protected const string MockedReferrerUrl = "https://studio-mock-url.no";
-        protected readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions()
+
+        protected override void ConfigureTestServices(IServiceCollection services)
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        };
+            base.ConfigureTestServices(services);
+            var cacheServices = services.Where(
+                d => d.ServiceType == typeof(IDistributedCache)).ToList();
+            foreach (ServiceDescriptor serviceDescriptor in cacheServices)
+            {
+                services.Remove(serviceDescriptor);
+            }
+
+            services.AddDistributedMemoryCache();
+        }
 
         public PreviewControllerTestsBase(WebApplicationFactory<Program> factory) : base(factory)
         {

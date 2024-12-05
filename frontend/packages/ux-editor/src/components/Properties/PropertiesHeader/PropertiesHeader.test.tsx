@@ -10,10 +10,11 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { componentSchemaMocks } from '../../../testing/componentSchemaMocks';
-import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { layoutSet1NameMock, layoutSetsMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { layout1NameMock, layoutMock } from '@altinn/ux-editor/testing/layoutMock';
 import type { IFormLayouts } from '@altinn/ux-editor/types/global';
 import { app, org } from '@studio/testing/testids';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const mockHandleComponentUpdate = jest.fn();
 
@@ -26,7 +27,6 @@ const defaultProps: PropertiesHeaderProps = {
   formItem: component1Mock,
   handleComponentUpdate: mockHandleComponentUpdate,
 };
-const user = userEvent.setup();
 
 describe('PropertiesHeader', () => {
   afterEach(jest.clearAllMocks);
@@ -42,6 +42,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('displays the help text when the help text button is clicked', async () => {
+    const user = userEvent.setup();
     renderPropertiesHeader();
 
     const helpTextButton = screen.getByRole('button', {
@@ -60,6 +61,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should invoke "handleComponentUpdate" when id field blurs', async () => {
+    const user = userEvent.setup();
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
@@ -77,6 +79,7 @@ describe('PropertiesHeader', () => {
   });
 
   it('should not invoke "handleComponentUpdateMock" when input field has error', async () => {
+    const user = userEvent.setup();
     renderPropertiesHeader();
 
     const editComponentIdButton = screen.getByRole('button', {
@@ -96,6 +99,56 @@ describe('PropertiesHeader', () => {
     expect(containerIdInput).toHaveAttribute('aria-invalid', 'true');
     expect(mockHandleComponentUpdate).toHaveBeenCalledTimes(0);
   });
+
+  it('should not render recommendedNextAction when component is subform and has layoutset ', () => {
+    const subformLayoutSetId = 'subformLayoutSetId';
+    renderPropertiesHeader({
+      formItem: {
+        ...component1Mock,
+        type: ComponentType.Subform,
+        layoutSet: layoutSetName,
+        id: subformLayoutSetId,
+      },
+    });
+    expect(subformLayoutSetId).toBe('subformLayoutSetId');
+    expect(
+      screen.queryByText(
+        textMock('ux_editor.component_properties.subform.choose_layout_set_header'),
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should render recommendedNextAction when component is subform and has no layoutset ', () => {
+    renderPropertiesHeader({
+      formItem: {
+        ...component1Mock,
+        type: ComponentType.Subform,
+      },
+    });
+    expect(
+      screen.getByText(textMock('ux_editor.component_properties.subform.choose_layout_set_header')),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render other accordions config when component type is subform and has no layoutset', () => {
+    renderPropertiesHeader({
+      formItem: {
+        ...component1Mock,
+        type: ComponentType.Subform,
+      },
+    });
+    expect(screen.queryByText(textMock('right_menu.text'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('right_menu.data_model_bindings'))).not.toBeInTheDocument();
+    expect(screen.queryByText(textMock('right_menu.content'))).not.toBeInTheDocument();
+  });
+
+  it('should not render subform config when component is not subform', () => {
+    renderPropertiesHeader();
+    const setLayoutSetButton = screen.queryByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.selected_layout_set_label'),
+    });
+    expect(setLayoutSetButton).not.toBeInTheDocument();
+  });
 });
 const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
   const componentType = props.formItem ? props.formItem.type : defaultProps.formItem.type;
@@ -104,6 +157,7 @@ const renderPropertiesHeader = (props: Partial<PropertiesHeaderProps> = {}) => {
     componentSchemaMocks[componentType],
   );
   queryClientMock.setQueryData([QueryKey.FormLayouts, org, app, layoutSetName], layouts);
+  queryClientMock.setQueryData([QueryKey.LayoutSets, org, app], layoutSetsMock);
   return renderWithProviders(
     <FormItemContext.Provider
       value={{

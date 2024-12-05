@@ -1,21 +1,22 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved, within } from '@testing-library/react';
-import { MockServicesContextWrapper } from '../../dashboardTestUtils';
+import { screen, waitForElementToBeRemoved, within } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { Repository, User } from 'app-shared/types/Repository';
-import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import type { User } from 'app-shared/types/Repository';
+import { SelectedContextType } from 'dashboard/context/HeaderContext';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { repository, searchRepositoryResponse } from 'app-shared/mocks/mocks';
 import type { SearchRepositoryResponse } from 'app-shared/types/api';
 import { DATA_MODEL_REPO_IDENTIFIER } from '../../constants';
+import { renderWithProviders } from 'dashboard/testing/mocks';
+import { type RepoIncludingStarredData } from 'dashboard/utils/repoUtils/repoUtils';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const renderWithMockServices = (services?: Partial<ServicesContextProps>) => {
-  render(
-    <MockServicesContextWrapper customServices={services}>
-      <Dashboard organizations={[]} user={{} as User} />
-    </MockServicesContextWrapper>,
-  );
+  renderWithProviders(<Dashboard organizations={[]} user={{} as User} />, {
+    queries: services,
+    queryClient: createQueryClientMock(),
+  });
 };
 
 jest.mock('react-router-dom', () => ({
@@ -26,9 +27,14 @@ jest.mock('react-router-dom', () => ({
 }));
 
 describe('Dashboard', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should display favorite list with one item', async () => {
     renderWithMockServices({
-      getStarredRepos: () => Promise.resolve<Repository[]>([repository]),
+      getStarredRepos: () =>
+        Promise.resolve<RepoIncludingStarredData[]>([{ ...repository, hasStarred: true }]),
     });
 
     await waitForElementToBeRemoved(() => screen.queryAllByText(textMock('general.loading')));

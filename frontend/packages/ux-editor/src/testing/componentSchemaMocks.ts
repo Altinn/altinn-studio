@@ -22,7 +22,6 @@ import InputSchema from './schemas/json/component/Input.schema.v1.json';
 import InstanceInformationSchema from './schemas/json/component/InstanceInformation.schema.v1.json';
 import InstantiationButtonSchema from './schemas/json/component/InstantiationButton.schema.v1.json';
 import LikertSchema from './schemas/json/component/Likert.schema.v1.json';
-import LikertItemSchema from './schemas/json/component/LikertItem.schema.v1.json';
 import LinkSchema from './schemas/json/component/Link.schema.v1.json';
 import ListSchema from './schemas/json/component/List.schema.v1.json';
 import MapSchema from './schemas/json/component/Map.schema.v1.json';
@@ -36,7 +35,7 @@ import PaymentSchema from './schemas/json/component/Payment.schema.v1.json';
 import PrintButtonSchema from './schemas/json/component/PrintButton.schema.v1.json';
 import RadioButtonsSchema from './schemas/json/component/RadioButtons.schema.v1.json';
 import RepeatingGroupSchema from './schemas/json/component/RepeatingGroup.schema.v1.json';
-import SubFormSchema from './schemas/json/component/Subform.schema.v1.json';
+import SubformSchema from './schemas/json/component/Subform.schema.v1.json';
 import SummarySchema from './schemas/json/component/Summary.schema.v1.json';
 import Summary2Schema from './schemas/json/component/Summary2.schema.v1.json';
 import TextAreaSchema from './schemas/json/component/TextArea.schema.v1.json';
@@ -68,7 +67,6 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.InstanceInformation]: InstanceInformationSchema,
   [ComponentType.InstantiationButton]: InstantiationButtonSchema,
   [ComponentType.Likert]: LikertSchema,
-  [ComponentType.LikertItem]: LikertItemSchema,
   [ComponentType.Link]: LinkSchema,
   [ComponentType.List]: ListSchema,
   [ComponentType.Map]: MapSchema,
@@ -82,7 +80,7 @@ export const componentSchemaMocks: Record<ComponentType, JsonSchema> = {
   [ComponentType.PrintButton]: PrintButtonSchema,
   [ComponentType.RadioButtons]: RadioButtonsSchema,
   [ComponentType.RepeatingGroup]: RepeatingGroupSchema,
-  [ComponentType.SubForm]: SubFormSchema,
+  [ComponentType.Subform]: SubformSchema,
   [ComponentType.Summary]: SummarySchema,
   [ComponentType.Summary2]: Summary2Schema,
   [ComponentType.TextArea]: TextAreaSchema,

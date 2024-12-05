@@ -10,6 +10,7 @@ import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
+import { ComponentType } from 'app-shared/types/ComponentType';
 
 const somePropertyName = 'somePropertyName';
 const customTextMockToHandleUndefined = (
@@ -52,6 +53,26 @@ describe('FormComponentConfig', () => {
         await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
     }
+  });
+
+  it('should render "RedirectToLayoutSet"', () => {
+    render({
+      props: {
+        component: {
+          id: 'subform-unit-test-id',
+          layoutSet: 'subform-unit-test-layout-set',
+          itemType: 'COMPONENT',
+          type: ComponentType.Subform,
+        },
+        schema: {
+          properties: {
+            layoutSet: 'subform-unit-test-layout-set',
+          },
+        },
+      },
+    });
+
+    expect(screen.getByText(textMock('ux_editor.component_properties.subform.go_to_layout_set')));
   });
 
   it('should render list of unsupported properties', () => {

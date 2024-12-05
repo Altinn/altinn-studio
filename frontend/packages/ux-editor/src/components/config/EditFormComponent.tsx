@@ -37,7 +37,7 @@ export const EditFormComponent = ({
   }
 
   return (
-    <Fieldset className={classes.root} legend=''>
+    <Fieldset className={classes.root} legend='' size='sm'>
       {isPending && (
         <StudioSpinner
           showSpinnerTitle

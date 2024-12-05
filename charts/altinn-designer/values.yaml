@@ -53,7 +53,13 @@ environmentVariables:
     - name: OidcLoginSettings__CookieExpiryTimeInMinutes
       value: 59
     - name: FeatureManagement__AnsattPorten
-      value: "false"
+      value: "true"
+    - name: FeatureManagement__EidLogging
+      value: "true"
+    - name: RedisCacheSettings__UseRedisCache
+      value: "true"
+    - name: RedisCacheSettings__InstanceName
+      value: "designer"
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Staging
@@ -87,6 +93,12 @@ environmentVariables:
       value: 59
     - name: FeatureManagement__AnsattPorten
       value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
+    - name: RedisCacheSettings__UseRedisCache
+      value: "true"
+    - name: RedisCacheSettings__InstanceName
+      value: "designer"
   prod:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -118,6 +130,12 @@ environmentVariables:
       value: 59
     - name: FeatureManagement__AnsattPorten
       value: "false"
+    - name: FeatureManagement__EidLogging
+      value: "true"
+    - name: RedisCacheSettings__UseRedisCache
+      value: "true"
+    - name: RedisCacheSettings__InstanceName
+      value: "designer"
 
 dbMigrationsEnvironmentVariablesSecretName: altinn-designer-db-migrations-secret
 

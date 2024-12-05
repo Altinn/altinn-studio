@@ -23,6 +23,11 @@ const preview: Preview = {
         </DocsContainer>
       ),
     },
+    options: {
+      storySort: {
+        method: 'alphabetical',
+      },
+    },
   },
 };
 

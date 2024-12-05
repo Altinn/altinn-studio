@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,12 +6,14 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
@@ -264,6 +267,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 "No layout set found for this app.");
         }
 
+        private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
+        {
+            return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+        }
+
+        public async Task<LayoutSetsModel> GetLayoutSetsExtended(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            Definitions definitions = altinnAppGitRepository.GetDefinitions();
+
+            LayoutSetsModel layoutSetsModel = new();
+            layoutSetsFile.Sets.ForEach(set =>
+            {
+                LayoutSetModel layoutSetModel = new()
+                {
+                    id = set.Id,
+                    dataType = set.DataType,
+                    type = set.Type,
+                };
+                string taskId = set.Tasks?[0];
+                if (taskId != null)
+                {
+                    string taskType = TaskTypeFromDefinitions(definitions, taskId);
+                    layoutSetModel.task = new TaskModel
+                    {
+                        id = taskId,
+                        type = taskType
+                    };
+                }
+                layoutSetsModel.sets.Add(layoutSetModel);
+            });
+            return layoutSetsModel;
+        }
+
         /// <inheritdoc />
         public async Task<LayoutSetConfig> GetLayoutSetConfig(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId,
             CancellationToken cancellationToken = default)
@@ -305,7 +345,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 throw new NonUniqueLayoutSetIdException($"Layout set name, {newLayoutSet.Id}, already exists.");
             }
-            if (newLayoutSet.Tasks != null && layoutSets.Sets.Exists(set => set.Tasks[0] == newLayoutSet.Tasks[0]))
+            if (newLayoutSet.Tasks != null && layoutSets.Sets.Exists(set => set.Tasks?[0] == newLayoutSet.Tasks[0]))
             {
                 throw new NonUniqueTaskForLayoutSetException($"Layout set with task, {newLayoutSet.Tasks[0]}, already exists.");
             }
@@ -529,6 +569,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
 
             return indexFilePath is not null && AppFrontendVersionHelper.TryGetFrontendVersionFromIndexFile(indexFilePath, out version);
+        }
+
+        public async Task AddComponentToLayout(
+                AltinnRepoEditingContext editingContext,
+                string layoutSetName,
+                string layoutName,
+                object component,
+                CancellationToken cancellationToken = default)
+        {
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
+                editingContext.Org,
+                editingContext.Repo,
+                editingContext.Developer
+            );
+            JsonNode formLayout = await altinnAppGitRepository.GetLayout(layoutSetName, $"{layoutName}.json", cancellationToken);
+            if (formLayout["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
+            {
+                throw new InvalidOperationException("Invalid form layout structure");
+            }
+            layoutArray.Add(component);
+            await SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
         }
     }
 }

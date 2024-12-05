@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Designer.Tests.Fixtures;
@@ -42,7 +44,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     /// </summary>
     protected abstract void ConfigureTestServices(IServiceCollection services);
 
-    protected Action<IServiceCollection> ConfigureTestForSpecificTest { get; set; } = delegate { };
+    protected Action<IServiceCollection> ConfigureTestServicesForSpecificTest { get; set; } = delegate { };
 
     /// <summary>
     /// Location of the assembly of the executing unit test.
@@ -62,6 +64,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
         Factory = factory;
         SetupDirtyHackIfLinux();
+        InitializeJsonConfigOverrides();
     }
 
     /// <summary>
@@ -74,7 +77,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
         string configPath = GetConfigPath();
         IConfiguration configuration = new ConfigurationBuilder()
             .AddJsonFile(configPath, false, false)
-            .AddJsonStream(GenerateOidcConfigJsonConfig())
+            .AddJsonStream(GenerateJsonOverrideConfig())
             .AddEnvironmentVariables()
             .Build();
 
@@ -84,7 +87,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
             builder.ConfigureAppConfiguration((_, conf) =>
             {
                 conf.AddJsonFile(configPath);
-                conf.AddJsonStream(GenerateOidcConfigJsonConfig());
+                conf.AddJsonStream(GenerateJsonOverrideConfig());
             });
             builder.ConfigureTestServices(ConfigureTestServices);
             builder.ConfigureTestServices(services =>
@@ -94,7 +97,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         TestAuthConstants.TestAuthenticationScheme, options => { });
                 services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
             });
-            builder.ConfigureServices(ConfigureTestForSpecificTest);
+            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
 
@@ -115,9 +118,13 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
     }
 
-    protected Stream GenerateOidcConfigJsonConfig()
+    protected List<string> JsonConfigOverrides;
+
+    private void InitializeJsonConfigOverrides()
     {
-        string configOverride = $@"
+        JsonConfigOverrides =
+        [
+            $@"
               {{
                     ""OidcLoginSettings"": {{
                         ""ClientId"": ""{Guid.NewGuid()}"",
@@ -140,8 +147,26 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         ""CookieExpiryTimeInMinutes"" : 59
                     }}
               }}
-            ";
-        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(configOverride));
+            "
+        ];
+    }
+
+
+    protected Stream GenerateJsonOverrideConfig()
+    {
+        var overrideJson = Newtonsoft.Json.Linq.JObject.Parse(JsonConfigOverrides.First());
+        if (JsonConfigOverrides.Count > 1)
+        {
+            foreach (string jsonConfig in JsonConfigOverrides)
+            {
+                overrideJson.Merge(Newtonsoft.Json.Linq.JObject.Parse(jsonConfig), new Newtonsoft.Json.Linq.JsonMergeSettings
+                {
+                    MergeArrayHandling = Newtonsoft.Json.Linq.MergeArrayHandling.Union
+                });
+            }
+        }
+        string overrideJsonString = overrideJson.ToString();
+        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(overrideJsonString));
         configStream.Seek(0, SeekOrigin.Begin);
         return configStream;
     }

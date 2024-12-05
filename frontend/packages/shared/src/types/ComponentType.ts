@@ -23,7 +23,6 @@ export enum ComponentType {
   InstanceInformation = 'InstanceInformation',
   InstantiationButton = 'InstantiationButton',
   Likert = 'Likert',
-  LikertItem = 'LikertItem',
   Link = 'Link',
   List = 'List',
   Map = 'Map',
@@ -37,8 +36,12 @@ export enum ComponentType {
   PrintButton = 'PrintButton',
   RadioButtons = 'RadioButtons',
   RepeatingGroup = 'RepeatingGroup',
-  SubForm = 'SubForm',
+  Subform = 'Subform',
   Summary = 'Summary',
   Summary2 = 'Summary2',
   TextArea = 'TextArea',
+}
+
+export enum CustomComponentType {
+  CloseSubformButton = 'CloseSubformButton',
 }
