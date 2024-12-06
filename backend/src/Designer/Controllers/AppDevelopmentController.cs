@@ -136,14 +136,16 @@ namespace Altinn.Studio.Designer.Controllers
                                     EditingContext = editingContext
                                 }, cancellationToken);
                             }
-
-                            await _mediator.Publish(new ComponentIdChangedEvent
+                            else
                             {
-                                OldComponentId = componentIdChange.OldComponentId,
-                                NewComponentId = componentIdChange.NewComponentId,
-                                LayoutSetName = layoutSetName,
-                                EditingContext = editingContext
-                            }, cancellationToken);
+                                await _mediator.Publish(new ComponentIdChangedEvent
+                                {
+                                    OldComponentId = componentIdChange.OldComponentId,
+                                    NewComponentId = componentIdChange.NewComponentId,
+                                    LayoutSetName = layoutSetName,
+                                    EditingContext = editingContext
+                                }, cancellationToken);
+                            }
                         }
                     }
                 }
