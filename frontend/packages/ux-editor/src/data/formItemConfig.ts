@@ -578,6 +578,7 @@ export const defaultComponents: ComponentType[] = [
 
 export const allComponents: KeyValuePairs<ComponentType[]> = {
   form: [ComponentType.Input, ComponentType.TextArea, ComponentType.Datepicker],
+  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
   select: [
     ComponentType.Checkboxes,
     ComponentType.RadioButtons,
@@ -585,7 +586,6 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.MultipleSelect,
     ComponentType.Likert,
   ],
-  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
   info: [
     ComponentType.InstanceInformation,
     ComponentType.Image,
