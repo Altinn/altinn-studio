@@ -1,8 +1,11 @@
 import {
   getLayoutSetIdValidationErrorKey,
   getLayoutSetNameForCustomReceipt,
+  getLayoutSetTypeTranslationKey,
 } from 'app-shared/utils/layoutSetsUtils';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
+import type { LayoutSetModel } from '../types/api/dto/LayoutSetModel';
+import { PROTECTED_TASK_NAME_CUSTOM_RECEIPT } from '../constants';
 
 // Test data
 const layoutSetName = 'layoutSet';
@@ -94,5 +97,28 @@ describe('getLayoutSetIdValidationErrorKey', () => {
     expect(
       getLayoutSetIdValidationErrorKey(existingLayoutSetId, { sets: [] }, existingLayoutSetId),
     ).toBe(null);
+  });
+});
+describe('getLayoutSetTypeTranslationKey', () => {
+  it('should return "ux_editor.subform" when layoutSet type is "subform"', () => {
+    const layoutSet: LayoutSetModel = {
+      id: 'test',
+      dataType: null,
+      type: 'subform',
+      task: { id: null, type: null },
+    };
+    expect(getLayoutSetTypeTranslationKey(layoutSet)).toBe('ux_editor.subform');
+  });
+
+  it('should return "process_editor.configuration_panel_custom_receipt_accordion_header" when layoutSet task id is "CustomReceipt"', () => {
+    const layoutSet: LayoutSetModel = {
+      id: 'test',
+      dataType: null,
+      type: null,
+      task: { id: PROTECTED_TASK_NAME_CUSTOM_RECEIPT, type: '' },
+    };
+    expect(getLayoutSetTypeTranslationKey(layoutSet)).toBe(
+      'process_editor.configuration_panel_custom_receipt_accordion_header',
+    );
   });
 });

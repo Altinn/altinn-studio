@@ -1,1 +1,1 @@
-export * from './XSDUpload';
+export { XSDUpload } from './XSDUpload';
