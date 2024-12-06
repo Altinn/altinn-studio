@@ -9,14 +9,12 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
-import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
-import { FileNameUtils } from '@studio/pure-functions';
-import { findFileNameError } from '../EditTab/OptionListSelector/utils/findFileNameError';
-import type { FileNameError } from '../EditTab/OptionListSelector/utils/findFileNameError';
+import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
+import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import { toast } from 'react-toastify';
-import classes from './SelectTab.module.css';
+import classes from './EditOptionList.module.css';
 
 export function SelectTab<T extends SelectionComponentType>({
   component,
@@ -28,6 +26,7 @@ export function SelectTab<T extends SelectionComponentType>({
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
+  const generalFileNameRegEx = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -41,12 +40,13 @@ export function SelectTab<T extends SelectionComponentType>({
   };
 
   const onSubmit = (file: File) => {
-    const fileNameError = findFileNameError(optionListIds, file.name);
-    if (fileNameError) {
-      handleInvalidFileName(fileNameError);
-    } else {
-      handleUpload(file);
-    }
+    const fileNameError = FileNameUtils.findFileNameError(
+      FileNameUtils.removeExtension(file.name),
+      optionListIds,
+      generalFileNameRegEx,
+    );
+    if (fileNameError) handleInvalidFileName(fileNameError);
+    else handleUpload(file);
   };
 
   const handleUpload = (file: File) => {
@@ -63,12 +63,12 @@ export function SelectTab<T extends SelectionComponentType>({
     });
   };
 
-  const handleInvalidFileName = (fileNameError: FileNameError) => {
+  const handleInvalidFileName = (fileNameError: FileNameErrorResult) => {
     switch (fileNameError) {
-      case 'invalidFileName':
-        return toast.error(t('ux_editor.modal_properties_code_list_filename_error'));
-      case 'fileExists':
-        return toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+      case FileNameErrorResult.NoRegExMatch:
+        return toast.error(t('validation_errors.file_name_invalid'));
+      case FileNameErrorResult.FileExists:
+        return toast.error(t('validation_errors.upload_file_name_occupied'));
     }
   };
 
