@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { StudioButton, StudioModal } from '@studio/components';
+import { StudioButton, StudioModal, StudioParagraph } from '@studio/components';
 import type { ButtonTexts, QuestionConfig, QuestionsProps } from '../types/QuestionsProps';
 import { YesNoQuestion } from './Question/YesNoQuestion';
 import { useFeedbackFormContext } from '../contexts/FeedbackFormContext';
@@ -9,17 +9,23 @@ import { getDefaultAnswerValueForQuestion } from '../utils/questionUtils';
 import type { AnswerType } from '../types/AnswerType';
 
 type FeedbackFormProps = {
+  id: string;
   buttonTexts: ButtonTexts;
   heading: string;
+  description: string;
+  disclaimer?: string;
   questions: QuestionConfig[];
   position?: 'inline' | 'fixed';
   onSubmit: (answers: Record<string, AnswerType>) => void;
 };
 
 export function FeedbackForm({
+  id,
   questions,
   buttonTexts,
   heading,
+  description,
+  disclaimer,
   position = 'inline',
   onSubmit,
 }: FeedbackFormProps): React.ReactElement {
@@ -42,7 +48,10 @@ export function FeedbackForm({
   };
 
   const handleSubmit = () => {
-    onSubmit(answers);
+    onSubmit({
+      ...answers,
+      feedbackFormId: id,
+    });
     handleCloseModal();
   };
 
@@ -77,9 +86,17 @@ export function FeedbackForm({
         closeButtonTitle={buttonTexts.close}
         ref={modalRef}
       >
+        <StudioParagraph size='sm' spacing={true}>
+          {description}
+        </StudioParagraph>
         {questions.map((question) => {
           return renderQuestion(question);
         })}
+        {disclaimer && (
+          <StudioParagraph size='xs' spacing={true} className={classes.disclaimer}>
+            {disclaimer}
+          </StudioParagraph>
+        )}
         <StudioButton className={classes.submit} onClick={handleSubmit} color='success'>
           {buttonTexts.submit}
         </StudioButton>
