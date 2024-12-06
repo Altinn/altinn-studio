@@ -52,13 +52,14 @@ jobs:
         name: Comment on PR
         with:
           script: |
+            const version = process.env.MINVERVERSIONOVERRIDE;
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `
-                Published PR packages:
-                * [Altinn.App.Api ${process.env.MINVERVERSIONOVERRIDE}](https://www.nuget.org/packages/Altinn.App.Api.Experimental/${process.env.MINVERVERSIONOVERRIDE})
-                * [Altinn.App.Core ${process.env.MINVERVERSIONOVERRIDE}](https://www.nuget.org/packages/Altinn.App.Core.Experimental/${process.env.MINVERVERSIONOVERRIDE})
-              `
+              body: `## Published PR packages:\n` +
+                `\n` +
+                `* [Altinn.App.Api ${version}](https://www.nuget.org/packages/Altinn.App.Api.Experimental/${version})\n` +
+                `* [Altinn.App.Core ${version}](https://www.nuget.org/packages/Altinn.App.Core.Experimental/${version})\n`
             })
