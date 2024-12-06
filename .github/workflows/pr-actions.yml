@@ -22,14 +22,16 @@ jobs:
           fetch-depth: 0
 
       - name: Build PR release version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           dotnet tool restore
-          sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-8)
-          # Get the last part of the branch name if it contains a slash
-          branch=$(echo '${{ github.event.pull_request.head.ref }}' | sed 's/.*\///')
+          sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid')
+          branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
           version=$(dotnet minver --tag-prefix v --ignore-height --default-pre-release-identifiers preview.0).$branch.$sha
           echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
           echo $version
+
       - name: Build
         run: |
           dotnet build AppLibDotnet.sln -v m -c Release
@@ -38,7 +40,7 @@ jobs:
           dotnet test AppLibDotnet.sln -v m --no-restore --no-build -c Release
       - name: Pack PR release
         run: |
-          dotnet pack AppLibDotnet.sln -v m --no-restore --no-build -c Release -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+          dotnet pack AppLibDotnet.sln -v m --no-restore --no-build -c Release -p:Deterministic=true
       - name: Versions
         run: |
           dotnet --version
