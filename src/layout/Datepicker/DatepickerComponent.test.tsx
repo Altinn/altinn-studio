@@ -62,7 +62,10 @@ describe('DatepickerComponent', () => {
       }),
     );
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: new Date().getDate().toString() })).toHaveAttribute('data-today', 'true');
+    expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
+      'data-today',
+      'true',
+    );
   });
 
   it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', async () => {
@@ -91,7 +94,10 @@ describe('DatepickerComponent', () => {
     );
     screen.debug();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: new Date().getDate().toString() })).toHaveAttribute('data-today', 'true');
+    expect(screen.getByRole('gridcell', { name: new Date().getDate().toString() })).toHaveAttribute(
+      'data-today',
+      'true',
+    );
   });
 
   it('should call setLeafValue when clicking date in calendar', async () => {
