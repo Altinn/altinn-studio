@@ -8,8 +8,6 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 
 jest.mock('app-shared/hooks/queries/useAppMetadataModelIdsQuery');
 
-const user = userEvent.setup();
-
 const mockDataModelIds = ['dataModelId1', 'dataModelId2'];
 
 (useAppMetadataModelIdsQuery as jest.Mock).mockReturnValue({ data: mockDataModelIds });
@@ -41,6 +39,7 @@ describe('SubformDataModel', () => {
   });
 
   it('Calls setDataModel when selecting an option', async () => {
+    const user = userEvent.setup();
     const setSelectedDataModel = jest.fn();
     renderSubformDataModelSelect({ setSelectedDataModel });
 
@@ -53,6 +52,7 @@ describe('SubformDataModel', () => {
   });
 
   it('Should call setDisplayDataModelInput true when clicking create new data model button', async () => {
+    const user = userEvent.setup();
     const setDisplayDataModelInput = jest.fn();
     renderSubformDataModelSelect({ setDisplayDataModelInput });
     const displayDataModelInput = screen.getByRole('button', {
@@ -70,6 +70,28 @@ describe('SubformDataModel', () => {
     });
 
     expect(dataModelInput).toBeInTheDocument();
+  });
+
+  it('Should display ErrorMessage when nameError is present', async () => {
+    const user = userEvent.setup();
+    renderSubformDataModelSelect({ displayDataModelInput: true });
+    const dataModelInput = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.create_new_data_model_label'),
+    });
+    await user.type(dataModelInput, 'new');
+    const errorMessage = screen.getByText(textMock('schema_editor.error_reserved_keyword'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('Should not display ErrorMessage when nameError is not present', async () => {
+    const user = userEvent.setup();
+    renderSubformDataModelSelect({ displayDataModelInput: true });
+    const dataModelInput = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.create_new_data_model_label'),
+    });
+    await user.type(dataModelInput, 'newName');
+    const errorMessage = screen.queryByText(textMock('schema_editor.error_reserved_keyword'));
+    expect(errorMessage).not.toBeInTheDocument();
   });
 });
 

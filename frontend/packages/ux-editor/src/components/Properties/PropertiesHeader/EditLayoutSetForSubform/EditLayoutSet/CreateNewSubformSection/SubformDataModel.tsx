@@ -5,6 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import classes from './SubformDataModel.module.css';
+import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
+import { ErrorMessage } from '@digdir/designsystemet-react';
+import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export type SubformDataModelProps = {
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
@@ -23,9 +27,16 @@ export const SubformDataModel = ({
   const { org, app } = useStudioEnvironmentParams();
   const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
 
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
+  const { validateName, nameError } = useValidateSchemaName(dataModelIds, dataTypeNames);
+  console.log('nameError', nameError);
+
   const handleDataModel = (dataModelId: string) => {
-    // TODO: https://github.com/Altinn/altinn-studio/issues/14184
-    setNewDataModel(dataModelId);
+    console.log('dataModelId', dataModelId);
+
+    validateName(dataModelId);
+    if (!nameError) setNewDataModel(dataModelId);
   };
 
   const handleDisplayInput = () => {
@@ -55,12 +66,15 @@ export const SubformDataModel = ({
         )}
       </StudioNativeSelect>
       {displayDataModelInput ? (
-        <StudioTextfield
-          name='newSubformDataModel'
-          label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
-          size='sm'
-          onChange={(e) => handleDataModel(e.target.value)}
-        />
+        <>
+          <StudioTextfield
+            name='newSubformDataModel'
+            label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
+            size='sm'
+            onChange={(e) => handleDataModel(e.target.value)}
+          />
+          {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
+        </>
       ) : (
         <StudioProperty.Button
           icon={<LinkIcon />}
