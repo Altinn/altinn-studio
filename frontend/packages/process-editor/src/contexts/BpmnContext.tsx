@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useRef, useState, type MutableRefObject } from 'react';
+import React, { createContext, type MutableRefObject, useContext, useRef, useState } from 'react';
 import { supportsProcessEditor } from '../utils/processEditorUtils';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import type Modeler from 'bpmn-js/lib/Modeler';
 import type { BpmnDetails } from '../types/BpmnDetails';
 
@@ -29,7 +29,8 @@ export const BpmnContextProvider = ({
   const [bpmnDetails, setBpmnDetails] = useState<BpmnDetails>(null);
 
   const isEditAllowed =
-    supportsProcessEditor(appLibVersion) || shouldDisplayFeature('shouldOverrideAppLibCheck');
+    supportsProcessEditor(appLibVersion) ||
+    shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck);
 
   const modelerRef = useRef<Modeler | null>(null);
 

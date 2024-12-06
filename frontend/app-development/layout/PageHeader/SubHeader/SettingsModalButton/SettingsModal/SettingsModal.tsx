@@ -3,9 +3,9 @@ import React, { forwardRef, useCallback, useImperativeHandle, useRef, useState }
 import classes from './SettingsModal.module.css';
 import { CogIcon } from '@studio/icons';
 import {
-  StudioModal,
   StudioContentMenu,
   type StudioContentMenuButtonTabProps,
+  StudioModal,
 } from '@studio/components';
 import type { SettingsModalTabId } from '../../../../../types/SettingsModalTabId';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,7 @@ import { SetupTab } from './components/Tabs/SetupTab';
 import { type SettingsModalHandle } from '../../../../../types/SettingsModalHandle';
 import { useSettingsModalMenuTabConfigs } from './hooks/useSettingsModalMenuTabConfigs';
 import { Maskinporten } from './components/Tabs/Maskinporten';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): ReactElement => {
   const { t } = useTranslation();
@@ -54,7 +54,7 @@ export const SettingsModal = forwardRef<SettingsModalHandle, {}>(({}, ref): Reac
         return <AccessControlTab />;
       }
       case 'maskinporten': {
-        return shouldDisplayFeature('maskinporten') ? <Maskinporten /> : null;
+        return shouldDisplayFeature(FeatureFlag.Maskinporten) ? <Maskinporten /> : null;
       }
     }
   };
@@ -94,7 +94,7 @@ SettingsModal.displayName = 'SettingsModal';
 function filterFeatureFlag(
   menuTabConfigs: Array<StudioContentMenuButtonTabProps<SettingsModalTabId>>,
 ) {
-  return shouldDisplayFeature('maskinporten')
+  return shouldDisplayFeature(FeatureFlag.Maskinporten)
     ? menuTabConfigs
     : menuTabConfigs.filter((tab) => tab.tabId !== 'maskinporten');
 }

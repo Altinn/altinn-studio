@@ -11,7 +11,10 @@ import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { removeFeatureFlagFromLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import {
+  removeFeatureFlagFromLocalStorage,
+  FeatureFlag,
+} from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 const srcValueLabel = 'Source';
@@ -68,7 +71,7 @@ const getDataModelMetadata = () =>
 
 describe('EditFormComponent', () => {
   beforeEach(() => {
-    removeFeatureFlagFromLocalStorage('componentConfigBeta');
+    removeFeatureFlagFromLocalStorage(FeatureFlag.ComponentConfigBeta);
     jest.clearAllMocks();
   });
 

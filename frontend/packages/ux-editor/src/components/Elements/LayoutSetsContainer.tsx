@@ -3,7 +3,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppContext } from '../../hooks';
 import classes from './LayoutSetsContainer.module.css';
 import { ExportForm } from './ExportForm';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { StudioCombobox } from '@studio/components';
 import { DeleteSubformWrapper } from './Subform/DeleteSubformWrapper';
 import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
@@ -60,8 +60,8 @@ export function LayoutSetsContainer() {
           </StudioCombobox.Option>
         ))}
       </StudioCombobox>
-      {shouldDisplayFeature('exportForm') && <ExportForm />}
-      {shouldDisplayFeature('subform') && (
+      {shouldDisplayFeature(FeatureFlag.ExportForm) && <ExportForm />}
+      {shouldDisplayFeature(FeatureFlag.Subform) && (
         <DeleteSubformWrapper
           layoutSets={layoutSetsResponse}
           selectedLayoutSet={selectedFormLayoutSetName}

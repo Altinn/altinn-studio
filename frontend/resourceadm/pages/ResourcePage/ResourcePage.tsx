@@ -24,13 +24,13 @@ import {
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
+import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { StudioContentMenu } from '@studio/components';
 import type { StudioContentMenuButtonTabProps } from '@studio/components';
 
@@ -176,7 +176,7 @@ export const ResourcePage = (): React.JSX.Element => {
    * Decide if the migration page should be accessible or not
    */
   const isMigrateEnabled = (): boolean => {
-    return !!altinn2References && shouldDisplayFeature('resourceMigration');
+    return !!altinn2References && shouldDisplayFeature(FeatureFlag.ResourceMigration);
   };
 
   const aboutPageId = 'about';

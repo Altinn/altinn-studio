@@ -3,6 +3,7 @@ import { FeedbackForm } from './FeedbackForm';
 import { StudioParagraph, StudioSwitch } from '@studio/components';
 import {
   addFeatureFlagToLocalStorage,
+  FeatureFlag,
   removeFeatureFlagFromLocalStorage,
   shouldDisplayFeature,
 } from 'app-shared/utils/featureToggleUtils';
@@ -19,10 +20,10 @@ import classes from './ToggleAddComponentPoc.module.css';
  */
 export function ToggleAddComponentPoc(): React.ReactElement {
   const toggleComponentModalPocAndReload = () => {
-    if (shouldDisplayFeature('addComponentModal')) {
-      removeFeatureFlagFromLocalStorage('addComponentModal');
+    if (shouldDisplayFeature(FeatureFlag.AddComponentModal)) {
+      removeFeatureFlagFromLocalStorage(FeatureFlag.AddComponentModal);
     } else {
-      addFeatureFlagToLocalStorage('addComponentModal');
+      addFeatureFlagToLocalStorage(FeatureFlag.AddComponentModal);
     }
     window.location.reload();
   };
@@ -30,7 +31,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
     <>
       <div className={classes.switchWrapper}>
         <StudioSwitch
-          checked={shouldDisplayFeature('addComponentModal')}
+          checked={shouldDisplayFeature(FeatureFlag.AddComponentModal)}
           onChange={toggleComponentModalPocAndReload}
           size='sm'
         >
@@ -51,7 +52,7 @@ export function ToggleAddComponentPoc(): React.ReactElement {
           </StudioParagraph>
         </HelpText>
       </div>
-      {shouldDisplayFeature('addComponentModal') && <FeedbackForm />}
+      {shouldDisplayFeature(FeatureFlag.AddComponentModal) && <FeedbackForm />}
     </>
   );
 }

@@ -3,7 +3,7 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
-import { useTranslation, Trans } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { StudioFileUploader, StudioNativeSelect, StudioSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
@@ -15,7 +15,7 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import classes from './EditOptionList.module.css';
 import { OptionListEditor } from './OptionListEditor';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 
 export function EditOptionList<T extends SelectionComponentType>({
@@ -79,9 +79,10 @@ export function EditOptionList<T extends SelectionComponentType>({
   return (
     <>
       <OptionListSelector component={component} handleOptionsIdChange={handleOptionsIdChange} />
-      {shouldDisplayFeature('optionListEditor') && componentHasConnectedOptionListToEdit && (
-        <OptionListEditor optionsId={component.optionsId} />
-      )}
+      {shouldDisplayFeature(FeatureFlag.OptionListEditor) &&
+        componentHasConnectedOptionListToEdit && (
+          <OptionListEditor optionsId={component.optionsId} />
+        )}
       <StudioFileUploader
         accept='.json'
         variant={'tertiary'}
