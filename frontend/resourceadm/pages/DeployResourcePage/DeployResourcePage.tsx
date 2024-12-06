@@ -177,7 +177,7 @@ export const DeployResourcePage = ({
    * @returns a boolean for if it is possible
    */
   const isDeployPossible = (envVersion: string): boolean => {
-    const policyError = validatePolicyData === undefined || validatePolicyData.status === 400;
+    const policyError = validatePolicyData === undefined || validatePolicyData.status !== 200;
     const canDeploy =
       validateResourceData.status === 200 &&
       !policyError &&
