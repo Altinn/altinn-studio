@@ -8,6 +8,8 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
@@ -802,6 +804,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        }
+
+        public Definitions GetDefinitions()
+        {
+            Stream processDefinitionStream = GetProcessDefinitionFile();
+            XmlSerializer serializer = new(typeof(Definitions));
+            return (Definitions)serializer.Deserialize(processDefinitionStream);
         }
 
         /// <summary>

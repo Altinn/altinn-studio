@@ -20,6 +20,7 @@ export interface AppContextProps {
   selectedFormLayoutName: string;
   setSelectedFormLayoutName: (selectedFormLayoutName: string) => void;
   updateLayoutsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
+  updateLayoutSetsForPreview: (resetQueries?: boolean) => Promise<void>;
   updateLayoutSettingsForPreview: (layoutSetName: string, resetQueries?: boolean) => Promise<void>;
   updateTextsForPreview: (language: string, resetQueries?: boolean) => Promise<void>;
   shouldReloadPreview: boolean;
@@ -75,6 +76,13 @@ export const AppContextProvider = ({
     [refetch],
   );
 
+  const updateLayoutSetsForPreview = useCallback(
+    async (resetQueries: boolean = false): Promise<void> => {
+      return await refetch([AppsQueryKey.AppLayoutSets], resetQueries);
+    },
+    [refetch],
+  );
+
   const updateLayoutSettingsForPreview = useCallback(
     async (layoutSetName: string, resetQueries: boolean = false): Promise<void> => {
       return await refetch([AppsQueryKey.AppLayoutSettings, layoutSetName], resetQueries);
@@ -97,6 +105,7 @@ export const AppContextProvider = ({
       selectedFormLayoutName,
       setSelectedFormLayoutName,
       updateLayoutsForPreview,
+      updateLayoutSetsForPreview,
       updateLayoutSettingsForPreview,
       updateTextsForPreview,
       shouldReloadPreview,
@@ -109,6 +118,7 @@ export const AppContextProvider = ({
       selectedFormLayoutName,
       setSelectedFormLayoutName,
       updateLayoutsForPreview,
+      updateLayoutSetsForPreview,
       updateLayoutSettingsForPreview,
       updateTextsForPreview,
       shouldReloadPreview,
