@@ -4,10 +4,10 @@ import { StudioCombobox, StudioError, StudioSpinner } from '@studio/components';
 import type { ImageOption } from '../../ImageOption';
 import { useTranslation } from 'react-i18next';
 import { useAppReleasesQuery } from 'app-development/hooks/queries';
-import { BuildResult } from 'app-shared/types/Build';
-import { DateUtils } from '@studio/pure-functions';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { DeployPopover } from './DeployPopover';
+import { type AppRelease } from 'app-shared/types/AppRelease';
+import { filterSucceededReleases, mapAppReleasesToImageOptions } from './utils';
 
 export type DeployDropdownProps = {
   appDeployedVersion: string;
@@ -31,32 +31,28 @@ export const DeployDropdown = ({
 
   const {
     data: releases = [],
-    isPending: releasesIsPending,
-    isError: releasesIsError,
+    isPending: isPendingReleases,
+    isError: hasReleasesError,
   } = useAppReleasesQuery(org, app, { hideDefaultError: true });
 
-  if (releasesIsPending)
+  if (isPendingReleases)
     return (
       <StudioSpinner showSpinnerTitle={false} spinnerTitle={t('app_deployment.releases_loading')} />
     );
 
-  if (releasesIsError) return <StudioError>{t('app_deployment.releases_error')}</StudioError>;
+  if (hasReleasesError) return <StudioError>{t('app_deployment.releases_error')}</StudioError>;
 
-  const imageOptions: ImageOption[] = releases
-    .filter((image) => image.build.result === BuildResult.succeeded)
-    .map((image) => ({
-      value: image.tagName,
-      label: t('app_deployment.version_label', {
-        tagName: image.tagName,
-        createdDateTime: DateUtils.formatDateTime(image.created),
-      }),
-    }));
+  const successfullyBuiltAppReleases: AppRelease[] = filterSucceededReleases(releases);
+  const imageOptions: ImageOption[] = mapAppReleasesToImageOptions(successfullyBuiltAppReleases, t);
+
+  const hasSelectedImageTag = selectedImageTag && imageOptions?.length > 0;
+  const selectedVersion = hasSelectedImageTag ? [selectedImageTag] : undefined;
 
   return (
     <div className={classes.deployDropDown}>
       <StudioCombobox
         size='small'
-        value={selectedImageTag && imageOptions?.length > 0 ? [selectedImageTag] : undefined}
+        value={selectedVersion}
         label={t('app_deployment.choose_version')}
         onValueChange={(selectedImageOptions: string[]) =>
           setSelectedImageTag(selectedImageOptions[0])

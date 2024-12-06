@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitFor, waitForElementToBeRemoved, within } from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { DeployDropdownProps } from './DeployDropdown';
 import { DeployDropdown } from './DeployDropdown';
@@ -9,6 +9,7 @@ import { renderWithProviders } from 'app-development/test/mocks';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { BuildResult } from 'app-shared/types/Build';
 import { appRelease } from 'app-shared/mocks/mocks';
+import { type ImageOption } from '../../ImageOption';
 
 const defaultProps: DeployDropdownProps = {
   appDeployedVersion: '',
@@ -42,7 +43,7 @@ const appReleases: AppRelease[] = [
   },
 ];
 
-const imageOptions = [
+const imageOptions: ImageOption[] = [
   {
     label: textMock('app_deployment.version_label', {
       tagName: appReleases[0].tagName,
@@ -63,13 +64,13 @@ describe('DeployDropdown', () => {
   afterEach(jest.clearAllMocks);
 
   it('renders a spinner while loading data', () => {
-    render();
+    renderDeployDropdown();
 
     expect(screen.getByTitle(textMock('app_deployment.releases_loading'))).toBeInTheDocument();
   });
 
   it('renders an error message if an error occurs while loading data', async () => {
-    render(
+    renderDeployDropdown(
       {},
       {
         getAppReleases: jest.fn().mockImplementation(() => Promise.reject()),
@@ -85,7 +86,7 @@ describe('DeployDropdown', () => {
   it('render no image options message when image options are empty', async () => {
     const user = userEvent.setup();
 
-    render(
+    renderDeployDropdown(
       {},
       {
         getAppReleases: jest.fn().mockImplementation(() =>
@@ -95,9 +96,7 @@ describe('DeployDropdown', () => {
         ),
       },
     );
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    await waitForSpinnerToBeRemoved();
 
     const select = await screen.findByLabelText(textMock('app_deployment.choose_version'));
     await user.click(select);
@@ -108,10 +107,8 @@ describe('DeployDropdown', () => {
   it('renders image options', async () => {
     const user = userEvent.setup();
 
-    render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    renderDeployDropdown();
+    await waitForSpinnerToBeRemoved();
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
     await user.click(select);
@@ -121,10 +118,8 @@ describe('DeployDropdown', () => {
   });
 
   it('selects default image option', async () => {
-    render({ selectedImageTag: imageOptions[0].value });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    renderDeployDropdown({ selectedImageTag: imageOptions[0].value });
+    await waitForSpinnerToBeRemoved();
 
     expect(screen.getByRole('combobox')).toHaveValue(imageOptions[0].label);
   });
@@ -132,10 +127,8 @@ describe('DeployDropdown', () => {
   it('selects new image option', async () => {
     const user = userEvent.setup();
 
-    render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    renderDeployDropdown();
+    await waitForSpinnerToBeRemoved();
 
     const select = screen.getByLabelText(textMock('app_deployment.choose_version'));
     await user.click(select);
@@ -149,22 +142,15 @@ describe('DeployDropdown', () => {
   });
 
   it('shows a loding spinner when mutation is pending', async () => {
-    render({ isPending: true });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    renderDeployDropdown({ isPending: true });
+    await waitForSpinnerToBeRemoved();
 
-    const deployButton = screen.getByRole('button', {
-      name: textMock('app_deployment.btn_deploy_new_version'),
-    });
-    expect(within(deployButton).getByTestId('spinner-test-id')).toBeInTheDocument();
+    expect(screen.getByTitle(textMock('app_deployment.deploy_loading'))).toBeInTheDocument();
   });
 
   it('disables both dropdown and button when deploy is not possible', async () => {
-    render({ disabled: true });
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    renderDeployDropdown({ disabled: true });
+    await waitForSpinnerToBeRemoved();
 
     expect(screen.getByLabelText(textMock('app_deployment.choose_version'))).toBeDisabled();
 
@@ -177,10 +163,8 @@ describe('DeployDropdown', () => {
   it('should confirm and close the dialog when clicking the confirm button', async () => {
     const user = userEvent.setup();
 
-    render();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByTitle(textMock('app_deployment.releases_loading')),
-    );
+    renderDeployDropdown();
+    await waitForSpinnerToBeRemoved();
 
     const deployButton = screen.getByRole('button', {
       name: textMock('app_deployment.btn_deploy_new_version'),
@@ -195,7 +179,16 @@ describe('DeployDropdown', () => {
   });
 });
 
-const render = (props?: Partial<DeployDropdownProps>, queries?: Partial<ServicesContextProps>) => {
+const waitForSpinnerToBeRemoved = async () => {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByTitle(textMock('app_deployment.releases_loading')),
+  );
+};
+
+const renderDeployDropdown = (
+  props?: Partial<DeployDropdownProps>,
+  queries?: Partial<ServicesContextProps>,
+) => {
   return renderWithProviders({
     getAppReleases: jest.fn().mockImplementation(() =>
       Promise.resolve({

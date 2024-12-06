@@ -29,14 +29,7 @@ export const DeployPopover = ({
         onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
         size='sm'
       >
-        {isPending && (
-          <StudioSpinner
-            variant='interaction'
-            size='xsmall'
-            data-testid='spinner-test-id'
-            spinnerTitle=''
-          />
-        )}
+        {isPending && <PopoverSpinner />}
         {t('app_deployment.btn_deploy_new_version')}
       </StudioPopover.Trigger>
       <StudioPopover.Content className={classes.popover}>
@@ -75,5 +68,16 @@ export const DeployPopover = ({
         </div>
       </StudioPopover.Content>
     </StudioPopover>
+  );
+};
+
+const PopoverSpinner = () => {
+  const { t } = useTranslation();
+  return (
+    <StudioSpinner
+      variant='interaction'
+      size='xsmall'
+      spinnerTitle={t('app_deployment.deploy_loading')}
+    />
   );
 };
