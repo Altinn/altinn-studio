@@ -35,12 +35,16 @@ export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
 
+// Feedback form
+export const submitFeedbackPath = (org, app) => `${basePath}/${org}/${app}/feedbackform/submit`; // Post
+
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
+export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
 export const optionListUploadPath = (org, app) => `${basePath}/${org}/${app}/options/upload`; // Post
 export const ruleConfigPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-config?${s({ layoutSetName })}`; // Get, Post
 export const appMetadataModelIdsPath = (org, app, onlyUnReferenced) => `${basePath}/${org}/${app}/app-development/model-ids?${s({ onlyUnReferenced })}`; // Get

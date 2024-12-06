@@ -7,6 +7,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onUpdateCodeListMock = jest.fn();
 const newCodeListTitleMock = 'newCodeListTitleMock';
+const existingCodeListTitle = 'existingCodeListTitle';
 
 describe('CreateNewCodeListModal', () => {
   afterEach(jest.clearAllMocks);
@@ -68,6 +69,26 @@ describe('CreateNewCodeListModal', () => {
     expect(saveCodeListButton).toBeDisabled();
   });
 
+  it('renders error message if code list title is occupied', async () => {
+    const user = userEvent.setup();
+    renderCreateNewCodeListModal();
+    await openDialog(user);
+    await inputCodeListTitle(user, existingCodeListTitle);
+    const codeListTitleError = screen.getByText(textMock('validation_errors.file_name_occupied'));
+    expect(codeListTitleError).toBeInTheDocument();
+  });
+
+  it('disables the save button if code list title is invalid', async () => {
+    const user = userEvent.setup();
+    renderCreateNewCodeListModal();
+    await openDialog(user);
+    await inputCodeListTitle(user, existingCodeListTitle);
+    const saveCodeListButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.save_new_code_list'),
+    });
+    expect(saveCodeListButton).toBeDisabled();
+  });
+
   it('disables the save button if code list content is invalid', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
@@ -79,7 +100,7 @@ describe('CreateNewCodeListModal', () => {
     expect(saveCodeListButton).toBeDisabled();
   });
 
-  it('enables the save button when title and valid code list content are provided', async () => {
+  it('enables the save button when valid title and valid code list content are provided', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
     await openDialog(user);
@@ -117,11 +138,14 @@ const openDialog = async (user: UserEvent) => {
   await user.click(createNewButton);
 };
 
-const inputCodeListTitle = async (user: UserEvent) => {
+const inputCodeListTitle = async (
+  user: UserEvent,
+  codeListTitle: string = newCodeListTitleMock,
+) => {
   const codeListNameInput = screen.getByRole('textbox', {
     name: textMock('app_content_library.code_lists.create_new_code_list_name'),
   });
-  await user.type(codeListNameInput, newCodeListTitleMock);
+  await user.type(codeListNameInput, codeListTitle);
 };
 
 const addCodeListItem = async (user: UserEvent) => {
@@ -137,5 +161,10 @@ const addDuplicatedCodeListValues = async (user: UserEvent) => {
 };
 
 const renderCreateNewCodeListModal = () => {
-  render(<CreateNewCodeListModal onUpdateCodeList={onUpdateCodeListMock} />);
+  render(
+    <CreateNewCodeListModal
+      onUpdateCodeList={onUpdateCodeListMock}
+      codeListNames={[existingCodeListTitle]}
+    />,
+  );
 };
