@@ -30,11 +30,8 @@ export const SubformDataModel = ({
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
   const { validateName, nameError } = useValidateSchemaName(dataModelIds, dataTypeNames);
-  console.log('nameError', nameError);
 
   const handleDataModel = (dataModelId: string) => {
-    console.log('dataModelId', dataModelId);
-
     validateName(dataModelId);
     if (!nameError) setNewDataModel(dataModelId);
   };
