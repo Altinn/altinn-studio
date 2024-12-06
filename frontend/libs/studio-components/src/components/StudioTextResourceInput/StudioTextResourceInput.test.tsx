@@ -1,3 +1,4 @@
+import type { ForwardedRef } from 'react';
 import React from 'react';
 import type { StudioTextResourceInputProps } from './StudioTextResourceInput';
 import { StudioTextResourceInput } from './StudioTextResourceInput';
@@ -9,6 +10,9 @@ import { textResourcesMock } from '../../test-data/textResourcesMock';
 import type { UserEvent } from '@testing-library/user-event';
 import { userEvent } from '@testing-library/user-event';
 import { getTextResourceById } from './utils';
+import { testRefForwarding } from '../../test-utils/testRefForwarding';
+import { testRootClassNameAppending } from '../../test-utils/testRootClassNameAppending';
+import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 // Test data:
 const textResources: TextResource[] = textResourcesMock;
@@ -92,10 +96,28 @@ describe('StudioTextResourceInput', () => {
     await switchToSearchMode(user);
     expect(screen.getByText(currentId)).toBeInTheDocument();
   });
+
+  it('Forwards the ref if given', () => {
+    testRefForwarding<HTMLInputElement>((ref) => renderTextResourceInput({}, ref), getValueField);
+  });
+
+  it('Appends the given class name to the root class', () => {
+    testRootClassNameAppending((className) => renderTextResourceInput({ className }));
+  });
+
+  it('Applies additional props to the input element', () => {
+    testCustomAttributes<HTMLInputElement, StudioTextResourceInputProps>(
+      renderTextResourceInput,
+      getValueField,
+    );
+  });
 });
 
-function renderTextResourceInput(props: Partial<StudioTextResourceInputProps> = {}): RenderResult {
-  return render(<StudioTextResourceInput {...defaultProps} {...props} />);
+function renderTextResourceInput(
+  props: Partial<StudioTextResourceInputProps> = {},
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult {
+  return render(<StudioTextResourceInput {...defaultProps} {...props} ref={ref} />);
 }
 
 function getValueField(): HTMLInputElement {

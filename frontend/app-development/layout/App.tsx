@@ -12,6 +12,9 @@ import { useRepoStatusQuery } from 'app-shared/hooks/queries';
 import { appContentWrapperId } from '@studio/testing/testids';
 
 i18next.use(initReactI18next).init({
+  ns: 'translation',
+  defaultNS: 'translation',
+  fallbackNS: 'translation',
   lng: DEFAULT_LANGUAGE,
   resources: {
     nb: { translation: nb },

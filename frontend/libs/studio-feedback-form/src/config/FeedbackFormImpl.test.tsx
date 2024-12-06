@@ -8,12 +8,14 @@ describe('FeedbackFormImpl', () => {
   it('should render FeedbackFormImpl', () => {
     const feedbackForm = new FeedbackFormImpl({
       onSubmit: jest.fn(),
+      id: 'test',
       buttonTexts: {
         submit: 'Submit',
         trigger: 'Give feedback',
         close: 'Close',
       },
       heading: 'Give feedback - heading',
+      description: 'Description',
       questions: mockQuestions,
     });
 
@@ -25,6 +27,7 @@ describe('FeedbackFormImpl', () => {
   it('should open form modal when trigger button is clicked', async () => {
     const user = userEvent.setup();
     const feedbackForm = new FeedbackFormImpl({
+      id: 'test',
       onSubmit: jest.fn(),
       buttonTexts: {
         submit: 'Submit',
@@ -32,6 +35,7 @@ describe('FeedbackFormImpl', () => {
         close: 'Close',
       },
       heading: 'Give feedback - heading',
+      description: 'Description',
       questions: mockQuestions,
     });
 

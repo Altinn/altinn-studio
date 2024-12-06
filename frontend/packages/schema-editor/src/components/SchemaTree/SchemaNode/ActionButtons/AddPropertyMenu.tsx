@@ -31,7 +31,7 @@ export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMen
       onItemClick={addPropertyAndClose}
       anchorButtonProps={{
         children: '',
-        title: t('schema_editor.add_node_of_type'),
+        title: t('schema_editor.add_node_of_type_in_child_node_title'),
         variant: 'tertiary',
         className: classes.actionButton,
       }}
