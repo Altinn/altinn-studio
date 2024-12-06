@@ -44,7 +44,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     /// </summary>
     protected abstract void ConfigureTestServices(IServiceCollection services);
 
-    protected Action<IServiceCollection> ConfigureTestForSpecificTest { get; set; } = delegate { };
+    protected Action<IServiceCollection> ConfigureTestServicesForSpecificTest { get; set; } = delegate { };
 
     /// <summary>
     /// Location of the assembly of the executing unit test.
@@ -97,7 +97,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
                         TestAuthConstants.TestAuthenticationScheme, options => { });
                 services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
             });
-            builder.ConfigureServices(ConfigureTestForSpecificTest);
+            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
 
@@ -152,7 +152,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     }
 
 
-    private Stream GenerateJsonOverrideConfig()
+    protected Stream GenerateJsonOverrideConfig()
     {
         var overrideJson = Newtonsoft.Json.Linq.JObject.Parse(JsonConfigOverrides.First());
         if (JsonConfigOverrides.Count > 1)

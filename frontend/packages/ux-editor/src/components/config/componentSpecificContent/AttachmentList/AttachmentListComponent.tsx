@@ -48,7 +48,7 @@ export const AttachmentListComponent = ({
 
   const isTaskCustomReceipt = layoutSets?.sets
     .find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)
-    ?.tasks.includes('CustomReceipt');
+    ?.tasks?.includes('CustomReceipt');
 
   const { dataTypeIds = [] } = component || {};
   const internalDataFormat = convertExternalToInternalFormat(availableAttachments, dataTypeIds);
@@ -100,19 +100,21 @@ const filterAttachments = (
   return availableDataTypes.filter((dataType) => {
     const noReservedType = !Object.values(reservedDataTypes).includes(dataType.id);
     const noAppLogic = !dataType.appLogic;
-    const hasMatchingTask = tasks.some((task) => dataType.taskId === task);
+    const hasMatchingTask = tasks?.some((task) => dataType.taskId === task);
 
     return noReservedType && noAppLogic && hasMatchingTask;
   });
 };
 
 const currentTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] =>
-  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName).tasks;
+  layoutSets.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)?.tasks;
 
 const sampleTasks = (layoutSets: LayoutSets, selectedFormLayoutSetName: string): string[] => {
   const tasks = [];
   for (const layoutSet of layoutSets.sets) {
-    tasks.push(...layoutSet.tasks);
+    if (layoutSet.tasks) {
+      tasks.push(...layoutSet.tasks);
+    }
     if (layoutSet.id === selectedFormLayoutSetName) {
       break;
     }

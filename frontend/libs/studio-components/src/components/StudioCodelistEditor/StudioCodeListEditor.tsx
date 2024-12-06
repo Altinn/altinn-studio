@@ -60,8 +60,7 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      if (isCodeListValid(newCodeList)) onChange(newCodeList);
-      else onInvalid();
+      isCodeListValid(newCodeList) ? onChange(newCodeList) : onInvalid?.();
     },
     [onChange, onInvalid],
   );
@@ -105,7 +104,7 @@ function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactEleme
 
 function EmptyCodeListTable(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
-  return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
+  return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
 function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {

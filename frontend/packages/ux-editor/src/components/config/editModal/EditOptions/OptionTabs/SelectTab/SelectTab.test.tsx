@@ -85,7 +85,9 @@ describe('SelectTab', () => {
     });
 
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_error_message'),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -104,7 +106,7 @@ describe('SelectTab', () => {
 
   it('should render error toast if file already exists', async () => {
     const user = userEvent.setup();
-    const file = new File([optionListIdsMock[0]], optionListIdsMock[0] + '.json', {
+    const file = new File([optionListIdsMock[0]], `${optionListIdsMock[0]}.json`, {
       type: 'text/json',
     });
 
@@ -114,6 +116,22 @@ describe('SelectTab', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
+    );
+  });
+
+  it('should render generic upload error toast if upload fails for unknown reasons', async () => {
+    const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({}));
+    const user = userEvent.setup();
+    const file = new File([], 'some-file.json', {
+      type: 'text/json',
+    });
+
+    renderSelectTab({ queries: { uploadOptionList } });
+    await userFindUploadButtonAndClick(user);
+    await userFindFileInputAndUploadFile(user, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.modal_properties_code_list_upload_generic_error'),
     );
   });
 
@@ -143,7 +161,6 @@ const userFindUploadButtonAndClick = async (user: UserEvent) => {
 
 const userFindFileInputAndUploadFile = async (user: UserEvent, file: File) => {
   const fileInput = screen.getByLabelText(textMock('ux_editor.options.upload_title'));
-
   await user.upload(fileInput, file);
 };
 

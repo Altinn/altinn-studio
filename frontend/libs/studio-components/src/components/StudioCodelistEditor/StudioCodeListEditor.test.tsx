@@ -278,6 +278,15 @@ describe('StudioCodeListEditor', () => {
     await user.type(invalidValueInput, 'new unique value');
     expect(onInvalid).not.toHaveBeenCalled();
   });
+
+  it('Does not trigger onInvalid if the code list is invalid, but onInvalid is not defined', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues, onInvalid: undefined });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    const newValue = 'new value';
+    await user.type(validValueInput, newValue);
+    expect(onInvalid).not.toHaveBeenCalled();
+  });
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}) {

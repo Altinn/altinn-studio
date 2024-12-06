@@ -5,23 +5,12 @@ import { renderWithProviders } from '../../../../../../../../test/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import userEvent from '@testing-library/user-event';
 
 describe('Maskinporten', () => {
-  const consoleLogMock = jest.fn();
-  const originalConsoleLog = console.log;
-  beforeEach(() => {
-    console.log = consoleLogMock;
-  });
-
-  afterEach(() => {
-    console.log = originalConsoleLog;
-  });
-
   it('should check and verify if the user is logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(false));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: false }));
 
     renderMaskinporten({
       queries: {
@@ -54,7 +43,7 @@ describe('Maskinporten', () => {
   it('should display content if logged in', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
     renderMaskinporten({
       queries: {
         getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
@@ -69,40 +58,28 @@ describe('Maskinporten', () => {
     expect(loginButton).not.toBeInTheDocument();
   });
 
-  it('should invoke "handleLoginWithAnsattPorten" when login button is clicked', async () => {
-    const user = userEvent.setup();
-    renderMaskinporten();
-    await waitForLoggedInStatusCheckIsDone();
-
-    const loginButton = screen.getByRole('button', {
-      name: textMock('settings_modal.maskinporten_tab_login_with_ansattporten'),
-    });
-
-    await user.click(loginButton);
-
-    expect(consoleLogMock).toHaveBeenCalledWith(
-      'Will be implemented in next iteration when backend is ready',
-    );
-  });
-
   it('should show an alert with text that no scopes are available for user', async () => {
     const getIsLoggedInWithAnsattportenMock = jest
       .fn()
-      .mockImplementation(() => Promise.resolve(true));
+      .mockImplementation(() => Promise.resolve({ isLoggedIn: true }));
 
     const mockGetMaskinportenScopes = jest.fn().mockImplementation(() => Promise.resolve([]));
+    const mockGetSelectedMaskinportenScopes = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([]));
 
     renderMaskinporten({
       queries: {
         getIsLoggedInWithAnsattporten: getIsLoggedInWithAnsattportenMock,
         getMaskinportenScopes: mockGetMaskinportenScopes,
+        getSelectedMaskinportenScopes: mockGetSelectedMaskinportenScopes,
       },
     });
 
     await waitForLoggedInStatusCheckIsDone();
 
     expect(
-      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available')),
+      screen.getByText(textMock('settings_modal.maskinporten_no_scopes_available_description')),
     ).toBeInTheDocument();
   });
 });
