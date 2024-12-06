@@ -74,7 +74,11 @@ describe('SelectTab', () => {
       },
     });
 
-    expect(await screen.findByText('Error')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_error_message'),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('should render standard error message if option list endpoint throws an error without specified error message', async () => {

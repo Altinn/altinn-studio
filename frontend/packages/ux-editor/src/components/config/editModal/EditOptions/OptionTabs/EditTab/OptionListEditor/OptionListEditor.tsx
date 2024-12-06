@@ -32,7 +32,7 @@ export function OptionListEditor({
 }: OptionListEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionsListMap, status } = useOptionListsQuery(org, app);
+  const { data: optionsLists, status } = useOptionListsQuery(org, app);
 
   switch (status) {
     case 'pending':
@@ -41,15 +41,17 @@ export function OptionListEditor({
       );
     case 'error':
       return (
-        <StudioErrorMessage>{t('ux_editor.modal_properties_error_message')}</StudioErrorMessage>
+        <StudioErrorMessage>
+          {t('ux_editor.modal_properties_fetch_option_list_error_message')}
+        </StudioErrorMessage>
       );
     case 'success': {
-      if (optionsListMap[optionsId] !== undefined) {
+      if (optionsLists[optionsId] !== undefined) {
         return (
           <EditLibraryOptionListEditorModal
             label={label}
             optionsId={optionsId}
-            optionsList={optionsListMap[optionsId]}
+            optionsList={optionsLists[optionsId]}
           />
         );
       }

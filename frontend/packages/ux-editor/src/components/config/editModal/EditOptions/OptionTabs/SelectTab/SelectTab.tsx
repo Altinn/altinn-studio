@@ -9,8 +9,6 @@ import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { FormField } from '../../../../../FormField';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
-import { OptionListEditor } from './OptionListEditor';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import { FileNameUtils } from '@studio/pure-functions';
 import { findFileNameError } from '../EditTab/OptionListSelector/utils/findFileNameError';
