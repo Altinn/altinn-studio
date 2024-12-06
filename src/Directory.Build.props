@@ -51,11 +51,9 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="ExperimentalBuild" AfterTargets="MinVer" Condition="'$(MinVerVersionOverride)'!=''">
-    <PropertyGroup>
-      <PackageId>$(PackageId).Experimental</PackageId>
-    </PropertyGroup>
-  </Target>
+  <PropertyGroup Condition="'$(MinVerVersionOverride)'!=''">
+    <PackageId>$(MSBuildProjectName).Experimental</PackageId>
+  </PropertyGroup>
 
   <ItemGroup Condition="'$(Deterministic)'=='true'">
     <SourceRoot Include="$(MSBuildThisFileDirectory)/" />
