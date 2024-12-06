@@ -454,8 +454,8 @@ export const getAltinn2Reference = (
 };
 
 export const getMigrationErrorMessage = (
-  loadDelegationCountError: Error,
-  migrateDelegationsError: Error,
+  loadDelegationCountError: Error | null,
+  migrateDelegationsError: Error | null,
   isPublishedInEnv: boolean,
 ): {
   errorMessage: string;
