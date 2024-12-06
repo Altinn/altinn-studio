@@ -5,11 +5,7 @@ import classes from './ResourcePage.module.css';
 import { PolicyEditorPage } from '../PolicyEditorPage';
 import { getResourceDashboardURL, getResourcePageURL } from '../../utils/urlUtils';
 import { DeployResourcePage } from '../DeployResourcePage';
-import {
-  useSinlgeResourceQuery,
-  useValidatePolicyQuery,
-  useValidateResourceQuery,
-} from '../../hooks/queries';
+import { useSinlgeResourceQuery, useValidatePolicyQuery } from '../../hooks/queries';
 import { AboutResourcePage } from '../AboutResourcePage';
 import { NavigationModal } from '../../components/NavigationModal';
 import { Spinner } from '@digdir/designsystemet-react';
@@ -24,7 +20,7 @@ import {
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
+import { deepCompare, getAltinn2Reference, validateResource } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
@@ -64,14 +60,11 @@ export const ResourcePage = (): React.JSX.Element => {
   // Get metadata for policy
   const { refetch: refetchValidatePolicy } = useValidatePolicyQuery(org, app, resourceId);
 
-  // Get metadata for resource
-  const { refetch: refetchValidateResource } = useValidateResourceQuery(org, app, resourceId);
-
-  const {
-    data: loadedResourceData,
-    refetch: refetchResource,
-    isPending: resourcePending,
-  } = useSinlgeResourceQuery(org, app, resourceId);
+  const { data: loadedResourceData, isPending: resourcePending } = useSinlgeResourceQuery(
+    org,
+    app,
+    resourceId,
+  );
 
   const { data: accessList } = useGetAccessListQuery(org, accessListId, env);
 
@@ -97,15 +90,9 @@ export const ResourcePage = (): React.JSX.Element => {
    */
   const navigateToPage = async (page: NavigationBarPage) => {
     if (currentPage !== page) {
-      await editResource(resourceData);
-      await refetchResource();
-
       // Validate Resource and display errors + modal
       if (currentPage === 'about') {
-        const data = await refetchValidateResource();
-        const validationStatus = data?.data?.status ?? null;
-
-        if (validationStatus === 200) {
+        if (validationErrors.length === 0) {
           setShowResourceErrors(false);
           handleNavigation(page);
         } else {
@@ -157,8 +144,6 @@ export const ResourcePage = (): React.JSX.Element => {
    */
   const navigateToPageWithError = async (page: NavigationBarPage) => {
     if (page === 'about') {
-      await refetchResource();
-      await refetchValidateResource();
       setShowResourceErrors(true);
     }
     if (page === 'policy') {
@@ -171,6 +156,7 @@ export const ResourcePage = (): React.JSX.Element => {
     handleNavigation(nextPage);
   };
 
+  const validationErrors = validateResource(resourceData, t);
   const altinn2References = getAltinn2Reference(resourceData);
   /**
    * Decide if the migration page should be accessible or not
@@ -259,8 +245,8 @@ export const ResourcePage = (): React.JSX.Element => {
         <div className={classes.resourcePageWrapper}>
           {currentPage === aboutPageId && (
             <AboutResourcePage
-              showAllErrors={showResourceErrors}
               resourceData={resourceData}
+              validationErrors={showResourceErrors ? validationErrors : []}
               onSaveResource={handleSaveResource}
               id='page-content-about'
             />
