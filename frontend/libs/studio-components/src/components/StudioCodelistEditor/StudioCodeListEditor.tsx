@@ -110,13 +110,13 @@ function EmptyCodeListTable(): ReactElement {
 function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {
   return (
     <StudioInputTable>
-      <Headings />
-      <CodeLists {...props} />
+      <TableHeadings />
+      <TableBody {...props} />
     </StudioInputTable>
   );
 }
 
-function Headings(): ReactElement {
+function TableHeadings(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
 
   return (
@@ -132,7 +132,7 @@ function Headings(): ReactElement {
   );
 }
 
-function CodeLists({
+function TableBody({
   codeList,
   onChange,
   errorMap,
