@@ -69,17 +69,7 @@ describe('EditOptionList', () => {
     expect(await screen.findByRole('combobox')).toHaveValue('test-2');
   });
 
-  it('should render returned error message if option list endpoint returns an error', async () => {
-    renderEditOptionList({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
-      },
-    });
-
-    expect(await screen.findByText('Error')).toBeInTheDocument();
-  });
-
-  it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
+  it('should render error message if getOptionListIds returns an unknown error', async () => {
     renderEditOptionList({
       queries: {
         getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
@@ -87,7 +77,9 @@ describe('EditOptionList', () => {
     });
 
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_error_message'),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -106,7 +98,7 @@ describe('EditOptionList', () => {
 
   it('should render error toast if file already exists', async () => {
     const user = userEvent.setup();
-    const file = new File([optionListIdsMock[0]], optionListIdsMock[0] + '.json', {
+    const file = new File([optionListIdsMock[0]], `${optionListIdsMock[0]}.json`, {
       type: 'text/json',
     });
 
@@ -116,6 +108,22 @@ describe('EditOptionList', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       textMock('ux_editor.modal_properties_code_list_upload_duplicate_error'),
+    );
+  });
+
+  it('should render generic upload error toast if upload fails for unknown reasons', async () => {
+    const uploadOptionList = jest.fn().mockImplementation(() => Promise.reject({}));
+    const user = userEvent.setup();
+    const file = new File([], 'some-file.json', {
+      type: 'text/json',
+    });
+
+    renderEditOptionList({ queries: { uploadOptionList } });
+    await userFindUploadButtonAndClick(user);
+    await userFindFileInputAndUploadFile(user, file);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      textMock('ux_editor.modal_properties_code_list_upload_generic_error'),
     );
   });
 
