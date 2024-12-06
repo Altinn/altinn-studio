@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          ref: format('refs/pull/{0}/head', github.event.issue.number)
+          ref: ${{ format('refs/pull/{0}/head', github.event.issue.number) }}
           fetch-depth: 0
 
       - name: Build PR release version
