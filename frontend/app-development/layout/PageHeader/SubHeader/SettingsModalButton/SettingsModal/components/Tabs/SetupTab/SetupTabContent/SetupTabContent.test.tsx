@@ -10,7 +10,7 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
-import { mockAppMetadata } from '../../../../mocks/applicationMetadataMock';
+import { mockAppMetadata } from '../../../../../../../../../test/applicationMetadataMock';
 import userEvent from '@testing-library/user-event';
 import { app, org } from '@studio/testing/testids';
 
