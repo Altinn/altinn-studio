@@ -246,11 +246,14 @@ export const deepCompare = (original: any, changed: any) => {
 };
 
 export const validateResource = (
-  resourceData: Resource,
+  resourceData: Resource | undefined,
   t: (key: string, params?: KeyValuePairs<string>) => string,
 ): ResourceFormError[] => {
   const errors: ResourceFormError[] = [];
 
+  if (!resourceData) {
+    return [];
+  }
   // validate resourceType
   if (!Object.keys(resourceTypeMap).includes(resourceData.resourceType)) {
     errors.push({

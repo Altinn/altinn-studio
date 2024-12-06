@@ -24,6 +24,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export type DeployResourcePageProps = {
   navigateToPageWithError: (page: NavigationBarPage) => void;
@@ -177,7 +178,8 @@ export const DeployResourcePage = ({
    * @returns a boolean for if it is possible
    */
   const isDeployPossible = (envVersion: string): boolean => {
-    const policyError = validatePolicyData === undefined || validatePolicyData.status !== 200;
+    const policyError =
+      validatePolicyData === undefined || validatePolicyData.status !== ServerCodes.Ok;
     const canDeploy =
       validateResourceData.status === 200 &&
       !policyError &&

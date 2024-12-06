@@ -160,7 +160,7 @@ export const ResourcePage = (): React.JSX.Element => {
     handleNavigation(nextPage);
   };
 
-  const validationErrors = resourceData ? validateResource(resourceData, t) : [];
+  const validationErrors = validateResource(resourceData, t);
   const altinn2References = getAltinn2Reference(resourceData);
   /**
    * Decide if the migration page should be accessible or not
