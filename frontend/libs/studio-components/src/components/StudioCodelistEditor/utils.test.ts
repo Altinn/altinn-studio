@@ -76,6 +76,12 @@ describe('StudioCodelistEditor utils', () => {
       const updatedCodeList = changeCodeListItem(codeList, 1, updatedItem);
       expect(updatedCodeList).not.toBe(codeList);
     });
+
+    it('Returns the old code list item if there are no changes', () => {
+      const codeList = createTestCodeList();
+      const updatedCodeList = changeCodeListItem(codeList, 1, codeList[1]);
+      expect(updatedCodeList).toEqual(codeList);
+    });
   });
 
   describe('isCodeListEmpty', () => {
