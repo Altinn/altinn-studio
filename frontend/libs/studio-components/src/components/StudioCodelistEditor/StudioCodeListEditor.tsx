@@ -42,15 +42,21 @@ export function StudioCodeListEditor({
 }: StudioCodeListEditorProps): ReactElement {
   return (
     <StudioCodeListEditorContext.Provider value={{ codeListType, texts }}>
-      <StatefulCodeListEditor codeList={codeList} onChange={onChange} onInvalid={onInvalid} />
+      <StatefulCodeListEditor
+        codeList={codeList}
+        codeListType={codeListType}
+        onChange={onChange}
+        onInvalid={onInvalid}
+      />
     </StudioCodeListEditorContext.Provider>
   );
 }
 
-type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts' | 'codeListType'>;
+type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
+  codeListType,
   onChange,
   onInvalid,
 }: StatefulCodeListEditorProps): ReactElement {
@@ -63,34 +69,48 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      if (isCodeListValid(newCodeList)) onChange(newCodeList);
-      else onInvalid();
+      isCodeListValid(newCodeList, codeListType) ? onChange(newCodeList) : onInvalid?.();
     },
     [onChange, onInvalid],
   );
 
-  return <ControlledCodeListEditor codeList={codeList} onChange={handleChange} />;
+  return (
+    <ControlledCodeListEditor
+      codeList={codeList}
+      codeListType={codeListType}
+      onChange={handleChange}
+    />
+  );
 }
 
 type InternalCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
 
 function ControlledCodeListEditor({
   codeList,
+  codeListType,
   onChange,
 }: InternalCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
-  const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
+  const errorMap = useMemo<ValueErrorMap>(
+    () => findCodeListErrors(codeList, codeListType),
+    [codeList, codeListType],
+  );
 
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addEmptyCodeListItem(codeList);
     onChange(updatedCodeList);
-  }, [codeList, onChange]);
+  }, [codeList, onChange, codeListType]);
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable codeList={codeList} errorMap={errorMap} onChange={onChange} />
+      <CodeListTable
+        codeList={codeList}
+        codeListType={codeListType}
+        errorMap={errorMap}
+        onChange={onChange}
+      />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
@@ -108,7 +128,7 @@ function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactEleme
 
 function EmptyCodeListTable(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
-  return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
+  return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
 function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {

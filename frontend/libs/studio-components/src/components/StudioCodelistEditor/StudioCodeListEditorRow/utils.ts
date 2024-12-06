@@ -19,9 +19,9 @@ export function changeHelpText(item: CodeListItem, helpText: string): CodeListIt
 }
 
 export function coerceValue(updatedValue: string, codeListType: CodeListType): CodeListItemValue {
-  if (codeListType === CodeListType.String) return String(updatedValue);
-  if (codeListType === CodeListType.Number) return Number(updatedValue); // Needs validation for NaN
-  if (codeListType === CodeListType.Boolean) return updatedValue.toLowerCase() === 'true';
+  if (codeListType === 'string') return String(updatedValue);
+  if (codeListType === 'number') return Number(updatedValue); // Needs validation for NaN
+  if (codeListType === 'boolean') return updatedValue.toLowerCase() === 'true';
 
   throw new Error('Invalid value in codelist');
 }

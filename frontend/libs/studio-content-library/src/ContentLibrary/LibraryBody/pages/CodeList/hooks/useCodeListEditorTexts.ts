@@ -20,6 +20,7 @@ export const useOptionListEditorTexts = (): CodeListEditorTexts => {
     emptyCodeList: t('code_list_editor.empty'),
     valueErrors: {
       duplicateValue: t('code_list_editor.duplicate_values_error'),
+      typeMismatch: 'The value does not fit the type',
     },
     generalError: t('code_list_editor.general_error'),
   };

@@ -1,11 +1,6 @@
 import React, { useRef } from 'react';
 import classes from './EditManualOptionsWithEditor.module.css';
-import {
-  StudioCodeListEditor,
-  StudioModal,
-  StudioProperty,
-  CodeListType,
-} from '@studio/components';
+import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 import type { Option } from 'app-shared/types/Option';
 import { useTranslation } from 'react-i18next';
 import { useOptionListButtonValue, useOptionListEditorTexts } from '../hooks';
@@ -31,6 +26,8 @@ export function EditManualOptionsWithEditor({
     });
   };
 
+  const optionListType = 'string'; // TODO: Create a type selector
+
   return (
     <>
       <StudioProperty.Button
@@ -47,7 +44,7 @@ export function EditManualOptionsWithEditor({
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
-          codeListType={CodeListType.String} // TODO: Implement type selector in UI
+          codeListType={optionListType}
           onChange={(optionList) => handleOptionsChange(optionList)}
           texts={editorTexts}
         />

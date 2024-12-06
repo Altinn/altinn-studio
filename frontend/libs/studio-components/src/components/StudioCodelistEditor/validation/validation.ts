@@ -39,13 +39,13 @@ export function areThereCodeListErrors(errorMap: ValueErrorMap): boolean {
 
 // Does not validate after clearing error?
 const valueFitsCodeListType = (value: CodeListItemValue, codeListType: CodeListType): boolean => {
-  console.log(typeof value);
+  console.log(typeof value + value);
   switch (codeListType) {
-    case CodeListType.String:
+    case 'string':
       return true;
-    case CodeListType.Number:
+    case 'number':
       return isValueNumber(value);
-    case CodeListType.Boolean:
+    case 'boolean':
       return isValueBoolean(value);
   }
 };
@@ -54,7 +54,6 @@ const isValueNumber = (value: CodeListItemValue): boolean => {
   return !isNaN(Number(value));
 };
 
-// Not sure if value will always be string
 const isValueBoolean = (value: CodeListItemValue): boolean => {
   return (
     typeof value === 'string' && (value.toLowerCase() === 'true' || value.toLowerCase() === 'false')

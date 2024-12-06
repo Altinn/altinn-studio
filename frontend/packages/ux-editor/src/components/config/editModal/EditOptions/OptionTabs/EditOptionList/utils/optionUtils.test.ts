@@ -1,6 +1,5 @@
 // Test data
 import type { Option } from 'app-shared/types/Option';
-import { CodeListType } from '@studio/components';
 import { getOptionListValueType } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/EditOptionList/utils/optionUtils';
 
 const optionListWithStringValue: Option[] = [
@@ -34,17 +33,17 @@ const optionListWithUndefinedValue: Option[] = [
 describe('getOptionListValueType', () => {
   it("should return string when the first option's value is a string", () => {
     const result = getOptionListValueType(optionListWithStringValue);
-    expect(result).toBe(CodeListType.String);
+    expect(result).toBe('string');
   });
 
   it("should return number when the first option's value is a number", () => {
     const result = getOptionListValueType(optionListWithNumberValue);
-    expect(result).toBe(CodeListType.Number);
+    expect(result).toBe('number');
   });
 
   it("should return boolean when the first option's value is a boolean", () => {
     const result = getOptionListValueType(optionListWithBooleanValue);
-    expect(result).toBe(CodeListType.Boolean);
+    expect(result).toBe('boolean');
   });
 
   it("should throw an error when the first option's value is not supported", () => {

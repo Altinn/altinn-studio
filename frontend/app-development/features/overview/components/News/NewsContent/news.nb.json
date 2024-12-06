@@ -2,6 +2,11 @@
   "$schema": "news.schema.json",
   "news": [
     {
+      "date": "2024-11-29",
+      "title": "Prøv nytt design på Utforming!",
+      "content": "Vi tester en ny måte å legge til komponenter på Utforming-siden. Du kan velge det nye designet  øverst til høyre på Utforming-siden og teste så mye du vil! Etterpå kan du gi tilbakemelding på hva du synes, ved å velge Gi tilbakemelding nederst til høyre."
+    },
+    {
       "date": "2024-10-25",
       "title": "Prosess har blitt voksen!",
       "content": "Vi har nå fjernet Beta-merket på Prosess, fordi den er godt testet og i aktiv bruk."

@@ -45,7 +45,7 @@ export function StudioCodeListEditorRow({
   const handleValueChange = useCallback(
     (value: string) => {
       const coercedValue = coerceValue(value, codeListType);
-      if (isNaN(coercedValue)) return;
+      if (isNaN(Number(coercedValue))) return;
 
       const updatedItem = changeValue(item, coercedValue);
       onChange(updatedItem);

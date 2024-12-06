@@ -5,7 +5,6 @@ import { StudioCodeListEditor } from './StudioCodeListEditor';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import type { CodeList } from './types/CodeList';
 import userEvent from '@testing-library/user-event';
-import { CodeListType } from './types/CodeListType';
 
 // Test data:
 const texts: CodeListEditorTexts = {
@@ -17,6 +16,7 @@ const texts: CodeListEditorTexts = {
   emptyCodeList: 'The code list is empty.',
   valueErrors: {
     duplicateValue: 'The value must be unique.',
+    typeMismatch: 'The value does not fit the type',
   },
   generalError: 'The code list cannot be saved because it is not valid.',
   helpText: 'Help text',
@@ -54,7 +54,7 @@ const defaultProps: StudioCodeListEditorProps = {
   texts,
   onChange,
   onInvalid,
-  codeListType: CodeListType.String,
+  codeListType: 'string',
 };
 const duplicatedValue = 'duplicate';
 const codeListWithDuplicatedValues: CodeList = [
@@ -273,6 +273,15 @@ describe('StudioCodeListEditor', () => {
     renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
     const invalidValueInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
     await user.type(invalidValueInput, 'new unique value');
+    expect(onInvalid).not.toHaveBeenCalled();
+  });
+
+  it('Does not trigger onInvalid if the code list is invalid, but onInvalid is not defined', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues, onInvalid: undefined });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    const newValue = 'new value';
+    await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
   });
 });

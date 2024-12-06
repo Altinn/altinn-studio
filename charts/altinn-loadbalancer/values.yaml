@@ -4,7 +4,7 @@ environment: development
 
 image:
   repository: nginx
-  tag: 1.27.2-alpine
+  tag: 1.27.3-alpine
   pullPolicy: IfNotPresent
   containerPorts:
     http: 80
@@ -58,7 +58,7 @@ loadbalancerIP:
 sidecar:
   enabled: true
   name: "exporter"
-  image: "ghcr.io/martin-helmich/prometheus-nginxlog-exporter/exporter@sha256:2174507adfc841990d4c51e6b73a4b948d16a4010845c74109b6858a3d0d2242"
+  image: "ghcr.io/martin-helmich/prometheus-nginxlog-exporter/exporter@sha256:62987d855bb07edc5d126b926751c733e6683a6a6d2844026d3af332bac654be"
   args:
     - "-config-file"
     - "/etc/prometheus-nginxlog-exporter/config.hcl"
