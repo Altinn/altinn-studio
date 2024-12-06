@@ -102,7 +102,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string app = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, actualApp, developer, app);
 
-            string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
+            string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
             JsonNode layoutWithDeletedComponent = JsonNode.Parse(layout);
             JsonArray layoutArray = layoutWithDeletedComponent["data"]["layout"] as JsonArray;
             layoutArray.RemoveAt(0);
