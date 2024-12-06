@@ -32,6 +32,7 @@ import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 import { StudioContentMenu } from '@studio/components';
+import type { StudioContentMenuButtonTabProps } from '@studio/components';
 
 /**
  * @component
@@ -194,6 +195,34 @@ export const ResourcePage = (): React.JSX.Element => {
     }
   };
 
+  const getContentMenuItems = (): StudioContentMenuButtonTabProps<NavigationBarPage>[] => {
+    const contentMenuItems: StudioContentMenuButtonTabProps<NavigationBarPage>[] = [
+      {
+        tabId: 'about',
+        tabName: t('resourceadm.left_nav_bar_about'),
+        icon: <InformationSquareIcon />,
+      },
+      {
+        tabId: 'policy',
+        tabName: t('resourceadm.left_nav_bar_policy'),
+        icon: <GavelSoundBlockIcon />,
+      },
+      {
+        tabId: 'deploy',
+        tabName: t('resourceadm.left_nav_bar_deploy'),
+        icon: <UploadIcon />,
+      },
+    ];
+    if (isMigrateEnabled()) {
+      contentMenuItems.push({
+        tabId: 'migration',
+        tabName: t('resourceadm.left_nav_bar_migration'),
+        icon: <MigrationIcon />,
+      });
+    }
+    return contentMenuItems;
+  };
+
   return (
     <div className={classes.resourceWrapper}>
       <div className={classes.leftNavWrapper}>
@@ -208,33 +237,14 @@ export const ResourcePage = (): React.JSX.Element => {
           }
         >
           <StudioContentMenu.LinkTab
-            tabId={'back'}
+            tabId='back'
             tabName={t('resourceadm.left_nav_bar_back')}
             icon={<ArrowLeftIcon />}
             renderTab={(props) => <Link to={getResourceDashboardURL(org, app)} {...props} />}
           />
-          <StudioContentMenu.ButtonTab
-            tabId={'about'}
-            tabName={t('resourceadm.left_nav_bar_about')}
-            icon={<InformationSquareIcon />}
-          />
-          <StudioContentMenu.ButtonTab
-            tabId={'policy'}
-            tabName={t('resourceadm.left_nav_bar_policy')}
-            icon={<GavelSoundBlockIcon />}
-          />
-          <StudioContentMenu.ButtonTab
-            tabId={'deploy'}
-            tabName={t('resourceadm.left_nav_bar_deploy')}
-            icon={<UploadIcon />}
-          />
-          {isMigrateEnabled() && (
-            <StudioContentMenu.ButtonTab
-              tabId={'migration'}
-              tabName={t('resourceadm.left_nav_bar_migration')}
-              icon={<MigrationIcon />}
-            />
-          )}
+          {getContentMenuItems().map((menuItem) => {
+            return <StudioContentMenu.ButtonTab key={menuItem.tabId} {...menuItem} />;
+          })}
         </StudioContentMenu.Static>
       </div>
       {resourcePending || !resourceData ? (
