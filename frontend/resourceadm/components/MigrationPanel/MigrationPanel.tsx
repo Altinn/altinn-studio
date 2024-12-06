@@ -4,12 +4,10 @@ import { Alert, Checkbox, Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioModal } from '@studio/components';
 import classes from './MigrationPanel.module.css';
-import type { Environment } from '../../utils/resourceUtils';
+import { getMigrationErrorMessage, type Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';
 import { useMigrateDelegationsMutation } from '../../hooks/mutations/useMigrateDelegationsMutation';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import type { ResourceError } from 'app-shared/types/ResourceAdm';
-import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface MigrationPanelProps {
   serviceCode: string;
@@ -41,10 +39,6 @@ export const MigrationPanel = ({
     error: loadDelegationCountError,
   } = useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id);
 
-  const isErrorForbidden = (error: Error) => {
-    return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
-  };
-
   const postMigrateDelegations = (): void => {
     setMigrateDelegationsError(null);
     closeSetServiceExpiredModal();
@@ -70,43 +64,12 @@ export const MigrationPanel = ({
     setServiceExpiredWarningModalRef.current?.close();
   };
 
-  const getErrorMessage = (): React.ReactNode => {
-    const loadErrorStatus = (loadDelegationCountError as ResourceError)?.response.status;
-    if (migrateDelegationsError) {
-      return (
-        <Alert severity='danger' size='small'>
-          {isErrorForbidden(migrateDelegationsError)
-            ? t('resourceadm.migration_no_migration_access')
-            : t('resourceadm.migration_post_migration_failed')}
-        </Alert>
-      );
-    } else if (loadErrorStatus === ServerCodes.NotFound) {
-      return (
-        <Alert severity='success' size='small'>
-          {t('resourceadm.migration_service_not_found')}
-        </Alert>
-      );
-    } else if (loadErrorStatus === ServerCodes.Forbidden) {
-      return (
-        <Alert severity='danger' size='small'>
-          {t('resourceadm.migration_cannot_migrate_in_env')}
-        </Alert>
-      );
-    } else if (loadErrorStatus === ServerCodes.InternalServerError) {
-      return (
-        <Alert severity='danger' size='small'>
-          {t('resourceadm.migration_technical_error')}
-        </Alert>
-      );
-    } else if (!isPublishedInEnv) {
-      return (
-        <Alert severity='warning' size='sm'>
-          {t('resourceadm.migration_not_published')}
-        </Alert>
-      );
-    }
-    return null;
-  };
+  const errorMessage = getMigrationErrorMessage(
+    loadDelegationCountError,
+    migrateDelegationsError,
+    isPublishedInEnv,
+  );
+  const isMigrateButtonDisabled = !!errorMessage || isSettingMigrateDelegations;
 
   return (
     <>
@@ -155,12 +118,14 @@ export const MigrationPanel = ({
               {t('resourceadm.migration_not_needed')}
             </Alert>
           )}
-          {getErrorMessage()}
+          {errorMessage && (
+            <Alert severity={errorMessage.severity}>{t(errorMessage.errorMessage)}</Alert>
+          )}
         </div>
         <StudioButton
-          aria-disabled={!!getErrorMessage() || isSettingMigrateDelegations}
+          aria-disabled={isMigrateButtonDisabled}
           onClick={() => {
-            if (isPublishedInEnv && !isSettingMigrateDelegations) {
+            if (!isMigrateButtonDisabled) {
               setServiceExpiredWarningModalRef.current?.showModal();
             }
           }}

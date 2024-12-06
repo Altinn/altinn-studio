@@ -14,5 +14,6 @@ export {
   resourceTypeMap,
   validateResource,
   getAltinn2Reference,
+  getMigrationErrorMessage,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';
