@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
@@ -95,8 +95,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "testUser", "Side1", "form")]
-        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutName, string layoutSetName)
+        [InlineData("ttd", "testUser", "form", "Side1")]
+        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutSetName, string layoutName)
         {
             string actualApp = "deleted-component-before-delete";
             string app = TestDataHelper.GenerateTestRepoName();
