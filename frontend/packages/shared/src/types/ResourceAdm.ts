@@ -23,8 +23,10 @@ export interface Resource {
   enterpriseUserEnabled?: boolean;
   availableForType?: ResourceAvailableForTypeOption[];
   contactPoints?: ResourceContactPoint[];
-  limitedByRRR?: boolean;
+  accessListMode?: ResourceAccessListMode;
 }
+
+export type ResourceAccessListMode = 'Disabled' | 'Enabled';
 
 export interface ResourceContactPoint {
   category: string;
@@ -33,7 +35,11 @@ export interface ResourceContactPoint {
   contactPage: string;
 }
 
-export type ResourceTypeOption = 'GenericAccessResource' | 'Systemresource' | 'MaskinportenSchema';
+export type ResourceTypeOption =
+  | 'GenericAccessResource'
+  | 'Systemresource'
+  | 'MaskinportenSchema'
+  | 'BrokerService';
 
 export type ResourceStatusOption = 'Completed' | 'Deprecated' | 'UnderDevelopment' | 'Withdrawn';
 
@@ -57,9 +63,9 @@ export interface Version {
 export interface ResourceListItem {
   title: SupportedLanguage;
   createdBy: string;
-  lastChanged: string;
-  hasPolicy: boolean;
+  lastChanged?: Date;
   identifier: string;
+  environments: string[];
 }
 
 export interface ResourceVersionStatus {
@@ -120,8 +126,8 @@ export interface BrregSubPartySearchResult {
 
 export interface BrregSearchResult {
   parties: AccessListMember[];
-  links: BrregPagination;
-  page: BrregPageInfo;
+  links?: BrregPagination;
+  page?: BrregPageInfo;
 }
 
 export interface BrregParty {
@@ -135,23 +141,60 @@ export interface AccessListMember {
   isSubParty: boolean;
 }
 
-export interface AccessList {
+export interface HeaderEtag {
+  etag?: string;
+}
+
+export interface AccessList extends HeaderEtag {
   env: string;
   identifier: string;
   name: string;
   description?: string;
-  members?: AccessListMember[];
+  resourceConnections?: {
+    resourceIdentifier: string;
+  }[];
 }
 
-export interface AccessListResourceLink {
-  resourceIdentifier: string;
-  accessListName: string;
-  accessListIdentifier: string;
-  actions: string[];
+export interface AccessListsResponse {
+  data: AccessList[];
+  nextPage?: string;
+}
+
+export interface AccessListMembersResponse extends HeaderEtag {
+  data: AccessListMember[];
+  nextPage?: string;
+}
+
+export interface AccessListOrganizationNumbers extends HeaderEtag {
+  data: string[];
 }
 
 export interface JsonPatch {
   op: 'replace' | 'add' | 'remove';
   path: string;
   value?: string | number;
+}
+
+export interface ResourceError extends Error {
+  response?: {
+    status: number;
+    data?: any;
+  };
+}
+
+export interface ResourceFormError {
+  field: keyof Resource;
+  index?: number | keyof SupportedLanguage;
+  error: string;
+}
+
+export interface DelegationCountOverview {
+  numberOfDelegations: number;
+  numberOfRelations: number;
+}
+
+export interface MigrateDelegationsRequest {
+  serviceCode: string;
+  serviceEditionCode: number;
+  resourceId: string;
 }

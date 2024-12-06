@@ -1,11 +1,8 @@
-﻿using System.IO;
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
-using DataModeling.Tests.BaseClasses;
 using FluentAssertions;
 using Json.Schema;
 using SharedResources.Tests;

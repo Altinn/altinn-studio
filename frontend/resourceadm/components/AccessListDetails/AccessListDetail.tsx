@@ -1,16 +1,18 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Textfield, Modal, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { toast } from 'react-toastify';
+import { Textfield, Heading } from '@digdir/designsystemet-react';
 import classes from './AccessListDetail.module.css';
-import { AccessList } from 'app-shared/types/ResourceAdm';
+import type { AccessList, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useEditAccessListMutation } from '../../hooks/mutations/useEditAccessListMutation';
-import { createReplacePatch } from '../../utils/jsonPatchUtils/jsonPatchUtils';
 import { useDeleteAccessListMutation } from '../../hooks/mutations/useDeleteAccessListMutation';
 import { AccessListMembers } from '../AccessListMembers';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioLink, StudioModal } from '@studio/components';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
 export interface AccessListDetailProps {
   org: string;
@@ -30,20 +32,48 @@ export const AccessListDetail = ({
   const deleteWarningModalRef = useRef<HTMLDialogElement>(null);
   const navigate = useNavigate();
 
+  const [latestEtag, setLatestEtag] = useState<string>(list.etag || '');
   const [listName, setListName] = useState<string>(list.name || '');
   const [listDescription, setListDescription] = useState<string>(list.description || '');
 
   const { mutate: editAccessList } = useEditAccessListMutation(org, list.identifier, env);
-  const { mutate: deleteAccessList } = useDeleteAccessListMutation(org, list.identifier, env);
+  const { mutate: deleteAccessList, isPending: isDeletingAccessList } = useDeleteAccessListMutation(
+    org,
+    list.identifier,
+    env,
+  );
+
+  const checkForEtagVersionError = (error: Error): void => {
+    if ((error as ResourceError).response.status === ServerCodes.PreconditionFailed) {
+      toast.error(<AccessListPreconditionFailedToast />);
+    }
+  };
 
   // change list name, description and possibly other properties
-  const handleSave = (diff: Partial<AccessList>): void => {
-    editAccessList(createReplacePatch<Partial<AccessList>>(diff));
+  const handleSave = (accessList: AccessList): void => {
+    editAccessList(
+      { ...accessList, etag: latestEtag },
+      {
+        onSuccess: (data: AccessList) => {
+          setLatestEtag(data.etag);
+        },
+        onError: (error) => {
+          checkForEtagVersionError(error);
+        },
+      },
+    );
   };
 
   const handleDelete = (): void => {
-    deleteAccessList(undefined, {
-      onSuccess: () => navigate(backUrl),
+    deleteAccessList(latestEtag, {
+      onSuccess: () => {
+        toast.success(t('resourceadm.listadmin_delete_list_success', { listname: listName }));
+        navigate(backUrl);
+      },
+      onError: (error) => {
+        checkForEtagVersionError(error);
+        closeModal();
+      },
     });
   };
 
@@ -51,24 +81,37 @@ export const AccessListDetail = ({
     deleteWarningModalRef.current?.close();
   };
 
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(backUrl);
+  };
+
   return (
     <div className={classes.accessListDetailWrapper}>
-      <Modal ref={deleteWarningModalRef} onClose={closeModal}>
-        <Modal.Header>{t('resourceadm.listadmin_delete_list_header')}</Modal.Header>
-        <Modal.Content>{t('resourceadm.listadmin_delete_list_description')}</Modal.Content>
-        <Modal.Footer>
-          <StudioButton color='danger' onClick={() => handleDelete()}>
-            {t('resourceadm.listadmin_delete_list')}
-          </StudioButton>
-          <StudioButton variant='tertiary' onClick={closeModal}>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={deleteWarningModalRef}
+          onClose={closeModal}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          heading={t('resourceadm.listadmin_delete_list_header')}
+          footer={
+            <>
+              <StudioButton color='danger' onClick={() => handleDelete()}>
+                {t('resourceadm.listadmin_delete_list')}
+              </StudioButton>
+              <StudioButton variant='tertiary' onClick={closeModal}>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
+          {t('resourceadm.listadmin_delete_list_description')}
+        </StudioModal.Dialog>
+      </StudioModal.Root>
       <div>
-        <DigdirLink to={backUrl} as={Link}>
+        <StudioLink href={backUrl} onClick={handleBackClick}>
           {t('general.back')}
-        </DigdirLink>
+        </StudioLink>
       </div>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_list_detail_header')}
@@ -77,12 +120,12 @@ export const AccessListDetail = ({
         label={t('resourceadm.listadmin_list_id')}
         description={t('resourceadm.listadmin_list_id_description')}
       >
-        <Textfield value={list.identifier} disabled />
+        <Textfield value={list.identifier} readOnly />
       </FieldWrapper>
       <FieldWrapper
         fieldId='listname'
         label={t('resourceadm.listadmin_list_name')}
-        description={t('resourceadm.listadmin_list_id_description')}
+        description={t('resourceadm.listadmin_list_name_description')}
         ariaDescriptionId='listname-description'
       >
         <Textfield
@@ -90,7 +133,7 @@ export const AccessListDetail = ({
           aria-describedby='listname-description'
           value={listName}
           onChange={(event) => setListName(event.target.value)}
-          onBlur={(event) => handleSave({ name: event.target.value })}
+          onBlur={(event) => handleSave({ ...list, name: event.target.value })}
         />
       </FieldWrapper>
       <FieldWrapper
@@ -104,10 +147,16 @@ export const AccessListDetail = ({
           aria-describedby='listdescription-description'
           value={listDescription}
           onChange={(event) => setListDescription(event.target.value)}
-          onBlur={(event) => handleSave({ description: event.target.value })}
+          onBlur={(event) => handleSave({ ...list, description: event.target.value })}
         />
       </FieldWrapper>
-      <AccessListMembers org={org} env={env} list={list} />
+      <AccessListMembers
+        org={org}
+        env={env}
+        list={list}
+        latestEtag={latestEtag}
+        setLatestEtag={setLatestEtag}
+      />
       <div>
         <StudioButton
           variant='tertiary'
@@ -115,6 +164,8 @@ export const AccessListDetail = ({
           icon={<TrashIcon className={classes.deleteIcon} />}
           iconPlacement='right'
           onClick={() => deleteWarningModalRef.current?.showModal()}
+          disabled={isDeletingAccessList}
+          size='medium'
         >
           {t('resourceadm.listadmin_delete_list')}
         </StudioButton>

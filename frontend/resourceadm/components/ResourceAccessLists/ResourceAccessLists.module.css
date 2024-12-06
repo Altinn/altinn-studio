@@ -1,14 +1,21 @@
 .resourceAccessListsWrapper {
-  display: flex;
+  display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 2rem;
   margin: 1rem;
 }
 
 .listCheckboxWrapper {
+  width: 100%;
+}
+
+.listCheckboxItem {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   gap: 1rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--fds-semantic-border-neutral-subtle);
 }

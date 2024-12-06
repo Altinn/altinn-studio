@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Xml.Linq;
 
 namespace Altinn.Studio.Designer.Models
 {

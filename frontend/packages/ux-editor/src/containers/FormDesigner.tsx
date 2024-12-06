@@ -1,68 +1,89 @@
-import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState } from 'react';
 import { Properties } from '../components/Properties';
 import { DesignView } from './DesignView';
 import classes from './FormDesigner.module.css';
 import { Elements } from '../components/Elements';
-import { useFormContext } from './FormContext';
-import { useText } from '../hooks';
+import { useFormItemContext } from './FormItemContext';
+import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
-import { useRuleModelQuery } from '../hooks/queries/useRuleModelQuery';
-import { ErrorPage } from '../components/ErrorPage';
-import { StudioPageSpinner } from '@studio/components';
+import {
+  StudioPageError,
+  StudioPageSpinner,
+  StudioResizableLayout,
+  useLocalStorage,
+  StudioDragAndDropTree,
+} from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
+import type { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from '../utils/generateId';
-import { addItemOfType, getItem, moveLayoutItem, validateDepth } from '../utils/formLayoutUtils';
+import {
+  addItemOfType,
+  getItem,
+  moveLayoutItem,
+  isComponentTypeValidChild,
+  validateDepth,
+} from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
-import { useSearchParams } from 'react-router-dom';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { Preview } from '../components/Preview';
-import { setSelectedLayoutInLocalStorage } from '../utils/localStorageUtils';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
-export interface FormDesignerProps {
-  selectedLayout: string;
-  selectedLayoutSet: string | undefined;
-}
-
-export const FormDesigner = ({
-  selectedLayout,
-  selectedLayoutSet,
-}: FormDesignerProps): JSX.Element => {
-  const dispatch = useDispatch();
-  const { org, app } = useStudioUrlParams();
+export const FormDesigner = (): JSX.Element => {
+  const { org, app } = useStudioEnvironmentParams();
   const { data: instanceId } = useInstanceIdQuery(org, app);
+  const { data: user } = useUserQuery();
+  const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
+    useAppContext();
   const { data: formLayouts, isError: layoutFetchedError } = useFormLayoutsQuery(
     org,
     app,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const { data: ruleModel } = useRuleModelQuery(org, app, selectedLayoutSet);
-  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(org, app, selectedLayoutSet);
-  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(org, app, selectedLayoutSet);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { isSuccess: isRuleConfigFetched } = useRuleConfigQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const { mutate: addItemToLayout } = useAddItemToLayoutMutation(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
   const { mutate: updateFormLayout } = useFormLayoutMutation(
     org,
     app,
-    selectedLayout,
-    selectedLayoutSet,
+    selectedFormLayoutName,
+    selectedFormLayoutSetName,
   );
-  const [searchParams] = useSearchParams();
-  const { handleEdit } = useFormContext();
-
-  const layoutPagesOrder = formLayoutSettings?.pages.order;
+  const { handleEdit } = useFormItemContext();
+  const [previewCollapsed, setPreviewCollapsed] = useLocalStorage<boolean>(
+    `form-designer-main:previewCollapsed:${user.id}:${org}`,
+    false,
+  );
+  const [elementsCollapsed, setElementsCollapsed] = useLocalStorage<boolean>(
+    `form-designer-main:elementsCollapsed:${user.id}:${org}`,
+    false,
+  );
+  const [hidePreview, setHidePreview] = useState<boolean>(false);
 
   const t = useText();
 
   const formLayoutIsReady =
-    instanceId && formLayouts && formLayoutSettings && ruleModel && isRuleConfigFetched;
+    selectedFormLayoutSetName &&
+    instanceId &&
+    formLayouts &&
+    formLayoutSettings &&
+    isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');
@@ -78,61 +99,112 @@ export const FormDesigner = ({
     }
   };
 
-  /**
-   * Set the correct selected layout based on url parameters
-   */
-  useEffect(() => {
-    const searchParamsLayout = searchParams.get('layout');
-
-    const isValidLayout = (layoutName: string): boolean => {
-      const isExistingLayout = layoutPagesOrder?.includes(layoutName);
-      const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-      return isExistingLayout || isReceipt;
-    };
-
-    if (isValidLayout(searchParamsLayout)) {
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      setSelectedLayoutInLocalStorage(instanceId, searchParamsLayout);
-      dispatch(FormLayoutActions.updateSelectedLayout(searchParamsLayout));
-      return;
-    }
-  }, [dispatch, formLayoutSettings?.receiptLayoutName, instanceId, layoutPagesOrder, searchParams]);
-
   if (layoutFetchedError) {
     const mappedError = mapErrorToDisplayError();
-    return <ErrorPage title={mappedError.title} message={mappedError.message} />;
+    return <StudioPageError title={mappedError.title} message={mappedError.message} />;
   }
 
   if (formLayoutIsReady) {
-    const triggerDepthAlert = () => alert(t('schema_editor.depth_error'));
-    const layout = formLayouts[selectedLayout];
+    const triggerDepthAlert = () => alert(t('schema_editor.error_depth'));
+    const triggerInvalidChildAlert = () => alert(t('schema_editor.error_invalid_child'));
+    const layout = formLayouts[selectedFormLayoutName];
 
     const addItem: HandleAdd<ComponentType> = (type, { parentId, index }) => {
       const newId = generateComponentId(type, formLayouts);
 
+      if (!isComponentTypeValidChild(layout, parentId, type)) {
+        triggerInvalidChildAlert();
+        return;
+      }
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      if (validateDepth(updatedLayout)) {
-        addItemToLayout({ componentType: type, newId, parentId, index });
-        handleEdit(getItem(updatedLayout, newId));
-      } else triggerDepthAlert();
+      if (!validateDepth(updatedLayout)) {
+        triggerDepthAlert();
+        return;
+      }
+      addItemToLayout(
+        { componentType: type, newId, parentId, index },
+        {
+          onSuccess: async () => {
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
+          },
+        },
+      );
+      handleEdit(getItem(updatedLayout, newId));
     };
     const moveItem: HandleMove = (id, { parentId, index }) => {
+      const type = getItem(layout, id).type;
+      if (!isComponentTypeValidChild(layout, parentId, type)) {
+        triggerInvalidChildAlert();
+        return;
+      }
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
-      validateDepth(updatedLayout) ? updateFormLayout(updatedLayout) : triggerDepthAlert();
+      if (!validateDepth(updatedLayout)) {
+        triggerDepthAlert();
+        return;
+      }
+      updateFormLayout(
+        { internalLayout: updatedLayout },
+        {
+          onSuccess: async () => {
+            await updateLayoutsForPreview(selectedFormLayoutSetName);
+          },
+        },
+      );
     };
 
     return (
-      <DragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
+      <StudioDragAndDropTree.Provider rootId={BASE_CONTAINER_ID} onMove={moveItem} onAdd={addItem}>
         <div className={classes.root}>
           <div className={classes.container}>
-            <Elements />
-            <DesignView />
-            <Properties />
-            <Preview />
+            <StudioResizableLayout.Container
+              orientation='horizontal'
+              localStorageContext={`form-designer-main:${user.id}:${org}`}
+            >
+              {/**
+               * The following check is done for a live user test behind feature flag. It can be removed if this is not something
+               * that is going to be used in the future.
+               */}
+              {!shouldDisplayFeature('addComponentModal') && (
+                <StudioResizableLayout.Element
+                  collapsed={elementsCollapsed}
+                  collapsedSize={50}
+                  minimumSize={300}
+                  maximumSize={300}
+                  disableRightHandle={true}
+                >
+                  <Elements
+                    collapsed={elementsCollapsed}
+                    onCollapseToggle={() => setElementsCollapsed(!elementsCollapsed)}
+                  />
+                </StudioResizableLayout.Element>
+              )}
+              <StudioResizableLayout.Element
+                minimumSize={shouldDisplayFeature('addComponentModal') ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
+              >
+                <DesignView />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                minimumSize={250}
+                onResizing={(resizing) => setHidePreview(resizing)}
+              >
+                <Properties />
+              </StudioResizableLayout.Element>
+              <StudioResizableLayout.Element
+                collapsed={previewCollapsed}
+                collapsedSize={50}
+                minimumSize={400}
+              >
+                <Preview
+                  collapsed={previewCollapsed}
+                  onCollapseToggle={() => setPreviewCollapsed(!previewCollapsed)}
+                  hidePreview={hidePreview}
+                />
+              </StudioResizableLayout.Element>
+            </StudioResizableLayout.Container>
           </div>
         </div>
-      </DragAndDropTree.Provider>
+      </StudioDragAndDropTree.Provider>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner spinnerTitle={t('ux_editor.loading_form_layout')} />;
 };

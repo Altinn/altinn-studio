@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NameError } from '../../types';
-import type { TextfieldProps } from '@digdir/design-system-react';
-import { AltinnTextField } from 'app-shared/components/AltinnTextField';
+import type { TextfieldProps } from '@digdir/designsystemet-react';
+import { StudioTextfield } from '@studio/components';
 import { extractNameFromPointer, replaceLastPointerSegment } from '@altinn/schema-model';
 import { isValidName } from '../../utils/ui-schema-utils';
 import { useTranslation } from 'react-i18next';
@@ -10,24 +10,32 @@ import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchema
 
 export type NameFieldProps = TextfieldProps & {
   id?: string;
-  pointer: string;
+  schemaPointer: string;
   handleSave: (newNodeName: string, errorCode: string) => void;
+  hideLabel?: boolean;
   label?: string;
 };
 
-export function NameField({ id, pointer, handleSave, label, ...props }: NameFieldProps) {
+export function NameField({
+  id,
+  schemaPointer,
+  handleSave,
+  label,
+  hideLabel,
+  ...props
+}: NameFieldProps) {
   const { t } = useTranslation();
   const { schemaModel } = useSchemaEditorAppContext();
-  const [nodeName, setNodeName] = useState(extractNameFromPointer(pointer));
+  const [nodeName, setNodeName] = useState(extractNameFromPointer(schemaPointer));
 
   useEffect(() => {
-    setNodeName(extractNameFromPointer(pointer));
-  }, [pointer]);
+    setNodeName(extractNameFromPointer(schemaPointer));
+  }, [schemaPointer]);
 
   const validateName = (nodeNameToValidate: string): NameError => {
     if (nodeNameToValidate === nodeName) return;
     if (!isValidName(nodeNameToValidate)) return NameError.InvalidCharacter;
-    if (schemaModel.hasNode(replaceLastPointerSegment(pointer, nodeNameToValidate)))
+    if (schemaModel.hasNode(replaceLastPointerSegment(schemaPointer, nodeNameToValidate)))
       return NameError.AlreadyInUse;
   };
 
@@ -54,8 +62,9 @@ export function NameField({ id, pointer, handleSave, label, ...props }: NameFiel
         }
       }}
       renderField={({ errorCode, customRequired, fieldProps }) => (
-        <AltinnTextField
+        <StudioTextfield
           {...fieldProps}
+          hideLabel={hideLabel}
           id={id}
           onChange={(e) => fieldProps.onChange(e.target.value, e)}
           onBlur={(e) => onNameBlur(e.target.value, errorCode)}

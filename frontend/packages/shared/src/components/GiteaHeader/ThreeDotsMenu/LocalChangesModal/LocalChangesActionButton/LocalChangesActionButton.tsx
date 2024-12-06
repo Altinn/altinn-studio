@@ -1,7 +1,8 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './LocalChangesActionButton.module.css';
-import { Label, Link, Paragraph } from '@digdir/design-system-react';
-import { StudioButton } from '@studio/components';
+import { Link, Paragraph } from '@digdir/designsystemet-react';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 
 interface LinkAction {
   /**
@@ -109,7 +110,6 @@ export const LocalChangesActionButton = ({
             onClick={action.onClick}
             icon={icon}
             iconPlacement='right'
-            size='small'
           >
             {text}
           </StudioButton>
@@ -120,9 +120,9 @@ export const LocalChangesActionButton = ({
 
   return (
     <div>
-      <Label as='p' size='small' spacing>
+      <StudioLabelAsParagraph size='small' spacing>
         {label}
-      </Label>
+      </StudioLabelAsParagraph>
       <Paragraph className={classes.paragraph} size='small'>
         {description}
       </Paragraph>

@@ -1,1 +1,1 @@
-export { ResourceDeployEnvCard } from './ResourceDeployEnvCard'
+export { ResourceDeployEnvCard } from './ResourceDeployEnvCard';

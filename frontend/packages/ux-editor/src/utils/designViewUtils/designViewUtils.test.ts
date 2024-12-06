@@ -5,6 +5,7 @@ const mockNewNameCandidateExists: string = 'page2';
 const mockNewNameCandidateEmpty: string = '';
 const mockNewNameCandidateTooLong: string = 'ThisStringIsTooooooooooooooLong';
 const mockNewNameCandidateIllegal: string = 'Page????';
+const mockNewNameCandidateWithPeriod: string = 'Page.2';
 
 const mockOldName: string = 'oldName';
 const mockLayoutOrder: string[] = [mockOldName, mockNewNameCandidateExists, 'page3'];
@@ -48,6 +49,15 @@ describe('designViewUtils', () => {
         mockLayoutOrder,
       );
       expect(nameErrorkey).toEqual('ux_editor.pages_error_length');
+    });
+
+    it('returns formate error when name contains period (.)', () => {
+      const nameErrorkey = getPageNameErrorKey(
+        mockNewNameCandidateWithPeriod,
+        mockOldName,
+        mockLayoutOrder,
+      );
+      expect(nameErrorkey).toEqual('ux_editor.pages_error_invalid_format');
     });
 
     it('returns format error key when name contains illegal characters', () => {

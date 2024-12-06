@@ -16,7 +16,6 @@ describe('create-node', () => {
     it('Can create nodes', () => {
       const map = buildUiSchema(complexJsonTestSchema);
       map.forEach((parentNode) => {
-
         if (isCombination(parentNode)) {
           const newNode = createChildNode(parentNode, 'hello', false);
           expect(newNode).toHaveProperty('objectKind');
@@ -58,7 +57,7 @@ describe('create-node', () => {
     it('Throws error on existing pointer', () => {
       const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
       expect(() =>
-        insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello'))
+        insertSchemaNode(uiSchemaNodes, createNodeBase(Keyword.Properties, 'hello')),
       ).toThrowError();
     });
   });

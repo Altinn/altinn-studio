@@ -1,0 +1,8 @@
+.wrapper {
+  margin-top: var(--fds-spacing-3);
+  margin-bottom: var(--fds-spacing-5);
+}
+
+.buttonWrapper {
+  margin-bottom: var(--fds-spacing-3);
+}

@@ -6,7 +6,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -67,7 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(string org, string repository)
+        public Task<string> CloneRemoteRepository(string org, string repository)
         {
             try
             {
@@ -81,7 +80,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
+        public Task<string> CloneRemoteRepository(string org, string repository, string destinationPath, string branchName = "")
         {
             try
             {
@@ -109,11 +108,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
             try
             {
-                _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message);
+                return _decoratedService.CommitAndPushChanges(org, repository, branchName, localPath, message);
             }
             catch (Exception ex)
             {
@@ -165,57 +164,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void FetchRemoteChanges(string org, string repository)
+        public async Task FetchRemoteChanges(string org, string repository)
         {
             try
             {
-                _decoratedService.FetchRemoteChanges(org, repository);
+                await _decoratedService.FetchRemoteChanges(org, repository);
             }
             catch (Exception ex)
             {
                 LogError(ex, "FetchRemoteChanges", org, repository);
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public string GetAppToken()
-        {
-            try
-            {
-                return _decoratedService.GetAppToken();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetAppToken");
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public string GetAppTokenId()
-        {
-            try
-            {
-                return _decoratedService.GetAppTokenId();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetAppTokenId");
-                throw;
-            }
-        }
-
-        /// <inheritdoc/>
-        public Task<string> GetDeployToken()
-        {
-            try
-            {
-                return _decoratedService.GetDeployToken();
-            }
-            catch (Exception ex)
-            {
-                LogError(ex, "GetDeployToken");
                 throw;
             }
         }
@@ -263,7 +220,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public RepoStatus PullRemoteChanges(string org, string repository)
+        public Task<RepoStatus> PullRemoteChanges(string org, string repository)
         {
             try
             {
@@ -291,11 +248,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void PushChangesForRepository(CommitInfo commitInfo)
+        public Task PushChangesForRepository(CommitInfo commitInfo)
         {
             try
             {
-                _decoratedService.PushChangesForRepository(commitInfo);
+                return _decoratedService.PushChangesForRepository(commitInfo);
             }
             catch (Exception ex)
             {
@@ -314,6 +271,20 @@ namespace Altinn.Studio.Designer.Services.Implementation
             catch (Exception ex)
             {
                 LogError(ex, "RepositoryStatus", org, repository);
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
+        public Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
+        {
+            try
+            {
+                return _decoratedService.GetChangedContent(org, repository);
+            }
+            catch (Exception ex)
+            {
+                LogError(ex, "GetChangedContent", org, repository);
                 throw;
             }
         }
@@ -375,11 +346,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void VerifyCloneExists(string org, string repository)
+        public async Task VerifyCloneExists(string org, string repository)
         {
             try
             {
-                _decoratedService.VerifyCloneExists(org, repository);
+                await _decoratedService.VerifyCloneExists(org, repository);
             }
             catch (Exception ex)
             {
@@ -401,25 +372,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            var debugInfo = GetDebugInfo();
 
-            _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}. Debug info: {debugInfo}");
-        }
-
-        private object GetDebugInfo()
-        {
-            var designerSessionTimeOut = AuthenticationHelper.GetRemainingSessionTime(_httpContextAccessor.HttpContext, _generalSettings.SessionTimeoutCookieName);
-            var developerAppTokenId = AuthenticationHelper.GetDeveloperAppTokenId(_httpContextAccessor.HttpContext);
-            var developerAppToken = AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext);
-
-            var debugInfo = new
-            {
-                DesignerSessionTimeOutSeconds = designerSessionTimeOut.TotalSeconds,
-                DeveloperAppTokenId = developerAppTokenId ?? string.Empty,
-                TokenLength = developerAppToken?.Length ?? 0
-            };
-
-            return System.Text.Json.JsonSerializer.Serialize(debugInfo);
+            _logger.LogError(ex, $"Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}.");
         }
     }
 }

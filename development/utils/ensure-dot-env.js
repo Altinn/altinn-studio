@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const getCommit = require('./git-commit-hash');
+const writeEnvFile = require('./write-env-file');
 const randomPass = () =>
   [Math.random().toString(36).substring(2, 5), Math.random().toString(36).substring(2, 5)]
     .join('DIG@')
@@ -21,6 +22,8 @@ const defaultEnvVars = {
   GITEA_CYPRESS_PASS: randomPass(),
   GITEA_ORG_USER: 'ttd',
   POSTGRES_PASSWORD: randomPass(),
+  CLIENT_ID: '',
+  CLIENT_SECRET: '',
 };
 
 module.exports = () => {
@@ -29,8 +32,7 @@ module.exports = () => {
   const existingData = fs.existsSync(dotenvLocations)
     ? fs.readFileSync(dotenvLocations, 'utf-8').split(os.EOL)
     : [];
-  const { O_RDWR, O_CREAT } = fs.constants;
-  const fd = fs.openSync(dotenvLocations, O_RDWR | O_CREAT, 0o600);
+
   existingData.forEach((line) => {
     const trimmedLine = line.trim();
     if (trimmedLine.length > 0 && trimmedLine[0] !== '#') {
@@ -40,9 +42,6 @@ module.exports = () => {
   });
   // Commit should always be latest and be overwritten
   envData['COMMIT'] = getCommit();
-  const newEnv = [];
-  Object.keys(envData).forEach((key) => newEnv.push([key, envData[key]].join('=')));
-  fs.writeFileSync(fd, newEnv.join(os.EOL), 'utf-8');
-  console.log('Ensuring .env variables at:', dotenvLocations);
+  writeEnvFile(envData);
   return envData;
 };

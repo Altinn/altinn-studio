@@ -35,8 +35,9 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public string CloneRemoteRepository(string org, string repository)
+        public async Task<string> CloneRemoteRepository(string org, string repository)
         {
+            await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, _developer);
 
@@ -46,8 +47,9 @@ namespace Designer.Tests.Mocks
             return localPath;
         }
 
-        public string CloneRemoteRepository(string org, string repository, string destination, string branchName = "")
+        public async Task<string> CloneRemoteRepository(string org, string repository, string destination, string branchName = "")
         {
+            await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
 
             Directory.CreateDirectory(destination);
@@ -61,8 +63,9 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
+        public async Task CommitAndPushChanges(string org, string repository, string branchName, string localPath, string message)
         {
+            await Task.CompletedTask;
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(org, repository);
 
             if (!string.IsNullOrEmpty(branchName))
@@ -88,17 +91,7 @@ namespace Designer.Tests.Mocks
             return Task.CompletedTask;
         }
 
-        public void FetchRemoteChanges(string org, string repository)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetAppToken()
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetAppTokenId()
+        public Task FetchRemoteChanges(string org, string repository)
         {
             throw new NotImplementedException();
         }
@@ -128,7 +121,12 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public RepoStatus PullRemoteChanges(string org, string repository)
+        public Task<RepoStatus> PullRemoteChanges(string org, string repository)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dictionary<string, string>> GetChangedContent(string org, string repository)
         {
             throw new NotImplementedException();
         }
@@ -138,11 +136,12 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void PushChangesForRepository(CommitInfo commitInfo)
+        public Task PushChangesForRepository(CommitInfo commitInfo)
         {
             string remotePath = TestDataHelper.GetTestDataRemoteRepository(commitInfo.Org, commitInfo.Repository);
             string localPath = TestDataHelper.GetTestDataRepositoryDirectory(commitInfo.Org, commitInfo.Repository, _developer);
             TestDataHelper.CopyDirectory(localPath, remotePath, true).Wait();
+            return Task.CompletedTask;
         }
 
         public RepoStatus RepositoryStatus(string org, string repository)
@@ -170,7 +169,7 @@ namespace Designer.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void VerifyCloneExists(string org, string repository)
+        public Task VerifyCloneExists(string org, string repository)
         {
             throw new NotImplementedException();
         }

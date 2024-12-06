@@ -2,22 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Rest.TransientFaultHandling;
 using Newtonsoft.Json;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -135,6 +134,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         Id = "ref-data-as-pdf",
                         AllowedContentTypes = new List<string>() { "application/pdf" },
+                    },
+                    new()
+                    {
+                        Id = "model",
+                        AllowedContentTypes = new List<string>() { "application/xml" },
+                        AppLogic = new ApplicationLogic()
+                        {
+                            AutoCreate = true,
+                            ClassRef = "Altinn.App.Models.model.model",
+                            AllowAnonymousOnStateless = false,
+                            AutoDeleteOnProcessEnd = false
+                        },
+                        TaskId = "Task_1",
+                        MaxCount = 1,
+                        MinCount = 1,
+                        EnablePdfCreation = true,
+                        EnableFileScan = false,
+                        ValidationErrorOnPendingFileScan = false
                     }
                 },
                 PartyTypesAllowed = new PartyTypesAllowed()
@@ -207,17 +224,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName)
+        public async Task UpdateApplicationMetadataInStorageAsync(string org, string app, string shortCommitId, string envName, CancellationToken cancellationToken)
         {
-
+            cancellationToken.ThrowIfCancellationRequested();
             ApplicationMetadata applicationFromRepository = await GetApplicationMetadataFromSpecificReference(org, app, shortCommitId);
-            ApplicationMetadata application = await GetApplicationMetadataFromStorage(org, app, envName);
-            if (application == null)
-            {
-                await CreateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
-                return;
-            }
-
             await UpdateApplicationMetadataInStorage(org, app, applicationFromRepository, envName, shortCommitId);
         }
 
@@ -263,40 +273,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return altinnAppGitRepository.ApplicationMetadataExists();
         }
 
-        private async Task<ApplicationMetadata> GetApplicationMetadataFromStorage(string org, string app, string envName)
-        {
-            try
-            {
-                return await _storageAppMetadataClient.GetApplicationMetadata(org, app, envName);
-            }
-            catch (HttpRequestWithStatusException e)
-            {
-                /*
-                 * Special exception handling because we want to continue if the exception
-                 * was caused by a 404 (NOT FOUND) HTTP status code.
-                 */
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-
-                throw;
-            }
-        }
-
-        private async Task CreateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
+        private async Task UpdateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
         {
             applicationFromRepository.Id = $"{org}/{app}";
             applicationFromRepository.VersionId = shortCommitId;
 
-            await _storageAppMetadataClient.CreateApplicationMetadata(org, app, applicationFromRepository, envName);
-        }
-
-        private async Task UpdateApplicationMetadataInStorage(string org, string app, ApplicationMetadata applicationFromRepository, string envName, string shortCommitId)
-        {
-            applicationFromRepository.VersionId = shortCommitId;
-
-            await _storageAppMetadataClient.UpdateApplicationMetadata(org, app, applicationFromRepository, envName);
+            await _storageAppMetadataClient.UpsertApplicationMetadata(org, app, applicationFromRepository, envName);
         }
     }
 }

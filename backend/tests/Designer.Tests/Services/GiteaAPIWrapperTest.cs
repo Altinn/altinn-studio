@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Implementation;
-using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -48,7 +46,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
 
             // Act
             Branch actual = await sut.CreateBranch("ttd", "apps-test-2021", "master");
@@ -80,7 +78,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper sut = GetServiceForTest(httpClient);
 
             // Act
             await Assert.ThrowsAsync<GiteaApiWrapperException>(() => sut.CreateBranch("ttd", "apps-test-2021", "master"));
@@ -117,7 +115,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
             Assert.Equal(searchResult.Data.Count, result.TotalCount);
@@ -158,7 +156,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             SearchOptions searchOptions = GetSearchOptions();
             searchOptions.Limit = 10;
@@ -192,7 +190,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             SearchResults result = await giteaApi.SearchRepo(GetSearchOptions());
 
@@ -226,9 +224,9 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
-            IList<Repository> result = await giteaApi.GetStarred();
+            await giteaApi.GetStarred();
             Assert.Equal(10, repositories.Count);
         }
 
@@ -258,7 +256,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             bool result = await giteaApi.PutStarred("org", "repository");
 
@@ -291,7 +289,7 @@ namespace Designer.Tests.Services
                 BaseAddress = new Uri("http://studio.localhost/designer/api/user/starred")
             };
 
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             bool result = await giteaApi.DeleteStarred("org", "repository");
 
@@ -346,7 +344,7 @@ namespace Designer.Tests.Services
             };
 
             // Passing the test specific mock setup in, sprinkles a bit more mock setup and returns a valid GiteaAPIWrapper
-            GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
+            GiteaAPIWrapper giteaApi = GetServiceForTest(httpClient);
 
             // Act
             Repository result = await giteaApi.GetRepository("ttd", "repo");
@@ -355,26 +353,12 @@ namespace Designer.Tests.Services
             Assert.Equal(1769, result.Id);
         }
 
-        private static HttpContext GetHttpContextForTestUser(string userName)
+        private static GiteaAPIWrapper GetServiceForTest(HttpClient client)
         {
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, "altinn.no"));
-            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
-            identity.AddClaims(claims);
-
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            HttpContext c = new DefaultHttpContext();
-            c.Request.HttpContext.User = principal;
-
-            return c;
-        }
-
-        private static GiteaAPIWrapper GetServiceForTest(string developer, HttpClient c)
-        {
-            HttpContext ctx = GetHttpContextForTestUser(developer);
+            HttpContext context = new DefaultHttpContext();
 
             Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(ctx);
+            httpContextAccessorMock.Setup(s => s.HttpContext).Returns(context);
 
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySITests).Assembly.Location).LocalPath);
             var repoSettings = new ServiceRepositorySettings()
@@ -387,7 +371,7 @@ namespace Designer.Tests.Services
                 httpContextAccessorMock.Object,
                 new MemoryCache(new MemoryCacheOptions()),
                 new Mock<ILogger<GiteaAPIWrapper>>().Object,
-                c);
+                client);
 
             return service;
         }

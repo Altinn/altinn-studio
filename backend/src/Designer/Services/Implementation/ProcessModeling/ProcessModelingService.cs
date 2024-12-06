@@ -1,5 +1,4 @@
 #nullable enable
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,8 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using NuGet.Versioning;
 
@@ -17,9 +18,11 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
     public class ProcessModelingService : IProcessModelingService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        private readonly IAppDevelopmentService _appDevelopmentService;
+        public ProcessModelingService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IAppDevelopmentService appDevelopmentService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _appDevelopmentService = appDevelopmentService;
         }
 
         private string TemplatesFolderIdentifier(SemanticVersion version) => string.Join(".", nameof(Services), nameof(Implementation), nameof(ProcessModeling), "Templates", $"v{version.Major}");
@@ -56,35 +59,46 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
             return altinnAppGitRepository.GetProcessDefinitionFile();
         }
 
-        public async Task<Stream> UpdateProcessTaskNameAsync(AltinnRepoEditingContext altinnRepoEditingContext, string taskId, string taskName, CancellationToken cancellationToken = default)
+        public async Task AddDataTypeToApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, string taskId, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
-            XmlSerializer serializer = new(typeof(Definitions));
-            Definitions? definitions;
+
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            if (!applicationMetadata.DataTypes.Exists(dataType => dataType.Id == dataTypeId))
+            {
+                applicationMetadata.DataTypes.Add(new DataType
+                {
+                    Id = dataTypeId,
+                    AllowedContentTypes = new List<string> { "application/json" },
+                    MaxCount = 1,
+                    TaskId = taskId,
+                    EnablePdfCreation = false
+                });
+            }
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+
+        public async Task DeleteDataTypeFromApplicationMetadataAsync(AltinnRepoEditingContext altinnRepoEditingContext, string dataTypeId, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+            ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata(cancellationToken);
+            applicationMetadata.DataTypes.RemoveAll(dataType => dataType.Id == dataTypeId);
+            await altinnAppGitRepository.SaveApplicationMetadata(applicationMetadata);
+        }
+
+        public async Task<string> GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId)
+        {
             using (Stream processDefinitionStream = GetProcessDefinitionStream(altinnRepoEditingContext))
             {
-                definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
+                XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+                Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
+                LayoutSetConfig layoutSet = await _appDevelopmentService.GetLayoutSetConfig(altinnRepoEditingContext, layoutSetId);
+                string taskId = layoutSet.Tasks?.First();
+                ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
+                return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
             }
-
-            if (definitions == null)
-            {
-                throw new InvalidOperationException("Could not deserialize process definition.");
-            }
-
-            ProcessTask? processTask = (definitions.Process.Tasks?.FirstOrDefault(t => t.Id == taskId)) ?? throw new ArgumentException($"Could not find task with id {taskId}.");
-            processTask.Name = taskName;
-
-            Stream processStream = new MemoryStream();
-            serializer.Serialize(processStream, definitions);
-
-            // Reset stream position to beginning after serialization
-            processStream.Seek(0, SeekOrigin.Begin);
-            await altinnAppGitRepository.SaveProcessDefinitionFileAsync(processStream, cancellationToken);
-
-            // Reset stream position to beginning after saving
-            processStream.Seek(0, SeekOrigin.Begin);
-            return processStream;
         }
 
         private IEnumerable<string> EnumerateTemplateResources(SemanticVersion version)

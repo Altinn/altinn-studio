@@ -2,48 +2,46 @@ import React from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
-import { useInstanceIdQuery, useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
-import { AltinnHeader } from 'app-shared/components/altinnHeader';
-import { AltinnHeaderVariant } from 'app-shared/components/altinnHeader/types';
-import { getRepositoryType } from 'app-shared/utils/repository';
-import { getTopBarAppPreviewMenu } from '../components/AppBarConfig/AppPreviewBarConfig';
-import { appPreviewButtonActions } from '../components/AppBarConfig/AppPreviewBarConfig';
+import { useRepoMetadataQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { AppPreviewSubMenu } from '../components/AppPreviewSubMenu';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { previewPage } from 'app-shared/api/paths';
-import { TopBarMenuItem } from 'app-shared/types/TopBarMenuItem';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
-
-export interface LandingPageProps {
-  variant?: AltinnHeaderVariant;
-}
+import { StudioPageHeader, StudioPageSpinner, useMediaQuery } from '@studio/components';
+import { UserProfileMenu } from '../components/UserProfileMenu';
+import { PreviewControlHeader } from '../components/PreviewControlHeader';
+import { MEDIA_QUERY_MAX_WIDTH } from 'app-shared/constants';
+import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayoutName';
+import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
+import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
+import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
-export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
-  const { org, app } = useStudioUrlParams();
+export const LandingPage = () => {
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
+  const shouldDisplayText = !useMediaQuery(MEDIA_QUERY_MAX_WIDTH);
   const previewConnection = usePreviewConnection();
-  const { data: user } = useUserQuery();
+  const { data: user, isPending: isPendingUser } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const [selectedLayoutSet, setSelectedLayoutSet] = useLocalStorage<string>(
-    'layoutSet/' + app,
-    null,
-  );
+
+  const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
+  const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
+    useSelectedFormLayoutSetName(layoutSets);
+
+  const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
-
-  const repoType = getRepositoryType(org, app);
-  const menuItems: TopBarMenuItem[] = getTopBarAppPreviewMenu(org, app, repoType, t);
+  const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
   const handleChangeLayoutSet = (layoutSet: string) => {
-    setSelectedLayoutSet(layoutSet);
+    setSelectedFormLayoutSetName(layoutSet);
     // might need to remove selected layout from local storage to make sure first page is selected
     window.location.reload();
   };
@@ -61,39 +59,50 @@ export const LandingPage = ({ variant = 'preview' }: LandingPageProps) => {
     });
   }
 
+  if (isPendingUser || pendingLayoutsets)
+    return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
+
   return (
     <>
-      <div className={classes.header}>
-        <AltinnHeader
-          menuItems={menuItems}
-          showSubMenu={true}
-          org={org}
-          app={app}
-          user={user}
-          repository={repository}
-          buttonActions={appPreviewButtonActions(org, app, instanceId)}
-          variant={variant}
-          subMenuContent={
-            <AppPreviewSubMenu
-              setViewSize={setPreviewViewSize}
-              viewSize={previewViewSize}
-              selectedLayoutSet={selectedLayoutSet}
-              handleChangeLayoutSet={handleChangeLayoutSet}
-            />
-          }
-        />
-      </div>
+      <StudioPageHeader variant='preview'>
+        <StudioPageHeader.Main>
+          <StudioPageHeader.Left title={app} showTitle={shouldDisplayText} />
+          <StudioPageHeader.Right>
+            <UserProfileMenu user={user} repository={repository} />
+          </StudioPageHeader.Right>
+        </StudioPageHeader.Main>
+        <StudioPageHeader.Sub>
+          <AppPreviewSubMenu />
+        </StudioPageHeader.Sub>
+      </StudioPageHeader>
       <div className={classes.previewArea}>
+        <PreviewControlHeader
+          setViewSize={setPreviewViewSize}
+          viewSize={previewViewSize}
+          selectedLayoutSet={selectedFormLayoutSetName}
+          handleChangeLayoutSet={handleChangeLayoutSet}
+        />
         <PreviewLimitationsInfo />
         <div className={classes.iframeContainer}>
           <iframe
-            title={t('preview.iframe_title')}
+            title={t('preview.title')}
             id='app-frontend-react-iframe'
-            src={previewPage(org, app, selectedLayoutSet)}
+            src={previewPage(
+              org,
+              app,
+              getSelectedFormLayoutSetName(selectedFormLayoutSetName),
+              taskId,
+              selectedFormLayoutName,
+            )}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
         </div>
       </div>
     </>
   );
+};
+
+const getSelectedFormLayoutSetName = (selectedFormLayoutSetName: string): string => {
+  if (selectedFormLayoutSetName === '') return undefined;
+  return selectedFormLayoutSetName;
 };

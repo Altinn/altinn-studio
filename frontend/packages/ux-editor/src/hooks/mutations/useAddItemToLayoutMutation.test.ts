@@ -1,20 +1,23 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { queryClientMock } from 'app-shared/mocks/queryClientMock';
-import { renderHookWithMockStore } from '../../testing/mocks';
-import { appStateMock, formDesignerMock } from '../../testing/stateMocks';
+import { renderHookWithProviders } from '../../testing/mocks';
 import { waitFor } from '@testing-library/react';
-import { AddFormItemMutationArgs, useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
+import type { AddFormItemMutationArgs } from './useAddItemToLayoutMutation';
+import { useAddItemToLayoutMutation } from './useAddItemToLayoutMutation';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
-import { IAppState } from '../../types/global';
-import { externalLayoutsMock, layoutSetsMock } from '../../testing/layoutMock';
+import type { ApplicationAttachmentMetadata } from 'app-shared/types/ApplicationAttachmentMetadata';
+import { externalLayoutsMock } from '@altinn/ux-editor/testing/layoutMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '@altinn/ux-editor/testing/layoutSetsMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { convertExternalLayoutsToInternalFormat } from '../../utils/formLayoutsUtils';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 const id = 'component-id';
 
 const defaultArgs: AddFormItemMutationArgs = {
@@ -24,17 +27,7 @@ const defaultArgs: AddFormItemMutationArgs = {
   index: 0,
 };
 
-const appStateMockCopy = (layoutSetName: string): Partial<IAppState> => ({
-  ...appStateMock,
-  formDesigner: {
-    layout: {
-      ...formDesignerMock.layout,
-      selectedLayoutSet: layoutSetName,
-    },
-  },
-});
-
-const applicationAttachmentMetaDataMock: ApplicationAttachmentMetadata = {
+const applicationAttachmentMetadataMock: ApplicationAttachmentMetadata = {
   id,
   taskId: 'some-task-id',
   maxCount: 1,
@@ -75,11 +68,11 @@ describe('useAddItemToLayoutMutation', () => {
   });
 
   it('Adds correct taskId to attachment metadata when component type is fileUpload and selectedLayoutSet is test-layout-set-2', async () => {
-    const { result } = renderAddItemToLayoutMutation('test-layout-set-2');
+    const { result } = renderAddItemToLayoutMutation(layoutSet2NameMock);
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetaDataMock,
+      ...applicationAttachmentMetadataMock,
       taskId: 'Task_2',
     });
   });
@@ -89,7 +82,7 @@ describe('useAddItemToLayoutMutation', () => {
     result.current.mutate({ ...defaultArgs, componentType: ComponentType.FileUpload });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(queriesMock.addAppAttachmentMetadata).toHaveBeenCalledWith(org, app, {
-      ...applicationAttachmentMetaDataMock,
+      ...applicationAttachmentMetadataMock,
       taskId: 'Task_1',
     });
   });
@@ -98,13 +91,11 @@ describe('useAddItemToLayoutMutation', () => {
 const renderAddItemToLayoutMutation = (layoutSetName?: string) => {
   queryClientMock.setQueryData(
     [QueryKey.FormLayouts, org, app, layoutSetName],
-    convertExternalLayoutsToInternalFormat(externalLayoutsMock).convertedLayouts,
+    convertExternalLayoutsToInternalFormat(externalLayoutsMock),
   );
   queryClientMock.setQueryData(
     [QueryKey.LayoutSets, org, app],
     layoutSetName ? layoutSetsMock : null,
   );
-  return renderHookWithMockStore(appStateMockCopy(layoutSetName))(() =>
-    useAddItemToLayoutMutation(org, app, layoutSetName),
-  ).renderHookResult;
+  return renderHookWithProviders(() => useAddItemToLayoutMutation(org, app, layoutSetName));
 };

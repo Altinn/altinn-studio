@@ -2,32 +2,25 @@ import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 
 import { EditStringValue } from './EditStringValue';
-import { renderWithMockStore, renderHookWithMockStore } from '../../../testing/mocks';
-import { useLayoutSchemaQuery } from '../../../hooks/queries/useLayoutSchemaQuery';
-import { mockUseTranslation } from '../../../../../../testing/mocks/i18nMock';
+import { renderWithProviders } from '../../../testing/mocks';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-
-jest.mock('react-i18next', () => ({
-  useTranslation: () => mockUseTranslation({}),
-}));
 
 const user = userEvent.setup();
 
-const waitForData = async () => {
-  const layoutSchemaResult = renderHookWithMockStore()(() => useLayoutSchemaQuery())
-    .renderHookResult.result;
-  await waitFor(() => expect(layoutSchemaResult.current[0].isSuccess).toBe(true));
-};
-
-const render = async ({ maxLength = undefined, handleComponentChange = jest.fn() } = {}) => {
-  await waitForData();
-
-  return renderWithMockStore()(
+const renderEditStringValue = ({
+  multiple = false,
+  enumValues = null,
+  maxLength = undefined,
+  handleComponentChange = jest.fn(),
+} = {}) =>
+  renderWithProviders(
     <EditStringValue
       handleComponentChange={handleComponentChange}
       propertyKey='maxLength'
+      multiple={multiple}
+      enumValues={enumValues}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
         type: ComponentType.Input,
@@ -36,31 +29,176 @@ const render = async ({ maxLength = undefined, handleComponentChange = jest.fn()
         },
         maxLength: maxLength || '',
         itemType: 'COMPONENT',
-        dataModelBindings: {},
+        dataModelBindings: { simpleBinding: 'some-path' },
       }}
     />,
   );
-};
+
 describe('EditStringValue', () => {
-  it('should render', async () => {
-    const handleComponentChange = jest.fn();
-    await render({ handleComponentChange });
+  it('should render component as input field, when not given enum prop', () => {
+    renderEditStringValue();
+
+    expect(
+      screen.getByRole('textbox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it(' Ensure that the onChange handler is called with the correct arguments', async () => {
+  it('should render component as select, when given enum prop', () => {
+    renderEditStringValue({ enumValues: ['one', 'two', 'three'] });
+
+    expect(
+      screen.getByRole('combobox', { name: textMock('ux_editor.component_properties.maxLength') }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('should call onChange handler with the correct arguments', async () => {
     const handleComponentChange = jest.fn();
-    await render({ handleComponentChange });
-    const inputElement = screen.getByLabelText('maxLength');
-    await act(() => user.type(inputElement, 'new value'));
+    renderEditStringValue({ handleComponentChange });
+    const inputElement = screen.getByLabelText(
+      textMock('ux_editor.component_properties.maxLength'),
+    );
+    await user.type(inputElement, 'new value');
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: ComponentType.Input,
+      maxLength: 'new value',
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: 'some-path' },
+    });
+  });
+
+  it('should call onChange for enum values', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditStringValue({ handleComponentChange, enumValues: ['one', 'two', 'three'] });
+
+    await user.selectOptions(screen.getByRole('combobox'), 'one');
     expect(handleComponentChange).toHaveBeenCalledWith({
       id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
       type: ComponentType.Input,
       textResourceBindings: {
         title: 'ServiceName',
       },
-      maxLength: 'new value',
+      maxLength: 'one',
       itemType: 'COMPONENT',
-      dataModelBindings: {},
+      dataModelBindings: { simpleBinding: 'some-path' },
+    });
+  });
+
+  it('should call onChange for multiple enum values', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditStringValue({
+      handleComponentChange,
+      enumValues: ['one', 'two', 'three'],
+      multiple: true,
+    });
+
+    await user.click(screen.getByRole('combobox'));
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_one') }),
+    );
+
+    await waitFor(() => {
+      expect(handleComponentChange).toHaveBeenCalledWith({
+        id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+        type: ComponentType.Input,
+        textResourceBindings: {
+          title: 'ServiceName',
+        },
+        maxLength: ['one'],
+        itemType: 'COMPONENT',
+        dataModelBindings: { simpleBinding: 'some-path' },
+      });
+    });
+
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_two') }),
+    );
+    await waitFor(() => {
+      expect(handleComponentChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          maxLength: ['one', 'two'],
+        }),
+      );
+    });
+
+    await user.click(
+      screen.getByRole('option', { name: textMock('ux_editor.component_properties.enum_one') }),
+    );
+    await waitFor(() => {
+      expect(handleComponentChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          maxLength: ['two'],
+        }),
+      );
+    });
+  });
+
+  it('should initially set value as NO_VALUE if no value is selected', () => {
+    const handleComponentChange = jest.fn();
+    renderEditStringValue({ handleComponentChange, enumValues: ['one', 'two', 'three'] });
+
+    const selectElement = screen.getByRole('combobox', {
+      name: textMock('ux_editor.component_properties.maxLength'),
+    });
+
+    expect(selectElement).toHaveValue('NO_VALUE');
+  });
+
+  it('should set value when initially undefined and an option is clicked', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditStringValue({ handleComponentChange, enumValues: ['one', 'two', 'three'] });
+
+    const selectElement = screen.getByRole('combobox', {
+      name: textMock('ux_editor.component_properties.maxLength'),
+    });
+
+    await user.selectOptions(selectElement, 'one');
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: ComponentType.Input,
+      maxLength: 'one',
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: 'some-path' },
+    });
+  });
+
+  it('should set value to undefined when it had a value and the "no value" option is selected', async () => {
+    const handleComponentChange = jest.fn();
+    renderEditStringValue({
+      handleComponentChange,
+      enumValues: ['one', 'two', 'three'],
+      maxLength: 'one',
+    });
+
+    const selectElement = screen.getByRole('combobox', {
+      name: textMock('ux_editor.component_properties.maxLength'),
+    });
+
+    expect(selectElement).toHaveValue('one');
+
+    await user.selectOptions(
+      selectElement,
+      textMock('ux_editor.edit_component.no_value_selected_for_select'),
+    );
+
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: ComponentType.Input,
+      maxLength: undefined,
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      itemType: 'COMPONENT',
+      dataModelBindings: { simpleBinding: 'some-path' },
     });
   });
 });

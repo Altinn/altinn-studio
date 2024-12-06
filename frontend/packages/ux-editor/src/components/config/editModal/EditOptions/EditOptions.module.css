@@ -1,0 +1,13 @@
+.root {
+  margin-top: var(--fds-spacing-5);
+  border-top: 1px solid var(--fds-semantic-border-divider-default);
+  padding: var(--fds-spacing-5) 0 0;
+}
+
+.optionsHeading {
+  padding-left: var(--fds-spacing-5);
+}
+
+.errorMessage {
+  margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
+}

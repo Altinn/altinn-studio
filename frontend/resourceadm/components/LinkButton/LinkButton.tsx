@@ -1,17 +1,22 @@
-import React, { ReactNode } from 'react';
-import classes from './LinkButton.module.css';
-import { Link } from '@digdir/design-system-react';
+import type { ReactNode } from 'react';
+import React from 'react';
+import type { NavigationBarPage } from '../../types/NavigationBarPage';
+import { StudioLink } from '@studio/components';
 
 export type LinkButtonProps = {
+  /**
+   * Page name
+   */
+  page: NavigationBarPage;
   /**
    * Function to handle the click of the link
    * @returns void
    */
-  onClick?: () => void;
+  onClick?: (page: NavigationBarPage) => void;
   /**
    * Children of the component
    */
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 /**
@@ -28,10 +33,15 @@ export type LinkButtonProps = {
  *
  * @returns {React.JSX.Element} - The rendered component
  */
-export const LinkButton = ({ onClick, children }: LinkButtonProps): React.JSX.Element => {
+export const LinkButton = ({ page, onClick, children }: LinkButtonProps): React.JSX.Element => {
+  const handleButtonClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    onClick(page);
+  };
+
   return (
-    <Link as='button' onClick={onClick} className={classes.linkButton}>
+    <StudioLink href={page} onClick={handleButtonClick}>
       {children}
-    </Link>
+    </StudioLink>
   );
 };

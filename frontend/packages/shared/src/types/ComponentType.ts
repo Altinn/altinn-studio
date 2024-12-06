@@ -1,14 +1,15 @@
 export enum ComponentType {
-  Alert = 'Alert',
   Accordion = 'Accordion',
   AccordionGroup = 'AccordionGroup',
   ActionButton = 'ActionButton',
-  AddressComponent = 'AddressComponent',
+  Address = 'Address',
+  Alert = 'Alert',
   AttachmentList = 'AttachmentList',
   Button = 'Button',
   ButtonGroup = 'ButtonGroup',
   Checkboxes = 'Checkboxes',
   Custom = 'Custom',
+  CustomButton = 'CustomButton',
   Datepicker = 'Datepicker',
   Dropdown = 'Dropdown',
   FileUpload = 'FileUpload',
@@ -30,8 +31,17 @@ export enum ComponentType {
   NavigationButtons = 'NavigationButtons',
   Panel = 'Panel',
   Paragraph = 'Paragraph',
+  Payment = 'Payment',
+  PaymentDetails = 'PaymentDetails',
   PrintButton = 'PrintButton',
   RadioButtons = 'RadioButtons',
+  RepeatingGroup = 'RepeatingGroup',
+  Subform = 'Subform',
   Summary = 'Summary',
+  Summary2 = 'Summary2',
   TextArea = 'TextArea',
+}
+
+export enum CustomComponentType {
+  CloseSubformButton = 'CloseSubformButton',
 }

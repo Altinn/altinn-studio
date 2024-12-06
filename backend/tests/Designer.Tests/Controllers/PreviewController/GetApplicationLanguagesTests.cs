@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_ApplicationLanguages_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/v1/applicationlanguages";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationlanguages";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

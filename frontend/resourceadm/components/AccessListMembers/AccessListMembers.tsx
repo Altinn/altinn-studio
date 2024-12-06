@@ -1,68 +1,165 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Textfield, Radio } from '@digdir/design-system-react';
+import { toast } from 'react-toastify';
+import { Alert, Textfield, Radio } from '@digdir/designsystemet-react';
 import classes from './AccessListMembers.module.css';
-import { AccessList, AccessListMember } from 'app-shared/types/ResourceAdm';
+import type { AccessList, AccessListMember, ResourceError } from 'app-shared/types/ResourceAdm';
 import { FieldWrapper } from '../FieldWrapper';
 import { useRemoveAccessListMemberMutation } from '../../hooks/mutations/useRemoveAccessListMemberMutation';
 import { useAddAccessListMemberMutation } from '../../hooks/mutations/useAddAccessListMemberMutation';
-import { useDebounce } from 'react-use';
 import { usePartiesRegistryQuery } from '../../hooks/queries/usePartiesRegistryQuery';
 import { useSubPartiesRegistryQuery } from '../../hooks/queries/useSubPartiesRegistryQuery';
 import { getPartiesQueryUrl } from '../../utils/urlUtils';
-import { StudioSpinner, StudioButton } from '@studio/components';
-import { PlusIcon, PlusCircleIcon, MinusCircleIcon } from '@studio/icons';
+import { StudioButton } from '@studio/components';
+import { useDebounce } from '@studio/hooks';
+import { PlusIcon } from '@studio/icons';
 import { AccessListMembersPaging } from './AccessListMembersPaging';
 import { AccessListMembersTable } from './AccessListMembersTable';
+import { isOrgNrString } from '../../utils/stringUtils';
+import { useGetAccessListMembersQuery } from '../../hooks/queries/useGetAccessListMembersQuery';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
+import { AccessListPreconditionFailedToast } from '../AccessListPreconditionFailedToast';
 
 const PARTY_SEARCH_TYPE = 'PARTY';
 const SUBPARTY_SEARCH_TYPE = 'SUBPARTY';
+const INVALID_ORG_ERROR_CODE = 'RR-00001';
 
 export interface AccessListMembersProps {
   org: string;
   env: string;
   list: AccessList;
+  latestEtag: string;
+  setLatestEtag: (newETag: string) => void;
 }
 
 export const AccessListMembers = ({
   org,
   env,
   list,
+  latestEtag,
+  setLatestEtag,
 }: AccessListMembersProps): React.JSX.Element => {
   const { t } = useTranslation();
 
-  const [listItems, setListItems] = useState<AccessListMember[]>(list.members ?? []);
-  const [isAddMode, setIsAddMode] = useState<boolean>((list.members ?? []).length === 0);
+  // if list has more than 100 members and not all are loaded, keep added members in local array for display
+  const [localItems, setLocalItems] = useState<AccessListMember[]>([]);
+  const [invalidOrgnrs, setInvalidOrgnrs] = useState<string[]>([]);
+  const [isAddMode, setIsAddMode] = useState<boolean>(false);
   const [isSubPartySearch, setIsSubPartySearch] = useState<boolean>(false);
   const [searchText, setSearchText] = useState<string>('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState<string>('');
   const [searchUrl, setSearchUrl] = useState<string>('');
-  useDebounce(
-    () => setSearchUrl(searchText ? getPartiesQueryUrl(searchText, isSubPartySearch) : ''),
-    500,
-    [searchText, isSubPartySearch],
-  );
+  const { debounce } = useDebounce({ debounceTimeInMs: 500 });
 
-  const { mutate: removeListMember } = useRemoveAccessListMemberMutation(org, list.identifier, env);
-  const { mutate: addListMember } = useAddAccessListMemberMutation(org, list.identifier, env);
+  const { mutate: removeListMember, isPending: isRemovingMember } =
+    useRemoveAccessListMemberMutation(org, list.identifier, env);
+  const { mutate: addListMember, isPending: isAddingNewListMember } =
+    useAddAccessListMemberMutation(org, list.identifier, env);
 
-  const { data: partiesSearchData, isLoading: isLoadingParties } = usePartiesRegistryQuery(
-    !isSubPartySearch ? searchUrl : '',
-  );
-  const { data: subPartiesSearchData, isLoading: isLoadingSubParties } = useSubPartiesRegistryQuery(
+  const { data: partiesSearchData } = usePartiesRegistryQuery(!isSubPartySearch ? searchUrl : '');
+  const { data: subPartiesSearchData } = useSubPartiesRegistryQuery(
     isSubPartySearch ? searchUrl : '',
   );
+  const {
+    data: members,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetAccessListMembersQuery(org, list.identifier, env);
+
+  useEffect(() => {
+    setSearchUrl(
+      debouncedSearchText ? getPartiesQueryUrl(debouncedSearchText, isSubPartySearch) : '',
+    );
+  }, [debouncedSearchText, isSubPartySearch]);
+
+  useEffect(() => {
+    if (members?.pages?.length === 0) {
+      setIsAddMode(true);
+    }
+  }, [members]);
+
+  const checkForEtagVersionError = (error: Error): void => {
+    if ((error as ResourceError).response.status === ServerCodes.PreconditionFailed) {
+      toast.error(<AccessListPreconditionFailedToast />);
+    }
+  };
 
   const handleAddMember = (memberToAdd: AccessListMember): void => {
-    addListMember(memberToAdd.orgNr);
-    setListItems((old) => [...old, memberToAdd]);
+    addListMember(
+      { data: [memberToAdd.orgNr], etag: latestEtag },
+      {
+        onSuccess: (data) => {
+          setLatestEtag(data.etag);
+          setLocalItems((prev) => [...prev, memberToAdd]);
+        },
+        onError: (error: Error) => {
+          if (
+            ((error as ResourceError).response?.data as { code: string }).code ===
+            INVALID_ORG_ERROR_CODE
+          ) {
+            setInvalidOrgnrs((old) => [...old, memberToAdd.orgNr]);
+          } else {
+            checkForEtagVersionError(error);
+          }
+        },
+      },
+    );
   };
 
   const handleRemoveMember = (memberIdToRemove: string): void => {
-    removeListMember(memberIdToRemove);
-    setListItems((old) => old.filter((x) => x.orgNr !== memberIdToRemove));
+    removeListMember(
+      { data: [memberIdToRemove], etag: latestEtag },
+      {
+        onSuccess: (data) => {
+          setLatestEtag(data.etag);
+          setLocalItems((prev) => prev.filter((item) => item.orgNr !== memberIdToRemove));
+        },
+        onError: (error: Error) => {
+          checkForEtagVersionError(error);
+        },
+      },
+    );
   };
 
-  const resultData = partiesSearchData ?? subPartiesSearchData ?? undefined;
+  const getResultData = () => {
+    if (
+      (partiesSearchData?.parties?.length === 0 || subPartiesSearchData?.parties?.length === 0) &&
+      isOrgNrString(searchText) &&
+      env !== 'prod'
+    ) {
+      return {
+        parties: [
+          {
+            orgNr: searchText,
+            orgName: t('resourceadm.listadmin_list_tenor_org'),
+            isSubParty: false,
+          },
+        ],
+      };
+    } else if (partiesSearchData && !isSubPartySearch) {
+      return partiesSearchData;
+    } else if (subPartiesSearchData && isSubPartySearch) {
+      return subPartiesSearchData;
+    } else {
+      return undefined;
+    }
+  };
+
+  const getMergedMembersData = (): AccessListMember[] => {
+    const returnData = [...(members?.pages ?? [])];
+    // if hasNextPage is true, there are more members in the list that can be shown. Always show newly added items
+    if (hasNextPage) {
+      localItems.forEach((localItem) => {
+        if (!returnData.some((member) => member.orgNr === localItem.orgNr)) {
+          returnData.push(localItem);
+        }
+      });
+    }
+    return returnData;
+  };
+
+  const resultData = getResultData();
 
   return (
     <FieldWrapper
@@ -70,16 +167,22 @@ export const AccessListMembers = ({
       description={t('resourceadm.listadmin_list_organizations_description')}
     >
       <AccessListMembersTable
-        listItems={listItems}
-        buttonNode={
-          <>
-            {t('resourceadm.listadmin_remove_from_list')}
-            <MinusCircleIcon className={classes.buttonIcon} />
-          </>
-        }
+        listItems={getMergedMembersData()}
+        isLoading={isRemovingMember}
         onButtonClick={(item: AccessListMember) => handleRemoveMember(item.orgNr)}
       />
-      {listItems.length === 0 && (
+      {hasNextPage && (
+        <StudioButton
+          disabled={isFetchingNextPage}
+          variant='tertiary'
+          onClick={() => fetchNextPage()}
+        >
+          {t('resourceadm.listadmin_load_more', {
+            unit: t('resourceadm.listadmin_member_unit'),
+          })}
+        </StudioButton>
+      )}
+      {!!members && members.pages?.length === 0 && (
         <Alert severity='info'>{t('resourceadm.listadmin_empty_list')}</Alert>
       )}
       {isAddMode && (
@@ -89,7 +192,10 @@ export const AccessListMembers = ({
               <Textfield
                 id='party-search'
                 value={searchText}
-                onChange={(event) => setSearchText(event.target.value)}
+                onChange={(event) => {
+                  debounce(() => setDebouncedSearchText(event.target.value));
+                  setSearchText(event.target.value);
+                }}
               />
               <div className={classes.noSearchResults} aria-live='polite'>
                 {resultData?.parties?.length === 0 && (
@@ -115,22 +221,12 @@ export const AccessListMembers = ({
           <AccessListMembersTable
             isHeaderHidden
             listItems={resultData?.parties ?? []}
-            disableButtonFn={(disableItem: AccessListMember) =>
-              !!listItems.find((listItem) => disableItem.orgNr === listItem.orgNr)
-            }
-            buttonNode={
-              <>
-                {t('resourceadm.listadmin_add_to_list')}
-                <PlusCircleIcon className={classes.buttonIcon} />
-              </>
-            }
+            isLoading={isAddingNewListMember}
+            disabledItems={getMergedMembersData()}
+            invalidItems={invalidOrgnrs}
+            isAdd
             onButtonClick={handleAddMember}
           />
-          {(isLoadingParties || isLoadingSubParties) && (
-            <div className={classes.spinnerContainer}>
-              <StudioSpinner />
-            </div>
-          )}
           <AccessListMembersPaging resultData={resultData} setSearchUrl={setSearchUrl} />
         </>
       )}
@@ -141,6 +237,7 @@ export const AccessListMembers = ({
             icon={<PlusIcon />}
             iconPlacement='left'
             onClick={() => setIsAddMode(true)}
+            size='medium'
           >
             {t('resourceadm.listadmin_search_add_more')}
           </StudioButton>

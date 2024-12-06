@@ -19,9 +19,8 @@
 
 .wrapper {
   display: flex;
-  flex: 1;
+  flex: 3;
   height: 100%;
-  margin-top: 18px;
 }
 
 div[class*='bpmn-icon-task-generic'] {
@@ -50,4 +49,9 @@ div[class*='bpmn-icon-feedback-task'] {
 div[class*='bpmn-icon-signing-task'] {
   -webkit-mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
   mask: url('../../../img/SignTask.svg') var(--mask-icon-size);
+}
+
+div[class*='bpmn-icon-payment-task'] {
+  -webkit-mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
+  mask: url('../../../img/PaymentTask.svg') var(--mask-icon-size);
 }

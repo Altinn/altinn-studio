@@ -1,1 +1,1 @@
-export { DeployResourcePage } from './DeployResourcePage'
+export { DeployResourcePage } from './DeployResourcePage';

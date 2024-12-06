@@ -1,5 +1,6 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { BranchStatus } from 'app-shared/types/BranchStatus';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import type { BranchStatus } from 'app-shared/types/BranchStatus';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 

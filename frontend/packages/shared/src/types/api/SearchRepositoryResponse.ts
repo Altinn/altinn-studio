@@ -1,4 +1,4 @@
-import { Repository } from 'app-shared/types/Repository';
+import type { Repository } from 'app-shared/types/Repository';
 
 export interface SearchRepositoryResponse {
   data: Repository[];

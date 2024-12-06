@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -44,17 +45,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task UpdateSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, string jsonContent, bool saveOnly = false, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Updates a schema based on the relative path to the JSON Schema within the repository.
-        /// For a datamodels repository this will only update the file itself. For a app
-        /// repository this will update the generated files as well e.g. the C# class.
-        /// </summary>
-        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="relativeFilePath">Relative path to the file.</param>
-        /// <param name="jsonContent">The JSON contents of the file.</param>
-        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        Task<string> UpdateModelFilesFromJsonSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, string jsonContent, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Builds a JSON schema based on the uploaded XSD.
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
@@ -85,5 +75,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="relativeFilePath">Relative path to the file.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         Task DeleteSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Generates a model metadata from a JSON schema.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="relativeFilePath">Relative path to the file.</param>
+        /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+        /// <returns>Returns the model metadata</returns>
+        Task<ModelMetadata> GenerateModelMetadataFromJsonSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, CancellationToken cancellationToken = default);
     }
 }

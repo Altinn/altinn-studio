@@ -1,15 +1,22 @@
-import { FieldType, NodePosition, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
+import type { FieldType, NodePosition } from '@altinn/schema-model';
+import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { useSavableSchemaModel } from '../hooks/useSavableSchemaModel';
 
-export const useAddProperty = () => {
+type AddProperty = (
+  objectKind: ObjectKind,
+  fieldType?: FieldType,
+  parentPointer?: string,
+) => string | undefined;
+
+export const useAddProperty = (): AddProperty => {
   const savableModel = useSavableSchemaModel();
   const { t } = useTranslation();
 
-  const addProperty = (
+  const addProperty: AddProperty = (
     objectKind: ObjectKind,
     fieldType?: FieldType,
-    parentPointer: string = ROOT_POINTER
+    parentPointer: string = ROOT_POINTER,
   ): string | undefined => {
     const target: NodePosition = { parentPointer, index: -1 };
     const name = savableModel.generateUniqueChildName(parentPointer, 'name');
@@ -27,8 +34,8 @@ export const useAddProperty = () => {
     const reference = prompt(t('schema_editor.add_reference.prompt'));
     if (!reference) return undefined;
     if (savableModel.hasDefinition(reference)) {
-      const { pointer } = savableModel.addReference(name, reference, target);
-      return pointer;
+      const { schemaPointer } = savableModel.addReference(name, reference, target);
+      return schemaPointer;
     } else {
       alert(t('schema_editor.add_reference.type_does_not_exist', { reference }));
       return undefined;
@@ -36,14 +43,14 @@ export const useAddProperty = () => {
   };
 
   const addField = (name: string, target: NodePosition, fieldType?: FieldType): string => {
-    const { pointer } = savableModel.addField(name, fieldType, target);
-    return pointer;
+    const { schemaPointer } = savableModel.addField(name, fieldType, target);
+    return schemaPointer;
   };
 
   const addCombination = (name: string, target: NodePosition): string => {
-    const { pointer } = savableModel.addCombination(name, target);
-    return pointer;
+    const { schemaPointer } = savableModel.addCombination(name, target);
+    return schemaPointer;
   };
 
   return addProperty;
-}
+};

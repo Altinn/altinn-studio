@@ -1,12 +1,14 @@
-import React, { MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React from 'react';
 import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { UiSchemaNode } from '@altinn/schema-model';
+import { PlusIcon } from '@studio/icons';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
 import classes from './TypesInspector.module.css';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import { TypeItem } from './TypeItem';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
+import { NoItemSelectedMessage } from '../NoItemSelectedMessage';
 
 export interface TypesInspectorProps {
   schemaItems: UiSchemaNode[];
@@ -14,31 +16,30 @@ export interface TypesInspectorProps {
 
 export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
   const { t } = useTranslation();
-  const { schemaModel, save, selectedTypePointer, setSelectedTypePointer, setSelectedNodePointer } =
-    useSchemaEditorAppContext();
+  const {
+    schemaModel,
+    save,
+    selectedTypePointer,
+    setSelectedTypePointer,
+    setSelectedUniquePointer,
+  } = useSchemaEditorAppContext();
 
-  const setSelectedType = (pointer: string) => {
-    setSelectedTypePointer(pointer);
-    setSelectedNodePointer(pointer);
+  const setSelectedType = (schemaPointer: string) => {
+    setSelectedTypePointer(schemaPointer);
+    const uniquePointer = SchemaModel.getUniquePointer(schemaPointer);
+    setSelectedUniquePointer(uniquePointer);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
     const name = schemaModel.generateUniqueDefinitionName('name');
     const newNode = schemaModel.addFieldType(name);
-    setSelectedType(newNode.pointer);
+    setSelectedType(newNode.schemaPointer);
     save(schemaModel);
   };
 
   if (!schemaItems) {
-    return (
-      <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {t('schema_editor.no_item_selected')}
-        </p>
-        <Divider />
-      </div>
-    );
+    return <NoItemSelectedMessage />;
   }
 
   return (
@@ -51,15 +52,15 @@ export const TypesInspector = ({ schemaItems }: TypesInspectorProps) => {
             variant='tertiary'
             icon={<PlusIcon height={40} />}
             onClick={handleAddDefinition}
-            size='small'
+            title={t('schema_editor.add_type')}
           />
         </div>
 
         {schemaItems.map((item) => (
           <TypeItem
             uiSchemaNode={item}
-            key={item.pointer}
-            selected={item.pointer === selectedTypePointer}
+            key={item.schemaPointer}
+            selected={item.schemaPointer === selectedTypePointer}
             setSelectedTypePointer={setSelectedType}
           />
         ))}

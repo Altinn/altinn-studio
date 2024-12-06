@@ -1,9 +1,4 @@
 using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Json;

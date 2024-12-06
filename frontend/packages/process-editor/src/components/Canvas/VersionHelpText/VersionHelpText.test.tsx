@@ -1,6 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { BpmnContextProvider } from '../../../contexts/BpmnContext';
 import { VersionHelpText } from './VersionHelpText';
 

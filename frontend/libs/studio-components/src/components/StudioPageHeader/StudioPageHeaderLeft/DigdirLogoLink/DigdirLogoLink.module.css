@@ -1,0 +1,15 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--fds-spacing-1);
+  overflow: hidden;
+  padding: var(--fds-spacing-2);
+  flex: 1;
+}
+
+.titleText {
+  color: var(--fds-semantic-background-default);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

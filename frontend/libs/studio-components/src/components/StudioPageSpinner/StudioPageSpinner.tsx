@@ -1,16 +1,23 @@
-import React, { HTMLAttributes, forwardRef } from 'react';
+import type { HTMLAttributes } from 'react';
+import React, { forwardRef } from 'react';
 import classes from './StudioPageSpinner.module.css';
 import { StudioCenter, StudioSpinner } from '@studio/components';
 
 export type StudioPageSpinnerProps = {
-  spinnerText?: string;
+  spinnerTitle: string;
+  showSpinnerTitle?: boolean;
 } & HTMLAttributes<HTMLDivElement>;
 
 export const StudioPageSpinner = forwardRef<HTMLDivElement, StudioPageSpinnerProps>(
-  ({ spinnerText }, ref): JSX.Element => {
+  ({ spinnerTitle, showSpinnerTitle = false }, ref): JSX.Element => {
     return (
       <StudioCenter ref={ref} className={classes.container}>
-        <StudioSpinner spinnerText={spinnerText} size='xlarge' className={classes.spinnerText} />
+        <StudioSpinner
+          spinnerTitle={spinnerTitle}
+          showSpinnerTitle={showSpinnerTitle}
+          size='xlarge'
+          className={classes.spinnerText}
+        />
       </StudioCenter>
     );
   },

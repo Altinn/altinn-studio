@@ -1,6 +1,3 @@
-using System.Xml.Schema;
-using Json.Schema;
-
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 {
     /// <summary>

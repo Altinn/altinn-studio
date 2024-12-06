@@ -3,7 +3,7 @@
   flex-direction: row;
   gap: 1rem;
   align-items: flex-end;
-  margin-top: 2.5rem;
+  margin-top: var(--fds-spacing-8);
 }
 
 .noSearchResults {
@@ -12,13 +12,11 @@
 }
 
 .spinnerContainer {
-  height: 250px; /* height of 5 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
+  height: 500px; /* height of 10 grid rows (must be equal to height of grid to avoid scroll jumping when changing pagination page) */
 }
 
 .addMoreWrapper {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: flex-end;
+  margin-top: var(--fds-spacing-8);
 }
 
 .paginationWrapper {
@@ -38,6 +36,12 @@
 
 .membersTable {
   width: 100%;
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.orgNrCell {
+  padding-top: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-4);
 }
 
 .smallColumn {
@@ -50,4 +54,15 @@
 
 .largeColumn {
   width: 45%;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }

@@ -1,4 +1,3 @@
-using System;
 using Altinn.Studio.Designer.Configuration.Marker;
 
 namespace Altinn.Studio.Designer.Configuration

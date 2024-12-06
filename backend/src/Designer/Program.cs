@@ -7,10 +7,14 @@ using Altinn.Common.AccessToken.Configuration;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Configuration.Extensions;
 using Altinn.Studio.Designer.Configuration.Marker;
+using Altinn.Studio.Designer.EventHandlers;
 using Altinn.Studio.Designer.Health;
 using Altinn.Studio.Designer.Hubs;
+using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure;
+using Altinn.Studio.Designer.Infrastructure.AnsattPorten;
 using Altinn.Studio.Designer.Infrastructure.Authorization;
+using Altinn.Studio.Designer.Middleware.UserRequestSynchronization;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.Tracing;
@@ -21,6 +25,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -30,30 +35,27 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Microsoft.Net.Http.Headers;
-using Microsoft.OpenApi.Models;
-using Yuniql.AspNetCore;
-using Yuniql.PostgreSql;
 
 ILogger logger;
 
-string applicationInsightsKey = string.Empty;
+string applicationInsightsConnectionString = string.Empty;
 
 ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
-
-await SetConfigurationProviders(builder.Configuration, builder.Environment);
-
-ConfigureLogging(builder.Logging);
-
-ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+{
+    await SetConfigurationProviders(builder.Configuration, builder.Environment);
+    ConfigureLogging(builder.Logging);
+    ConfigureServices(builder.Services, builder.Configuration, builder.Environment);
+}
 
 var app = builder.Build();
-
-Configure(builder.Configuration);
-
-app.Run();
+{
+    Configure(builder.Configuration);
+    app.Run();
+}
 
 void ConfigureSetupLogging()
 {
@@ -107,11 +109,11 @@ async Task SetConfigurationProviders(ConfigurationManager config, IWebHostEnviro
             keyVaultSettings.SecretUri, keyVaultClient, new DefaultKeyVaultSecretManager());
         try
         {
-            string secretId = "ApplicationInsights--InstrumentationKey";
+            string secretId = "ApplicationInsights--ConnectionString";
             SecretBundle secretBundle = await keyVaultClient.GetSecretAsync(
                 keyVaultSettings.SecretUri, secretId);
 
-            applicationInsightsKey = secretBundle.Value;
+            applicationInsightsConnectionString = secretBundle.Value;
         }
         catch (Exception vaultException)
         {
@@ -142,14 +144,18 @@ void ConfigureLogging(ILoggingBuilder builder)
     builder.ClearProviders();
 
     // Setup up application insight if ApplicationInsightsKey is available
-    if (!string.IsNullOrEmpty(applicationInsightsKey))
+    if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
         // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
         // Providing an instrumentation key here is required if you're using
         // standalone package Microsoft.Extensions.Logging.ApplicationInsights
         // or if you want to capture logs from early in the application startup
         // pipeline from Startup.cs or Program.cs itself.
-        builder.AddApplicationInsights(applicationInsightsKey);
+        builder.AddApplicationInsights(configureTelemetryConfiguration: config =>
+        {
+            config.ConnectionString = applicationInsightsConnectionString;
+        },
+        configureApplicationInsightsLoggerOptions: _ => { });
 
         // Optional: Apply filters to control what logs are sent to Application Insights.
         // The following configures LogLevel Information or above to be sent to
@@ -184,7 +190,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.Configure<MaskinportenClientSettings>(configuration.GetSection("MaskinportenClientSettings"));
     var maskinPortenClientName = "MaskinportenClient";
     services.RegisterMaskinportenClientDefinition<MaskinPortenClientDefinition>(maskinPortenClientName, configuration.GetSection("MaskinportenClientSettings"));
-    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>().AddMaskinportenHttpMessageHandler<MaskinPortenClientDefinition>(maskinPortenClientName);
+    services.AddHttpClient<IResourceRegistry, ResourceRegistryService>();
 
     var maskinportenSettings = new MaskinportenClientSettings();
     configuration.GetSection("MaskinportenClientSettings").Bind(maskinportenSettings);
@@ -197,7 +203,6 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.AddMemoryCache();
     services.AddResponseCompression();
     services.AddHealthChecks().AddCheck<HealthCheck>("designer_health_check");
-    services.AddSignalR();
 
     CreateDirectory(configuration);
 
@@ -206,14 +211,15 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureNonMarkedSettings(configuration);
 
     services.RegisterTypedHttpClients(configuration);
+    services.AddAnsattPortenAuthenticationAndAuthorization(configuration);
     services.ConfigureAuthentication(configuration, env);
 
     services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
     // Add application insight telemetry
-    if (!string.IsNullOrEmpty(applicationInsightsKey))
+    if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
-        services.AddApplicationInsightsTelemetry(applicationInsightsKey);
+        services.AddApplicationInsightsTelemetry(options => { options.ConnectionString = applicationInsightsConnectionString; });
         services.ConfigureTelemetryModule<EventCounterCollectionModule>(
             (module, o) =>
             {
@@ -234,21 +240,41 @@ void ConfigureServices(IServiceCollection services, IConfiguration configuration
     services.ConfigureLocalization();
     services.AddPolicyBasedAuthorization();
 
-    services.AddSwaggerGen(c =>
-    {
-        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Designer API", Version = "v1" });
-        try
-        {
-            c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-        }
-        catch
-        {
-            // Catch swashbuckle exception if it doesn't find the generated XML documentation file
-        }
-    });
+    services.AddOpenApi("v1");
 
     // Auto register all settings classes
     services.RegisterSettingsByBaseType<ISettingsMarker>(configuration);
+
+    // Registers all handlers and the mediator
+    services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    services.AddTransient<IFileSyncHandlerExecutor, FileSyncHandlerExecutor>();
+    services.AddFeatureManagement();
+    services.RegisterSynchronizationServices(configuration);
+
+    var signalRBuilder = services.AddSignalR();
+    var redisSettings = configuration.GetSection(nameof(RedisCacheSettings)).Get<RedisCacheSettings>();
+    if (redisSettings.UseRedisCache)
+    {
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisSettings.ConnectionString;
+            options.InstanceName = redisSettings.InstanceName;
+        });
+        signalRBuilder.AddStackExchangeRedis(redisSettings.ConnectionString);
+    }
+
+    if (!env.IsDevelopment())
+    {
+        // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+    }
+
     logger.LogInformation("// Program.cs // ConfigureServices // Configuration complete");
 }
 
@@ -264,28 +290,7 @@ void Configure(IConfiguration configuration)
         app.UseExceptionHandler("/error");
     }
 
-    if (configuration.GetValue<bool>("PostgreSQLSettings:EnableDBConnection"))
-    {
-        ConsoleTraceService traceService = new() { IsDebugEnabled = true };
-
-        string connectionString = string.Format(
-            configuration.GetValue<string>("PostgreSQLSettings:AdminConnectionString"),
-            configuration.GetValue<string>("PostgreSQLSettings:DesignerDbAdminPwd"));
-        app.UseYuniql(
-            new PostgreSqlDataService(traceService),
-            new PostgreSqlBulkImportService(traceService),
-            traceService,
-            new Yuniql.AspNetCore.Configuration
-            {
-                Workspace = Path.Combine(Environment.CurrentDirectory, configuration.GetValue<string>("PostgreSQLSettings:WorkspacePath")),
-                ConnectionString = connectionString,
-                IsAutoCreateDatabase = false,
-                IsDebug = true
-            });
-    }
-
     app.UseDefaultFiles();
-    app.UseStaticFiles();
     app.UseStaticFiles(new StaticFileOptions
     {
         OnPrepareResponse = context =>
@@ -296,22 +301,14 @@ void Configure(IConfiguration configuration)
                 Public = true,
                 MaxAge = TimeSpan.FromMinutes(60),
             };
-        },
+        }
     });
 
-    const string swaggerRoutePrefix = "designer/swagger";
-    app.UseSwagger(c =>
-    {
-        c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
-    });
-    app.UseSwaggerUI(c =>
-    {
-        c.RoutePrefix = swaggerRoutePrefix;
-        c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
-    });
+    app.MapOpenApi("/designer/openapi/{documentName}/openapi.json");
 
     if (!app.Environment.IsDevelopment())
     {
+        app.UseForwardedHeaders();
         app.UseHsts();
         app.UseHttpsRedirection();
     }
@@ -326,6 +323,9 @@ void Configure(IConfiguration configuration)
 
     app.MapHealthChecks("/health");
     app.MapHub<PreviewHub>("/previewHub");
+    app.MapHub<SyncHub>("/sync-hub");
+
+    app.UseMiddleware<RequestSynchronizationMiddleware>();
 
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }

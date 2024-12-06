@@ -1,6 +1,6 @@
 import type { BaseSyntheticEvent, ChangeEvent } from 'react';
 import React from 'react';
-import { Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
 import { makeDomFriendlyID } from '../../../../utils/ui-schema-utils';
 
 export interface IRestrictionFieldProps {
@@ -39,6 +39,7 @@ export const RestrictionField = ({
         onChange={handleChange}
         readOnly={readOnly}
         value={value ?? ''}
+        size='sm'
       />
     </div>
   );

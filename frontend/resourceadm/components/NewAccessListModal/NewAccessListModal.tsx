@@ -1,15 +1,19 @@
 import React, { useState, forwardRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 import { useCreateAccessListMutation } from '../../hooks/mutations/useCreateAccessListMutation';
-import { Modal, Paragraph } from '@digdir/design-system-react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../../components/ResourceNameAndId';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioModal } from '@studio/components';
+import { getEnvLabel } from '../../utils/resourceUtils';
+import type { EnvId } from '../../utils/resourceUtils';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
 
 export interface NewAccessListModalProps {
   org: string;
-  env: string;
+  env: EnvId;
   navigateUrl: string;
   onClose: () => void;
 }
@@ -23,9 +27,10 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
     const [name, setName] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string>('');
 
-    const { mutate: createAccessList } = useCreateAccessListMutation(org, env);
+    const { mutate: createAccessList, isPending: isCreatingAccessList } =
+      useCreateAccessListMutation(org, env);
 
-    const isSaveButtonDisabled = !id.trim().length || !name.trim().length;
+    const isSaveButtonDisabled = !id.trim().length || !name.trim().length || isCreatingAccessList;
 
     const handleCreateNewAccessList = (newId: string, newName: string) => {
       setErrorMessage('');
@@ -38,51 +43,67 @@ export const NewAccessListModal = forwardRef<HTMLDialogElement, NewAccessListMod
       };
 
       createAccessList(newAccessList, {
-        onSuccess: () => navigate(`${navigateUrl}${newId}`),
-        onError: (error: any) => {
-          if (error.response.status === ServerCodes.Conflict) {
+        onSuccess: () => {
+          toast.success(t('resourceadm.listadmin_create_list_success', { listname: newName }));
+          navigate(`${navigateUrl}${newId}`);
+        },
+        onError: (error: ResourceError) => {
+          if (
+            error.response?.status === ServerCodes.Conflict ||
+            error.response?.status === ServerCodes.PreconditionFailed
+          ) {
             setErrorMessage(t('resourceadm.listadmin_identifier_conflict'));
           }
         },
       });
     };
 
+    const onCloseModal = (): void => {
+      setId('');
+      setName('');
+      setErrorMessage('');
+      onClose();
+    };
+
     return (
-      <Modal ref={ref} onClose={onClose}>
-        <Modal.Header>
-          {t('resourceadm.listadmin_create_list_header', { env: env.toUpperCase() })}
-        </Modal.Header>
-        <Modal.Content>
-          <div>
-            <Paragraph size='small'>{t('resourceadm.listadmin_create_list_description')}</Paragraph>
-            <ResourceNameAndId
-              idLabel={t('resourceadm.listadmin_list_id')}
-              titleLabel={t('resourceadm.listadmin_list_name')}
-              id={id}
-              title={name}
-              onIdChange={(newId: string) => setId(newId)}
-              onTitleChange={(newTitle: string) => setName(newTitle)}
-              conflictErrorMessage={errorMessage}
-            />
-          </div>
-        </Modal.Content>
-        <Modal.Footer>
-          <StudioButton
-            size='small'
-            aria-disabled={isSaveButtonDisabled}
-            onClick={() => {
-              if (!isSaveButtonDisabled) {
-                handleCreateNewAccessList(id, name);
-              }
-            }}
-          >
-            {t('resourceadm.listadmin_confirm_create_list')}
-          </StudioButton>
-          <StudioButton size='small' variant='tertiary' onClick={onClose}>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={ref}
+          heading={t('resourceadm.listadmin_create_list_header', {
+            env: t(getEnvLabel(env)),
+          })}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          onClose={onCloseModal}
+          footer={
+            <>
+              <StudioButton
+                aria-disabled={isSaveButtonDisabled}
+                onClick={() => {
+                  if (!isSaveButtonDisabled) {
+                    handleCreateNewAccessList(id, name);
+                  }
+                }}
+              >
+                {t('resourceadm.listadmin_confirm_create_list')}
+              </StudioButton>
+              <StudioButton variant='tertiary' onClick={onCloseModal}>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
+          <Paragraph size='small'>{t('resourceadm.listadmin_create_list_description')}</Paragraph>
+          <ResourceNameAndId
+            idLabel={t('resourceadm.listadmin_list_id')}
+            titleLabel={t('resourceadm.listadmin_list_name')}
+            id={id}
+            title={name}
+            onIdChange={(newId: string) => setId(newId)}
+            onTitleChange={(newTitle: string) => setName(newTitle)}
+            conflictErrorMessage={errorMessage}
+          />
+        </StudioModal.Dialog>
+      </StudioModal.Root>
     );
   },
 );

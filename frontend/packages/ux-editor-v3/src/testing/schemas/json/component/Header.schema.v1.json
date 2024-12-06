@@ -1,0 +1,61 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Header.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Header component",
+  "description": "Schema that describes the layout configuration for a header component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Header"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "size": {
+      "title": "Header size",
+      "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
+      "type": "string",
+      "enum": ["L", "M", "S", "h2", "h3", "h4"]
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "textResourceBindings", "size"]
+}

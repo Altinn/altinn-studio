@@ -1,12 +1,14 @@
 import React, { useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent, { UserEvent } from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import type { UserEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { NewAccessListModal, NewAccessListModalProps } from './NewAccessListModal';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { NewAccessListModalProps } from './NewAccessListModal';
+import { NewAccessListModal } from './NewAccessListModal';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
@@ -42,7 +44,7 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user);
 
     const closeButton = screen.getByText(textMock('general.cancel'));
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(closeModalMock).toHaveBeenCalled();
   });
@@ -52,10 +54,10 @@ describe('NewAccessListModal', () => {
     await renderAndOpenModal(user);
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, 'nytt navn'));
+    await user.type(nameField, 'nytt navn');
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     await waitFor(() => {
       expect(mockedNavigate).toHaveBeenCalledWith('/accesslists/tt02/nytt-navn');
@@ -71,10 +73,31 @@ describe('NewAccessListModal', () => {
     });
 
     const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
-    await act(() => user.type(nameField, 'nytt navn'));
+    await user.type(nameField, 'nytt navn');
 
     const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
-    await act(() => user.click(createButton));
+    await user.click(createButton);
+
+    expect(
+      await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show error message when access list request returns http status code 412', async () => {
+    const user = userEvent.setup();
+    await renderAndOpenModal(user, {
+      createAccessList: jest
+        .fn()
+        .mockImplementation(() =>
+          Promise.reject({ response: { status: ServerCodes.PreconditionFailed } }),
+        ),
+    });
+
+    const nameField = screen.getByLabelText(textMock('resourceadm.listadmin_list_name'));
+    await user.type(nameField, 'nytt navn');
+
+    const createButton = screen.getByText(textMock('resourceadm.listadmin_confirm_create_list'));
+    await user.click(createButton);
 
     expect(
       await screen.findByText(textMock('resourceadm.listadmin_identifier_conflict')),
@@ -104,7 +127,7 @@ const renderAndOpenModal = async (
   renderNewAccessListModal(queryMocks);
 
   const openModalButton = screen.getByRole('button', { name: mockButtonText });
-  await act(() => user.click(openModalButton));
+  await user.click(openModalButton);
 };
 
 const TestComponentWithButton = () => {

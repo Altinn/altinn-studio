@@ -1,5 +1,6 @@
-import React, { ReactNode } from 'react';
-import { Label, Paragraph } from '@digdir/design-system-react';
+import type { ReactNode } from 'react';
+import React from 'react';
+import { Label, Paragraph } from '@digdir/designsystemet-react';
 
 interface FieldWrapperProps {
   label: string;
@@ -22,7 +23,7 @@ export const FieldWrapper = ({
         {label}
       </Label>
       {description && (
-        <Paragraph id={ariaDescriptionId} short size='small'>
+        <Paragraph id={ariaDescriptionId} variant='short' size='small'>
           {description}
         </Paragraph>
       )}

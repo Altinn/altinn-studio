@@ -1,9 +1,9 @@
 import React from 'react';
 import { LangSelector } from './LangSelector';
 import type { ILangSelectorProps } from './LangSelector';
-import { act, render as rtlRender, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
@@ -26,17 +26,16 @@ it('fires onAddLang when add button is clicked', async () => {
     ],
   });
 
-  const addBtn = screen.getByRole('button', {
+  const addBtn = screen.getByRole<HTMLButtonElement>('button', {
     name: textMock('general.add'),
   });
   expect(addBtn).toBeDisabled();
   const select = screen.getByRole('combobox');
 
-  await act(() => user.type(select, 'nordsamisk'));
-  await act(() => user.click(screen.getByText('nordsamisk')));
+  await user.selectOptions(select, 'nordsamisk');
 
   expect(addBtn).not.toBeDisabled();
-  await act(() => user.click(addBtn));
+  await user.click(addBtn);
 
   expect(handleAddLang).toHaveBeenCalledWith('se');
 });

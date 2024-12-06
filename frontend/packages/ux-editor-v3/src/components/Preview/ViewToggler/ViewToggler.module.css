@@ -1,0 +1,11 @@
+.root {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 2rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--fds-semantic-border-divider-default);
+}
+
+.toggler {
+  width: max-content;
+}

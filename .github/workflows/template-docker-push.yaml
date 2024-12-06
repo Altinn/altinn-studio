@@ -1,0 +1,86 @@
+name: Docker build and push
+
+on:
+  workflow_call:
+    inputs:
+      tags:
+        required: true
+        type: string
+      context:
+        required: false
+        type: string
+        default: '.'
+      dockerfile:
+        required: false
+        type: string
+        default: 'Dockerfile'
+      registry-name:
+        required: true
+        type: string
+      repository-name:
+        required: true
+        type: string
+      environment:
+        required: false
+        type: string
+        default: ''
+      checkout-repository:
+        required: false
+        type: string
+        default: ''
+
+    secrets:
+      client-id:
+        required: true
+      tenant-id:
+        required: true
+      subscription-id:
+        required: true
+      build-args:
+        required: false
+
+jobs:
+  docker-build-push:
+    name: Build and push docker image
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.checkout-repository }}
+
+      - name: 'Azure login'
+        uses: azure/login@v2
+        with:
+            client-id: ${{ secrets.client-id }}
+            tenant-id: ${{ secrets.tenant-id }}
+            subscription-id: ${{ secrets.subscription-id }}
+
+      - name: Log in to Container registry
+        run: |
+          az acr login --name ${{ inputs.registry-name }} \
+          --expose-token --output tsv \
+          --query accessToken \
+          --subscription ${{ secrets.subscription-id }} \
+          --only-show-errors |  docker login ${{ inputs.registry-name }} \
+                                --username 00000000-0000-0000-0000-000000000000 \
+                                --password-stdin
+
+      - name: Docker build
+        run: |
+          arguments=""
+          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
+            arguments+=" -t ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag"
+          done
+
+          for buildarg in $(echo ${{ secrets.build-args }} | tr ',' '\n'); do
+            arguments+=" --build-arg $buildarg"
+          done
+
+          docker build ${{ inputs.context }} -f ${{ inputs.dockerfile }} $arguments
+
+      - name: Docker push
+        run: |
+          for tag in $(echo ${{ inputs.tags }} | tr ',' '\n'); do
+            docker push ${{ inputs.registry-name }}/${{ inputs.repository-name }}:$tag
+          done

@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
@@ -11,7 +10,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class GetXsdDatamodelsTests : DisagnerEndpointsTestsBase<GetXsdDatamodelsTests>, IClassFixture<WebApplicationFactory<Program>>
+public class GetXsdDatamodelsTests : DesignerEndpointsTestsBase<GetXsdDatamodelsTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public GetXsdDatamodelsTests(WebApplicationFactory<Program> factory) : base(factory)

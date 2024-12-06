@@ -1,8 +1,8 @@
 import type { DropTargetMonitor } from 'react-dnd';
 import type { DndItem, ExistingDndItem, ItemPosition } from 'app-shared/types/dndTypes';
 import { DragCursorPosition } from 'app-shared/types/dndTypes';
-import { RefObject } from 'react';
-import { areObjectsEqual } from 'app-shared/utils/objectUtils';
+import type { RefObject } from 'react';
+import { ObjectUtils } from '@studio/pure-functions';
 
 /**
  * Calculates the position of the dragged item relative to the drop target.
@@ -23,11 +23,11 @@ export const getDragCursorPosition = <T>(
   dragItem: DndItem<T>,
   dropItem: ExistingDndItem,
   dropRef: RefObject<HTMLDivElement>,
-  disabledDrop?: boolean
+  disabledDrop?: boolean,
 ): DragCursorPosition => {
   if (!monitor) return DragCursorPosition.Idle;
 
-  if (dragItem.isNew === false && areObjectsEqual(dragItem.position, dropItem.position))
+  if (dragItem.isNew === false && ObjectUtils.areObjectsEqual(dragItem.position, dropItem.position))
     return DragCursorPosition.Self;
 
   const clientOffset = monitor.getClientOffset();
@@ -60,14 +60,14 @@ export const getDragCursorPosition = <T>(
 export const calculateNewPosition = <T>(
   dragItem: DndItem<T>,
   dropItem: ExistingDndItem,
-  dragCursorPosition: DragCursorPosition
+  dragCursorPosition: DragCursorPosition,
 ): ItemPosition | undefined => {
   const {
     position: { index: dropItemIndex, parentId: dropItemParent },
   } = dropItem;
   if (
     [DragCursorPosition.Self, DragCursorPosition.Outside, DragCursorPosition.Idle].includes(
-      dragCursorPosition
+      dragCursorPosition,
     )
   )
     return undefined;
@@ -92,7 +92,7 @@ export const calculateNewPosition = <T>(
  */
 const isFirstItemRightAboveSecondItem = (
   firstItem: ExistingDndItem,
-  secondItem: ExistingDndItem
+  secondItem: ExistingDndItem,
 ): boolean => {
   const {
     position: { index: firstItemIndex, parentId: firstItemParent },

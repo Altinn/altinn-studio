@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-loadbalancer
+  labels:
+    release: altinn-loadbalancer
+spec:
+  selector:
+    matchLabels:
+      run: altinn-loadbalancer
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        run: altinn-loadbalancer
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.image.containerPorts.http }}
+            - containerPort: {{ .Values.image.containerPorts.https }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range $mount := .Values.volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+          {{- end }}
+          {{- end }}
+        {{- if .Values.sidecar.enabled }}
+        - name: {{ .Values.sidecar.name }}
+          image: "{{ .Values.sidecar.image}}"
+          {{- if .Values.sidecar.args }}
+          args:
+          {{- range $arg := .Values.sidecar.args }}
+            - {{ $arg }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.sidecar.ports }}
+          ports:
+          {{- range $port := .Values.sidecar.ports }}
+            - containerPort: {{ $port.containerPort }}
+              name: {{ $port.name }}
+              protocol: {{ $port.protocol }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.sidecar.volumeMounts }}
+          volumeMounts:
+          {{- range $mount := .Values.sidecar.volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+          {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- if .Values.volumes }}
+      volumes:
+        {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+          {{- if $volume.configMap }}
+          configMap:
+            name: {{ $volume.configMap.name }}
+          {{- end }}
+          {{- if $volume.secret }}
+          secret:
+            secretName: {{ $volume.secret.secretName }}
+          {{- end }}
+        {{- end }}
+      {{- end }}

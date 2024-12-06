@@ -20,7 +20,7 @@ export const resourceSectorsMockOptions = [
   { value: 'Sector 6', label: 'Sector 6' },
   { value: 'Sector 7', label: 'Sector 7' },
   { value: 'Sector 8', label: 'Sector 8' },
-]
+];
 
 // THEMATIC AREA
 export const resourceThematicAreaMockOptions = [
@@ -32,5 +32,4 @@ export const resourceThematicAreaMockOptions = [
   { value: 'Thematic Area 6', label: 'Thematic Area 6' },
   { value: 'Thematic Area 7', label: 'Thematic Area 7' },
   { value: 'Thematic Area 8', label: 'Thematic Area 8' },
-]
-
+];

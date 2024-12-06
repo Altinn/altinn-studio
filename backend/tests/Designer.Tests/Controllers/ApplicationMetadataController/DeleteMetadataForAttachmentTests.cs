@@ -4,7 +4,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
+using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class DeleteMetadataForAttachmentTests : DisagnerEndpointsTestsBase<DeleteMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class DeleteMetadataForAttachmentTests : DesignerEndpointsTestsBase<DeleteMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public DeleteMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)

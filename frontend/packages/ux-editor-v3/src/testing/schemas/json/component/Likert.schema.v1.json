@@ -1,0 +1,120 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Likert.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Likert component",
+  "description": "Schema that describes the layout configuration for a Likert component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Likert"
+    },
+    "dataModelBindings": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicDataModelBindings"
+    },
+    "textResourceBindings": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/basicTextResources"
+    },
+    "required": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/required"
+    },
+    "readOnly": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/readOnly"
+    },
+    "options": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/options"
+    },
+    "optionsId": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/optionsId"
+    },
+    "preselectedOptionIndex": {
+      "type": "integer",
+      "title": "Preselected option index",
+      "description": "Sets a preselected index.",
+      "minimum": 0
+    },
+    "secure": {
+      "type": "boolean",
+      "title": "Secure Options",
+      "description": "Boolean value indicating if the options should be instance aware. Defaults to false. See more on docs: https://docs.altinn.studio/app/development/data/options/"
+    },
+    "source": {
+      "type": "object",
+      "title": "Source",
+      "description": "Object to define a data model source to be used as basis for options. Can not be used if options or optionId is set. See more on docs: https://docs.altinn.studio/app/development/data/options/",
+      "properties": {
+        "group": {
+          "type": "string",
+          "title": "Group",
+          "description": "The repeating group to base options on.",
+          "examples": ["model.some.group"]
+        },
+        "label": {
+          "type": "string",
+          "title": "Label",
+          "description": "Reference to a text resource to be used as the option label.",
+          "examples": ["some.text.key"]
+        },
+        "value": {
+          "type": "string",
+          "title": "Label",
+          "description": "Field in the group that should be used as value",
+          "examples": ["model.some.group[{0}].someField"]
+        },
+        "description": {
+          "type": "string",
+          "title": "Description",
+          "description": "A description of the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
+          "examples": ["some.text.key", "My Description"]
+        },
+        "helpText": {
+          "type": "string",
+          "title": "Help Text",
+          "description": "A help text for the option displayed in Radio- and Checkbox groups. Can be plain text or a text resource binding.",
+          "examples": ["some.text.key", "My Help Text"]
+        }
+      },
+      "required": ["group", "label", "value"]
+    },
+    "mapping": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/mapping",
+      "description": "Optionally used to map options"
+    },
+    "autocomplete": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/autocomplete"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type"],
+  "additionalProperties": false
+}

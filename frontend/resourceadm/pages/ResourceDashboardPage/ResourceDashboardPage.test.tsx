@@ -2,52 +2,52 @@ import React from 'react';
 import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourceDashboardPage } from './ResourceDashboardPage';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
-import { ResourceListItem } from 'app-shared/types/ResourceAdm';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { Organization } from 'app-shared/types/Organization';
+import type { Organization } from 'app-shared/types/Organization';
 import { organization } from 'app-shared/mocks/mocks';
 
 const mockResourceListItem1: ResourceListItem = {
   title: { nb: 'resource 1', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
-  hasPolicy: true,
+  lastChanged: new Date('2023-08-30'),
   identifier: 'r1',
+  environments: ['gitea'],
 };
 const mockResourceListItem2: ResourceListItem = {
   title: { nb: 'resource 2', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
-  hasPolicy: true,
+  lastChanged: new Date('2023-08-30'),
   identifier: 'r2',
+  environments: ['gitea'],
 };
 const mockResourceListItem3: ResourceListItem = {
   title: { nb: 'resource 3', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
-  hasPolicy: false,
+  lastChanged: new Date('2023-08-30'),
   identifier: 'r3',
+  environments: ['gitea'],
 };
 const mockResourceListItem4: ResourceListItem = {
   title: { nb: 'resource 4', nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
-  hasPolicy: true,
+  lastChanged: new Date('2023-08-30'),
   identifier: 'r4',
+  environments: ['gitea'],
 };
+const mockResourceListItem5Title = 'resource 5';
 const mockResourceListItem5: ResourceListItem = {
-  title: { nb: 'resource 5', nn: '', en: '' },
+  title: { nb: mockResourceListItem5Title, nn: '', en: '' },
   createdBy: 'John Doe',
-  lastChanged: '2023-08-30',
-  hasPolicy: false,
+  lastChanged: new Date('2023-08-30'),
   identifier: 'r5',
+  environments: ['tt02'],
 };
 const mockResourceList: ResourceListItem[] = [
   mockResourceListItem1,
@@ -57,10 +57,12 @@ const mockResourceList: ResourceListItem[] = [
   mockResourceListItem5,
 ];
 
+const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
+  useNavigate: () => mockedNavigate,
   useParams: () => ({
-    selectedContext: 'ttd',
+    org: 'ttd',
   }),
 }));
 
@@ -134,22 +136,16 @@ describe('ResourceDashBoardPage', () => {
       screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
     );
 
-    const modalTitle = screen.queryByRole('heading', {
-      name: textMock('resourceadm.dashboard_import_modal_title'),
-      level: 1,
-    });
+    const modalTitle = screen.queryByText(textMock('resourceadm.dashboard_import_modal_title'));
     expect(modalTitle).not.toBeInTheDocument();
 
     const importButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_import_resource'),
     });
-    await act(() => user.click(importButton));
+    await user.click(importButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.dashboard_import_modal_title'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.dashboard_import_modal_title')),
     ).toBeInTheDocument();
   });
 
@@ -172,7 +168,7 @@ describe('ResourceDashBoardPage', () => {
     const createButton = screen.getByRole('button', {
       name: textMock('resourceadm.dashboard_create_resource'),
     });
-    await act(() => user.click(createButton));
+    await user.click(createButton);
 
     expect(
       screen.getByRole('heading', {
@@ -196,7 +192,7 @@ describe('ResourceDashBoardPage', () => {
     expect(resourceRowsBeforeFilter.length).toEqual(mockResourceList.length + 1); // Adding the <th />
 
     const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
-    await act(() => user.type(searchInput, mockResourceListItem1.title.nb));
+    await user.type(searchInput, mockResourceListItem1.title.nb);
 
     const resourceRowsAfterFilter = screen.getAllByRole('row'); // Also selects the <th />
     expect(resourceRowsAfterFilter.length).toBe(2); // The one data row + 1 <th />
@@ -212,7 +208,7 @@ describe('ResourceDashBoardPage', () => {
     );
 
     expect(
-      screen.queryByText(textMock('resourceadm.dashboard_no_resources_result')),
+      screen.queryByText(textMock('dashboard.resource_table_no_resources_result')),
     ).not.toBeInTheDocument();
   });
 
@@ -230,24 +226,100 @@ describe('ResourceDashBoardPage', () => {
     expect(resourceRowsBeforeFilter.length).toEqual(mockResourceList.length + 1); // Adding the <th />
 
     const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
-    await act(() => user.type(searchInput, 'text not in the list'));
+    await user.type(searchInput, 'text not in the list');
 
     const resourceRowsAfterFilter = screen.getAllByRole('row'); // Also selects the <th />
     expect(resourceRowsAfterFilter.length).toBe(1); // Only the <th />
 
     expect(
-      screen.getByText(textMock('resourceadm.dashboard_no_resources_result')),
+      screen.getByText(textMock('dashboard.resource_table_no_resources_result')),
     ).toBeInTheDocument();
   });
 
-  it('should show access list button when feature is enabled', () => {
-    addFeatureFlagToLocalStorage('resourceAccessLists');
+  it('should close select test environment modal when clicking cancel button', async () => {
+    const user = userEvent.setup();
+    const listItem = {
+      ...mockResourceListItem5,
+      environments: ['at22', 'tt02'],
+    };
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
+    renderResourceDashboardPage({ getResourceList });
 
-    renderResourceDashboardPage();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const importButton = screen.getByText(
+      textMock('dashboard.resource_table_row_import', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
+    await user.click(importButton);
+
+    const cancelButton = screen.getByRole('button', {
+      name: textMock('general.cancel'),
+    });
+    await user.click(cancelButton);
 
     expect(
-      screen.getByText(textMock('resourceadm.dashboard_change_organization_lists')),
-    ).toBeInTheDocument();
+      screen.queryByText(textMock('resourceadm.dashboard_import_environment_header')),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should import resource from chosen test environment', async () => {
+    const user = userEvent.setup();
+    const listItem = {
+      ...mockResourceListItem5,
+      environments: ['at22', 'tt02'],
+    };
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>([listItem]));
+    renderResourceDashboardPage({ getResourceList });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const importButton = screen.getByText(
+      textMock('dashboard.resource_table_row_import', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
+    await user.click(importButton);
+
+    const at22radio = screen.getByRole('radio', { name: textMock('resourceadm.deploy_at22_env') });
+    await user.click(at22radio);
+
+    const confirmImportButton = screen.getByRole('button', {
+      name: textMock('resourceadm.dashboard_import_environment_confirm'),
+    });
+    await user.click(confirmImportButton);
+
+    expect(mockedNavigate).toHaveBeenCalled();
+  });
+
+  it('should navigate to imported resource from only available test environment', async () => {
+    const user = userEvent.setup();
+    const getResourceList = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<ResourceListItem[]>(mockResourceList));
+    renderResourceDashboardPage({ getResourceList });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.dashboard_spinner')),
+    );
+
+    const importButton = screen.getByText(
+      textMock('dashboard.resource_table_row_import', {
+        resourceName: mockResourceListItem5Title,
+      }),
+    );
+    await user.click(importButton);
+
+    expect(mockedNavigate).toHaveBeenCalled();
   });
 });
 

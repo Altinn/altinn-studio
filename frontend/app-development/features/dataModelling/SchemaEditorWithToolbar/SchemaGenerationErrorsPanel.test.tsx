@@ -1,13 +1,11 @@
 import React from 'react';
-import { renderWithMockStore } from '../../../test/mocks';
-import {
-  SchemaGenerationErrorsPanel,
-  SchemaGenerationErrorsPanelProps,
-} from './SchemaGenerationErrorsPanel';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { act, screen } from '@testing-library/react';
+import { renderWithProviders } from '../../../test/mocks';
+import type { SchemaGenerationErrorsPanelProps } from './SchemaGenerationErrorsPanel';
+import { SchemaGenerationErrorsPanel } from './SchemaGenerationErrorsPanel';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 const schemaGenerationErrorMessages = ['custom error message', 'another custom error message'];
@@ -71,7 +69,7 @@ describe('SchemaGenerationErrorsPanel', () => {
     const mockOnCloseErrorsPanel = jest.fn();
     render({}, { ...defaultProps, onCloseErrorsPanel: mockOnCloseErrorsPanel });
     const closeErrorPanelButton = screen.getByRole('button', { name: textMock('general.close') });
-    await act(() => user.click(closeErrorPanelButton));
+    await user.click(closeErrorPanelButton);
     expect(mockOnCloseErrorsPanel).toHaveBeenCalledTimes(1);
   });
 });
@@ -79,4 +77,4 @@ describe('SchemaGenerationErrorsPanel', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   props: Partial<SchemaGenerationErrorsPanelProps> = {},
-) => renderWithMockStore({}, queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);
+) => renderWithProviders(queries)(<SchemaGenerationErrorsPanel {...defaultProps} {...props} />);

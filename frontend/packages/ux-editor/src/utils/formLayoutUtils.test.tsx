@@ -4,40 +4,54 @@ import {
   addItemOfType,
   addNavigationButtons,
   createEmptyLayout,
+  duplicatedIdsExistsInLayout,
   findParentId,
   getChildIds,
   getDepth,
+  getDuplicatedIds,
   getItem,
   hasMultiPageGroup,
   hasNavigationButtons,
   hasSubContainers,
+  isComponentTypeValidChild,
   isContainer,
+  isItemChildOfContainer,
   moveLayoutItem,
   removeComponent,
   removeComponentsByType,
   updateContainer,
   validateDepth,
+  findLayoutsContainingDuplicateComponents,
+  getAllDescendants,
+  getAllFormItemIds,
+  getAllLayoutComponents,
+  getAvailableChildComponentsForContainer,
+  getDefaultChildComponentsForContainer,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { IInternalLayout } from '../types/global';
+import type { IInternalLayout } from '../types/global';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { customDataPropertiesMock, customRootPropertiesMock } from '../testing/layoutMock';
 import type { FormComponent } from '../types/FormComponent';
-import { FormContainer } from '../types/FormContainer';
-import { deepCopy } from 'app-shared/pure';
+import type { FormContainer } from '../types/FormContainer';
+import type { ContainerComponentType } from '../types/ContainerComponent';
+import { ObjectUtils } from '@studio/pure-functions';
 import {
-  internalLayoutWithMultiPageGroup,
   component3_1_1Id,
   component3_1Id,
   component3_2Id,
   component3Id,
+  internalLayoutWithMultiPageGroup,
 } from '../testing/layoutWithMultiPageGroupMocks';
+import { containerComponentTypes } from '../data/containerComponentTypes';
+import { allComponents, defaultComponents, formItemConfigs } from '../data/formItemConfig';
 
 // Test data:
-const baseContainer: FormContainer = {
+const baseContainer: FormContainer<ComponentType.Group> = {
   id: BASE_CONTAINER_ID,
   index: 0,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const customProperty = 'some-custom-property';
 const headerId = '46882e2b-8097-4170-ad4c-32cdc156634e';
@@ -63,10 +77,11 @@ const paragraphComponent: FormComponent<ComponentType.Paragraph> = {
   customProperty,
 };
 const groupId = 'group-container';
-const groupContainer: FormContainer = {
+const groupContainer: FormContainer<ComponentType.Group> = {
   dataModelBindings: {},
   id: groupId,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const paragraphInGroupId = 'group-paragraph';
 const paragraphInGroupComponent: FormComponent<ComponentType.Paragraph> = {
@@ -79,10 +94,18 @@ const paragraphInGroupComponent: FormComponent<ComponentType.Paragraph> = {
   dataModelBindings: {},
 };
 const groupInGroupId = 'group-child-container';
-const groupInGroupContainer: FormContainer = {
+const groupInGroupContainer: FormContainer<ComponentType.Group> = {
   dataModelBindings: {},
   id: groupInGroupId,
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
+};
+const buttonGroupId = 'button-group-container';
+const buttonGroupContainer: FormContainer<ComponentType.ButtonGroup> = {
+  dataModelBindings: {},
+  id: buttonGroupId,
+  itemType: 'CONTAINER',
+  type: ComponentType.ButtonGroup,
 };
 const paragraphInGroupInGroupId = 'group-child-paragraph';
 const paragraphInGroupInGroupComponent: FormComponent<ComponentType.Paragraph> = {
@@ -105,11 +128,13 @@ const mockInternal: IInternalLayout = {
     [BASE_CONTAINER_ID]: baseContainer,
     [groupId]: groupContainer,
     [groupInGroupId]: groupInGroupContainer,
+    [buttonGroupId]: buttonGroupContainer,
   },
   order: {
     [BASE_CONTAINER_ID]: [headerId, paragraphId, groupId],
     [groupId]: [paragraphInGroupId, groupInGroupId],
     [groupInGroupId]: [paragraphInGroupInGroupId],
+    [buttonGroupId]: [],
   },
   customRootProperties: customRootPropertiesMock,
   customDataProperties: customDataPropertiesMock,
@@ -216,7 +241,11 @@ describe('formLayoutUtils', () => {
 
   describe('addContainer', () => {
     const id = 'testId';
-    const newContainer: FormContainer = { id, itemType: 'CONTAINER' };
+    const newContainer: FormContainer<ComponentType.Group> = {
+      id,
+      itemType: 'CONTAINER',
+      type: ComponentType.Group,
+    };
 
     it('Adds container to the end of the base container by default', () => {
       const layout = addContainer(mockInternal, newContainer, id);
@@ -265,7 +294,10 @@ describe('formLayoutUtils', () => {
   describe('updateContainer', () => {
     const containerId = groupId;
     const newContainerId = groupId + '-new';
-    const updatedContainer: FormContainer = { ...groupContainer, id: newContainerId };
+    const updatedContainer: FormContainer<ComponentType.Group> = {
+      ...groupContainer,
+      id: newContainerId,
+    };
 
     it('Updates container based on the given container id', () => {
       const layout = updateContainer(mockInternal, updatedContainer, containerId);
@@ -364,7 +396,7 @@ describe('formLayoutUtils', () => {
   });
 
   describe('addItemOfType', () => {
-    it.each(Object.values(ComponentType).filter((v) => v !== ComponentType.Group))(
+    it.each(Object.values(ComponentType).filter((v) => !containerComponentTypes.includes(v)))(
       'Adds a new component to the layout when the given type is %s',
       (componentType) => {
         const id = 'newItemId';
@@ -374,11 +406,15 @@ describe('formLayoutUtils', () => {
       },
     );
 
-    it('Adds a new container to the layout when the given type is Group', () => {
-      const id = 'newGroupId';
-      const layout = addItemOfType(mockInternal, ComponentType.Group, id);
-      expect(layout.containers[id].itemType).toEqual('CONTAINER');
-    });
+    it.each(containerComponentTypes)(
+      'Adds a new container to the layout when the given type is %s',
+      (componentType: ContainerComponentType) => {
+        const id = 'newItemId';
+        const layout = addItemOfType(mockInternal, componentType, id);
+        expect(layout.containers[id].itemType).toEqual('CONTAINER');
+        expect(layout.containers[id].type).toEqual(componentType);
+      },
+    );
   });
 
   describe('isContainer', () => {
@@ -415,14 +451,24 @@ describe('formLayoutUtils', () => {
 
     it('Returns 1 if there is a group', () => {
       const id = 'test';
-      const container: FormContainer = { id, itemType: 'CONTAINER', pageIndex: null };
+      const container: FormContainer<ComponentType.Group> = {
+        id,
+        itemType: 'CONTAINER',
+        pageIndex: null,
+        type: ComponentType.Group,
+      };
       const layout: IInternalLayout = addContainer(createEmptyLayout(), container, id);
       expect(getDepth(layout)).toBe(1);
     });
 
     it('Returns 1 if there is a group with components only', () => {
       const id = 'test';
-      const container: FormContainer = { id, itemType: 'CONTAINER', pageIndex: null };
+      const container: FormContainer<ComponentType.Group> = {
+        id,
+        itemType: 'CONTAINER',
+        pageIndex: null,
+        type: ComponentType.Group,
+      };
       const containerId = 'sometestgroup';
       const component: FormComponent = {
         itemType: 'COMPONENT',
@@ -440,10 +486,11 @@ describe('formLayoutUtils', () => {
     });
 
     it('Returns 3 if there is a group within a group within a group', () => {
-      let layout = deepCopy(mockInternal);
-      const container: FormContainer = {
+      let layout = ObjectUtils.deepCopy(mockInternal);
+      const container: FormContainer<ComponentType.Group> = {
         id: groupInGroupId,
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(getDepth(layout)).toBe(3);
@@ -456,13 +503,60 @@ describe('formLayoutUtils', () => {
     });
 
     it('Returns false if the depth is invalid', () => {
-      let layout = deepCopy(mockInternal);
-      const container: FormContainer = {
+      let layout = ObjectUtils.deepCopy(mockInternal);
+      const container: FormContainer<ComponentType.Group> = {
         id: groupInGroupId,
         itemType: 'CONTAINER',
+        type: ComponentType.Group,
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(validateDepth(layout)).toBe(false);
+    });
+  });
+
+  describe('isComponentTypeValidChild', () => {
+    it.each([
+      ComponentType.ActionButton,
+      ComponentType.Button,
+      ComponentType.CustomButton,
+      ComponentType.NavigationButtons,
+      ComponentType.PrintButton,
+      ComponentType.InstantiationButton,
+    ])('Returns true if the child is valid to given container', (buttonType: ComponentType) => {
+      expect(isComponentTypeValidChild(mockInternal, buttonGroupId, buttonType)).toBe(true);
+    });
+
+    it('Returns true if the component is not dropped inside a container', () => {
+      expect(
+        isComponentTypeValidChild(mockInternal, BASE_CONTAINER_ID, ComponentType.ButtonGroup),
+      ).toBe(true);
+    });
+
+    it('Returns false if the child is invalid for the given container', () => {
+      expect(isComponentTypeValidChild(mockInternal, buttonGroupId, ComponentType.Paragraph)).toBe(
+        false,
+      );
+    });
+  });
+
+  describe('isItemChildOfContainer', () => {
+    it('Returns true if the item is a child of the given container type', () => {
+      const result = isItemChildOfContainer(mockInternal, paragraphInGroupId, ComponentType.Group);
+      expect(result).toBe(true);
+    });
+
+    it('Returns true if the item is a child of any container when containerType is not specified', () => {
+      expect(isItemChildOfContainer(mockInternal, paragraphInGroupId)).toBe(true);
+    });
+
+    it('Returns false if the item is not a child of the given container type', () => {
+      expect(
+        isItemChildOfContainer(mockInternal, paragraphInGroupId, ComponentType.AccordionGroup),
+      ).toBe(false);
+    });
+
+    it('Returns false if the item is not a child of any container when containerType is not specified', () => {
+      expect(isItemChildOfContainer(mockInternal, paragraphId)).toBe(false);
     });
   });
 
@@ -473,6 +567,16 @@ describe('formLayoutUtils', () => {
 
     it('Returns an empty array when called with something that is not a container with children', () => {
       expect(getChildIds(mockInternal, headerId)).toEqual([]);
+    });
+  });
+
+  describe('getDescendants', () => {
+    it('Returns the ids of the descendants of the given container', () => {
+      expect(getAllDescendants(mockInternal, groupId)).toEqual([
+        paragraphInGroupId,
+        groupInGroupId,
+        paragraphInGroupInGroupId,
+      ]);
     });
   });
 
@@ -493,6 +597,170 @@ describe('formLayoutUtils', () => {
 
     it('Returns false if the layout does not contain a multi page group', () => {
       expect(hasMultiPageGroup(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('duplicatedIdsExistsInLayout', () => {
+    it('Returns true if the layout contains duplicated ids', () => {
+      const layout = {
+        ...mockInternal,
+        order: {
+          ...mockInternal.order,
+          [groupId]: [paragraphInGroupId, paragraphInGroupId],
+        },
+      };
+      expect(duplicatedIdsExistsInLayout(layout)).toBe(true);
+    });
+
+    it('Returns false if the layout does not contain duplicated ids', () => {
+      expect(duplicatedIdsExistsInLayout(mockInternal)).toBe(false);
+    });
+  });
+
+  describe('getDuplicatedIds', () => {
+    it('Returns the duplicated ids in the layout', () => {
+      const layout = {
+        ...mockInternal,
+        order: {
+          ...mockInternal.order,
+          [groupId]: [paragraphInGroupId, paragraphInGroupId, paragraphInGroupId],
+        },
+      };
+      const duplicatedIds = getDuplicatedIds(layout);
+      expect(duplicatedIds).toEqual([paragraphInGroupId]);
+    });
+  });
+
+  describe('duplicatedIdsExistInAllLayouts', () => {
+    it('Returns an empty array if no layouts contain duplicate components', () => {
+      const layouts: Record<string, IInternalLayout> = {
+        page1: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+        page2: {
+          order: { section1: ['component2'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+      };
+      const duplicatedLayouts = findLayoutsContainingDuplicateComponents(layouts);
+      expect(duplicatedLayouts).toEqual({ duplicateLayouts: [], duplicateComponents: [] });
+    });
+
+    it('Returns the pages and components that contain duplicate ids', () => {
+      const layouts: Record<string, IInternalLayout> = {
+        page1: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+        page2: {
+          order: { section1: ['component1'] },
+          components: {},
+          containers: {},
+          customRootProperties: {},
+          customDataProperties: {},
+        },
+      };
+      const duplicatedLayouts = findLayoutsContainingDuplicateComponents(layouts);
+      expect(duplicatedLayouts).toEqual({
+        duplicateLayouts: ['page2', 'page1'],
+        duplicateComponents: ['component1'],
+      });
+    });
+  });
+
+  describe('getAllFormItemIds', () => {
+    const layout = { ...mockInternal };
+    expect(getAllFormItemIds(layout)).toEqual([
+      headerId,
+      paragraphId,
+      groupId,
+      paragraphInGroupId,
+      groupInGroupId,
+      paragraphInGroupInGroupId,
+    ]);
+  });
+
+  describe('getAvailableChildComponentsForContainer', () => {
+    it('Returns all component categories for the base container', () => {
+      const layout = { ...mockInternal };
+      const result = getAvailableChildComponentsForContainer(layout, BASE_CONTAINER_ID);
+      expect(Object.keys(result)).toEqual(Object.keys(allComponents));
+    });
+
+    it('Returns only available child component categories for the button group container', () => {
+      const layout = { ...mockInternal };
+      const result = getAvailableChildComponentsForContainer(layout, buttonGroupId);
+      expect(Object.keys(result)).toEqual(['button']);
+    });
+  });
+
+  describe('getDefaultChildComponentsForContainer', () => {
+    it('Returns all default components for the base container', () => {
+      const layout = { ...mockInternal };
+      const result = getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID);
+      expect(result.length).toEqual(defaultComponents.length);
+      defaultComponents.forEach((componentType) => {
+        expect(result.find((c) => c.type === componentType)).toBeDefined();
+      });
+    });
+
+    it('Returns all default components for the ButtonGroup container', () => {
+      const layout = { ...mockInternal };
+      const result = getDefaultChildComponentsForContainer(layout, buttonGroupId);
+      const expectedComponents = formItemConfigs[ComponentType.ButtonGroup].validChildTypes;
+      expect(result.length).toEqual(expectedComponents.length);
+      expectedComponents.forEach((componentType) => {
+        expect(result.find((c) => c.type === componentType)).toBeDefined();
+      });
+    });
+
+    it('Returns all default components for the Group container', () => {
+      const layout = { ...mockInternal };
+      const result = getDefaultChildComponentsForContainer(layout, groupId);
+      expect(result.length).toEqual(defaultComponents.length);
+      defaultComponents.forEach((componentType) => {
+        expect(result.find((c) => c.type === componentType)).toBeDefined();
+      });
+    });
+
+    it.each([ComponentType.ButtonGroup, ComponentType.Group])(
+      'Returns all default components for the given container type',
+      (containerType) => {
+        const layout = { ...mockInternal };
+        const result = getDefaultChildComponentsForContainer(layout, BASE_CONTAINER_ID);
+        expect(result.length).toEqual(defaultComponents.length);
+        defaultComponents.forEach((componentType) => {
+          expect(result.find((c) => c.type === componentType)).toBeDefined();
+        });
+      },
+    );
+  });
+
+  describe('getAllLayoutComponents', () => {
+    it('Returns all components in the given layout, excluding types in the exclude list', () => {
+      const layout = { ...mockInternal };
+      expect(getAllLayoutComponents(layout, [ComponentType.Paragraph])).toEqual([
+        ...Object.values(mockInternal.containers),
+        mockInternal.components[headerId],
+      ]);
+    });
+
+    it('Returns all components in the given layout', () => {
+      const layout = { ...mockInternal };
+      expect(getAllLayoutComponents(layout)).toEqual([
+        ...Object.values(mockInternal.containers),
+        ...Object.values(mockInternal.components),
+      ]);
     });
   });
 });

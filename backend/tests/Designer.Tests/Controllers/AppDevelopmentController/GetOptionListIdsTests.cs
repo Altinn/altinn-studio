@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
 {
-    public class GetOptionListIdsTests : DisagnerEndpointsTestsBase<GetOptionListIdsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class GetOptionListIdsTests : DesignerEndpointsTestsBase<GetOptionListIdsTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/app-development";
         public GetOptionListIdsTests(WebApplicationFactory<Program> factory) : base(factory)
@@ -29,6 +29,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             {
                 { "other-options" },
                 { "test-options" },
+                { "options-with-null-fields" },
             };
 
             string url = $"{VersionPrefix(org, targetRepository)}/option-list-ids";
@@ -39,7 +40,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             string responseContent = await response.Content.ReadAsStringAsync();
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseContent);
-            responseList.Count.Should().Be(2);
+            responseList.Count.Should().Be(3);
             foreach (string id in expectedOptionsListIds)
             {
                 responseList.Should().Contain(id);

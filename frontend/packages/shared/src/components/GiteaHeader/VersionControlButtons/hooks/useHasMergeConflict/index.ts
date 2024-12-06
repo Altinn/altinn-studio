@@ -1,0 +1,1 @@
+export { useHasMergeConflict } from './useHasMergeConflict';

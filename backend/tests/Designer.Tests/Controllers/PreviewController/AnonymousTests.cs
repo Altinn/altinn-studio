@@ -17,7 +17,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Anonymous_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/v1/data/anonymous";
+            string dataPathWithData = $"{Org}/{AppV3}/api/v1/data/anonymous";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

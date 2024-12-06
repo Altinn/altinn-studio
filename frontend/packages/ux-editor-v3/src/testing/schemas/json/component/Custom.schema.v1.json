@@ -1,0 +1,79 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Custom.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Custom component",
+  "description": "Schema that describes the layout configuration for a Custom component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Custom"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "daataModelBindings": {
+      "type": "object",
+      "title": "Data model bindings",
+      "description": "Data model bindings for component",
+      "properties": {
+        "simpleBinding": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "required": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/required"
+    },
+    "readOnly": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/readOnly"
+    },
+    "tagName": {
+      "type": "string",
+      "title": "Tag name",
+      "description": "Web component tag name to use"
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "tagName"],
+  "additionalProperties": true
+}

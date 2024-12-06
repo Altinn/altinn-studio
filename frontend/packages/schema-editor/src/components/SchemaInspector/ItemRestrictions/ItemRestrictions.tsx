@@ -1,16 +1,24 @@
-import React, { ChangeEvent } from 'react';
-import { isField, isReference, pointerIsDefinition, UiSchemaNode } from '@altinn/schema-model';
-import { FieldType } from '@altinn/schema-model';
-import { setRequired, setRestriction, setRestrictions } from '@altinn/schema-model';
+import type { ChangeEvent } from 'react';
+import React from 'react';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import {
+  isField,
+  isReference,
+  pointerIsDefinition,
+  FieldType,
+  setRequired,
+  setRestriction,
+  setRestrictions,
+} from '@altinn/schema-model';
+
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { NumberRestrictions } from './NumberRestrictions';
 import { ObjectRestrictions } from './ObjectRestrictions';
 import { StringRestrictions } from './StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Switch } from '@digdir/design-system-react';
-import { Divider } from 'app-shared/primitives';
+import { Switch } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
 import { EnumList } from './EnumList';
 
@@ -28,13 +36,13 @@ export type ItemRestrictionsProps = {
 
 export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const { t } = useTranslation();
-  const { pointer, isRequired, isArray, restrictions } = schemaNode;
+  const { schemaPointer, isRequired, isArray, restrictions } = schemaNode;
   const { schemaModel, save } = useSchemaEditorAppContext();
 
   const handleRequiredChanged = (event: ChangeEvent<HTMLInputElement>) => {
     const { checked } = event.target;
     if (checked !== isRequired) {
-      save(setRequired(schemaModel, { path: pointer, required: checked }));
+      save(setRequired(schemaModel, { path: schemaPointer, required: checked }));
     }
   };
 
@@ -47,13 +55,13 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
   const restrictionProps: RestrictionItemProps = {
     restrictions: restrictions ?? {},
     readonly: isReference(schemaNode),
-    path: pointer ?? '',
+    path: schemaPointer ?? '',
     onChangeRestrictionValue,
     onChangeRestrictions,
   };
   return (
     <>
-      {!pointerIsDefinition(pointer) && (
+      {!pointerIsDefinition(schemaPointer) && (
         <Switch
           className={classes.switch}
           size='small'
@@ -73,10 +81,7 @@ export const ItemRestrictions = ({ schemaNode }: ItemRestrictionsProps) => {
       {isArray && <ArrayRestrictions {...restrictionProps} />}
       {isField(schemaNode) &&
         [FieldType.String, FieldType.Integer, FieldType.Number].includes(schemaNode.fieldType) && (
-          <>
-            <Divider marginless />
-            <EnumList schemaNode={schemaNode} />
-          </>
+          <EnumList schemaNode={schemaNode} />
         )}
     </>
   );

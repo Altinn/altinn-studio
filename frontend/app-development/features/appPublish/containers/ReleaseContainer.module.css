@@ -1,0 +1,61 @@
+:root {
+  --release-panel-padding: 1.2rem;
+}
+
+.appReleaseWrapper {
+  background: white;
+  border-bottom: 1px solid #bcc7cc;
+  border-left: 1px solid #bcc7cc;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  overflow-y: scroll;
+  width: 35%;
+  max-width: 500px;
+}
+
+.appReleaseCreateRelease {
+  padding: var(--release-panel-padding);
+  flex-grow: 1;
+}
+
+.appReleaseHistoryTitle {
+  font-size: 1.2rem;
+  font-weight: 500;
+  padding: var(--release-panel-padding);
+}
+
+.appCreateReleaseWrapper {
+  min-height: 400px;
+}
+
+.appCreateReleaseTitle {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  font-size: 1.2rem;
+  line-height: 2.2rem;
+}
+
+.appCreateReleaseStatusButton {
+  color: #1eaef7;
+}
+
+.versionHeader {
+  border-bottom: 1px solid #bcc7cc;
+  padding: 1rem 2rem 0;
+}
+
+.versionHeaderTitle {
+  border-bottom: 2px solid #1eaef7;
+  display: inline-block;
+  font-weight: 500;
+  margin-bottom: -2px;
+  padding: 0;
+}
+
+.versionSubHeader {
+  display: flex;
+  padding: var(--release-panel-padding);
+  justify-content: space-between;
+}

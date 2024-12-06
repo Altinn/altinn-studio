@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -13,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.RepositoryController
 {
-    public class ResetLocalRepositoryTests : DisagnerEndpointsTestsBase<ResetLocalRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ResetLocalRepositoryTests : DesignerEndpointsTestsBase<ResetLocalRepositoryTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix => "/designer/api/repos";
         public ResetLocalRepositoryTests(WebApplicationFactory<Program> factory) : base(factory)
@@ -24,9 +23,7 @@ namespace Designer.Tests.Controllers.RepositoryController
         // Do not use mocked repository
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            base.ConfigureTestServices(services);
             services.AddTransient<ISourceControl, ISourceControlMock>();
         }
 

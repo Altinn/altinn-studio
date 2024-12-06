@@ -1,8 +1,9 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './GoBackButton.module.css';
 import cn from 'classnames';
-import { ArrowLeftIcon } from '@navikt/aksel-icons';
-import { Paragraph } from '@digdir/design-system-react';
+import { ArrowLeftIcon } from '@studio/icons';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { NavLink } from 'react-router-dom';
 
 export type GoBackButtonProps = {
@@ -41,8 +42,8 @@ export const GoBackButton = ({ className, text, to }: GoBackButtonProps): ReactN
   return (
     <NavLink className={cn(className, classes.backButton)} to={to}>
       <ArrowLeftIcon className={classes.icon} />
-      <Paragraph as='span' size='small' short className={classes.buttonText}>
-        {text}
+      <Paragraph asChild size='small' variant='short' className={classes.buttonText}>
+        <span>{text}</span>
       </Paragraph>
     </NavLink>
   );

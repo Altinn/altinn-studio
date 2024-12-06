@@ -1,0 +1,19 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  padding: 0;
+  --custom-receipt-spacing: var(--fds-spacing-5);
+}
+
+.customReceiptText {
+  padding-inline: var(--custom-receipt-spacing);
+}
+
+.paragraph {
+  padding-bottom: var(--fds-spacing-1);
+}
+
+.accordionContent {
+  padding-inline: 0;
+}

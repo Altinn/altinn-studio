@@ -1,26 +1,28 @@
 import React from 'react';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { renderSchemaNodeList } from './renderSchemaNodeList';
 import { useTranslation } from 'react-i18next';
-import { SchemaNode } from './SchemaNode';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
+import { SchemaModel } from '@altinn/schema-model/lib/SchemaModel';
 
 export interface SchemaTreeProps {
-  pointer?: string;
+  schemaPointer?: string;
 }
 
-export const SchemaTree = ({ pointer }: SchemaTreeProps) => {
+export const SchemaTree = ({ schemaPointer }: SchemaTreeProps) => {
   const savableModel = useSavableSchemaModel();
-  const { setSelectedNodePointer, selectedNodePointer } = useSchemaEditorAppContext();
+  const uniquePointer = SchemaModel.getUniquePointer(schemaPointer);
+  const { selectedUniquePointer, setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
+
   return (
-    <DragAndDropTree.Root
+    <StudioDragAndDropTree.Root
       emptyMessage={t('schema_editor.empty_node')}
-      onSelect={setSelectedNodePointer}
-      selectedId={selectedNodePointer}
+      onSelect={setSelectedUniquePointer}
+      selectedId={selectedUniquePointer}
     >
-      {pointer ? <SchemaNode pointer={pointer} /> : renderSchemaNodeList(savableModel, pointer)}
-    </DragAndDropTree.Root>
+      {renderSchemaNodeList(savableModel, schemaPointer, uniquePointer)}
+    </StudioDragAndDropTree.Root>
   );
 };

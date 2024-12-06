@@ -1,0 +1,56 @@
+{
+    "data": {
+        "ruleConnection": {},
+        "conditionalRendering": {
+            "22c73880-5c97-11ea-a95f-056c5a78cd14": {
+                "selectedFunction": "biggerThan10",
+                "inputParams": {
+                    "number": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[0].SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
+                },
+                "selectedAction": "Hide",
+                "selectedFields": {
+                    "22c67530-5c97-11ea-a95f-056c5a78cd14": "summary-1",
+                    "22c67530-5c97-11ea-a95f-056c5a78cd15": "summary-2"
+                }
+            },
+            "hide-repeating-group": {
+                "selectedFunction": "showGroup",
+                "inputParams": {
+                    "value": "Endringsmelding-grp-9786.Avgiver-grp-9787.KontaktpersonEPost-datadef-27688.value"
+                },
+                "selectedAction": "Show",
+                "selectedFields": {
+                    "22c67530-5c97-11ea-a95f-056c5a78cd14": "mainGroup"
+                }
+            },
+            "hide-extra-options": {
+                "selectedFunction": "showExtraOptions",
+                "inputParams": {
+                    "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788{0}.nested-grp-1234{1}.extraOptionsToggle"
+                },
+                "selectedAction": "Show",
+                "selectedFields": {
+                    "abc123": "nestedOptions{0}{1}"
+                },
+                "repeatingGroup": {
+                    "groupId": "mainGroup",
+                    "childGroupId": "subGroup"
+                }
+            },
+            "hide-comment-field": {
+                "selectedFunction": "hideCommentField",
+                "inputParams": {
+                    "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788{0}.nested-grp-1234{1}.hideComment"
+                },
+                "selectedAction": "Hide",
+                "selectedFields": {
+                    "abc123": "comments{0}{1}"
+                },
+                "repeatingGroup": {
+                    "groupId": "mainGroup",
+                    "childGroupId": "subGroup"
+                }
+            }
+        }
+    }
+}

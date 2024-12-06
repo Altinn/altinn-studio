@@ -1,44 +1,50 @@
-import React, { useState } from 'react';
-import { ComponentType } from 'app-shared/types/ComponentType';
+import React from 'react';
+import classes from './ConfPageToolbar.module.css';
 import type { IToolbarElement } from '../../types/global';
-import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarItem } from './ToolbarItem';
-import { confOnScreenComponents } from '../../data/formItemConfig';
-import { getComponentTitleByComponentType } from '../../utils/language';
+import {
+  confOnScreenComponents,
+  paymentLayoutComponents,
+  subformLayoutComponents,
+} from '../../data/formItemConfig';
 import { mapComponentToToolbarElement } from '../../utils/formLayoutUtils';
-import { useTranslation } from 'react-i18next';
+import type { ConfPageType } from './types/ConfigPageType';
+import { useComponentTitle } from '@altinn/ux-editor/hooks';
 
-export const ConfPageToolbar = () => {
-  const [anchorElement, setAnchorElement] = useState<any>(null);
-  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentType>(null);
-  const { t } = useTranslation();
-  const componentList: IToolbarElement[] = confOnScreenComponents.map(mapComponentToToolbarElement);
-  const handleComponentInformationOpen = (component: ComponentType, event: any) => {
-    setCompSelForInfoPanel(component);
-    setAnchorElement(event.currentTarget);
-  };
+const getAvailableComponentList = (confPageType: ConfPageType) => {
+  switch (confPageType) {
+    case 'receipt':
+      return confOnScreenComponents;
+    case 'payment':
+      return paymentLayoutComponents;
+    case 'subform':
+      return subformLayoutComponents;
+    default:
+      return [];
+  }
+};
 
-  const handleComponentInformationClose = () => {
-    setCompSelForInfoPanel(null);
-    setAnchorElement(null);
-  };
+export type ConfPageToolbarProps = {
+  confPageType: ConfPageType;
+};
+
+export const ConfPageToolbar = ({ confPageType }: ConfPageToolbarProps) => {
+  const getComponentTitle = useComponentTitle();
+
+  const componentList: IToolbarElement[] = getAvailableComponentList(confPageType).map(
+    mapComponentToToolbarElement,
+  );
+
   return (
-    <>
+    <div className={classes.customComponentList}>
       {componentList.map((component: IToolbarElement) => (
         <ToolbarItem
-          text={getComponentTitleByComponentType(component.type, t) || component.label}
+          componentTitle={getComponentTitle(component)}
           icon={component.icon}
           componentType={component.type}
-          onClick={handleComponentInformationOpen}
           key={component.type}
         />
       ))}
-      <InformationPanelComponent
-        anchorElement={anchorElement}
-        informationPanelOpen={Boolean(anchorElement)}
-        onClose={handleComponentInformationClose}
-        selectedComponent={compSelForInfoPanel}
-      />
-    </>
+    </div>
   );
 };

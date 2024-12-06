@@ -1,0 +1,16 @@
+.icon {
+  --background-colour: var(--fds-brand-alt2-800);
+  background-color: var(--background-colour);
+  border-radius: var(--fds-border_radius-small);
+  color: var(--fds-semantic-surface-on_inverted-default);
+}
+
+.icon.isArray {
+  box-shadow:
+    #fff -1px -1px,
+    var(--background-colour) -2px -2px,
+    #fff -3px -3px,
+    var(--background-colour) -4px -4px,
+    #fff -5px -5px,
+    var(--background-colour) -6px -6px;
+}

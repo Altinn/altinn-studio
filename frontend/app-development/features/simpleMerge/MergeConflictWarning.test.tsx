@@ -6,7 +6,7 @@ import { MergeConflictWarning } from './MergeConflictWarning';
 
 describe('MergeConflictWarning', () => {
   it('should render merge conflict warning container', () => {
-    renderWithProviders(<MergeConflictWarning org={'mytestorg'} app={'mytestapp'} />, {
+    renderWithProviders(<MergeConflictWarning />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/test-org/test-app`,
     });
     const container = screen.getByRole('dialog');

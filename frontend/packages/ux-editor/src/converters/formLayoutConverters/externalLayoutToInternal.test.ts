@@ -4,14 +4,27 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { createEmptyLayout } from '../../utils/formLayoutUtils';
-import { ExternalFormLayout } from 'app-shared/types/api';
-import { IInternalLayout } from '../../types/global';
+import type { ExternalFormLayout } from 'app-shared/types/api';
+import type { IInternalLayout } from '../../types/global';
 import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 describe('externalLayoutToInternal', () => {
   it('Converts an external layout to an internal layout', () => {
     const result = externalLayoutToInternal(externalLayoutWithMultiPageGroup);
     expect(result).toEqual(internalLayoutWithMultiPageGroup);
+  });
+
+  it('Does not convert set properties as custom properties', () => {
+    const externalLayout: ExternalFormLayout = {
+      $schema: layoutSchemaUrl(),
+      data: {
+        layout: [],
+        hidden: true,
+      },
+    };
+    const result = externalLayoutToInternal(externalLayout);
+    expect(result.customRootProperties).toEqual({});
+    expect(result.customDataProperties).toEqual({});
   });
 
   it('Returns an empty layout if the external layout is null', () => {

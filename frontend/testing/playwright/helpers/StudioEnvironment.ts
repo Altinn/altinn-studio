@@ -4,7 +4,7 @@
 };
 
 export class StudioEnvironment {
-  public readonly org: string;
+  public org: string;
   public app: string;
   public readonly designerAppName: string;
 
@@ -15,5 +15,9 @@ export class StudioEnvironment {
 
   public updateAppNameEnv(appName: string): void {
     this.app = appName;
+  }
+
+  public updateOrgNameEnv(orgName: string): void {
+    this.org = orgName;
   }
 }

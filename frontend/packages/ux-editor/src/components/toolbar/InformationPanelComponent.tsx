@@ -1,47 +1,43 @@
 import React from 'react';
 import classNames from 'classnames';
 import classes from './InformationPanelComponent.module.css';
-import type { ComponentType } from 'app-shared/types/ComponentType';
-import { Popover } from '@mui/material';
-
-import {
-  getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType,
-} from '../../utils/language';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { getComponentHelperTextByComponentType } from '../../utils/language';
 import { useTranslation } from 'react-i18next';
+import { StudioLabelAsParagraph, StudioParagraph, StudioPopover } from '@studio/components';
+import { InformationIcon } from '@studio/icons';
 
-export interface IInformationPanelProvidedProps {
-  anchorElement: any;
-  selectedComponent: ComponentType;
-  informationPanelOpen: boolean;
+export type InformationPanelProvidedProps = {
+  isOpen: boolean;
+  onOpen: () => void;
   onClose: () => void;
-  thirdPartyLibrary?: boolean;
-}
+  componentTitle: string;
+  componentType: ComponentType | CustomComponentType;
+};
 
 export const InformationPanelComponent = ({
-  anchorElement,
-  informationPanelOpen,
+  isOpen,
+  onOpen,
   onClose,
-  selectedComponent,
-  thirdPartyLibrary,
-}: IInformationPanelProvidedProps) => {
+  componentTitle,
+  componentType,
+}: InformationPanelProvidedProps) => {
   const { t } = useTranslation();
   return (
-    <Popover
-      anchorEl={anchorElement}
-      open={informationPanelOpen}
-      onClose={onClose}
-      PaperProps={{ square: true }}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      classes={{ paper: classNames(classes.informationPanel) }}
-    >
-      <div className={classNames(classes.informationPanelHeader)}>
-        {getComponentTitleByComponentType(selectedComponent, t)}
-      </div>
-      <div className={classNames(classes.informationPanelText)}>
-        {getComponentHelperTextByComponentType(selectedComponent, t)}
-      </div>
-    </Popover>
+    <StudioPopover open={isOpen} onClose={onClose} portal placement='right'>
+      <StudioPopover.Trigger size='small' onClick={onOpen} variant='tertiary'>
+        <InformationIcon />
+      </StudioPopover.Trigger>
+      <StudioPopover.Content>
+        <div className={classNames(classes.informationPanelHeader)}>
+          <StudioLabelAsParagraph size='small'>{componentTitle}</StudioLabelAsParagraph>
+        </div>
+        <div className={classNames(classes.informationPanelText)}>
+          <StudioParagraph size='small'>
+            {getComponentHelperTextByComponentType(componentType, t)}
+          </StudioParagraph>
+        </div>
+      </StudioPopover.Content>
+    </StudioPopover>
   );
 };

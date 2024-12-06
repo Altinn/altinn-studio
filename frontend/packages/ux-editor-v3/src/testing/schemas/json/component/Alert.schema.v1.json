@@ -1,0 +1,38 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Alert.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Alert component",
+  "description": "Schema that describes the layout configuration for a Alert component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Alert"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "body": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "severity": {
+      "title": "Severity",
+      "description": "The severity of the alert.",
+      "type": "string",
+      "enum": ["success", "warning", "danger", "info"]
+    }
+  },
+  "required": ["id", "type", "severity"],
+  "additionalProperties": false
+}

@@ -4,13 +4,15 @@ import { ItemPropertiesTab } from './ItemPropertiesTab';
 import type { CombinationNode, FieldNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
+  FieldType,
   ObjectKind,
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { nodeMockBase, rootNodeMock } from '../../../test/mocks/uiSchemaMock';
+import type { SchemaEditorAppContextProps } from '../../contexts/SchemaEditorAppContext';
 
 describe('ItemPropertiesTab', () => {
   it('Renders combinations', async () => {
@@ -24,34 +26,71 @@ describe('ItemPropertiesTab', () => {
       ...nodeMockBase,
       objectKind: ObjectKind.Combination,
       combinationType,
-      pointer: selectedNodePointer,
+      schemaPointer: selectedNodePointer,
       children: [],
     };
     const uiSchemaNodes: UiSchemaNodes = [rootNode, selectedNode];
     ['0', '1'].forEach((childNodeName) => {
-      const pointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
+      const schemaPointer = `${selectedNodePointer}/${combinationType}/${childNodeName}`;
       const node: FieldNode = {
         ...nodeMockBase,
-        pointer,
+        schemaPointer,
       };
-      selectedNode.children.push(node.pointer); // eslint-disable-line testing-library/no-node-access
+      selectedNode.children.push(node.schemaPointer); // eslint-disable-line testing-library/no-node-access
       uiSchemaNodes.push(node);
     });
     validateTestUiSchema(uiSchemaNodes);
     renderWithProviders({
       appContextProps: { schemaModel: SchemaModel.fromArray(uiSchemaNodes) },
     })(<ItemPropertiesTab selectedItem={uiSchemaNodes[2]} />);
-    expect(screen.getByText(textMock('combination_inline_object_disclaimer'))).toBeDefined();
+    expect(
+      screen.getByText(textMock('schema_editor.combination_inline_object_disclaimer')),
+    ).toBeDefined();
   });
 
-  it('should render explanation message if the selected item is a root node', () => {
+  it('Renders a name field when a field node is selected', async () => {
+    const selectedUniquePointer = '#/properties/test';
     const rootNode: FieldNode = {
       ...rootNodeMock,
-      pointer: '#', // root pointer
-      children: undefined,
+      children: [selectedUniquePointer],
     };
+    const selectedNode: FieldNode = {
+      ...nodeMockBase,
+      objectKind: ObjectKind.Field,
+      fieldType: FieldType.String,
+      schemaPointer: selectedUniquePointer,
+    };
+    const nodes = [rootNode, selectedNode];
+    validateTestUiSchema(nodes);
 
-    renderWithProviders()(<ItemPropertiesTab selectedItem={rootNode} />);
-    screen.getByText(textMock('app_data_modelling.properties_information'));
+    const schemaModel = SchemaModel.fromArray(nodes);
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      selectedUniquePointer,
+    };
+    renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={selectedNode} />);
+
+    expect(
+      screen.getByRole('textbox', { name: textMock('schema_editor.name') }),
+    ).toBeInTheDocument();
+  });
+
+  it('Does not render a name field when the selected node is the root node', async () => {
+    const rootNode: FieldNode = {
+      ...rootNodeMock,
+      children: [],
+    };
+    const nodes = [rootNode];
+    validateTestUiSchema(nodes);
+
+    const schemaModel = SchemaModel.fromArray(nodes);
+    const appContextProps: Partial<SchemaEditorAppContextProps> = {
+      schemaModel,
+      selectedUniquePointer: null,
+    };
+    renderWithProviders({ appContextProps })(<ItemPropertiesTab selectedItem={rootNodeMock} />);
+
+    const name = textMock('schema_editor.name');
+    expect(screen.queryByRole('textbox', { name })).not.toBeInTheDocument();
   });
 });

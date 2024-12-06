@@ -1,1 +1,1 @@
-export { SearchBox } from './ResourceSeachBox'
+export { SearchBox } from './ResourceSeachBox';

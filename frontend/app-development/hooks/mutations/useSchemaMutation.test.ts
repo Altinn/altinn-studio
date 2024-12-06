@@ -1,27 +1,26 @@
-import { renderHookWithMockStore } from '../../test/mocks';
+import { renderHookWithProviders } from '../../test/mocks';
 import { useSchemaMutation } from './useSchemaMutation';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { jsonSchemaMock } from '../../test/jsonSchemaMock';
 import { waitFor } from '@testing-library/react';
 import { QueryKey } from 'app-shared/types/QueryKey';
+import { app, org } from '@studio/testing/testids';
 
 // Test data:
 const modelPath = 'modelPath';
-const org = 'org';
-const app = 'app';
 
 describe('useSchemaMutation', () => {
-  it('Returns correct state and calls saveDatamodel with the correct parameters', async () => {
-    const saveDatamodel = jest.fn();
+  it('Returns correct state and calls saveDataModel with the correct parameters', async () => {
+    const saveDataModel = jest.fn();
     const {
       renderHookResult: { result },
-    } = render({ saveDatamodel });
+    } = render({ saveDataModel });
     result.current.mutate({ modelPath, model: jsonSchemaMock });
     await waitFor(() => result.current.isPending);
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    expect(saveDatamodel).toHaveBeenCalledWith(org, app, modelPath, jsonSchemaMock);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    expect(saveDataModel).toHaveBeenCalledWith(org, app, modelPath, jsonSchemaMock);
     await waitFor(() => result.current.isSuccess);
   });
 
@@ -41,4 +40,4 @@ describe('useSchemaMutation', () => {
 const render = (
   queries: Partial<ServicesContextProps> = {},
   queryClient: QueryClient = createQueryClientMock(),
-) => renderHookWithMockStore({}, queries, queryClient)(() => useSchemaMutation());
+) => renderHookWithProviders(queries, queryClient)(() => useSchemaMutation());

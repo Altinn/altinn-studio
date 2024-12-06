@@ -4,15 +4,22 @@ using Altinn.Studio.DataModeling.Converter.Csharp;
 using DataModeling.Tests.Assertions;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
-using Designer.Tests.Factories.ModelFactory.DataClasses;
 using FluentAssertions;
 using SharedResources.Tests;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
     public class CsharpEnd2EndGenerationTests : CsharpModelConversionTestsBase<CsharpEnd2EndGenerationTests>
     {
+        private readonly ITestOutputHelper _testOutput;
+
+        public CsharpEnd2EndGenerationTests(ITestOutputHelper testOutput)
+        {
+            _testOutput = testOutput;
+        }
+
         [Theory]
         [ClassData(typeof(CSharpEnd2EndTestData))]
         public void Convert_FromXsd_Should_EqualExpected(string xsdSchemaPath, string expectedCsharpClassPath)
@@ -58,9 +65,32 @@ namespace DataModeling.Tests
                 .Then.ConvertedXsdSchema.Should().NotBeNull();
         }
 
-        private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath)
+        [Theory]
+        [InlineData("Model/JsonSchema/General/StringUriFormat.json")]
+        public void JsonSchemaWithStringFieldInUriFormatShouldConvertToCSharp(string jsonSchemaPath)
+        {
+            Given.That.JsonSchemaLoaded(jsonSchemaPath)
+                .When.LoadedJsonSchemaConvertedToModelMetadata()
+                .And.ModelMetadataConvertedToCsharpClass()
+                .And.CSharpClassesCompiledToAssembly()
+                .Then.CompiledAssembly.Should().NotBeNull();
+        }
+
+        private void GeneratedClassesShouldBeEquivalentToExpected(string expectedCsharpClassPath, bool overwriteExpected = false)
         {
             string expectedClasses = SharedResourcesHelper.LoadTestDataAsString(expectedCsharpClassPath);
+
+            _testOutput.WriteLine("Expected classes");
+            _testOutput.WriteLine(expectedClasses);
+            _testOutput.WriteLine("Generated classes");
+            _testOutput.WriteLine(CSharpClasses);
+
+            // Save the current generated classes to the expected file so they can be compared with git diff.
+            if (overwriteExpected)
+            {
+                SharedResourcesHelper.WriteUpdatedTestData(expectedCsharpClassPath, CSharpClasses);
+            }
+
             var expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
 
             // Compare root types.

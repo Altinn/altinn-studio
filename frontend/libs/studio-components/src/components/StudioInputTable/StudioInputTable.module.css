@@ -1,0 +1,4 @@
+.inputTable {
+  --studio-input-table-font-size: --fds-font-size-f1;
+  font-size: var(--studio-input-table-font-size);
+}

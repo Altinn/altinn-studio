@@ -1,5 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
+import type { ExternalSimpleComponent } from '../../types/ExternalSimpleComponent';
 import { externalSimpleComponentToInternal } from './externalSimpleComponentToInternal';
 import { formItemConfigs } from '../../data/formItemConfig';
 
@@ -7,7 +7,7 @@ import { formItemConfigs } from '../../data/formItemConfig';
 const id = '1';
 const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
-const propertyPath = formItemConfigs[type].defaultProperties.propertyPath;
+const propertyPath = formItemConfigs[type].propertyPath;
 
 describe('externalSimpleComponentToInternal', () => {
   it.each([null, 0, 1, 2])(
@@ -17,6 +17,7 @@ describe('externalSimpleComponentToInternal', () => {
         id,
         type,
         customProperty,
+        dataModelBindings: { simpleBinding: 'some-path' },
       };
       const result = externalSimpleComponentToInternal(externalComponent, pageIndex);
       expect(result).toEqual({
@@ -26,6 +27,7 @@ describe('externalSimpleComponentToInternal', () => {
         propertyPath,
         type,
         customProperty,
+        dataModelBindings: { simpleBinding: 'some-path' },
       });
     },
   );

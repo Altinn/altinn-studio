@@ -47,39 +47,5 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             RepositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
         }
-
-        [Fact]
-        public async Task ValidateServiceResource_IsValid()
-        {
-            //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/validate/ttd-resources";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            RepositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(true));
-
-            //Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-            //Assert
-            RepositoryMock.VerifyAll();
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
-
-        [Fact]
-        public async Task ValidateServiceResource_IsInValid()
-        {
-            //Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/validate/ttd-resources";
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            RepositoryMock.Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(GetServiceResourcesForValidationTest(false));
-
-            //Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-            //Assert
-            RepositoryMock.VerifyAll();
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
     }
 }

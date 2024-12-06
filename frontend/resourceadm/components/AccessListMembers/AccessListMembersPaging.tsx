@@ -2,7 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import classes from './AccessListMembers.module.css';
-import { BrregSearchResult } from 'app-shared/types/ResourceAdm';
+import type { BrregSearchResult } from 'app-shared/types/ResourceAdm';
 
 export interface AccessListMembersPagingProps {
   resultData: BrregSearchResult;
@@ -20,12 +20,7 @@ export const AccessListMembersPaging = ({
     isDisabled: boolean,
   ): React.JSX.Element => {
     return (
-      <StudioButton
-        size='small'
-        variant='tertiary'
-        disabled={isDisabled}
-        onClick={() => setSearchUrl(href)}
-      >
+      <StudioButton variant='tertiary' disabled={isDisabled} onClick={() => setSearchUrl(href)}>
         {t(label)}
       </StudioButton>
     );

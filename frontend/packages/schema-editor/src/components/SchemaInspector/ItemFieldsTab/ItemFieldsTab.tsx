@@ -1,21 +1,37 @@
-import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
-import { FieldNode } from '@altinn/schema-model';
-import { FieldType, isField, isReference, ObjectKind } from '@altinn/schema-model';
+import type { FieldType, FieldNode, ObjectKind } from '@altinn/schema-model';
+import { isField, isObject, isReference } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { StudioButton } from '@studio/components';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { useTranslation } from 'react-i18next';
+import { usePrevious } from '@studio/components';
 import { ItemFieldsTable } from './ItemFieldsTable';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
 import { getLastNameField } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
+import { AddPropertiesMenu } from '../../AddPropertiesMenu';
+import { Alert } from '@digdir/designsystemet-react';
+import type { UiSchemaNode } from '@altinn/schema-model/types';
+import { useTranslation } from 'react-i18next';
 
-export interface ItemFieldsTabProps {
-  selectedItem: FieldNode;
+export type ItemFieldsTabProps = {
+  selectedItem: UiSchemaNode;
+};
+
+export function ItemFieldsTab({ selectedItem }: ItemFieldsTabProps): React.ReactElement {
+  const { t } = useTranslation();
+
+  const shouldDisplayFieldsTabContent = isField(selectedItem) && isObject(selectedItem);
+
+  return shouldDisplayFieldsTabContent ? (
+    <ItemFieldsTabContent selectedItem={selectedItem} />
+  ) : (
+    <Alert size='small'>{t('schema_editor.fields_not_available_on_type')}</Alert>
+  );
 }
 
-export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
+type ItemFieldsTabContentProps = {
+  selectedItem: FieldNode;
+};
+
+const ItemFieldsTabContent = ({ selectedItem }: ItemFieldsTabContentProps) => {
   const addProperty = useAddProperty();
 
   const numberOfChildNodes = selectedItem.children.length;
@@ -30,11 +46,9 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
     }
   }, [numberOfChildNodes, prevNumberOfChildNodes]);
 
-  const { t } = useTranslation();
-
-  const onAddPropertyClicked = (event: BaseSyntheticEvent) => {
+  const onAddPropertyClicked = (kind: ObjectKind, fieldType?: FieldType) => {
     event.preventDefault();
-    addProperty(ObjectKind.Field, FieldType.String, selectedItem.pointer);
+    addProperty(kind, fieldType, selectedItem.schemaPointer);
   };
   const readonly = isReference(selectedItem);
 
@@ -43,17 +57,7 @@ export const ItemFieldsTab = ({ selectedItem }: ItemFieldsTabProps) => {
       {isField(selectedItem) && numberOfChildNodes > 0 && (
         <ItemFieldsTable readonly={readonly} selectedItem={selectedItem} />
       )}
-      {!readonly && (
-        <StudioButton
-          color='second'
-          icon={<PlusIcon />}
-          onClick={onAddPropertyClicked}
-          variant='secondary'
-          size='small'
-        >
-          {t('schema_editor.add_property')}
-        </StudioButton>
-      )}
+      <AddPropertiesMenu onItemClick={onAddPropertyClicked} />
     </div>
   );
 };

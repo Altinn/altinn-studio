@@ -1,6 +1,4 @@
-using System;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
 

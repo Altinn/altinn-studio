@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Studio.Designer.Configuration;
@@ -159,7 +158,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var starredRepos = new List<RepositoryClient.Model.Repository>();
 
-            HttpResponseMessage response = await _httpClient.GetAsync("user/starred");
+            HttpResponseMessage response = await _httpClient.GetAsync("user/starred?limit=100");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 var repos = await response.Content.ReadAsAsync<List<RepositoryClient.Model.Repository>>();
@@ -172,8 +171,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> PutStarred(string org, string repository)
         {
-            HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = new(HttpMethod.Put, $"user/starred/{org}/{repository}");
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return response.StatusCode == HttpStatusCode.NoContent;
         }
@@ -181,8 +180,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> DeleteStarred(string org, string repository)
         {
-            HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            using HttpRequestMessage request = new(HttpMethod.Delete, $"user/starred/{org}/{repository}");
+            using HttpResponseMessage response = await _httpClient.SendAsync(request);
 
             return response.StatusCode == HttpStatusCode.NoContent;
         }
@@ -204,20 +203,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc/>
         public async Task<ListviewServiceResource> MapServiceResourceToListViewResource(string org, string repo, ServiceResource serviceResource)
         {
-            ListviewServiceResource listviewResource = new ListviewServiceResource { Identifier = serviceResource.Identifier, Title = serviceResource.Title };
+            ListviewServiceResource listviewResource = new ListviewServiceResource
+            {
+                Identifier = serviceResource.Identifier,
+                Title = serviceResource.Title,
+            };
+
             string resourceFolder = serviceResource.Identifier;
 
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/contents/{resourceFolder}/{serviceResource.Identifier}_resource.json");
+            HttpResponseMessage fileResponse = await _httpClient.GetAsync($"repos/{org}/{repo}/commits?path={resourceFolder}&stat=false&verification=false&files=false");
 
-            if (response.StatusCode == HttpStatusCode.OK)
+            if (fileResponse.StatusCode == HttpStatusCode.OK)
             {
-                string content = await response.Content.ReadAsStringAsync();
-
-                ContentsResponse contentsResponse = null;
+                List<GiteaCommit> commitResponse = null;
 
                 try
                 {
-                    contentsResponse = System.Text.Json.JsonSerializer.Deserialize<ContentsResponse>(content);
+                    commitResponse = await fileResponse.Content.ReadAsAsync<List<GiteaCommit>>();
                 }
                 catch (JsonException)
                 {
@@ -228,36 +230,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     // Not pushed to git
                 }
 
-                if (contentsResponse != null)
+                if (commitResponse != null)
                 {
-                    response = await _httpClient.GetAsync($"repos/{org}/{repo}/git/commits/{contentsResponse.LastCommitSha}");
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        GiteaCommit lastCommit = await response.Content.ReadAsAsync<GiteaCommit>();
-                        listviewResource.LastChanged = DateTime.Parse(lastCommit.Created);
-                    }
-
-                    HttpResponseMessage responseFromCommits = await _httpClient.GetAsync($"repos/{org}/{repo}/commits");
-                    if (responseFromCommits.StatusCode == HttpStatusCode.OK)
-                    {
-                        List<GiteaCommit> commitList = await responseFromCommits.Content.ReadAsAsync<List<GiteaCommit>>();
-                        DateTime oldestCommitTimestamp = listviewResource.LastChanged;
-                        GiteaCommit oldestCommit = new GiteaCommit();
-                        foreach (GiteaCommit commit in commitList)
-                        {
-                            if (DateTime.Parse(commit.Created) <= oldestCommitTimestamp)
-                            {
-                                oldestCommitTimestamp = DateTime.Parse(commit.Created);
-                                oldestCommit = commit;
-                            }
-                        }
-
-                        if (oldestCommit?.Commit?.Author?.Name != null)
-                        {
-                            listviewResource.CreatedBy = oldestCommit.Commit.Author.Name;
-                        }
-                    }
+                    string commitUserName = commitResponse.LastOrDefault().Commit?.Author?.Name;
+                    string userFullName = await GetCachedUserFullName(commitUserName);
+                    listviewResource.CreatedBy = userFullName;
+                    listviewResource.LastChanged = DateTime.Parse(commitResponse.FirstOrDefault().Created);
                 }
+            }
+
+            if (string.IsNullOrEmpty(listviewResource.CreatedBy))
+            {
+                string localUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                string userFullName = await GetCachedUserFullName(localUserName);
+                listviewResource.CreatedBy = userFullName;
+            }
+
+            if (listviewResource.LastChanged == null)
+            {
+                listviewResource.LastChanged = DateTime.Now;
             }
 
             return listviewResource;
@@ -321,6 +312,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
             if (!string.IsNullOrEmpty(searchOption.Keyword))
             {
                 giteaSearchUriString += $"&q={searchOption.Keyword}";
+            }
+
+            // Search in description. To prevent DataModelsRepoList from displaying repos with '-datamodels' only in the description,
+            // we exclude description searches containing this keyword.
+            if (searchOption.Keyword != null && !searchOption.Keyword.Contains("-datamodels"))
+            {
+                giteaSearchUriString += "&includeDesc=true";
             }
 
             if (searchOption.UId != 0)
@@ -444,123 +442,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private async Task<HttpResponseMessage> PostBranch(string org, string repository, string branchName)
         {
             string content = $"{{\"new_branch_name\":\"{branchName}\"}}";
-            HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
+            using HttpRequestMessage message = new(HttpMethod.Post, $"repos/{org}/{repository}/branches");
             message.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
             return await _httpClient.SendAsync(message);
-        }
-
-        /// <inheritdoc />
-        public async Task<string> GetUserNameFromUI()
-        {
-            Uri giteaUrl = BuildGiteaUrl("/user/settings/");
-            using (HttpClient client = GetWebHtmlClient(false))
-            {
-                HttpResponseMessage response = await client.GetAsync(giteaUrl);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string htmlContent = await response.Content.ReadAsStringAsync();
-
-                    return GetStringFromHtmlContent(htmlContent, "<input id=\"username\" name=\"name\" value=\"", "\"");
-                }
-            }
-
-            return null;
-        }
-
-        /// <inheritdoc />
-        public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
-        {
-            string csrf = await GetCsrf();
-            await DeleteCurrentAppKeys(csrf, keyName);
-
-            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
-
-            Cookie flashTokenCookie = await GenerateTokenAndGetAuthorizedTokenCookie(csrf, giteaUrl, keyName);
-            if (flashTokenCookie is null)
-            {
-                return null;
-            }
-
-            using HttpClient clientWithToken = GetWebHtmlClient(false, flashTokenCookie);
-            // reading the API key value
-            HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
-            string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
-            string token = ExtractTokenFromHtmlContent(htmlContent);
-            List<string> keys = FindAllAppKeysId(htmlContent, keyName);
-
-            KeyValuePair<string, string> keyValuePair = new(keys.FirstOrDefault() ?? "1", token);
-
-            return keyValuePair;
-
-        }
-
-        private async Task<Cookie> GenerateTokenAndGetAuthorizedTokenCookie(string csrf, Uri giteaUrl, string tokenKeyName)
-        {
-            using HttpClient client = GetWebHtmlClient(false);
-            // creating new API key
-            FormUrlEncodedContent content = GenerateScopesContent(tokenKeyName, csrf);
-            HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
-
-            if (response.StatusCode != HttpStatusCode.Redirect && response.StatusCode != HttpStatusCode.SeeOther)
-            {
-                content = GenerateScopesContent(tokenKeyName, csrf, true);
-                response = await client.PostAsync(giteaUrl, content);
-            }
-
-            if (response.StatusCode != HttpStatusCode.Redirect && response.StatusCode != HttpStatusCode.SeeOther)
-            {
-                return null;
-            }
-
-            return StealFlashCookie(response);
-        }
-
-        private static FormUrlEncodedContent GenerateScopesContent(string keyName, string csrf, bool isVersion20Plus = false)
-        {
-
-            List<KeyValuePair<string, string>> formValues = new();
-            formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
-            formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
-
-            if (isVersion20Plus)
-            {
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:activitypub"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:admin"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:issue"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:misc"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:notification"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:organization"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:package"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:repository"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "write:user"));
-            }
-            else
-            {
-                formValues.Add(new KeyValuePair<string, string>("scope", "repo"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "admin:org"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "admin:public_key"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "user"));
-                formValues.Add(new KeyValuePair<string, string>("scope", "delete_repo"));
-            }
-            FormUrlEncodedContent content = new(formValues);
-            return content;
-        }
-
-        private string ExtractTokenFromHtmlContent(string htmlContent)
-        {
-
-            string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-message flash-info\">\n\t\t<p>", "</p>");
-            if (token.Length != 40)
-            {
-                token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message flash-info\">\n\t\t<p>", "</p>");
-            }
-
-            if (Regex.IsMatch(token, "^[0-9a-z]{40}$"))
-            {
-                return token;
-            }
-            throw new ArgumentException("Unable to extract the token!");
         }
 
         /// <inheritdoc />
@@ -581,7 +466,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<bool> CreatePullRequest(string org, string repository, CreatePullRequestOption createPullRequestOption)
         {
             string content = JsonSerializer.Serialize(createPullRequestOption);
-            HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
+            using HttpResponseMessage response = await _httpClient.PostAsync($"repos/{org}/{repository}/pulls", new StringContent(content, Encoding.UTF8, "application/json"));
 
             return response.IsSuccessStatusCode;
         }
@@ -606,90 +491,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return null;
         }
 
-        private async Task<string> GetCsrf()
-        {
-            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
-
-            using (HttpClient client = GetWebHtmlClient())
-            {
-                HttpResponseMessage response = await client.GetAsync(giteaUrl);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string htmlContent = await response.Content.ReadAsStringAsync();
-
-                    return GetStringFromHtmlContent(htmlContent, "<input type=\"hidden\" name=\"_csrf\" value=\"", "\"");
-                }
-            }
-
-            return null;
-        }
-
-        private async Task DeleteCurrentAppKeys(string csrf, string keyName = null)
-        {
-            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
-            List<string> appKeyIds = new();
-
-            using (HttpClient client = GetWebHtmlClient())
-            {
-                HttpResponseMessage response = await client.GetAsync(giteaUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string htmlContent = await response.Content.ReadAsStringAsync();
-                    appKeyIds = FindAllAppKeysId(htmlContent, keyName);
-                }
-            }
-
-            await Task.Run(() => DeleteAllAppKeys(appKeyIds, csrf));
-        }
-
-        private async Task DeleteAllAppKeys(List<string> appKeys, string csrf)
-        {
-            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications/delete");
-
-            using (HttpClient client = GetWebHtmlClient())
-            {
-                foreach (string key in appKeys)
-                {
-                    _logger.LogInformation("Deleting appkey with id " + key);
-                    List<KeyValuePair<string, string>> formValues = new();
-                    formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
-                    formValues.Add(new KeyValuePair<string, string>("id", key));
-
-                    FormUrlEncodedContent content = new(formValues);
-                    HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
-                    if (!response.StatusCode.Equals(HttpStatusCode.OK))
-                    {
-                        break;
-                    }
-                }
-            }
-        }
-
-        private List<string> FindAllAppKeysId(string htmlContent, string keyName = null)
-        {
-            List<string> htmlValues = new();
-            HtmlAgilityPack.HtmlDocument htmlDocument = new();
-            htmlDocument.LoadHtml(htmlContent);
-
-            HtmlAgilityPack.HtmlNode node = htmlDocument.DocumentNode.SelectSingleNode("//div[contains(@class, 'ui key list') or contains(@class, 'flex-list')]");
-
-            HtmlAgilityPack.HtmlNodeCollection nodes = node.ChildNodes;
-
-            foreach (HtmlAgilityPack.HtmlNode keyNode in nodes)
-            {
-                if (keyNode.OuterHtml.Contains(keyName ?? "AltinnStudioAppKey"))
-                {
-                    // Returns the button node
-                    HtmlAgilityPack.HtmlNode deleteButtonNode = keyNode.SelectSingleNode("./div/button");
-                    string dataId = deleteButtonNode.GetAttributeValue("data-id", string.Empty);
-                    htmlValues.Add(dataId);
-                }
-            }
-
-            return htmlValues;
-        }
-
         private bool IsLocalRepo(string org, string app)
         {
             string localAppRepoFolder = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -711,23 +512,19 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return false;
         }
 
-        private string GetStringFromHtmlContent(string htmlContent, string inputSearchTextBefore, string inputSearchTextAfter)
+        private async Task<string> GetCachedUserFullName(string username)
         {
-            int start = htmlContent.IndexOf(inputSearchTextBefore);
-
-            // Add the lengt of the search string to find the start place for form vlaue
-            start += inputSearchTextBefore.Length;
-
-            // Find the end of the input value content in html (input element with " as end)
-            int stop = htmlContent.IndexOf(inputSearchTextAfter, start);
-
-            if (start > 0 && stop > 0 && stop > start)
+            string cacheKey = $"giteauser_fullname:{username}";
+            var cacheEntryOptions = new MemoryCacheEntryOptions();
+            if (!_cache.TryGetValue(cacheKey, out string giteaUserFullName))
             {
-                string formValue = htmlContent.Substring(start, stop - start);
-                return formValue;
+                HttpResponseMessage response = await _httpClient.GetAsync($"users/{username}/");
+                GiteaUser giteaUser = await response.Content.ReadAsAsync<GiteaUser>();
+                giteaUserFullName = string.IsNullOrEmpty(giteaUser.FullName) ? username : giteaUser.FullName;
+                _cache.Set(cacheKey, giteaUserFullName, cacheEntryOptions);
             }
 
-            return null;
+            return giteaUserFullName;
         }
 
         private async Task<Organization> GetCachedOrg(string org)
@@ -768,61 +565,5 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return organisation;
         }
-
-        private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true, Cookie tokenCookie = null)
-        {
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-            CookieContainer cookieContainer = new();
-            cookieContainer.Add(cookie);
-
-            if (tokenCookie != null)
-            {
-                cookieContainer.Add(tokenCookie);
-            }
-
-            HttpClientHandler handler = new() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
-
-            return new HttpClient(handler);
-        }
-
-        private Cookie CreateGiteaSessionCookie(string giteaSession)
-        {
-            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
-            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost") != null)
-                    ? new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost"))
-                    : new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
-        }
-
-        private Uri BuildGiteaUrl(string path)
-        {
-            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-                     ? new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path)
-                     : new Uri(_settings.RepositoryBaseURL + path);
-        }
-
-        private string GetApiEndpointHost()
-        {
-            return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
-        }
-
-        private Cookie StealFlashCookie(HttpResponseMessage response)
-        {
-            const string flashCookieSuffix = "_flash";
-            string setCookieHeader = response.Headers
-                .GetValues("Set-Cookie")
-                .First(s => s.Contains(flashCookieSuffix))
-                .Split(";")
-                .First();
-
-            string[] splitSetCookieHeader = setCookieHeader.Split("=");
-            string cookieValue = splitSetCookieHeader[1];
-            string cookieName = splitSetCookieHeader[0];
-
-            return new Cookie(cookieName, cookieValue, "/", GetApiEndpointHost());
-        }
-
-
     }
 }

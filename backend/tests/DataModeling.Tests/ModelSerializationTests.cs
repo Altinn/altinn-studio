@@ -4,8 +4,6 @@ using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
 using DataModeling.Tests.Utils;
 using FluentAssertions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using SharedResources.Tests;
 using Xunit;
 using JsonSerializer = System.Text.Json.JsonSerializer;

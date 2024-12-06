@@ -8,3 +8,4 @@ yarn.lock
 .eslintignore
 *.snap
 *.yaml
+eidlogger/

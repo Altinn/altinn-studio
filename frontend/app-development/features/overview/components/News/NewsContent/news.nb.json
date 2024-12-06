@@ -1,0 +1,35 @@
+{
+  "$schema": "news.schema.json",
+  "news": [
+    {
+      "date": "2024-11-29",
+      "title": "Prøv nytt design på Utforming!",
+      "content": "Vi tester en ny måte å legge til komponenter på Utforming-siden. Du kan velge det nye designet  øverst til høyre på Utforming-siden og teste så mye du vil! Etterpå kan du gi tilbakemelding på hva du synes, ved å velge Gi tilbakemelding nederst til høyre."
+    },
+    {
+      "date": "2024-10-25",
+      "title": "Prosess har blitt voksen!",
+      "content": "Vi har nå fjernet Beta-merket på Prosess, fordi den er godt testet og i aktiv bruk."
+    },
+    {
+      "date": "2024-09-04",
+      "title": "Vi har endret noen begreper i Studio",
+      "content": "Accordion - Trekkspilliste, Lage - Utforming, Grid - Rutenett, Paragraf - Avsnitt og Likert - Likert-skala. Vi har også endret Kort svar og Langt svar til Lite tekstefelt og Stort tekstfelt."
+    },
+    {
+      "date": "2024-08-19",
+      "title": "Se endringene dine før du deler",
+      "content": "Vi har gjort det mulig å se alle filer du har endret i Studio, samt innholdet som er endret i dem, før du deler endringene til Gitea."
+    },
+    {
+      "date": "2024-08-07",
+      "title": "Prosessverktøyet støtter nå betaling",
+      "content": "Du kan nå legge til betalingssteg i prosessen."
+    },
+    {
+      "date": "2024-07-18",
+      "title": "Vi har fjernet regler for beregninger og betingede visninger",
+      "content": "Verktøyene er utdaterte, så vi har tatt de bort fra Lage-siden. Du kan fortsatt lage regler for beregninger og betingede visninger i koden, men vi anbefaler å heller bruke dynamiske uttrykk."
+    }
+  ]
+}

@@ -1,10 +1,11 @@
 import React from 'react';
-import { extractNameFromPointer, UiSchemaNode } from '@altinn/schema-model';
-import { CogIcon, FileJsonIcon } from '@navikt/aksel-icons';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { extractNameFromPointer } from '@altinn/schema-model';
+import { CogIcon, FileJsonIcon } from '@studio/icons';
 import classes from './TypeItem.module.css';
 import classNames from 'classnames';
-import * as testids from '../../../../../testing/testids';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { typeItemId } from '@studio/testing/testids';
+import { StudioDragAndDropTree } from '@studio/components';
 
 export interface TypeItemProps {
   uiSchemaNode: UiSchemaNode;
@@ -14,18 +15,18 @@ export interface TypeItemProps {
 
 export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: TypeItemProps) => {
   const handleClick = () => {
-    setSelectedTypePointer(uiSchemaNode.pointer);
+    setSelectedTypePointer(uiSchemaNode.schemaPointer);
   };
-  const name = extractNameFromPointer(uiSchemaNode.pointer);
+  const name = extractNameFromPointer(uiSchemaNode.schemaPointer);
 
   return (
-    <DragAndDropTree.NewItem payload={name}>
+    <StudioDragAndDropTree.NewItem payload={name}>
       <div
         className={classNames(classes.item, {
           [classes.itemSelected]: selected,
         })}
         onClick={handleClick}
-        data-testid={testids.typeItem(uiSchemaNode.pointer)}
+        data-testid={typeItemId(uiSchemaNode.schemaPointer)}
       >
         <div>
           <FileJsonIcon className={classes.typeIcon} />
@@ -33,6 +34,6 @@ export const TypeItem = ({ uiSchemaNode, selected, setSelectedTypePointer }: Typ
         <span className={classes.typeName}>{name}</span>
         <CogIcon />
       </div>
-    </DragAndDropTree.NewItem>
+    </StudioDragAndDropTree.NewItem>
   );
 };

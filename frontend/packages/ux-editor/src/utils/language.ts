@@ -1,9 +1,7 @@
 import type { ITextResource } from 'app-shared/types/global';
 import { CollapsableMenus } from '../types/global';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import i18next from 'i18next';
-import { UseText } from '../hooks';
-import { TranslationKey } from 'app-shared/types/language';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import type i18next from 'i18next';
 
 /**
  * Get the help text for a given component type
@@ -12,7 +10,7 @@ import { TranslationKey } from 'app-shared/types/language';
  * @returns The help text for the component, or the default help text if none is found
  */
 export function getComponentHelperTextByComponentType(
-  type: ComponentType,
+  type: ComponentType | CustomComponentType,
   t: typeof i18next.t,
 ): string {
   const text = t(`ux_editor.component_help_text.${type}`);
@@ -27,7 +25,10 @@ export function getComponentHelperTextByComponentType(
  * @param t The translation function
  * @returns The title text for the component, or the type if none is found
  */
-export function getComponentTitleByComponentType(type: ComponentType, t: typeof i18next.t): string {
+export function getTitleByComponentType(
+  type: ComponentType | CustomComponentType,
+  t: typeof i18next.t,
+): string {
   const text = t(`ux_editor.component_title.${type}`);
   return text !== `ux_editor.component_title.${type}` ? text : type;
 }
@@ -68,9 +69,3 @@ export function getTextResource(resourceKey: string, textResources: ITextResourc
   const textResource = textResources.find((resource) => resource.id === resourceKey);
   return textResource?.value;
 }
-
-export const getComponentPropertyLabel = (propertyKey: string, t: UseText): string => {
-  const translationKey: string = `ux_editor.component_properties.${propertyKey}`;
-  const translation = t(translationKey as TranslationKey);
-  return translation === translationKey ? propertyKey : translation;
-};

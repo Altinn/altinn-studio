@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -50,7 +50,7 @@ namespace Altinn.App.Models
 
   public class InnsenderPerson
   {
-    [XmlElement("navn", Order = 1)]
+    [XmlElement("navn", Order = 1, IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public string navn { get; set; }
@@ -87,27 +87,27 @@ namespace Altinn.App.Models
 
   public class Adresse
   {
-    [XmlElement("adresse1", Order = 1)]
+    [XmlElement("adresse1", Order = 1, IsNullable = true)]
     [JsonProperty("adresse1")]
     [JsonPropertyName("adresse1")]
     public string adresse1 { get; set; }
 
-    [XmlElement("adresse2", Order = 2)]
+    [XmlElement("adresse2", Order = 2, IsNullable = true)]
     [JsonProperty("adresse2")]
     [JsonPropertyName("adresse2")]
     public string adresse2 { get; set; }
 
-    [XmlElement("postnummer", Order = 3)]
+    [XmlElement("postnummer", Order = 3, IsNullable = true)]
     [JsonProperty("postnummer")]
     [JsonPropertyName("postnummer")]
     public string postnummer { get; set; }
 
-    [XmlElement("poststed", Order = 4)]
+    [XmlElement("poststed", Order = 4, IsNullable = true)]
     [JsonProperty("poststed")]
     [JsonPropertyName("poststed")]
     public string poststed { get; set; }
 
-    [XmlElement("land", Order = 5)]
+    [XmlElement("land", Order = 5, IsNullable = true)]
     [JsonProperty("land")]
     [JsonPropertyName("land")]
     public string land { get; set; }
@@ -116,12 +116,12 @@ namespace Altinn.App.Models
 
   public class InnsenderOrganisasjon
   {
-    [XmlElement("kontaktperson", Order = 1)]
+    [XmlElement("kontaktperson", Order = 1, IsNullable = true)]
     [JsonProperty("kontaktperson")]
     [JsonPropertyName("kontaktperson")]
     public string kontaktperson { get; set; }
 
-    [XmlElement("organisasjonsnavn", Order = 2)]
+    [XmlElement("organisasjonsnavn", Order = 2, IsNullable = true)]
     [JsonProperty("organisasjonsnavn")]
     [JsonPropertyName("organisasjonsnavn")]
     public string organisasjonsnavn { get; set; }
@@ -158,7 +158,7 @@ namespace Altinn.App.Models
 
   public class HvemGjelderHenvendelsen
   {
-    [XmlElement("navn", Order = 1)]
+    [XmlElement("navn", Order = 1, IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public string navn { get; set; }
@@ -179,7 +179,7 @@ namespace Altinn.App.Models
 
   public class HvorSkalHenvendelsenSendes
   {
-    [XmlElement("fylke", Order = 1)]
+    [XmlElement("fylke", Order = 1, IsNullable = true)]
     [JsonProperty("fylke")]
     [JsonPropertyName("fylke")]
     public string fylke { get; set; }
@@ -188,7 +188,7 @@ namespace Altinn.App.Models
 
   public class SkjemaSpesifikt
   {
-    [XmlElement("andreBehov", Order = 1)]
+    [XmlElement("andreBehov", Order = 1, IsNullable = true)]
     [JsonProperty("andreBehov")]
     [JsonPropertyName("andreBehov")]
     public string andreBehov { get; set; }
@@ -283,12 +283,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("hjelpeapparat")]
     public Hjelpeapparat hjelpeapparat { get; set; }
 
-    [XmlElement("endringEllerNy", Order = 20)]
+    [XmlElement("endringEllerNy", Order = 20, IsNullable = true)]
     [JsonProperty("endringEllerNy")]
     [JsonPropertyName("endringEllerNy")]
     public string endringEllerNy { get; set; }
 
-    [XmlElement("innsenderRelasjon", Order = 21)]
+    [XmlElement("innsenderRelasjon", Order = 21, IsNullable = true)]
     [JsonProperty("innsenderRelasjon")]
     [JsonPropertyName("innsenderRelasjon")]
     public string innsenderRelasjon { get; set; }
@@ -297,12 +297,12 @@ namespace Altinn.App.Models
 
   public class Bank
   {
-    [XmlElement("bankRepresentasjon", Order = 1)]
+    [XmlElement("bankRepresentasjon", Order = 1, IsNullable = true)]
     [JsonProperty("bankRepresentasjon")]
     [JsonPropertyName("bankRepresentasjon")]
     public string bankRepresentasjon { get; set; }
 
-    [XmlElement("bankLaan", Order = 2)]
+    [XmlElement("bankLaan", Order = 2, IsNullable = true)]
     [JsonProperty("bankLaan")]
     [JsonPropertyName("bankLaan")]
     public string bankLaan { get; set; }
@@ -311,7 +311,7 @@ namespace Altinn.App.Models
 
   public class Forsikringsselskap
   {
-    [XmlElement("forsikringForvalte", Order = 1)]
+    [XmlElement("forsikringForvalte", Order = 1, IsNullable = true)]
     [JsonProperty("forsikringForvalte")]
     [JsonPropertyName("forsikringForvalte")]
     public string forsikringForvalte { get; set; }
@@ -320,12 +320,12 @@ namespace Altinn.App.Models
 
   public class Helfo
   {
-    [XmlElement("helfoRefusjon", Order = 1)]
+    [XmlElement("helfoRefusjon", Order = 1, IsNullable = true)]
     [JsonProperty("helfoRefusjon")]
     [JsonPropertyName("helfoRefusjon")]
     public string helfoRefusjon { get; set; }
 
-    [XmlElement("helfoFastlege", Order = 2)]
+    [XmlElement("helfoFastlege", Order = 2, IsNullable = true)]
     [JsonProperty("helfoFastlege")]
     [JsonPropertyName("helfoFastlege")]
     public string helfoFastlege { get; set; }
@@ -334,12 +334,12 @@ namespace Altinn.App.Models
 
   public class Husbanken
   {
-    [XmlElement("husbankenBostoette", Order = 1)]
+    [XmlElement("husbankenBostoette", Order = 1, IsNullable = true)]
     [JsonProperty("husbankenBostoette")]
     [JsonPropertyName("husbankenBostoette")]
     public string husbankenBostoette { get; set; }
 
-    [XmlElement("husbankenStartlaan", Order = 2)]
+    [XmlElement("husbankenStartlaan", Order = 2, IsNullable = true)]
     [JsonProperty("husbankenStartlaan")]
     [JsonPropertyName("husbankenStartlaan")]
     public string husbankenStartlaan { get; set; }
@@ -348,7 +348,7 @@ namespace Altinn.App.Models
 
   public class Inkassoselskap
   {
-    [XmlElement("inkasseForhandle", Order = 1)]
+    [XmlElement("inkasseForhandle", Order = 1, IsNullable = true)]
     [JsonProperty("inkasseForhandle")]
     [JsonPropertyName("inkasseForhandle")]
     public string inkasseForhandle { get; set; }
@@ -357,7 +357,7 @@ namespace Altinn.App.Models
 
   public class Innkreving
   {
-    [XmlElement("innkrevingGjeldsordning", Order = 1)]
+    [XmlElement("innkrevingGjeldsordning", Order = 1, IsNullable = true)]
     [JsonProperty("innkrevingGjeldsordning")]
     [JsonPropertyName("innkrevingGjeldsordning")]
     public string innkrevingGjeldsordning { get; set; }
@@ -366,37 +366,37 @@ namespace Altinn.App.Models
 
   public class Kartverket
   {
-    [XmlElement("kartSalgEiendom", Order = 1)]
+    [XmlElement("kartSalgEiendom", Order = 1, IsNullable = true)]
     [JsonProperty("kartSalgEiendom")]
     [JsonPropertyName("kartSalgEiendom")]
     public string kartSalgEiendom { get; set; }
 
-    [XmlElement("kartKjoepEiendom", Order = 2)]
+    [XmlElement("kartKjoepEiendom", Order = 2, IsNullable = true)]
     [JsonProperty("kartKjoepEiendom")]
     [JsonPropertyName("kartKjoepEiendom")]
     public string kartKjoepEiendom { get; set; }
 
-    [XmlElement("kartArv", Order = 3)]
+    [XmlElement("kartArv", Order = 3, IsNullable = true)]
     [JsonProperty("kartArv")]
     [JsonPropertyName("kartArv")]
     public string kartArv { get; set; }
 
-    [XmlElement("kartEndreEiendom", Order = 4)]
+    [XmlElement("kartEndreEiendom", Order = 4, IsNullable = true)]
     [JsonProperty("kartEndreEiendom")]
     [JsonPropertyName("kartEndreEiendom")]
     public string kartEndreEiendom { get; set; }
 
-    [XmlElement("kartAvtaler", Order = 5)]
+    [XmlElement("kartAvtaler", Order = 5, IsNullable = true)]
     [JsonProperty("kartAvtaler")]
     [JsonPropertyName("kartAvtaler")]
     public string kartAvtaler { get; set; }
 
-    [XmlElement("kartSletting", Order = 6)]
+    [XmlElement("kartSletting", Order = 6, IsNullable = true)]
     [JsonProperty("kartSletting")]
     [JsonPropertyName("kartSletting")]
     public string kartSletting { get; set; }
 
-    [XmlElement("kartLaaneopptak", Order = 7)]
+    [XmlElement("kartLaaneopptak", Order = 7, IsNullable = true)]
     [JsonProperty("kartLaaneopptak")]
     [JsonPropertyName("kartLaaneopptak")]
     public string kartLaaneopptak { get; set; }
@@ -405,27 +405,27 @@ namespace Altinn.App.Models
 
   public class Kommune
   {
-    [XmlElement("kommuneBygg", Order = 1)]
+    [XmlElement("kommuneBygg", Order = 1, IsNullable = true)]
     [JsonProperty("kommuneBygg")]
     [JsonPropertyName("kommuneBygg")]
     public string kommuneBygg { get; set; }
 
-    [XmlElement("kommuneHelse", Order = 2)]
+    [XmlElement("kommuneHelse", Order = 2, IsNullable = true)]
     [JsonProperty("kommuneHelse")]
     [JsonPropertyName("kommuneHelse")]
     public string kommuneHelse { get; set; }
 
-    [XmlElement("kommuneSosial", Order = 3)]
+    [XmlElement("kommuneSosial", Order = 3, IsNullable = true)]
     [JsonProperty("kommuneSosial")]
     [JsonPropertyName("kommuneSosial")]
     public string kommuneSosial { get; set; }
 
-    [XmlElement("kommuneSkole", Order = 4)]
+    [XmlElement("kommuneSkole", Order = 4, IsNullable = true)]
     [JsonProperty("kommuneSkole")]
     [JsonPropertyName("kommuneSkole")]
     public string kommuneSkole { get; set; }
 
-    [XmlElement("kommuneSkatt", Order = 5)]
+    [XmlElement("kommuneSkatt", Order = 5, IsNullable = true)]
     [JsonProperty("kommuneSkatt")]
     [JsonPropertyName("kommuneSkatt")]
     public string kommuneSkatt { get; set; }
@@ -434,7 +434,7 @@ namespace Altinn.App.Models
 
   public class Kredittvurderingsselskap
   {
-    [XmlElement("kredittKredittsperre", Order = 1)]
+    [XmlElement("kredittKredittsperre", Order = 1, IsNullable = true)]
     [JsonProperty("kredittKredittsperre")]
     [JsonPropertyName("kredittKredittsperre")]
     public string kredittKredittsperre { get; set; }
@@ -443,12 +443,12 @@ namespace Altinn.App.Models
 
   public class Namsmannen
   {
-    [XmlElement("namsmannenGjeldsordning", Order = 1)]
+    [XmlElement("namsmannenGjeldsordning", Order = 1, IsNullable = true)]
     [JsonProperty("namsmannenGjeldsordning")]
     [JsonPropertyName("namsmannenGjeldsordning")]
     public string namsmannenGjeldsordning { get; set; }
 
-    [XmlElement("namsmannenTvangsfullbyrdelse", Order = 2)]
+    [XmlElement("namsmannenTvangsfullbyrdelse", Order = 2, IsNullable = true)]
     [JsonProperty("namsmannenTvangsfullbyrdelse")]
     [JsonPropertyName("namsmannenTvangsfullbyrdelse")]
     public string namsmannenTvangsfullbyrdelse { get; set; }
@@ -457,27 +457,27 @@ namespace Altinn.App.Models
 
   public class Nav
   {
-    [XmlElement("navArbeid", Order = 1)]
+    [XmlElement("navArbeid", Order = 1, IsNullable = true)]
     [JsonProperty("navArbeid")]
     [JsonPropertyName("navArbeid")]
     public string navArbeid { get; set; }
 
-    [XmlElement("navFamilie", Order = 2)]
+    [XmlElement("navFamilie", Order = 2, IsNullable = true)]
     [JsonProperty("navFamilie")]
     [JsonPropertyName("navFamilie")]
     public string navFamilie { get; set; }
 
-    [XmlElement("navHjelpemidler", Order = 3)]
+    [XmlElement("navHjelpemidler", Order = 3, IsNullable = true)]
     [JsonProperty("navHjelpemidler")]
     [JsonPropertyName("navHjelpemidler")]
     public string navHjelpemidler { get; set; }
 
-    [XmlElement("navPensjon", Order = 4)]
+    [XmlElement("navPensjon", Order = 4, IsNullable = true)]
     [JsonProperty("navPensjon")]
     [JsonPropertyName("navPensjon")]
     public string navPensjon { get; set; }
 
-    [XmlElement("navSosial", Order = 5)]
+    [XmlElement("navSosial", Order = 5, IsNullable = true)]
     [JsonProperty("navSosial")]
     [JsonPropertyName("navSosial")]
     public string navSosial { get; set; }
@@ -486,7 +486,7 @@ namespace Altinn.App.Models
 
   public class Pasientreiser
   {
-    [XmlElement("pasientRefusjon", Order = 1)]
+    [XmlElement("pasientRefusjon", Order = 1, IsNullable = true)]
     [JsonProperty("pasientRefusjon")]
     [JsonPropertyName("pasientRefusjon")]
     public string pasientRefusjon { get; set; }
@@ -495,22 +495,22 @@ namespace Altinn.App.Models
 
   public class Skatteetaten
   {
-    [XmlElement("skattInnkreving", Order = 1)]
+    [XmlElement("skattInnkreving", Order = 1, IsNullable = true)]
     [JsonProperty("skattInnkreving")]
     [JsonPropertyName("skattInnkreving")]
     public string skattInnkreving { get; set; }
 
-    [XmlElement("skattPostadresse", Order = 2)]
+    [XmlElement("skattPostadresse", Order = 2, IsNullable = true)]
     [JsonProperty("skattPostadresse")]
     [JsonPropertyName("skattPostadresse")]
     public string skattPostadresse { get; set; }
 
-    [XmlElement("skattFlytting", Order = 3)]
+    [XmlElement("skattFlytting", Order = 3, IsNullable = true)]
     [JsonProperty("skattFlytting")]
     [JsonPropertyName("skattFlytting")]
     public string skattFlytting { get; set; }
 
-    [XmlElement("skattSkatt", Order = 4)]
+    [XmlElement("skattSkatt", Order = 4, IsNullable = true)]
     [JsonProperty("skattSkatt")]
     [JsonPropertyName("skattSkatt")]
     public string skattSkatt { get; set; }
@@ -519,17 +519,17 @@ namespace Altinn.App.Models
 
   public class Tingretten
   {
-    [XmlElement("tingrettUskifte", Order = 1)]
+    [XmlElement("tingrettUskifte", Order = 1, IsNullable = true)]
     [JsonProperty("tingrettUskifte")]
     [JsonPropertyName("tingrettUskifte")]
     public string tingrettUskifte { get; set; }
 
-    [XmlElement("tingrettPrivatDoedsbo", Order = 2)]
+    [XmlElement("tingrettPrivatDoedsbo", Order = 2, IsNullable = true)]
     [JsonProperty("tingrettPrivatDoedsbo")]
     [JsonPropertyName("tingrettPrivatDoedsbo")]
     public string tingrettPrivatDoedsbo { get; set; }
 
-    [XmlElement("tingrettBegjaereDoedsbo", Order = 3)]
+    [XmlElement("tingrettBegjaereDoedsbo", Order = 3, IsNullable = true)]
     [JsonProperty("tingrettBegjaereDoedsbo")]
     [JsonPropertyName("tingrettBegjaereDoedsbo")]
     public string tingrettBegjaereDoedsbo { get; set; }
@@ -538,27 +538,27 @@ namespace Altinn.App.Models
 
   public class OEvrige
   {
-    [XmlElement("oevrigeKjoepVarer", Order = 1)]
+    [XmlElement("oevrigeKjoepVarer", Order = 1, IsNullable = true)]
     [JsonProperty("oevrigeKjoepVarer")]
     [JsonPropertyName("oevrigeKjoepVarer")]
     public string oevrigeKjoepVarer { get; set; }
 
-    [XmlElement("oevrigeHusleiekontrakt", Order = 2)]
+    [XmlElement("oevrigeHusleiekontrakt", Order = 2, IsNullable = true)]
     [JsonProperty("oevrigeHusleiekontrakt")]
     [JsonPropertyName("oevrigeHusleiekontrakt")]
     public string oevrigeHusleiekontrakt { get; set; }
 
-    [XmlElement("oevrigeLoesoere", Order = 3)]
+    [XmlElement("oevrigeLoesoere", Order = 3, IsNullable = true)]
     [JsonProperty("oevrigeLoesoere")]
     [JsonPropertyName("oevrigeLoesoere")]
     public string oevrigeLoesoere { get; set; }
 
-    [XmlElement("oevrigeUtgifter", Order = 4)]
+    [XmlElement("oevrigeUtgifter", Order = 4, IsNullable = true)]
     [JsonProperty("oevrigeUtgifter")]
     [JsonPropertyName("oevrigeUtgifter")]
     public string oevrigeUtgifter { get; set; }
 
-    [XmlElement("oevrigeAvslutteHusleie", Order = 5)]
+    [XmlElement("oevrigeAvslutteHusleie", Order = 5, IsNullable = true)]
     [JsonProperty("oevrigeAvslutteHusleie")]
     [JsonPropertyName("oevrigeAvslutteHusleie")]
     public string oevrigeAvslutteHusleie { get; set; }
@@ -567,12 +567,12 @@ namespace Altinn.App.Models
 
   public class Statsforvalter
   {
-    [XmlElement("statsforvalterTvangsvedtak", Order = 1)]
+    [XmlElement("statsforvalterTvangsvedtak", Order = 1, IsNullable = true)]
     [JsonProperty("statsforvalterTvangsvedtak")]
     [JsonPropertyName("statsforvalterTvangsvedtak")]
     public string statsforvalterTvangsvedtak { get; set; }
 
-    [XmlElement("statsforvalterSamtykke", Order = 2)]
+    [XmlElement("statsforvalterSamtykke", Order = 2, IsNullable = true)]
     [JsonProperty("statsforvalterSamtykke")]
     [JsonPropertyName("statsforvalterSamtykke")]
     public string statsforvalterSamtykke { get; set; }
@@ -581,22 +581,22 @@ namespace Altinn.App.Models
 
   public class Vergehaver
   {
-    [XmlElement("telefonsamtaleMulig", Order = 1)]
+    [XmlElement("telefonsamtaleMulig", Order = 1, IsNullable = true)]
     [JsonProperty("telefonsamtaleMulig")]
     [JsonPropertyName("telefonsamtaleMulig")]
     public string telefonsamtaleMulig { get; set; }
 
-    [XmlElement("telefonsamtaleHvorfor", Order = 2)]
+    [XmlElement("telefonsamtaleHvorfor", Order = 2, IsNullable = true)]
     [JsonProperty("telefonsamtaleHvorfor")]
     [JsonPropertyName("telefonsamtaleHvorfor")]
     public string telefonsamtaleHvorfor { get; set; }
 
-    [XmlElement("borPaaInstitusjon", Order = 3)]
+    [XmlElement("borPaaInstitusjon", Order = 3, IsNullable = true)]
     [JsonProperty("borPaaInstitusjon")]
     [JsonPropertyName("borPaaInstitusjon")]
     public string borPaaInstitusjon { get; set; }
 
-    [XmlElement("hvilkenInstitusjon", Order = 4)]
+    [XmlElement("hvilkenInstitusjon", Order = 4, IsNullable = true)]
     [JsonProperty("hvilkenInstitusjon")]
     [JsonPropertyName("hvilkenInstitusjon")]
     public string hvilkenInstitusjon { get; set; }
@@ -622,7 +622,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("telefonnummer")]
     public string telefonnummer { get; set; }
 
-    [XmlElement("navn", Order = 2)]
+    [XmlElement("navn", Order = 2, IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public string navn { get; set; }

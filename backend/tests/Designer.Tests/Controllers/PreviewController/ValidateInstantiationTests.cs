@@ -18,7 +18,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Post_ValidateInstantiation_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/v1/parties/validateInstantiation";
+            string dataPathWithData = $"{Org}/{AppV3}/api/v1/parties/validateInstantiation";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Post, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

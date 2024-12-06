@@ -1,12 +1,16 @@
-name: Playwright Tests in Dev
+name: Playwright Tests in Staging
 
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'frontend/**'
-      - '.githib/workflow/playwright.yml'
+      - '.github/workflows/playwright.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   playwright-run:
@@ -28,7 +32,7 @@ jobs:
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: yarn-cache
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
@@ -36,17 +40,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Attempt to wait for deploy to environment (10 minutes sleep)
-        run: sleep 10m
-        shell: bash
+      - name: Attempt to wait for deploy to environment (15 minutes sleep)
+        run: |
+          if [ "${{ github.run_attempt }}" != "1" ]; then
+            echo "Skip waiting for deploy, since this is a re-run of the pipeline."
+          else
+            sleep 15m
+          fi
 
       - name: Playwright run
         working-directory: frontend/testing/playwright
         env:
-          PLAYWRIGHT_TEST_BASE_URL: 'https://dev.altinn.studio'
+          PLAYWRIGHT_TEST_BASE_URL: 'https://staging.altinn.studio'
           PLAYWRIGHT_USER: 'AutoTest'
           PLAYWRIGHT_PASS: ${{ secrets.AUTO_TEST_USER_PWD }}
-          GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_DEV }}
+          GITEA_ACCESS_TOKEN: ${{ secrets.AUTO_TEST_USER_TOKEN_STAGING }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           yarn
@@ -59,4 +67,4 @@ jobs:
         if: failure()
         with:
           name: playwright-screenshots
-          path: frontend/testing/playwright/screenshots
+          path: frontend/testing/playwright/test-results

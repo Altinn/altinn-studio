@@ -5,7 +5,7 @@ on:
     paths:
       - 'frontend/app-development/**'
       - 'frontend/packages/ux-editor/**'
-      - 'frontend/stats/**'
+      - 'frontend/scripts/configurationStats/**'
       - '.github/workflows/frontend-config-coverage.yml'
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: 'Installing Dependencies'
-        run: cd frontend/stats && yarn --immutable
+        run: cd frontend/scripts && yarn --immutable
 
       - name: 'Running stats generation'
-        run: cd frontend/stats && yarn run generate-config-coverage-stats
+        run: cd frontend/scripts && yarn run generate-config-coverage-stats

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { TextTableRowEntry, UpsertTextResourceMutation } from './types';
-import { Textarea } from '@digdir/design-system-react';
+import type { TextTableRowEntry } from './types';
+import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
+import { Textarea } from '@digdir/designsystemet-react';
 import { Variables } from './Variables';
-import { useAutoSizeTextArea } from './hooks/useAutoSizeTextArea';
+import { useAutoSizeTextArea } from 'app-shared/hooks/useAutoSizeTextArea';
 import { APP_NAME } from 'app-shared/constants';
-import { FormField } from '../../shared/src/components/FormField/FormField';
+import { FormField } from 'app-shared/components/FormField/FormField';
 import { useTranslation } from 'react-i18next';
 
 export interface TextEntryProps extends TextTableRowEntry {
@@ -48,7 +49,10 @@ export const TextEntry = ({
         renderField={({ fieldProps }) => (
           <Textarea
             {...fieldProps}
-            aria-label={lang + ' translation'}
+            aria-label={t('text_editor.table_row_input_label', {
+              lang: t(`language.${lang}`),
+              textKey: textId,
+            })}
             value={textEntryValue}
             onBlur={handleTextEntryBlur}
             onChange={handleTextEntryChange}

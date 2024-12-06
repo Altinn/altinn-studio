@@ -1,14 +1,16 @@
 import React, { forwardRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Paragraph, Modal } from '@digdir/design-system-react';
+import { toast } from 'react-toastify';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { ResourceNameAndId } from '../ResourceNameAndId';
 import { useCreateResourceMutation } from '../../hooks/mutations';
 import type { NewResource } from 'app-shared/types/ResourceAdm';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { useTranslation } from 'react-i18next';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { useUrlParams } from '../../hooks/useSelectedContext';
-import { StudioButton } from '@studio/components';
+import { useUrlParams } from '../../hooks/useUrlParams';
+import { StudioButton, StudioModal } from '@studio/components';
+import { getResourceIdentifierErrorMessage } from '../../utils/resourceUtils';
 
 export type NewResourceModalProps = {
   onClose: () => void;
@@ -28,14 +30,19 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
 
     const navigate = useNavigate();
 
-    const { selectedContext, repo } = useUrlParams();
+    const { org, app } = useUrlParams();
 
     const [id, setId] = useState('');
     const [title, setTitle] = useState('');
     const [resourceIdExists, setResourceIdExists] = useState(false);
 
     // Mutation function to create new resource
-    const { mutate: createNewResource } = useCreateResourceMutation(selectedContext);
+    const { mutate: createNewResource, isPending: isCreatingResource } =
+      useCreateResourceMutation(org);
+
+    const idErrorMessage = getResourceIdentifierErrorMessage(id, resourceIdExists);
+    const hasValidValues =
+      id.length >= 4 && title.length !== 0 && !idErrorMessage && !isCreatingResource;
 
     /**
      * Creates a new resource in backend, and navigates if success
@@ -51,8 +58,15 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
       };
 
       createNewResource(idAndTitle, {
-        onSuccess: () =>
-          navigate(getResourcePageURL(selectedContext, repo, idAndTitle.identifier, 'about')),
+        onSuccess: () => {
+          toast.success(
+            t('resourceadm.dashboard_create_resource_success', {
+              resourceName: idAndTitle.title.nb,
+            }),
+          );
+          navigate(getResourcePageURL(org, app, idAndTitle.identifier, 'about'));
+        },
+
         onError: (error: any) => {
           if (error.response.status === ServerCodes.Conflict) {
             setResourceIdExists(true);
@@ -72,9 +86,27 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
     };
 
     return (
-      <Modal ref={ref} onClose={handleClose}>
-        <Modal.Header>{t('resourceadm.dashboard_create_modal_title')}</Modal.Header>
-        <Modal.Content>
+      <StudioModal.Root>
+        <StudioModal.Dialog
+          ref={ref}
+          onClose={handleClose}
+          closeButtonTitle={t('resourceadm.close_modal')}
+          heading={t('resourceadm.dashboard_create_modal_title')}
+          footer={
+            <>
+              <StudioButton
+                onClick={() => (hasValidValues ? handleCreateNewResource() : undefined)}
+                color='first'
+                aria-disabled={!hasValidValues}
+              >
+                {t('resourceadm.dashboard_create_modal_create_button')}
+              </StudioButton>
+              <StudioButton onClick={handleClose} color='first' variant='tertiary'>
+                {t('general.cancel')}
+              </StudioButton>
+            </>
+          }
+        >
           <Paragraph size='small'>
             {t('resourceadm.dashboard_create_modal_resource_name_and_id_text')}
           </Paragraph>
@@ -88,27 +120,10 @@ export const NewResourceModal = forwardRef<HTMLDialogElement, NewResourceModalPr
               setId(newId);
             }}
             onTitleChange={(newTitle: string) => setTitle(newTitle)}
-            conflictErrorMessage={
-              resourceIdExists ? t('resourceadm.dashboard_resource_name_and_id_error') : ''
-            }
+            conflictErrorMessage={idErrorMessage ? t(idErrorMessage) : ''}
           />
-        </Modal.Content>
-        <Modal.Footer>
-          <StudioButton
-            onClick={() =>
-              !(id.length === 0 || title.length === 0) ? handleCreateNewResource() : undefined
-            }
-            color='first'
-            aria-disabled={id.length === 0 || title.length === 0}
-            size='small'
-          >
-            {t('resourceadm.dashboard_create_modal_create_button')}
-          </StudioButton>
-          <StudioButton onClick={handleClose} color='first' variant='tertiary' size='small'>
-            {t('general.cancel')}
-          </StudioButton>
-        </Modal.Footer>
-      </Modal>
+        </StudioModal.Dialog>
+      </StudioModal.Root>
     );
   },
 );

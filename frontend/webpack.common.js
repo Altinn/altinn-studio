@@ -11,16 +11,15 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {
-      'app-shared': path.resolve(__dirname, 'packages/shared/src'),
+      '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
+      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
       '@altinn/schema-model': path.resolve(__dirname, 'packages/schema-model/src'),
+      'app-shared': path.resolve(__dirname, 'packages/shared/src'),
+      '@altinn/text-editor': path.resolve(__dirname, 'packages/text-editor/src'),
       '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor/src'),
-      '@altinn/process-editor': path.resolve(__dirname, 'packages/process-editor/src'),
-      '@altinn/policy-editor': path.resolve(__dirname, 'packages/policy-editor/src'),
-    },
-    fallback: {
-      'react/jsx-runtime': 'react/jsx-runtime.js',
-      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+      '@altinn/ux-editor-v3': path.resolve(__dirname, 'packages/ux-editor-v3/src'),
+      '@studio/testing': path.resolve(__dirname, 'testing'),
     },
   },
   module: {
@@ -32,9 +31,25 @@ module.exports = {
         use: ['@svgr/webpack'],
       },
       {
+        test: /(?<!\.module)\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              url: false,
+            },
+          },
+        ],
+      },
+      {
         test: /\.module\.css$/,
         use: [
-          'style-loader',
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
           {
             loader: 'css-loader',
             options: {
@@ -46,21 +61,8 @@ module.exports = {
               },
               modules: {
                 localIdentName: '[name]__[local]--[hash:base64:5]',
+                namedExport: false,
               },
-            },
-          },
-        ],
-      },
-      {
-        test: /(?<!\.module)\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              url: false,
             },
           },
         ],

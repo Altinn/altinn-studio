@@ -1,1 +1,1 @@
-export { ResourceDashboardPage } from './ResourceDashboardPage'
+export { ResourceDashboardPage } from './ResourceDashboardPage';

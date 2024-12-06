@@ -1,8 +1,6 @@
-
 ## Ressurs-prosjektet
 
 Resourceadm er nå et sub-repo av Altinn Studio monorepo.
-
 
 ### Prosjektet
 

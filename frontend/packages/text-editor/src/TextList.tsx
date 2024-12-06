@@ -1,20 +1,14 @@
 import React, { useMemo } from 'react';
 import { TextRow } from './TextRow';
-import type {
-  TextResourceEntryDeletion,
-  TextResourceIdMutation,
-  UpsertTextResourceMutation,
-} from './types';
+import type { TextResourceEntryDeletion, TextResourceIdMutation, TextTableRow } from './types';
+import type { UpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 import { filterFunction, getLangName } from './utils';
-import { TextTableRow } from './types';
-import {
-  LegacyTable,
-  LegacyTableBody,
-  LegacyTableCell,
-  LegacyTableHeader,
-  LegacyTableRow,
-} from '@digdir/design-system-react';
+import classes from './TextList.module.css';
+import { useTranslation } from 'react-i18next';
 import { APP_NAME } from 'app-shared/constants';
+import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { Table } from '@digdir/designsystemet-react';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -30,43 +24,52 @@ export const TextList = ({
   selectedLanguages,
   ...rest
 }: TextListProps) => {
+  const { org, app } = useStudioEnvironmentParams();
+  const { t } = useTranslation();
+  const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
+
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
   const idExists = (textId: string): boolean => textIds.includes(textId);
   const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
 
   return (
-    <LegacyTable>
-      <LegacyTableHeader>
-        <LegacyTableRow>
-          <LegacyTableCell />
+    <Table className={classes.textListTable}>
+      <Table.Head>
+        <Table.Row>
+          <Table.HeaderCell />
           {selectedLanguages.map((language) => (
-            <LegacyTableCell
+            <Table.HeaderCell
               id={getTableHeaderCellId(language)}
               key={getTableHeaderCellId(language)}
             >
               {getLangName({ code: language })}
-            </LegacyTableCell>
+            </Table.HeaderCell>
           ))}
-          <LegacyTableCell>Tekstnøkkel</LegacyTableCell>
-          <LegacyTableCell>Variabler</LegacyTableCell>
-        </LegacyTableRow>
-      </LegacyTableHeader>
-      <LegacyTableBody>
+          <Table.HeaderCell>{t('text_editor.table_header_text_key')}</Table.HeaderCell>
+          <Table.HeaderCell>{t('text_editor.table_header_variables')}</Table.HeaderCell>
+        </Table.Row>
+      </Table.Head>
+      <Table.Body>
         {resourceRows
           .filter((row) => filterFunction(row.textKey, row.translations, searchQuery))
-          .map((row) => (
-            <TextRow
-              key={`${row.translations[0].lang}.${row.textKey}`}
-              textId={row.textKey}
-              idExists={idExists}
-              textRowEntries={row.translations}
-              variables={row.variables || []}
-              selectedLanguages={selectedLanguages}
-              showButton={row.textKey !== APP_NAME}
-              {...rest}
-            />
-          ))}
-      </LegacyTableBody>
-    </LegacyTable>
+          .map((row) => {
+            const keyIsAppName = row.textKey === APP_NAME;
+            const keyIsLayoutName = !layoutNamesPending && layoutNames.includes(row.textKey);
+            return (
+              <TextRow
+                key={`${row.translations[0].lang}.${row.textKey}`}
+                textId={row.textKey}
+                idExists={idExists}
+                textRowEntries={row.translations}
+                variables={row.variables || []}
+                selectedLanguages={selectedLanguages}
+                showDeleteButton={!keyIsAppName}
+                showEditButton={!keyIsAppName && !keyIsLayoutName}
+                {...rest}
+              />
+            );
+          })}
+      </Table.Body>
+    </Table>
   );
 };

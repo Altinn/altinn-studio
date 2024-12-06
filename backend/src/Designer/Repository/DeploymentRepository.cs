@@ -32,9 +32,7 @@ namespace Altinn.Studio.Designer.Repository
         /// </summary>
         public DeploymentRepository(PostgreSQLSettings postgresSettings, ILogger<DeploymentRepository> logger)
         {
-            _connectionString = string.Format(
-                postgresSettings.ConnectionString,
-                postgresSettings.DesignerDbPwd);
+            _connectionString = postgresSettings.FormattedConnectionString();
             _logger = logger;
         }
 

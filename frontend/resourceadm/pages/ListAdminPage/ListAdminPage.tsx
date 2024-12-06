@@ -1,42 +1,66 @@
-import React, { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Heading, Link as DigdirLink, Paragraph, ToggleGroup } from '@digdir/design-system-react';
-import { StudioSpinner, StudioButton } from '@studio/components';
+import { Heading, ToggleGroup } from '@digdir/designsystemet-react';
+import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
+import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import classes from './ListAdminPage.module.css';
 import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
 import { NewAccessListModal } from '../../components/NewAccessListModal';
 import { getAccessListPageUrl, getResourceDashboardURL } from '../../utils/urlUtils';
-import { useUrlParams } from '../../hooks/useSelectedContext';
-import { getAvailableEnvironments } from '../../utils/resourceUtils/resourceUtils';
+import { useUrlParams } from '../../hooks/useUrlParams';
+import type { EnvId } from '../../utils/resourceUtils';
+import { getAvailableEnvironments, getEnvLabel } from '../../utils/resourceUtils';
+import { AccessListErrorMessage } from '../../components/AccessListErrorMessage';
+import type { ResourceError } from 'app-shared/types/ResourceAdm';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export const ListAdminPage = (): React.JSX.Element => {
   const { t } = useTranslation();
-  const { selectedContext, repo, env: selectedEnv } = useUrlParams();
+  const navigate = useNavigate();
+  const { org, app, env: selectedEnv } = useUrlParams();
 
-  const { data: envListData, isLoading: isLoadingEnvListData } = useGetAccessListsQuery(
-    selectedContext,
-    selectedEnv,
+  const {
+    data: envListData,
+    isLoading: isLoadingEnvListData,
+    hasNextPage,
+    isFetchingNextPage,
+    error: listFetchError,
+    fetchNextPage,
+  } = useGetAccessListsQuery(org, selectedEnv);
+
+  const navigateToListEnv = useCallback(
+    (navigateEnv: EnvId, replace?: boolean) => {
+      navigate(getAccessListPageUrl(org, app, navigateEnv), { replace: replace });
+    },
+    [org, app, navigate],
   );
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (!selectedEnv) {
+      const availableEnvs = getAvailableEnvironments(org);
+      navigateToListEnv(availableEnvs[0].id, true);
+    }
+  }, [org, selectedEnv, navigateToListEnv]);
+
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(getResourceDashboardURL(org, app));
+  };
+
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
 
   return (
     <div className={classes.listAdminPageWrapper}>
-      <DigdirLink as={Link} to={getResourceDashboardURL(selectedContext, repo)}>
+      <StudioLink href={getResourceDashboardURL(org, app)} onClick={handleBackClick}>
         {t('resourceadm.listadmin_back')}
-      </DigdirLink>
+      </StudioLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_header')}
       </Heading>
-      <Paragraph size='small'>{t('resourceadm.listadmin_select_environment')}</Paragraph>
       <div className={classes.environmentSelectorWrapper}>
-        <ToggleGroup
-          onChange={(newValue) => navigate(getAccessListPageUrl(selectedContext, repo, newValue))}
-          value={selectedEnv}
-        >
-          {getAvailableEnvironments(selectedContext).map((environment) => {
+        <ToggleGroup size='small' onChange={navigateToListEnv} value={selectedEnv}>
+          {getAvailableEnvironments(org).map((environment) => {
             return (
               <ToggleGroup.Item key={environment.id} value={environment.id}>
                 {t(environment.label)}
@@ -44,38 +68,76 @@ export const ListAdminPage = (): React.JSX.Element => {
             );
           })}
         </ToggleGroup>
-      </div>
-      {selectedEnv && (
-        <div className={classes.environmentLinkWrapper}>
-          <NewAccessListModal
-            ref={createAccessListModalRef}
-            org={selectedContext}
-            env={selectedEnv}
-            navigateUrl={getAccessListPageUrl(selectedContext, repo, selectedEnv)}
-            onClose={() => createAccessListModalRef.current?.close()}
-          />
-          {isLoadingEnvListData && <StudioSpinner />}
-          {!!envListData &&
-            envListData.map((x) => {
-              return (
-                <div key={x.identifier}>
-                  <DigdirLink
-                    as={Link}
-                    to={getAccessListPageUrl(selectedContext, repo, selectedEnv, x.identifier)}
+        {selectedEnv && (
+          <>
+            <NewAccessListModal
+              ref={createAccessListModalRef}
+              org={org}
+              env={selectedEnv as EnvId}
+              navigateUrl={getAccessListPageUrl(org, app, selectedEnv)}
+              onClose={() => createAccessListModalRef.current?.close()}
+            />
+            {listFetchError && (
+              <AccessListErrorMessage
+                error={listFetchError as ResourceError}
+                env={selectedEnv as EnvId}
+              />
+            )}
+            {isLoadingEnvListData && (
+              <StudioSpinner
+                showSpinnerTitle={false}
+                spinnerTitle={t('resourceadm.loading_env_list')}
+              />
+            )}
+            {envListData && (
+              <div>
+                <Heading level={2} size='xsmall'>
+                  {t('resourceadm.listadmin_lists_in', {
+                    environment: t(getEnvLabel(selectedEnv as EnvId)),
+                  })}
+                </Heading>
+                {envListData.pages.map((list) => {
+                  return (
+                    <div key={list.identifier} className={classes.tableRowContent}>
+                      <div>{list.name}</div>
+                      <ButtonRouterLink
+                        aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                        icon={<PencilWritingIcon />}
+                        iconPlacement='right'
+                        to={getAccessListPageUrl(org, app, selectedEnv, list.identifier)}
+                        variant='tertiary'
+                      >
+                        {t('resourceadm.listadmin_edit_list')}
+                      </ButtonRouterLink>
+                    </div>
+                  );
+                })}
+                {hasNextPage && (
+                  <StudioButton
+                    disabled={isFetchingNextPage}
+                    variant='tertiary'
+                    onClick={() => fetchNextPage()}
                   >
-                    {x.name}
-                  </DigdirLink>
-                </div>
-              );
-            })}
-          <StudioButton
-            variant='secondary'
-            onClick={() => createAccessListModalRef.current?.showModal()}
-          >
-            {t('resourceadm.listadmin_create_list')}
-          </StudioButton>
-        </div>
-      )}
+                    {t('resourceadm.listadmin_load_more', {
+                      unit: t('resourceadm.listadmin_list_unit'),
+                    })}
+                  </StudioButton>
+                )}
+              </div>
+            )}
+            <div>
+              <StudioButton
+                variant='secondary'
+                icon={<PlusIcon />}
+                iconPlacement='left'
+                onClick={() => createAccessListModalRef.current?.showModal()}
+              >
+                {t('resourceadm.listadmin_create_list')}
+              </StudioButton>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

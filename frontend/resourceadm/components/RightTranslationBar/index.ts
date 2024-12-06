@@ -1,1 +1,1 @@
-export { RightTranslationBar } from './RightTranslationBar'
+export { RightTranslationBar } from './RightTranslationBar';

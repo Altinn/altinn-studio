@@ -12,7 +12,7 @@ describe('convert-node', () => {
       const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
       const promotedNodeMap = convertPropToType(
         SchemaModel.fromArray(uiSchemaNodes),
-        makePointerFromArray([Keyword.Properties, 'world'])
+        makePointerFromArray([Keyword.Properties, 'world']),
       ).asArray();
       expect(buildJsonSchema(promotedNodeMap)).toEqual({
         [Keyword.Properties]: {

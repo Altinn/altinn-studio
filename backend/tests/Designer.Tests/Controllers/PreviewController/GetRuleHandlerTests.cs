@@ -16,7 +16,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_RuleHandler_NoContent()
         {
-            string dataPathWithData = $"{Org}/{App}/api/resource/RuleHandler.js";
+            string dataPathWithData = $"{Org}/{AppV3}/api/resource/RuleHandler.js";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

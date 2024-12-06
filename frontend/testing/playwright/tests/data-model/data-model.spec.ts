@@ -3,10 +3,7 @@ import { test } from '../../extenders/testExtend';
 import { DataModelPage } from '../../pages/DataModelPage';
 import { DesignerApi } from '../../helpers/DesignerApi';
 import type { StorageState } from '../../types/StorageState';
-
-// This line must be there to ensure that the tests do not run in parallell, and
-// that the before all call is being executed before we start the tests
-test.describe.configure({ mode: 'serial' });
+import { Gitea } from '../../helpers/Gitea';
 
 // Before the tests starts, we need to create the data model app
 test.beforeAll(async ({ testAppName, request, storageState }) => {
@@ -16,7 +13,13 @@ test.beforeAll(async ({ testAppName, request, storageState }) => {
   expect(response.ok()).toBeTruthy();
 });
 
-test('Allows to adda datamodel, include an object with custom name and fields in it, generate a C# model from it, and then delete it', async ({
+test.afterAll(async ({ request, testAppName }) => {
+  const gitea = new Gitea();
+  const response = await request.delete(gitea.getDeleteAppEndpoint({ app: testAppName }));
+  expect(response.ok()).toBeTruthy();
+});
+
+test('Allows to add a data model, include an object with properties and a combination, check for visibility of type selector, generate a C# model from it, and then delete it', async ({
   page,
   testAppName,
 }): Promise<void> => {
@@ -25,11 +28,12 @@ test('Allows to adda datamodel, include an object with custom name and fields in
   await dataModelPage.loadDataModelPage();
   await dataModelPage.verifyDataModelPage();
 
-  // Add datamodel
+  // Add data model
   await dataModelPage.clickOnCreateNewDataModelButton();
-  const dataModelName: string = 'datamodel';
+  const dataModelName: string = 'testDataModel';
   await dataModelPage.typeDataModelName(dataModelName);
   await dataModelPage.clickOnCreateModelButton();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
 
   // Add object
   await dataModelPage.clickOnAddPropertyButton();
@@ -42,7 +46,7 @@ test('Allows to adda datamodel, include an object with custom name and fields in
    * the newName sent in, and then checking that the newName is on the screen.
    */
   const replaceName0WithNewTextValue = async (newName: string) => {
-    await dataModelPage.checkThatTreeItemProperyExistsOnScreen(name0);
+    await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(name0);
     await dataModelPage.clickOnTreeItemProperty(name0);
     const nameFieldValue = await dataModelPage.getNameFieldValue();
     expect(nameFieldValue).toEqual(name0);
@@ -51,7 +55,7 @@ test('Allows to adda datamodel, include an object with custom name and fields in
     await dataModelPage.tabOutOfNameField();
     const newNameFieldValue = await dataModelPage.getNameFieldValue();
     expect(newNameFieldValue).toEqual(newName);
-    await dataModelPage.checkThatTreeItemProperyExistsOnScreen(newName);
+    await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(newName);
   };
 
   // Rename the object
@@ -59,38 +63,32 @@ test('Allows to adda datamodel, include an object with custom name and fields in
   await replaceName0WithNewTextValue(treeItemTestName);
   await dataModelPage.clickOnTreeItemProperty(treeItemTestName);
 
-  // Helper function to add a new field to the test object added
-  const addFieldToTheTestNode = async () => {
+  // Helper function to add a new property to the test object added
+  const addPropertyToTheObjectNode = async (property: 'string' | 'number') => {
     await dataModelPage.focusOnTreeItemProperty(treeItemTestName);
-    await dataModelPage.clickOnAddNodeToPropertyButton();
-    await dataModelPage.clickOnAddFieldToNodeButton();
+    await dataModelPage.clickOnObjectAddPropertyButton();
+    await dataModelPage.clickOnAddPropertyToObjectButton(property);
   };
 
-  // Add 'text1' field to the object
-  await addFieldToTheTestNode();
+  // Add 'text' property to the object
+  await addPropertyToTheObjectNode('string');
   await replaceName0WithNewTextValue('text1');
+  await dataModelPage.checkThatTypeComboboxIsHidden();
 
-  // Add 'text2' field to the object
-  await addFieldToTheTestNode();
-  await replaceName0WithNewTextValue('text2');
-
-  // Add 'number' field to the object
-  await addFieldToTheTestNode();
-  await dataModelPage.checkThatTreeItemProperyExistsOnScreen(name0);
+  // Add 'number' property to the object
+  await addPropertyToTheObjectNode('number');
+  await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(name0);
   await dataModelPage.clickOnTreeItemProperty(name0);
-  const oldComboboxValue = await dataModelPage.getTypeComboboxValue();
-  const textOption = dataModelPage.getTypeComboboxOption('text');
-  expect(oldComboboxValue).toEqual(textOption);
-
-  // Change type to integer
-  await dataModelPage.clickOnTypeCombobox();
-  await dataModelPage.clickOnIntegerOption();
-  const newComboboxValue = await dataModelPage.getTypeComboboxValue();
-  const integerOption = dataModelPage.getTypeComboboxOption('integer');
-  expect(newComboboxValue).toEqual(integerOption);
-
-  // Rename the integer
   await replaceName0WithNewTextValue('number1');
+  await dataModelPage.checkThatTypeComboboxIsHidden();
+
+  // Add 'combo' combination property to the object
+  await dataModelPage.clickOnAddPropertyButton();
+  await dataModelPage.clickOnCombinationPropertyMenuItem();
+  await dataModelPage.checkThatTypeComboboxVisible();
+  await dataModelPage.clickOnTypeCombobox();
+  const typeValue = await dataModelPage.getTypeComboboxValue();
+  await dataModelPage.checkThatCorrectValueIsSelected(typeValue);
 
   // Generate the data model
   await dataModelPage.clickOnGenerateDataModelButton();
@@ -110,14 +108,42 @@ test('Allows to upload and then delete an XSD file', async ({ page, testAppName 
   await dataModelPage.verifyDataModelPage();
 
   // Select the file to upload
-  const dataModelName: string = 'testdatamodel';
+  const dataModelName: string = 'testDataModel';
   const dataModelFileName: string = `${dataModelName}.xsd`;
   await dataModelPage.selectFileToUpload(dataModelFileName);
+  await dataModelPage.waitForDataModelToBeUploaded();
+  await dataModelPage.waitForDataModelToAppear(dataModelName);
   const dataModelComboboxValue = await dataModelPage.getDataModelOptionValue(dataModelName);
-  expect(dataModelComboboxValue).toMatch(/\/testdatamodel.schema.json$/);
+  expect(dataModelComboboxValue).toMatch(/\/testDataModel.schema.json$/);
 
   await dataModelPage.checkThatDataModelOptionExists(dataModelName);
   await dataModelPage.clickOnDeleteDataModelButton();
   await dataModelPage.clickOnConfirmDeleteDataModelButton();
   await dataModelPage.checkThatDataModelOptionDoesNotExists(dataModelName);
+});
+
+test('Adding a type and dragging it into an object', async ({ page, testAppName }) => {
+  // Load the data model page
+  const dataModelPage = new DataModelPage(page, { app: testAppName });
+  await dataModelPage.loadDataModelPage();
+  await dataModelPage.verifyDataModelPage();
+
+  // Add a new type
+  await dataModelPage.addType();
+  await dataModelPage.clickOnBackToDataModelButton();
+  const expectedTypeName = 'name0';
+  await dataModelPage.verifyThatTypeIsVisible(expectedTypeName);
+
+  // Add an object
+  await dataModelPage.clickOnAddPropertyButton();
+  await dataModelPage.clickOnAddObjectPropertyMenuItem();
+  const expectedObjectName = 'name1';
+  await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(expectedObjectName);
+
+  // Drag the type into the object
+  const typeItem = dataModelPage.getTypeItem(expectedTypeName);
+  const objectDropArea = dataModelPage.getDroppableList(expectedObjectName);
+  await dataModelPage.dragAndDropManually(typeItem, objectDropArea);
+  const expectedReferenceName = 'ref0';
+  await dataModelPage.checkThatTreeItemPropertyExistsOnScreen(expectedReferenceName);
 });

@@ -1,0 +1,134 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/FileUpload.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FileUpload component",
+  "description": "Schema that describes the layout configuration for a FileUpload component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "FileUpload"
+    },
+    "dataModelBindings": {
+      "title": "Data model bindings",
+      "description": "Data model bindings for component",
+      "type": "object",
+      "properties": {
+        "simpleBinding": {
+          "type": "string",
+          "title": "Simple binding",
+          "description": "Data model binding for file uploader with a single file"
+        },
+        "list": {
+          "type": "string",
+          "title": "List",
+          "description": "Data model binding for file uploader with multiple files"
+        }
+      },
+      "additionalProperties": false
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "maxFileSizeInMB": {
+      "title": "Maximum file size in MB",
+      "description": "Sets the maximum file size allowed in megabytes.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "maxNumberOfAttachments": {
+      "title": "Maximum allowed attachments",
+      "description": "Sets the maximum number of attachments allowed to upload.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "minNumberOfAttachments": {
+      "title": "Minimum allowed attachments",
+      "description": "Sets the minimum number of attachments to upload",
+      "type": "integer",
+      "minimum": 0
+    },
+    "displayMode": {
+      "title": "Display mode",
+      "description": "Sets the display mode for the file upload component. simple: hides the file uploader after 1 file has been uploaded, regardless of maximum number of files allowed. list: shows the file uploader until the maximum number of files has been uploaded.",
+      "type": "string",
+      "enum": ["simple", "list"]
+    },
+    "hasCustomFileEndings": {
+      "title": "Has custom file endings",
+      "description": "Boolean value indicating if the component has valid file endings",
+      "type": "boolean"
+    },
+    "validFileEndings": {
+      "title": "Valid file endings",
+      "description": "A comma separated string of valid file endings to upload. If not set all endings are accepted.",
+      "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": [
+    "id",
+    "type",
+    "displayMode",
+    "maxFileSizeInMB",
+    "maxNumberOfAttachments",
+    "minNumberOfAttachments"
+  ],
+  "additionalProperties": false
+}

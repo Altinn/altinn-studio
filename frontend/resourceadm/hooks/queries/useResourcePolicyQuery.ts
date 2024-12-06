@@ -1,4 +1,5 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { Policy } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
@@ -24,8 +25,8 @@ export const useResourcePolicyQuery = (
     queryFn: () => getPolicy(org, repo, id),
     select: (data) => ({
       rules: data.rules ?? [],
-      requiredAuthenticationLevelEndUser: '3',
-      requiredAuthenticationLevelOrg: '3',
+      requiredAuthenticationLevelEndUser: data.requiredAuthenticationLevelEndUser ?? '3',
+      requiredAuthenticationLevelOrg: data.requiredAuthenticationLevelOrg ?? '3',
     }),
   });
 };

@@ -2,23 +2,25 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Constants;
-using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.Models;
 using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpclients.DelegatingHandlers;
 using Altinn.Studio.Designer.TypedHttpClients.Altinn2Metadata;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthentication;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization;
 using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps;
 using Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers;
+using Altinn.Studio.Designer.TypedHttpClients.EidLogger;
 using Altinn.Studio.Designer.TypedHttpClients.KubernetesWrapper;
+using Altinn.Studio.Designer.TypedHttpClients.MaskinPorten;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
-using Microsoft.AspNetCore.Http;
+using Altinn.Studio.Designer.TypedHttpClients.Slack;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Altinn.Studio.Designer.TypedHttpClients
 {
@@ -51,6 +53,10 @@ namespace Altinn.Studio.Designer.TypedHttpClients
             services.AddHttpClient<IPolicyOptions, PolicyOptionsClient>();
             services.AddHttpClient<IResourceRegistryOptions, ResourceRegistryOptionsClients>();
             services.AddHttpClient<IAltinn2MetadataClient, Altinn2MetadataClient>();
+            services.AddEidLoggerTypedHttpClient(config);
+            services.AddTransient<GiteaTokenDelegatingHandler>();
+            services.AddMaskinportenHttpClient();
+            services.AddSlackClient(config);
 
             return services;
         }
@@ -77,23 +83,20 @@ namespace Altinn.Studio.Designer.TypedHttpClients
 
         private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services,
             IConfiguration config)
-            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
+            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((_, httpClient) =>
                 {
-                    IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                     ServiceRepositorySettings serviceRepoSettings =
-                        config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
+                        config.GetSection(nameof(ServiceRepositorySettings)).Get<ServiceRepositorySettings>();
                     Uri uri = new Uri(serviceRepoSettings.ApiEndPoint);
                     httpClient.BaseAddress = uri;
-                    httpClient.DefaultRequestHeaders.Add(
-                        General.AuthorizationTokenHeaderName,
-                        AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
                 })
                 .ConfigurePrimaryHttpMessageHandler((sp) =>
                 {
                     var handler = new HttpClientHandler { AllowAutoRedirect = true };
 
                     return new Custom401Handler(handler);
-                });
+                })
+                .AddHttpMessageHandler<GiteaTokenDelegatingHandler>();
 
 
         private static IHttpClientBuilder AddAltinnAuthenticationTypedHttpClient(this IServiceCollection services, IConfiguration config)
@@ -112,5 +115,39 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 })
                 .AddHttpMessageHandler<PlatformBearerTokenHandler>()
                 .AddHttpMessageHandler<EnsureSuccessHandler>();
+
+
+        private static IHttpClientBuilder AddEidLoggerTypedHttpClient(this IServiceCollection services, IConfiguration config)
+        {
+            EidLoggerClientSettings eidLoggerClientSettings = config.GetSection("EidLoggerClientSettings").Get<EidLoggerClientSettings>();
+            return services.AddHttpClient<IEidLoggerClient, EidLoggerClient>(client =>
+            {
+                client.BaseAddress = new Uri(eidLoggerClientSettings.BaseUrl);
+            }).AddHttpMessageHandler<EnsureSuccessHandler>();
+        }
+
+        private static IHttpClientBuilder AddMaskinportenHttpClient(this IServiceCollection services)
+        {
+            services.AddScoped<AnsattPortenTokenDelegatingHandler>();
+            return services.AddHttpClient<IMaskinPortenHttpClient, MaskinPortenHttpClient>((serviceProvider, client) =>
+                    {
+                        var options = serviceProvider.GetRequiredService<IOptions<MaskinPortenHttpClientSettings>>().Value;
+                        client.BaseAddress = new Uri(options.BaseUrl);
+                    })
+            .AddHttpMessageHandler<AnsattPortenTokenDelegatingHandler>();
+
+        }
+
+        private static IHttpClientBuilder AddSlackClient(this IServiceCollection services, IConfiguration config)
+        {
+            FeedbackFormSettings feedbackFormSettings = config.GetSection("FeedbackFormSettings").Get<FeedbackFormSettings>();
+            string token = config["FeedbackFormSlackToken"];
+            return services.AddHttpClient<ISlackClient, SlackClient>(client =>
+            {
+                client.BaseAddress = new Uri(feedbackFormSettings.SlackSettings.WebhookUrl + config["FeedbackFormSlackWebhookSecret"]);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
+            }).AddHttpMessageHandler<EnsureSuccessHandler>();
+        }
     }
 }

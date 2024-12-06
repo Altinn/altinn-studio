@@ -1,4 +1,4 @@
-import { FormComponent } from '../types/FormComponent';
+import type { FormComponent } from '../types/FormComponent';
 import { useTranslation } from 'react-i18next';
 import { useValidateComponent } from './useValidateComponent';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -12,7 +12,7 @@ export const useComponentErrorMessage = (component: FormComponent): string | nul
   const { t } = useTranslation();
   const { isValid, error } = useValidateComponent(component);
   if (isValid) return null;
-  switch(component.type) {
+  switch (component.type) {
     case ComponentType.Checkboxes:
       return t(`ux_editor.checkboxes_error_${error}`);
     case ComponentType.RadioButtons:
@@ -20,4 +20,4 @@ export const useComponentErrorMessage = (component: FormComponent): string | nul
     default:
       return null;
   }
-}
+};

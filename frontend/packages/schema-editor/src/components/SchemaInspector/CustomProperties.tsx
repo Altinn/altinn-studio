@@ -1,6 +1,6 @@
 import React from 'react';
-import { Fieldset, HelpText, LegacyTextField, Switch } from '@digdir/design-system-react';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { Fieldset, HelpText, Switch } from '@digdir/designsystemet-react';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import {
   CustomPropertyType,
   deleteProperty,
@@ -8,11 +8,11 @@ import {
   setCustomProperties,
   setProperty,
 } from '@altinn/schema-model';
-import { TrashIcon } from '@navikt/aksel-icons';
+import { TrashIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import classes from './CustomProperties.module.css';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioTextfield } from '@studio/components';
 
 export interface CustomPropertiesProps {
   path: string;
@@ -21,10 +21,10 @@ export interface CustomPropertiesProps {
 const inputId = (key: string) => `custom-property-${key}`;
 
 export const CustomProperties = ({ path }: CustomPropertiesProps) => {
-  const { schemaModel, save, selectedNodePointer } = useSchemaEditorAppContext();
+  const { schemaModel, save, selectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
 
-  const selectedItem = schemaModel.getNode(selectedNodePointer);
+  const selectedItem = schemaModel.getNodeByUniquePointer(selectedUniquePointer);
   const { custom } = selectedItem;
 
   function changeProperties(properties: KeyValuePairs) {
@@ -92,11 +92,9 @@ export const CustomProperties = ({ path }: CustomPropertiesProps) => {
             <span>{renderInput(key)}</span>
           </span>
           <StudioButton
-            className={classes.deleteButton}
             icon={<TrashIcon />}
             onClick={() => deleteCustomProperty(key)}
             title={t('general.delete')}
-            size='small'
           />
         </div>
       ))}
@@ -112,15 +110,16 @@ export interface InputProps<T> {
 
 export const StringInput = ({ id, value, onChange }: InputProps<string>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value);
-  return <LegacyTextField id={id} value={value} onChange={handleChange} />;
+  return <StudioTextfield size='sm' id={id} value={value} onChange={handleChange} />;
 };
 
 export const NumberInput = ({ id, value, onChange }: InputProps<number>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onChange(Number(e.target.value));
   return (
-    <LegacyTextField
+    <StudioTextfield
+      size='sm'
       id={id}
-      formatting={{ number: {} }}
+      type='number'
       value={value.toString()}
       onChange={handleChange}
     />

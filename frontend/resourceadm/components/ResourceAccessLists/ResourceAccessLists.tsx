@@ -1,20 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Checkbox, Heading, Link as DigdirLink } from '@digdir/design-system-react';
+import { Checkbox, Heading } from '@digdir/designsystemet-react';
 import classes from './ResourceAccessLists.module.css';
-import { useGetAccessListsQuery } from '../../hooks/queries/useGetAccessListsQuery';
-import { StudioSpinner, StudioButton } from '@studio/components';
+import { StudioSpinner, StudioButton, StudioLink } from '@studio/components';
+import { PencilWritingIcon, PlusIcon } from '@studio/icons';
 import { useGetResourceAccessListsQuery } from '../../hooks/queries/useGetResourceAccessListsQuery';
 import { useAddResourceAccessListMutation } from '../../hooks/mutations/useAddResourceAccessListMutation';
 import { useRemoveResourceAccessListMutation } from '../../hooks/mutations/useRemoveResourceAccessListMutation';
 import { getResourcePageURL } from '../../utils/urlUtils';
 import { NewAccessListModal } from '../NewAccessListModal';
-import { Resource } from 'app-shared/types/ResourceAdm';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import type { Resource, ResourceError } from 'app-shared/types/ResourceAdm';
+import { useUrlParams } from '../../hooks/useUrlParams';
+import type { EnvId } from '../../utils/resourceUtils';
+import { AccessListErrorMessage } from '../AccessListErrorMessage';
+import { ButtonRouterLink } from 'app-shared/components/ButtonRouterLink';
 
 export interface ResourceAccessListsProps {
-  env: string;
+  env: EnvId;
   resourceData: Resource;
 }
 
@@ -23,38 +26,43 @@ export const ResourceAccessLists = ({
   resourceData,
 }: ResourceAccessListsProps): React.JSX.Element => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
-  const { selectedContext, repo } = useUrlParams();
+  const { org, app } = useUrlParams();
   const createAccessListModalRef = useRef<HTMLDialogElement>(null);
+  const backUrl = getResourcePageURL(org, app, resourceData.identifier, 'about');
 
   const [selectedLists, setSelectedLists] = useState<string[]>([]);
 
   const {
-    data: envListData,
-    isLoading: isLoadingEnvListData,
-    error: envListDataError,
-  } = useGetAccessListsQuery(selectedContext, env);
-  const {
-    data: connectedLists,
-    isLoading: isLoadingConnectedLists,
-    error: connectedListsError,
-  } = useGetResourceAccessListsQuery(selectedContext, resourceData.identifier, env);
+    data: accessLists,
+    isLoading: isLoadingAccessLists,
+    error: accessListsError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useGetResourceAccessListsQuery(org, resourceData.identifier, env);
   const { mutate: addResourceAccessList } = useAddResourceAccessListMutation(
-    selectedContext,
+    org,
     resourceData.identifier,
     env,
   );
   const { mutate: removeResourceAccessList } = useRemoveResourceAccessListMutation(
-    selectedContext,
+    org,
     resourceData.identifier,
     env,
   );
 
   useEffect(() => {
-    if (connectedLists) {
-      setSelectedLists(connectedLists.map((x) => x.accessListIdentifier));
+    if (accessLists) {
+      const connectedListIds = accessLists.pages
+        .filter((x) =>
+          x.resourceConnections?.some((y) => y.resourceIdentifier === resourceData.identifier),
+        )
+        .map((x) => x.identifier);
+      setSelectedLists(connectedListIds);
     }
-  }, [connectedLists]);
+  }, [accessLists, resourceData.identifier]);
 
   const handleRemove = (listItemId: string) => {
     setSelectedLists((old) => old.filter((y) => y !== listItemId));
@@ -66,75 +74,95 @@ export const ResourceAccessLists = ({
     setSelectedLists((old) => [...old, listItemId]);
   };
 
-  if (isLoadingEnvListData || isLoadingConnectedLists) {
-    return <StudioSpinner spinnerText={t('general.loading')} />;
+  const handleBackClick = (event: React.MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    navigate(backUrl);
+  };
+
+  if (isLoadingAccessLists) {
+    return <StudioSpinner showSpinnerTitle spinnerTitle={t('resourceadm.loading_lists')} />;
   }
 
-  if (envListDataError || connectedListsError) {
-    return <Alert severity='danger'>{t('resourceadm.listadmin_load_list_error')}</Alert>;
+  if (accessListsError) {
+    return <AccessListErrorMessage error={accessListsError as ResourceError} env={env} />;
   }
 
   return (
     <div className={classes.resourceAccessListsWrapper}>
       <NewAccessListModal
         ref={createAccessListModalRef}
-        org={selectedContext}
+        org={org}
         env={env}
         navigateUrl={`${getResourcePageURL(
-          selectedContext,
-          repo,
+          org,
+          app,
           resourceData.identifier,
           'accesslists',
         )}/${env}/`}
         onClose={() => createAccessListModalRef.current?.close()}
       />
-      <DigdirLink
-        as={Link}
-        to={getResourcePageURL(selectedContext, repo, resourceData.identifier, 'about')}
-      >
+      <StudioLink href={backUrl} onClick={handleBackClick}>
         {t('general.back')}
-      </DigdirLink>
+      </StudioLink>
       <Heading level={1} size='large'>
         {t('resourceadm.listadmin_resource_header', {
           resourceTitle: resourceData.title.nb,
           env: env.toUpperCase(),
         })}
       </Heading>
-      <Checkbox.Group
-        legend={t('resourceadm.listadmin_resource_list_checkbox_header')}
-        size='medium'
-        onChange={(newValues: string[]) => {
-          if (selectedLists.length < newValues.length) {
-            const addedListIdentifier = newValues[newValues.length - 1];
-            handleAdd(addedListIdentifier);
-          } else {
-            const removedListIdentifier = selectedLists.find((x) => newValues.indexOf(x) === -1);
-            handleRemove(removedListIdentifier);
-          }
-        }}
-        value={selectedLists}
-      >
-        {envListData.map((list) => {
+      <Heading level={2} size='xsmall'>
+        {t('resourceadm.listadmin_resource_list_checkbox_header')}
+      </Heading>
+      <div className={classes.listCheckboxWrapper}>
+        {accessLists?.pages.map((list) => {
           return (
-            <div key={list.identifier} className={classes.listCheckboxWrapper}>
-              <Checkbox value={list.identifier}>{list.name}</Checkbox>
-              <DigdirLink
-                as={Link}
+            <div key={list.identifier} className={classes.listCheckboxItem}>
+              <Checkbox
+                value={list.identifier}
+                checked={selectedLists.indexOf(list.identifier) > -1}
+                onChange={(event) => {
+                  if (event.target.checked) {
+                    handleAdd(list.identifier);
+                  } else {
+                    handleRemove(list.identifier);
+                  }
+                }}
+              >
+                {list.name}
+              </Checkbox>
+              <ButtonRouterLink
+                aria-label={`${t('resourceadm.listadmin_edit_list')} ${list.name}`}
+                icon={<PencilWritingIcon />}
+                iconPlacement='right'
                 to={`${getResourcePageURL(
-                  selectedContext,
-                  repo,
+                  org,
+                  app,
                   resourceData.identifier,
                   'accesslists',
                 )}/${env}/${list.identifier}`}
+                variant='tertiary'
               >
-                {`(${t('general.edit')})`}
-              </DigdirLink>
+                {t('resourceadm.listadmin_edit_list')}
+              </ButtonRouterLink>
             </div>
           );
         })}
-      </Checkbox.Group>
+        {hasNextPage && (
+          <StudioButton
+            disabled={isFetchingNextPage}
+            variant='tertiary'
+            onClick={() => fetchNextPage()}
+          >
+            {t('resourceadm.listadmin_load_more', {
+              unit: t('resourceadm.listadmin_list_unit'),
+            })}
+          </StudioButton>
+        )}
+      </div>
       <StudioButton
-        variant='secondary'
+        variant='tertiary'
+        icon={<PlusIcon />}
+        iconPlacement='left'
         onClick={() => createAccessListModalRef.current?.showModal()}
       >
         {t('resourceadm.listadmin_create_list')}

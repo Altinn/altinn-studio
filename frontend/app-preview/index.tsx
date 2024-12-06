@@ -1,4 +1,5 @@
 import React from 'react';
+import './App.css';
 import { createRoot } from 'react-dom/client';
 import { PreviewApp } from './src/PreviewApp';
 import { BrowserRouter } from 'react-router-dom';
@@ -16,8 +17,8 @@ root.render(
   <ServicesContextProvider {...queries} {...mutations}>
     <PreviewConnectionContextProvider>
       <BrowserRouter basename={PREVIEW_BASENAME}>
-        <PreviewApp/>
+        <PreviewApp />
       </BrowserRouter>
     </PreviewConnectionContextProvider>
-  </ServicesContextProvider>
+  </ServicesContextProvider>,
 );

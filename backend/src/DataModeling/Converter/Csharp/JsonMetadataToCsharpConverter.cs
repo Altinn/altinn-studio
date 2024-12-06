@@ -21,28 +21,36 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
         private string Indent(int level = 1) => new string(' ', level * _generationSettings.IndentSize);
 
-        /// <summary>
-        /// Create Model from ServiceMetadata object
-        /// </summary>
-        /// <param name="serviceMetadata">ServiceMetadata object</param>
-        /// <returns>The model code in C#</returns>
-        public string CreateModelFromMetadata(ModelMetadata serviceMetadata)
+        /// <inheritdoc />
+        public string CreateModelFromMetadata(ModelMetadata serviceMetadata, bool separateNamespaces, bool useNullableReferenceTypes)
         {
             Dictionary<string, string> classes = new();
 
-            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata, serviceMetadata.TargetNamespace);
+            var rootElementType = serviceMetadata.GetRootElement();
+            string modelNamespace = _generationSettings.ModelNamespace +
+                                    (separateNamespaces ? $".{rootElementType.TypeName}"
+                                        : string.Empty);
 
-            StringBuilder writer = new StringBuilder()
-                .AppendLine("using System;")
+            CreateModelFromMetadataRecursive(classes, rootElementType, serviceMetadata, serviceMetadata.TargetNamespace, useNullableReferenceTypes);
+
+            StringBuilder writer = new StringBuilder();
+            if (useNullableReferenceTypes)
+            {
+                writer.AppendLine("#nullable enable");
+            }
+            else
+            {
+                writer.AppendLine("#nullable disable");
+            }
+            writer.AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using System.Linq;")
                 .AppendLine("using System.Text.Json.Serialization;")
-                .AppendLine("using System.Threading.Tasks;")
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
                 .AppendLine("using Newtonsoft.Json;")
-                .AppendLine($"namespace {_generationSettings.ModelNamespace}")
+                .AppendLine($"namespace {modelNamespace}")
                 .AppendLine("{")
                 .Append(string.Concat(classes.Values))
                 .AppendLine("}");
@@ -61,7 +69,8 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// <param name="parentElement">The parent Element</param>
         /// <param name="serviceMetadata">Model metadata</param>
         /// <param name="targetNamespace">Target namespace in xsd schema.</param>
-        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace = null)
+        /// <param name="useNullableReferenceTypes">wheter to add nullable? to reference types</param>
+        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, ModelMetadata serviceMetadata, string targetNamespace, bool useNullableReferenceTypes)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
 
@@ -88,6 +97,12 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             classBuilder.AppendLine(Indent() + "public class " + parentElement.TypeName);
             classBuilder.AppendLine(Indent() + "{");
 
+
+            if (ShouldWriteAltinnRowId(parentElement, serviceMetadata.Elements.Values.ToList()))
+            {
+                WriteAltinnRowId(classBuilder);
+            }
+
             int elementOrder = 0;
 
             foreach (ElementMetadata element in serviceMetadata.Elements.Select(e => e.Value).Where(ele => ele.ParentElement == parentElement.ID))
@@ -96,15 +111,15 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
                 if (element.Type == ElementType.Field)
                 {
-                    ParseFieldProperty(element, classBuilder, ref elementOrder, required);
+                    ParseFieldProperty(element, classBuilder, ref elementOrder, required, useNullableReferenceTypes);
                 }
                 else if (element.Type == ElementType.Group)
                 {
-                    ParseGroupProperty(element, classBuilder, referredTypes, ref elementOrder);
+                    ParseGroupProperty(element, classBuilder, serviceMetadata, referredTypes, ref elementOrder, useNullableReferenceTypes);
                 }
                 else if (element.Type == ElementType.Attribute)
                 {
-                    ParseAttributeProperty(element, classBuilder, required);
+                    ParseAttributeProperty(element, classBuilder, required, useNullableReferenceTypes);
                 }
             }
 
@@ -117,55 +132,98 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             foreach (ElementMetadata refType in referredTypes)
             {
-                CreateModelFromMetadataRecursive(classes, refType, serviceMetadata);
+                CreateModelFromMetadataRecursive(classes, refType, serviceMetadata, targetNamespace: null, useNullableReferenceTypes);
             }
         }
 
-        private void ParseFieldProperty(ElementMetadata element, StringBuilder classBuilder, ref int elementOrder, bool required)
+        private void ParseFieldProperty(ElementMetadata element, StringBuilder classBuilder, ref int elementOrder, bool required, bool useNullableReferenceTypes)
         {
+            string nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             (string dataType, bool isValueType) = GetPropertyType(element.XsdValueType);
 
             WriteRestrictionAnnotations(classBuilder, element);
-            if (element.IsTagContent)
+
+            // [XmlText] properties can't be nullable value types, so we need a hack so that they behave as if nullable works.
+            if (_generationSettings.XmlTextValueNullableHack && element.IsTagContent && isValueType)
+            {
+                if (required)
+                {
+                    classBuilder.AppendLine(Indent(2) + "[Required]");
+                }
+                classBuilder.AppendLine(Indent(2) + "[XmlIgnore]");
+                classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"value\")]");
+                classBuilder.AppendLine(Indent(2) + "[JsonProperty(PropertyName = \"value\")]");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}? valueNullable {{ get; set; }}");
+                classBuilder.AppendLine();
+
+                classBuilder.AppendLine(Indent(2) + "[XmlText]");
+                classBuilder.AppendLine(Indent(2) + "[System.Text.Json.Serialization.JsonIgnore]");
+                classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
+                classBuilder.AppendLine(Indent(2) + "public " + dataType + " value");
+                classBuilder.AppendLine(Indent(2) + "{");
+                classBuilder.AppendLine(Indent(3) + "get => valueNullable ?? default;");
+                classBuilder.AppendLine(Indent(3) + "set");
+                classBuilder.AppendLine(Indent(3) + "{");
+                classBuilder.AppendLine(Indent(4) + "this.valueNullable = value;");
+                classBuilder.AppendLine(Indent(3) + "}");
+                classBuilder.AppendLine(Indent(2) + "}");
+                classBuilder.AppendLine();
+            }
+            else if (element.IsTagContent)
             {
                 classBuilder.AppendLine(Indent(2) + "[XmlText()]");
+                if (required && isValueType) // Why [Required] only on value types?
+                {
+                    classBuilder.AppendLine(Indent(2) + "[Required]");
+                }
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} value {{ get; set; }}");
+                classBuilder.AppendLine();
             }
             else
             {
                 elementOrder += 1;
-                classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+                AddXmlElementAnnotation(element, classBuilder, elementOrder, !isValueType && (element.Nillable ?? false));
 
                 // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                 // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                 classBuilder.AppendLine(Indent(2) + "[JsonProperty(\"" + element.XName + "\")]");
                 classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"" + element.XName + "\")]");
-            }
 
-            if (element.MaxOccurs > 1)
-            {
-                classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
-            }
-            else
-            {
-                if (required && isValueType)
+                if (element.MaxOccurs > 1)
                 {
-                    classBuilder.AppendLine(Indent(2) + "[Required]");
+                    classBuilder.AppendLine($"{Indent(2)}public List<{dataType}>{nullableReference} {element.Name} {{ get; set; }}\n");
                 }
-
-                bool shouldBeNullable = isValueType && !element.IsTagContent; // Can't use complex type for XmlText.
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + (shouldBeNullable ? "?" : string.Empty) + " " + element.Name + " { get; set; }\n");
-                if (shouldBeNullable && element.Nillable.HasValue && !element.Nillable.Value && element.MinOccurs == 0)
+                else
                 {
-                    WriteShouldSerializeMethod(classBuilder, element.Name);
+                    if (required && isValueType)
+                    {
+                        classBuilder.AppendLine(Indent(2) + "[Required]");
+                    }
+
+
+                    if (isValueType)
+                    {
+                        classBuilder.AppendLine($"{Indent(2)}public {dataType}? {element.Name} {{ get; set; }}\n");
+
+                        if (element.Nillable.HasValue && !element.Nillable.Value && element.MinOccurs == 0)
+                        {
+                            WriteShouldSerializeMethod(classBuilder, element.Name);
+                        }
+                    }
+                    else
+                    {
+                        classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
+                    }
                 }
             }
         }
 
-        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, List<ElementMetadata> referredTypes, ref int elementOrder)
+        private void ParseGroupProperty(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata, List<ElementMetadata> referredTypes, ref int elementOrder, bool useNullableReferenceTypes)
         {
+            var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
             elementOrder += 1;
-            classBuilder.AppendLine(Indent(2) + "[XmlElement(\"" + element.XName + "\", Order = " + elementOrder + ")]");
+            AddXmlElementAnnotation(element, classBuilder, elementOrder);
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
@@ -189,11 +247,16 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             if (element.MaxOccurs > 1)
             {
-                classBuilder.AppendLine(Indent(2) + "public List<" + dataType + "> " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine($"{Indent(2)}public List<{dataType}>{nullableReference} {element.Name} {{ get; set; }}\n");
             }
             else
             {
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
+
+                if (_generationSettings.AddShouldSerializeForTagContent)
+                {
+                    AddShouldSerializeForTagContent(element, classBuilder, modelMetadata);
+                }
             }
 
             if (!primitiveType)
@@ -202,8 +265,43 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             }
         }
 
-        private void ParseAttributeProperty(ElementMetadata element, StringBuilder classBuilder, bool required)
+        private void AddXmlElementAnnotation(ElementMetadata element, StringBuilder classBuilder, int elementOrder, bool addNillableAttribute = false)
         {
+            string additionalAttributeParams = string.Empty;
+            if (!element.OrderOblivious)
+            {
+                additionalAttributeParams += $", Order = {elementOrder}";
+            }
+
+            if (addNillableAttribute)
+            {
+                additionalAttributeParams += ", IsNullable = true";
+            }
+
+
+            classBuilder.AppendLine($"""{Indent(2)}[XmlElement("{element.XName}"{additionalAttributeParams})]""");
+        }
+
+        private void AddShouldSerializeForTagContent(ElementMetadata element, StringBuilder classBuilder, ModelMetadata modelMetadata)
+        {
+            var children = modelMetadata.Elements.Values.Where(metadata =>
+                metadata.ParentElement == element.ID);
+            if (children.Count(metadata => metadata.FixedValue != null) == 1 && children.Count(metadata => metadata.IsTagContent) == 1)
+            {
+                var taggedContentChild = children.Single(metadata => metadata.IsTagContent);
+                var value = _generationSettings.XmlTextValueNullableHack && taggedContentChild.XsdValueType.HasValue &&
+                            GetPropertyType(taggedContentChild.XsdValueType).IsValueType
+                    ? "valueNullable is not null"
+                    : "value is not null";
+
+                classBuilder.AppendLine($"{Indent(2)}public bool ShouldSerialize{element.Name}() => {element.Name}?.{value};");
+                classBuilder.AppendLine();
+            }
+        }
+
+        private void ParseAttributeProperty(ElementMetadata element, StringBuilder classBuilder, bool required, bool useNullableReferenceTypes)
+        {
+            string nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             string dataType = "string";
             bool isValueType = false;
             if (element.XsdValueType != null)
@@ -219,7 +317,8 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 classBuilder.AppendLine(Indent(2) + "[BindNever]");
                 if (dataType.Equals("string"))
                 {
-                    classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; } = \"" + element.FixedValue + "\";\n");
+                    classBuilder.AppendLine(
+                        $"{Indent(2)}public {dataType} {element.Name} {{ get; set; }} = \"{element.FixedValue}\";\n");
                 }
                 else
                 {
@@ -232,7 +331,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                 {
                     classBuilder.AppendLine(Indent(2) + "[Required]");
                 }
-                classBuilder.AppendLine(Indent(2) + "public " + dataType + " " + element.Name + " { get; set; }\n");
+                classBuilder.AppendLine($"{Indent(2)}public {dataType}{nullableReference} {element.Name} {{ get; set; }}\n");
             }
         }
 
@@ -420,6 +519,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
                     or BaseValueType.Time
                     or BaseValueType.TimePeriod
                     or BaseValueType.Date
+                    or BaseValueType.AnyURI
                     or null => ("string", false),
                 BaseValueType.Int => ("int", true),
                 BaseValueType.Short => ("short", true),
@@ -442,10 +542,24 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         /// </summary>
         private void WriteShouldSerializeMethod(StringBuilder classBuilder, string propName)
         {
-            classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}()");
-            classBuilder.AppendLine(Indent(2) + "{");
-            classBuilder.AppendLine(Indent(3) + $"return {propName}.HasValue;");
-            classBuilder.AppendLine(Indent(2) + "}");
+            classBuilder.AppendLine(Indent(2) + $"public bool ShouldSerialize{propName}() => {propName}.HasValue;");
+            classBuilder.AppendLine();
+        }
+
+        private bool ShouldWriteAltinnRowId(ElementMetadata element, List<ElementMetadata> allElements) =>
+            allElements.Any(e =>
+                e.TypeName == element.TypeName && e.MaxOccurs > 1);
+
+        private void WriteAltinnRowId(StringBuilder classBuilder)
+        {
+            classBuilder.AppendLine(Indent(2) + "[XmlAttribute(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) + "[JsonPropertyName(\"altinnRowId\")]");
+            classBuilder.AppendLine(Indent(2) +
+                                    "[System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]");
+            classBuilder.AppendLine(Indent(2) + "[Newtonsoft.Json.JsonIgnore]");
+            classBuilder.AppendLine(Indent(2) + "public Guid AltinnRowId { get; set; }");
+            classBuilder.AppendLine("");
+            classBuilder.AppendLine(Indent(2) + "public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;");
             classBuilder.AppendLine();
         }
     }

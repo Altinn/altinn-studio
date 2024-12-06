@@ -1,35 +1,33 @@
 .navigationMenu {
   display: flex;
-  justify-content: flex-start;
-  align-items: stretch;
-  padding-block: 12px;
-  margin-left: 10px;
+  align-items: center;
+  padding: var(--fds-spacing-1);
   background-color: var(--background-color);
+  border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.accordionHeader {
+.accordionHeader,
+.accordionHeaderWarning {
   flex: 1;
 }
 
-.accordionHeader button {
-  border: none;
-  background-color: var(--background-color);
+.accordionHeaderWarning button {
+  background-color: var(--fds-semantic-surface-danger-subtle) !important;
 }
 
 .accordionContent {
   padding: 0;
+  background-color: var(--fds-semantic-surface-neutral-default);
 }
 
-.accordionItem {
+.accordionItem:not(:first-child) {
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
-}
-
-.receiptItem {
-  border-top: none;
-  border-bottom: none;
 }
 
 .accordionHeaderRow {
   display: flex;
-  background-color: var(--background-color);
+}
+
+.pdfIcon {
+  font-size: var(--fds-sizing-6);
 }

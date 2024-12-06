@@ -9,19 +9,19 @@ type SearchResultReposList = {
   searchValue: string;
 };
 export const SearchResultReposList = ({ searchValue }: SearchResultReposList) => {
-  const { data: starredRepos = [], isPending: areStarredReposPending } = useStarredReposQuery();
+  const { data: starredRepos = [], isPending: hasPendingStarredRepos } = useStarredReposQuery();
   const { t } = useTranslation();
   const {
     searchResults,
-    isLoadingSearchResults,
-    sortModel,
-    pageSize,
+    isLoadingSearchResults: hasPendingRepos,
+    pageNumber,
     setPageNumber,
-    setSortModel,
+    pageSize,
     setPageSize,
+    onSortClick,
   } = useReposSearch({ keyword: searchValue });
 
-  const reposWithStarred = useAugmentReposWithStarred({
+  const reposIncludingStarredData = useAugmentReposWithStarred({
     repos: searchResults?.data,
     starredRepos,
   });
@@ -30,15 +30,15 @@ export const SearchResultReposList = ({ searchValue }: SearchResultReposList) =>
     <div>
       <h2>{t('dashboard.search_result')}</h2>
       <RepoList
-        repos={reposWithStarred}
-        isLoading={isLoadingSearchResults || areStarredReposPending}
+        repos={reposIncludingStarredData}
+        isLoading={hasPendingRepos || hasPendingStarredRepos}
         onPageSizeChange={setPageSize}
         isServerSort={true}
-        rowCount={searchResults?.totalCount}
+        totalRows={searchResults?.totalCount}
+        pageNumber={pageNumber}
         onPageChange={setPageNumber}
-        onSortModelChange={setSortModel}
-        sortModel={sortModel}
         pageSize={pageSize}
+        onSortClick={onSortClick}
       />
     </div>
   );

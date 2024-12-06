@@ -1,25 +1,24 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { FormTree } from './FormTree';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import { StudioDragAndDropTree } from '@studio/components';
 import { BASE_CONTAINER_ID, DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { renderWithMockStore } from '../../../testing/mocks';
+import { renderWithProviders } from '../../../testing/mocks';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { ITextResources } from 'app-shared/types/global';
-import { textMock } from '../../../../../../testing/mocks/i18nMock';
+import type { ITextResources } from 'app-shared/types/global';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormContext } from '../../FormContext';
-import { IInternalLayout } from '../../../types/global';
-import { FormComponent } from '../../../types/FormComponent';
-import { FormContainer } from '../../../types/FormContainer';
+import { FormItemContext } from '../../FormItemContext';
+import type { IInternalLayout } from '../../../types/global';
+import type { FormComponent } from '../../../types/FormComponent';
+import type { FormContainer } from '../../../types/FormContainer';
+import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
 // Test data:
-const org = 'org';
-const app = 'app';
 const textResources: ITextResources = {
   [DEFAULT_LANGUAGE]: [],
 };
@@ -34,24 +33,29 @@ const rootComponent: FormComponent = {
 const rootContainerWithChildren: FormContainer = {
   id: 'rootContainer1',
   itemType: 'CONTAINER',
+  type: ComponentType.Group,
 };
 const emptyRootContainer: FormContainer = {
   id: 'rootContainer2',
   itemType: 'CONTAINER',
+  type: ComponentType.ButtonGroup,
 };
 const subComponent: FormComponent = {
   id: 'subComponent',
   itemType: 'COMPONENT',
   type: ComponentType.Input,
+  dataModelBindings: { simpleBinding: 'somePath' },
 };
 const subContainer: FormContainer = {
   id: 'subContainer',
   itemType: 'CONTAINER',
+  type: ComponentType.Accordion,
 };
 const subSubComponent: FormComponent = {
   id: 'subSubComponent',
   itemType: 'COMPONENT',
   type: ComponentType.TextArea,
+  dataModelBindings: { simpleBinding: 'somePath' },
 };
 const layoutMock: IInternalLayout = {
   components: {
@@ -76,18 +80,14 @@ const layoutMock: IInternalLayout = {
 const rootComponentName = textMock(`ux_editor.component_title.${rootComponent.type}`);
 const subComponentName = textMock(`ux_editor.component_title.${subComponent.type}`);
 const subSubComponentName = textMock(`ux_editor.component_title.${subSubComponent.type}`);
-const rootContainerName = textMock('ux_editor.component_group_header', {
-  id: rootContainerWithChildren.id,
-});
-const emptyRootContainerName = textMock('ux_editor.component_group_header', {
-  id: emptyRootContainer.id,
-});
-const subContainerName = textMock('ux_editor.component_group_header', { id: subContainer.id });
+const rootContainerName = textMock(`ux_editor.component_title.${rootContainerWithChildren.type}`);
+const emptyRootContainerName = textMock(`ux_editor.component_title.${emptyRootContainer.type}`);
+const subContainerName = textMock(`ux_editor.component_title.${subContainer.type}`);
 const handleEdit = jest.fn();
-const formContext: FormContext = {
+const formItemContext: FormItemContext = {
   debounceSave: jest.fn(),
-  form: null,
-  formId: '',
+  formItem: null,
+  formItemId: '',
   handleDiscard: jest.fn(),
   handleEdit,
   handleSave: jest.fn(),
@@ -110,19 +110,19 @@ describe('FormTree', () => {
   it('Makes the child components appear when the container is expanded', async () => {
     render();
     const containerElement = screen.getByRole('treeitem', { name: rootContainerName });
-    await act(() => user.click(containerElement));
+    await user.click(containerElement);
     expect(screen.getByRole('treeitem', { name: subComponentName })).toBeInTheDocument();
     const subContainerElement = screen.getByRole('treeitem', { name: subContainerName });
     expect(subContainerElement).toBeInTheDocument();
     expect(screen.queryByRole('treeitem', { name: subSubComponentName })).not.toBeInTheDocument();
-    await act(() => user.click(subContainerElement));
+    await user.click(subContainerElement);
     expect(screen.getByRole('treeitem', { name: subSubComponentName })).toBeInTheDocument();
   });
 
   it('Calls handleEdit with the correct item when an item is clicked', async () => {
     render();
     const component = screen.getByRole('treeitem', { name: rootComponentName });
-    await act(() => user.click(component));
+    await user.click(component);
     expect(handleEdit).toHaveBeenCalledTimes(1);
     expect(handleEdit).toHaveBeenCalledWith(rootComponent);
   });
@@ -130,18 +130,18 @@ describe('FormTree', () => {
   it('Displays a text telling that the container is empty when an empty container is expanded', async () => {
     render();
     const emptyContainer = screen.getByRole('treeitem', { name: emptyRootContainerName });
-    await act(() => user.click(emptyContainer));
+    await user.click(emptyContainer);
     expect(screen.getByText(textMock('ux_editor.container_empty'))).toBeInTheDocument();
   });
 
   it('Adheres to tree view keyboard navigation rules', async () => {
     render();
-    await act(() => user.tab());
+    await user.tab();
     expect(screen.getByRole('treeitem', { name: rootComponentName })).toHaveFocus();
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowdown}');
     expect(screen.getByRole('treeitem', { name: rootContainerName })).toHaveFocus();
-    await act(() => user.keyboard('{arrowright}'));
-    await act(() => user.keyboard('{arrowdown}'));
+    await user.keyboard('{arrowright}');
+    await user.keyboard('{arrowdown}');
     expect(screen.getByRole('treeitem', { name: subComponentName })).toHaveFocus();
   });
 
@@ -169,15 +169,14 @@ describe('FormTree', () => {
 const render = (layout: IInternalLayout = layoutMock) => {
   const queryClient = createQueryClientMock();
   queryClient.setQueryData([QueryKey.TextResources, org, app], textResources);
-  return renderWithMockStore(
-    {},
-    {},
-    queryClient,
-  )(
-    <FormContext.Provider value={formContext}>
-      <DragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
+  return renderWithProviders(
+    <FormItemContext.Provider value={formItemContext}>
+      <StudioDragAndDropTree.Provider onAdd={onAdd} onMove={onMove} rootId={BASE_CONTAINER_ID}>
         <FormTree layout={layout} />
-      </DragAndDropTree.Provider>
-    </FormContext.Provider>,
+      </StudioDragAndDropTree.Provider>
+    </FormItemContext.Provider>,
+    {
+      queryClient,
+    },
   );
 };

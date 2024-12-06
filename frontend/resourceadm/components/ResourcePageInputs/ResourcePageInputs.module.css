@@ -1,5 +1,8 @@
-.divider {
-  margin-top: var(--fds-spacing-7);
+.resourceFieldHeader {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .inputWrapper {
@@ -9,6 +12,13 @@
 
 .warningCardWrapper {
   margin-top: var(--fds-spacing-1);
+}
+
+.toggleWrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
 }
 
 .toggleTextActive {

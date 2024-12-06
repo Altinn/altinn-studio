@@ -1,4 +1,3 @@
-using System;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Json.Strategy

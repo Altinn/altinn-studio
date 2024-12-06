@@ -1,29 +1,22 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
-import {
-  MutationCache,
-  MutationMeta,
-  QueryCache,
-  QueryClient,
-  QueryClientConfig,
-  QueryClientProvider,
-  QueryMeta,
-} from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+import type { MutationMeta, QueryClientConfig, QueryMeta } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type * as queries from '../api/queries';
 import type * as mutations from '../api/mutations';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import type { ToastOptions } from 'react-toastify';
 import { ToastContainer, Slide, toast } from 'react-toastify';
-import { ErrorBoundary } from 'react-error-boundary';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 import type { i18n } from 'i18next';
 import { Trans, useTranslation } from 'react-i18next';
-import { ErrorBoundaryFallback } from '../components/ErrorBoundaryFallback';
-import { ApiError } from 'app-shared/types/api/ApiError';
+import type { ApiError } from 'app-shared/types/api/ApiError';
 
 import 'react-toastify/dist/ReactToastify.css';
 import 'app-shared/styles/toast.css';
 import { userLogoutAfterPath } from 'app-shared/api/paths';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
-import { Link } from '@digdir/design-system-react';
+import { Link } from '@digdir/designsystemet-react';
 
 export type ServicesContextProps = typeof queries & typeof mutations;
 export type ServicesContextProviderProps = ServicesContextProps & {
@@ -34,7 +27,7 @@ export type ServicesContextProviderProps = ServicesContextProps & {
 
 const LOG_OUT_TIMER_MS = 5000;
 
-const ServicesContext = createContext<ServicesContextProps>(null);
+const ServicesContext = createContext<ServicesContextProps>(undefined);
 
 const handleError = (
   error: AxiosError<ApiError>,
@@ -43,17 +36,26 @@ const handleError = (
   meta: QueryMeta | MutationMeta,
   logout: () => Promise<void>,
 ): void => {
-  // TODO : log axios errors
-
-  if (error?.response?.status === ServerCodes.Unauthorized) {
-    const errorMessageKey = 'api_errors.Unauthorized';
+  const renderToast = (key: string, options: ToastOptions = {}) => {
+    const errorMessageKey = `api_errors.${key}`;
     if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey, autoClose: LOG_OUT_TIMER_MS });
+      toast.error(t(errorMessageKey), {
+        toastId: errorMessageKey,
+        ...options,
+      });
+    } else {
+      renderDefaultToast();
     }
-    setTimeout(() => {
-      logout().then(() => window.location.assign(userLogoutAfterPath()));
-    }, LOG_OUT_TIMER_MS);
-    return;
+  };
+
+  const errorCode = error?.response?.data?.errorCode;
+  const unAuthorizedErrorCode = error?.response?.status === ServerCodes.Unauthorized;
+
+  if (unAuthorizedErrorCode) {
+    return renderToast(errorCode || 'Unauthorized', {
+      onClose: () => logout().then(() => window.location.assign(userLogoutAfterPath())),
+      autoClose: LOG_OUT_TIMER_MS,
+    });
   }
 
   if (
@@ -62,16 +64,14 @@ const handleError = (
   )
     return;
 
-  const errorCode = error?.response?.data?.errorCode;
   if (errorCode) {
-    const errorMessageKey = `api_errors.${errorCode}`;
-
-    if (i18n.exists(errorMessageKey)) {
-      toast.error(t(errorMessageKey), { toastId: errorMessageKey });
-      return;
-    }
+    return renderToast(errorCode);
   }
 
+  renderDefaultToast();
+};
+
+const renderDefaultToast = () => {
   toast.error(
     () => (
       <Trans
@@ -114,18 +114,13 @@ export const ServicesContextProvider = ({
   );
 
   return (
-    <ErrorBoundary
-      FallbackComponent={ErrorBoundaryFallback}
-      onError={() => {
-        // TODO : log rendering errors
-      }}
-    >
+    <>
       <ToastContainer position='top-center' theme='colored' transition={Slide} draggable={false} />
       <QueryClientProvider client={queryClient}>
         <ServicesContext.Provider value={{ ...queries }}>{children}</ServicesContext.Provider>
         <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
-    </ErrorBoundary>
+    </>
   );
 };
 

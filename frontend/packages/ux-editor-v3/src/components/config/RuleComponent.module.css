@@ -1,0 +1,117 @@
+:root {
+  --primary-color: #008fd6;
+  --primary-color-700: #022f51;
+  --success-color: #17c96b;
+  --danger-color: #e23b53;
+  --text-color: #000;
+  --paper-color: #fff;
+  --disabled-color: #e9ecef;
+  --overlay-gradient: rgba(30, 174, 247, 0.3);
+}
+
+.modalHeader {
+  min-height: 80px;
+  background: var(--primary-color-700);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--paper-color);
+}
+
+.modalBody {
+  max-width: 800px;
+  width: 100%;
+  background: var(--paper-color);
+  margin-top: 30px;
+}
+
+.modalHeaderTitle {
+  font-size: 1.5rem;
+  font-weight: normal;
+}
+
+.configRulesIcon {
+  font-size: 2.25em;
+}
+
+.modalBodyContent {
+  padding: 30px;
+}
+
+.subTitle {
+  font-size: 18px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  margin-top: 25px;
+}
+
+.customSelect {
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 2px solid var(--primary-color);
+  width: 100%;
+}
+
+.selectActionContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.configureInputParamsContainer {
+  display: grid;
+  grid-template-columns: 1fr 10fr;
+  gap: 8px;
+}
+
+.inputType {
+  font-size: 16px;
+  padding: 8px;
+  max-width: 80px;
+  color: var(--text-color);
+  letter-spacing: 0.3px;
+  border-radius: 0;
+  transition: none;
+  background: var(--disabled-color);
+  border: 2px solid var(--primary-color);
+}
+
+.buttonsContainer {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.saveButton {
+  color: #000;
+  font-size: 1rem;
+  padding: 8px 30px;
+  background-color: var(--success-color);
+  border: 2px solid var(--success-color);
+  margin-top: 25px;
+}
+
+.dangerButton {
+  font-size: 1rem;
+  padding: 8px 30px;
+  color: var(--paper-color);
+  background-color: var(--danger-color);
+  border: 2px solid var(--danger-color);
+  margin-top: 25px;
+}
+
+.cancelButton {
+  font-size: 1rem;
+  padding: 8px 30px;
+  color: var(--text-color);
+  border: 2px solid var(--text-color);
+  margin-top: 25px;
+}

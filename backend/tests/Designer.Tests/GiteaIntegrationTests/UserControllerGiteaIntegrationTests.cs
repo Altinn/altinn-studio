@@ -8,20 +8,18 @@ using Altinn.Studio.Designer.RepositoryClient.Model;
 using Designer.Tests.Fixtures;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
 namespace Designer.Tests.GiteaIntegrationTests
 {
-    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UserControllerGiteaIntegrationTests : GiteaIntegrationTestsBase<UserControllerGiteaIntegrationTests>
     {
 
-        public UserControllerGiteaIntegrationTests(WebApplicationFactory<Program> factory, GiteaFixture giteaFixture) : base(factory, giteaFixture)
+        public UserControllerGiteaIntegrationTests(GiteaWebAppApplicationFactoryFixture<Program> factory, GiteaFixture giteaFixture, SharedDesignerHttpClientProvider sharedDesignerHttpClientProvider) : base(factory, giteaFixture, sharedDesignerHttpClientProvider)
         {
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestUser, GiteaConstants.TestUserEmail)]
         public async Task GetCurrentUser_ShouldReturnOk(string expectedUserName, string expectedEmail)
         {
@@ -31,7 +29,7 @@ namespace Designer.Tests.GiteaIntegrationTests
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
 
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Satisfy(e => e.Contains("XSRF-TOKEN"));
+            response.Headers.First(h => h.Key == "Set-Cookie").Value.Should().Contain(e => e.Contains("XSRF-TOKEN"));
             string content = await response.Content.ReadAsStringAsync();
             var user = JsonSerializer.Deserialize<User>(content, new JsonSerializerOptions
             {
@@ -43,7 +41,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task UserRepos_ShouldReturnOk(string org)
         {
@@ -59,7 +56,6 @@ namespace Designer.Tests.GiteaIntegrationTests
         }
 
         [Theory]
-        [Trait("Category", "GiteaIntegrationTest")]
         [InlineData(GiteaConstants.TestOrgUsername)]
         public async Task StarredEndpoints_ShouldBehaveAsExpected(string org)
         {
@@ -78,7 +74,6 @@ namespace Designer.Tests.GiteaIntegrationTests
 
         private async Task GetAndVerifyStarredRepos(params string[] expectedStarredRepos)
         {
-            InvalidateAllCookies();
             using var response = await HttpClient.GetAsync("designer/api/user/starred");
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             var content = await response.Content.ReadAsAsync<List<Repository>>();
@@ -87,7 +82,6 @@ namespace Designer.Tests.GiteaIntegrationTests
             {
                 content.Should().Contain(r => r.Name == expectedStarredRepo);
             }
-            InvalidateAllCookies();
         }
 
     }

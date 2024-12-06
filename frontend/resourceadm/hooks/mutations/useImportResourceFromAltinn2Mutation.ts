@@ -26,6 +26,7 @@ export const useImportResourceFromAltinn2Mutation = (org: string) => {
         payload.resourceId,
       ),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceList, org] });
       queryClient.invalidateQueries({
         queryKey: [QueryKey.ImportAltinn2Resource, org],
       });

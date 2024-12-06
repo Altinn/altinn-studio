@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -13,7 +12,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<WebApplicationFactory<Program>>
+public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     public PostTests(WebApplicationFactory<Program> factory) : base(factory)
@@ -68,7 +67,7 @@ public class PostTests : DisagnerEndpointsTestsBase<PostTests>, IClassFixture<We
     [InlineData("test/", "", false)]
     public async Task PostDatamodel_InvalidFormPost_ShouldReturnBadRequest(string modelName, string relativeDirectory, bool altinn2Compatible)
     {
-        string url = $"{VersionPrefix("xyz", "dummyRepo")}/new";
+        string url = $"{VersionPrefix("xyz", "dummyrepo")}/new";
 
         var createViewModel = new CreateModelViewModel()
         { ModelName = modelName, RelativeDirectory = relativeDirectory, Altinn2Compatible = altinn2Compatible };

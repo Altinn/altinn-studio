@@ -1,4 +1,4 @@
-import { QueryStatus } from '@tanstack/react-query';
+import type { QueryStatus } from '@tanstack/react-query';
 
 /**
  * Merges multiple query statuses into one.

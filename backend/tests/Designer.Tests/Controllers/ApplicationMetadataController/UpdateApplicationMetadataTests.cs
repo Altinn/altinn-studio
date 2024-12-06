@@ -1,11 +1,10 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
+using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -15,7 +14,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class UpdateApplicationMetadataTests : DisagnerEndpointsTestsBase<UpdateApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateApplicationMetadataTests : DesignerEndpointsTestsBase<UpdateApplicationMetadataTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public UpdateApplicationMetadataTests(WebApplicationFactory<Program> factory) : base(factory)

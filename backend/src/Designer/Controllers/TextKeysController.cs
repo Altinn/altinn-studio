@@ -5,11 +5,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
-using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -107,7 +105,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (ArgumentException)
             {
-                string errorMessage = !newKey.IsNullOrEmpty() && !oldKey.IsNullOrEmpty()
+                string errorMessage = !string.IsNullOrEmpty(newKey) && !string.IsNullOrEmpty(oldKey)
                     ? $"It looks like the key, {newKey}, that you tried to insert already exists in one or more texts files."
                     : "The arguments sent to this request was illegal.";
                 return BadRequest(errorMessage);

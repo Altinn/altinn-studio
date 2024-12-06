@@ -1,9 +1,18 @@
-import { useQuery, UseQueryResult, QueryMeta } from '@tanstack/react-query';
+import type { UseQueryResult, QueryMeta } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { OrgsState } from 'app-shared/types/OrgsState';
+import type { Org } from 'app-shared/types/OrgList';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
-export const useOrgListQuery = (meta?: QueryMeta): UseQueryResult<OrgsState> => {
+export const useOrgListQuery = (meta?: QueryMeta): UseQueryResult<KeyValuePairs<Org>> => {
   const { getOrgList } = useServicesContext();
-  return useQuery<OrgsState>({ queryKey: [QueryKey.OrgList], queryFn: () => getOrgList(), meta });
+  return useQuery<KeyValuePairs<Org>>({
+    queryKey: [QueryKey.OrgList],
+    queryFn: async () => {
+      const orgList = await getOrgList();
+      return orgList.orgs;
+    },
+    meta,
+  });
 };

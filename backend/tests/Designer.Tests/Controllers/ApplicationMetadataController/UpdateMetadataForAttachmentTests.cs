@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using Altinn.App.Core.Models;
+using Altinn.Studio.Designer.Models.App;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -17,7 +17,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.ApplicationMetadataController
 {
-    public class UpdateMetadataForAttachmentTests : DisagnerEndpointsTestsBase<UpdateMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class UpdateMetadataForAttachmentTests : DesignerEndpointsTestsBase<UpdateMetadataForAttachmentTests>, IClassFixture<WebApplicationFactory<Program>>
     {
         private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/metadata";
         public UpdateMetadataForAttachmentTests(WebApplicationFactory<Program> factory) : base(factory)

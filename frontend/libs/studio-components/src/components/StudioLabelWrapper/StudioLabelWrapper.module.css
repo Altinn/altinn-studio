@@ -1,0 +1,5 @@
+.studioLabelWrapper.withAsterisk::after {
+  content: '*';
+  color: var(--fds-semantic-text-warning-default);
+  margin-left: var(--fds-spacing-1);
+}

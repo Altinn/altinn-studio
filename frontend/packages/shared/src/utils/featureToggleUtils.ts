@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from 'app-shared/utils/webStorage';
+import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
 
 const featureFlagKey = 'featureFlags';
 const persistFeatureKey = 'persistFeatureFlag';
@@ -6,9 +6,16 @@ const persistFeatureKey = 'persistFeatureFlag';
 // All the features that you want to be toggle on/off should be added here. To ensure that we type check the feature name.
 export type SupportedFeatureFlags =
   | 'componentConfigBeta'
-  | 'configureLayoutSet'
   | 'shouldOverrideAppLibCheck'
-  | 'resourceAccessLists';
+  | 'resourceMigration'
+  | 'multipleDataModelsPerTask'
+  | 'exportForm'
+  | 'addComponentModal'
+  | 'subform'
+  | 'summary2'
+  | 'codeListEditor'
+  | 'optionListEditor'
+  | 'maskinporten';
 
 /*
  * Please add all the features that you want to be toggle on by default here.
@@ -26,7 +33,7 @@ const defaultActiveFeatures: SupportedFeatureFlags[] = [];
  */
 export const shouldDisplayFeature = (featureFlag: SupportedFeatureFlags): boolean => {
   // Check if feature should be persisted in session storage, (url)?persistFeatureFlag=true
-  if (shouldPersistInSession()) {
+  if (shouldPersistInSession() && isFeatureActivatedByUrl(featureFlag)) {
     addFeatureFlagToSessionStorage(featureFlag);
   }
 

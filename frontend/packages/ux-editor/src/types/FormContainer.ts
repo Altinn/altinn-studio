@@ -1,16 +1,29 @@
-import { IDataModelBindings, ITextResourceBindings } from './global';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { IDataModelBindings, ITextResourceBindings } from './global';
+import type { ContainerComponentType } from './ContainerComponent';
+import type { GridSizes } from '../components/config/editModal/EditGrid/types/GridSizes';
+import type { BooleanExpression, StringExpression } from '@studio/components';
+import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 
-export interface FormContainer {
+export type FormContainer<T extends ContainerComponentType = ContainerComponentType> = {
+  [containerType in ContainerComponentType]: ContainerBase<containerType> &
+    ComponentSpecificConfig<containerType>;
+}[T];
+
+type ContainerBase<T extends ContainerComponentType> = {
   dataModelBindings?: IDataModelBindings;
+  grid?: GridSizes;
+  hidden?: BooleanExpression;
   id: string;
   index?: number;
   itemType: 'CONTAINER';
-  maxCount?: number;
+  pageBreak?: PageBreak;
   pageIndex?: number;
-  tableHeaders?: string[];
-  textResourceBindings?: ITextResourceBindings;
   propertyPath?: string;
-  edit?: KeyValuePairs;
-  [id: string]: any;
-}
+  textResourceBindings?: ITextResourceBindings;
+  type: T;
+};
+
+type PageBreak = {
+  breakBefore?: StringExpression;
+  breakAfter?: StringExpression;
+};

@@ -3,6 +3,7 @@ using Altinn.Studio.DataModeling.Converter.Csharp;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Metadata;
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.Designer.Exceptions.DataModeling;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -49,6 +50,13 @@ namespace Altinn.Studio.Designer.Filters.DataModeling
             {
                 context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.InvalidXmlError, HttpStatusCode.BadRequest, invalidXmlError.CustomErrorMessages)) { StatusCode = (int)HttpStatusCode.UnprocessableEntity };
             }
+
+            if (context.Exception is ModelWithTheSameBaseTypeAlreadyExists)
+            {
+                context.Result = new ObjectResult(ProblemDetailsUtils.GenerateProblemDetails(context.Exception, DataModelingErrorCodes.ModelWithTheSameTypeNameExists, HttpStatusCode.UnprocessableEntity)) { StatusCode = (int)HttpStatusCode.UnprocessableContent };
+            }
+
+
         }
     }
 }

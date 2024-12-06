@@ -65,7 +65,7 @@ public class EnvironmentsService : IEnvironmentsService
 
     public async Task<IEnumerable<EnvironmentModel>> GetOrganizationEnvironments(string org)
     {
-        const string cacheKey = $"{nameof(GetOrganizationEnvironments)}_{nameof(org)}";
+        string cacheKey = $"{nameof(GetOrganizationEnvironments)}_{org}";
         if (_cache.TryGetValue(cacheKey, out List<EnvironmentModel> environments))
         {
             return environments;

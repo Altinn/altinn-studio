@@ -1,0 +1,17 @@
+# the only egress should be to apps
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-egress-nginx
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      run: altinn-loadbalancer
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: "default"  

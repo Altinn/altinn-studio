@@ -1,10 +1,10 @@
 import {
   getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType,
   getTextResource,
+  getTitleByComponentType,
 } from './language';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { mockUseTranslation } from '../../../../testing/mocks/i18nMock';
+import { mockUseTranslation } from '@studio/testing/mocks/i18nMock';
 
 describe('Designer > utils/language', () => {
   describe('getComponentHelperTextByComponentType', () => {
@@ -30,7 +30,7 @@ describe('Designer > utils/language', () => {
     });
   });
 
-  describe('getComponentTitleByComponentType', () => {
+  describe('getTitleByComponentType', () => {
     const componentTitleTexts = {};
     Object.values(ComponentType).forEach((componentType) => {
       componentTitleTexts[`ux_editor.component_title.${componentType}`] =
@@ -40,9 +40,7 @@ describe('Designer > utils/language', () => {
     it('should return specific title text it exists', () => {
       const { t } = mockUseTranslation(componentTitleTexts);
       Object.values(ComponentType).forEach((componentType) => {
-        expect(getComponentTitleByComponentType(componentType, t)).toBe(
-          `Title text for ${componentType}`,
-        );
+        expect(getTitleByComponentType(componentType, t)).toBe(`Title text for ${componentType}`);
       });
     });
 
@@ -50,7 +48,7 @@ describe('Designer > utils/language', () => {
       const { t } = mockUseTranslation({
         [`ux_editor.component_title.${ComponentType.Accordion}`]: `Title text for ${ComponentType.Accordion}`,
       });
-      expect(getComponentTitleByComponentType(ComponentType.Input, t)).toBe(ComponentType.Input);
+      expect(getTitleByComponentType(ComponentType.Input, t)).toBe(ComponentType.Input);
     });
   });
 

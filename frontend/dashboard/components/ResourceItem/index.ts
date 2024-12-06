@@ -1,1 +1,2 @@
-export { ResourceItem, ResourceItemProps } from './ResourceItem';
+export type { ResourceItemProps } from './ResourceItem';
+export { ResourceItem } from './ResourceItem';

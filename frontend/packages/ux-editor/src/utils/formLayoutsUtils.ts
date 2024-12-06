@@ -1,17 +1,18 @@
-import { IFormLayouts, IInternalLayout } from '../types/global';
+import type { IFormLayouts, IInternalLayout } from '../types/global';
 import {
   addNavigationButtons,
   createEmptyLayout,
   hasNavigationButtons,
+  idExistsInLayout,
   removeComponentsByType,
 } from './formLayoutUtils';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { generateComponentId } from './generateId';
-import { deepCopy } from 'app-shared/pure';
+import { ObjectUtils, ArrayUtils } from '@studio/pure-functions';
 import { DEFAULT_SELECTED_LAYOUT_NAME } from 'app-shared/constants';
-import { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
-import { ArrayUtils } from '@studio/pure-functions';
+import type { FormLayoutsResponse } from 'app-shared/types/api/FormLayoutsResponse';
 import { externalLayoutToInternal } from '../converters/formLayoutConverters';
+import type { FormLayoutPage } from '@altinn/ux-editor/types/FormLayoutPage';
 
 /**
  * Update layouts to have navigation buttons if there are multiple layouts, or remove them if this is the only one.
@@ -19,35 +20,29 @@ import { externalLayoutToInternal } from '../converters/formLayoutConverters';
  * @param layouts All layouts.
  * @param callback Callback to be called for each layout if there are changes or if the layout is the one specified by the currentLayoutName parameter.
  * @param currentLayoutName The name of the current layout. Callback will always be called for this layout if set.
- * @param receiptLayoutName The name of the receipt layout. Ensures that receipt layout is ignored when adding/deleting navigation buttons.
  */
 export const addOrRemoveNavigationButtons = async (
   layouts: IFormLayouts,
   callback: (layoutName: string, layout: IInternalLayout) => Promise<void>,
   currentLayoutName?: string,
-  receiptLayoutName?: string,
 ): Promise<IFormLayouts> => {
   if (currentLayoutName && !layouts[currentLayoutName]) {
     throw new Error(`Layout with name ${currentLayoutName} does not exist.`);
   }
 
-  const allLayouts = deepCopy(layouts);
+  const allLayouts = ObjectUtils.deepCopy(layouts);
   let layoutsToUpdate: string[] = [];
 
   // Update layouts to have navigation buttons if there are multiple layouts, or remove them if there is only one.
   const allLayoutNames = Object.keys(layouts);
-  const layoutsThatShouldHaveNavigationButtons = allLayoutNames.filter(
-    (name) => name !== receiptLayoutName,
-  );
-  if (layoutsThatShouldHaveNavigationButtons.length === 1) {
-    // There is only one layout
-    const name = layoutsThatShouldHaveNavigationButtons[0];
+  if (allLayoutNames.length === 1) {
+    const name = allLayoutNames[0];
     const layout = removeComponentsByType(layouts[name], ComponentType.NavigationButtons);
     layouts[name] !== layout && layoutsToUpdate.push(name);
     allLayouts[name] = layout;
   } else {
     // There are multiple layouts
-    for (const name of layoutsThatShouldHaveNavigationButtons) {
+    for (const name of allLayoutNames) {
       const layout = layouts[name];
       if (!hasNavigationButtons(layout)) {
         const navButtonsId = generateComponentId(ComponentType.NavigationButtons, layouts);
@@ -62,11 +57,6 @@ export const addOrRemoveNavigationButtons = async (
   return allLayouts;
 };
 
-interface AllLayouts {
-  convertedLayouts: IFormLayouts;
-  invalidLayouts: string[];
-}
-
 /**
  * Converts list of external layouts to internal format.
  * @param layouts List of layouts in external format.
@@ -74,21 +64,16 @@ interface AllLayouts {
  */
 export const convertExternalLayoutsToInternalFormat = (
   layouts: FormLayoutsResponse,
-): AllLayouts => {
+): IFormLayouts => {
   const convertedLayouts: IFormLayouts = {};
-  const invalidLayouts: string[] = [];
   Object.entries(layouts).forEach(([name, layout]) => {
     if (!layout || !layout.data) {
       convertedLayouts[name] = createEmptyLayout();
     } else {
-      try {
-        convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
-      } catch {
-        invalidLayouts.push(name);
-      }
+      convertedLayouts[name] = externalLayoutToInternal(layouts[name]);
     }
   });
-  return { convertedLayouts, invalidLayouts };
+  return convertedLayouts;
 };
 
 /**
@@ -108,4 +93,28 @@ export const firstAvailableLayout = (deletedLayoutName: string, layoutPagesOrder
   }
 
   return DEFAULT_SELECTED_LAYOUT_NAME;
+};
+
+/**
+ * Checks if a layout-set with the given id exists in the given list of layouts
+ * @param id The id of the component/container to check for
+ * @param formLayouts The list of layouts to check
+ * @returns True if the id exists in any of the layouts, false otherwise
+ */
+export function idExists(id: string, formLayouts: IFormLayouts): boolean {
+  return Object.values(formLayouts).some((layout) => idExistsInLayout(id, layout));
+}
+
+/**
+ * Maps the content of all layouts in a layout set to an array of objects with layout name and all components on layout
+ *
+ * @param formLayouts all layouts as key value pairs where the key is the layout name
+ *
+ * @returns an array of objects with layout name and components
+ */
+export const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
+  return Object.entries(formLayouts).map(([key, value]) => ({
+    page: key,
+    data: value,
+  }));
 };

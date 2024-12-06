@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using Altinn.Studio.Designer.Helpers;
 
 namespace Altinn.Studio.Designer.Models
@@ -31,7 +30,7 @@ namespace Altinn.Studio.Designer.Models
         private void ValidateOrganization(string org)
         {
             Guard.AssertNotNullOrEmpty(org, nameof(org));
-            if (!Regex.IsMatch(org, "^[a-zA-Z0-9][a-zA-Z0-9-_\\.]*$"))
+            if (!AltinnRegexes.AltinnOrganizationNameRegex().IsMatch(org))
             {
                 throw new ArgumentException("Provided organization name is not valid");
             }

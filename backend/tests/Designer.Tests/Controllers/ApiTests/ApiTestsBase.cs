@@ -1,7 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Text;
+using Designer.Tests.Fixtures;
+using DotNet.Testcontainers.Builders;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
@@ -37,7 +44,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     /// </summary>
     protected abstract void ConfigureTestServices(IServiceCollection services);
 
-    protected Action<IServiceCollection> ConfigureTestForSpecificTest { get; set; } = delegate { };
+    protected Action<IServiceCollection> ConfigureTestServicesForSpecificTest { get; set; } = delegate { };
 
     /// <summary>
     /// Location of the assembly of the executing unit test.
@@ -57,6 +64,7 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     {
         Factory = factory;
         SetupDirtyHackIfLinux();
+        InitializeJsonConfigOverrides();
     }
 
     /// <summary>
@@ -67,11 +75,29 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     protected virtual HttpClient GetTestClient()
     {
         string configPath = GetConfigPath();
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile(configPath, false, false)
+            .AddJsonStream(GenerateJsonOverrideConfig())
+            .AddEnvironmentVariables()
+            .Build();
+
         return Factory.WithWebHostBuilder(builder =>
         {
-            builder.ConfigureAppConfiguration((_, conf) => { conf.AddJsonFile(configPath); });
+            builder.UseConfiguration(configuration);
+            builder.ConfigureAppConfiguration((_, conf) =>
+            {
+                conf.AddJsonFile(configPath);
+                conf.AddJsonStream(GenerateJsonOverrideConfig());
+            });
             builder.ConfigureTestServices(ConfigureTestServices);
-            builder.ConfigureServices(ConfigureTestForSpecificTest);
+            builder.ConfigureTestServices(services =>
+            {
+                services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                        TestAuthConstants.TestAuthenticationScheme, options => { });
+                services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
+            });
+            builder.ConfigureServices(ConfigureTestServicesForSpecificTest);
         }).CreateDefaultClient(new ApiTestsAuthAndCookieDelegatingHandler(), new CookieContainerHandler());
     }
 
@@ -90,5 +116,58 @@ public abstract class ApiTestsBase<TControllerTest> : FluentTestsBase<TControlle
     }
     protected virtual void Dispose(bool disposing)
     {
+    }
+
+    protected List<string> JsonConfigOverrides;
+
+    private void InitializeJsonConfigOverrides()
+    {
+        JsonConfigOverrides =
+        [
+            $@"
+              {{
+                    ""OidcLoginSettings"": {{
+                        ""ClientId"": ""{Guid.NewGuid()}"",
+                        ""ClientSecret"": ""{Guid.NewGuid()}"",
+                        ""Authority"": ""http://studio.localhost/repos/"",
+                        ""Scopes"": [
+                            ""openid"",
+                            ""profile"",
+                            ""write:activitypub"",
+                            ""write:admin"",
+                            ""write:issue"",
+                            ""write:misc"",
+                            ""write:notification"",
+                            ""write:organization"",
+                            ""write:package"",
+                            ""write:repository"",
+                            ""write:user""
+                        ],
+                        ""RequireHttpsMetadata"": false,
+                        ""CookieExpiryTimeInMinutes"" : 59
+                    }}
+              }}
+            "
+        ];
+    }
+
+
+    protected Stream GenerateJsonOverrideConfig()
+    {
+        var overrideJson = Newtonsoft.Json.Linq.JObject.Parse(JsonConfigOverrides.First());
+        if (JsonConfigOverrides.Count > 1)
+        {
+            foreach (string jsonConfig in JsonConfigOverrides)
+            {
+                overrideJson.Merge(Newtonsoft.Json.Linq.JObject.Parse(jsonConfig), new Newtonsoft.Json.Linq.JsonMergeSettings
+                {
+                    MergeArrayHandling = Newtonsoft.Json.Linq.MergeArrayHandling.Union
+                });
+            }
+        }
+        string overrideJsonString = overrideJson.ToString();
+        var configStream = new MemoryStream(Encoding.UTF8.GetBytes(overrideJsonString));
+        configStream.Seek(0, SeekOrigin.Begin);
+        return configStream;
     }
 }

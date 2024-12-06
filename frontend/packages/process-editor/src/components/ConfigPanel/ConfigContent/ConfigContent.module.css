@@ -1,13 +1,23 @@
-.headerWrapper {
+.accordion,
+.configContent {
   display: flex;
-  align-items: center;
-  margin-inline: 1rem;
-  margin-top: 1rem;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
 }
 
-.headerTextAndIconWrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.recommendedActionBackdrop {
+  background-color: var(--fds-semantic-border-divider-default);
+}
+
+.recommendedActionContentBackdrop {
+  background-color: var(--fds-semantic-border-divider-default);
+  height: 100%;
+}
+
+.accordion {
+  padding-inline: 0;
+}
+
+.displayTile {
+  padding-inline: var(--fds-spacing-5);
 }

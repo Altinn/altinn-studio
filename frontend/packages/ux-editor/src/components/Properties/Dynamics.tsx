@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Switch } from '@digdir/design-system-react';
-import { ConditionalRendering } from './ConditionalRendering';
 import { Expressions } from '../config/Expressions';
 import { useText } from '../../hooks';
-import { WindowWithRuleModel } from '../../hooks/queries/useRuleModelQuery';
-import { useFormContext } from '../../containers/FormContext';
+import { useFormItemContext } from '../../containers/FormItemContext';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
+import { DeprecatedConditionalRenderingInfo } from '@altinn/ux-editor/components/Properties/DeprecatedConditionalRenderingInfo';
+import classes from './Dynamics.module.css';
+import { StudioSwitch } from '@studio/components';
 
 export const Dynamics = () => {
-  const { formId, form } = useFormContext();
+  const { formItemId: formId, formItem: form } = useFormItemContext();
 
   const [showOldExpressions, setShowOldExpressions] = useState<boolean>(false);
   const t = useText();
@@ -18,9 +18,6 @@ export const Dynamics = () => {
     setShowOldExpressions(event.target.checked);
   };
 
-  const conditionalRulesExist =
-    (window as WindowWithRuleModel).conditionalRuleHandlerObject !== undefined;
-
   const isUnknownInternalComponent: boolean = form && !formItemConfigs[form.type];
   if (isUnknownInternalComponent) {
     return <UnknownComponentAlert componentName={form.type} />;
@@ -28,17 +25,16 @@ export const Dynamics = () => {
 
   return (
     <>
-      {conditionalRulesExist && (
-        <Switch
-          name={'new-dynamics-switch'}
-          onChange={handleToggleOldDynamics}
-          checked={showOldExpressions}
-          size={'small'}
-        >
-          {t('right_menu.show_old_dynamics')}
-        </Switch>
-      )}
-      {showOldExpressions ? <ConditionalRendering /> : <Expressions key={formId} />}
+      {showOldExpressions ? <DeprecatedConditionalRenderingInfo /> : <Expressions key={formId} />}
+      <StudioSwitch
+        name={'new-dynamics-switch'}
+        onChange={handleToggleOldDynamics}
+        checked={showOldExpressions}
+        size={'sm'}
+        className={classes.oldDynamicsToggle}
+      >
+        {t('right_menu.show_old_dynamics')}
+      </StudioSwitch>
     </>
   );
 };

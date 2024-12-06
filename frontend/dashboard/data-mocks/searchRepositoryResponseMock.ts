@@ -1,5 +1,5 @@
 import { repository } from 'app-shared/mocks/mocks';
-import { SearchRepositoryResponse } from 'app-shared/types/api';
+import type { SearchRepositoryResponse } from 'app-shared/types/api';
 
 export const searchRepositoryResponseMock: SearchRepositoryResponse = {
   data: [

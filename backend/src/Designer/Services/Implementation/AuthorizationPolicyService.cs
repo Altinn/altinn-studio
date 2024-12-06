@@ -1,5 +1,6 @@
 using System;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Models;
@@ -38,8 +39,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string app,
             string shortCommitId,
-            string envName)
+            string envName,
+            CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             FileSystemObject policyFile = await GetAuthorizationPolicyFileFromGitea(org, app, shortCommitId);
             byte[] data = Convert.FromBase64String(policyFile.Content);
             string policyFileContent = Encoding.UTF8.GetString(data);

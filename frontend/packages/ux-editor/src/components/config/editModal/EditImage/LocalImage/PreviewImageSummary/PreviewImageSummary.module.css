@@ -1,0 +1,10 @@
+.previewContainer {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+}
+
+.fileIcon {
+  font-size: var(--fds-sizing-5);
+}

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
-using Altinn.App.Core.Internal.Process.Elements;
+using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Implementation.ProcessModeling;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Utils;
@@ -19,13 +17,24 @@ namespace Designer.Tests.Services
 {
     public class ProcessModelingServiceTests : FluentTestsBase<ProcessModelingServiceTests>
     {
+        private readonly AltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly IAppDevelopmentService _appDevelopmentService;
+        public string CreatedTestRepoPath { get; set; }
+
+        public ProcessModelingServiceTests()
+        {
+            var schemaModelServiceMock = new Mock<ISchemaModelService>();
+            _altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
+            _appDevelopmentService = new AppDevelopmentService(_altinnGitRepositoryFactory, schemaModelServiceMock.Object);
+        }
+
         [Theory]
         [MemberData(nameof(TemplatesTestData))]
         public void GetProcessDefinitionTemplates_GivenVersion_ReturnsListOfTemplates(string versionString, params string[] expectedTemplates)
         {
             SemanticVersion version = SemanticVersion.Parse(versionString);
 
-            IProcessModelingService processModelingService = new ProcessModelingService(new Mock<IAltinnGitRepositoryFactory>().Object);
+            IProcessModelingService processModelingService = new ProcessModelingService(new Mock<IAltinnGitRepositoryFactory>().Object, _appDevelopmentService);
 
             var result = processModelingService.GetProcessDefinitionTemplates(version).ToList();
 
@@ -38,31 +47,20 @@ namespace Designer.Tests.Services
         }
 
         [Theory]
-        [InlineData("ttd", "app-with-process", "testUser", "Task_1", "NewTaskName")]
-        public async void UpdateProcessTaskNameAsync_GivenTaskIdAndTaskName_UpdatesTaskName(string org, string repo, string developer, string taskId, string newTaskName)
+        [InlineData("ttd", "app-with-process-and-layoutsets", "testUser")]
+        public async Task GetTaskTypeFromProcessDefinition_GivenProcessDefinition_ReturnsTaskType(string org, string app, string developer)
         {
-            // Arrange
             string targetRepository = TestDataHelper.GenerateTestRepoName();
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer);
-            await TestDataHelper.CopyRepositoryForTest(org, repo, developer, targetRepository);
 
-            try
-            {
-                var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                IProcessModelingService processModelingService = new ProcessModelingService(altinnGitRepositoryFactory);
+            CreatedTestRepoPath = await TestDataHelper.CopyRepositoryForTest(org, app, developer, targetRepository);
 
-                // Act
-                using Stream result = await processModelingService.UpdateProcessTaskNameAsync(editingContext, taskId, newTaskName);
-                XmlSerializer serializer = new(typeof(Definitions));
-                Definitions definitions = (Definitions)serializer.Deserialize(result);
+            IProcessModelingService processModelingService = new ProcessModelingService(_altinnGitRepositoryFactory, _appDevelopmentService);
 
-                // Assert
-                definitions.Process.Tasks.First(t => t.Id == taskId).Name.Should().Be(newTaskName);
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-            }
+            // Act
+            string taskType = await processModelingService.GetTaskTypeFromProcessDefinition(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, targetRepository, developer), "layoutSet1");
+
+            // Assert
+            taskType.Should().Be("data");
         }
 
         public static IEnumerable<object[]> TemplatesTestData => new List<object[]>

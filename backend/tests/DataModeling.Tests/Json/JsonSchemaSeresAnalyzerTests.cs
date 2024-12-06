@@ -1,13 +1,10 @@
-using System;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Json.Pointer;
-using Json.Schema;
 using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;

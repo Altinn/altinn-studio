@@ -1,61 +1,40 @@
-import React, { useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 import { useAddProperty } from '../../../../hooks/useAddProperty';
-import { ObjectKind } from '@altinn/schema-model';
-import { ActionButton } from './ActionButton';
-import { PlusIcon } from '@navikt/aksel-icons';
-import { DropdownMenu } from '@digdir/design-system-react';
-import { CombinationIcon, PropertyIcon, ReferenceIcon } from '@studio/icons';
+import type { FieldType, ObjectKind } from '@altinn/schema-model';
+import { SchemaModel } from '@altinn/schema-model';
+import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
+import { AddPropertiesMenu } from '../../../AddPropertiesMenu';
+import { useTranslation } from 'react-i18next';
+import classes from './ActionButton.module.css';
 
 interface AddPropertyMenuProps {
-  pointer: string;
+  schemaPointer: string;
+  uniquePointer: string;
 }
 
-export const AddPropertyMenu = ({ pointer }: AddPropertyMenuProps) => {
-  const addButtonRef = useRef<HTMLButtonElement>(null);
+export const AddPropertyMenu = ({ schemaPointer, uniquePointer }: AddPropertyMenuProps) => {
+  const { setSelectedUniquePointer } = useSchemaEditorAppContext();
   const { t } = useTranslation();
-  const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
+
   const addProperty = useAddProperty();
 
-  const addField = () => addPropertyAndClose(ObjectKind.Field);
-  const addCombination = () => addPropertyAndClose(ObjectKind.Combination);
-  const addReference = () => addPropertyAndClose(ObjectKind.Reference);
-
-  const addPropertyAndClose = (kind: ObjectKind) => {
-    addProperty(kind, undefined, pointer);
-    closeDropdown();
+  const addPropertyAndClose = (kind: ObjectKind, fieldType?: FieldType) => {
+    const childPointer = addProperty(kind, fieldType, schemaPointer);
+    if (childPointer) {
+      const uniqueChildPointer = SchemaModel.getUniquePointer(childPointer, uniquePointer);
+      setSelectedUniquePointer(uniqueChildPointer);
+    }
   };
 
-  const closeDropdown = () => setIsAddDropdownOpen(false);
-
   return (
-    <>
-      <ActionButton
-        aria-expanded={isAddDropdownOpen}
-        aria-haspopup='menu'
-        icon={<PlusIcon />}
-        onClick={() => setIsAddDropdownOpen(true)}
-        ref={addButtonRef}
-        titleKey='schema_editor.add_node_of_type'
-      />
-      <DropdownMenu
-        anchorEl={addButtonRef.current}
-        open={isAddDropdownOpen}
-        onClose={closeDropdown}
-        size='small'
-      >
-        <DropdownMenu.Group>
-          <DropdownMenu.Item onClick={addField} icon={<PropertyIcon />}>
-            {t('schema_editor.add_field')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={addCombination} icon={<CombinationIcon />}>
-            {t('schema_editor.add_combination')}
-          </DropdownMenu.Item>
-          <DropdownMenu.Item onClick={addReference} icon={<ReferenceIcon />}>
-            {t('schema_editor.add_reference')}
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu>
-    </>
+    <AddPropertiesMenu
+      onItemClick={addPropertyAndClose}
+      anchorButtonProps={{
+        children: '',
+        title: t('schema_editor.add_node_of_type_in_child_node_title'),
+        variant: 'tertiary',
+        className: classes.actionButton,
+      }}
+    />
   );
 };

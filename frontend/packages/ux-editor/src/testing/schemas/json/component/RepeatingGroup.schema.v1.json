@@ -1,0 +1,367 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/RepeatingGroup.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "id": {
+      "title": "ID",
+      "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>.",
+      "type": "string",
+      "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9]+|-[0-9]{6,})$"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "properties": {
+        "xs": { "$ref": "#/definitions/IGridSize" },
+        "sm": { "$ref": "#/definitions/IGridSize" },
+        "md": { "$ref": "#/definitions/IGridSize" },
+        "lg": { "$ref": "#/definitions/IGridSize" },
+        "xl": { "$ref": "#/definitions/IGridSize" },
+        "labelGrid": { "$ref": "#/definitions/IGridStyling" },
+        "innerGrid": { "$ref": "#/definitions/IGridStyling" }
+      }
+    },
+    "pageBreak": {
+      "title": "Page break",
+      "description": "Optionally insert page-break before/after component when rendered in PDF",
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Value or expression indicating whether a page break should be added before the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Value or expression indicating whether a page break should be added after the component. Can be either: 'auto' (default), 'always', or 'avoid'.",
+          "examples": ["auto", "always", "avoid"],
+          "default": "auto",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean value indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "type": "boolean"
+    },
+    "forceShowInSummary": {
+      "title": "Force show in summary",
+      "description": "Will force show the component in a summary even if hideEmptyFields is set to true in the summary component.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "type": { "const": "RepeatingGroup" },
+    "textResourceBindings": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "description": "The title of the group (shown above each instance in a Summary)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "description": {
+          "title": "Description",
+          "description": "The description text shown underneath the title",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryTitle": {
+          "title": "Summary title",
+          "description": "Title used in the summary view (overrides the default title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "summaryAccessibleTitle": {
+          "title": "Accessible summary title",
+          "description": "Title used for aria-label on the edit button in the summary view (overrides the default and summary title)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "add_button_full": {
+          "title": "Add button (full) (for repeating groups)",
+          "description": "The text for the \"Add\" button (overrides \"add_button\", and sets the full text for the button)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "add_button": {
+          "title": "Add button (suffix) (for repeating groups)",
+          "description": "The text for the \"Add\" button (used as a suffix after the default button text)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "save_button": {
+          "title": "Save button (for repeating groups)",
+          "description": "The text for the \"Save\" button when the repeating group item is in edit mode",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "save_and_next_button": {
+          "title": "Save and next button (for repeating groups)",
+          "description": "The text for the \"Save and next\" button when the repeating group item is in edit mode (only displayed if edit.saveAndNextButton is true)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "edit_button_close": {
+          "title": "Edit button (close) (for repeating groups)",
+          "description": "The text for the \"Edit\" button when the repeating group item is in edit mode (i.e. the user can close the edit mode)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "edit_button_open": {
+          "title": "Edit button (open) (for repeating groups)",
+          "description": "The text for the \"Edit\" button when the repeating group item is not in edit mode (i.e. the user can open the edit mode)",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "pagination_next_button": {
+          "title": "Next button in pagination",
+          "description": "The text for the \"Next\" button in pagination",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        },
+        "pagination_back_button": {
+          "title": "Back button in pagination",
+          "description": "The text for the \"Back\" button in pagination",
+          "$ref": "expression.schema.v1.json#/definitions/string"
+        }
+      }
+    },
+    "children": {
+      "title": "Children",
+      "description": "List of child component IDs to show inside (will be repeated according to the number of rows in the data model binding)",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rowsBefore": {
+      "title": "Rows in Grid or Grid-like component",
+      "description": "The list of rows in this grid",
+      "examples": [
+        [
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
+          }
+        ]
+      ],
+      "type": "array",
+      "items": {
+        "title": "GridRow",
+        "type": "object",
+        "properties": {
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
+          "cells": {
+            "title": "Cells in table row",
+            "description": "The list of cells in this row",
+            "type": "array",
+            "items": { "$ref": "#/definitions/GridCell" }
+          }
+        },
+        "required": ["cells"],
+        "additionalProperties": false
+      }
+    },
+    "rowsAfter": {
+      "title": "Rows in Grid or Grid-like component",
+      "description": "The list of rows in this grid",
+      "examples": [
+        [
+          {
+            "header": false,
+            "readOnly": false,
+            "cells": [{ "text": "hello.world" }, { "component": "myOtherComponent" }]
+          }
+        ]
+      ],
+      "type": "array",
+      "items": {
+        "title": "GridRow",
+        "type": "object",
+        "properties": {
+          "header": { "title": "Is header row?", "default": false, "type": "boolean" },
+          "readOnly": { "title": "Is row read-only?", "default": false, "type": "boolean" },
+          "columnOptions": { "$ref": "#/definitions/ITableColumnProperties" },
+          "cells": {
+            "title": "Cells in table row",
+            "description": "The list of cells in this row",
+            "type": "array",
+            "items": { "$ref": "#/definitions/GridCell" }
+          }
+        },
+        "required": ["cells"],
+        "additionalProperties": false
+      }
+    },
+    "dataModelBindings": {
+      "title": "IDataModelBindingsForGroup",
+      "type": "object",
+      "properties": {
+        "group": {
+          "title": "Group",
+          "description": "Dot notation location for a repeating group structure (array of objects), where the data is stored",
+          "type": "string"
+        }
+      },
+      "required": ["group"],
+      "additionalProperties": false
+    },
+    "showValidations": {
+      "title": "Validation types",
+      "description": "List of validation types to show",
+      "type": "array",
+      "items": {
+        "enum": [
+          "Schema",
+          "Component",
+          "Expression",
+          "CustomBackend",
+          "Required",
+          "AllExceptRequired",
+          "All"
+        ],
+        "type": "string"
+      }
+    },
+    "validateOnSaveRow": {
+      "title": "Validation types",
+      "description": "List of validation types to show",
+      "type": "array",
+      "items": {
+        "enum": [
+          "Schema",
+          "Component",
+          "Expression",
+          "CustomBackend",
+          "Required",
+          "AllExceptRequired",
+          "All"
+        ],
+        "type": "string"
+      }
+    },
+    "edit": {
+      "title": "IGroupEditProperties",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "title": "Mode",
+          "description": "The mode of the repeating group",
+          "default": "showTable",
+          "enum": ["hideTable", "showTable", "showAll", "onlyTable"]
+        },
+        "addButton": {
+          "title": "Add button",
+          "description": "Expression or boolean indicating whether to show the \"Add\" button",
+          "default": true,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "saveButton": {
+          "title": "Save button",
+          "description": "Expression or boolean indicating whether to show the \"Save\" button",
+          "default": true,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "deleteButton": {
+          "title": "Delete button",
+          "description": "Expression or boolean indicating whether to show the \"Delete\" button",
+          "default": true,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "editButton": {
+          "title": "Edit button",
+          "description": "Expression or boolean indicating whether to show the \"Edit\" button",
+          "default": true,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "multiPage": {
+          "title": "Multi page functionality",
+          "description": "Turning this on makes it possible to display the edit mode for a repeating group with multiple inner pages. Every component referenced in the \"children\" property should have a prefix with the page number it should be displayed on (e.g. \"1:component1\", \"2:component2\", etc.)",
+          "default": false,
+          "type": "boolean"
+        },
+        "openByDefault": {
+          "title": "Open by default",
+          "description": "If set to true, a row of the repeating group will be opened by default, if the group has no rows already. If set to \"first\" or \"last\", the first or last row will be opened by default",
+          "default": false,
+          "anyOf": [{ "type": "boolean" }, { "const": "first" }, { "const": "last" }]
+        },
+        "alertOnDelete": {
+          "title": "Alert on delete",
+          "description": "Expression or boolean indicating whether to show an alert when the user clicks the \"Delete\" button, prompting them to confirm the deletion",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "saveAndNextButton": {
+          "title": "Save and next button",
+          "description": "Expression or boolean indicating whether to show the \"Save and next\" button when editing a repeating group row. This button will save the current row and open the next row for editing.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "alwaysShowAddButton": {
+          "title": "Always show add button",
+          "description": "If set to true, the \"Add\" button will always be shown, even if the user is currently editing another row",
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pagination": {
+      "title": "Pagination options",
+      "description": "Pagination options for the repeating group rows.",
+      "type": "object",
+      "properties": { "rowsPerPage": { "type": "integer", "minimum": 1 } },
+      "required": ["rowsPerPage"],
+      "additionalProperties": false
+    },
+    "maxCount": {
+      "title": "Max number of rows",
+      "description": "Maximum number of rows that can be added.",
+      "type": "integer",
+      "minimum": 2
+    },
+    "minCount": {
+      "title": "Min number of rows",
+      "description": "Minimum number of rows that should be added. If the user has not added enough rows, the repeating group will show a validation error",
+      "type": "integer"
+    },
+    "tableHeaders": {
+      "title": "Table headers",
+      "description": "Array of component IDs that should be displayed as table headers. If not defined, all components referenced in the \"children\" property will be displayed as table headers",
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "tableColumns": {
+      "examples": [{ "childComponent1": { "width": "auto" } }],
+      "type": "object",
+      "properties": {},
+      "additionalProperties": { "$ref": "#/definitions/IGroupColumnFormatting" }
+    },
+    "hiddenRow": {
+      "title": "Hidden row?",
+      "description": "Expression or boolean indicating whether each row should be hidden. An expression will be evaluated per row, and if it evaluates to true, the row will be hidden. If set to true, all rows will be hidden.",
+      "default": false,
+      "$ref": "expression.schema.v1.json#/definitions/boolean"
+    },
+    "stickyHeader": {
+      "title": "Sticky header",
+      "description": "If set to true, the header of the repeating group will be sticky",
+      "default": false,
+      "type": "boolean"
+    },
+    "labelSettings": {
+      "title": "ILabelSettings",
+      "type": "object",
+      "properties": {
+        "optionalIndicator": {
+          "title": "Optional indicator",
+          "description": "Show optional indicator on label",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["id", "type", "children", "dataModelBindings"],
+  "title": "RepeatingGroup component schema"
+}

@@ -1,21 +1,38 @@
 import React from 'react';
 import classes from './ConfigIcon.module.css';
-import { BpmnTaskType } from '../../../../types/BpmnTaskType';
-import { ConfirmationTask, DataTask, FeedbackTask, SignTask } from '@studio/icons';
+import type { BpmnTaskType } from '../../../../types/BpmnTaskType';
+import {
+  ArrowRightIcon,
+  ConfirmationTaskIcon,
+  DataTaskIcon,
+  FeedbackTaskIcon,
+  EndEventIcon,
+  PaymentTaskIcon,
+  SignTaskIcon,
+} from '@studio/icons';
+import { BpmnTypeEnum } from '@altinn/process-editor/enum/BpmnTypeEnum';
 
 export type ConfigIconProps = {
-  taskType: BpmnTaskType;
+  taskType?: BpmnTaskType;
+  type?: BpmnTypeEnum;
 };
 
-export const ConfigIcon = ({ taskType }: ConfigIconProps): JSX.Element => {
-  switch (taskType) {
+export const ConfigIcon = ({ taskType, type }: ConfigIconProps): React.ReactElement => {
+  const iconDecider = taskType ?? type;
+  switch (iconDecider) {
     case 'data':
-      return <DataTask className={classes.icon} />;
+      return <DataTaskIcon className={classes.icon} />;
     case 'confirmation':
-      return <ConfirmationTask className={classes.icon} />;
+      return <ConfirmationTaskIcon className={classes.icon} />;
     case 'feedback':
-      return <FeedbackTask className={classes.icon} />;
+      return <FeedbackTaskIcon className={classes.icon} />;
     case 'signing':
-      return <SignTask className={classes.icon} />;
+      return <SignTaskIcon className={classes.icon} />;
+    case 'payment':
+      return <PaymentTaskIcon className={classes.icon} />;
+    case BpmnTypeEnum.EndEvent.toString():
+      return <EndEventIcon className={classes.icon} />;
+    case BpmnTypeEnum.SequenceFlow.toString():
+      return <ArrowRightIcon className={classes.icon} />;
   }
 };

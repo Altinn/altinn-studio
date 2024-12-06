@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { TranslationKey } from '@altinn-studio/language/type';
+import type { TranslationKey } from '@altinn-studio/language/type';
 import { useTranslation } from 'react-i18next';
 import classes from './ActionButton.module.css';
 import { StudioButton } from '@studio/components';
@@ -16,7 +16,6 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>(
       <StudioButton
         className={classes.actionButton}
         ref={ref}
-        size='small'
         title={t(titleKey)}
         variant='tertiary'
         {...rest}

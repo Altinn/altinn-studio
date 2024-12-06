@@ -2,13 +2,21 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import type { TextListProps } from './TextList';
 import { TextList } from './TextList';
-import { screen, render as rtlRender, act } from '@testing-library/react';
-import { TextTableRow } from './types';
+import { screen, render as rtlRender } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { TextTableRow } from './types';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { queryClientMock } from 'app-shared/mocks/queryClientMock';
+import { app, org } from '@studio/testing/testids';
+
+const textKey1: string = 'a';
 
 const renderTextList = (props: Partial<TextListProps> = {}) => {
   const resourceRows: TextTableRow[] = [
     {
-      textKey: 'a',
+      textKey: textKey1,
       translations: [
         {
           lang: 'nb',
@@ -54,49 +62,90 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
     selectedLanguages: ['nb', 'en', 'nn'],
     ...props,
   };
-
-  return { initPros: allProps, ...rtlRender(<TextList {...allProps} />) };
+  queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
+  return {
+    initPros: allProps,
+    ...rtlRender(
+      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+        <TextList {...allProps} />
+      </ServicesContextProvider>,
+    ),
+  };
 };
 
 describe('TextList', () => {
-  test('updateEntryId should be called when id has been changed', async () => {
+  it('should call updateEntryId when the ID is changed in the edit mode', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
     const { rerender, initPros } = renderTextList({ updateEntryId });
-    rerender(<TextList {...initPros} />);
-    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
-    await act(() => user.click(toggleEditButton[0]));
-    const idInputs = screen.getAllByRole('textbox', {
-      name: 'tekst key edit',
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
+    rerender(
+      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+        <TextList {...initPros} />
+      </ServicesContextProvider>,
+    );
+
+    const toggleEditButton = screen.getAllByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey: textKey1 }),
     });
-    await act(() => user.dblClick(idInputs[0]));
-    await act(() => user.keyboard('a-updated{TAB}'));
+    await user.click(toggleEditButton[0]);
+    const idInput = screen.getByRole('textbox', {
+      name: textMock('text_editor.key.edit', { textKey: textKey1 }),
+    });
+
+    await user.dblClick(idInput);
+    await user.keyboard('a-updated{TAB}');
     expect(updateEntryId).toHaveBeenCalledWith({ newId: 'a-updated', oldId: 'a' });
   });
 
-  test('that the user is warned when an id already exists', async () => {
+  it('should display warnings for existing, empty, or space-containing IDs', async () => {
     const user = userEvent.setup();
     const updateEntryId = jest.fn();
+    const [firstErrorMessage, secondErrorMessage, thirdErrorMessage]: string[] = [
+      textMock('text_editor.key.error_duplicate'),
+      textMock('text_editor.key.error_invalid'),
+      textMock('text_editor.key.error_empty'),
+    ];
     const { rerender, initPros } = renderTextList({ updateEntryId });
-    rerender(<TextList {...initPros} />);
-    const toggleEditButton = screen.getAllByRole('button', { name: 'toggle-textkey-edit' });
-    await act(() => user.click(toggleEditButton[0]));
-    const idInputs = screen.getAllByRole('textbox', {
-      name: 'tekst key edit',
+    queryClientMock.setQueryData([QueryKey.LayoutNames, org, app], []);
+    rerender(
+      <ServicesContextProvider {...queriesMock} client={queryClientMock}>
+        <TextList {...initPros} />
+      </ServicesContextProvider>,
+    );
+
+    const toggleEditButton = screen.getAllByRole('button', {
+      name: textMock('text_editor.toggle_edit_mode', { textKey: textKey1 }),
     });
-    const errorMsg = 'Denne IDen finnes allerede';
-    await act(() => user.dblClick(idInputs[0]));
-    await act(() => user.keyboard('b'));
-    const error = screen.getByRole('alertdialog');
-    expect(error).toBeInTheDocument();
-    expect(screen.getByText(errorMsg)).not.toBeNull();
-    await act(() => user.keyboard('2'));
-    expect(screen.queryByText(errorMsg)).toBeNull();
-    await act(() => user.keyboard('{BACKSPACE}'));
-    expect(screen.getByText(errorMsg)).toBeInTheDocument();
-    await act(() => user.keyboard('{TAB}'));
+    await user.click(toggleEditButton[0]);
+
+    const idInput = screen.getByRole('textbox', {
+      name: textMock('text_editor.key.edit', { textKey: textKey1 }),
+    });
+    await user.dblClick(idInput);
+
+    await user.keyboard('b');
+    expect(screen.getByText(firstErrorMessage)).not.toBeNull();
+
+    await user.keyboard('2');
+    expect(screen.queryByText(firstErrorMessage)).toBeNull();
+
+    await user.keyboard(' ');
+    expect(screen.getByText(secondErrorMessage)).not.toBeNull();
+
+    await user.clear(idInput);
+    expect(screen.getByText(thirdErrorMessage)).not.toBeNull();
+
+    await user.keyboard('{TAB}');
     expect(updateEntryId).not.toHaveBeenCalled();
-    await act(() => user.keyboard('{SHIFT>}{TAB}{/SHIFT}{END}2{TAB}'));
-    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'b2' });
+
+    //Back to the original value, no error should be displayed
+    await user.type(idInput, 'a');
+    expect(screen.queryByText(firstErrorMessage)).toBeNull();
+    expect(screen.queryByText(secondErrorMessage)).toBeNull();
+    expect(screen.queryByText(thirdErrorMessage)).toBeNull();
+
+    await user.keyboard('2{TAB}');
+    expect(updateEntryId).toHaveBeenCalledWith({ oldId: 'a', newId: 'a2' });
   });
 });

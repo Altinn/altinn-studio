@@ -29,7 +29,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
+public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
     private string TargetTestRepository { get; }
@@ -92,7 +92,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
         customErrorMessages.Should().NotBeNull();
         var customErrorMessagesElement = (JsonElement)customErrorMessages;
         var firstErrorMessage = customErrorMessagesElement.EnumerateArray().FirstOrDefault().GetString();
-        firstErrorMessage.Should().Be("'root': member names cannot be the same as their enclosing type");
+        firstErrorMessage.Should().Contain("'root': member names cannot be the same as their enclosing type");
     }
 
     [Theory]
@@ -139,7 +139,7 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
         foreach ((string pointer, string errorCode) in expectedValidationIssues)
         {
             var pointerObject = JsonPointer.Parse(pointer);
-            Assert.Single(errorResponse.Errors.Keys.Where(p => JsonPointer.Parse(p) == pointerObject));
+            Assert.Single(errorResponse.Errors.Keys, p => JsonPointer.Parse(p) == pointerObject);
             errorResponse.Errors[pointerObject.ToString(JsonPointerStyle.UriEncoded)].Contains(errorCode).Should().BeTrue();
         }
     }
@@ -152,12 +152,10 @@ public class PutDatamodelTests : DisagnerEndpointsTestsBase<PutDatamodelTests>, 
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
 
         Assert.True(File.Exists(xsdSchemaLocation));
-        Assert.True(File.Exists(metamodelLocation));
         Assert.True(File.Exists(jsonSchemaLocation));
 
         await VerifyXsdFileContent(xsdSchemaLocation);
         FileContentVerifier.VerifyJsonFileContent(jsonSchemaLocation, MinimumValidJsonSchema);
-        VerifyMetadataContent(metamodelLocation);
     }
 
     private static async Task VerifyXsdFileContent(string path)

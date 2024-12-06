@@ -6,7 +6,7 @@ import {
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { getComponentIdWithPageIndex, internalLayoutToExternal } from './internalLayoutToExternal';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
-import { ExternalComponent } from 'app-shared/types/api';
+import type { ExternalComponent } from 'app-shared/types/api';
 import { layoutMock } from '../../testing/layoutMock';
 
 describe('internalLayoutToExternal', () => {

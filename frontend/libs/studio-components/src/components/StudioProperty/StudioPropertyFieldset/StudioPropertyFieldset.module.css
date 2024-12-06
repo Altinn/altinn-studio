@@ -1,0 +1,39 @@
+.propertyFieldset {
+  align-items: center;
+  background-color: var(--fds-semantic-surface-action-first-no_fill);
+  border-radius: var(--fds-border_radius-medium);
+  box-shadow: var(--fds-shadow-small);
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--studio-property-fieldset-spacing);
+  grid-template-columns: [start] 1fr auto [end];
+  margin: 0 var(--fds-spacing-5);
+  overflow: auto;
+  padding: 0;
+  border: 1px solid var(--fds-semantic-border-first-default);
+}
+
+.propertyFieldset legend > * {
+  margin-left: var(--studio-property-fieldset-spacing);
+  margin-top: var(--studio-property-fieldset-spacing);
+  font-weight: 600;
+}
+
+.menubar {
+  align-items: center;
+  display: flex;
+  gap: var(--studio-property-fieldset-spacing);
+  margin-right: var(--studio-property-fieldset-spacing);
+  margin-top: var(--studio-property-fieldset-spacing);
+}
+
+.content {
+  grid-column-end: end;
+  grid-column-start: start;
+}
+
+.propertyFieldset.compact {
+  --studio-property-fieldset-spacing: var(--fds-spacing-2);
+  margin: 0 var(--fds-spacing-3);
+  box-shadow: none;
+}

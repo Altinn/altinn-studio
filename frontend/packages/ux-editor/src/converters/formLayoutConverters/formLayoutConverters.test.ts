@@ -4,7 +4,7 @@ import {
   internalLayoutWithMultiPageGroup,
 } from '../../testing/layoutWithMultiPageGroupMocks';
 import { internalLayoutToExternal } from './internalLayoutToExternal';
-import { ExternalFormLayout } from 'app-shared/types/api';
+import type { ExternalFormLayout } from 'app-shared/types/api';
 
 describe('formLayoutConverters', () => {
   test('Internal layout remains the same when converted to en external layout and back', () => {

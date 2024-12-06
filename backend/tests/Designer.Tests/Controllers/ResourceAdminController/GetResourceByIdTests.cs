@@ -54,45 +54,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
         }
 
         [Fact]
-        public async Task GetResourceById_Passing_Repository_OK()
-        {
-            // Arrange
-            string uri = $"{VersionPrefix}/ttd/resources/ttd-app-resources";
-
-            RepositoryMock
-                .Setup(r => r.GetServiceResources(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(new List<ServiceResource>
-                {
-                    new ServiceResource
-                    {
-                        Identifier = "testresource",
-                        Title = new Dictionary<string, string>(),
-                        Description = new Dictionary<string, string>(),
-                        RightDescription = new Dictionary<string, string>(),
-                        Homepage = "test.no",
-                        Status = string.Empty,
-                        IsPartOf = string.Empty,
-                        ThematicArea = string.Empty,
-                        ResourceReferences = GetTestResourceReferences(),
-                        Delegable = true,
-                        Visible = true,
-                        HasCompetentAuthority = new CompetentAuthority { Organization = "ttd", Orgcode = "test", Name = new Dictionary<string, string>() },
-                        Keywords = GetTestKeywords(),
-                        ResourceType = ResourceType.Default,
-                    }
-                });
-
-            using HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            // Act
-            using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        }
-
-        [Fact]
-        public async Task GetResourceById_NoContent()
+        public async Task GetResourceById_NotFound()
         {
             // Arrange
             string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources/ttd_test_resource";
@@ -103,11 +65,11 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
         }
 
         [Fact]
-        public async Task GetResourceById_Passing_Repository_NoContent()
+        public async Task GetResourceById_Passing_Repository_NotFound()
         {
             // Arrange
             string uri = $"{VersionPrefix}/orgwithoutrepo/resources/ttd-resources";
@@ -118,11 +80,11 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
         }
 
         [Fact]
-        public async Task GetResourceById_PassingNoValidArgument_NoContent()
+        public async Task GetResourceById_PassingNoValidArgument_NotFound()
         {
             // Arrange
             string uri = $"{VersionPrefix}/orgwithoutrepo/resources/orgwithoutrepo-resources/notvalidresource";
@@ -133,7 +95,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
             using HttpResponseMessage res = await HttpClient.SendAsync(httpRequestMessage);
 
             // Assert
-            Assert.Equal(HttpStatusCode.NoContent, res.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
         }
     }
 }

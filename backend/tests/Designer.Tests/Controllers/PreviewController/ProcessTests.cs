@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
@@ -20,35 +22,53 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Process_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/process";
+            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            ProcessState processState = JsonSerializer.Deserialize<ProcessState>(responseBody, JsonSerializerOptions);
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
         [Fact]
-        public async Task Get_ProcessForStatefulApp_Ok()
+        public async Task Get_ProcessForV4App_Ok()
         {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/process";
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}/process";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSet={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
+            AppProcessState processState =
+                JsonSerializer.Deserialize<AppProcessState>(responseBody, JsonSerializerOptions);
+            var expectedProcessTasks = new List<AppProcessTaskTypeInfo>
+            {
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task_1",
+                    AltinnTaskType = "data"
+                },
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task_2",
+                    AltinnTaskType = "data"
+                },
+                new AppProcessTaskTypeInfo
+                {
+                    ElementId = "Task_3",
+                    AltinnTaskType = "data"
+                }
+            };
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
             Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+            expectedProcessTasks.Should().BeEquivalentTo(processState.ProcessTasks);
         }
     }
 }

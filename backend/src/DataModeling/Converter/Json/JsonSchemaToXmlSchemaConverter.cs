@@ -1,4 +1,3 @@
-using System;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;

@@ -122,14 +122,11 @@ namespace Designer.Tests.Mocks
         {
             List<Team> teamWithDeployAccess = new()
             {
-                new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } }
+                new Team { Name = "Deploy-TestEnv", Organization = new Organization { Username = "ttd" } },
+                new Team { Name = "Resources-Publish-TestEnv", Organization = new Organization { Username = "ttd" } },
+                new Team { Name = "AccessLists-TestEnv", Organization = new Organization { Username = "ttd" } }
             };
             return Task.FromResult(teamWithDeployAccess);
-        }
-
-        public Task<string> GetUserNameFromUI()
-        {
-            return Task.FromResult("testUser");
         }
 
         public Task<List<Organization>> GetUserOrganizations()

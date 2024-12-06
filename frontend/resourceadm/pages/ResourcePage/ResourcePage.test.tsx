@@ -1,15 +1,16 @@
 import React from 'react';
-import { render, screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import { ResourcePage } from './ResourcePage';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
-import { Resource } from 'app-shared/types/ResourceAdm';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { Resource } from 'app-shared/types/ResourceAdm';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
-import { MemoryRouter } from 'react-router-dom';
-import { ServicesContextProps, ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
-import { QueryClient } from '@tanstack/react-query';
+import { MemoryRouter, useParams } from 'react-router-dom';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
 
 const mockResource1: Resource = {
   identifier: 'r1',
@@ -20,7 +21,10 @@ const mockResource1: Resource = {
     { language: 'nb', word: 'Key 2' },
   ],
   visible: false,
-  resourceReferences: [{ reference: 'ref', referenceType: 'Default', referenceSource: 'Altinn2' }],
+  resourceReferences: [
+    { reference: '1', referenceType: 'ServiceCode', referenceSource: 'Altinn2' },
+    { reference: '2', referenceType: 'ServiceEditionCode', referenceSource: 'Altinn2' },
+  ],
 };
 
 const mockResource2: Resource = {
@@ -28,14 +32,18 @@ const mockResource2: Resource = {
   title: { nb: '', nn: '', en: '' },
 };
 
-const mockSelectedContext: string = 'test';
+const mockOrg: string = 'test';
+const mockedNavigate = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({
-    pageType: 'about',
-    resourceId: mockResource1.identifier,
-    selectedContext: mockSelectedContext,
+  useNavigate: () => mockedNavigate,
+  useParams: jest.fn().mockImplementation(() => {
+    return {
+      pageType: 'about',
+      resourceId: mockResource1.identifier,
+      org: mockOrg,
+    };
   }),
 }));
 
@@ -85,6 +93,8 @@ describe('ResourcePage', () => {
   });
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
+    addFeatureFlagToLocalStorage('resourceMigration');
+
     const getResource = jest
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
@@ -114,7 +124,27 @@ describe('ResourcePage', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('opens navigation modal when resource has errors', async () => {
+  it('navigates to migration page clicking the migration tab', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const migrationTab = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_migration'),
+    });
+    await user.click(migrationTab);
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `/${mockOrg}/${mockOrg}-resources/resource/${mockResource1.identifier}/migration`,
+    );
+  });
+
+  it('should navigate to policy page from modal when resource has errors', async () => {
     const user = userEvent.setup();
     const getResource = jest
       .fn()
@@ -127,23 +157,112 @@ describe('ResourcePage', () => {
     );
 
     expect(
-      screen.queryByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 1,
-      }),
+      screen.queryByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
     ).not.toBeInTheDocument();
 
     const policyButton = screen.getByRole('tab', {
       name: textMock('resourceadm.left_nav_bar_policy'),
     });
-    await act(() => user.click(policyButton));
+    await user.click(policyButton);
 
     expect(
-      screen.getByRole('heading', {
-        name: textMock('resourceadm.resource_navigation_modal_title_resource'),
-        level: 1,
-      }),
+      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_resource')),
     ).toBeInTheDocument();
+
+    const navigateButton = screen.getByRole('button', {
+      name: textMock('resourceadm.resource_navigation_modal_button_move_on'),
+    });
+    await user.click(navigateButton);
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      `/${mockOrg}/${mockOrg}-resources/resource/${mockResource1.identifier}/policy`,
+    );
+  });
+
+  it('should navigate to policy page when resource has no errors', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+    const getValidateResource = jest.fn().mockImplementation(() =>
+      Promise.resolve({
+        status: 200,
+        errors: {},
+      }),
+    );
+
+    renderResourcePage({ getResource, getValidateResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const policyButton = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_policy'),
+    });
+    await user.click(policyButton);
+
+    await waitFor(() =>
+      expect(mockedNavigate).toHaveBeenCalledWith(
+        `/${mockOrg}/${mockOrg}-resources/resource/${mockResource1.identifier}/policy`,
+      ),
+    );
+  });
+
+  it('opens navigation modal when policy has errors when navigating from policy to about page', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource2));
+    const getValidatePolicy = jest.fn().mockImplementation(() => Promise.reject(null));
+    (useParams as jest.Mock).mockReturnValue({
+      pageType: 'policy',
+      resourceId: mockResource1.identifier,
+      org: mockOrg,
+    });
+
+    renderResourcePage({ getResource, getValidatePolicy });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const aboutButton = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_about'),
+    });
+    await user.click(aboutButton);
+
+    expect(
+      screen.getByText(textMock('resourceadm.resource_navigation_modal_title_policy')),
+    ).toBeInTheDocument();
+  });
+
+  it('should call editResource when resource data is changed', async () => {
+    const user = userEvent.setup();
+    const getResource = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
+
+    (useParams as jest.Mock).mockReturnValue({
+      pageType: 'deploy',
+      resourceId: mockResource1.identifier,
+      org: mockOrg,
+    });
+
+    renderResourcePage({ getResource });
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
+    );
+
+    const deployButton = screen.getByRole('tab', {
+      name: textMock('resourceadm.left_nav_bar_deploy'),
+    });
+    await waitFor(() => user.click(deployButton));
+
+    const deployFieldLabel = textMock('resourceadm.deploy_version_label');
+    await waitFor(() => screen.findByText(deployFieldLabel));
+    const deployResourceVersionField = screen.getByLabelText(deployFieldLabel);
+    await user.type(deployResourceVersionField, '1.2');
+    await waitFor(() => deployResourceVersionField.blur());
+
+    await waitFor(() => expect(queriesMock.updateResource).toHaveBeenCalledTimes(1));
   });
 });
 

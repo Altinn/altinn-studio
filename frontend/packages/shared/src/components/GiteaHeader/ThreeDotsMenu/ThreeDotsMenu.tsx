@@ -1,86 +1,74 @@
 import React, { useState } from 'react';
 import classes from './ThreeDotsMenu.module.css';
-import { MonitorIcon, TabsIcon } from '@navikt/aksel-icons';
+import { TabsIcon, MenuElipsisVerticalIcon, GiteaIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { repositoryPath } from 'app-shared/api/paths';
-import { GiteaIcon } from 'app-shared/icons';
-import { LegacyPopover } from '@digdir/design-system-react';
-import { MenuElipsisVerticalIcon } from '@navikt/aksel-icons';
-import { CloneModal } from './CloneModal';
-import { StudioButton } from '@studio/components';
+import { StudioButton, StudioPageHeader, StudioPopover } from '@studio/components';
 import { LocalChangesModal } from './LocalChangesModal';
+import { ClonePopoverContent } from './ClonePopoverContent';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export type ThreeDotsMenuProps = {
-  onlyShowRepository?: boolean;
-  hasCloneModal?: boolean;
-  org: string;
-  app: string;
+  isClonePossible?: boolean;
 };
 
-export const ThreeDotsMenu = ({
-  onlyShowRepository = false,
-  hasCloneModal = false,
-  org,
-  app,
-}: ThreeDotsMenuProps) => {
-  const [cloneModalAnchor, setCloneModalAnchor] = useState(null);
+export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) => {
+  const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const closeCloneModal = () => setCloneModalAnchor(null);
-  const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
-  const [localChangesModalIsOpen, setLocalChangesModalIsOpen] = useState(false);
+  const [clonePopoverOpen, setClonePopoverOpen] = useState(false);
+
+  const toggleClonePopoverOpen = () => setClonePopoverOpen((oldValue) => !oldValue);
 
   return (
-    <>
-      <LegacyPopover
-        className={classes.popover}
-        trigger={
-          <StudioButton
-            color='inverted'
-            icon={<MenuElipsisVerticalIcon />}
-            size='small'
-            title={t('sync_header.gitea_menu')}
-            variant='tertiary'
-          />
-        }
-      >
+    <StudioPopover>
+      <StudioPopover.Trigger asChild>
+        <StudioPageHeader.HeaderButton
+          icon={<MenuElipsisVerticalIcon />}
+          title={t('sync_header.gitea_menu')}
+          color='light'
+          variant='regular'
+        />
+      </StudioPopover.Trigger>
+      <StudioPopover.Content className={classes.popover}>
         <ul className={classes.menuItems}>
-          {!onlyShowRepository && (
+          {isClonePossible && (
             <li>
-              <button onClick={openCloneModal} className={classes.link}>
-                <span className={classes.iconWrapper}>
-                  <TabsIcon className={classes.icon} />
-                </span>
-                <span>{t('sync_header.clone')}</span>
-              </button>
+              <StudioPopover open={clonePopoverOpen} onClose={toggleClonePopoverOpen}>
+                <StudioPopover.Trigger
+                  fullWidth
+                  onClick={toggleClonePopoverOpen}
+                  variant='tertiary'
+                  className={classes.menuButton}
+                  size='small'
+                >
+                  <TabsIcon />
+                  {t('sync_header.clone')}
+                </StudioPopover.Trigger>
+                <StudioPopover.Content className={classes.popoverContent}>
+                  <ClonePopoverContent onClose={toggleClonePopoverOpen} />
+                </StudioPopover.Content>
+              </StudioPopover>
             </li>
           )}
           <li>
-            <a href={repositoryPath(org, app)} className={classes.link}>
-              <span className={classes.iconWrapper}>
-                <GiteaIcon className={classes.icon + ' ' + classes.giteaIcon} />
-              </span>
-              <span>{t('dashboard.repository')}</span>
-            </a>
+            <StudioButton
+              as='a'
+              className={classes.menuButton + ' ' + classes.link}
+              fullWidth
+              href={repositoryPath(org, app)}
+              icon={<GiteaIcon />}
+              rel='noopener noreferrer'
+              size='small'
+              variant='tertiary'
+            >
+              {t('sync_header.repository')}
+            </StudioButton>
           </li>
-          <li onClick={() => setLocalChangesModalIsOpen(true)}>
-            <div className={classes.link}>
-              <span className={classes.iconWrapper}>
-                <MonitorIcon className={classes.icon} />
-              </span>
-              <span>{t('sync_header.local_changes')}</span>
-            </div>
+          <li>
+            <LocalChangesModal triggerClassName={classes.menuButton} />
           </li>
-          {localChangesModalIsOpen && (
-            <LocalChangesModal
-              isOpen={localChangesModalIsOpen}
-              onClose={() => setLocalChangesModalIsOpen(false)}
-              org={org}
-              app={app}
-            />
-          )}
         </ul>
-      </LegacyPopover>
-      {hasCloneModal && <CloneModal anchorEl={cloneModalAnchor} onClose={closeCloneModal} />}
-    </>
+      </StudioPopover.Content>
+    </StudioPopover>
   );
 };

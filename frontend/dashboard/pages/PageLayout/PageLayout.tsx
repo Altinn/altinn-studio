@@ -1,41 +1,33 @@
-import { HeaderContext } from 'app-shared/navigation/main-header/Header';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useOrganizationsQuery } from 'dashboard/hooks/queries';
 import { useUserQuery } from 'app-shared/hooks/queries';
-import React, { useEffect, useMemo } from 'react';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import AppHeader from 'app-shared/navigation/main-header/Header';
-import { userHasAccessToSelectedContext } from '../../utils/userUtils';
-import { useSelectedContext } from 'dashboard/hooks/useSelectedContext';
+import React, { useMemo } from 'react';
+import { HeaderContext, type HeaderContextType } from 'dashboard/context/HeaderContext';
+import { useTranslation } from 'react-i18next';
+import { StudioPageSpinner } from '@studio/components';
+import { useContextRedirectionGuard } from 'dashboard/hooks/guards/useContextRedirectionGuard';
+import { DashboardHeader } from './DashboardHeader';
 
 export const PageLayout = () => {
+  const { t } = useTranslation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
+  const { isRedirectionComplete } = useContextRedirectionGuard(organizations);
 
-  const selectedContext = useSelectedContext();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (
-      organizations &&
-      !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
-    ) {
-      navigate("/");
-    }
-  }, [organizations, selectedContext, user.login, navigate]);
-
-  const headerContextValue: IHeaderContext = useMemo(
+  const headerContextValue: HeaderContextType = useMemo(
     () => ({
       selectableOrgs: organizations,
       user,
     }),
-    [organizations, user]
+    [organizations, user],
   );
+
+  if (!isRedirectionComplete) return <StudioPageSpinner spinnerTitle={t('dashboard.loading')} />;
 
   return (
     <>
       <HeaderContext.Provider value={headerContextValue}>
-        <AppHeader />
+        <DashboardHeader />
       </HeaderContext.Provider>
       <Outlet />
     </>

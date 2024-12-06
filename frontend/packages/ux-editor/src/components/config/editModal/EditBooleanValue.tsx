@@ -1,13 +1,14 @@
 import React from 'react';
-import { Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { useText } from '../../../hooks';
 import { FormField } from '../../FormField';
-import { getComponentPropertyLabel } from '../../../utils/language';
+import { useComponentPropertyLabel } from '../../../hooks/useComponentPropertyLabel';
 
 export interface EditBooleanValueProps extends IGenericEditComponent {
   propertyKey: string;
   helpText?: string;
+  defaultValue?: boolean;
 }
 
 export const EditBooleanValue = ({
@@ -15,13 +16,15 @@ export const EditBooleanValue = ({
   handleComponentChange,
   propertyKey,
   helpText,
+  defaultValue,
 }: EditBooleanValueProps) => {
   const t = useText();
+  const componentPropertyLabel = useComponentPropertyLabel();
 
   const handleChange = () => {
     handleComponentChange({
       ...component,
-      [propertyKey]: !component[propertyKey],
+      [propertyKey]: getNewBooleanValue(),
     });
   };
 
@@ -29,10 +32,12 @@ export const EditBooleanValue = ({
     return Array.isArray(value);
   };
 
+  const getNewBooleanValue = () => !(component[propertyKey] ?? defaultValue);
+
   return (
     <FormField
       id={component.id}
-      value={component[propertyKey] || false}
+      value={component[propertyKey]}
       onChange={handleChange}
       propertyPath={component.propertyPath}
       componentType={component.type}
@@ -45,13 +50,13 @@ export const EditBooleanValue = ({
         return (
           <Switch
             {...fieldProps}
-            checked={fieldProps.value}
+            checked={fieldProps.value ?? defaultValue}
             onChange={(e) => fieldProps.onChange(e.target.checked, e)}
             size='small'
             id={`${propertyKey}-checkbox-${component.id}`}
             disabled={isValueExpression(fieldProps.value)}
           >
-            {getComponentPropertyLabel(propertyKey, t)}
+            {componentPropertyLabel(propertyKey)}
           </Switch>
         );
       }}

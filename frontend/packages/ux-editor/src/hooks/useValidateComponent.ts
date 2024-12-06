@@ -1,8 +1,12 @@
-import { areItemsUnique } from 'app-shared/utils/arrayUtils';
+import { ArrayUtils } from '@studio/pure-functions';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormCheckboxesComponent, FormComponent, FormRadioButtonsComponent } from '../types/FormComponent';
+import type {
+  FormCheckboxesComponent,
+  FormComponent,
+  FormRadioButtonsComponent,
+} from '../types/FormComponent';
 import { useOptionListIdsQuery } from './queries/useOptionListIdsQuery';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export enum ErrorCode {
   NoOptions = 'NoOptions',
@@ -12,9 +16,12 @@ export enum ErrorCode {
 export type ComponentValidationResult = {
   isValid: boolean;
   error?: ErrorCode;
-}
+};
 
-const validateOptionGroup = (component: FormCheckboxesComponent | FormRadioButtonsComponent, optionListIds: string[]): ComponentValidationResult => {
+const validateOptionGroup = (
+  component: FormCheckboxesComponent | FormRadioButtonsComponent,
+  optionListIds: string[],
+): ComponentValidationResult => {
   if (component.optionsId) {
     const isExistingOptionId = optionListIds?.includes(component.optionsId);
     if (!isExistingOptionId) {
@@ -29,7 +36,7 @@ const validateOptionGroup = (component: FormCheckboxesComponent | FormRadioButto
         isValid: false,
         error: ErrorCode.NoOptions,
       };
-    } else if (!areItemsUnique(component.options.map((option) => option.value))) {
+    } else if (!ArrayUtils.areItemsUnique(component.options.map((option) => option.value))) {
       return {
         isValid: false,
         error: ErrorCode.DuplicateValues,
@@ -38,10 +45,10 @@ const validateOptionGroup = (component: FormCheckboxesComponent | FormRadioButto
   }
 
   return { isValid: true };
-}
+};
 
 export const useValidateComponent = (component: FormComponent): ComponentValidationResult => {
-  const { org, app } = useStudioUrlParams();
+  const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
 
   switch (component.type) {
@@ -51,4 +58,4 @@ export const useValidateComponent = (component: FormComponent): ComponentValidat
     default:
       return { isValid: true };
   }
-}
+};

@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -197,6 +197,14 @@ namespace Altinn.App.Models
 
   public class Underenhet
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [MinLength(0)]
     [MaxLength(50)]
     [XmlElement("Organisasjonsnummer", Order = 1)]
@@ -257,10 +265,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallEnerom")]
     public decimal? AntallEnerom { get; set; }
 
-    public bool ShouldSerializeAntallEnerom()
-    {
-      return AntallEnerom.HasValue;
-    }
+    public bool ShouldSerializeAntallEnerom() => AntallEnerom.HasValue;
 
     [XmlElement("AlleRomHarBadOgToalett", Order = 5)]
     [JsonProperty("AlleRomHarBadOgToalett")]
@@ -278,10 +283,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallRomMedKjokken")]
     public decimal? AntallRomMedKjokken { get; set; }
 
-    public bool ShouldSerializeAntallRomMedKjokken()
-    {
-      return AntallRomMedKjokken.HasValue;
-    }
+    public bool ShouldSerializeAntallRomMedKjokken() => AntallRomMedKjokken.HasValue;
 
     [XmlElement("TilbysMatservering", Order = 8)]
     [JsonProperty("TilbysMatservering")]
@@ -329,7 +331,7 @@ namespace Altinn.App.Models
     public string SamfunnskritiskBransje { get; set; }
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
-    [XmlElement("BenyttesFraDato", Order = 15)]
+    [XmlElement("BenyttesFraDato", Order = 15, IsNullable = true)]
     [JsonProperty("BenyttesFraDato")]
     [JsonPropertyName("BenyttesFraDato")]
     public string BenyttesFraDato { get; set; }
@@ -339,10 +341,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("BekreftetRiktig")]
     public bool? BekreftetRiktig { get; set; }
 
-    public bool ShouldSerializeBekreftetRiktig()
-    {
-      return BekreftetRiktig.HasValue;
-    }
+    public bool ShouldSerializeBekreftetRiktig() => BekreftetRiktig.HasValue;
 
     [MinLength(0)]
     [MaxLength(255)]

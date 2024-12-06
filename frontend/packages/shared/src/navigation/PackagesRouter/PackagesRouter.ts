@@ -5,16 +5,20 @@ type ParamsOptions = {
 
 type PackagesRoute =
   | 'dashboard'
+  | 'dataModel'
   | 'editorOverview'
   | 'editorUiEditor'
   | 'preview'
-  | 'editorPublish';
+  | 'editorPublish'
+  | 'latestCommit';
 
 const packagesRoutes: Record<PackagesRoute, string> = {
   dashboard: '/dashboard',
+  dataModel: '/editor/{{org}}/{{app}}/data-model',
   editorOverview: '/editor/{{org}}/{{app}}/overview',
   editorUiEditor: '/editor/{{org}}/{{app}}/ui-editor',
   editorPublish: '/editor/{{org}}/{{app}}/deploy',
+  latestCommit: '/editor/{{org}}/{{app}}/latest-commit',
   preview: '/preview/{{org}}/{{app}}',
 };
 

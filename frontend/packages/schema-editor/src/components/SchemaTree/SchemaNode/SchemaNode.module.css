@@ -4,7 +4,8 @@
   gap: var(--fds-spacing-1);
 }
 
-.schemaNodeLabel:hover, .schemaNodeLabel:focus-within {
+.schemaNodeLabel:hover,
+.schemaNodeLabel:focus-within {
   background-color: color-mix(
     in srgb,
     var(--fds-semantic-surface-action-first-no_fill-hover),
@@ -21,14 +22,14 @@
   visibility: visible;
 }
 
-.nodeName svg {
-  --background-colour: var(--fds-brand-alt2-800);
+.schemaNodeLabel.isParent .nodeName svg {
+  --background-colour: var(--fds-brand-alt1-800);
   background-color: var(--background-colour);
   border-radius: var(--fds-border_radius-small);
   color: var(--fds-semantic-surface-on_inverted-default);
 }
 
-.schemaNodeLabel.isArray .nodeName svg {
+.schemaNodeLabel.isParent.isArray .nodeName svg {
   box-shadow:
     #fff -1px -1px,
     var(--background-colour) -2px -2px,
@@ -36,8 +37,4 @@
     var(--background-colour) -4px -4px,
     #fff -5px -5px,
     var(--background-colour) -6px -6px;
-}
-
-.schemaNodeLabel.isParent .nodeName svg {
-  --background-colour: var(--fds-brand-alt1-800);
 }

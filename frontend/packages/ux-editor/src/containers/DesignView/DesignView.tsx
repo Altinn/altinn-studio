@@ -1,34 +1,27 @@
-import React, { ReactNode, useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useFormLayoutsQuery } from '../../hooks/queries/useFormLayoutsQuery';
+import type { ReactNode } from 'react';
+import React, { useMemo } from 'react';
 import classes from './DesignView.module.css';
 import { useTranslation } from 'react-i18next';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { Accordion } from '@digdir/design-system-react';
-import { IFormLayouts } from '../../types/global';
-import type { FormLayoutPage } from '../../types/FormLayoutPage';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
-import { useSearchParams } from 'react-router-dom';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { Accordion } from '@digdir/designsystemet-react';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { PlusIcon } from '@navikt/aksel-icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
-import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
-import { ReceiptContent } from './ReceiptContent';
-import { useAppContext } from '../../hooks/useAppContext';
+import { useAppContext, useFormLayouts } from '../../hooks';
 import { FormLayout } from './FormLayout';
 import { StudioButton } from '@studio/components';
+import {
+  duplicatedIdsExistsInLayout,
+  findLayoutsContainingDuplicateComponents,
+} from '../../utils/formLayoutUtils';
+import { PdfLayoutAccordion } from '@altinn/ux-editor/containers/DesignView/PdfLayout/PdfLayoutAccordion';
+import { mapFormLayoutsToFormLayoutPages } from '@altinn/ux-editor/utils/formLayoutsUtils';
+import { PlusIcon } from '@studio/icons';
+import { usePdf } from '../../hooks/usePdf/usePdf';
 
 /**
  * Maps the IFormLayouts object to a list of FormLayouts
  */
-const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutPage[] => {
-  return Object.entries(formLayouts).map(([key, value]) => ({
-    page: key,
-    data: value,
-  }));
-};
 
 /**
  * @component
@@ -37,44 +30,33 @@ const mapFormLayoutsToFormLayoutPages = (formLayouts: IFormLayouts): FormLayoutP
  * @returns {ReactNode} - The rendered component
  */
 export const DesignView = (): ReactNode => {
-  const dispatch = useDispatch();
-  const { org, app } = useStudioUrlParams();
-  const { selectedLayoutSet } = useAppContext();
-  const { mutate: addLayoutMutation, isPending } = useAddLayoutMutation(
+  const { org, app } = useStudioEnvironmentParams();
+  const {
+    selectedFormLayoutSetName,
+    selectedFormLayoutName,
+    setSelectedFormLayoutName,
+    updateLayoutsForPreview,
+  } = useAppContext();
+  const { mutate: addLayoutMutation, isPending: isAddLayoutMutationPending } = useAddLayoutMutation(
     org,
     app,
-    selectedLayoutSet,
+    selectedFormLayoutSetName,
   );
-  const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const receiptName = formLayoutSettings?.receiptLayoutName;
-  const layoutOrder = formLayoutSettings?.pages.order;
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const searchParamsLayout = searchParams.get('layout');
-  const [openAccordion, setOpenAccordion] = useState(searchParamsLayout);
+  // Referring to useFormLayoutSettingsQuery twice is a hack to ensure designView is re-rendered after converting
+  // a newly added layout to a PDF. See issue: https://github.com/Altinn/altinn-studio/issues/13679
+  useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
+  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(
+    org,
+    app,
+    selectedFormLayoutSetName,
+  );
+  const layouts = useFormLayouts();
+  const { getPdfLayoutName } = usePdf();
+  const layoutOrder = formLayoutSettings?.pages?.order;
 
   const { t } = useTranslation();
 
-  useEffect(() => {
-    setOpenAccordion(searchParamsLayout);
-  }, [searchParamsLayout]);
-
   const formLayoutData = mapFormLayoutsToFormLayoutPages(layouts);
-
-  /**
-   * Checks if the layout name provided is valid
-   *
-   * @param layoutName the name to check
-   *
-   * @returns boolean value for the validity
-   */
-  const isValidLayout = (layoutName: string): boolean => {
-    const isExistingLayout = formLayoutData.map((el) => el.page).includes(layoutName);
-    const isReceipt = formLayoutSettings?.receiptLayoutName === layoutName;
-    return isExistingLayout || isReceipt;
-  };
 
   /**
    * Handles the click of an accordion. It updates the URL and sets the
@@ -83,48 +65,35 @@ export const DesignView = (): ReactNode => {
    * @param pageName the name of the accordion clicked
    */
   const handleClickAccordion = (pageName: string) => {
-    if (isValidLayout(pageName)) {
-      if (searchParamsLayout !== pageName) {
-        setSelectedLayoutInLocalStorage(instanceId, pageName);
-        dispatch(FormLayoutActions.updateSelectedLayout(pageName));
-        setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
-        setOpenAccordion(pageName);
-      } else {
-        setSelectedLayoutInLocalStorage(instanceId, undefined);
-        dispatch(FormLayoutActions.updateSelectedLayout(undefined));
-        setSearchParams(undefined);
-        setOpenAccordion('');
-      }
-    }
-  };
-
-  /**
-   * Handles the click of add page. It adds either a receipt page or a
-   * normal page based on the isReceipt variable.
-   */
-  const handleAddPage = (isReceipt: boolean) => {
-    if (isReceipt) {
-      addLayoutMutation({ layoutName: 'Kvittering', isReceiptPage: true });
-      setSearchParams((prevParams) => ({ ...prevParams, layout: 'Kvittering' }));
-      setOpenAccordion('Kvittering');
+    if (selectedFormLayoutName !== pageName) {
+      setSelectedFormLayoutName(pageName);
     } else {
-      if (!isPending) {
-        let newNum = 1;
-        let newLayoutName = `${t('ux_editor.page')}${layoutOrder.length + newNum}`;
-
-        while (layoutOrder.indexOf(newLayoutName) > -1) {
-          newNum += 1;
-          newLayoutName = `${t('ux_editor.page')}${newNum}`;
-        }
-
-        addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
-        setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
-        setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
-        dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
-        setOpenAccordion(newLayoutName);
-      }
+      setSelectedFormLayoutName(undefined);
     }
   };
+
+  const handleAddPage = () => {
+    let newNum = layoutOrder.length + 1;
+    let newLayoutName = `${t('ux_editor.page')}${newNum}`;
+
+    while (layoutOrder.includes(newLayoutName) || getPdfLayoutName() === newLayoutName) {
+      newNum += 1;
+      newLayoutName = `${t('ux_editor.page')}${newNum}`;
+    }
+    addLayoutMutation(
+      { layoutName: newLayoutName },
+      {
+        onSuccess: async () => {
+          await updateLayoutsForPreview(selectedFormLayoutSetName);
+        },
+      },
+    );
+  };
+
+  const layoutsWithDuplicateComponents = useMemo(
+    () => findLayoutsContainingDuplicateComponents(layouts),
+    [layouts],
+  );
 
   /**
    * Displays the pages as an ordered list
@@ -135,44 +104,60 @@ export const DesignView = (): ReactNode => {
     // If the layout does not exist, return null
     if (layout === undefined) return null;
 
+    // Check if the layout has unique component IDs
+    const isInvalidLayout = duplicatedIdsExistsInLayout(layout.data);
+
     return (
       <PageAccordion
-        pageName={layout.page}
         key={i}
-        isOpen={layout.page === openAccordion}
+        pageName={layout.page}
+        isOpen={layout.page === selectedFormLayoutName}
         onClick={() => handleClickAccordion(layout.page)}
+        isInvalid={isInvalidLayout}
+        hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(layout.page)}
       >
-        {layout.page === openAccordion && <FormLayout layout={layout.data} />}
+        {layout.page === selectedFormLayoutName && (
+          <FormLayout
+            layout={layout.data}
+            isInvalid={isInvalidLayout}
+            duplicateComponents={layoutsWithDuplicateComponents.duplicateComponents}
+          />
+        )}
       </PageAccordion>
     );
   });
 
   return (
     <div className={classes.root}>
-      <div>
-        <div className={classes.wrapper}>
-          <div className={classes.accordionWrapper}>
-            <Accordion color='neutral'>{displayPageAccordions}</Accordion>
-          </div>
+      <div className={classes.wrapper}>
+        <div className={classes.accordionWrapper}>
+          <Accordion color='neutral'>{displayPageAccordions}</Accordion>
         </div>
-        <ReceiptContent
-          receiptName={receiptName}
-          selectedAccordion={openAccordion}
-          formLayoutData={formLayoutData}
-          onClickAccordion={() => handleClickAccordion(receiptName)}
-          onClickAddPage={() => handleAddPage(true)}
-        />
       </div>
       <div className={classes.buttonContainer}>
         <StudioButton
-          icon={<PlusIcon />}
-          onClick={() => handleAddPage(false)}
-          size='small'
+          icon={<PlusIcon aria-hidden />}
+          onClick={() => handleAddPage()}
           className={classes.button}
+          disabled={isAddLayoutMutationPending}
         >
           {t('ux_editor.pages_add')}
         </StudioButton>
       </div>
+      {getPdfLayoutName() && (
+        <div className={classes.wrapper}>
+          <div className={classes.accordionWrapper}>
+            <PdfLayoutAccordion
+              pdfLayoutName={getPdfLayoutName()}
+              selectedFormLayoutName={selectedFormLayoutName}
+              onAccordionClick={() => handleClickAccordion(getPdfLayoutName())}
+              hasDuplicatedIds={layoutsWithDuplicateComponents.duplicateLayouts.includes(
+                getPdfLayoutName(),
+              )}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

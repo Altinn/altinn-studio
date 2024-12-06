@@ -1,20 +1,14 @@
 import React from 'react';
 import { CustomProperties } from '@altinn/schema-editor/components/SchemaInspector/CustomProperties';
-import {
-  FieldType,
-  ROOT_POINTER,
-  SchemaModel,
-  UiSchemaNode,
-  UiSchemaNodes
-} from '@altinn/schema-model';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { act, screen } from '@testing-library/react';
-import { textMock } from '../../../../../testing/mocks/i18nMock';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import { FieldType, ROOT_POINTER, SchemaModel, validateTestUiSchema } from '@altinn/schema-model';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { screen } from '@testing-library/react';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { nodeMockBase } from '../../../test/mocks/uiSchemaMock';
 import { renderWithProviders } from '../../../test/renderWithProviders';
 import { getSavedModel } from '../../../test/test-utils';
-import { validateTestUiSchema } from '../../../../schema-model';
 
 const user = userEvent.setup();
 
@@ -37,18 +31,18 @@ const customProperties: KeyValuePairs = {
 };
 const node: UiSchemaNode = {
   ...nodeMockBase,
-  pointer: defaultPath,
+  schemaPointer: defaultPath,
   custom: customProperties,
 };
 const rootNode: UiSchemaNode = {
   ...nodeMockBase,
   fieldType: FieldType.Object,
-  pointer: ROOT_POINTER,
+  schemaPointer: ROOT_POINTER,
   children: [defaultPath],
 };
 const uiSchema: UiSchemaNodes = [rootNode, node];
 const schemaModel = SchemaModel.fromArray(uiSchema);
-const saveDatamodel = jest.fn();
+const saveDataModel = jest.fn();
 
 describe('CustomProperties', () => {
   beforeAll(() => validateTestUiSchema(uiSchema));
@@ -73,7 +67,7 @@ describe('CustomProperties', () => {
 
   it('Renders a number input with correct value for number properties', () => {
     render();
-    expect(screen.getByLabelText(numberPropKey)).toHaveValue(numberPropValue.toString());
+    expect(screen.getByLabelText(numberPropKey)).toHaveValue(numberPropValue);
   });
 
   it('Renders a checkbox with correct value for boolean properties', () => {
@@ -97,12 +91,10 @@ describe('CustomProperties', () => {
 
   it('Saves model without deleted property when the delete button is clicked', async () => {
     render();
-    await act(() =>
-      user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]),
-    );
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    await user.click(screen.getAllByRole('button', { name: textMock('general.delete') })[0]);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     const expectedProperties = { ...customProperties };
     delete expectedProperties[Object.keys(customProperties)[0]];
     expect(updatedNode.custom).toEqual(expectedProperties);
@@ -111,38 +103,38 @@ describe('CustomProperties', () => {
   it('Saves model correctly when a string property is changed', async () => {
     render();
     const newLetter = 'e';
-    await act(() => user.type(screen.getByLabelText(stringPropKey), newLetter));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    await user.type(screen.getByLabelText(stringPropKey), newLetter);
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[stringPropKey]).toEqual(stringPropValue + newLetter);
   });
 
   it('Saves model correctly when a number property is changed', async () => {
     render();
     const newDigit = 4;
-    await act(() => user.type(screen.getByLabelText(numberPropKey), newDigit.toString()));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    await user.type(screen.getByLabelText(numberPropKey), newDigit.toString());
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[numberPropKey]).toEqual(numberPropValue * 10 + newDigit);
   });
 
   it('Saves model correctly when a boolean property is changed from false to true', async () => {
     render();
-    await act(() => user.click(screen.getByLabelText(initiallyFalseBoolPropKey)));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    await user.click(screen.getByLabelText(initiallyFalseBoolPropKey));
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[initiallyFalseBoolPropKey]).toBe(true);
   });
 
   it('Saves model correctly when a boolean property is changed from true to false', async () => {
     render();
-    await act(() => user.click(screen.getByLabelText(initiallyTrueBoolPropKey)));
-    expect(saveDatamodel).toHaveBeenCalledTimes(1);
-    const updatedModel = getSavedModel(saveDatamodel);
-    const updatedNode = updatedModel.getNode(defaultPath);
+    await user.click(screen.getByLabelText(initiallyTrueBoolPropKey));
+    expect(saveDataModel).toHaveBeenCalledTimes(1);
+    const updatedModel = getSavedModel(saveDataModel);
+    const updatedNode = updatedModel.getNodeBySchemaPointer(defaultPath);
     expect(updatedNode.custom[initiallyTrueBoolPropKey]).toBe(false);
   });
 });
@@ -151,7 +143,7 @@ const render = (path: string = defaultPath) =>
   renderWithProviders({
     appContextProps: {
       schemaModel,
-      save: saveDatamodel,
-      selectedNodePointer: path
+      save: saveDataModel,
+      selectedUniquePointer: path,
     },
   })(<CustomProperties path={path} />);

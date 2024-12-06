@@ -2,12 +2,12 @@ import 'jest';
 import 'whatwg-fetch';
 import '@testing-library/jest-dom/jest-globals';
 import '@testing-library/jest-dom';
-
 import failOnConsole from 'jest-fail-on-console';
 import { textMock } from './mocks/i18nMock';
 import { SignalR } from './mocks/signalr';
-import { ReactNode } from 'react';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { app, org } from './testids';
+import type { WithTranslationProps } from 'react-i18next';
 
 failOnConsole({
   shouldFailOnWarn: true,
@@ -38,6 +38,7 @@ class ResizeObserver {
   unobserve = jest.fn();
   disconnect = jest.fn();
 }
+
 window.ResizeObserver = ResizeObserver;
 
 // document.getAnimations must be mocked because it is used by the design system, but it is not supported by React Testing Library.
@@ -60,17 +61,33 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }) => textMock(i18nKey),
   useTranslation: () => ({
     t: (key: string, variables?: KeyValuePairs<string>) => textMock(key, variables),
+    i18n: {
+      exists: () => true,
+    },
   }),
-  withTranslation: () => (Component: ReactNode) => Component,
+  withTranslation:
+    () =>
+    (
+      Component: React.ComponentType,
+    ): React.ComponentType<React.ComponentProps<any> & WithTranslationProps> => {
+      Component.defaultProps = {
+        ...Component.defaultProps,
+        t: (key: string, variables?) => textMock(key, variables),
+      };
+      return Component;
+    },
 }));
 
-// SignalR PreviewHub mock to simulate setup of websockets.
-jest.mock('@microsoft/signalr', () => SignalR);
+// Mocked SignalR to be able to test in within the tests.
+jest.mock('@microsoft/signalr', () => ({
+  ...jest.requireActual('@microsoft/signalr'),
+  ...SignalR,
+}));
 
 // Mock org and app params
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useParams: () => ({ org: 'org', app: 'app' }),
+  useParams: () => ({ org, app }),
 }));
 
 jest.setTimeout(3000000);

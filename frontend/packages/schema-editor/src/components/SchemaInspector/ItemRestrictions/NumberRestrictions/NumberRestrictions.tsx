@@ -1,19 +1,23 @@
+import type { ChangeEvent } from 'react';
 import React, { useReducer } from 'react';
 import type { RestrictionItemProps } from '../ItemRestrictions';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { IntRestrictionKey } from '@altinn/schema-model';
-import { Divider } from 'app-shared/primitives';
 import { useTranslation } from 'react-i18next';
 import classes from './NumberRestrictions.module.css';
-import { ErrorMessage, LegacyTextField, Switch, Label } from '@digdir/design-system-react';
+import { ErrorMessage, Switch, Label } from '@digdir/designsystemet-react';
+import type {
+  NumberRestrictionsReducerAction,
+  NumberRestrictionsReducerState,
+} from './NumberRestrictionsReducer';
 import {
   numberRestrictionsReducer,
-  NumberRestrictionsReducerAction,
   NumberRestrictionsReducerActionType,
-  NumberRestrictionsReducerState,
 } from './NumberRestrictionsReducer';
 import { NumberRestrictionsError } from '@altinn/schema-editor/types';
 import { valueExists } from '@altinn/schema-editor/utils/value';
+import { StudioTextfield } from '@studio/components';
+import { ItemWrapper } from '../ItemWrapper';
 
 export interface NumberRestrictionsProps extends RestrictionItemProps {
   isInteger: boolean;
@@ -46,12 +50,8 @@ export function NumberRestrictions({
   };
   const dispatchAction = (type: NumberRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as NumberRestrictionsReducerAction);
-  const minLabel = `schema_editor.minimum_${
-    formatState.isMinInclusive ? 'inclusive' : 'exclusive'
-  }`;
-  const maxLabel = `schema_editor.maximum_${
-    formatState.isMaxInclusive ? 'inclusive' : 'exclusive'
-  }`;
+  const minLabel = `schema_editor.minimum_${formatState.isMinInclusive ? 'inclusive' : 'exclusive'}`;
+  const maxLabel = `schema_editor.maximum_${formatState.isMaxInclusive ? 'inclusive' : 'exclusive'}`;
 
   const minMaxErrorMessage = {
     [NumberRestrictionsError.NoError]: '',
@@ -70,29 +70,30 @@ export function NumberRestrictions({
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMin,
-      valueExists(newValue) ? parseInt(newValue) : undefined,
+      valueExists(newValue) ? parseFloat(newValue) : undefined,
     );
   };
+
   const onChangeMaxNumber = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.target.value.trim();
     dispatchAction(
       NumberRestrictionsReducerActionType.setMax,
-      valueExists(newValue) ? parseInt(newValue) : undefined,
+      valueExists(newValue) ? parseFloat(newValue) : undefined,
     );
   };
 
   return (
-    <>
-      <Divider marginless />
+    <ItemWrapper>
       <div>
         <Label htmlFor='schema_editor.minimum_'>{t(minLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
-            <LegacyTextField
+            <StudioTextfield
               id='schema_editor.minimum_'
               onChange={onChangeMinNumber}
               value={formatState.min === undefined ? '' : formatState.min.toString()}
-              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
+              type='number'
+              size='sm'
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
@@ -113,11 +114,12 @@ export function NumberRestrictions({
         <Label htmlFor='schema_editor.maximum_'>{t(maxLabel)}</Label>
         <div className={classes.formatFieldsRowContent}>
           <div>
-            <LegacyTextField
+            <StudioTextfield
               id='schema_editor.maximum_'
               onChange={onChangeMaxNumber}
               value={formatState.max === undefined ? '' : formatState.max.toString()}
-              formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
+              type='number'
+              size='sm'
             />
             <div className={classes.minNumberErrorMassage}>
               <ErrorMessage>{minMaxErrorMessage}</ErrorMessage>
@@ -138,16 +140,17 @@ export function NumberRestrictions({
       <div>
         <Label htmlFor='schema_editor.multipleOf'>{t('schema_editor.multipleOf')}</Label>
         <div className={classes.formatFieldsRowContent}>
-          <LegacyTextField
+          <StudioTextfield
             id='schema_editor.multipleOf'
-            formatting={{ number: isInteger ? { decimalScale: 0 } : { decimalSeparator: ',' } }}
-            onChange={(e) =>
+            type='number'
+            size='sm'
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
               dispatchAction(NumberRestrictionsReducerActionType.setMultipleOf, e.target.value)
             }
             value={formatState.restrictions[IntRestrictionKey.multipleOf.toString()]}
           />
         </div>
       </div>
-    </>
+    </ItemWrapper>
   );
 }

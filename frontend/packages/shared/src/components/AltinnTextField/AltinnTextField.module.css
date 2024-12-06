@@ -1,5 +1,0 @@
-.withAsterisk label::after {
-  content: '*';
-  color: #c30000;
-  margin-left: 0.2rem;
-}

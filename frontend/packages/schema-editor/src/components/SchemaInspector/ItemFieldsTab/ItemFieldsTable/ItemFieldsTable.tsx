@@ -1,7 +1,9 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import { FieldNode, FieldType, ObjectKind } from '@altinn/schema-model';
+import type { FieldNode } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { ItemFieldsTableRow } from './ItemFieldsTableRow';
 import { useAddProperty } from '@altinn/schema-editor/hooks/useAddProperty';
@@ -22,9 +24,9 @@ export const ItemFieldsTable = ({ readonly, selectedItem }: ItemFieldsTableProps
   const addProperty = useAddProperty();
 
   const dispatchAddProperty = () =>
-    addProperty(ObjectKind.Field, FieldType.String, selectedItem.pointer);
+    addProperty(ObjectKind.Field, FieldType.String, selectedItem.schemaPointer);
 
-  const fieldNodes = schemaModel.getChildNodes(selectedItem.pointer);
+  const fieldNodes = schemaModel.getChildNodes(selectedItem.schemaPointer);
 
   const displayTableRows = fieldNodes.map((fieldNode, i) => (
     <ItemFieldsTableRow

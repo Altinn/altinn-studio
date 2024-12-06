@@ -1,6 +1,7 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { ITextResources } from 'app-shared/types/global';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import type { ITextResources } from 'app-shared/types/global';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const useTextResourcesQuery = (org: string, app: string): UseQueryResult<ITextResources> => {

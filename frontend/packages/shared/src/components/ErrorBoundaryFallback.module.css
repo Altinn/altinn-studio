@@ -1,9 +1,0 @@
-.container {
-  padding: var(--fds-spacing-10);
-  width: auto;
-}
-
-.alert > [class*='Alert-module_content'] {
-  display: flex;
-  gap: 1rem;
-}

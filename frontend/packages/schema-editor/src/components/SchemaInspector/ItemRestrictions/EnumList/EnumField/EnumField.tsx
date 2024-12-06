@@ -1,6 +1,6 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { Textfield } from '@digdir/design-system-react';
+import { Textfield } from '@digdir/designsystemet-react';
 import classes from './EnumField.module.css';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
@@ -53,6 +53,7 @@ export const EnumField = ({
         onChange={handleChange}
         onKeyDown={onKeyDown}
         error={!isValid}
+        size='sm'
       />
       <StudioButton
         title={t('schema_editor.delete_field')}
@@ -62,6 +63,7 @@ export const EnumField = ({
         onClick={() => onDelete()}
         color='danger'
         variant='tertiary'
+        size='sm'
       />
     </div>
   );

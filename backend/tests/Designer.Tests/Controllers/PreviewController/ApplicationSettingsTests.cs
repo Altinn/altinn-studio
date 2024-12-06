@@ -19,7 +19,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_ApplicationSettings_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/api/v1/applicationsettings";
+            string dataPathWithData = $"{Org}/{PreviewApp}/api/v1/applicationsettings";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);

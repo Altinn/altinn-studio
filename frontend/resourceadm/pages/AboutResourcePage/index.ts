@@ -1,1 +1,1 @@
-export { AboutResourcePage } from './AboutResourcePage'
+export { AboutResourcePage } from './AboutResourcePage';

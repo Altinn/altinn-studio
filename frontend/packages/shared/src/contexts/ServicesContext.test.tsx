@@ -1,11 +1,12 @@
-import React from 'react';
-import { render, renderHook, screen, waitFor } from '@testing-library/react';
-import { ServicesContextProps, ServicesContextProvider } from './ServicesContext';
+import React, { type ReactNode } from 'react';
+import { fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
+import type { ServicesContextProps } from './ServicesContext';
+import { ServicesContextProvider, useServicesContext } from './ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { useQuery } from '@tanstack/react-query';
-import { textMock } from '../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { createApiErrorMock } from 'app-shared/mocks/apiErrorMock';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 
 const unknownErrorCode = 'unknownErrorCode';
 // Mocks:
@@ -26,7 +27,7 @@ const wrapper = ({
   children,
   queries = {},
 }: {
-  children: React.JSX.Element;
+  children: ReactNode;
   queries?: Partial<ServicesContextProps>;
 }) => {
   const allQueries: ServicesContextProps = {
@@ -53,13 +54,40 @@ describe('ServicesContext', () => {
         },
       },
     );
-    expect(await screen.findByText(textMock('api_errors.Unauthorized'))).toBeInTheDocument();
-    jest.runAllTimers();
+
+    const progressBar = await screen.findByRole('progressbar');
+    fireEvent.animationEnd(progressBar);
+
+    const container = await screen.findByText(textMock('api_errors.Unauthorized'));
+    expect(container).toBeInTheDocument();
+    fireEvent.animationEnd(container);
+
     await waitFor(() => {
-      expect(queriesMock.logout).toHaveBeenCalledTimes(1);
+      expect(queriesMock.logout).toHaveBeenCalled();
     });
 
     expect(mockConsoleError).toHaveBeenCalled();
+  });
+
+  it('displays the api error when the session is invalid or expired', async () => {
+    const logout = jest.fn().mockImplementation(() => Promise.resolve());
+
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(401, 'GT_03')),
+          retry: false,
+        }),
+      {
+        wrapper: ({ children }) => {
+          return wrapper({ children, queries: { logout } });
+        },
+      },
+    );
+
+    await waitFor(() => result.current.isError);
+    expect(await screen.findByText(textMock('api_errors.GT_03'))).toBeInTheDocument();
   });
 
   it('Displays a toast message for "GT_01" error code', async () => {
@@ -93,6 +121,22 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('api_errors.DM_01'))).toBeInTheDocument();
   });
 
+  it('displays a specific error message if API returns error code DM_03', async () => {
+    const { result } = renderHook(
+      () =>
+        useQuery({
+          queryKey: ['fetchData'],
+          queryFn: () => Promise.reject(createApiErrorMock(422, 'DM_03')),
+          retry: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => result.current.isError);
+
+    expect(await screen.findByText(textMock('api_errors.DM_03'))).toBeInTheDocument();
+  });
+
   it('displays a specific error message if API returns error code DM_05', async () => {
     const { result } = renderHook(
       () =>
@@ -110,7 +154,7 @@ describe('ServicesContext', () => {
   });
 
   it('displays a default error message if API returns an error code but the error message does not exist', async () => {
-    const {} = renderHook(
+    const { result } = renderHook(
       () =>
         useQuery({
           queryKey: ['fetchData'],
@@ -120,7 +164,13 @@ describe('ServicesContext', () => {
       { wrapper },
     );
 
-    expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
+    await waitFor(() => result.current.isError);
+
+    expect(
+      await screen.findByText((content, element) =>
+        content.includes(textMock('general.error_message')),
+      ),
+    ).toBeInTheDocument();
   });
 
   it('displays a default error message if an API call fails', async () => {
@@ -134,16 +184,11 @@ describe('ServicesContext', () => {
     expect(await screen.findByText(textMock('general.error_message'))).toBeInTheDocument();
   });
 
-  it('displays a default error message if a component throws an error while rendering', () => {
-    const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
-
-    const ErrorComponent = () => {
-      throw new Error('Intentional render error');
-    };
-    render(<ErrorComponent />, { wrapper });
-
-    expect(screen.getByText(textMock('general.error_message'))).toBeInTheDocument();
-    expect(screen.getByText(textMock('general.try_again'))).toBeInTheDocument();
-    expect(mockConsoleError).toHaveBeenCalled();
+  it('Throws an error if used outside a ServiceContextProvider', () => {
+    const renderHookFn = () => renderHook(() => useServicesContext());
+    jest.spyOn(console, 'error').mockImplementation();
+    expect(renderHookFn).toThrowError(
+      'useServicesContext must be used within a ServicesContextProvider.',
+    );
   });
 });

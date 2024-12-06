@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -111,7 +110,7 @@ namespace Altinn.Studio.Designer.Helpers
         /// <param name="repoName">The repository name.</param>
         public static void AssertValidAppRepoName(string repoName)
         {
-            if (string.IsNullOrEmpty(repoName) || !Regex.IsMatch(repoName, @"^(?!datamodels$)[a-z]+[a-z0-9-]+[a-z0-9]$"))
+            if (string.IsNullOrEmpty(repoName) || !AltinnRegexes.AltinnAppNameRegex().IsMatch(repoName))
             {
                 throw new ArgumentException($"The repository name {repoName} is invalid.");
             }

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DeploymentsController;
 
-public class GetPermissions : DisagnerEndpointsTestsBase<GetPermissions>, IClassFixture<WebApplicationFactory<Program>>
+public class GetPermissions : DesignerEndpointsTestsBase<GetPermissions>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/deployments";
     private readonly Mock<IGitea> _giteaMock;
@@ -21,9 +21,6 @@ public class GetPermissions : DisagnerEndpointsTestsBase<GetPermissions>, IClass
     public GetPermissions(WebApplicationFactory<Program> factory) : base(factory)
     {
         _giteaMock = new Mock<IGitea>();
-        _giteaMock.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("testUser");
-        KeyValuePair<string, string>? token = new KeyValuePair<string, string>("asdfasdf", "sadfsdaf");
-        _giteaMock.Setup(g => g.GetSessionAppKey(It.IsAny<string>())).ReturnsAsync(token);
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)

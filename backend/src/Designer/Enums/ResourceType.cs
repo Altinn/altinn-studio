@@ -1,28 +1,24 @@
-﻿using NpgsqlTypes;
+﻿namespace Altinn.Studio.Designer.Enums;
 
-namespace Altinn.Studio.Designer.Enums
+/// <summary>
+/// Enum representation of the different types of resources supported by the resource registry
+/// </summary>
+public enum ResourceType
 {
-    /// <summary>
-    /// Enum representation of the different types of resources supported by the resource registry
-    /// </summary>
-    public enum ResourceType
-    {
-        [PgName("default")]
-        Default = 0,
 
-        [PgName("systemresource")]
-        Systemresource = 1,
+    Default = 0,
 
-        [PgName("maskinportenschema")]
-        MaskinportenSchema = 2,
+    Systemresource = 1 << 0,
 
-        [PgName("altinn2service")]
-        Altinn2Service = 4,
+    MaskinportenSchema = 1 << 1,
 
-        [PgName("altinnapp")]
-        AltinnApp = 8,
+    Altinn2Service = 1 << 2,
 
-        [PgName("GenericAccessResource")]
-        GenericAccessResource = 16,
-    }
+    AltinnApp = 1 << 3,
+
+    GenericAccessResource = 1 << 4,
+
+    BrokerService = 1 << 5,
+
+    CorrespondenceService = 1 << 6,
 }

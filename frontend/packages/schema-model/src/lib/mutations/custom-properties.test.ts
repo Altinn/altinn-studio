@@ -1,4 +1,4 @@
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import { deleteProperty, propertyType, setProperty } from './custom-properties';
 import { CustomPropertyType } from '../../types';
 
@@ -43,7 +43,9 @@ describe('custom-properties', () => {
     });
 
     it('Returns CustomPropertyType.Unsupported for unsupported properties', () => {
-      expect(propertyType(customProperties, unsupportedPropKey)).toEqual(CustomPropertyType.Unsupported);
+      expect(propertyType(customProperties, unsupportedPropKey)).toEqual(
+        CustomPropertyType.Unsupported,
+      );
     });
   });
 

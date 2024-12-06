@@ -1,12 +1,12 @@
 name: Run gitea integration tests
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths:
       - 'testdata/**'
       - 'backend/**'
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
     types: [opened, synchronize, reopened]
     paths:
       - 'backend/**'
@@ -15,8 +15,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  gitea-integration-tests:
-    name: Run integration tests against actual gitea
+  gitea-and-db-integration-tests:
+    name: Run integration tests against actual gitea and db
     runs-on: ubuntu-latest
     env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
-            6.0.x
+            9.0.x
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
@@ -34,4 +34,4 @@ jobs:
            dotnet build backend/Designer.sln -v m
       - name: Test gitea tests
         run: |
-           dotnet test backend/Designer.sln --filter Category=GiteaIntegrationTest -v m
+           dotnet test backend/Designer.sln --filter "(Category=GiteaIntegrationTest)|(Category=DbIntegrationTest)" -v m

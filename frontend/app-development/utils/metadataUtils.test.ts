@@ -9,34 +9,34 @@ import {
   findNewMetadataItem,
   groupMetadataOptions,
   mergeJsonAndXsdData,
-  metadataItemExists
+  metadataItemExists,
 } from './metadataUtils';
 import {
-  datamodel1NameMock,
-  datamodel2NameMock,
+  dataModel1NameMock,
+  dataModel2NameMock,
   jsonMetadata1Mock,
   jsonMetadata2Mock,
   xsdMetadata1Mock,
-  xsdMetadata2Mock
+  xsdMetadata2Mock,
 } from '../../packages/schema-editor/test/mocks/metadataMocks';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
-import { MetadataOption } from '../types/MetadataOption';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
+import type { MetadataOption } from '../types/MetadataOption';
 
 // Test data:
 const jsonMetadataOption1: MetadataOption = {
-  label: datamodel1NameMock,
+  label: dataModel1NameMock,
   value: jsonMetadata1Mock,
 };
 const jsonMetadataOption2: MetadataOption = {
-  label: datamodel1NameMock,
+  label: dataModel1NameMock,
   value: jsonMetadata2Mock,
 };
 const xsdMetadataOption1: MetadataOption = {
-  label: `${datamodel1NameMock} (XSD)`,
+  label: `${dataModel1NameMock} (XSD)`,
   value: xsdMetadata1Mock,
 };
 const xsdMetadataOption2: MetadataOption = {
-  label: `${datamodel1NameMock} (XSD)`,
+  label: `${dataModel1NameMock} (XSD)`,
   value: xsdMetadata2Mock,
 };
 
@@ -60,18 +60,18 @@ describe('metadataUtils', () => {
   });
 
   describe('convertMetadataToOption', () => {
-    it('Converts a Json metadata item to an MetadataOption object with the datamodel name as the label', () => {
+    it('Converts a Json metadata item to an MetadataOption object with the data model name as the label', () => {
       const result = convertMetadataToOption(jsonMetadata1Mock);
       expect(result).toEqual({
-        label: datamodel1NameMock,
+        label: dataModel1NameMock,
         value: jsonMetadata1Mock,
       });
     });
 
-    it('Converts an Xsd metadata item to an MetadataOption object with the datamodel name suffixed with " (XSD)" as the label', () => {
+    it('Converts an Xsd metadata item to an MetadataOption object with the data model name suffixed with " (XSD)" as the label', () => {
       const result = convertMetadataToOption(xsdMetadata1Mock);
       expect(result).toEqual({
-        label: `${datamodel1NameMock} (XSD)`,
+        label: `${dataModel1NameMock} (XSD)`,
         value: xsdMetadata1Mock,
       });
     });
@@ -82,20 +82,25 @@ describe('metadataUtils', () => {
       const result = convertMetadataListToOptions([xsdMetadata1Mock, jsonMetadata2Mock]);
       expect(result).toEqual([
         {
-          label: `${datamodel1NameMock} (XSD)`,
+          label: `${dataModel1NameMock} (XSD)`,
           value: xsdMetadata1Mock,
         },
         {
-          label: datamodel2NameMock,
+          label: dataModel2NameMock,
           value: jsonMetadata2Mock,
-        }
+        },
       ]);
     });
   });
 
   describe('groupMetadataOptions', () => {
     it('Groups metadata options by file type', () => {
-      const list = [jsonMetadataOption1, jsonMetadataOption2, xsdMetadataOption1, xsdMetadataOption2];
+      const list = [
+        jsonMetadataOption1,
+        jsonMetadataOption2,
+        xsdMetadataOption1,
+        xsdMetadataOption2,
+      ];
       const result = groupMetadataOptions(list);
       expect(result).toEqual([
         {
@@ -129,7 +134,7 @@ describe('metadataUtils', () => {
           label: 'JSONSchema',
           options: [
             {
-              label: datamodel2NameMock,
+              label: dataModel2NameMock,
               value: jsonMetadata2Mock,
             },
           ],
@@ -138,7 +143,7 @@ describe('metadataUtils', () => {
           label: 'XSD',
           options: [
             {
-              label: `${datamodel1NameMock} (XSD)`,
+              label: `${dataModel1NameMock} (XSD)`,
               value: xsdMetadata1Mock,
             },
           ],
@@ -149,14 +154,14 @@ describe('metadataUtils', () => {
 
   describe('extractModelNamesFromMetadataList', () => {
     it('Extracts the model names from a list of metadata items', () => {
-      const items: DatamodelMetadata[] = [
+      const items: DataModelMetadata[] = [
         jsonMetadata1Mock,
         jsonMetadata2Mock,
         xsdMetadata1Mock,
         xsdMetadata2Mock,
       ];
       const result = extractModelNamesFromMetadataList(items);
-      expect(result).toEqual([datamodel1NameMock, datamodel2NameMock]);
+      expect(result).toEqual([dataModel1NameMock, dataModel2NameMock]);
     });
   });
 
@@ -209,26 +214,34 @@ describe('metadataUtils', () => {
       const newOption = convertMetadataToOption(jsonMetadata2Mock);
       const currentList = [jsonMetadata1Mock, jsonMetadata2Mock];
       const previousList = [jsonMetadata1Mock];
-      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(newOption);
+      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(
+        newOption,
+      );
       expect(computeSelectedOption(undefined, currentList, previousList)).toEqual(newOption);
     });
 
     it('Returns the first option if the current selected option is undefined', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
-      expect(computeSelectedOption(undefined, list, list)).toEqual(convertMetadataToOption(jsonMetadata1Mock));
+      expect(computeSelectedOption(undefined, list, list)).toEqual(
+        convertMetadataToOption(jsonMetadata1Mock),
+      );
     });
 
     it('Returns the first option if the current selected option is not in the list', () => {
       const currentList = [jsonMetadata1Mock];
       const previousList = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata2Mock);
-      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(convertMetadataToOption(jsonMetadata1Mock));
+      expect(computeSelectedOption(currentSelectedOption, currentList, previousList)).toEqual(
+        convertMetadataToOption(jsonMetadata1Mock),
+      );
     });
 
     it('Returns the current option if there is no new metadata item and it exists in the list', () => {
       const list = [jsonMetadata1Mock, jsonMetadata2Mock];
       const currentSelectedOption = convertMetadataToOption(jsonMetadata1Mock);
-      expect(computeSelectedOption(currentSelectedOption, list, list)).toEqual(currentSelectedOption);
+      expect(computeSelectedOption(currentSelectedOption, list, list)).toEqual(
+        currentSelectedOption,
+      );
     });
   });
 

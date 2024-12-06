@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -157,6 +157,14 @@ namespace Altinn.App.Models
 
   public class Underenhet
   {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
     [MinLength(0)]
     [MaxLength(255)]
     [XmlElement("Organisasjonsnummer", Order = 1)]
@@ -186,10 +194,7 @@ namespace Altinn.App.Models
     [JsonPropertyName("AntallAnsatte")]
     public decimal? AntallAnsatte { get; set; }
 
-    public bool ShouldSerializeAntallAnsatte()
-    {
-      return AntallAnsatte.HasValue;
-    }
+    public bool ShouldSerializeAntallAnsatte() => AntallAnsatte.HasValue;
 
     [XmlElement("ASellerASAiHjemland", Order = 2)]
     [JsonProperty("ASellerASAiHjemland")]
@@ -202,7 +207,7 @@ namespace Altinn.App.Models
     public bool? BekreftRiktig { get; set; }
 
     [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
-    [XmlElement("AnsatteInnen", Order = 4)]
+    [XmlElement("AnsatteInnen", Order = 4, IsNullable = true)]
     [JsonProperty("AnsatteInnen")]
     [JsonPropertyName("AnsatteInnen")]
     public string AnsatteInnen { get; set; }

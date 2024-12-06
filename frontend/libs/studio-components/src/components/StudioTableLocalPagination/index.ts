@@ -1,0 +1,1 @@
+export { StudioTableLocalPagination } from './StudioTableLocalPagination';

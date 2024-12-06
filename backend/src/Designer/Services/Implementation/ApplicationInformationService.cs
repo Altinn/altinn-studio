@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Services.Interfaces;
 
@@ -31,16 +32,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string org,
             string app,
             string shortCommitId,
-            string envName)
+            string envName,
+            CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await _applicationMetadataService
-                .UpdateApplicationMetadataInStorageAsync(org, app, shortCommitId, envName);
+                .UpdateApplicationMetadataInStorageAsync(org, app, shortCommitId, envName, cancellationToken);
 
             Task updateAuthPolicyTask = _authorizationPolicyService
-                .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, envName);
+                .UpdateApplicationAuthorizationPolicyAsync(org, app, shortCommitId, envName, cancellationToken);
 
             Task updateTextResources = _textResourceService
-                .UpdateTextResourcesAsync(org, app, shortCommitId, envName);
+                .UpdateTextResourcesAsync(org, app, shortCommitId, envName, cancellationToken);
 
             await Task.WhenAll(new List<Task>
             {

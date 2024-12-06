@@ -1,1 +1,0 @@
-export { ConfigSectionWrapper } from './ConfigSectionWrapper';

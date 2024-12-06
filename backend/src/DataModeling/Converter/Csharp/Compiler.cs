@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,9 +26,11 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
 
             var compilation = CSharpCompilation.Create(Guid.NewGuid().ToString())
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .WithReferenceAssemblies(ReferenceAssemblyKind.Net60)
+                .WithReferenceAssemblies(ReferenceAssemblyKind.NetStandard20)
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Microsoft.AspNetCore.Mvc.ModelBinding.BindNeverAttribute).GetTypeInfo().Assembly.Location))
                 .AddReferences(MetadataReference.CreateFromFile(typeof(Newtonsoft.Json.JsonPropertyAttribute).GetTypeInfo().Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(System.Text.Json.JsonElement).GetTypeInfo().Assembly.Location))
+                .AddReferences(MetadataReference.CreateFromFile(typeof(RangeAttribute).GetTypeInfo().Assembly.Location))
                 .AddSyntaxTrees(syntaxTree);
 
             Assembly assembly;
@@ -35,16 +38,17 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             {
                 EmitResult result = compilation.Emit(ms);
 
-                if (!result.Success)
+                var ignoredDiagnostics = new[]
                 {
-                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
-                        diagnostic.IsWarningAsError ||
-                        diagnostic.Severity == DiagnosticSeverity.Error);
-
+                    "CS8019", // CS8019: Unnecessary using directive.
+                };
+                var diagnostics = result.Diagnostics.Where(d => !ignoredDiagnostics.Contains(d.Descriptor.Id)).ToArray();
+                if (diagnostics.Any())
+                {
                     List<string> customErrorMessages = new();
-                    foreach (Diagnostic diagnostic in failures)
+                    foreach (Diagnostic diagnostic in diagnostics)
                     {
-                        customErrorMessages.Add(diagnostic.GetMessage());
+                        customErrorMessages.Add(diagnostic.Id + "" + diagnostic.GetMessage() + csharpCode[(diagnostic.Location.SourceSpan.Start - 10)..(diagnostic.Location.SourceSpan.End + 10)]);
                     }
 
                     throw new CsharpCompilationException("Csharp compilation failed.", customErrorMessages);

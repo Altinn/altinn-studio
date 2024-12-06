@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using IdentityModel.OidcClient;
 using Microsoft.AspNetCore.Mvc;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Altinn.AccessManagement.Tests.Utils
 {

@@ -5,12 +5,12 @@ import { ResourceTable } from 'resourceadm/components/ResourceTable';
 import { useGetResourceListQuery } from 'resourceadm/hooks/queries/useGetResourceListQuery';
 import { getResourceDashboardURL, getResourcePageURL } from 'resourceadm/utils/urlUtils';
 import { getReposLabel } from 'dashboard/utils/repoUtils';
-import { Organization } from 'app-shared/types/Organization';
+import type { Organization } from 'app-shared/types/Organization';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner } from '@studio/components';
-import { Alert, Heading, Link } from '@digdir/design-system-react';
+import { Alert, Heading, Link } from '@digdir/designsystemet-react';
 import { useSearchReposQuery } from 'dashboard/hooks/queries';
-import { User } from 'app-shared/types/Repository';
+import type { User } from 'app-shared/types/Repository';
 import { getUidFilter } from 'dashboard/utils/filterUtils';
 
 type ResourcesRepoListProps = {
@@ -36,7 +36,7 @@ export const ResourcesRepoList = ({
   const { data: resourcesRepos } = useSearchReposQuery({
     uid: uid as number,
     keyword: '-resources',
-    page: 0,
+    page: 1,
   });
 
   const {
@@ -63,13 +63,13 @@ export const ResourcesRepoList = ({
           isResourcesRepo: true,
         })}
       </Heading>
+      <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
+        {t('dashboard.go_to_resources')}
+      </Link>
       {isLoadingResourceList ? (
-        <StudioSpinner spinnerText={t('general.loading')} />
+        <StudioSpinner showSpinnerTitle spinnerTitle={t('dashboard.loading_resource_list')} />
       ) : (
         <div data-testid='resource-table-wrapper'>
-          <Link href={`${RESOURCEADM_BASENAME}${getResourceDashboardURL(selectedContext, repo)}`}>
-            {t('dashboard.go_to_resources')}
-          </Link>
           <ResourceTable
             list={resourceListData}
             onClickEditResource={(id: string) => {

@@ -1,14 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
-import classes from './PageLayout.module.css';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { HeaderContext, SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import AppHeader from 'app-shared/navigation/main-header/Header';
-import { userHasAccessToSelectedContext } from '../../utils/userUtils';
+import React, { useEffect, useRef } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { userHasAccessToOrganization } from '../../utils/userUtils';
 import { useOrganizationsQuery } from '../../hooks/queries';
-import { useUserQuery } from 'app-shared/hooks/queries';
-import { GiteaHeader } from 'app-shared/components/GiteaHeader';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useRepoStatusQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useUrlParams } from '../../hooks/useUrlParams';
+import postMessages from 'app-shared/utils/postMessages';
+import { MergeConflictModal } from '../../components/MergeConflictModal';
+import { ResourceAdmHeader } from '../../components/ResourceAdmHeader';
 
 /**
  * @component
@@ -17,42 +15,52 @@ import { useUrlParams } from '../../hooks/useSelectedContext';
  * @returns {React.JSX.Element} - The rendered component
  */
 export const PageLayout = (): React.JSX.Element => {
+  const { pathname } = useLocation();
   const { data: user } = useUserQuery();
   const { data: organizations } = useOrganizationsQuery();
+  const mergeConflictModalRef = useRef<HTMLDialogElement>(null);
 
-  const { selectedContext = SelectedContextType.Self, repo } = useUrlParams();
+  const { org, app } = useUrlParams();
+  const { data: repoStatus } = useRepoStatusQuery(org, app);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (
-      organizations &&
-      !userHasAccessToSelectedContext({ selectedContext, orgs: organizations })
-    ) {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (organizations && !userHasAccessToOrganization({ org, orgs: organizations })) {
       navigate('/');
     }
-  }, [organizations, selectedContext, user.login, navigate]);
+  }, [organizations, org, navigate]);
 
-  const headerContextValue: IHeaderContext = useMemo(
-    () => ({
-      selectableOrgs: organizations,
-      user,
-    }),
-    [organizations, user],
-  );
+  useEffect(() => {
+    if (repoStatus?.hasMergeConflict) {
+      mergeConflictModalRef.current.showModal();
+    }
+  }, [repoStatus?.hasMergeConflict]);
+
+  useEffect(() => {
+    const windowEventReceived = async (event: any) => {
+      if (
+        event.origin === window.location.origin &&
+        event.data === postMessages.forceRepoStatusCheck
+      ) {
+        mergeConflictModalRef.current.showModal();
+      }
+    };
+
+    window.addEventListener('message', windowEventReceived);
+    return function cleanup() {
+      window.removeEventListener('message', windowEventReceived);
+    };
+  }, [mergeConflictModalRef]);
 
   return (
     <>
-      <HeaderContext.Provider value={headerContextValue}>
-        {/* TODO - Find out if <AppHeader /> should be replaced to be the same as studio */}
-        <AppHeader />
-        <GiteaHeader
-          org={selectedContext}
-          app={repo}
-          menuOnlyHasRepository
-          rightContentClassName={classes.extraPadding}
-        />
-      </HeaderContext.Provider>
+      <MergeConflictModal ref={mergeConflictModalRef} org={org} repo={app} />
+      {organizations && user && <ResourceAdmHeader organizations={organizations} user={user} />}
       <Outlet />
     </>
   );

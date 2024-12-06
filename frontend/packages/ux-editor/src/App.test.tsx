@@ -1,63 +1,91 @@
 import React from 'react';
-import { screen, waitFor } from '@testing-library/react';
-import { formLayoutSettingsMock, renderWithMockStore } from './testing/mocks';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { formLayoutSettingsMock, renderWithProviders } from './testing/mocks';
 import { App } from './App';
-import { textMock } from '../../../testing/mocks/i18nMock';
-import { typedLocalStorage } from 'app-shared/utils/webStorage';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { appStateMock } from './testing/stateMocks';
-import { AppContextProps } from './AppContext';
-import ruleHandlerMock from './testing/ruleHandlerMock';
-import { layoutSetsMock } from './testing/layoutMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { typedLocalStorage } from '@studio/pure-functions';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { AppContextProps } from './AppContext';
+import { layoutSetsMock } from './testing/layoutSetsMock';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { user as userMock } from 'app-shared/mocks/mocks';
+import { QueryKey } from 'app-shared/types/QueryKey';
+import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 
-const { selectedLayoutSet } = appStateMock.formDesigner.layout;
-const removeSelectedLayoutSetMock = jest.fn();
-const render = (selectedLayoutSetForRender: string) => {
-  const queries: Partial<ServicesContextProps> = {
-    getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
-    getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
-    getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
-    getFormLayoutSettings: jest
-      .fn()
-      .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
-  };
-  const appContextProps: Partial<AppContextProps> = {
-    selectedLayoutSet: selectedLayoutSetForRender,
-    removeSelectedLayoutSet: removeSelectedLayoutSetMock,
-  };
-  return renderWithMockStore({}, queries, undefined, appContextProps)(<App />);
+const mockQueries: Partial<ServicesContextProps> = {
+  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
+  getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
+  getFormLayoutSettings: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve(formLayoutSettingsMock)),
+};
+
+const renderApp = (
+  queries: Partial<ServicesContextProps> = {},
+  appContextProps: Partial<AppContextProps> = {},
+) => {
+  const queryClient = createQueryClientMock();
+  queryClient.setQueryData([QueryKey.CurrentUser], [userMock]);
+  return renderWithProviders(
+    <PreviewContextProvider>
+      <App />
+    </PreviewContextProvider>,
+    {
+      queries,
+      appContextProps,
+      queryClient,
+    },
+  );
 };
 
 describe('App', () => {
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    typedLocalStorage.setItem('featureFlags', []);
+    jest.clearAllMocks();
+  });
 
   it('should render the spinner', () => {
-    render(selectedLayoutSet);
-    expect(screen.getByText(textMock('general.loading'))).toBeInTheDocument();
+    renderApp();
+    expect(screen.getByTitle(textMock('ux_editor.loading_page'))).toBeInTheDocument();
   });
 
   it('should render the component', async () => {
-    render(selectedLayoutSet);
-    await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
-    );
+    renderApp(mockQueries);
+    await waitForLoadingToFinish();
   });
 
-  it('Removes the preview layout set from local storage if it does not exist', async () => {
-    const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
-    render(layoutSetThatDoesNotExist);
-    await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
-    );
-    expect(removeSelectedLayoutSetMock).toHaveBeenCalledTimes(1);
+  it('should render layoutSetsSelector when component has errors', async () => {
+    const mockGetDataModelMetadata = jest.fn().mockImplementation(() => Promise.reject());
+    renderApp({ ...mockQueries, getDataModelMetadata: mockGetDataModelMetadata });
+    await waitForLoadingToFinish();
+    const layoutSetsContainer = screen.getByRole('combobox', {
+      name: textMock('left_menu.layout_dropdown_menu_label'),
+    });
+    expect(layoutSetsContainer).toBeInTheDocument();
   });
 
-  it('Does not remove the preview layout set from local storage if it exists', async () => {
-    jest.spyOn(typedLocalStorage, 'getItem').mockReturnValue(selectedLayoutSet);
-    render(selectedLayoutSet);
-    await waitFor(() =>
-      expect(screen.queryByText(textMock('general.loading'))).not.toBeInTheDocument(),
-    );
-    expect(removeSelectedLayoutSetMock).not.toHaveBeenCalled();
-  });
+  it.each(['layout_sets', 'data_model', 'widget'])(
+    'should render errorPage for %s when component has errors',
+    async (resource) => {
+      const errorQueries = {
+        layout_sets: { getLayoutSets: jest.fn().mockImplementation(() => Promise.reject()) },
+        data_model: { getDataModelMetadata: jest.fn().mockImplementation(() => Promise.reject()) },
+        widget: { getWidgetSettings: jest.fn().mockImplementation(() => Promise.reject()) },
+      };
+      const errorQuery = errorQueries[resource];
+
+      renderApp({ ...mockQueries, ...errorQuery });
+      await waitForLoadingToFinish();
+
+      expect(
+        screen.getByText(
+          textMock('general.fetch_error_title') + ' ' + textMock(`general.${resource}`),
+        ),
+      ).toBeInTheDocument();
+      expect(screen.getByText(textMock('general.fetch_error_message'))).toBeInTheDocument();
+    },
+  );
 });
+
+const waitForLoadingToFinish = async () =>
+  await waitForElementToBeRemoved(() => screen.queryByTitle(textMock('ux_editor.loading_page')));

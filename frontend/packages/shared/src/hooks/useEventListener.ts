@@ -5,12 +5,9 @@ import { useEffect } from 'react';
  * @param eventType The event type to listen for.
  * @param action The action to perform when the event is triggered.
  */
-export function useEventListener(
-    eventType: string,
-    action: () => void,
-) {
-    useEffect(() => {
-        window.addEventListener(eventType, action);
-        return () => window.removeEventListener(eventType, action);
-    }, [eventType, action]);
+export function useEventListener(eventType: string, action: () => void) {
+  useEffect(() => {
+    window.addEventListener(eventType, action);
+    return () => window.removeEventListener(eventType, action);
+  }, [eventType, action]);
 }

@@ -1,17 +1,18 @@
 import React from 'react';
-import { LegacySelect, Textfield } from '@digdir/design-system-react';
-import { Fieldset } from '@digdir/design-system-react';
+import { Textfield, Fieldset } from '@digdir/designsystemet-react';
 import classes from './ImageComponent.module.css';
-import { TextResource } from '../../../TextResource';
 import { useText } from '../../../../hooks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { FormField } from '../../../FormField';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import { StudioNativeSelect } from '@studio/components';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 
 export const ImageComponent = ({
   component,
   handleComponentChange,
   layoutName,
-}: IGenericEditComponent) => {
+}: IGenericEditComponent<ComponentType.Image>) => {
   const t = useText();
   const alignOptions = [
     {
@@ -36,23 +37,6 @@ export const ImageComponent = ({
     updatedComponent.image.align = align;
 
     handleComponentChange(updatedComponent);
-  };
-
-  const handleWidthChange = (width: any) => {
-    const updatedComponent = { ...component };
-    updatedComponent.image.width = width;
-
-    handleComponentChange(updatedComponent);
-  };
-
-  const handleAltTextChange = (altTextImg: string) => {
-    handleComponentChange({
-      ...component,
-      textResourceBindings: {
-        ...component.textResourceBindings,
-        altTextImg: altTextImg,
-      },
-    });
   };
 
   const handleSourceChange = (src: any) => {
@@ -82,34 +66,7 @@ export const ImageComponent = ({
         )}
       />
 
-      <TextResource
-        handleIdChange={handleAltTextChange}
-        label={t('ux_editor.modal_properties_image_alt_text_label')}
-        textResourceId={component.textResourceBindings?.altTextImg}
-        generateIdOptions={{
-          componentId: component.id,
-          layoutId: layoutName,
-          textResourceKey: 'altTextImg',
-        }}
-      />
-
       <div className={classes.widthAndPlacement}>
-        <FormField
-          id={component.id}
-          className={classes.widthContainer}
-          label={t('ux_editor.modal_properties_image_width_label')}
-          onChange={handleWidthChange}
-          value={component.image?.width || ''}
-          propertyPath={`${component.propertyPath}/properties/image/properties/width`}
-          renderField={({ fieldProps }) => (
-            <Textfield
-              {...fieldProps}
-              name={`image_width-input-${component.id}`}
-              onChange={(e) => fieldProps.onChange(e.target.value, e)}
-            />
-          )}
-        />
-
         <FormField
           id={component.id}
           className={classes.placementContainer}
@@ -118,7 +75,19 @@ export const ImageComponent = ({
           value={selectedPlacement?.[0]?.value}
           propertyPath={`${component.propertyPath}/properties/image/properties/align`}
           renderField={({ fieldProps }) => (
-            <LegacySelect {...fieldProps} options={alignOptions} inputId={placementSelectId} />
+            <StudioNativeSelect
+              label={fieldProps.label}
+              onChange={(e) => fieldProps.onChange(e.target.value)}
+              value={fieldProps.value}
+              size='sm'
+              id={placementSelectId}
+            >
+              {alignOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </StudioNativeSelect>
           )}
         />
       </div>
@@ -127,7 +96,7 @@ export const ImageComponent = ({
           <a
             target='_blank'
             rel='noopener noreferrer'
-            href='https://docs.altinn.studio/nb/app/development/ux/components/images/'
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/ux/components/image/' })}
           >
             {t('ux_editor.modal_properties_image_read_more')}
           </a>

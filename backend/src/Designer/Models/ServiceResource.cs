@@ -1,5 +1,4 @@
 ﻿#nullable enable
-using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Enums;
@@ -98,9 +97,10 @@ namespace Altinn.Studio.Designer.Models
         public List<Keyword>? Keywords { get; set; }
 
         /// <summary>
-        /// Defines if the resource is limited by Resource Rights Registry
+        /// Sets the access list mode for the resource
         /// </summary>
-        public bool LimitedByRRR { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ResourceAccessListMode AccessListMode { get; set; }
 
         /// <summary>
         /// The user acting on behalf of party can be a selfidentifed users

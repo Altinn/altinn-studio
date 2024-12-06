@@ -9,9 +9,10 @@ on:
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
+  workflow_dispatch:
 
 concurrency:
-  group: ${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -63,7 +64,10 @@ jobs:
         run: yarn typecheck
 
       - name: 'Running Eslint'
-        run: yarn lint
+        run: yarn lint --cache
+
+      - name: 'Checking code style'
+        run: yarn run codestyle:check
 
   test:
     name: 'Testing'
@@ -81,24 +85,9 @@ jobs:
         run: yarn test:ci
 
       - name: 'Upload coverage reports to Codecov'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           directory: frontend/coverage
           fail_ci_if_error: true
-
-  build:
-    name: 'Building'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checking Out Code'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: 'Installing Dependencies'
-        uses: ./.github/actions/yarn-install
-
-      - name: 'Building'
-        run: yarn build

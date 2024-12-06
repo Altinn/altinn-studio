@@ -1,18 +1,21 @@
 import React from 'react';
 import classes from './OldDynamicsInfo.module.css';
-import { ExternalLinkIcon } from '@navikt/aksel-icons';
+import { ExternalLinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { giteaEditLink, altinnDocsUrl } from 'app-shared/ext-urls';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { useAppContext } from '../../hooks/useAppContext';
-import { Link } from '@digdir/design-system-react';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppContext } from '../../hooks';
+import { Link } from '@digdir/designsystemet-react';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ */
 export const OldDynamicsInfo = () => {
   const { t } = useTranslation();
-  const { selectedLayoutSet } = useAppContext();
-  const { app, org } = useStudioUrlParams();
-  const dynamicLocation = selectedLayoutSet
-    ? `App/ui/${selectedLayoutSet}/RuleHandler.js`
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { app, org } = useStudioEnvironmentParams();
+  const dynamicLocation = selectedFormLayoutSetName
+    ? `App/ui/${selectedFormLayoutSetName}/RuleHandler.js`
     : 'App/ui/RuleHandler.js';
   return (
     <div>
@@ -23,7 +26,7 @@ export const OldDynamicsInfo = () => {
           <br />
           <Link
             className={classes.externalLink}
-            href={altinnDocsUrl('/nb/app/development/logic/dynamic/')}
+            href={altinnDocsUrl({ relativeUrl: 'altinn-studio/reference/logic/dynamic/' })}
             rel='noopener noreferrer'
             target='_blank'
           >

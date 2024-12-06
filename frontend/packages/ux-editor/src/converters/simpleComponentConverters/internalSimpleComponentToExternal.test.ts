@@ -1,5 +1,5 @@
 import { ComponentType } from 'app-shared/types/ComponentType';
-import { FormComponent } from '../../types/FormComponent';
+import type { FormComponent } from '../../types/FormComponent';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { internalSimpleComponentToExternal } from './internalSimpleComponentToExternal';
 
@@ -7,7 +7,7 @@ import { internalSimpleComponentToExternal } from './internalSimpleComponentToEx
 const id = '1';
 const customProperty = 'test';
 const type: ComponentType = ComponentType.Input;
-const propertyPath = formItemConfigs[type].defaultProperties.propertyPath;
+const propertyPath = formItemConfigs[type].propertyPath;
 
 describe('internalGroupComponentToExternal', () => {
   it('Correctly converts an internal simple component', () => {
@@ -17,6 +17,7 @@ describe('internalGroupComponentToExternal', () => {
       pageIndex: null,
       propertyPath,
       type,
+      dataModelBindings: { simpleBinding: 'some-path' },
       customProperty,
     };
     const result = internalSimpleComponentToExternal(internalSimpleComponent);
@@ -24,6 +25,7 @@ describe('internalGroupComponentToExternal', () => {
       id,
       type,
       customProperty,
+      dataModelBindings: { simpleBinding: 'some-path' },
     });
   });
 });

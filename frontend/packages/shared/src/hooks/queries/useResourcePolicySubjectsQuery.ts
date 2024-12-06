@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PolicySubject } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 const policySubjectOrg: PolicySubject = {
   subjectDescription: '[org]',

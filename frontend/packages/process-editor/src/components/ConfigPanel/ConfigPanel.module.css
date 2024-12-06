@@ -1,6 +1,5 @@
 .configPanel {
   background-color: var(--fds-semantic-surface-neutral-subtle);
-  flex: 1;
   overflow-y: scroll;
   border-left: 1px solid var(--fds-semantic-border-neutral-subtle);
 }

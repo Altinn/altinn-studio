@@ -1,6 +1,6 @@
 export const altinnCustomTasks = {
   name: 'AltinnTask',
-  uri: 'http://altinn.no',
+  uri: 'http://altinn.no/process',
   prefix: 'altinn',
   xml: {
     tagAlias: 'lowerCase',
@@ -18,12 +18,18 @@ export const altinnCustomTasks = {
         {
           name: 'actions',
           isMany: false,
-          type: 'Action',
+          isAttr: false,
+          type: 'Actions',
         },
         {
           name: 'signatureConfig',
           isMany: false,
           type: 'SignatureConfig',
+        },
+        {
+          name: 'paymentConfig',
+          isMany: false,
+          type: 'PaymentConfig',
         },
       ],
     },
@@ -34,6 +40,23 @@ export const altinnCustomTasks = {
           name: 'action',
           isMany: true,
           isAttr: false,
+          type: 'Action',
+        },
+      ],
+    },
+    {
+      name: 'Action',
+      properties: [
+        {
+          name: 'action',
+          isMany: false,
+          isBody: true,
+          type: 'String',
+        },
+        {
+          name: 'type',
+          isMany: false,
+          isAttr: true,
           type: 'String',
         },
       ],
@@ -51,16 +74,58 @@ export const altinnCustomTasks = {
           isMany: false,
           type: 'String',
         },
+        {
+          name: 'uniqueFromSignaturesInDataTypes',
+          isMany: false,
+          type: 'UniqueFromSignaturesInDataTypes',
+        },
+      ],
+    },
+    {
+      name: 'PaymentConfig',
+      properties: [
+        {
+          name: 'paymentDataType',
+          isMany: false,
+          type: 'String',
+        },
+        {
+          name: 'paymentReceiptPdfDataType',
+          isMany: false,
+          type: 'String',
+        },
       ],
     },
     {
       name: 'DataTypesToSign',
       properties: [
         {
-          name: 'dataType',
+          name: 'dataTypes',
           isMany: true,
           isAttr: false,
+          type: 'DataType',
+        },
+      ],
+    },
+    {
+      name: 'DataType',
+      properties: [
+        {
+          name: 'dataType',
+          isMany: false,
+          isBody: true,
           type: 'String',
+        },
+      ],
+    },
+    {
+      name: 'UniqueFromSignaturesInDataTypes',
+      properties: [
+        {
+          name: 'dataTypes',
+          isMany: true,
+          isAttr: false,
+          type: 'DataType',
         },
       ],
     },

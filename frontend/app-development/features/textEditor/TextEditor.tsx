@@ -2,20 +2,22 @@ import React from 'react';
 import type { LangCode } from '@altinn/text-editor';
 import { TextEditor as TextEditorImpl, defaultLangCode } from '@altinn/text-editor';
 import { StudioPageSpinner } from '@studio/components';
-import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
+import { useLocalStorage } from '@studio/components/src/hooks/useLocalStorage';
 import { useSearchParams } from 'react-router-dom';
-import { TextResourceIdMutation } from '@altinn/text-editor/src/types';
+import type { TextResourceIdMutation } from '@altinn/text-editor/types';
 import { useLanguagesQuery, useTextResourcesQuery } from '../../hooks/queries';
 import {
   useAddLanguageMutation,
   useDeleteLanguageMutation,
   useTextIdMutation,
-  useUpsertTextResourceMutation,
 } from '../../hooks/mutations';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useTranslation } from 'react-i18next';
+import { useUpsertTextResourceMutation } from 'app-shared/hooks/mutations/useUpsertTextResourceMutation';
 
 export const TextEditor = () => {
-  const { org, app } = useStudioUrlParams();
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
   const [searchParams, setSearchParams] = useSearchParams({ lang: '', search: '' });
 
   const selectedLanguagesStorageKey = `${org}:${app}:selectedLanguages`;
@@ -48,7 +50,7 @@ export const TextEditor = () => {
   const { mutate: upsertTextResource } = useUpsertTextResourceMutation(org, app);
 
   if (isInitialLoadingLang || !textResources) {
-    return <StudioPageSpinner />;
+    return <StudioPageSpinner spinnerTitle={t('text_editor.loading_page')} />;
   }
 
   return (

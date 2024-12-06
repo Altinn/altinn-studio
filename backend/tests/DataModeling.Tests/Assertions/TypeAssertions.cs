@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using Altinn.Studio.DataModeling.Converter.Csharp;
 using FluentAssertions;
-using SharedResources.Tests;
 using Xunit;
 
 namespace DataModeling.Tests.Assertions;
@@ -84,12 +83,9 @@ public static class TypeAssertions
 
     private static void IsEquivalentTo(IEnumerable<CustomAttributeData> expected, IEnumerable<CustomAttributeData> actual)
     {
-        expected.Count().Should().Be(actual.Count());
-
-        foreach (var item in expected)
-        {
-            Assert.Single(actual.Where(x => x.ToString() == item.ToString()));
-        }
+        var expectedStrings = expected.Select(e => e.ToString());
+        var actualStrings = actual.Select(a => a.ToString());
+        expectedStrings.Should().BeEquivalentTo(actualStrings);
     }
 
     private static void IsEquivalentTo(TypeAttributes expected, TypeAttributes actual)
@@ -122,7 +118,7 @@ public static class TypeAssertions
             .First(x => x.Name == "DynamicAnnotationClass").Properties().Single();
         IsEquivalentTo(expectedProperty.PropertyType, property.PropertyType);
         var expectedAnnotation = expectedProperty.CustomAttributes.Single();
-        Assert.Single(property.CustomAttributes.Where(x => x.ToString() == expectedAnnotation.ToString()));
+        Assert.Single(property.CustomAttributes, x => x.ToString() == expectedAnnotation.ToString());
     }
 
     private static string DynamicAnnotationClassString(string propertyName, string propertyType, string annotation) =>

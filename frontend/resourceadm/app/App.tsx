@@ -1,14 +1,12 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { SearchField } from '@altinn/altinn-design-system';
 import classes from './App.module.css';
 import './App.css';
 import { useUserQuery } from 'app-shared/hooks/queries';
 import { useOrganizationsQuery } from '../hooks/queries';
 import { StudioPageSpinner } from '@studio/components';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { ScreenReaderSpan } from '../components/ScreenReaderSpan';
 import { PageLayout } from '../pages/PageLayout';
 import { ResourcePage } from '../pages/ResourcePage';
 import { ResourceDashboardPage } from '../pages/ResourceDashboardPage';
@@ -43,21 +41,12 @@ export const App = (): React.JSX.Element => {
     );
   }
 
-  // PageLayout banner uses organization, named as selectedContext
-  const basePath = '/:selectedContext/:app';
+  // PageLayout banner uses organization, named as org
+  const basePath = '/:org/:app';
 
   if (componentIsReady) {
     return (
       <div className={classes.root}>
-        {/*
-            This is a "hack" to make sure that the resourceadm doesnt break. We do not
-            use any other dependencies to the old altin-design-system (which for some reason
-            is needed). By hiding the component it can not be seen by the user in the browser.
-        */}
-        <div style={{ display: 'none' }}>
-          <SearchField id='hack' aria-labelledby='hack' />
-          <ScreenReaderSpan id='hack' label='hack' />
-        </div>
         <Routes>
           <Route element={<PageLayout />}>
             <Route path={basePath} element={<ResourceDashboardPage />} />
@@ -71,11 +60,11 @@ export const App = (): React.JSX.Element => {
               element={<ResourcePage />}
             />
             <Route path='/' element={<ErrorPage />} />
-            <Route path='/:selectedContext' element={<RedirectPage />} />
+            <Route path='/:org' element={<RedirectPage />} />
           </Route>
         </Routes>
       </div>
     );
   }
-  return <StudioPageSpinner />;
+  return <StudioPageSpinner showSpinnerTitle={false} spinnerTitle={t('resourceadm.loading_app')} />;
 };

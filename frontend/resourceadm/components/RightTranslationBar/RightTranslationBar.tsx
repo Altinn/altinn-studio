@@ -1,18 +1,25 @@
 import React from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@studio/icons';
-import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/design-system-react';
+import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { mapLanguageKeyToLanguageText } from '../../utils/resourceUtils';
-import { SupportedLanguage, ValidLanguage } from 'app-shared/types/ResourceAdm';
+import type {
+  ResourceFormError,
+  SupportedLanguage,
+  ValidLanguage,
+} from 'app-shared/types/ResourceAdm';
+import { ResourceFieldHeader } from '../ResourcePageInputs/ResourceFieldHeader';
+import { InputFieldErrorMessage } from '../ResourcePageInputs/InputFieldErrorMessage';
 
 export type RightTranslationBarProps = {
   title: string;
   usesTextArea?: boolean;
   value: SupportedLanguage;
   onLanguageChange: (value: SupportedLanguage) => void;
-  showErrors: boolean;
+  errors: ResourceFormError[];
   onBlur: () => void;
+  required?: boolean;
 };
 
 /**
@@ -22,7 +29,7 @@ export type RightTranslationBarProps = {
  *      title='Navn på tjenesten'
  *      value={title}
  *      onChange={(value: LanguageString) => setTitle(value)}
- *      showErrors
+ *      errors
  *      showAlert
  *    />
  *
@@ -30,8 +37,9 @@ export type RightTranslationBarProps = {
  * @property {boolean}[usesTextArea] - Optional Boolean flag to decide if a text area should be used instead of a text field
  * @property {SupportedLanguage}[value] - The value to display in the input field
  * @property {(value: LanguageString) => void}[onLanguageChange] - Function that updates the value when changes are made in the input field.
- * @property {boolean}[showErrors] - Flag to handle when to show the errors
+ * @property {ResourceFormError[]}[errors] - Error messages
  * @property {function}[onBlur] - Function to be executed on blur
+ * @property {boolean}[required] - Whether this field is required or not
  *
  * @returns {React.JSX.Element} - The rendered component
  */
@@ -40,8 +48,9 @@ export const RightTranslationBar = ({
   usesTextArea = false,
   value,
   onLanguageChange,
-  showErrors,
+  errors,
   onBlur,
+  required,
 }: RightTranslationBarProps): React.JSX.Element => {
   const { t } = useTranslation();
 
@@ -52,16 +61,22 @@ export const RightTranslationBar = ({
   const displayNField = (lang: ValidLanguage) => {
     const label = `${title} (${mapLanguageKeyToLanguageText(lang, t)})`;
 
+    const errorMessages = errors
+      .filter((error) => error.index === lang)
+      .map((error, index) => <InputFieldErrorMessage key={index} message={error.error} />);
+    const errorMessagesToDisplay = errorMessages.length > 0 ? errorMessages : undefined;
+
     if (usesTextArea) {
       return (
         <Textarea
           value={value[lang]}
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
-          label={label}
-          error={showErrors && !value[lang]}
+          label={<ResourceFieldHeader label={label} required={required} />}
+          error={errorMessagesToDisplay}
           onBlur={onBlur}
           size='small'
+          required={required}
         />
       );
     }
@@ -69,10 +84,11 @@ export const RightTranslationBar = ({
       <Textfield
         value={value[lang]}
         onChange={(e) => handleChange(lang, e.target.value)}
-        label={label}
-        error={showErrors && !value[lang]}
+        label={<ResourceFieldHeader label={label} required={required} />}
+        error={errorMessagesToDisplay}
         onBlur={onBlur}
         size='small'
+        required={required}
       />
     );
   };

@@ -1,33 +1,31 @@
-import React, { MouseEvent } from 'react';
+import React from 'react';
 import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
-import { ComponentType } from 'app-shared/types/ComponentType';
-import { DragAndDropTree } from 'app-shared/components/DragAndDropTree';
+import type { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
+import { StudioDragAndDropTree } from '@studio/components';
 
-interface IToolbarItemProps {
-  text: string;
+type ToolbarItemProps = {
+  componentTitle: string;
   notDraggable?: boolean;
-  onClick: (type: ComponentType, event: MouseEvent) => void;
-  componentType: ComponentType;
+  componentType: ComponentType | CustomComponentType;
   icon?: React.ComponentType;
-}
+};
 
 export const ToolbarItem = ({
   notDraggable,
   componentType,
-  onClick,
-  text,
+  componentTitle,
   icon,
-}: IToolbarItemProps) => {
+}: ToolbarItemProps) => {
   return (
-    <div>
-      <DragAndDropTree.NewItem<ComponentType> notDraggable={notDraggable} payload={componentType}>
-        <ToolbarItemComponent
-          onClick={onClick}
-          componentType={componentType}
-          thirdPartyLabel={text}
-          icon={icon}
-        />
-      </DragAndDropTree.NewItem>
-    </div>
+    <StudioDragAndDropTree.NewItem<ComponentType | CustomComponentType>
+      notDraggable={notDraggable}
+      payload={componentType}
+    >
+      <ToolbarItemComponent
+        componentType={componentType}
+        componentTitle={componentTitle}
+        icon={icon}
+      />
+    </StudioDragAndDropTree.NewItem>
   );
 };

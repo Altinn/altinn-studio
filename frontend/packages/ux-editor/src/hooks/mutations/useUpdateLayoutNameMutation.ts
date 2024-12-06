@@ -1,13 +1,12 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { IFormLayouts } from '../../types/global';
-import { deepCopy } from 'app-shared/pure';
+import type { IFormLayouts } from '../../types/global';
+import { ObjectUtils } from '@studio/pure-functions';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { useFormLayoutSettingsQuery } from '../queries/useFormLayoutSettingsQuery';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
+import { useAppContext } from '../';
 
 export interface UpdateLayoutNameMutationArgs {
   oldName: string;
@@ -18,7 +17,7 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
   const { updateFormLayoutName } = useServicesContext();
   const formLayoutSettingsQuery = useFormLayoutSettingsQuery(org, app, layoutSetName);
   const formLayoutSettingsMutation = useFormLayoutSettingsMutation(org, app, layoutSetName);
-  const dispatch = useDispatch();
+  const { setSelectedFormLayoutName } = useAppContext();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ oldName, newName }: UpdateLayoutNameMutationArgs) =>
@@ -27,21 +26,22 @@ export const useUpdateLayoutNameMutation = (org: string, app: string, layoutSetN
         newName,
       })),
     onSuccess: ({ oldName, newName }) => {
-      dispatch(FormLayoutActions.updateSelectedLayout(newName));
       queryClient.setQueryData(
         [QueryKey.FormLayouts, org, app, layoutSetName],
         (oldLayouts: IFormLayouts) => {
-          const newLayouts = deepCopy(oldLayouts);
+          const newLayouts = ObjectUtils.deepCopy(oldLayouts);
           newLayouts[newName] = newLayouts[oldName];
           delete newLayouts[oldName];
           return newLayouts;
         },
       );
-      const layoutSettings: ILayoutSettings = deepCopy(formLayoutSettingsQuery.data);
-      const { order } = layoutSettings?.pages;
+      const layoutSettings: ILayoutSettings = ObjectUtils.deepCopy(formLayoutSettingsQuery.data);
+      const { order, pdfLayoutName } = layoutSettings?.pages;
       if (order.includes(oldName)) order[order.indexOf(oldName)] = newName;
-      if (layoutSettings.receiptLayoutName === oldName) layoutSettings.receiptLayoutName = newName;
+      if (pdfLayoutName === oldName) layoutSettings.pages.pdfLayoutName = newName;
       formLayoutSettingsMutation.mutate(layoutSettings);
+
+      setSelectedFormLayoutName(newName);
     },
   });
 };

@@ -1,20 +1,33 @@
-﻿import { Environment, StudioEnvironment } from './StudioEnvironment';
+﻿import type { Environment } from './StudioEnvironment';
+import { StudioEnvironment } from './StudioEnvironment';
 
 type SupportedRoutes =
   | 'altinnLoginPage'
   | 'dashboard'
   | 'dashboardCreateApp'
+  | 'deploy'
   | 'editorOverview'
-  | 'editorDatamodel';
+  | 'editorDataModel'
+  | 'editorProcess'
+  | 'editorText'
+  | 'editorUi'
+  | 'gitea'
+  | 'preview';
 
 type RouterRoutes = Record<SupportedRoutes, string>;
 
 const routerRoutes: RouterRoutes = {
   altinnLoginPage: '/',
-  dashboard: '/dashboard',
+  dashboard: '/dashboard/self',
   dashboardCreateApp: '/dashboard/self/new',
-  editorOverview: `/editor/{{org}}/{{app}}/overview`,
-  editorDatamodel: `/editor/{{org}}/{{app}}/datamodel`,
+  deploy: '/editor/{{org}}/{{app}}/deploy',
+  editorOverview: '/editor/{{org}}/{{app}}/overview',
+  editorDataModel: '/editor/{{org}}/{{app}}/data-model',
+  editorProcess: '/editor/{{org}}/{{app}}/process-editor',
+  editorText: '/editor/{{org}}/{{app}}/text-editor',
+  editorUi: '/editor/{{org}}/{{app}}/ui-editor',
+  gitea: '/repos/{{org}}/{{app}}',
+  preview: '/preview/{{org}}/{{app}}',
 };
 
 export class RouterRoute extends StudioEnvironment {
@@ -22,18 +35,18 @@ export class RouterRoute extends StudioEnvironment {
     super(environment);
   }
 
-  public getRoute(route: SupportedRoutes): string {
+  public getRoute(route: SupportedRoutes, useTtdAsOrg: boolean = false): string {
     const routerRoute: string = routerRoutes[route];
 
     if (this.includesOrgAndApp(routerRoute)) {
-      return this.replaceOrgAndMap(routerRoute);
+      return this.replaceOrgAndMap(routerRoute, useTtdAsOrg);
     }
 
     return routerRoute;
   }
 
-  private replaceOrgAndMap(route: string): string {
-    return route.replace('{{org}}', this.org).replace('{{app}}', this.app);
+  private replaceOrgAndMap(route: string, useTtdAsOrg: boolean = false): string {
+    return route.replace('{{org}}', useTtdAsOrg ? 'ttd' : this.org).replace('{{app}}', this.app);
   }
 
   private includesOrgAndApp(route: string): boolean {

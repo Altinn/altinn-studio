@@ -1,1 +1,1 @@
-export { NavigationModal } from './NavigationModal'
+export { NavigationModal } from './NavigationModal';

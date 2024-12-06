@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
+import type { UpdateTextIdPayload } from 'app-shared/types/api/UpdateTextIdPayload';
 
 export const useTextIdMutation = (owner, app) => {
   const queryClient = useQueryClient();

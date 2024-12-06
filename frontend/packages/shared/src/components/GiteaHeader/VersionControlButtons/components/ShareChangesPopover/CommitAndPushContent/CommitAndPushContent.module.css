@@ -1,0 +1,7 @@
+.heading {
+  padding-bottom: var(--fds-spacing-3);
+}
+
+.commitAndPushButton {
+  margin-top: var(--fds-spacing-3);
+}

@@ -2,7 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import classes from './RedirectPage.module.css';
 import { ErrorPage } from '../ErrorPage';
-import { useUrlParams } from '../../hooks/useSelectedContext';
+import { useUrlParams } from '../../hooks/useUrlParams';
+import { getAppName } from '../../utils/stringUtils';
 
 /**
  * @component
@@ -11,15 +12,15 @@ import { useUrlParams } from '../../hooks/useSelectedContext';
  * @returns {React.JSX.Element} - The rendered component
  */
 export const RedirectPage = (): React.JSX.Element => {
-  const { selectedContext } = useUrlParams();
+  const { org } = useUrlParams();
 
   return (
     <div className={classes.pageWrapper}>
-      {selectedContext === 'all' ? (
+      {org === 'all' ? (
         // Error page if user has chosen "Alle"
         <ErrorPage />
       ) : (
-        <Navigate to={`${selectedContext}-resources/`} replace={true} />
+        <Navigate to={`${getAppName(org)}/`} replace={true} />
       )}
     </div>
   );

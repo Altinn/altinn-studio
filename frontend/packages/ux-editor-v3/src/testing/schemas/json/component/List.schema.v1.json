@@ -1,0 +1,114 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/List.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "List component",
+  "description": "Schema that describes the layout configuration for a List component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "List"
+    },
+    "dataModelBindings": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "tableHeaders": {
+      "type": "object",
+      "title": "Table Headers",
+      "examples": [
+        {
+          "productId": "product.id",
+          "description": "Beskrivelse av produkt"
+        }
+      ],
+      "description": "An object where the fields in the datalist is mapped to headers. Must correspond to datalist representing a row. Can be added to the resource files to change between languages."
+    },
+    "tableHeadersMobile": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Table Headers Mobile",
+      "description": "An array of strings representing the columns that is chosen to be shown in the mobile view."
+    },
+    "sortableColumns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Sortable Columns",
+      "description": "An array of the columns that is going to be sortable. The column has to be represented by the the headername that is written in tableHeaders."
+    },
+    "pagination": {
+      "title": "Pagination",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions"
+    },
+    "dataListId": {
+      "type": "string",
+      "title": "List ID",
+      "description": "The Id of the list. This id is used to retrive the datalist from the backend."
+    },
+    "secure": {
+      "type": "boolean",
+      "title": "Secure ListItems",
+      "description": "Boolean value indicating if the options should be instance aware. Defaults to false."
+    },
+    "bindingToShowInSummary": {
+      "type": "string",
+      "title": "Binding to show in summary",
+      "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings."
+    },
+    "mapping": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/mapping",
+      "description": "(Optional) Used to map data model paths to query parameters when fetching list data."
+    },
+    "renderAsSummary": {
+      "title": "Render as summary",
+      "description": "Boolean or expression indicating if the component should be rendered as a summary. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "alternatives", "default"],
+  "additionalProperties": false
+}

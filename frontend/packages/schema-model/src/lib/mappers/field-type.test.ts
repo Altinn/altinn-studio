@@ -38,7 +38,7 @@ describe('findEnumFieldType', () => {
       FieldType.Object,
     ],
   ])('correct enum type for %p', (nodeEnum: any[], expected) =>
-    expect(findEnumFieldType(nodeEnum)).toBe(expected)
+    expect(findEnumFieldType(nodeEnum)).toBe(expected),
   );
 });
 

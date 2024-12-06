@@ -1,8 +1,10 @@
-import React, { ReactNode, useMemo } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './SecurityLevelSelect.module.css';
-import { Heading, Label, Paragraph, HelpText, Link, LegacySelect } from '@digdir/design-system-react';
+import { Heading, Label, Paragraph, HelpText, Link } from '@digdir/designsystemet-react';
+import { StudioNativeSelect } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { RequiredAuthLevel } from '../../types';
+import type { RequiredAuthLevel } from '../../types';
 
 const SELECT_AUTH_LEVEL_ID: string = 'select-auth-level';
 const URL_TO_SECURITY_LEVEL_PAGE: string =
@@ -21,37 +23,21 @@ export type SecurityLevelSelectProps = {
   onSave: (authLevel: RequiredAuthLevel) => void;
 };
 
-/**
- * @component
- *    Displays the security level area in the policy editor
- *
- * @property {RequiredAuthLevel}[requiredAuthenticationLevelEndUser] - The required auth level in the policy
- * @property {function}[onSave] - Function to be executed when saving the policy
- *
- * @returns {ReactNode} - The rendered component
- */
 export const SecurityLevelSelect = ({
   requiredAuthenticationLevelEndUser,
   onSave,
 }: SecurityLevelSelectProps): ReactNode => {
   const { t } = useTranslation();
 
-  const authLevelOptionKeysAsDisplayStrings = useMemo(() => {
-    return authlevelOptions.map((option) => ({
-      ...option,
-      label: t(option.label),
-    }));
-  }, [t]);
-
   return (
-    <div className={classes.securityLevelContainer}>
-      <Heading level={2} size='xxsmall' spacing>
+    <div>
+      <Heading level={4} size='xxsmall' spacing>
         {t('policy_editor.security_level_label')}
       </Heading>
       <Paragraph className={classes.paragraph} size='small'>
         {t('policy_editor.security_level_description')}
       </Paragraph>
-      <div className={classes.selectAuthLevel}>
+      <div>
         <div className={classes.labelAndHelpTextWrapper}>
           {/* This is added because the 'label' in the Select component is not bold */}
           <Label size='small' htmlFor={SELECT_AUTH_LEVEL_ID}>
@@ -68,12 +54,19 @@ export const SecurityLevelSelect = ({
             </Link>
           </HelpText>
         </div>
-        <LegacySelect
-          options={authLevelOptionKeysAsDisplayStrings}
-          onChange={(authLevel: RequiredAuthLevel) => onSave(authLevel)}
+        <StudioNativeSelect
+          onChange={(event) => {
+            onSave(event.target.value as RequiredAuthLevel);
+          }}
           value={requiredAuthenticationLevelEndUser}
-          inputId={SELECT_AUTH_LEVEL_ID}
-        />
+          id={SELECT_AUTH_LEVEL_ID}
+        >
+          {authlevelOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {t(option.label)}
+            </option>
+          ))}
+        </StudioNativeSelect>
       </div>
     </div>
   );

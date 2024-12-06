@@ -1,41 +1,74 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
-import { useTranslation } from 'react-i18next';
 import { FormField } from '../../FormField';
-import { getComponentPropertyLabel } from '../../../utils/language';
-import { setComponentProperty } from '../../../utils/component';
-import { StudioDecimalInput } from '@studio/components';
+import { setComponentProperty } from '@altinn/ux-editor/utils/component';
+import { StudioDecimalInput, StudioNativeSelect } from '@studio/components';
+import type { ComponentType } from 'app-shared/types/ComponentType';
+import type { FormItem } from '../../../types/FormItem';
+import type { FilterKeysOfType } from 'app-shared/types/FilterKeysOfType';
+import { useComponentPropertyLabel, useAppContext } from '../../../hooks';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import { useTranslation } from 'react-i18next';
 
-export interface EditNumberValueProps extends IGenericEditComponent {
-  propertyKey: string;
+type NumberKeys<ObjectType extends KeyValuePairs> = FilterKeysOfType<ObjectType, number>;
+
+export interface EditNumberValueProps<T extends ComponentType, K extends NumberKeys<FormItem<T>>>
+  extends IGenericEditComponent<T> {
+  propertyKey: K;
   helpText?: string;
+  enumValues?: number[];
 }
 
-export const EditNumberValue = ({
+export const EditNumberValue = <T extends ComponentType, K extends NumberKeys<FormItem<T>>>({
   component,
   handleComponentChange,
   propertyKey,
   helpText,
-}: EditNumberValueProps) => {
+  enumValues,
+}: EditNumberValueProps<T, K>) => {
   const { t } = useTranslation();
-  const handleValueChange = (newValue: number) => {
-    handleComponentChange(setComponentProperty(component, propertyKey, newValue));
+  const componentPropertyLabel = useComponentPropertyLabel();
+  const { selectedFormLayoutSetName, updateLayoutsForPreview } = useAppContext();
+
+  const handleValueChange = async (newValue: number) => {
+    handleComponentChange(setComponentProperty<T, number, K>(component, propertyKey, newValue), {
+      onSuccess: async () => {
+        await updateLayoutsForPreview(selectedFormLayoutSetName, true);
+      },
+    });
   };
 
   return (
     <FormField
       id={component.id}
+      label={componentPropertyLabel(String(propertyKey))}
       value={component[propertyKey]}
       onChange={handleValueChange}
       propertyPath={component.propertyPath}
       helpText={helpText}
-      renderField={({ fieldProps }) => (
-        <StudioDecimalInput
-          {...fieldProps}
-          onChange={fieldProps.onChange}
-          description={getComponentPropertyLabel(propertyKey, t)}
-        />
-      )}
+      renderField={({ fieldProps }) =>
+        enumValues ? (
+          <StudioNativeSelect
+            label={fieldProps.label}
+            value={fieldProps.value}
+            onChange={(e) => fieldProps.onChange(Number(e.target.value))}
+            id={`component-${String(propertyKey)}-select${component.id}`}
+            size='sm'
+          >
+            {enumValues.map((value: number) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </StudioNativeSelect>
+        ) : (
+          <StudioDecimalInput
+            {...fieldProps}
+            onChange={fieldProps.onChange}
+            validationErrorMessage={t('validation_errors.numbers_only')}
+          />
+        )
+      }
     />
   );
 };

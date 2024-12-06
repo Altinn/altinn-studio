@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
-import { sortResourceListByDateAndMap } from '../../utils/mapperUtils';
+import { sortResourceListByDate } from '../../utils/mapperUtils';
 
 /**
  * Query to get the list of resources. It maps the date to correct display format
@@ -22,7 +23,7 @@ export const useGetResourceListQuery = (
     queryKey: [QueryKey.ResourceList, org],
     queryFn: () => getResourceList(org),
     select: (resourceListItems: ResourceListItem[]) =>
-      resourceListItems && sortResourceListByDateAndMap(resourceListItems),
+      resourceListItems && sortResourceListByDate(resourceListItems),
     enabled: !disabled,
   });
 };

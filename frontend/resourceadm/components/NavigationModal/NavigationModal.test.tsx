@@ -1,50 +1,62 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { render, screen } from '@testing-library/react';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import { NavigationModal, NavigationModalProps } from './NavigationModal';
-import { textMock } from '../../../testing/mocks/i18nMock';
-import { act } from 'react-dom/test-utils';
+import type { NavigationModalProps } from './NavigationModal';
+import { NavigationModal } from './NavigationModal';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+
+const mockButtonText: string = 'Mock Button';
+const mockOnClose = jest.fn();
+const mockOnNavigate = jest.fn();
+const defaultProps: NavigationModalProps = {
+  onClose: mockOnClose,
+  onNavigate: mockOnNavigate,
+  title: textMock('resourceadm.resource_navigation_modal_title_policy'),
+};
 
 describe('NavigationModal', () => {
-  const mockOnClose = jest.fn();
-  const mockOnNavigate = jest.fn();
-
-  const defaultProps: NavigationModalProps = {
-    isOpen: true,
-    onClose: mockOnClose,
-    onNavigate: mockOnNavigate,
-    title: textMock('resourceadm.resource_navigation_modal_title_policy'),
-  };
-
-  it('should be closed by default', () => {
-    render(
-      <NavigationModal isOpen={false} onClose={() => {}} onNavigate={mockOnNavigate} title='tit' />,
-    );
-    const closeButton = screen.queryByRole('button', { name: textMock('general.cancel') });
-    expect(closeButton).not.toBeInTheDocument();
-  });
+  afterEach(jest.clearAllMocks);
 
   it('calls onClose function when close button is clicked', async () => {
     const user = userEvent.setup();
-    render(<NavigationModal {...defaultProps} />);
+    await renderAndOpenModal(user);
 
     const closeButton = screen.getByRole('button', {
       name: textMock('resourceadm.resource_navigation_modal_button_stay'),
     });
-    await act(() => user.click(closeButton));
+    await user.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   it('calls onNavigate function when navigate button is clicked', async () => {
     const user = userEvent.setup();
-    render(<NavigationModal {...defaultProps} />);
+    await renderAndOpenModal(user);
 
     const navigateButton = screen.getByRole('button', {
       name: textMock('resourceadm.resource_navigation_modal_button_move_on'),
     });
-    await act(() => user.click(navigateButton));
+    await user.click(navigateButton);
 
     expect(mockOnNavigate).toHaveBeenCalled();
   });
 });
+
+const renderAndOpenModal = async (user: UserEvent) => {
+  render(<TestComponentWithButton />);
+
+  const openModalButton = screen.getByRole('button', { name: mockButtonText });
+  await user.click(openModalButton);
+};
+
+const TestComponentWithButton = () => {
+  const modalRef = useRef<HTMLDialogElement>(null);
+
+  return (
+    <>
+      <button onClick={() => modalRef.current?.showModal()}>{mockButtonText}</button>
+      <NavigationModal ref={modalRef} {...defaultProps} />
+    </>
+  );
+};

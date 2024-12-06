@@ -5,61 +5,55 @@ import { XSDUpload } from './XSDUpload';
 import { SchemaSelect } from './SchemaSelect';
 import { DeleteWrapper } from './DeleteWrapper';
 import { computeSelectedOption } from '../../../../utils/metadataUtils';
-import {
-  CreateDatamodelMutationArgs,
-  useCreateDatamodelMutation,
-} from '../../../../hooks/mutations/useCreateDatamodelMutation';
-import { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../types/MetadataOption';
 import { GenerateModelsButton } from './GenerateModelsButton';
-import { usePrevious } from 'app-shared/hooks/usePrevious';
-import { DatamodelMetadata } from 'app-shared/types/DatamodelMetadata';
+import { usePrevious } from '@studio/components';
+import type { DataModelMetadata } from 'app-shared/types/DataModelMetadata';
+import { useTranslation } from 'react-i18next';
 
 export interface TopToolbarProps {
-  createNewOpen: boolean;
+  isCreateNewOpen: boolean;
   createPathOption?: boolean;
-  datamodels: DatamodelMetadata[];
+  dataModels: DataModelMetadata[];
   selectedOption?: MetadataOption;
-  setCreateNewOpen: (open: boolean) => void;
+  setIsCreateNewOpen: (open: boolean) => void;
   setSelectedOption: (option?: MetadataOption) => void;
   onSetSchemaGenerationErrorMessages: (errorMessages: string[]) => void;
 }
 
 export function TopToolbar({
-  createNewOpen,
+  isCreateNewOpen,
   createPathOption,
-  datamodels,
+  dataModels,
   selectedOption,
-  setCreateNewOpen,
+  setIsCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 }: TopToolbarProps) {
   const modelPath = selectedOption?.value.repositoryRelativeUrl;
 
-  const { mutate: createDatamodel } = useCreateDatamodelMutation();
-  const prevDatamodels = usePrevious(datamodels);
+  const { t } = useTranslation();
+  const prevDataModels = usePrevious(dataModels);
 
   useEffect(() => {
-    setSelectedOption(computeSelectedOption(selectedOption, datamodels, prevDatamodels));
-  }, [selectedOption, datamodels, prevDatamodels, setSelectedOption]);
-
-  const handleCreateSchema = (model: CreateDatamodelMutationArgs) => {
-    createDatamodel(model);
-    setCreateNewOpen(false);
-  };
+    setSelectedOption(computeSelectedOption(selectedOption, dataModels, prevDataModels));
+  }, [selectedOption, dataModels, prevDataModels, setSelectedOption]);
 
   return (
     <section className={classes.toolbar} role='toolbar'>
       <CreateNewWrapper
-        datamodels={datamodels}
+        dataModels={dataModels}
         disabled={false}
-        createNewOpen={createNewOpen}
-        setCreateNewOpen={setCreateNewOpen}
-        handleCreateSchema={handleCreateSchema}
+        isCreateNewOpen={isCreateNewOpen}
+        setIsCreateNewOpen={setIsCreateNewOpen}
         createPathOption={createPathOption}
       />
-      <XSDUpload disabled={false} />
+      <XSDUpload
+        selectedOption={selectedOption}
+        uploadButtonText={t('app_data_modelling.upload_xsd')}
+      />
       <SchemaSelect
-        datamodels={datamodels}
+        dataModels={dataModels}
         disabled={false}
         selectedOption={selectedOption}
         setSelectedOption={setSelectedOption}

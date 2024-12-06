@@ -1,13 +1,10 @@
-import {
-  CombinationKind,
+import type {
   CombinationNode,
   FieldNode,
-  FieldType,
-  ObjectKind,
-  ROOT_POINTER,
   ReferenceNode,
   UiSchemaNodes,
 } from '@altinn/schema-model';
+import { CombinationKind, FieldType, ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 
 const combinationNodePointer = '#/properties/test';
 const fieldNode1Pointer = '#/properties/test/anyOf/0';
@@ -18,14 +15,16 @@ const objectNodePointer = '#/properties/parent2';
 const objectChildPointer = '#/properties/parent2/properties/someNode';
 const definitionNodePointer = '#/$defs/def1';
 const childOfDefinitionNodePointer = '#/$defs/def1/properties/childOfDef1';
+const stringDefinitionNodePointer = '#/$defs/def2';
 const nodeWithSameNameAsObjectChildPointer = '#/properties/someNode';
 const referenceNodePointer = '#/properties/referenceNode';
 const referredNodePointer = '#/$defs/referredNode';
+const childOfReferredNodePointer = '#/$defs/referredNode/properties/childOfReferredNode';
 
 export const nodeMockBase: FieldNode = {
   objectKind: ObjectKind.Field,
   fieldType: FieldType.String,
-  pointer: '#',
+  schemaPointer: '#',
   isRequired: false,
   isNillable: false,
   isArray: false,
@@ -39,25 +38,33 @@ export const nodeMockBase: FieldNode = {
 export const referenceNodeMock: ReferenceNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Reference,
-  pointer: referenceNodePointer,
+  schemaPointer: referenceNodePointer,
   reference: referredNodePointer,
 };
 
 export const referredNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: referredNodePointer,
+  fieldType: FieldType.Object,
+  schemaPointer: referredNodePointer,
+  children: [childOfReferredNodePointer],
+};
+
+export const childOfReferredNodeMock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: childOfReferredNodePointer,
 };
 
 export const rootNodeMock: FieldNode = {
   ...nodeMockBase,
   fieldType: FieldType.Object,
-  pointer: ROOT_POINTER,
+  schemaPointer: ROOT_POINTER,
   children: [
     combinationNodePointer,
     toggableNodePointer,
     nodeWithCustomPropsPointer,
     objectNodePointer,
     definitionNodePointer,
+    stringDefinitionNodePointer,
     nodeWithSameNameAsObjectChildPointer,
     referenceNodePointer,
     referredNodePointer,
@@ -68,28 +75,28 @@ export const combinationNodeMock: CombinationNode = {
   ...nodeMockBase,
   objectKind: ObjectKind.Combination,
   combinationType: CombinationKind.AnyOf,
-  pointer: combinationNodePointer,
+  schemaPointer: combinationNodePointer,
   children: [fieldNode1Pointer, fieldNode2Pointer],
 };
 
 export const fieldNode1Mock: FieldNode = {
   ...nodeMockBase,
-  pointer: fieldNode1Pointer,
+  schemaPointer: fieldNode1Pointer,
 };
 
 export const fieldNode2Mock: FieldNode = {
   ...nodeMockBase,
-  pointer: fieldNode2Pointer,
+  schemaPointer: fieldNode2Pointer,
 };
 
 export const toggableNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: toggableNodePointer,
+  schemaPointer: toggableNodePointer,
 };
 
 export const nodeWithCustomPropsMock: FieldNode = {
   ...nodeMockBase,
-  pointer: nodeWithCustomPropsPointer,
+  schemaPointer: nodeWithCustomPropsPointer,
   custom: {
     customProp1: 'customProp1',
     customProp2: 'customProp2',
@@ -98,31 +105,37 @@ export const nodeWithCustomPropsMock: FieldNode = {
 
 export const objectNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: objectNodePointer,
+  schemaPointer: objectNodePointer,
   fieldType: FieldType.Object,
   children: [objectChildPointer],
 };
 
 export const objectChildMock: FieldNode = {
   ...nodeMockBase,
-  pointer: objectChildPointer,
+  schemaPointer: objectChildPointer,
 };
 
 export const definitionNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: definitionNodePointer,
+  schemaPointer: definitionNodePointer,
   fieldType: FieldType.Object,
   children: [childOfDefinitionNodePointer],
 };
 
 export const childOfDefinitionNodeMock: FieldNode = {
   ...nodeMockBase,
-  pointer: childOfDefinitionNodePointer,
+  schemaPointer: childOfDefinitionNodePointer,
+};
+
+export const stringDefinitionNodeMock: FieldNode = {
+  ...nodeMockBase,
+  schemaPointer: stringDefinitionNodePointer,
+  fieldType: FieldType.String,
 };
 
 export const nodeWithSameNameAsObjectChildMock: FieldNode = {
   ...nodeMockBase,
-  pointer: nodeWithSameNameAsObjectChildPointer,
+  schemaPointer: nodeWithSameNameAsObjectChildPointer,
 };
 
 export const uiSchemaNodesMock: UiSchemaNodes = [
@@ -132,11 +145,13 @@ export const uiSchemaNodesMock: UiSchemaNodes = [
   fieldNode2Mock,
   referenceNodeMock,
   referredNodeMock,
+  childOfReferredNodeMock,
   nodeWithCustomPropsMock,
   toggableNodeMock,
   objectNodeMock,
   objectChildMock,
   definitionNodeMock,
   childOfDefinitionNodeMock,
+  stringDefinitionNodeMock,
   nodeWithSameNameAsObjectChildMock,
 ];

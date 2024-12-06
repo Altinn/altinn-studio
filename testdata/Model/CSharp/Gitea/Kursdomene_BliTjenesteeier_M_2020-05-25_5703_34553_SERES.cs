@@ -1,9 +1,9 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
@@ -14,15 +14,15 @@ namespace Altinn.App.Models
   {
     [XmlAttribute("dataFormatProvider")]
     [BindNever]
-    public string dataFormatProvider {get; set; } = "SERES";
+    public string dataFormatProvider { get; set; } = "SERES";
 
     [XmlAttribute("dataFormatId")]
     [BindNever]
-    public string dataFormatId {get; set; } = "5703";
+    public string dataFormatId { get; set; } = "5703";
 
     [XmlAttribute("dataFormatVersion")]
     [BindNever]
-    public string dataFormatVersion {get; set; } = "34553";
+    public string dataFormatVersion { get; set; } = "34553";
 
     [XmlElement("Tjenesteeier", Order = 1)]
     [JsonProperty("Tjenesteeier")]
@@ -59,12 +59,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("sektor")]
     public string sektor { get; set; }
 
-    [XmlElement("navnNynorsk", Order = 4)]
+    [XmlElement("navnNynorsk", Order = 4, IsNullable = true)]
     [JsonProperty("navnNynorsk")]
     [JsonPropertyName("navnNynorsk")]
     public string navnNynorsk { get; set; }
 
-    [XmlElement("navnEngelsk", Order = 5)]
+    [XmlElement("navnEngelsk", Order = 5, IsNullable = true)]
     [JsonProperty("navnEngelsk")]
     [JsonPropertyName("navnEngelsk")]
     public string navnEngelsk { get; set; }

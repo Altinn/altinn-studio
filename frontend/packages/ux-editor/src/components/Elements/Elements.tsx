@@ -1,66 +1,117 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useAppContext, useGetLayoutSetByName } from '../../hooks';
 import { ConfPageToolbar } from './ConfPageToolbar';
 import { DefaultToolbar } from './DefaultToolbar';
-import { Heading, Paragraph } from '@digdir/design-system-react';
-import { useText } from '../../hooks';
-import {
-  selectedLayoutNameSelector,
-} from '../../selectors/formLayoutSelectors';
-import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
-import { useLayoutSetsQuery } from '../../hooks/queries/useLayoutSetsQuery';
-import { LayoutSetsContainer } from './LayoutSetsContainer';
-import { ConfigureLayoutSetPanel } from './ConfigureLayoutSetPanel';
-import { Accordion } from '@digdir/design-system-react';
-import { useStudioUrlParams } from 'app-shared/hooks/useStudioUrlParams';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './Elements.module.css';
-import { useAppContext } from '../../hooks/useAppContext';
 
-export const Elements = () => {
-  const { org, app } = useStudioUrlParams();
-  const selectedLayout: string = useSelector(selectedLayoutNameSelector);
-  const { selectedLayoutSet } = useAppContext();
-  const layoutSetsQuery = useLayoutSetsQuery(org, app);
-  const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
-  const receiptName = formLayoutSettings?.receiptLayoutName;
-  const layoutSetNames = layoutSetsQuery?.data?.sets;
+import { StudioButton, StudioError, StudioSpinner } from '@studio/components';
+import { ShrinkIcon } from '@studio/icons';
+import { useCustomReceiptLayoutSetName } from 'app-shared/hooks/useCustomReceiptLayoutSetName';
+import { useTranslation } from 'react-i18next';
+import { useProcessTaskTypeQuery } from '../../hooks/queries/useProcessTaskTypeQuery';
+import { Heading, Paragraph } from '@digdir/designsystemet-react';
+import { ElementsUtils } from './ElementsUtils';
+import type { ConfPageType } from './types/ConfigPageType';
 
-  const hideComponents = selectedLayout === 'default' || selectedLayout === undefined;
+export interface ElementsProps {
+  collapsed: boolean;
+  onCollapseToggle: () => void;
+}
 
-  const t = useText();
+export const Elements = ({ collapsed, onCollapseToggle }: ElementsProps): React.ReactElement => {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
+  const selectedLayoutSet = useGetLayoutSetByName({
+    name: selectedFormLayoutSetName,
+    org,
+    app,
+  });
+
+  const {
+    data: processTaskType,
+    isPending: isFetchingProcessTaskType,
+    isError: hasProcessTaskTypeError,
+  } = useProcessTaskTypeQuery(org, app, selectedFormLayoutSetName);
+
+  const existingCustomReceiptName: string | undefined = useCustomReceiptLayoutSetName(org, app);
+  const hideComponents =
+    selectedFormLayoutName === 'default' || selectedFormLayoutName === undefined;
+
+  if (isFetchingProcessTaskType) {
+    return (
+      <div className={classes.root}>
+        <StudioSpinner
+          spinnerTitle={t('schema_editor.loading_available_components')}
+          showSpinnerTitle
+        />
+      </div>
+    );
+  }
+
+  if (hasProcessTaskTypeError) {
+    return (
+      <div>
+        <div className={classes.errorMessage}>
+          <StudioError>
+            <Heading level={3} size='xsmall' spacing>
+              {t('schema_editor.error_could_not_detect_taskType', {
+                layout: selectedFormLayoutSetName,
+              })}
+            </Heading>
+            <Paragraph>{t('schema_editor.error_could_not_detect_taskType_description')}</Paragraph>
+          </StudioError>
+        </div>
+      </div>
+    );
+  }
+
+  const selectedLayoutIsCustomReceipt = selectedFormLayoutSetName === existingCustomReceiptName;
+
+  const configToolbarMode: ConfPageType = ElementsUtils.getConfigurationMode({
+    selectedLayoutIsCustomReceipt,
+    processTaskType,
+    selectedLayoutSetType: selectedLayoutSet?.type,
+  });
+
+  const shouldShowConfPageToolbar: boolean = Boolean(configToolbarMode);
+
+  if (collapsed) {
+    return (
+      <StudioButton
+        variant='secondary'
+        className={classes.openElementsButton}
+        onClick={onCollapseToggle}
+        title={t('left_menu.open_components')}
+        fullWidth
+      >
+        {t('left_menu.open_components')}
+      </StudioButton>
+    );
+  }
 
   return (
     <div className={classes.root}>
-      {shouldDisplayFeature('configureLayoutSet') && layoutSetNames ? (
-        <ConfigureLayoutSetPanel />
-      ) : (
-        <LayoutSetsContainer />
-      )}
-      <Accordion color='subtle'>
-        {shouldDisplayFeature('configureLayoutSet') && (
-          <Accordion.Item defaultOpen={layoutSetNames?.length > 0}>
-            <Accordion.Header>{t('left_menu.layout_sets')}</Accordion.Header>
-            <Accordion.Content>
-              {layoutSetNames ? <LayoutSetsContainer /> : <ConfigureLayoutSetPanel />}
-            </Accordion.Content>
-          </Accordion.Item>
-        )}
-      </Accordion>
-      <div className={classes.componentsList}>
-        <Heading size='xxsmall' className={classes.componentsHeader}>
-          {t('left_menu.components')}
-        </Heading>
-        {hideComponents ? (
-          <Paragraph className={classes.noPageSelected} size='small'>
-            {t('left_menu.no_components_selected')}
-          </Paragraph>
-        ) : receiptName === selectedLayout ? (
-          <ConfPageToolbar />
-        ) : (
-          <DefaultToolbar />
-        )}
+      <div className={classes.componentsHeader}>
+        <Heading size='xxsmall'>{t('left_menu.components')}</Heading>
+        <StudioButton
+          variant='tertiary'
+          icon={<ShrinkIcon title='1' fontSize='1.5rem' />}
+          title={t('left_menu.close_components')}
+          onClick={onCollapseToggle}
+        ></StudioButton>
       </div>
+      {hideComponents ? (
+        <Paragraph className={classes.noPageSelected} size='small'>
+          {t('left_menu.no_components_selected')}
+        </Paragraph>
+      ) : shouldShowConfPageToolbar ? (
+        <ConfPageToolbar confPageType={configToolbarMode} />
+      ) : (
+        <DefaultToolbar />
+      )}
     </div>
   );
 };

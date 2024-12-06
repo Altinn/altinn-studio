@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;

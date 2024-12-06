@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { SearchBox, SearchBoxProps } from './ResourceSeachBox';
-import { act } from 'react-dom/test-utils';
-import { textMock } from '../../../testing/mocks/i18nMock';
+import type { SearchBoxProps } from './ResourceSeachBox';
+import { SearchBox } from './ResourceSeachBox';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 describe('SearchBox', () => {
   const mockOnChange = jest.fn();
@@ -17,7 +17,7 @@ describe('SearchBox', () => {
     render(<SearchBox {...defaultProps} />);
 
     const searchInput = screen.getByLabelText(textMock('resourceadm.dashboard_searchbox'));
-    await act(() => user.type(searchInput, 'example text'));
+    await user.type(searchInput, 'example text');
 
     expect(mockOnChange).toHaveBeenCalledWith('example text');
   });

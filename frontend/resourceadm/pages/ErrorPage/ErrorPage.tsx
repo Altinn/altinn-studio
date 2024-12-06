@@ -1,6 +1,6 @@
 import React from 'react';
 import classes from './ErrorPage.module.css';
-import { Heading, Link } from '@digdir/design-system-react';
+import { Heading, Link } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 
 /**

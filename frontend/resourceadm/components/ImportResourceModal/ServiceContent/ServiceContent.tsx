@@ -1,32 +1,36 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './ServiceContent.module.css';
-import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/design-system-react';
+import { Alert, ErrorMessage, Combobox, Paragraph, Spinner } from '@digdir/designsystemet-react';
 import { StudioCenter } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useGetAltinn2LinkServicesQuery } from '../../../hooks/queries';
-import { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
-import { mapAltinn2LinkServiceToSelectOption } from '../../../utils/mapperUtils';
+import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
+import {
+  mapAltinn2LinkServiceToSelectOption,
+  mapSelectOptiontoAltinn2LinkService,
+} from '../../../utils/mapperUtils';
 
 export type ServiceContentProps = {
-  selectedContext: string;
+  org: string;
   env: string;
-  selectedService: Altinn2LinkService;
-  onSelectService: (altinn2LinkService: Altinn2LinkService) => void;
+  selectedService: Altinn2LinkService | undefined;
+  onSelectService: (altinn2LinkService: Altinn2LinkService | undefined) => void;
 };
 
 /**
  * @component
  *    Displays the Service content in the import resource from Altinn 2 modal.
  *
- * @property {string}[selectedContext] - The selected context
+ * @property {string}[org] - The selected org
  * @property {string}[env] - The selected environment
- * @property {Altinn2LinkService}[selectedService] - The selected service
+ * @property {Altinn2LinkService | undefined}[selectedService] - The selected service
  * @property {function}[onSelectService] - Function to be executed when selecting the service
  *
  * @returns {ReactNode} - The rendered component
  */
 export const ServiceContent = ({
-  selectedContext,
+  org,
   env,
   selectedService,
   onSelectService,
@@ -37,18 +41,14 @@ export const ServiceContent = ({
     data: altinn2LinkServices,
     status: altinn2LinkServicesStatus,
     error: altinn2LinkServicesError,
-  } = useGetAltinn2LinkServicesQuery(selectedContext, env);
+  } = useGetAltinn2LinkServicesQuery(org, env);
 
   /**
    * Handles the selection of the service
    */
   const handleSelectService = (s: string) => {
-    const valueAsArray: string[] = s.split('-');
-    onSelectService({
-      serviceName: valueAsArray[2],
-      externalServiceEditionCode: valueAsArray[1],
-      externalServiceCode: valueAsArray[0],
-    });
+    const linkService = s ? mapSelectOptiontoAltinn2LinkService(s) : undefined;
+    onSelectService(linkService);
   };
 
   /**
@@ -89,25 +89,28 @@ export const ServiceContent = ({
       }
       return (
         <Combobox
+          portal={false}
           value={
             selectedService
-              ? mapAltinn2LinkServiceToSelectOption([selectedService]).map((ls) => ls.value)
+              ? [mapAltinn2LinkServiceToSelectOption(selectedService).value]
               : undefined
           }
           label={t('resourceadm.dashboard_import_modal_select_service')}
           onValueChange={(newValue: string[]) => {
-            if (newValue?.length) {
-              handleSelectService(newValue[0]);
-            }
+            handleSelectService(newValue[0]);
           }}
+          filter={(inputValue: string, option) =>
+            option.label.toLowerCase().indexOf(inputValue?.toLowerCase()) > -1
+          }
         >
-          {mapAltinn2LinkServiceToSelectOption(altinn2LinkServices).map((ls) => {
-            return (
-              <Combobox.Option key={ls.value} value={ls.value}>
-                {ls.label}
-              </Combobox.Option>
-            );
-          })}
+          <Combobox.Empty>
+            {t('resourceadm.dashboard_import_modal_no_services_found')}
+          </Combobox.Empty>
+          {altinn2LinkServices.map(mapAltinn2LinkServiceToSelectOption).map((ls) => (
+            <Combobox.Option key={ls.value} value={ls.value}>
+              {ls.label}
+            </Combobox.Option>
+          ))}
         </Combobox>
       );
     }

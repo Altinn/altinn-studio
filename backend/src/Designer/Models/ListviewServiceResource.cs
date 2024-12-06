@@ -1,8 +1,6 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
-using Altinn.Studio.Designer.Enums;
 
 namespace Altinn.Studio.Designer.Models
 {
@@ -26,11 +24,16 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// Timestamp for when the resourcefile was last changed
         /// </summary>
-        public DateTime LastChanged { get; set; }
+        public DateTime? LastChanged { get; set; }
 
         /// <summary>
         /// A bool indicating if the resource has a policy or not
         /// </summary>
         public bool? HasPolicy { get; set; }
+
+        /// <summary>
+        /// A list of environments the resource is deployed in
+        /// </summary>
+        public IList<string> Environments { get; set; }
     }
 }

@@ -17,20 +17,20 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Delete_Attachment_Ok()
         {
-            string dataPathWithData = $"{Org}/{App}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
+            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={App}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
-        public async Task Delete_AttachmentForStateFulApp_Ok()
+        public async Task Delete_AttachmentForV4App_Ok()
         {
-            string dataPathWithData = $"{Org}/{StatefulApp}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}/data/{AttachmentGuId}";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Delete, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={StatefulApp}&selectedLayoutSet={LayoutSetName}");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

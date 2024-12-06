@@ -1,17 +1,17 @@
-import React, { ReactNode, KeyboardEvent, ChangeEventHandler, useState } from 'react';
+import type { ReactNode, KeyboardEvent, ChangeEventHandler } from 'react';
+import React, { useState } from 'react';
 import classes from './ItemFieldsTable.module.css';
 import cn from 'classnames';
-import { FieldType, UiSchemaNode, deleteNode, setType, isField } from '@altinn/schema-model';
+import { deleteNode, setRequired, setPropertyName, type UiSchemaNode } from '@altinn/schema-model';
 import { NameField } from '../../NameField';
 import { useSchemaEditorAppContext } from '@altinn/schema-editor/hooks/useSchemaEditorAppContext';
-import { NativeSelect, Switch } from '@digdir/design-system-react';
+import { Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { setRequired, setPropertyName } from '@altinn/schema-model';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
 import { StudioButton, StudioCenter } from '@studio/components';
-import { useTypeOptions } from '@altinn/schema-editor/components/SchemaInspector/hooks/useTypeOptions';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
+import { ItemFieldType } from './ItemFieldType';
 
 export type ItemFieldsTableRowProps = {
   fieldNode: UiSchemaNode;
@@ -29,10 +29,10 @@ export const ItemFieldsTableRow = ({
   onEnterKeyPress,
 }: ItemFieldsTableRowProps): ReactNode => {
   const { t } = useTranslation();
-  const { schemaModel, setSelectedNodePointer, save } = useSchemaEditorAppContext();
+  const { schemaModel, setSelectedUniquePointer, save } = useSchemaEditorAppContext();
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState<boolean>();
 
-  const fullPath = fieldNode.pointer;
+  const fullPath = fieldNode.schemaPointer;
 
   const handleChangeNodeName = (newNodeName: string) => {
     save(
@@ -42,9 +42,6 @@ export const ItemFieldsTableRow = ({
       }),
     );
   };
-
-  const onTypeChange = (path: string, type: FieldType) =>
-    save(setType(schemaModel, { path, type }));
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
@@ -60,7 +57,7 @@ export const ItemFieldsTableRow = ({
 
   const deleteHandler = () => {
     save(deleteNode(schemaModel, fullPath));
-    setSelectedNodePointer(null);
+    setSelectedUniquePointer(null);
   };
 
   return (
@@ -70,19 +67,15 @@ export const ItemFieldsTableRow = ({
           className={nameFieldClass}
           disabled={readonly}
           handleSave={handleChangeNodeName}
+          hideLabel
           onKeyDown={onKeyDown}
-          pointer={fullPath}
+          schemaPointer={fullPath}
           size='small'
           aria-label={t('schema_editor.field_name')}
         />
       </td>
       <td className={cn(classes.tableColumnType, classes.tableCell)}>
-        {isField(fieldNode) && (
-          <TypeSelect
-            onChange={(fieldType) => onTypeChange(fullPath, fieldType)}
-            value={fieldNode.fieldType as FieldType}
-          />
-        )}
+        <ItemFieldType fieldNode={fieldNode} />
       </td>
       <td className={cn(classes.tableColumnRequired, classes.tableCell)}>
         <StudioCenter>
@@ -100,7 +93,7 @@ export const ItemFieldsTableRow = ({
         <StudioCenter>
           <AltinnConfirmDialog
             open={isConfirmDeleteDialogOpen}
-            confirmText={t('schema_editor.datamodel_field_deletion_confirm')}
+            confirmText={t('schema_editor.data_model_field_deletion_confirm')}
             onConfirm={deleteHandler}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
             trigger={
@@ -110,40 +103,14 @@ export const ItemFieldsTableRow = ({
                 onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
                 color='danger'
                 variant='tertiary'
-                size='small'
               />
             }
           >
-            <p>{t('schema_editor.datamodel_field_deletion_text')}</p>
-            <p>{t('schema_editor.datamodel_field_deletion_info')}</p>
+            <p>{t('schema_editor.data_model_field_deletion_text')}</p>
+            <p>{t('schema_editor.data_model_field_deletion_info')}</p>
           </AltinnConfirmDialog>
         </StudioCenter>
       </td>
     </tr>
-  );
-};
-
-interface TypeSelectProps {
-  onChange: (type: FieldType) => void;
-  value: FieldType;
-}
-
-const TypeSelect = ({ onChange, value }: TypeSelectProps) => {
-  const typeOptions = useTypeOptions();
-  const { t } = useTranslation();
-  return (
-    <NativeSelect
-      hideLabel
-      label={t('schema_editor.type')}
-      onChange={(event) => onChange(event.target.value as FieldType)}
-      value={value}
-      size='small'
-    >
-      {typeOptions.map(({ value: fieldType, label }) => (
-        <option key={fieldType} value={fieldType}>
-          {label}
-        </option>
-      ))}
-    </NativeSelect>
   );
 };

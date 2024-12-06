@@ -1,8 +1,9 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { RepoStatus } from 'app-shared/types/RepoStatus';
-import { AxiosError } from 'axios';
+import type { RepoStatus } from 'app-shared/types/RepoStatus';
+import type { AxiosError } from 'axios';
 
 export const useRepoStatusQuery = (
   owner: string,

@@ -1,4 +1,3 @@
-using System;
 using Altinn.Studio.DataModeling.Utils;
 using Xunit;
 

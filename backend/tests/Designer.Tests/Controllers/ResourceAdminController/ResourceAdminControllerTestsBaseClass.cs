@@ -12,25 +12,25 @@ using Moq;
 
 namespace Designer.Tests.Controllers.ResourceAdminController
 {
-    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DisagnerEndpointsTestsBase<TTesetClass> where TTesetClass : class
+    public abstract class ResourceAdminControllerTestsBaseClass<TTesetClass> : DesignerEndpointsTestsBase<TTesetClass> where TTesetClass : class
     {
         protected readonly string VersionPrefix = "/designer/api";
         protected readonly Mock<IRepository> RepositoryMock;
+        protected readonly Mock<IResourceRegistry> ResourceRegistryMock;
         protected readonly Mock<IAltinn2MetadataClient> Altinn2MetadataClientMock;
 
         protected override void ConfigureTestServices(IServiceCollection services)
         {
-
-            services.Configure<ServiceRepositorySettings>(c =>
-                c.RepositoryLocation = TestRepositoriesLocation);
-            services.AddSingleton<IGitea, IGiteaMock>();
+            base.ConfigureTestServices(services);
             services.AddTransient(_ => RepositoryMock.Object);
+            services.AddTransient(_ => ResourceRegistryMock.Object);
             services.AddTransient(_ => Altinn2MetadataClientMock.Object);
         }
 
         protected ResourceAdminControllerTestsBaseClass(WebApplicationFactory<Program> factory) : base(factory)
         {
             RepositoryMock = new Mock<IRepository>();
+            ResourceRegistryMock = new Mock<IResourceRegistry>();
             Altinn2MetadataClientMock = new Mock<IAltinn2MetadataClient>();
         }
 

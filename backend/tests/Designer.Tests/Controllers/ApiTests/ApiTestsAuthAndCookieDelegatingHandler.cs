@@ -3,14 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Designer.Tests.Helpers;
 using Designer.Tests.Utils;
-using static Designer.Tests.Utils.AuthenticationUtil;
 
 namespace Designer.Tests.Controllers.ApiTests;
 
 /// <summary>
 /// Used for authorize httpclient and to add xsrfToken as a cookie for tests.
-/// Logic for setting cookie is ported from <see cref="AuthenticationUtil"/>
 /// </summary>
 [ExcludeFromCodeCoverage]
 internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
@@ -28,26 +27,18 @@ internal class ApiTestsAuthAndCookieDelegatingHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var loginUrl = $"{_baseAddress}/Login";
-        var httpRequestMessageLogin = new HttpRequestMessage(HttpMethod.Get, loginUrl);
-
-        var loginResponse = await base.SendAsync(httpRequestMessageLogin, cancellationToken);
-
-        var xsrfUrl = $"{_baseAddress}/designer/api/user/current";
-        var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
-
-        IEnumerable<string> cookies = null;
-        if (loginResponse.Headers.Contains("Set-Cookie"))
+        if (request.Headers.TryGetValues("X-XSRF-TOKEN", out IEnumerable<string> _))
         {
-            cookies = loginResponse.Headers.GetValues("Set-Cookie");
-            SetAltinnStudioCookieFromResponseHeader(httpRequestMessageXsrf, cookies);
+            return await base.SendAsync(request, cancellationToken);
         }
 
-        var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+        string xsrfUrl = $"{_baseAddress}/designer/api/user/current";
+        using var httpRequestMessageXsrf = new HttpRequestMessage(HttpMethod.Get, xsrfUrl);
 
-        var xsrfcookies = xsrfResponse.Headers.GetValues("Set-Cookie");
-        var xsrfToken = GetXsrfTokenFromCookie(xsrfcookies);
-        SetAltinnStudioCookieFromResponseHeader(request, cookies, xsrfToken);
+        using var xsrfResponse = await base.SendAsync(httpRequestMessageXsrf, cancellationToken);
+
+        string xsrfToken = AuthenticationUtil.GetXsrfTokenFromCookie(xsrfResponse.Headers.GetValues(Microsoft.Net.Http.Headers.HeaderNames.SetCookie));
+        request.AddXsrfToken(xsrfToken);
 
         return await base.SendAsync(request, cancellationToken);
     }

@@ -1,15 +1,5 @@
-.buttonWrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: var(--fds-spacing-5);
-}
-
 .downloadWrapper {
   display: flex;
+  gap: var(--fds-spacing-2);
   flex-direction: column;
-}
-
-.linkDivider {
-  margin-top: var(--fds-spacing-2);
 }

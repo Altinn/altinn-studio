@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
 {
@@ -46,9 +47,27 @@ namespace Altinn.Studio.Designer.TypedHttpClients.DelegatingHandlers
                 Data = await response.Content.ReadAsByteArrayAsync(cancellationToken),
                 StatusCode = response.StatusCode
             };
-            _memoryCache.Set(cacheKey, newCacheEntry, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromSeconds(_cacheExpiryInSeconds)));
+
+            MemoryCacheEntryOptions cacheEntryOptions = GenerateMemoryCacheEntryOptions();
+
+            _memoryCache.Set(cacheKey, newCacheEntry, cacheEntryOptions);
             response.Dispose();
             return GetCachedResponseMessage(newCacheEntry);
+        }
+
+        private MemoryCacheEntryOptions GenerateMemoryCacheEntryOptions()
+        {
+            var cancellationTokenSource = new CancellationTokenSource(
+                TimeSpan.FromSeconds(_cacheExpiryInSeconds));
+
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .AddExpirationToken(
+                    new CancellationChangeToken(cancellationTokenSource.Token))
+                .RegisterPostEvictionCallback((key, value, reason, state) =>
+                {
+                    ((CancellationTokenSource)state).Dispose();
+                }, cancellationTokenSource);
+            return cacheEntryOptions;
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
-import { ObjectKind } from './ObjectKind';
-import { FieldType } from './FieldType';
-import { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { StringFormat } from './StringFormat';
+import type { ObjectKind } from './ObjectKind';
+import type { FieldType } from './FieldType';
+import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
+import type { StringFormat } from './StringFormat';
 
 export interface FieldNode {
   objectKind: ObjectKind.Field;
@@ -9,7 +9,7 @@ export interface FieldNode {
   implicitType: boolean;
   isNillable: boolean;
   isArray: boolean;
-  pointer: string;
+  schemaPointer: string;
   custom: KeyValuePairs;
   children: string[];
   definitions?: string[];

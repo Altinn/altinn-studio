@@ -1,7 +1,8 @@
-import React, { ChangeEvent, MouseEvent, useEffect, useRef, useState } from 'react';
+import type { ChangeEvent, MouseEvent } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import classes from './StudioGridSelector.module.css';
 import cn from 'classnames';
-import { GridSize } from './types/GridSize';
+import type { GridSize } from './types/GridSize';
 
 type OptionData = {
   value: GridSize;

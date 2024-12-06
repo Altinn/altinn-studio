@@ -16,7 +16,7 @@ export const useAddResourceAccessListMutation = (org: string, resourceId: string
   return useMutation({
     mutationFn: (listId: string) => addResourceAccessList(org, resourceId, listId, env),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, resourceId, env] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.ResourceAccessLists, env, resourceId] });
     },
   });
 };

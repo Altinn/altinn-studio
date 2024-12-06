@@ -1,8 +1,8 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { TabContent, TabContentProps } from './TabContent';
-import { TabAction } from 'app-shared/types/LeftNavigationTab';
-import { act } from 'react-dom/test-utils';
+import type { TabContentProps } from './TabContent';
+import { TabContent } from './TabContent';
+import type { TabAction } from 'app-shared/types/LeftNavigationTab';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -57,7 +57,7 @@ describe('TabWrapper', () => {
 
     const linkWrapper = screen.getByRole('tab', { name: mockTabName });
 
-    await act(() => user.click(linkWrapper));
+    await user.click(linkWrapper);
     expect(mockLinkAction.onClick).toHaveBeenCalledTimes(1);
   });
 
@@ -67,7 +67,7 @@ describe('TabWrapper', () => {
 
     const linkWrapper = screen.getByRole('tab', { name: mockTabName });
 
-    await act(() => user.click(linkWrapper));
+    await user.click(linkWrapper);
     expect(mockOnClick).not.toHaveBeenCalled();
   });
 
@@ -83,7 +83,7 @@ describe('TabWrapper', () => {
     render({ ...defaultProps, action: mockButtonAction });
 
     const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
-    await act(() => user.click(buttonWrapper));
+    await user.click(buttonWrapper);
     expect(mockButtonAction.onClick).toHaveBeenCalledTimes(1);
   });
 
@@ -92,8 +92,8 @@ describe('TabWrapper', () => {
     render({ ...defaultProps, action: mockButtonAction });
 
     const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
-    await act(() => user.click(buttonWrapper));
-    await act(() => user.keyboard('{Tab}'));
+    await user.click(buttonWrapper);
+    await user.keyboard('{Tab}');
     expect(mockOnKeyDown).toHaveBeenCalledTimes(1);
   });
 
@@ -102,8 +102,8 @@ describe('TabWrapper', () => {
     render({ ...defaultProps, action: mockButtonAction });
 
     const buttonWrapper = screen.getByRole('tab', { name: mockTabName });
-    await act(() => user.click(buttonWrapper));
-    await act(() => user.tab());
+    await user.click(buttonWrapper);
+    await user.tab();
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 
@@ -112,8 +112,8 @@ describe('TabWrapper', () => {
     render({ ...defaultProps });
 
     const linkWrapper = screen.getByRole('tab', { name: mockTabName });
-    await act(() => user.click(linkWrapper));
-    await act(() => user.tab());
+    await user.click(linkWrapper);
+    await user.tab();
     expect(mockOnBlur).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,5 +1,6 @@
-import { ApiError } from 'app-shared/types/api/ApiError';
-import { AxiosError, AxiosResponse } from 'axios';
+import type { ApiError } from 'app-shared/types/api/ApiError';
+import type { AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
 
 export const createApiErrorMock = (
   status?: number,

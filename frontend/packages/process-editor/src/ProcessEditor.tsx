@@ -1,28 +1,62 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Heading, Paragraph } from '@digdir/design-system-react';
-import { PageLoading } from './components/PageLoading';
+import {
+  StudioPageError,
+  StudioPageSpinner,
+  StudioRecommendedNextActionContextProvider,
+} from '@studio/components';
 import { Canvas } from './components/Canvas';
-import { BpmnContextProvider } from './contexts/BpmnContext';
+import { BpmnContextProvider, useBpmnContext } from './contexts/BpmnContext';
 import { ConfigPanel } from './components/ConfigPanel';
+import { ConfigViewerPanel } from './components/ConfigViewerPanel';
 
 import classes from './ProcessEditor.module.css';
+import type { BpmnApiContextProps } from './contexts/BpmnApiContext';
+import { BpmnApiContextProvider } from './contexts/BpmnApiContext';
+import { BpmnConfigPanelFormContextProvider } from './contexts/BpmnConfigPanelContext';
+import type { MetadataForm } from 'app-shared/types/BpmnMetadataForm';
 
 export type ProcessEditorProps = {
-  bpmnXml: string | undefined | null;
-  onSave: (bpmnXml: string) => void;
   appLibVersion: string;
+  bpmnXml: string | undefined | null;
+  availableDataTypeIds: BpmnApiContextProps['availableDataTypeIds'];
+  availableDataModelIds: BpmnApiContextProps['availableDataModelIds'];
+  allDataModelIds: BpmnApiContextProps['allDataModelIds'];
+  layoutSets: BpmnApiContextProps['layoutSets'];
+  pendingApiOperations: boolean;
+  existingCustomReceiptLayoutSetId: BpmnApiContextProps['existingCustomReceiptLayoutSetId'];
+  addLayoutSet: BpmnApiContextProps['addLayoutSet'];
+  deleteLayoutSet: BpmnApiContextProps['deleteLayoutSet'];
+  mutateLayoutSetId: BpmnApiContextProps['mutateLayoutSetId'];
+  mutateDataTypes: BpmnApiContextProps['mutateDataTypes'];
+  saveBpmn: (bpmnXml: string, metadata?: MetadataForm) => void;
+  openPolicyEditor: BpmnApiContextProps['openPolicyEditor'];
+  onProcessTaskAdd: BpmnApiContextProps['onProcessTaskAdd'];
+  onProcessTaskRemove: BpmnApiContextProps['onProcessTaskRemove'];
 };
 
 export const ProcessEditor = ({
-  bpmnXml,
-  onSave,
   appLibVersion,
+  bpmnXml,
+  availableDataTypeIds,
+  availableDataModelIds,
+  allDataModelIds,
+  layoutSets,
+  pendingApiOperations,
+  existingCustomReceiptLayoutSetId,
+  addLayoutSet,
+  deleteLayoutSet,
+  mutateLayoutSetId,
+  mutateDataTypes,
+  saveBpmn,
+  openPolicyEditor,
+  onProcessTaskAdd,
+  onProcessTaskRemove,
 }: ProcessEditorProps): JSX.Element => {
   const { t } = useTranslation();
 
   if (bpmnXml === undefined) {
-    return <PageLoading title={t('process_editor.loading')} />;
+    return <StudioPageSpinner spinnerTitle={t('process_editor.loading')} showSpinnerTitle />;
   }
 
   if (bpmnXml === null) {
@@ -31,22 +65,51 @@ export const ProcessEditor = ({
 
   return (
     <BpmnContextProvider bpmnXml={bpmnXml} appLibVersion={appLibVersion}>
-      <div className={classes.container}>
-        <Canvas onSave={onSave} />
-        <ConfigPanel />
-      </div>
+      <BpmnApiContextProvider
+        availableDataTypeIds={availableDataTypeIds}
+        availableDataModelIds={availableDataModelIds}
+        allDataModelIds={allDataModelIds}
+        layoutSets={layoutSets}
+        pendingApiOperations={pendingApiOperations}
+        existingCustomReceiptLayoutSetId={existingCustomReceiptLayoutSetId}
+        addLayoutSet={addLayoutSet}
+        deleteLayoutSet={deleteLayoutSet}
+        mutateLayoutSetId={mutateLayoutSetId}
+        mutateDataTypes={mutateDataTypes}
+        saveBpmn={saveBpmn}
+        openPolicyEditor={openPolicyEditor}
+        onProcessTaskAdd={onProcessTaskAdd}
+        onProcessTaskRemove={onProcessTaskRemove}
+      >
+        <BpmnConfigPanelFormContextProvider>
+          <StudioRecommendedNextActionContextProvider>
+            <BpmnCanvas />
+          </StudioRecommendedNextActionContextProvider>
+        </BpmnConfigPanelFormContextProvider>
+      </BpmnApiContextProvider>
     </BpmnContextProvider>
   );
 };
 
-const NoBpmnFoundAlert = (): JSX.Element => {
+const BpmnCanvas = (): React.ReactElement | null => {
+  const { isEditAllowed } = useBpmnContext();
+
+  return (
+    <div className={classes.container}>
+      <Canvas />
+      <div className={classes.container}>
+        {isEditAllowed ? <ConfigPanel /> : <ConfigViewerPanel />}
+      </div>
+    </div>
+  );
+};
+
+const NoBpmnFoundAlert = (): React.ReactElement => {
   const { t } = useTranslation();
   return (
-    <Alert severity='danger' style={{ height: 'min-content' }}>
-      <Heading size='medium' level={2}>
-        {t('process_editor.fetch_bpmn_error_title')}
-      </Heading>
-      <Paragraph>{t('process_editor.fetch_bpmn_error_message')}</Paragraph>
-    </Alert>
+    <StudioPageError
+      title={t('process_editor.fetch_bpmn_error_title')}
+      message={t('process_editor.fetch_bpmn_error_message')}
+    />
   );
 };

@@ -1,50 +1,43 @@
 import React from 'react';
-import { TopToolbar, TopToolbarProps } from './TopToolbar';
-import { screen, act } from '@testing-library/react';
+import type { TopToolbarProps } from './TopToolbar';
+import { TopToolbar } from './TopToolbar';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockUseTranslation } from '../../../../../testing/mocks/i18nMock';
-import { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { jsonMetadata1Mock } from '../../../../../packages/schema-editor/test/mocks/metadataMocks';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import { uiSchemaNodesMock } from '../../../../../packages/schema-editor/test/mocks/uiSchemaMock';
-import { MetadataOption } from '../../../../types/MetadataOption';
+import type { MetadataOption } from '../../../../types/MetadataOption';
 import { convertMetadataToOption } from '../../../../utils/metadataUtils';
 import { buildJsonSchema } from '@altinn/schema-model';
-import { renderWithMockStore } from '../../../../test/mocks';
+import { renderWithProviders } from '../../../../test/mocks';
 import { useQueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import { app, org } from '@studio/testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const user = userEvent.setup();
 
 // Test data:
-const closeText = 'Close';
-const editText = 'Edit';
-const generateText = 'Generate';
-const generalErrorMessage = 'Something went wrong';
-const dataModelGenerationSuccessMessage = 'Success';
-const savingText = 'Saving';
-const texts = {
-  'general.error_message': generalErrorMessage,
-  'general.close': closeText,
-  'schema_editor.datamodel_generation_success_message': dataModelGenerationSuccessMessage,
-  'general.saving': savingText,
-  'schema_editor.edit_mode': editText,
-  'schema_editor.generate_model_files': generateText,
-};
-const setCreateNewOpen = jest.fn();
+const generateText = textMock('schema_editor.generate_model_files');
+const generalErrorMessage = textMock('general.error_message');
+const dataModelGenerationSuccessMessage = textMock(
+  'schema_editor.data_model_generation_success_message',
+);
+const savingText = textMock('general.saving');
+
+const setIsCreateNewOpen = jest.fn();
 const setSelectedOption = jest.fn();
 const onSetSchemaGenerationErrorMessages = jest.fn();
 const selectedOption: MetadataOption = convertMetadataToOption(jsonMetadata1Mock);
 const defaultProps: TopToolbarProps = {
-  createNewOpen: false,
-  datamodels: [jsonMetadata1Mock],
+  isCreateNewOpen: false,
+  dataModels: [jsonMetadata1Mock],
   selectedOption,
-  setCreateNewOpen,
+  setIsCreateNewOpen,
   setSelectedOption,
   onSetSchemaGenerationErrorMessages,
 };
-const org = 'org';
-const app = 'app';
 const modelPath = jsonMetadata1Mock.repositoryRelativeUrl;
 
 const renderToolbar = (
@@ -57,22 +50,12 @@ const renderToolbar = (
       [QueryKey.JsonSchema, org, app, modelPath],
       buildJsonSchema(uiSchemaNodesMock),
     );
+
     return <TopToolbar {...defaultProps} {...props} />;
   };
 
-  return renderWithMockStore({}, { ...servicesContextProps })(<TopToolbarWithInitData />);
+  return renderWithProviders({ ...servicesContextProps })(<TopToolbarWithInitData />);
 };
-
-// Mocks:
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    ...mockUseTranslation(texts),
-    i18n: {
-      exists: (key: string) => texts[key] !== undefined,
-    },
-  }),
-  Trans: ({ i18nKey }: { i18nKey: any }) => texts[i18nKey],
-}));
 
 describe('TopToolbar', () => {
   afterEach(jest.clearAllMocks);
@@ -83,13 +66,21 @@ describe('TopToolbar', () => {
     expect(topToolbar).toBeDefined();
   });
 
+  it('renders upload xsd button with correct text', () => {
+    renderToolbar();
+    const uploadButton = screen.getByRole('button', {
+      name: textMock('app_data_modelling.upload_xsd'),
+    });
+    expect(uploadButton).toBeInTheDocument();
+  });
+
   it('handles a click on the generate button', async () => {
     renderToolbar({}, {});
     const topToolbar = screen.getByRole('toolbar');
     expect(topToolbar).toBeDefined();
     const generateButton = screen.getByRole('button', { name: generateText });
     expect(generateButton).toBeDefined();
-    await act(() => user.click(generateButton));
+    await user.click(generateButton);
     expect(queriesMock.generateModels).toHaveBeenCalledTimes(1);
   });
 
@@ -105,7 +96,7 @@ describe('TopToolbar', () => {
         generateModels: jest.fn().mockImplementation(() => Promise.reject()),
       },
     );
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
+    await user.click(screen.getByRole('button', { name: generateText }));
     expect(await screen.findByRole('alert')).toHaveTextContent(generalErrorMessage);
   });
 
@@ -116,7 +107,7 @@ describe('TopToolbar', () => {
 
   it('Shows success message when the "generate" button is clicked and there is no error', async () => {
     renderToolbar({});
-    await act(() => user.click(screen.getByRole('button', { name: generateText })));
+    await user.click(screen.getByRole('button', { name: generateText }));
     expect(await screen.findByRole('alert')).toHaveTextContent(dataModelGenerationSuccessMessage);
   });
 });

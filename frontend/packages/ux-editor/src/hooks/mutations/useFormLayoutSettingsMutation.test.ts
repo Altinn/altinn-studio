@@ -1,18 +1,18 @@
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { formLayoutSettingsMock, renderHookWithMockStore } from '../../testing/mocks';
+import { formLayoutSettingsMock, renderHookWithProviders } from '../../testing/mocks';
 import { useFormLayoutSettingsMutation } from './useFormLayoutSettingsMutation';
 import { waitFor } from '@testing-library/react';
+import { app, org } from '@studio/testing/testids';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
 // Test data:
-const org = 'org';
-const app = 'app';
-const selectedLayoutSet = 'test-layout-set';
+const selectedLayoutSet = layoutSet1NameMock;
 
 describe('useFormLayoutSettingsMutation', () => {
   it('Calls saveFormLayoutSettings with correct arguments and payload', async () => {
-    const settingsResult = renderHookWithMockStore()(() =>
+    const settingsResult = renderHookWithProviders(() =>
       useFormLayoutSettingsMutation(org, app, selectedLayoutSet),
-    ).renderHookResult.result;
+    ).result;
 
     settingsResult.current.mutate(formLayoutSettingsMock);
     await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));

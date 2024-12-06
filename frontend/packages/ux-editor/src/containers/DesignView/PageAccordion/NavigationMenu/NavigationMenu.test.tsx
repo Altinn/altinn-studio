@@ -1,29 +1,30 @@
 import React from 'react';
-import { act, screen, waitFor } from '@testing-library/react';
-import { NavigationMenu, NavigationMenuProps } from './NavigationMenu';
+import { screen, waitFor } from '@testing-library/react';
+import type { NavigationMenuProps } from './NavigationMenu';
+import { NavigationMenu } from './NavigationMenu';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../../../../../testing/mocks/i18nMock';
+import { textMock } from '@studio/testing/mocks/i18nMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import {
   formLayoutSettingsMock,
-  renderHookWithMockStore,
-  renderWithMockStore,
+  renderHookWithProviders,
+  renderWithProviders,
 } from '../../../../testing/mocks';
-import { formDesignerMock } from '../../../../testing/stateMocks';
 import { useFormLayoutSettingsQuery } from '../../../../hooks/queries/useFormLayoutSettingsQuery';
+import { layout1NameMock, layout2NameMock } from '@altinn/ux-editor/testing/layoutMock';
+import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
+import { app, org } from '@studio/testing/testids';
 
-const mockOrg = 'org';
-const mockApp = 'app';
-const mockPageName1: string = formDesignerMock.layout.selectedLayout;
-const mockSelectedLayoutSet = 'test-layout-set';
+const mockPageName1: string = layout1NameMock;
+const mockSelectedLayoutSet = layoutSet1NameMock;
 
 const mockSetSearchParams = jest.fn();
 const mockSearchParams = { layout: mockPageName1 };
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useParams: () => ({
-    org: mockOrg,
-    app: mockApp,
+    org,
+    app,
   }),
   useSearchParams: () => {
     return [new URLSearchParams(mockSearchParams), mockSetSearchParams];
@@ -32,7 +33,6 @@ jest.mock('react-router-dom', () => ({
 
 const defaultProps: NavigationMenuProps = {
   pageName: mockPageName1,
-  pageIsReceipt: false,
 };
 
 describe('NavigationMenu', () => {
@@ -45,66 +45,62 @@ describe('NavigationMenu', () => {
     const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
     expect(elementInMenu).not.toBeInTheDocument();
 
-    const menuButton = screen.getByRole('button', { name: textMock('general.options') });
-    await act(() => user.click(menuButton));
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await user.click(menuButtons[0]);
 
     const elementInMenuAfter = screen.getByRole('menuitem', {
       name: textMock('ux_editor.page_menu_up'),
     });
     expect(elementInMenuAfter).toBeInTheDocument();
   });
-
-  it('Calls updateFormLayoutName with new name when name is changed by the user', async () => {
+  it('should close the menu when clicking the menu icon twice', async () => {
     const user = userEvent.setup();
     await render();
 
-    await act(() => user.click(screen.getByTitle(textMock('general.options'))));
-    await act(() =>
-      user.click(screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_edit') })),
-    );
+    const elementInMenu = screen.queryByText(textMock('ux_editor.page_menu_up'));
+    expect(elementInMenu).not.toBeInTheDocument();
 
-    const inputField = screen.getByLabelText(textMock('ux_editor.input_popover_label'));
-    expect(inputField).toHaveValue(mockPageName1);
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await user.click(menuButtons[0]);
 
-    const newValue: string = `${mockPageName1}1`;
-
-    await act(() => user.type(inputField, '1'));
-
-    const saveButton = screen.getByRole('button', {
-      name: textMock('ux_editor.input_popover_save_button'),
+    const elementInMenuAfter = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
     });
-    await act(() => user.click(saveButton));
+    expect(elementInMenuAfter).toBeInTheDocument();
 
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateFormLayoutName).toHaveBeenCalledWith(
-      mockOrg,
-      mockApp,
-      mockPageName1,
-      newValue,
-      mockSelectedLayoutSet,
-    );
+    await user.click(menuButtons[0]);
+
+    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    expect(elementInMenuAfterClose).not.toBeInTheDocument();
   });
 
-  it('hides the up and down button when page is receipt', async () => {
+  it('should close the menu when clicking outside the menu', async () => {
     const user = userEvent.setup();
-    await render({ pageIsReceipt: true });
+    await render();
 
-    await act(() => user.click(screen.getByTitle(textMock('general.options'))));
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await user.click(menuButtons[0]);
 
-    const upButton = screen.queryByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
-    const downButton = screen.queryByRole('menuitem', {
-      name: textMock('ux_editor.page_menu_down'),
+    const elementInMenu = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
     });
+    expect(elementInMenu).toBeInTheDocument();
 
-    expect(upButton).not.toBeInTheDocument();
-    expect(downButton).not.toBeInTheDocument();
+    await user.click(document.body);
+
+    const elementInMenuAfterClose = screen.queryByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    expect(elementInMenuAfterClose).not.toBeInTheDocument();
   });
 
   it('shows the up and down button by default', async () => {
     const user = userEvent.setup();
     await render();
-
-    await act(() => user.click(screen.getByTitle(textMock('general.options'))));
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await user.click(menuButtons[0]);
 
     const upButton = screen.getByRole('menuitem', { name: textMock('ux_editor.page_menu_up') });
     const downButton = screen.getByRole('menuitem', {
@@ -114,22 +110,60 @@ describe('NavigationMenu', () => {
     expect(upButton).toBeInTheDocument();
     expect(downButton).toBeInTheDocument();
   });
+
+  it('should toggle the page order using up and down buttons', async () => {
+    const user = userEvent.setup();
+    await render();
+
+    const menuButtons = screen.getAllByRole('button', { name: textMock('general.options') });
+    await user.click(menuButtons[0]);
+    const menuItemDown = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_down'),
+    });
+    await user.click(menuItemDown);
+
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(1);
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
+      org,
+      app,
+      mockSelectedLayoutSet,
+      { pages: { order: [layout2NameMock, layout1NameMock] } },
+    );
+    expect(menuItemDown).not.toBeInTheDocument();
+
+    await user.click(menuButtons[1]);
+    const menuItemUp = screen.getByRole('menuitem', {
+      name: textMock('ux_editor.page_menu_up'),
+    });
+    await user.click(menuItemUp);
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledTimes(2);
+    expect(queriesMock.saveFormLayoutSettings).toHaveBeenCalledWith(
+      org,
+      app,
+      mockSelectedLayoutSet,
+      { pages: { order: [layout1NameMock, layout2NameMock] } },
+    );
+  });
 });
 
 const waitForData = async () => {
   const getFormLayoutSettings = jest
     .fn()
     .mockImplementation(() => Promise.resolve(formLayoutSettingsMock));
-  const settingsResult = renderHookWithMockStore(
-    {},
-    { getFormLayoutSettings },
-  )(() => useFormLayoutSettingsQuery(mockOrg, mockApp, mockSelectedLayoutSet)).renderHookResult
-    .result;
+  const settingsResult = renderHookWithProviders(
+    () => useFormLayoutSettingsQuery(org, app, mockSelectedLayoutSet),
+    { queries: { getFormLayoutSettings } },
+  ).result;
 
   await waitFor(() => expect(settingsResult.current.isSuccess).toBe(true));
 };
 
 const render = async (props: Partial<NavigationMenuProps> = {}) => {
   await waitForData();
-  return renderWithMockStore()(<NavigationMenu {...defaultProps} {...props} />);
+  return renderWithProviders(
+    <>
+      <NavigationMenu {...defaultProps} {...props} />
+      <NavigationMenu {...defaultProps} {...props} />
+    </>,
+  );
 };

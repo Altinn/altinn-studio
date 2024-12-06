@@ -1,9 +1,14 @@
-export interface LayoutSets {
+export type LayoutSets = {
   sets: LayoutSetConfig[];
-}
+};
 
-export interface LayoutSetConfig {
+export type LayoutSet = {
   id: string;
-  dataTypes: string;
-  tasks: string[];
-}
+  dataType?: string;
+  tasks?: string[];
+  type?: LayoutSetType;
+};
+
+export type LayoutSetConfig = LayoutSet;
+
+export type LayoutSetType = 'subform';

@@ -1,6 +1,7 @@
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { MutationMeta, useMutation } from '@tanstack/react-query';
-import { AddRepoParams } from 'app-shared/types/api';
+import type { MutationMeta } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import type { AddRepoParams } from 'app-shared/types/api';
 
 export const useAddRepoMutation = (meta?: MutationMeta) => {
   const { addRepo } = useServicesContext();
@@ -8,5 +9,4 @@ export const useAddRepoMutation = (meta?: MutationMeta) => {
     mutationFn: (repoToAdd: AddRepoParams) => addRepo(repoToAdd),
     meta,
   });
-
 };

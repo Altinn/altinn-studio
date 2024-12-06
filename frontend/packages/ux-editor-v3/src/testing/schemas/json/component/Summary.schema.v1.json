@@ -1,0 +1,94 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/Summary.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Summary component",
+  "description": "Schema that describes the layout configuration for a Summary component.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/id"
+    },
+    "type": {
+      "type": "string",
+      "title": "Type",
+      "description": "The component type.",
+      "const": "Summary"
+    },
+    "textResourceBindings": {
+      "type": "object",
+      "title": "Text resource bindings",
+      "description": "Text resource bindings for a component.",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": ["title"],
+      "additionalProperties": true
+    },
+    "componentRef": {
+      "type": "string",
+      "title": "Component reference",
+      "description": "String value indicating which layout component (by ID) the summary is for."
+    },
+    "pageRef": {
+      "type": "string",
+      "title": "Page reference",
+      "description": "String value indicating which layout page the referenced component is defined on."
+    },
+    "largeGroup": {
+      "type": "boolean",
+      "title": "Large group",
+      "description": "Boolean value indicating if summary of repeating group should be displayed in large format. Useful for displaying summary with nested groups."
+    },
+    "excludedChildren": {
+      "type": "array",
+      "title": "Excluded child components",
+      "description": "Array of component ids that should not be shown in a repeating group's summary"
+    },
+    "display": {
+      "type": "object",
+      "title": "Display properties",
+      "description": "Optional properties to configure how summary is displayed",
+      "properties": {
+        "hideChangeButton": {
+          "type": "boolean",
+          "title": "Hide change button",
+          "description": "Set to true if the change button should be hidden for the summary component. False by default."
+        },
+        "hideBottomBorder": {
+          "type": "boolean",
+          "title": "Hide bottom border",
+          "description": "Set to true to hide the blue dashed border below the summary component. False by default."
+        },
+        "useComponentGrid": {
+          "type": "boolean",
+          "title": "Use component grid",
+          "description": "Set to true to allow summary component to use the grid setup of the referenced component. For group summary, this will apply for all group child components."
+        }
+      }
+    },
+    "hidden": {
+      "title": "Hidden",
+      "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+      "default": false,
+      "$ref": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json#/definitions/boolean"
+    },
+    "grid": {
+      "type": "object",
+      "title": "Grid",
+      "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/gridSettings",
+      "examples": [
+        {
+          "xs": 12
+        }
+      ]
+    },
+    "pageBreak": {
+      "$ref": "https://altinncdn.no/schemas/json/component/common-defs.schema.v1.json#/definitions/pageBreak"
+    }
+  },
+  "required": ["id", "type", "componentRef", "pageRef"],
+  "additionalProperties": false
+}

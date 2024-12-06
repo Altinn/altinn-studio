@@ -1,9 +1,9 @@
 import React from 'react';
-import { screen, waitFor, render as rtlRender, act } from '@testing-library/react';
+import { screen, waitFor, render as rtlRender } from '@testing-library/react';
 import { RightMenu } from './RightMenu';
 import userEvent from '@testing-library/user-event';
-import { textMock } from '../../../testing/mocks/i18nMock';
-import * as testids from '../../../testing/testids';
+import { textMock } from '@studio/testing/mocks/i18nMock';
+import { deleteButtonId } from '@studio/testing/testids';
 
 const user = userEvent.setup();
 
@@ -37,8 +37,8 @@ describe('RightMenu', () => {
     it('should open the confirmation dialog when clicking the delete button', async () => {
       await render();
 
-      const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      const deleteButton = screen.getByTestId(deleteButtonId('en'));
+      await user.click(deleteButton);
 
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
@@ -60,13 +60,13 @@ describe('RightMenu', () => {
     it('should confirm and close the dialog when clicking the confirm button', async () => {
       await render();
 
-      const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      const deleteButton = screen.getByTestId(deleteButtonId('en'));
+      await user.click(deleteButton);
 
       const confirmButton = screen.getByRole('button', {
         name: textMock('schema_editor.language_confirm_deletion'),
       });
-      await act(() => user.click(confirmButton));
+      await user.click(confirmButton);
 
       expect(defaultProps.deleteLanguage).toHaveBeenCalledWith('en');
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -75,11 +75,11 @@ describe('RightMenu', () => {
     it('should close the confirmation dialog when clicking the cancel button', async () => {
       await render();
 
-      const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      const deleteButton = screen.getByTestId(deleteButtonId('en'));
+      await user.click(deleteButton);
 
       const cancelButton = screen.getByRole('button', { name: textMock('general.cancel') });
-      await act(() => user.click(cancelButton));
+      await user.click(cancelButton);
 
       expect(defaultProps.deleteLanguage).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -88,10 +88,10 @@ describe('RightMenu', () => {
     it('should close when clicking outside the popover', async () => {
       await render();
 
-      const deleteButton = screen.getByTestId(testids.deleteButton('en'));
-      await act(() => user.click(deleteButton));
+      const deleteButton = screen.getByTestId(deleteButtonId('en'));
+      await user.click(deleteButton);
 
-      await act(() => user.click(document.body));
+      await user.click(document.body);
 
       expect(defaultProps.deleteLanguage).toHaveBeenCalledTimes(0);
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
