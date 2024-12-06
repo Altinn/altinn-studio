@@ -7,6 +7,10 @@ import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeL
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
+import type { ApiError } from 'app-shared/types/api/ApiError';
+import { toast } from 'react-toastify';
+import type { AxiosError } from 'axios';
+import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -16,7 +20,9 @@ export function AppContentLibrary(): React.ReactElement {
     isPending: optionListsPending,
     isError: optionListsError,
   } = useOptionListsQuery(org, app);
-  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
+  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
+    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
+  });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
 
   if (optionListsPending)
@@ -25,7 +31,16 @@ export function AppContentLibrary(): React.ReactElement {
   const codeLists = convertOptionListsToCodeLists(optionLists);
 
   const handleUpload = (file: File) => {
-    uploadOptionList(file);
+    uploadOptionList(file, {
+      onSuccess: () => {
+        toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
+      },
+      onError: (error: AxiosError<ApiError>) => {
+        if (isErrorUnknown(error)) {
+          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
+        }
+      },
+    });
   };
 
   const handleUpdate = ({ title, codeList }: CodeListWithMetadata) => {
