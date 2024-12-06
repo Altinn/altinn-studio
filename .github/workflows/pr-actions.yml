@@ -1,0 +1,45 @@
+name: PR actions
+on:
+  issue_comment:
+    types: [created, edited]
+jobs:
+  publish:
+    name: Publish PR packages
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/publish')
+    env:
+      DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
+    steps:
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Build PR release version
+        run: |
+          dotnet tool restore
+          sha=$(echo '${{ github.event.pull_request.head.sha }}' | cut -c1-8)
+          # Get the last part of the branch name if it contains a slash
+          branch=$(echo '${{ github.event.pull_request.head.ref }}' | sed 's/.*\///')
+          version=$(dotnet minver --tag-prefix v --ignore-height --default-pre-release-identifiers preview.0).$branch.$sha
+          echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
+          echo $version
+      - name: Build
+        run: |
+          dotnet build AppLibDotnet.sln -v m -c Release
+      - name: Test
+        run: |
+          dotnet test AppLibDotnet.sln -v m --no-restore --no-build -c Release
+      - name: Pack PR release
+        run: |
+          dotnet pack AppLibDotnet.sln -v m --no-restore --no-build -c Release -p:Deterministic=true -p:BuildNumber=${{ github.run_number }}
+      - name: Versions
+        run: |
+          dotnet --version
+      - name: Publish PR release
+        run: |
+          dotnet nuget push src/**/bin/Release/*.nupkg --source https://nuget.pkg.github.com/Altinn/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate

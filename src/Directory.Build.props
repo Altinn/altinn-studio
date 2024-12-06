@@ -26,10 +26,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-
-    <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
     <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
     <MinVerTagPrefix>v</MinVerTagPrefix>
+
+    <RepoRoot>$([System.IO.Directory]::GetParent($(MSBuildThisFileDirectory)).Parent.FullName)</RepoRoot>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Altinn Platform Contributors</Authors>
@@ -48,6 +48,12 @@
       <FileVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</FileVersion>
       <Version>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</Version>
       <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).$(BuildNumber)</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="ExperimentalBuild" AfterTargets="MinVer" Condition="'$(MinVerVersionOverride)'!=''">
+    <PropertyGroup>
+      <PackageId>$(PackageId).Experimental</PackageId>
     </PropertyGroup>
   </Target>
 
