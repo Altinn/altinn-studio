@@ -26,7 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           dotnet tool restore
-          sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid')
+          sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid' | cut -c1-8)
           branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
           version=$(dotnet minver --tag-prefix v --ignore-height --default-pre-release-identifiers preview.0).$branch.$sha
           echo "MINVERVERSIONOVERRIDE=$version" >> $GITHUB_ENV
@@ -46,7 +46,7 @@ jobs:
           dotnet --version
       - name: Publish PR release
         run: |
-          dotnet nuget push src/**/bin/Release/*.nupkg --source https://nuget.pkg.github.com/Altinn/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+          dotnet nuget push src/**/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate
 
       - uses: actions/github-script@v7
         name: Comment on PR
@@ -56,5 +56,9 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `Published ${process.env.MINVERVERSIONOVERRIDE}`
+              body: `
+                Published PR packages:
+                * [Altinn.App.Api ${process.env.MINVERVERSIONOVERRIDE}](https://www.nuget.org/packages/Altinn.App.Api.Experimental/${process.env.MINVERVERSIONOVERRIDE})
+                * [Altinn.App.Core ${process.env.MINVERVERSIONOVERRIDE}](https://www.nuget.org/packages/Altinn.App.Core.Experimental/${process.env.MINVERVERSIONOVERRIDE})
+              `
             })
