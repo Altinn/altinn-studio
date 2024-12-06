@@ -84,23 +84,14 @@ export const RepeatingGroupTableSummary = ({
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          {rows.map((row) => (
-            <Table.Row key={row?.uuid}>
-              {childNodes.map((node) => (
-                <DataCell
-                  node={node}
-                  key={node.id}
-                />
-              ))}
-              {!pdfModeActive && (
-                <Table.Cell
-                  align='right'
-                  className={tableClasses.buttonCell}
-                >
-                  {row?.itemIds && row?.itemIds?.length > 0 && <EditButton componentNode={childNodes[0]} />}
-                </Table.Cell>
-              )}
-            </Table.Row>
+          {rows.map((row, index) => (
+            <DataRow
+              key={row?.uuid}
+              row={row}
+              node={componentNode}
+              index={index}
+              pdfModeActive={pdfModeActive}
+            />
           ))}
         </Table.Body>
       </Table>
@@ -133,16 +124,40 @@ function HeaderCell({ node, columnSettings }: { node: LayoutNode; columnSettings
   );
 }
 
-function DataCell({ node }) {
-  const { langAsString } = useLanguage();
+function DataRow({ row, node, index, pdfModeActive }) {
+  const cellNodes = useTableNodes(node, index);
   const displayDataProps = useDisplayDataProps();
+
+  return (
+    <Table.Row>
+      {cellNodes.map((node) => (
+        <DataCell
+          key={node.id}
+          node={node}
+          displayData={('getDisplayData' in node.def && node.def.getDisplayData(node as never, displayDataProps)) ?? ''}
+        />
+      ))}
+      {!pdfModeActive && (
+        <Table.Cell
+          align='right'
+          className={tableClasses.buttonCell}
+        >
+          {row?.itemIds && row?.itemIds?.length > 0 && <EditButton componentNode={cellNodes[0]} />}
+        </Table.Cell>
+      )}
+    </Table.Row>
+  );
+}
+
+function DataCell({ node, displayData }) {
+  const { langAsString } = useLanguage();
   const headerTitle = langAsString(useTableTitle(node));
   return (
     <Table.Cell
       key={node.id}
       data-header-title={headerTitle}
     >
-      {'getDisplayData' in node.def && node.def.getDisplayData(node as never, displayDataProps)}
+      {displayData}
     </Table.Cell>
   );
 }
