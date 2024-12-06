@@ -14,7 +14,7 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import { toast } from 'react-toastify';
-import classes from './EditOptionList.module.css';
+import classes from './SelectTab.module.css';
 
 export function SelectTab<T extends SelectionComponentType>({
   component,
