@@ -68,9 +68,9 @@ export function OptionListUploader<T extends SelectionComponentType>({
   const handleInvalidFileName = (fileNameError: FileNameError) => {
     switch (fileNameError) {
       case 'invalidFileName':
-        return toast.error(t('ux_editor.modal_properties_code_list_filename_error'));
+        return toast.error(t('validation_errors.file_name_occupied'));
       case 'fileExists':
-        return toast.error(t('ux_editor.modal_properties_code_list_upload_duplicate_error'));
+        return toast.error(t('validation_errors.upload_file_name_occupied'));
     }
   };
 
