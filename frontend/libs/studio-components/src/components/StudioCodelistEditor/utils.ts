@@ -32,10 +32,5 @@ export function isCodeListEmpty(codeList: CodeList): boolean {
 }
 
 export function isCodeListItemDuplicate(oldItem: CodeListItem, newItem: CodeListItem): boolean {
-  return (
-    oldItem.label === newItem.label &&
-    oldItem.value === newItem.value &&
-    oldItem.description === newItem.description &&
-    oldItem.helpText === newItem.helpText
-  );
+  return JSON.stringify(oldItem) === JSON.stringify(newItem);
 }
