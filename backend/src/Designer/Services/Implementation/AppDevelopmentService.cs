@@ -538,9 +538,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
 
+            string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
+
             foreach (string csprojFile in csprojFiles)
             {
-                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api",
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, packageNames,
                         out SemanticVersion version))
                 {
                     return version;
