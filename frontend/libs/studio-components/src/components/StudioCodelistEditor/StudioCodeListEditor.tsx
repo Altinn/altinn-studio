@@ -104,7 +104,7 @@ function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactEleme
 
 function EmptyCodeListTable(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
-  return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
+  return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
 function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {

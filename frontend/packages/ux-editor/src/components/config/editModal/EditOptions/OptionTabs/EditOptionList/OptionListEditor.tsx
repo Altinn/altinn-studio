@@ -25,7 +25,7 @@ type OptionListEditorProps = {
 export function OptionListEditor({ optionsId }: OptionListEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionsListMap, status } = useOptionListsQuery(org, app);
+  const { data: optionsLists, status } = useOptionListsQuery(org, app);
 
   switch (status) {
     case 'pending':
@@ -34,12 +34,12 @@ export function OptionListEditor({ optionsId }: OptionListEditorProps): React.Re
       );
     case 'error':
       return (
-        <StudioErrorMessage>{t('ux_editor.modal_properties_error_message')}</StudioErrorMessage>
+        <StudioErrorMessage>
+          {t('ux_editor.modal_properties_fetch_option_list_error_message')}
+        </StudioErrorMessage>
       );
     case 'success': {
-      return (
-        <OptionListEditorModal optionsList={optionsListMap[optionsId]} optionsId={optionsId} />
-      );
+      return <OptionListEditorModal optionsList={optionsLists[optionsId]} optionsId={optionsId} />;
     }
   }
 }
