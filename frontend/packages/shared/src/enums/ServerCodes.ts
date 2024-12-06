@@ -1,4 +1,5 @@
 export enum ServerCodes {
+  Ok = 200,
   Unauthorized = 401,
   Forbidden = 403,
   Conflict = 409,

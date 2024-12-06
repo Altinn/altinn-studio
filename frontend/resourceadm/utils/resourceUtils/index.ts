@@ -1,8 +1,6 @@
 export {
   mapLanguageKeyToLanguageText,
   getMissingInputLanguageString,
-  getIsActiveTab,
-  createNavigationTab,
   getResourceIdentifierErrorMessage,
   deepCompare,
   getAvailableEnvironments,

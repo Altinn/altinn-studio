@@ -1,6 +1,4 @@
 import {
-  createNavigationTab,
-  getIsActiveTab,
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
   deepCompare,
@@ -10,9 +8,6 @@ import {
   getMigrationErrorMessage,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
-import { TestFlaskIcon } from '@studio/icons';
-import React from 'react';
 import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
@@ -106,42 +101,6 @@ describe('getMissingInputLanguageString', () => {
       translationFunctionMock,
     );
     expect(result).toEqual(missingInputLanguageStringTestMock);
-  });
-});
-
-describe('getIsActiveTab', () => {
-  it('returns true when current page and tab id mathces', () => {
-    const isActive = getIsActiveTab('about', 'about');
-    expect(isActive).toBeTruthy();
-  });
-
-  it('returns false when current page and tab id does not match', () => {
-    const isActive = getIsActiveTab('about', 'policy');
-    expect(isActive).toBeFalsy();
-  });
-});
-
-describe('createNavigationTab', () => {
-  const mockOnClick = jest.fn();
-
-  const mockTo: string = '/about';
-
-  const mockTab: LeftNavigationTab = {
-    icon: <TestFlaskIcon />,
-    tabName: 'resourceadm.left_nav_bar_about',
-    tabId: 'about',
-    action: {
-      type: 'link',
-      onClick: mockOnClick,
-      to: mockTo,
-    },
-    isActiveTab: true,
-  };
-
-  it('creates a new tab when the function is called', () => {
-    const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
-
-    expect(newTab).toEqual(mockTab);
   });
 });
 

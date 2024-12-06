@@ -1,5 +1,4 @@
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
 import type {
   ResourceTypeOption,
   ResourceStatusOption,
@@ -11,8 +10,6 @@ import type {
   ResourceFormError,
   ResourceError,
 } from 'app-shared/types/ResourceAdm';
-import type { ReactNode } from 'react';
-import type { NavigationBarPage } from '../../types/NavigationBarPage';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
 import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
@@ -156,50 +153,6 @@ export const mapKeywordStringToKeywordTypeArray = (keywrodString: string): Resou
     .map((val) => ({ language: 'nb', word: val.trim() }));
 };
 
-/**
- * Gets the status for if a tab is active or not based on the
- * current page and the tabs id.
- *
- * @param currentPage the currently selected tab
- * @param tabId the id of the tab to check
- *
- * @returns if the tab is active or not
- */
-export const getIsActiveTab = (currentPage: NavigationBarPage, tabId: string): boolean => {
-  return currentPage === tabId;
-};
-
-/**
- * Creates a new navigation tab to be used in the LeftNavigationBar
- *
- * @param icon the icon to display
- * @param tabId the id of the tab
- * @param onClick function to be executed on click
- * @param currentPage the current selected page
- * @param to where to navigate to
- *
- * @returns a LeftNavigationTab
- */
-export const createNavigationTab = (
-  icon: ReactNode,
-  tabId: string,
-  onClick: (tabId: string) => void,
-  currentPage: NavigationBarPage,
-  to: string,
-): LeftNavigationTab => {
-  return {
-    icon,
-    tabName: `resourceadm.left_nav_bar_${tabId}`,
-    tabId,
-    action: {
-      type: 'link',
-      onClick,
-      to,
-    },
-    isActiveTab: getIsActiveTab(currentPage, tabId),
-  };
-};
-
 export const getResourceIdentifierErrorMessage = (identifier: string, isConflict?: boolean) => {
   const hasAppPrefix = isAppPrefix(identifier);
   const hasSePrefix = isSePrefix(identifier);
@@ -248,11 +201,14 @@ export const deepCompare = (original: any, changed: any) => {
 };
 
 export const validateResource = (
-  resourceData: Resource,
+  resourceData: Resource | undefined,
   t: (key: string, params?: KeyValuePairs<string>) => string,
 ): ResourceFormError[] => {
   const errors: ResourceFormError[] = [];
 
+  if (!resourceData) {
+    return [];
+  }
   // validate resourceType
   if (!Object.keys(resourceTypeMap).includes(resourceData.resourceType)) {
     errors.push({
