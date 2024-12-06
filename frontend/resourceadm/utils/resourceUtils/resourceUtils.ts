@@ -8,8 +8,10 @@ import type {
   SupportedLanguage,
   Resource,
   ResourceFormError,
+  ResourceError,
 } from 'app-shared/types/ResourceAdm';
 import { isAppPrefix, isSePrefix } from '../stringUtils';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 /**
  * The map of resource type
@@ -395,4 +397,47 @@ export const getAltinn2Reference = (
     (ref) => ref.referenceSource === 'Altinn2' && ref.referenceType === 'ServiceEditionCode',
   )?.reference;
   return serviceCode && serviceEdition ? [serviceCode, serviceEdition] : null;
+};
+
+export const getMigrationErrorMessage = (
+  loadDelegationCountError: Error | null,
+  migrateDelegationsError: Error | null,
+  isPublishedInEnv: boolean,
+): {
+  errorMessage: string;
+  severity: 'success' | 'warning' | 'danger';
+} | null => {
+  const loadErrorStatus = (loadDelegationCountError as ResourceError)?.response.status;
+  const isErrorForbidden =
+    (migrateDelegationsError as ResourceError)?.response?.status === ServerCodes.Forbidden;
+
+  if (migrateDelegationsError) {
+    return {
+      errorMessage: isErrorForbidden
+        ? 'resourceadm.migration_no_migration_access'
+        : 'resourceadm.migration_post_migration_failed',
+      severity: 'danger',
+    };
+  } else if (loadErrorStatus === ServerCodes.NotFound) {
+    return {
+      errorMessage: 'resourceadm.migration_service_not_found',
+      severity: 'success',
+    };
+  } else if (loadErrorStatus === ServerCodes.Forbidden) {
+    return {
+      errorMessage: 'resourceadm.migration_cannot_migrate_in_env',
+      severity: 'danger',
+    };
+  } else if (loadErrorStatus === ServerCodes.InternalServerError) {
+    return {
+      errorMessage: 'resourceadm.migration_technical_error',
+      severity: 'danger',
+    };
+  } else if (!isPublishedInEnv) {
+    return {
+      errorMessage: 'resourceadm.migration_not_published',
+      severity: 'warning',
+    };
+  }
+  return null;
 };

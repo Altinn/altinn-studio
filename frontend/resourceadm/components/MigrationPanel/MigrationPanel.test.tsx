@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { MemoryRouter } from 'react-router-dom';
@@ -47,7 +47,52 @@ describe('MigrationPanel', () => {
         }),
       },
     );
-    await waitFor(() => screen.findByText(textMock('resourceadm.migration_not_needed')));
+    expect(
+      await screen.findByText(textMock('resourceadm.migration_not_needed')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show message if link service does not exist in given environment', async () => {
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({ response: { status: ServerCodes.NotFound } });
+        }),
+      },
+    );
+    expect(
+      await screen.findByText(textMock('resourceadm.migration_service_not_found')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show message if link service cannot be migrated in given environment', async () => {
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({ response: { status: ServerCodes.Forbidden } });
+        }),
+      },
+    );
+    expect(
+      await screen.findByText(textMock('resourceadm.migration_cannot_migrate_in_env')),
+    ).toBeInTheDocument();
+  });
+
+  it('should show message if get delegation count fails in given environment', async () => {
+    renderMigrationPanel(
+      {},
+      {
+        getAltinn2DelegationsCount: jest.fn().mockImplementation(() => {
+          return Promise.reject({ response: { status: ServerCodes.InternalServerError } });
+        }),
+      },
+    );
+
+    expect(
+      await screen.findByText(textMock('resourceadm.migration_technical_error')),
+    ).toBeInTheDocument();
   });
 
   it('should show error when user starts migrate delegations if user has no permission to migrate', async () => {
