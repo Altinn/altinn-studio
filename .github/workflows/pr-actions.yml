@@ -15,9 +15,11 @@ jobs:
         with:
           dotnet-version: |
             8.0.x
+
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          ref: format('refs/pull/{0}/head', github.event.issue.number)
+          fetch-depth: 0
 
       - name: Build PR release version
         run: |
@@ -43,3 +45,14 @@ jobs:
       - name: Publish PR release
         run: |
           dotnet nuget push src/**/bin/Release/*.nupkg --source https://nuget.pkg.github.com/Altinn/index.json --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+
+      - uses: actions/github-script@v7
+        name: Comment on PR
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `Published ${process.env.MINVERVERSIONOVERRIDE}`
+            })
