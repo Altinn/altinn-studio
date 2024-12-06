@@ -7,7 +7,9 @@
       'orgname'
       'submit'
       'apiError';
-    gap: var(--fds-spacing-2);
+  }
+  .submit {
+    margin-top: var(--fds-spacing-6);
   }
 }
 
@@ -21,7 +23,10 @@
       'orgname .'
       'apiError .';
     align-items: end;
-    column-gap: var(--fds-spacing-2);
+    column-gap: var(--fds-spacing-6);
+  }
+  .submit {
+    margin-top: 0;
   }
 }
 

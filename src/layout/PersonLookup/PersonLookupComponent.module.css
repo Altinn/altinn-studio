@@ -2,7 +2,11 @@
 @media only screen and (min-width: 0) {
   .componentWrapper {
     grid-template-areas: 'ssnLabel' 'ssn' 'nameLabel' 'name' 'submit' 'apiError';
-    gap: var(--fds-spacing-2);
+  }
+
+  .nameLabel,
+  .submit {
+    margin-top: var(--fds-spacing-6);
   }
 }
 
@@ -12,7 +16,11 @@
     grid-template-columns: repeat(2, minmax(250px, 250px)) auto;
     grid-template-areas: 'ssnLabel nameLabel .' 'ssn name submit' 'apiError apiError .';
     align-items: end;
-    column-gap: var(--fds-spacing-2);
+    column-gap: var(--fds-spacing-6);
+  }
+  .nameLabel,
+  .submit {
+    margin-top: 0;
   }
 }
 
