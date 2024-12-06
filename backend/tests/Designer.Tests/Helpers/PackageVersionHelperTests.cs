@@ -15,13 +15,18 @@ namespace Designer.Tests.Helpers
         {
             string testTemplateCsProjPath = Path.Combine(CommonDirectoryPath.GetSolutionDirectory().DirectoryPath, "..", "testdata", "AppTemplates", "AspNet", "App", "App.csproj");
 
-            bool result = PackageVersionHelper.TryGetPackageVersionFromCsprojFile(testTemplateCsProjPath, packageName, out var version);
-
-            result.Should().Be(expectedResult);
-
-            if (result)
+            var packages = [packageName, $"{packageName}.Experimental"];
+            string[][] inputs = [packages, packages.Reverse().ToArray()];
+            foreach (var input in inputs)
             {
-                version.ToString().Should().Be(expectedVersion);
+                bool result = PackageVersionHelper.TryGetPackageVersionFromCsprojFile(testTemplateCsProjPath, input, out var version);
+
+                result.Should().Be(expectedResult);
+
+                if (result)
+                {
+                    version.ToString().Should().Be(expectedVersion);
+                }
             }
         }
     }
