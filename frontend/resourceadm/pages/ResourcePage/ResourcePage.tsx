@@ -17,8 +17,6 @@ import { useEditResourceMutation } from '../../hooks/mutations';
 import { MigrationPage } from '../MigrationPage';
 import type { Resource } from 'app-shared/types/ResourceAdm';
 import { useTranslation } from 'react-i18next';
-import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
-import { LeftNavigationBar } from '../../components/LeftNavigationBar';
 import {
   ArrowLeftIcon,
   GavelSoundBlockIcon,
@@ -26,9 +24,8 @@ import {
   MigrationIcon,
   UploadIcon,
 } from '@studio/icons';
-import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
-import { createNavigationTab, deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
+import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
