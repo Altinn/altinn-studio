@@ -52,7 +52,7 @@ export const EditColumnElement = ({
     : [];
 
   const componentsWithLabelAndDataModel = components.filter(
-    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings.simpleBinding,
+    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
   );
 
   const selectComponent = (values: string[]) => {

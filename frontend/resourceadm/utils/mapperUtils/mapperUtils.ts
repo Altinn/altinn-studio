@@ -1,7 +1,7 @@
 import type { Altinn2LinkService } from 'app-shared/types/Altinn2LinkService';
 import type { ResourceListItem } from 'app-shared/types/ResourceAdm';
 
-const EnvOrder = ['prod', 'tt02', 'at21', 'at22', 'at23', 'at24', 'gitea'];
+const EnvOrder = ['prod', 'tt02', 'at22', 'at23', 'at24', 'gitea'];
 /**
  * Sorts a resource list by the date so the newest is at the top
  *
