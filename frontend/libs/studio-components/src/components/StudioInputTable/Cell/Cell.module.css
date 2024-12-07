@@ -1,5 +1,6 @@
 .textfieldCell,
-.textareaCell {
+.textareaCell,
+.textResourceCell {
   padding: var(--fds-spacing-1) 0;
   font-size: var(--studio-input-table-font-size);
 }
@@ -12,8 +13,24 @@
   display: inline-flex;
 }
 
-.textfieldCell:not(:hover) input:not(:hover):not(:active):not(:focus),
-.textareaCell:not(:hover) textarea:not(:hover):not(:active):not(:focus) {
+:is(
+    .textfieldCell:not(:hover) input,
+    .textareaCell:not(:hover) textarea,
+    .textResourceCell:not(:hover) input
+  ):not(:hover):not(:active):not(:focus),
+.textResourceCell:not(:hover) div:has(input:not(:hover):not(:active):not(:focus)) {
   background-color: transparent;
   border-color: transparent;
+}
+
+.textResourceCell:not(:hover) .textInput div:has(input:not(:hover):not(:active):not(:focus)) svg {
+  visibility: hidden;
+}
+
+.textResourceCell:not(:hover):not(:focus-within) .toggle {
+  visibility: hidden;
+}
+
+.textResourceCell .currentTextId {
+  padding-inline: var(--fds-spacing-2);
 }
