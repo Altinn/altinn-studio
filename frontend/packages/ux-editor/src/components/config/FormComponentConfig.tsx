@@ -127,7 +127,6 @@ export const FormComponentConfig = ({
             propertyKey={propertyKey}
             defaultValue={properties[propertyKey].default}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
           />
         );
       })}
@@ -137,7 +136,6 @@ export const FormComponentConfig = ({
         <>
           <EditBooleanValue
             propertyKey='hasCustomFileEndings'
-            helpText={hasCustomFileEndings.description}
             component={component}
             defaultValue={hasCustomFileEndings.default}
             handleComponentChange={(updatedComponent: FormComponent) => {
@@ -170,7 +168,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
           />
         );
@@ -184,7 +181,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum}
           />
         );
@@ -198,7 +194,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.items?.enum}
             multiple={true}
           />
