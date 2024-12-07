@@ -153,7 +153,7 @@ test('That it is possible to navigate to data model page and create another data
   page,
   testAppName,
 }): Promise<void> => {
-  await setupAndVerifyUiEditorPage(page, testAppName, ['multipleDataModelsPerTask']);
+  await setupAndVerifyUiEditorPage(page, testAppName);
   const header = new Header(page, { app: testAppName });
   const dataModelPage = new DataModelPage(page, { app: testAppName });
 
@@ -165,9 +165,7 @@ test('That it is possible to navigate back to ui-editor page and add the newly a
   page,
   testAppName,
 }): Promise<void> => {
-  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName, [
-    'multipleDataModelsPerTask',
-  ]);
+  const uiEditorPage = await setupAndVerifyUiEditorPage(page, testAppName);
   const header = new Header(page, { app: testAppName });
 
   await header.clickOnNavigateToPageInTopMenuHeader('create');
