@@ -40,7 +40,9 @@ describe('CodeLists', () => {
       textMock('code_list_editor.value_item', { number: 1 }),
     );
     await user.type(codeListFirstItemValue, codeListValueText);
-    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(codeListValueText.length);
+    await user.tab();
+
+    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
       codeList: [expect.objectContaining({ value: codeListValueText })],
       title: codeListName,
