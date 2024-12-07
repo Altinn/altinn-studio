@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Altinn.App.Core.Helpers;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -20,7 +22,7 @@ public class LayoutSetDeletedComponentRefHandler(IAltinnGitRepositoryFactory alt
                 notification.EditingContext.Repo,
                 notification.EditingContext.Developer);
 
-        string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+        LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
@@ -29,15 +31,16 @@ public class LayoutSetDeletedComponentRefHandler(IAltinnGitRepositoryFactory alt
             async () =>
             {
                 bool hasChanges = false;
-                foreach (string layoutSetName in layoutSetNames)
+                foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
                 {
-                    Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSetName, cancellationToken);
+                    Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSet.Id, cancellationToken);
                     foreach (var formLayout in formLayouts)
                     {
                         hasChanges |= await RemoveComponentsReferencingLayoutSet(
                                 notification,
                                 altinnAppGitRepository,
-                                layoutSetName,
+                                layoutSets.Sets,
+                                layoutSet.Id,
                                 formLayout,
                                 cancellationToken);
                     }
@@ -46,7 +49,7 @@ public class LayoutSetDeletedComponentRefHandler(IAltinnGitRepositoryFactory alt
             });
     }
 
-    private static async Task<bool> RemoveComponentsReferencingLayoutSet(LayoutSetDeletedEvent notification, AltinnAppGitRepository altinnAppGitRepository, string layoutSetName, KeyValuePair<string, JsonNode> formLayout, CancellationToken cancellationToken)
+    private static async Task<bool> RemoveComponentsReferencingLayoutSet(LayoutSetDeletedEvent notification, AltinnAppGitRepository altinnAppGitRepository, List<LayoutSetConfig> layoutSets, string layoutSetName, KeyValuePair<string, JsonNode> formLayout, CancellationToken cancellationToken)
     {
         if (formLayout.Value["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
         {
@@ -61,6 +64,20 @@ public class LayoutSetDeletedComponentRefHandler(IAltinnGitRepositoryFactory alt
                 hasChanges = true;
                 return true;
             }
+
+            if (jsonNode["type"]?.GetValue<string>() == "Summary2" && jsonNode["target"] is JsonObject targetObject)
+            {
+                string summaryType = targetObject["type"]?.GetValue<string>();
+                string taskId = targetObject["taskId"]?.GetValue<string>();
+                string layouSetId = string.IsNullOrEmpty(taskId) ? layoutSetName : layoutSets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
+                bool hasLayoutSet = summaryType == "layoutSet" && layouSetId == notification.LayoutSetId;
+                if (hasLayoutSet)
+                {
+                    hasChanges = true;
+                    return true;
+                }
+            }
+
             return false;
         });
 
