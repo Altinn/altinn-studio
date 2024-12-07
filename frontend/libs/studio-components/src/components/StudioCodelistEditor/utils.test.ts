@@ -2,6 +2,7 @@ import type { CodeList } from './types/CodeList';
 import {
   addEmptyCodeListItem,
   changeCodeListItem,
+  isCodeListItemDuplicate,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
@@ -75,6 +76,12 @@ describe('StudioCodelistEditor utils', () => {
       const updatedCodeList = changeCodeListItem(codeList, 1, updatedItem);
       expect(updatedCodeList).not.toBe(codeList);
     });
+
+    it('Returns the old code list item if there are no changes', () => {
+      const codeList = createTestCodeList();
+      const updatedCodeList = changeCodeListItem(codeList, 1, codeList[1]);
+      expect(updatedCodeList).toEqual(codeList);
+    });
   });
 
   describe('isCodeListEmpty', () => {
@@ -85,6 +92,20 @@ describe('StudioCodelistEditor utils', () => {
     it('Returns false when the code list is not empty', () => {
       const codeList = createTestCodeList();
       expect(isCodeListEmpty(codeList)).toBe(false);
+    });
+  });
+
+  describe('isCodeListItemDuplicate', () => {
+    it('Returns true when the code list items are duplicate', () => {
+      const oldCodeList = testCodeList[0];
+      const newCodeList = testCodeList[0];
+      expect(isCodeListItemDuplicate(oldCodeList, newCodeList)).toBeTruthy();
+    });
+
+    it('Return false when code list items are different', () => {
+      const oldCodeList = testCodeList[0];
+      const newCodeList = testCodeList[1];
+      expect(isCodeListItemDuplicate(oldCodeList, newCodeList)).toBeFalsy();
     });
   });
 });
