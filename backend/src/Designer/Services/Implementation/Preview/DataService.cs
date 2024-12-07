@@ -10,7 +10,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.Preview;
 
 public class DataService(
         IDistributedCache distributedCache
-        ) : IDataService
+) : IDataService
 {
     readonly DistributedCacheEntryOptions _cacheOptions = new()
     {

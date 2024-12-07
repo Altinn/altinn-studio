@@ -10,6 +10,10 @@ import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 
+jest.mock('app-shared/api/mutations', () => ({
+  createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
+}));
+
 describe('Preview', () => {
   it('Renders an iframe with the ref from AppContext', () => {
     render();
@@ -80,7 +84,7 @@ describe('Preview', () => {
   });
 
   it('reloads preview when the selected form layout name changes', async () => {
-    const view = render();
+    render();
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
         previewPage(
@@ -95,9 +99,8 @@ describe('Preview', () => {
     const newSelectedFormLayoutName = 'test';
     appContextMock.selectedFormLayoutName = newSelectedFormLayoutName;
 
-    view.rerender(<Preview collapsed={false} onCollapseToggle={jest.fn()} />);
-
-    expect(appContextMock.previewIframeRef?.current?.src).toBe(
+    render();
+    expect(appContextMock.previewIframeRef.current.src).toBe(
       'http://localhost' +
         previewPage(
           org,
