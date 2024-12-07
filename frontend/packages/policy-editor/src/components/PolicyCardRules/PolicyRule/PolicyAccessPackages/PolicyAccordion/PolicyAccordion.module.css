@@ -1,0 +1,44 @@
+.accordion {
+  box-shadow:
+    0px 1px 2px 0px #0000001f,
+    0px 0px 1px 0px #00000029;
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+}
+
+.accordionButton {
+  width: 100%;
+  display: flex;
+  gap: var(--fds-spacing-2);
+  align-items: center;
+}
+
+.accordionIcon {
+  font-size: 1.75rem;
+  color: #111d46;
+}
+
+.accordionContent {
+  padding: var(--fds-spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.accordionTitle {
+  text-align: left;
+}
+
+.accordionSubTitle {
+  color: #5d6470;
+  font-size: 12px;
+}
+
+.iconContainer {
+  background-color: #d3eafd;
+  border-radius: 3px;
+  padding: 6px;
+}

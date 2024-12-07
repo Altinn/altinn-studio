@@ -21,6 +21,7 @@ export const mockPolicyRuleCard1: PolicyRuleCard = {
   description: '',
   subject: [mockSubjectId1, mockSubjectId3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
+  accessPackages: [],
   resources: mockPolicyRuleResources,
 };
 export const mockPolicyRuleCard2: PolicyRuleCard = {
@@ -28,6 +29,7 @@ export const mockPolicyRuleCard2: PolicyRuleCard = {
   description: '',
   subject: [],
   actions: [],
+  accessPackages: [],
   resources: [[]],
 };
 export const mockPolicyRuleCardWithSingleNarrowingPolicy: PolicyRuleCard = {
@@ -35,6 +37,7 @@ export const mockPolicyRuleCardWithSingleNarrowingPolicy: PolicyRuleCard = {
   description: '',
   subject: [mockSubjectId1, mockSubjectId3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
+  accessPackages: [],
   resources: mockPolicyRuleResourcesWithSingleNarrowingPolicy,
 };
 export const mockPolicyRuleCards: PolicyRuleCard[] = [mockPolicyRuleCard1, mockPolicyRuleCard2];
@@ -44,6 +47,7 @@ export const mockPolicyRule1: PolicyRule = {
   description: '',
   subject: [mockSubjectBackendString1, mockSubjectBackendString3],
   actions: [mockAction1.actionId, mockAction2.actionId, mockAction4.actionId],
+  accessPackages: [],
   resources: mockPolicyResources,
 };
 export const mockPolicyRule2: PolicyRule = {
@@ -52,5 +56,6 @@ export const mockPolicyRule2: PolicyRule = {
   subject: [],
   actions: [],
   resources: [[]],
+  accessPackages: [],
 };
 export const mockPolicyRules: PolicyRule[] = [mockPolicyRule1, mockPolicyRule2];

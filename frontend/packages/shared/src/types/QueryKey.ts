@@ -54,6 +54,7 @@ export enum QueryKey {
   ResourcePolicy = 'ResourcePolicy',
   ResourcePolicyActions = 'ResourcePolicyActions',
   ResourcePolicySubjects = 'ResourcePolicySubjects',
+  ResourcePolicyAccessPackages = 'ResourcePolicyAccessPackages',
   ResourcePublishStatus = 'ResourcePublishStatus',
   ResourceSectors = 'ResourceSectors',
   ResourceThematicEurovoc = 'ResourceThematicEurovoc',

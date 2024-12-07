@@ -1,5 +1,7 @@
 import { ObjectUtils } from '@studio/pure-functions';
 import type {
+  PolicyAccessPackage,
+  PolicyAccessPackageArea,
   PolicyAction,
   PolicyEditorUsage,
   PolicyRule,
@@ -16,6 +18,7 @@ export const emptyPolicyRule: PolicyRuleCard = {
   resources: [],
   actions: [],
   subject: [],
+  accessPackages: [],
   description: '',
 };
 
@@ -63,6 +66,7 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       actions: r.actions,
       description: r.description,
       subject: subjectIds,
+      accessPackages: r.accessPackages,
       resources: mappedResources,
     };
   });
@@ -114,6 +118,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
     description: policyRule.description,
     subject: subject,
     actions: policyRule.actions,
+    accessPackages: policyRule.accessPackages,
     resources: resources,
   };
 };
@@ -204,6 +209,45 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   });
 
   return copiedSubjects;
+};
+
+export const groupAccessPackagesByArea = (accessPackages: PolicyAccessPackage[]) => {
+  // create temp dictionary. Use area.id as key
+  const groupedByAreaDict: {
+    [areaId: string]: {
+      area: PolicyAccessPackageArea;
+      packages: PolicyAccessPackage[];
+    };
+  } = {};
+
+  const sortedPackages = [...accessPackages].sort((a, b) => {
+    return getTagSortValue(b) - getTagSortValue(a);
+  });
+
+  // add each package to corresponding area.id
+  sortedPackages.forEach((accessPackage) => {
+    if (!groupedByAreaDict[accessPackage.area.id]) {
+      groupedByAreaDict[accessPackage.area.id] = {
+        area: accessPackage.area,
+        packages: [],
+      };
+    }
+    groupedByAreaDict[accessPackage.area.id].packages.push(accessPackage);
+  });
+
+  // map dictionary to an array
+  return Object.keys(groupedByAreaDict).map((key) => {
+    return { ...groupedByAreaDict[key] };
+  });
+};
+
+const getTagSortValue = (accessPackages: PolicyAccessPackage): number => {
+  if (accessPackages.tags.find((x) => x.name === 'Ofte brukt')) {
+    return 2;
+  } else if (accessPackages.tags.find((x) => x.name === 'Bransjespesifikke')) {
+    return 1;
+  }
+  return 0;
 };
 
 export const convertSubjectStringToSubjectId = (subjectString: string): string => {

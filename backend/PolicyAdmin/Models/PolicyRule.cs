@@ -8,6 +8,8 @@
 
         public List<string>? Subject { get; set; }
 
+        public List<string>? AccessPackages { get; set; }
+
         public List<string>? Actions { get; set; }
 
         public List<List<string>>? Resources { get; set; }
