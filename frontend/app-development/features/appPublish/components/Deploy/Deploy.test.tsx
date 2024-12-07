@@ -9,6 +9,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { AppRelease } from 'app-shared/types/AppRelease';
 import { appRelease } from 'app-shared/mocks/mocks';
 import { BuildResult } from 'app-shared/types/Build';
+import { type ImageOption } from '../ImageOption';
 
 const defaultProps: DeployProps = {
   appDeployedVersion: 'test',
@@ -42,7 +43,7 @@ const appReleases: AppRelease[] = [
   },
 ];
 
-const imageOptions = [
+const imageOptions: ImageOption[] = [
   {
     label: textMock('app_deployment.version_label', {
       tagName: appReleases[0].tagName,
