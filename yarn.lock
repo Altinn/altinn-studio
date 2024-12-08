@@ -16139,7 +16139,6 @@ __metadata:
     jest: "npm:29.7.0"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
-    react-router-dom: "npm:6.27.0"
     typescript: "npm:5.7.2"
     webpack: "npm:5.96.1"
     webpack-dev-server: "npm:5.1.0"

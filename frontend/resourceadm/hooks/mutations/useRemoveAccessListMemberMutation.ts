@@ -26,6 +26,9 @@ export const useRemoveAccessListMemberMutation = (
       queryClient.invalidateQueries({
         queryKey: [QueryKey.AccessListMembers, env, listIdentifier],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.AccessList, env, listIdentifier],
+      });
     },
   });
 };
