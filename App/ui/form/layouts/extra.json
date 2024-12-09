@@ -4,17 +4,16 @@
     "layout": [
       {
         "dataModelBindings": {
-          "simpleBinding": "age"
+          "simpleBinding": "extra"
         },
-        "id": "age",
-        "type": "Input",
+        "id": "extra",
+        "type": "Checkboxes",
         "textResourceBindings": {
-          "title": "age.Input-K1eSVX.title"
-        },
-        "required": true
+          "title": "extra.extra.title"
+        }
       },
       {
-        "id": "NavigationButtons-LRn4KZ",
+        "id": "NavigationButtons-WBPR29",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

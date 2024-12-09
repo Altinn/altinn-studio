@@ -4,17 +4,16 @@
     "layout": [
       {
         "dataModelBindings": {
-          "simpleBinding": "age"
+          "simpleBinding": "feedback"
         },
-        "id": "age",
-        "type": "Input",
+        "id": "feedback",
+        "type": "TextArea",
         "textResourceBindings": {
-          "title": "age.Input-K1eSVX.title"
-        },
-        "required": true
+          "title": "feedback.feedback.title"
+        }
       },
       {
-        "id": "NavigationButtons-LRn4KZ",
+        "id": "NavigationButtons-wD0wZh",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

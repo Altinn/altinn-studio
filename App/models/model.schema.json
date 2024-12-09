@@ -62,6 +62,9 @@
     },
     "extra": {
       "type": "string"
+    },
+    "feedback": {
+      "type": "string"
     }
   }
 }

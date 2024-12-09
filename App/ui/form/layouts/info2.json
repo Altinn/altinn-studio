@@ -3,18 +3,14 @@
   "data": {
     "layout": [
       {
-        "dataModelBindings": {
-          "simpleBinding": "age"
-        },
-        "id": "age",
-        "type": "Input",
+        "id": "Paragraph-b0YANE",
+        "type": "Paragraph",
         "textResourceBindings": {
-          "title": "age.Input-K1eSVX.title"
-        },
-        "required": true
+          "title": "info2.Paragraph-b0YANE.title"
+        }
       },
       {
-        "id": "NavigationButtons-LRn4KZ",
+        "id": "NavigationButtons-xerTYS",
         "showBackButton": true,
         "textResourceBindings": {},
         "type": "NavigationButtons"

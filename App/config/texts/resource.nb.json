@@ -2,6 +2,46 @@
   "language": "nb",
   "resources": [
     {
+      "id": "feedback.feedback.title",
+      "value": "Hvordan var det å fylle ut dette skjemaet?"
+    },
+    {
+      "id": "summary",
+      "value": "Oppsummering"
+    },
+    {
+      "id": "feedback",
+      "value": "Tilbakemelding"
+    },
+    {
+      "id": "summary.Button-sPjiD2.title",
+      "value": "Send inn"
+    },
+    {
+      "id": "extra.extra.title",
+      "value": "Skjul sider"
+    },
+    {
+      "id": "extra",
+      "value": "Ekstra"
+    },
+    {
+      "id": "info2.Paragraph-b0YANE.title",
+      "value": "Her er litt mer informasjon som utdyper det du leste på forrige side:\n\n- Lorem\n- Ipsum\n- Dolor\n- Sit\n- Amet"
+    },
+    {
+      "id": "info2",
+      "value": "Litt mer info"
+    },
+    {
+      "id": "info1.Paragraph-K6c91n.title",
+      "value": "### Generell informasjon\n\n<br>\n\nHer kommer en punkt-liste:\n\n<br>\n\n1. Punkt én er **veldig** viktig\n2. Punkt to er ikke like viktig"
+    },
+    {
+      "id": "info1",
+      "value": "Generell info"
+    },
+    {
       "id": "emails.email.title",
       "value": "E-post"
     },
@@ -47,7 +87,7 @@
     },
     {
       "id": "appName",
-      "value": "navigation-test"
+      "value": "Navigasjonstest"
     },
     {
       "id": "next",
