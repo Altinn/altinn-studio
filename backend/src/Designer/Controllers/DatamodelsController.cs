@@ -163,17 +163,17 @@ namespace Altinn.Studio.Designer.Controllers
             Request.EnableBuffering();
             Guard.AssertArgumentNotNull(theFile, nameof(theFile));
 
-            string fileName = GetFileNameFromUploadedFile(theFile);
-            Guard.AssertFileExtensionIsOfType(fileName, ".xsd");
+            string fileNameWithExtension = GetFileNameFromUploadedFile(theFile);
+            Guard.AssertFileExtensionIsOfType(fileNameWithExtension, ".xsd");
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             var fileStream = theFile.OpenReadStream();
-            await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileName, editingContext);
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileName, theFile.OpenReadStream(), cancellationToken);
+            await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileNameWithExtension, editingContext);
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileNameWithExtension, theFile.OpenReadStream(), cancellationToken);
 
-            return Created(Uri.EscapeDataString(fileName), jsonSchema);
+            return Created(Uri.EscapeDataString(fileNameWithExtension), jsonSchema);
         }
 
         /// <summary>
