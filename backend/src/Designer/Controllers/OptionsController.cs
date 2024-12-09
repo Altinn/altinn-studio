@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -127,6 +128,36 @@ public class OptionsController : ControllerBase
         var newOptionsList = await _optionsService.CreateOrOverwriteOptionsList(org, repo, developer, optionsListId, payload, cancellationToken);
 
         return Ok(newOptionsList);
+    }
+
+    /// <summary>
+    /// Updates the name of an options list by changing file name in repo.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="optionsListId">Name of the options list.</param>
+    /// <param name="newOptionsListId">New name of options list file.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpPut]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Route("change-name/{optionsListId}")]
+    public ActionResult UpdateOptionsListId(string org, string repo, [FromRoute] string optionsListId, [FromBody] string newOptionsListId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+        var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+        try
+        {
+            _optionsService.UpdateOptionsListId(editingContext, optionsListId, newOptionsListId, cancellationToken);
+        }
+        catch (IOException exception)
+        {
+            return BadRequest(exception.Message);
+        }
+
+        return Ok();
     }
 
     /// <summary>
