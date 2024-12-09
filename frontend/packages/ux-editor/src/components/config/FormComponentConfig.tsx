@@ -168,7 +168,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
           />
         );
@@ -182,7 +181,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum}
           />
         );
@@ -196,7 +194,6 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.items?.enum}
             multiple={true}
           />
