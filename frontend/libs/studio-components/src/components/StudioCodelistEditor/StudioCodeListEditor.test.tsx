@@ -287,6 +287,18 @@ describe('StudioCodeListEditor', () => {
     await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
   });
+
+  it('Does not trigger onChange if the code list is not changed', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
+    const newValue = 'new text';
+    await user.type(labelInput, newValue);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}) {
