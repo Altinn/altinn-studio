@@ -8,7 +8,6 @@
         },
         "id": "emails",
         "type": "RepeatingGroup",
-        "required": true,
         "maxCount": 99999,
         "textResourceBindings": {
           "title": "emails.RepeatingGroup-oY9mdw.title"
@@ -20,9 +19,7 @@
           "saveButton": false
         },
         "hidden": false,
-        "children": [
-          "email"
-        ]
+        "children": ["email"]
       },
       {
         "id": "NavigationButtons-s225gq",
@@ -44,3 +41,4 @@
     ]
   }
 }
+

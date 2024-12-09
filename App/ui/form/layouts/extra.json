@@ -10,7 +10,11 @@
         "type": "Checkboxes",
         "textResourceBindings": {
           "title": "extra.extra.title"
-        }
+        },
+        "options": [
+          { "value": "feedback", "label": "Skjul tilbakemelding" },
+          { "value": "summary", "label": "Skjul oppsummering" }
+        ]
       },
       {
         "id": "NavigationButtons-WBPR29",
@@ -21,3 +25,4 @@
     ]
   }
 }
+

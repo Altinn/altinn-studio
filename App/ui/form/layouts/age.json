@@ -8,6 +8,12 @@
         },
         "id": "age",
         "type": "Input",
+        "formatting": {
+          "number": {
+            "decimalScale": 0,
+            "allowNegative": false
+          }
+        },
         "textResourceBindings": {
           "title": "age.Input-K1eSVX.title"
         },
@@ -22,3 +28,4 @@
     ]
   }
 }
+

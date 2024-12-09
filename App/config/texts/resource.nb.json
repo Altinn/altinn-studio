@@ -47,7 +47,7 @@
     },
     {
       "id": "emails.RepeatingGroup-oY9mdw.title",
-      "value": "E-poster"
+      "value": "E-post-addresser"
     },
     {
       "id": "emails",
@@ -96,6 +96,19 @@
     {
       "id": "back",
       "value": "Tilbake"
+    },
+    {
+      "id": "group.info",
+      "value": "Informasjon"
+    },
+    {
+      "id": "group.form",
+      "value": "Utfylling"
+    },
+    {
+      "id": "group.summary",
+      "value": "Innsending"
     }
   ]
 }
+
