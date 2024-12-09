@@ -148,7 +148,9 @@ function TableBody({
   const handleBlur = useCallback(
     (index: number, newItem: CodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
-      onChange(updatedCodeList);
+      if (codeList !== updatedCodeList) {
+        onChange(updatedCodeList);
+      }
     },
     [codeList, onChange],
   );

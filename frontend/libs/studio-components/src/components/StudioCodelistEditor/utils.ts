@@ -26,7 +26,6 @@ export function changeCodeListItem(
   if (isCodeListItemChanged(codeList[index], newItem)) {
     return ArrayUtils.replaceByIndex<CodeListItem>(codeList, index, newItem);
   }
-
   return codeList;
 }
 
