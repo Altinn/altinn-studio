@@ -4,10 +4,10 @@ import { Route, Routes } from 'react-router-dom';
 import { StudioNotFoundPage } from '@studio/components';
 import { Paragraph, Link } from '@digdir/designsystemet-react';
 import { useTranslation, Trans } from 'react-i18next';
-
 import './App.css';
 import { PageLayout } from '../pages/PageLayout';
 import { ContactPage } from '../pages/Contact/ContactPage';
+import { FlagsPage } from '../pages/FlagsPage';
 
 export const App = (): JSX.Element => {
   return (
@@ -15,6 +15,7 @@ export const App = (): JSX.Element => {
       <Routes>
         <Route element={<PageLayout />}>
           <Route path='/contact' element={<ContactPage />} />
+          <Route path='/flags' element={<FlagsPage />} />
           <Route path='*' element={<NotFoundPage />} />
         </Route>
       </Routes>

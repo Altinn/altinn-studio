@@ -11,7 +11,7 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries/useTextResourcesQuery';
 import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { app, org } from '@studio/testing/testids';
 
 const user = userEvent.setup();
@@ -226,7 +226,7 @@ describe('TextResource', () => {
   });
 
   it('Renders delete button as enabled when handleRemoveTextResource is given and componentConfigBeta feature flag is enabled', async () => {
-    addFeatureFlagToLocalStorage('componentConfigBeta');
+    addFeatureFlagToLocalStorage(FeatureFlag.ComponentConfigBeta);
     await render({ textResourceId: 'test', handleRemoveTextResource: jest.fn() });
     expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeEnabled();
   });

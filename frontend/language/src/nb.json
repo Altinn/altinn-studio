@@ -281,6 +281,7 @@
   "expression.valueType.null": "Ikke satt",
   "expression.valueType.number": "Tall",
   "expression.valueType.string": "Tekst",
+  "feature_flags.heading": "Funksjonsflagg",
   "form_filler.file_uploader_validation_error_upload": "Noe gikk galt da filen skulle lastes opp, prøv igjen senere.",
   "general.action": "Handling",
   "general.actions": "Handlinger",
