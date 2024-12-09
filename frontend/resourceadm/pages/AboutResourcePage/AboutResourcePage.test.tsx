@@ -78,7 +78,7 @@ describe('AboutResourcePage', () => {
   const mockOnSaveResource = jest.fn();
 
   const defaultProps: AboutResourcePageProps = {
-    showAllErrors: false,
+    validationErrors: [],
     resourceData: mockResource1,
     onSaveResource: mockOnSaveResource,
     id: mockId,
@@ -306,8 +306,47 @@ describe('AboutResourcePage', () => {
     });
   });
 
-  it('displays errors for the required translation fields when showAllErrors are true', async () => {
-    render(<AboutResourcePage {...defaultProps} showAllErrors resourceData={mockResource2} />);
+  it('displays errors for the required translation fields', async () => {
+    render(
+      <AboutResourcePage
+        {...defaultProps}
+        validationErrors={[
+          {
+            field: 'resourceType',
+            error: textMock('resourceadm.about_resource_resource_type_error'),
+          },
+          {
+            field: 'title',
+            index: 'nb',
+            error: getMissingInputLanguageString(
+              mockResource2.title,
+              textMock('resourceadm.about_resource_error_usage_string_title'),
+              textMock,
+            ),
+          },
+
+          {
+            field: 'description',
+            index: 'nb',
+            error: getMissingInputLanguageString(
+              mockResource2.description,
+              textMock('resourceadm.about_resource_error_usage_string_description'),
+              textMock,
+            ),
+          },
+          {
+            field: 'rightDescription',
+            index: 'nb',
+            error: getMissingInputLanguageString(
+              mockResource2.rightDescription,
+              textMock('resourceadm.about_resource_error_usage_string_rights_description'),
+              textMock,
+            ),
+          },
+        ]}
+        resourceData={mockResource2}
+      />,
+    );
 
     expect(
       screen.getAllByText(textMock('resourceadm.about_resource_resource_type_error')),
@@ -345,7 +384,7 @@ describe('AboutResourcePage', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
-        showAllErrors
+        validationErrors={[]}
         resourceData={{ ...mockResource2, delegable: false }}
       />,
     );
@@ -378,7 +417,7 @@ describe('AboutResourcePage', () => {
     render(
       <AboutResourcePage
         {...defaultProps}
-        showAllErrors
+        validationErrors={[]}
         resourceData={{ ...mockResource1, resourceType: 'MaskinportenSchema' }}
       />,
     );

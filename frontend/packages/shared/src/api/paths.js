@@ -35,6 +35,9 @@ export const dataModelAddXsdFromRepoPath = (org, app, filePath) => `${basePath}/
 // Deployment
 // See frontend/app-development/utils/urlHelper.ts Deployments
 
+// Feedback form
+export const submitFeedbackPath = (org, app) => `${basePath}/${org}/${app}/feedbackform/submit`; // Post
+
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
