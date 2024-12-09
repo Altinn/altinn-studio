@@ -8,7 +8,6 @@ export type SupportedFeatureFlags =
   | 'componentConfigBeta'
   | 'shouldOverrideAppLibCheck'
   | 'resourceMigration'
-  | 'multipleDataModelsPerTask'
   | 'exportForm'
   | 'addComponentModal'
   | 'subform'
