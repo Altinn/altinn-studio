@@ -336,6 +336,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
         public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
         {
+            List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
+            bool serviceExists = allResources.Any(x => x.Identifier.Equals($"se_{serviceCode}_{serviceEdition}"));
+            if (!serviceExists)
+            {
+                return new NotFoundResult();
+            }
+
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             if (!IsServiceOwner(resource, org))
             {
