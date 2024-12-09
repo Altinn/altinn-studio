@@ -6,4 +6,5 @@ export enum ServerCodes {
   NotFound = 404,
   PreconditionFailed = 412,
   TooLargeContent = 413,
+  InternalServerError = 500,
 }

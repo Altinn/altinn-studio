@@ -4,12 +4,10 @@ import { Alert, Checkbox, Heading } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioModal } from '@studio/components';
 import classes from './MigrationPanel.module.css';
-import type { Environment } from '../../utils/resourceUtils';
+import { getMigrationErrorMessage, type Environment } from '../../utils/resourceUtils';
 import { useGetAltinn2DelegationsCount } from '../../hooks/queries/useGetAltinn2DelegationCount';
 import { useMigrateDelegationsMutation } from '../../hooks/mutations/useMigrateDelegationsMutation';
 import { useUrlParams } from '../../hooks/useUrlParams';
-import type { ResourceError } from 'app-shared/types/ResourceAdm';
-import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 export interface MigrationPanelProps {
   serviceCode: string;
@@ -35,12 +33,11 @@ export const MigrationPanel = ({
   const { mutate: migrateDelegations, isPending: isSettingMigrateDelegations } =
     useMigrateDelegationsMutation(org, env.id);
 
-  const { data: numberOfA2Delegations, isFetching: isLoadingDelegationCount } =
-    useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id);
-
-  const isErrorForbidden = (error: Error) => {
-    return (error as ResourceError)?.response?.status === ServerCodes.Forbidden;
-  };
+  const {
+    data: numberOfA2Delegations,
+    isFetching: isLoadingDelegationCount,
+    error: loadDelegationCountError,
+  } = useGetAltinn2DelegationsCount(org, serviceCode, serviceEdition, env.id);
 
   const postMigrateDelegations = (): void => {
     setMigrateDelegationsError(null);
@@ -66,6 +63,13 @@ export const MigrationPanel = ({
   const closeSetServiceExpiredModal = (): void => {
     setServiceExpiredWarningModalRef.current?.close();
   };
+
+  const errorMessage = getMigrationErrorMessage(
+    loadDelegationCountError,
+    migrateDelegationsError,
+    isPublishedInEnv,
+  );
+  const isMigrateButtonDisabled = !!errorMessage || isSettingMigrateDelegations;
 
   return (
     <>
@@ -109,28 +113,19 @@ export const MigrationPanel = ({
           <div>
             {t('resourceadm.migration_altinn3_delegations')} <strong>N/A</strong>
           </div>
-          {!isPublishedInEnv && (
-            <Alert severity='warning' size='sm'>
-              {t('resourceadm.migration_not_published')}
-            </Alert>
-          )}
           {isPublishedInEnv && numberOfA2Delegations?.numberOfDelegations === 0 && (
             <Alert severity='info' size='sm'>
               {t('resourceadm.migration_not_needed')}
             </Alert>
           )}
-          {migrateDelegationsError && (
-            <Alert severity='danger' size='small'>
-              {isErrorForbidden(migrateDelegationsError)
-                ? t('resourceadm.migration_no_migration_access')
-                : t('resourceadm.migration_post_migration_failed')}
-            </Alert>
+          {errorMessage && (
+            <Alert severity={errorMessage.severity}>{t(errorMessage.errorMessage)}</Alert>
           )}
         </div>
         <StudioButton
-          aria-disabled={!isPublishedInEnv || isSettingMigrateDelegations}
+          aria-disabled={isMigrateButtonDisabled}
           onClick={() => {
-            if (isPublishedInEnv && !isSettingMigrateDelegations) {
+            if (!isMigrateButtonDisabled) {
               setServiceExpiredWarningModalRef.current?.showModal();
             }
           }}
