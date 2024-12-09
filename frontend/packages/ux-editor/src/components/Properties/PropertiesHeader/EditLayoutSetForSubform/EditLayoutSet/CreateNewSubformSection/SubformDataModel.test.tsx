@@ -72,7 +72,7 @@ describe('SubformDataModel', () => {
     expect(dataModelInput).toBeInTheDocument();
   });
 
-  it('Should display ErrorMessage when nameError is present', async () => {
+  it('Should toggle ErrorMessage visibility based on input validity', async () => {
     const user = userEvent.setup();
     renderSubformDataModelSelect({ displayDataModelInput: true });
     const dataModelInput = screen.getByRole('textbox', {
@@ -81,17 +81,13 @@ describe('SubformDataModel', () => {
     await user.type(dataModelInput, 'new');
     const errorMessage = screen.getByText(textMock('schema_editor.error_reserved_keyword'));
     expect(errorMessage).toBeInTheDocument();
-  });
 
-  it('Should not display ErrorMessage when nameError is not present', async () => {
-    const user = userEvent.setup();
-    renderSubformDataModelSelect({ displayDataModelInput: true });
-    const dataModelInput = screen.getByRole('textbox', {
-      name: textMock('ux_editor.component_properties.subform.create_new_data_model_label'),
-    });
+    await user.clear(dataModelInput);
     await user.type(dataModelInput, 'newName');
-    const errorMessage = screen.queryByText(textMock('schema_editor.error_reserved_keyword'));
-    expect(errorMessage).not.toBeInTheDocument();
+    const clearedErrorMessage = screen.queryByText(
+      textMock('schema_editor.error_reserved_keyword'),
+    );
+    expect(clearedErrorMessage).not.toBeInTheDocument();
   });
 });
 

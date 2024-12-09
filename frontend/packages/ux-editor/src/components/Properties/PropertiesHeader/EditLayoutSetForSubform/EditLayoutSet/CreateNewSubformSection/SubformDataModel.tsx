@@ -6,7 +6,6 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import classes from './SubformDataModel.module.css';
 import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
-import { ErrorMessage } from '@digdir/designsystemet-react';
 import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
 import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
@@ -29,11 +28,14 @@ export const SubformDataModel = ({
 
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
-  const { validateName, nameError } = useValidateSchemaName(dataModelIds, dataTypeNames);
+  const { validateName, nameError: dataModelNameError } = useValidateSchemaName(
+    dataModelIds,
+    dataTypeNames,
+  );
 
   const handleDataModel = (dataModelId: string) => {
     validateName(dataModelId);
-    if (!nameError) setNewDataModel(dataModelId);
+    if (!dataModelNameError) setNewDataModel(dataModelId);
   };
 
   const handleDisplayInput = () => {
@@ -63,15 +65,13 @@ export const SubformDataModel = ({
         )}
       </StudioNativeSelect>
       {displayDataModelInput ? (
-        <>
-          <StudioTextfield
-            name='newSubformDataModel'
-            label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
-            size='sm'
-            onChange={(e) => handleDataModel(e.target.value)}
-          />
-          {nameError && <ErrorMessage>{nameError}</ErrorMessage>}
-        </>
+        <StudioTextfield
+          name='newSubformDataModel'
+          label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
+          size='sm'
+          onChange={(e) => handleDataModel(e.target.value)}
+          error={dataModelNameError}
+        />
       ) : (
         <StudioProperty.Button
           icon={<LinkIcon />}
