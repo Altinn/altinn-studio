@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import classes from './DeployDropdown.module.css';
 import { AltinnConfirmDialog } from 'app-shared/components';
-import { StudioButton, StudioError, StudioSpinner } from '@studio/components';
+import { StudioError, StudioSpinner } from '@studio/components';
 import { Combobox, Spinner } from '@digdir/designsystemet-react';
 import type { ImageOption } from './ImageOption';
 import { useTranslation } from 'react-i18next';
@@ -83,22 +83,23 @@ export const DeployDropdown = ({
           onConfirm={startDeploy}
           onClose={() => setIsConfirmDeployDialogOpen(false)}
           placement='right'
-          trigger={
-            <StudioButton
-              disabled={!selectedImageTag || disabled}
-              onClick={() => setIsConfirmDeployDialogOpen((prevState) => !prevState)}
-            >
-              {isPending && (
-                <Spinner
-                  variant='interaction'
-                  title=''
-                  size='xsmall'
-                  data-testid='spinner-test-id'
-                />
-              )}
-              {t('app_deployment.btn_deploy_new_version')}
-            </StudioButton>
-          }
+          triggerProps={{
+            disabled: !selectedImageTag || disabled,
+            onClick: () => setIsConfirmDeployDialogOpen((prevState) => !prevState),
+            children: (
+              <>
+                {isPending && (
+                  <Spinner
+                    variant='interaction'
+                    title=''
+                    size='xsmall'
+                    data-testid='spinner-test-id'
+                  />
+                )}
+                {t('app_deployment.btn_deploy_new_version')}
+              </>
+            ),
+          }}
         >
           <p>
             {appDeployedVersion
