@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { createPreviewInstance } from '../../api/mutations';
+import { useServicesContext } from '../../contexts/ServicesContext';
 
 type CreatePreviewPayload = {
   partyId: number;
@@ -7,6 +7,7 @@ type CreatePreviewPayload = {
 };
 
 export const useCreatePreviewInstanceMutation = (org: string, app: string) => {
+  const { createPreviewInstance } = useServicesContext();
   return useMutation({
     mutationFn: ({ partyId, taskId }: CreatePreviewPayload) =>
       createPreviewInstance(org, app, partyId, taskId),
