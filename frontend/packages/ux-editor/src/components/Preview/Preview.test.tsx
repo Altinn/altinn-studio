@@ -1,6 +1,6 @@
 import React from 'react';
 import { Preview } from './Preview';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import type { ExtendedRenderOptions } from '../../testing/mocks';
 import { renderWithProviders } from '../../testing/mocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -10,13 +10,12 @@ import { previewPage } from 'app-shared/api/paths';
 import { TASKID_FOR_STATELESS_APPS } from 'app-shared/constants';
 import { app, org } from '@studio/testing/testids';
 
-jest.mock('app-shared/api/mutations', () => ({
-  createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
-}));
-
 describe('Preview', () => {
-  it('Renders an iframe with the ref from AppContext', () => {
+  it('Renders an iframe with the ref from AppContext', async () => {
     render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
     expect(screen.getByTitle(textMock('ux_editor.preview'))).toBe(
       appContextMock.previewIframeRef.current,
     );
@@ -25,6 +24,9 @@ describe('Preview', () => {
   it('should be able to toggle between mobile and desktop view', async () => {
     const user = userEvent.setup();
     render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     const switchButton = screen.getByRole('checkbox', {
       name: textMock('ux_editor.mobilePreview'),
@@ -36,7 +38,7 @@ describe('Preview', () => {
     expect(switchButton).toBeChecked();
   });
 
-  it('should render a message when no page is selected', () => {
+  it('should render a message when no page is selected', async () => {
     render({
       appContextProps: {
         selectedFormLayoutName: undefined,
@@ -45,8 +47,11 @@ describe('Preview', () => {
     expect(screen.getByText(textMock('ux_editor.no_components_selected'))).toBeInTheDocument();
   });
 
-  it('Renders the information alert with preview being limited', () => {
+  it('Renders the information alert with preview being limited', async () => {
     render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     const previewLimitationsAlert = screen.getByText(textMock('preview.limitations_info'));
     expect(previewLimitationsAlert).toBeInTheDocument();
@@ -65,6 +70,9 @@ describe('Preview', () => {
   it('should be possible to toggle preview window', async () => {
     const user = userEvent.setup();
     const view = render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
 
     const hidePreviewButton = screen.getByRole('button', {
       name: textMock('ux_editor.close_preview'),
@@ -83,8 +91,16 @@ describe('Preview', () => {
     expect(showPreviewButton).not.toBeInTheDocument();
   });
 
+  it('shows a spinner when preview instance is loading', () => {
+    render();
+    expect(screen.getByTitle(textMock('preview.loading_preview_controller'))).toBeInTheDocument();
+  });
+
   it('reloads preview when the selected form layout name changes', async () => {
     render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
     expect(appContextMock.previewIframeRef?.current?.src).toBe(
       'http://localhost' +
         previewPage(
@@ -93,6 +109,7 @@ describe('Preview', () => {
           appContextMock.selectedFormLayoutSetName,
           TASKID_FOR_STATELESS_APPS,
           appContextMock.selectedFormLayoutName,
+          mockInstanceId,
         ),
     );
 
@@ -100,6 +117,9 @@ describe('Preview', () => {
     appContextMock.selectedFormLayoutName = newSelectedFormLayoutName;
 
     render();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('preview.loading_preview_controller')),
+    );
     expect(appContextMock.previewIframeRef.current.src).toBe(
       'http://localhost' +
         previewPage(
@@ -108,14 +128,24 @@ describe('Preview', () => {
           appContextMock.selectedFormLayoutSetName,
           TASKID_FOR_STATELESS_APPS,
           newSelectedFormLayoutName,
+          mockInstanceId,
         ),
     );
   });
 });
 
 const collapseToggle = jest.fn();
+const mockInstanceId = '1';
 
 export const render = (options: Partial<ExtendedRenderOptions> = {}) => {
+  options = {
+    ...options,
+    queries: {
+      createPreviewInstance: jest
+        .fn()
+        .mockImplementation(() => Promise.resolve({ id: mockInstanceId })),
+    },
+  };
   return renderWithProviders(
     <Preview collapsed={false} onCollapseToggle={collapseToggle} />,
     options,
