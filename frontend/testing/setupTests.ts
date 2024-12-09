@@ -11,6 +11,9 @@ import type { WithTranslationProps } from 'react-i18next';
 
 failOnConsole({
   shouldFailOnWarn: true,
+  silenceMessage(message) {
+    return /React Router Future Flag Warning/.test(message); // TODO: remove when react router has been updated to v7
+  },
 });
 
 Object.defineProperty(window, 'matchMedia', {
