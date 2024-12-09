@@ -30,7 +30,8 @@
     "tsc": "yarn gen && tsc && tsc --project test/tsconfig.json",
     "tsc:watch": "yarn gen && tsc --watch",
     "tsc:watch:cypress": "yarn gen && tsc --watch --project test/tsconfig.json",
-    "lint": "yarn gen && eslint ."
+    "lint": "yarn gen && eslint .",
+    "bench": "tsx --expose_gc --tsconfig benchmarks/tsconfig.json benchmarks/${0}"
   },
   "devDependencies": {
     "@babel/core": "7.26.0",
@@ -116,10 +117,12 @@
     "source-map-loader": "5.0.0",
     "style-loader": "4.0.0",
     "terser-webpack-plugin": "5.3.10",
+    "tinybench": "^3.0.3",
     "ts-jest": "29.2.5",
     "ts-loader": "9.5.1",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.19.2",
     "typescript-plugin-css-modules": "^5.1.0",
     "use-immer": "^0.10.0",
     "utility-types": "3.11.0",
