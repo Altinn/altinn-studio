@@ -5166,15 +5166,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.10.5":
-  version: 20.17.9
-  resolution: "@types/node@npm:20.17.9"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: 10/11604a47adf383892394a59a339136b2746a71addf4a3b13f661d23b6e81e8a4f3b35e69dbcffc94698368e5ab5ec056a43a86c87eff00b1b8ea8cfcbfe641df
-  languageName: node
-  linkType: hard
-
 "@types/parse-json@npm:^4.0.0":
   version: 4.0.0
   resolution: "@types/parse-json@npm:4.0.0"
@@ -14657,7 +14648,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
-    "@types/node": "npm:^20.10.5"
+    "@types/node": "npm:^22.0.0"
     dotenv: "npm:^16.3.1"
     ts-node: "npm:^10.9.2"
   languageName: unknown
@@ -14669,7 +14660,7 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.41.1"
     "@types/dotenv": "npm:^8.2.0"
-    "@types/node": "npm:^20.10.5"
+    "@types/node": "npm:^22.0.0"
     dotenv: "npm:^16.3.1"
     ts-node: "npm:^10.9.2"
   languageName: unknown
@@ -18097,13 +18088,6 @@ __metadata:
   version: 2.0.5
   resolution: "undefsafe@npm:2.0.5"
   checksum: 10/f42ab3b5770fedd4ada175fc1b2eb775b78f609156f7c389106aafd231bfc210813ee49f54483d7191d7b76e483bc7f537b5d92d19ded27156baf57592eb02cc
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: 10/cf0b48ed4fc99baf56584afa91aaffa5010c268b8842f62e02f752df209e3dea138b372a60a963b3b2576ed932f32329ce7ddb9cb5f27a6c83040d8cd74b7a70
   languageName: node
   linkType: hard
 
