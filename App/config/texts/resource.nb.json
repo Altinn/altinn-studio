@@ -2,8 +2,60 @@
   "language": "nb",
   "resources": [
     {
+      "id": "emails.email.title",
+      "value": "E-post"
+    },
+    {
+      "id": "emails.RepeatingGroup-oY9mdw.title",
+      "value": "E-poster"
+    },
+    {
+      "id": "emails",
+      "value": "E-post"
+    },
+    {
+      "id": "birthday.birthday.title",
+      "value": "Fødselsdag"
+    },
+    {
+      "id": "birthday",
+      "value": "Fødselsdag"
+    },
+    {
+      "id": "age.Input-K1eSVX.title",
+      "value": "Alder"
+    },
+    {
+      "id": "lastname",
+      "value": "Etternavn"
+    },
+    {
+      "id": "age",
+      "value": "Alder"
+    },
+    {
+      "id": "lastname.lastname.title",
+      "value": "Etternavn"
+    },
+    {
+      "id": "firstname",
+      "value": "Fornavn"
+    },
+    {
+      "id": "Side1.Input-bo3rac.title",
+      "value": "Fornavn"
+    },
+    {
       "id": "appName",
       "value": "navigation-test"
+    },
+    {
+      "id": "next",
+      "value": "Neste"
+    },
+    {
+      "id": "back",
+      "value": "Tilbake"
     }
   ]
 }
