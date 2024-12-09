@@ -1,0 +1,49 @@
+name: User Story 😃
+description: Create a new user story
+labels: ["kind/user-story", "status/draft"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        * Please make sure this user story hasn't been already submitted by someone by looking through other open/closed user stories.
+        * Consider the [INVEST](https://www.pivotaltracker.com/blog/how-to-invest-in-your-user-stories) qualities when writing the story
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Give us a brief WHO, WHAT, and WHY of this user story.
+    value: |
+      As a [persona], I want to [do something] so that [I can achieve a goal].
+    validations:
+      required: true
+
+  - type: textarea
+    id: design
+    attributes:
+      label: Design - Screenshots and Figma links
+      description: Add screenshots where relevant, and always link to the Figma design if available.
+
+  - type: textarea
+    id: additional-information
+    attributes:
+      label: Additional Information
+      description: Add more details as needed, like links, open questions, etc.
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      description: Add tasks to be done as part of this story.
+
+  - type: textarea
+    id: acceptance-criterias
+    attributes:
+      label: Acceptance Criterias
+      description: Define the acceptance criterias that this user story should testet against
+
+  - type: markdown
+    attributes:
+      value: |
+        * Check the [Definition of Ready](https://docs.altinn.studio/community/devops/definition-of-ready/) if you need hints on what to include.
+        * Remember to add the correct labels (status/*, org/*, ...)
