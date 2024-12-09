@@ -22,7 +22,6 @@ import {
 } from '@studio/icons';
 import { deepCompare, getAltinn2Reference, validateResource } from '../../utils/resourceUtils';
 import type { EnvId } from '../../utils/resourceUtils';
-import { deepCompare, getAltinn2Reference } from '../../utils/resourceUtils';
 import { ResourceAccessLists } from '../../components/ResourceAccessLists';
 import { AccessListDetail } from '../../components/AccessListDetails';
 import { useGetAccessListQuery } from '../../hooks/queries/useGetAccessListQuery';
