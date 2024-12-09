@@ -1804,7 +1804,7 @@
             "description": "OK"
           },
           "425": {
-            "description": "Client Error"
+            "description": "Too Early"
           },
           "500": {
             "description": "Internal Server Error"
