@@ -10,6 +10,7 @@ import type {
   ResourceContactPoint,
   SupportedLanguage,
   ResourceReference,
+  ResourceFormError,
 } from 'app-shared/types/ResourceAdm';
 import {
   availableForTypeMap,
@@ -17,7 +18,6 @@ import {
   mapKeywordStringToKeywordTypeArray,
   mapKeywordsArrayToString,
   resourceTypeMap,
-  validateResource,
 } from '../../utils/resourceUtils';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,8 +32,8 @@ import { ResourceReferenceFields } from '../../components/ResourceReferenceField
 import { AccessListEnvLinks } from '../../components/AccessListEnvLinks';
 
 export type AboutResourcePageProps = {
-  showAllErrors: boolean;
   resourceData: Resource;
+  validationErrors: ResourceFormError[];
   onSaveResource: (r: Resource) => void;
   id: string;
 };
@@ -42,7 +42,6 @@ export type AboutResourcePageProps = {
  * @component
  *    Page that displays information about a resource
  *
- * @property {boolean}[showAllErrors] - Flag to decide if all errors should be shown or not
  * @property {Resource}[resourceData] - The metadata for the resource
  * @property {function}[onSaveResource] - Function to be handled when saving the resource
  * @property {string}[id] - The id of the page
@@ -50,8 +49,8 @@ export type AboutResourcePageProps = {
  * @returns {React.JSX.Element} - The rendered component
  */
 export const AboutResourcePage = ({
-  showAllErrors,
   resourceData,
+  validationErrors,
   onSaveResource,
   id,
 }: AboutResourcePageProps): React.JSX.Element => {
@@ -92,8 +91,6 @@ export const AboutResourcePage = ({
   const handleSave = (res: Resource) => {
     onSaveResource(res);
   };
-
-  const validationErrors = showAllErrors ? validateResource(resourceData, t) : [];
 
   /**
    * Displays the content on the page
