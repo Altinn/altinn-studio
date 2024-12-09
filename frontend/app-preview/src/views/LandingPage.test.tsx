@@ -19,6 +19,10 @@ jest.mock('react-router-dom', () => ({
   }),
 }));
 
+jest.mock('app-shared/api/mutations', () => ({
+  createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
+}));
+
 const mockGetItem = jest.fn();
 
 Object.defineProperty(window, 'localStorage', {

@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -19,8 +20,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_CurrentParty_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/api/authorization/parties/current";
+            string dataPathWithData = $"{Org}/{AppV4}/api/authorization/parties/current";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

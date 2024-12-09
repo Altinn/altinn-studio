@@ -65,7 +65,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_Non_Existing_Folder_Returns_NotFound()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/images/subImagesFolder/SubSubImageFolder/AltinnD-logo.svg";
+            string dataPathWithData = $"{Org}/{AppV3Path}/images/subImagesFolder/SubSubImageFolder/AltinnD-logo.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -74,7 +74,7 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Image_Non_Existing_Image_Return_NotFound()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/images/subImagesFolder/non-existing-image.svg";
+            string dataPathWithData = $"{Org}/{AppV3Path}/images/subImagesFolder/non-existing-image.svg";
 
             using HttpResponseMessage response = await HttpClient.GetAsync(dataPathWithData);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
