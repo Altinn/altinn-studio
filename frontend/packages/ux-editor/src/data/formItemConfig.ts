@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { RefAttributes, SVGProps } from 'react';
+import { type RefAttributes, type SVGProps } from 'react';
 import { ComponentType, CustomComponentType } from 'app-shared/types/ComponentType';
 import { FormPanelVariant } from 'app-shared/types/FormPanelVariant';
 import {
@@ -564,8 +564,21 @@ export type ComponentCategory =
   | 'attachment'
   | 'advanced';
 
+export const defaultComponents: ComponentType[] = [
+  ComponentType.Input,
+  ComponentType.TextArea,
+  ComponentType.RadioButtons,
+  ComponentType.Dropdown,
+  ComponentType.Datepicker,
+  ComponentType.FileUpload,
+  ComponentType.Header,
+  ComponentType.Paragraph,
+  ComponentType.Button,
+];
+
 export const allComponents: KeyValuePairs<ComponentType[]> = {
   form: [ComponentType.Input, ComponentType.TextArea, ComponentType.Datepicker],
+  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
   select: [
     ComponentType.Checkboxes,
     ComponentType.RadioButtons,
@@ -573,7 +586,6 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.MultipleSelect,
     ComponentType.Likert,
   ],
-  text: [ComponentType.Header, ComponentType.Paragraph, ComponentType.Panel, ComponentType.Alert],
   info: [
     ComponentType.InstanceInformation,
     ComponentType.Image,
@@ -599,6 +611,7 @@ export const allComponents: KeyValuePairs<ComponentType[]> = {
     ComponentType.Grid,
     ComponentType.Accordion,
     ComponentType.AccordionGroup,
+    ComponentType.ButtonGroup,
     ComponentType.List,
     ComponentType.RepeatingGroup,
   ],
