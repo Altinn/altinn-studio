@@ -108,7 +108,7 @@ const PreviewFrame = () => {
     };
   }, [previewIframeRef]);
 
-  if (createInstancePending) {
+  if (createInstancePending || !instance) {
     return (
       <StudioCenter>
         {createInstanceError ? (
