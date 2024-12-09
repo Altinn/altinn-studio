@@ -102,7 +102,7 @@ describe('StudioCodelistEditor utils', () => {
       expect(isCodeListItemChanged(oldCodeList, newCodeList)).toBeTruthy();
     });
 
-    it('Returns false when the code list items are duplicate', () => {
+    it('Returns false when the code list items are identical', () => {
       const oldCodeList = testCodeList[0];
       const newCodeList = testCodeList[0];
       expect(isCodeListItemChanged(oldCodeList, newCodeList)).toBeFalsy();

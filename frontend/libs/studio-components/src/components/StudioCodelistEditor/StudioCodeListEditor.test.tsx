@@ -287,6 +287,14 @@ describe('StudioCodeListEditor', () => {
     await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
   });
+
+  it('Does not trigger onChange if the code list is not changed', async () => {
+    const user = userEvent.setup();
+    const mockOnChange = jest.fn();
+    renderCodeListEditor({ onChange: mockOnChange });
+    await user.tab();
+    expect(mockOnChange).not.toHaveBeenCalled();
+  });
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}) {
