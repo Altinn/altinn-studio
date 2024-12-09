@@ -2,7 +2,7 @@ import type { CodeList } from './types/CodeList';
 import {
   addEmptyCodeListItem,
   changeCodeListItem,
-  isCodeListItemDuplicate,
+  isCodeListItemChanged,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
@@ -80,7 +80,7 @@ describe('StudioCodelistEditor utils', () => {
     it('Returns the old code list item if there are no changes', () => {
       const codeList = createTestCodeList();
       const updatedCodeList = changeCodeListItem(codeList, 1, codeList[1]);
-      expect(updatedCodeList).toEqual(codeList);
+      expect(updatedCodeList).toBe(codeList);
     });
   });
 
@@ -95,17 +95,17 @@ describe('StudioCodelistEditor utils', () => {
     });
   });
 
-  describe('isCodeListItemDuplicate', () => {
-    it('Returns true when the code list items are duplicate', () => {
-      const oldCodeList = testCodeList[0];
-      const newCodeList = testCodeList[0];
-      expect(isCodeListItemDuplicate(oldCodeList, newCodeList)).toBeTruthy();
-    });
-
-    it('Return false when code list items are different', () => {
+  describe('isCodeListItemChanged', () => {
+    it('Return true when code list items are different', () => {
       const oldCodeList = testCodeList[0];
       const newCodeList = testCodeList[1];
-      expect(isCodeListItemDuplicate(oldCodeList, newCodeList)).toBeFalsy();
+      expect(isCodeListItemChanged(oldCodeList, newCodeList)).toBeTruthy();
+    });
+
+    it('Returns false when the code list items are duplicate', () => {
+      const oldCodeList = testCodeList[0];
+      const newCodeList = testCodeList[0];
+      expect(isCodeListItemChanged(oldCodeList, newCodeList)).toBeFalsy();
     });
   });
 });
