@@ -5365,7 +5365,8 @@
             "type": "boolean"
           },
           "allowInSubform": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true
           },
           "shadowFields": {
             "$ref": "#/components/schemas/ShadowFields"
