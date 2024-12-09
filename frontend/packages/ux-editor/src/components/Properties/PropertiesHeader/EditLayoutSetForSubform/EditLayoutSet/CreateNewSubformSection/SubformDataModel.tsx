@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StudioTextfield, StudioNativeSelect, StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ export type SubformDataModelProps = {
   setNewDataModel: (dataModelId: string) => void;
   displayDataModelInput: boolean;
   setSelectedDataModel: (dataModelId: string) => void;
+  setDataModelError?: (error: string | undefined) => void;
 };
 
 export const SubformDataModel = ({
@@ -21,6 +22,7 @@ export const SubformDataModel = ({
   setSelectedDataModel,
   setNewDataModel,
   displayDataModelInput,
+  setDataModelError,
 }: SubformDataModelProps): React.ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -32,6 +34,10 @@ export const SubformDataModel = ({
     dataModelIds,
     dataTypeNames,
   );
+
+  useEffect(() => {
+    setDataModelError(dataModelNameError);
+  }, [dataModelNameError, setDataModelError]);
 
   const handleDataModel = (dataModelId: string) => {
     validateName(dataModelId);

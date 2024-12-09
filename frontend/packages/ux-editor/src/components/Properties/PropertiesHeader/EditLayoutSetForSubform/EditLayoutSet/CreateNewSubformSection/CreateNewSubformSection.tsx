@@ -38,6 +38,7 @@ export const CreateNewSubformSection = ({
   const [selectedDataModel, setSelectedDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
   const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
+  const [dataModelError, setDataModelError] = useState<string>('');
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
@@ -70,6 +71,7 @@ export const CreateNewSubformSection = ({
 
   const hasInvalidSubformName = nameError === undefined || Boolean(nameError);
   const hasInvalidDataModel = displayDataModelInput ? !newDataModel : !selectedDataModel;
+  const disableSaveButton = hasInvalidSubformName || hasInvalidDataModel || Boolean(dataModelError);
 
   return (
     <StudioRecommendedNextAction
@@ -102,10 +104,11 @@ export const CreateNewSubformSection = ({
             setNewDataModel={setNewDataModel}
             displayDataModelInput={displayDataModelInput}
             setSelectedDataModel={setSelectedDataModel}
+            setDataModelError={setDataModelError}
           />
           <CreateNewSubformButtons
             isPendingNewSubformMutation={isPendingNewSubformMutation}
-            disableSaveButton={hasInvalidSubformName || hasInvalidDataModel}
+            disableSaveButton={disableSaveButton}
             displayCloseButton={hasSubforms || displayDataModelInput}
             handleCloseButton={handleCloseButton}
           />
