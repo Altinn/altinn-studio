@@ -5,12 +5,25 @@
       <xsd:attribute name="rootNode" fixed="" />
     </xs:documentation>
   </xs:annotation>
+  <xs:simpleType name="age">
+    <xs:restriction base="xs:string" />
+  </xs:simpleType>
   <xs:element name="model">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="property1" type="xs:string" />
-        <xs:element name="property2" type="xs:string" />
-        <xs:element minOccurs="0" name="property3" type="xs:string" />
+        <xs:element name="firstname" type="xs:string" />
+        <xs:element name="lastname" type="xs:string" />
+        <xs:element name="age" type="xs:long" />
+        <xs:element name="birthday" type="xs:date" />
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="emails">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="email" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element minOccurs="0" name="extra" type="xs:string" />
+        <xs:element minOccurs="0" name="feedback" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

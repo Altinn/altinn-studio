@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -11,20 +12,60 @@ namespace Altinn.App.Models.model
   [XmlRoot(ElementName="model")]
   public class model
   {
-    [XmlElement("property1", Order = 1)]
-    [JsonProperty("property1")]
-    [JsonPropertyName("property1")]
-    public string property1 { get; set; }
+    [XmlElement("firstname", Order = 1)]
+    [JsonProperty("firstname")]
+    [JsonPropertyName("firstname")]
+    public string firstname { get; set; }
 
-    [XmlElement("property2", Order = 2)]
-    [JsonProperty("property2")]
-    [JsonPropertyName("property2")]
-    public string property2 { get; set; }
+    [XmlElement("lastname", Order = 2)]
+    [JsonProperty("lastname")]
+    [JsonPropertyName("lastname")]
+    public string lastname { get; set; }
 
-    [XmlElement("property3", Order = 3)]
-    [JsonProperty("property3")]
-    [JsonPropertyName("property3")]
-    public string property3 { get; set; }
+    [Range(0d, 99d)]
+    [XmlElement("age", Order = 3)]
+    [JsonProperty("age")]
+    [JsonPropertyName("age")]
+    [Required]
+    public decimal? age { get; set; }
+
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
+    [XmlElement("birthday", Order = 4)]
+    [JsonProperty("birthday")]
+    [JsonPropertyName("birthday")]
+    public string birthday { get; set; }
+
+    [XmlElement("emails", Order = 5)]
+    [JsonProperty("emails")]
+    [JsonPropertyName("emails")]
+    public List<emails> emails { get; set; }
+
+    [XmlElement("extra", Order = 6)]
+    [JsonProperty("extra")]
+    [JsonPropertyName("extra")]
+    public string extra { get; set; }
+
+    [XmlElement("feedback", Order = 7)]
+    [JsonProperty("feedback")]
+    [JsonPropertyName("feedback")]
+    public string feedback { get; set; }
+
+  }
+
+  public class emails
+  {
+    [XmlAttribute("altinnRowId")]
+    [JsonPropertyName("altinnRowId")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [Newtonsoft.Json.JsonIgnore]
+    public Guid AltinnRowId { get; set; }
+
+    public bool ShouldSerializeAltinnRowId() => AltinnRowId != default;
+
+    [XmlElement("email", Order = 1)]
+    [JsonProperty("email")]
+    [JsonPropertyName("email")]
+    public string email { get; set; }
 
   }
 }
