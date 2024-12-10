@@ -8,7 +8,6 @@ import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeLi
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';
 import { toast } from 'react-toastify';
-import { FILE_NAME_REGEX } from '../../../../../constants';
 
 type CodeListsActionsBarProps = {
   onUploadCodeList: (updatedCodeList: File) => void;
@@ -28,7 +27,6 @@ export function CodeListsActionsBar({
     const fileNameError = FileNameUtils.findFileNameError(
       FileNameUtils.removeExtension(file.name),
       codeListNames,
-      FILE_NAME_REGEX,
     );
     if (fileNameError) {
       return toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));

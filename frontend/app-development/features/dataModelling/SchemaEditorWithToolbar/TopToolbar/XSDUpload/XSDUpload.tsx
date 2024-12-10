@@ -1,6 +1,7 @@
 import React from 'react';
 import type { StudioButtonProps } from '@studio/components';
 import { StudioFileUploader, StudioSpinner } from '@studio/components';
+import type { FileNameErrorResult } from '@studio/pure-functions';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useTranslation } from 'react-i18next';
 import { useUploadDataModelMutation } from '../../../../../hooks/mutations/useUploadDataModelMutation';
@@ -14,9 +15,11 @@ import { useValidationAlert } from './useValidationAlert';
 import {
   doesFileExistInMetadataWithClassRef,
   doesFileExistInMetadataWithoutClassRef,
+  extractDataTypeNamesFromAppMetadata,
   findFileNameError,
 } from '../utils/validationUtils';
 import type { FileNameError } from '../types/FileNameError';
+import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
 
 export interface XSDUploadProps {
   selectedOption?: MetadataOption;
@@ -43,7 +46,12 @@ export const XSDUpload = ({
   const uploadButton = React.useRef(null);
 
   const handleSubmit = (file: File): void => {
-    const fileNameError = findFileNameError(file.name, appMetadata);
+    const occupiedDataModelNames = extractDataTypeNamesFromAppMetadata(appMetadata);
+    const fileNameError = FileNameUtils.findFileNameErrorByGivenRegEx(
+      FileNameUtils.removeExtension(file.name),
+      occupiedDataModelNames,
+      DATA_MODEL_NAME_REGEX,
+    );
     if (fileNameError) {
       handleInvalidFileName(file, fileNameError);
       uploadButton.current.value = '';
@@ -61,10 +69,8 @@ export const XSDUpload = ({
     });
   };
 
-  const handleInvalidFileName = (file: File, fileNameError: FileNameError): void => {
-    if (fileNameError) {
-      validationAlert(fileNameError);
-    }
+  const handleInvalidFileName = (file: File, fileNameError: FileNameErrorResult): void => {
+    validationAlert(fileNameError);
     const fileNameWithoutExtension = FileNameUtils.removeExtension(file.name);
     if (doesFileExistInMetadataWithClassRef(appMetadata, fileNameWithoutExtension)) {
       const userConfirmed = window.confirm(
