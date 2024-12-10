@@ -128,6 +128,7 @@ public class OptionsService : IOptionsService
         }
     }
 
+    /// <inheritdoc />
     public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId,
         string newOptionsListName, CancellationToken cancellationToken = default)
     {

@@ -61,7 +61,7 @@ public interface IOptionsService
     /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
-    /// <param name="optionsListId">Name of the new options list</param>
+    /// <param name="optionsListId">Name of the options list</param>
     public void DeleteOptionsList(string org, string repo, string developer, string optionsListId);
 
     /// <summary>
@@ -78,7 +78,7 @@ public interface IOptionsService
     /// Updates the name of the options list by changing the filename.
     /// </summary>
     /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-    /// <param name="optionsListId">Name of the new options list</param>
+    /// <param name="optionsListId">Name of the options list</param>
     /// <param name="newOptionsListId">The new name of the options list file.</param>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
     public void UpdateOptionsListId(AltinnRepoEditingContext altinnRepoEditingContext, string optionsListId, string newOptionsListId, CancellationToken cancellationToken = default);
