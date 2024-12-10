@@ -1,15 +1,16 @@
 import type { PagesConfig } from '../src/types/PagesProps';
-import type { OnGetCodeListResult } from '../src';
+import type { UseLibraryQuery } from '../src/types/useLibraryQuery';
+import type { CodeList } from '@studio/components';
 
-const onGetCodeListResult = (codeListId: string): OnGetCodeListResult => {
-  return { codeListWithMetadata: { title: codeListId, codeList: [] }, isError: false };
+const getCodeListMock: UseLibraryQuery<CodeList, string> = (optionListId: string) => {
+  return { data: [], isError: false };
 };
 
 export const mockPagesConfig: PagesConfig = {
   codeList: {
     props: {
       codeListIds: ['CodeList1', 'CodeList2'],
-      onGetCodeList: onGetCodeListResult,
+      getCodeList: getCodeListMock,
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
     },

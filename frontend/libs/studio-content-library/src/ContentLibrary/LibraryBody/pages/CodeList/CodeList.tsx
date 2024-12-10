@@ -20,13 +20,11 @@ export type OnGetCodeListResult = {
 
 export type CodeListProps = {
   codeListIds: string[];
-  onGetCodeList: (codeListId: string) => OnGetCodeListResult;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
 };
 export function CodeList({
   codeListIds,
-  onGetCodeList,
   onUpdateCodeList,
   onUploadCodeList,
 }: CodeListProps): React.ReactElement {
@@ -45,7 +43,7 @@ export function CodeList({
       />
       <CodeLists
         codeListIds={codeListIds}
-        onGetCodeList={onGetCodeList}
+        getCodeList={getCodeList}
         onUpdateCodeList={onUpdateCodeList}
       />
     </div>

@@ -1,8 +1,7 @@
-import type { CodeListWithMetadata, OnGetCodeListResult } from '@studio/content-library';
+import type { CodeListWithMetadata } from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import React from 'react';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { convertOptionsListToCodeListResult } from './utils/convertOptionsListToCodeListResult';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
@@ -31,11 +30,6 @@ export function AppContentLibrary(): React.ReactElement {
   if (optionListIdsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
-  const handleGetOptionList = (optionListId: string): OnGetCodeListResult => {
-    const { data: optionList, isError: optionListError } = getOptionList(optionListId);
-    return convertOptionsListToCodeListResult(optionListId, optionList, optionListError);
-  };
-
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
@@ -58,7 +52,7 @@ export function AppContentLibrary(): React.ReactElement {
       codeList: {
         props: {
           codeListIds: optionListIds,
-          onGetCodeList: handleGetOptionList,
+          getCodeList: getOptionList,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
         },

@@ -6,8 +6,9 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeList';
 import type { UserEvent } from '@testing-library/user-event';
 import type { RenderResult } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
+import userEvent from '@testing-library/user-event';
+import type { CodeList } from '@studio/components';
 
 const codeListName = 'codeList';
 const codeListWithMetadataMock: CodeListWithMetadata = {
@@ -50,10 +51,7 @@ describe('CodeLists', () => {
   });
 
   it('renders error message if error fetching an option list occurred', () => {
-    const onGetCodeList = jest.fn((codeListId: string) => {
-      return { codeListWithMetadata: { title: codeListId, codeList: undefined }, isError: true };
-    });
-    renderCodeLists({ onGetCodeList });
+    renderCodeLists({ getCodeList });
     const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });
