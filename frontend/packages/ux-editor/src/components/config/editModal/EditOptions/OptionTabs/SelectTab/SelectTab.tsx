@@ -15,7 +15,6 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 import { toast } from 'react-toastify';
 import classes from './SelectTab.module.css';
-import { FILE_NAME_REGEX } from 'app-shared/constants';
 
 export function SelectTab<T extends SelectionComponentType>({
   component,
@@ -43,7 +42,6 @@ export function SelectTab<T extends SelectionComponentType>({
     const fileNameError = FileNameUtils.findFileNameError(
       FileNameUtils.removeExtension(file.name),
       optionListIds,
-      FILE_NAME_REGEX,
     );
     if (fileNameError) handleInvalidFileName(fileNameError);
     else handleUpload(file);
