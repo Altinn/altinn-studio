@@ -1839,7 +1839,7 @@
   "ux_editor.upload_file_error_too_large": "Kunne ikke laste opp filen. Den er for stor.",
   "ux_editor.url_label": "Lenke",
   "ux_editor.warning": "Advarsel",
-  "validation_errors.file_name_invalid": "Filnavnet er ugyldig. Du kan bruke tall, understrek, punktum, bindestrek, og store/små bokstaver fra det norske alfabetet. Filnavnet må starte med en engelsk bokstav.",
+  "validation_errors.file_name_invalid": "Filnavnet er ugyldig. Du kan bruke tall, understrek, bindestrek, og store/små bokstaver fra det engelske alfabetet.",
   "validation_errors.file_name_occupied": "Det finnes allerede en kodeliste med det navnet. Bruk et annet navn.",
   "validation_errors.length": "Antall tillatte tegn er {{0}}.",
   "validation_errors.max": "Største gyldig verdi er {{0}}.",

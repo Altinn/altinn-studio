@@ -13,6 +13,7 @@ import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
+import { FILE_NAME_REGEX } from '../../../../../../constants';
 
 type CreateNewCodeListModalProps = {
   onUpdateCodeList: (codeListWithMetadata: CodeListWithMetadata) => void;
@@ -84,7 +85,11 @@ function CreateNewCodeList({
   };
 
   const handleCodeListTitleChange = (updatedTitle: string) => {
-    const fileNameError = FileNameUtils.findFileNameError(updatedTitle, codeListNames);
+    const fileNameError = FileNameUtils.findFileNameError(
+      updatedTitle,
+      codeListNames,
+      FILE_NAME_REGEX,
+    );
     const errorMessage = getInvalidInputFileNameErrorMessage(fileNameError);
     setCodeListTitleError(errorMessage ?? '');
     if (!fileNameError) {

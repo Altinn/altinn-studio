@@ -1,4 +1,5 @@
+import { FILE_NAME_REGEX } from 'app-shared/constants';
+
 export const validateLayoutNameAndLayoutSetName = (candidateName: string): boolean | string => {
-  const nameRegex = /^[a-zA-Z0-9_\-\\.]*$/;
-  return !!candidateName.match(nameRegex);
+  return !!candidateName.match(FILE_NAME_REGEX);
 };
