@@ -10,6 +10,7 @@ export type CodeListsProps = {
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
+  codeListNames: string[];
 };
 
 export function CodeLists({
@@ -17,6 +18,7 @@ export function CodeLists({
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListInEditMode,
+  codeListNames,
 }: CodeListsProps) {
   return codeLists.map((codeList) => (
     <CodeList
@@ -25,6 +27,7 @@ export function CodeLists({
       onUpdateCodeListId={onUpdateCodeListId}
       onUpdateCodeList={onUpdateCodeList}
       codeListInEditMode={codeListInEditMode}
+      codeListNames={codeListNames}
     />
   ));
 }
@@ -34,6 +37,7 @@ type CodeListProps = {
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
+  codeListNames: string[];
 };
 
 function CodeList({
@@ -41,6 +45,7 @@ function CodeList({
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListInEditMode,
+  codeListNames,
 }: CodeListProps) {
   const { t } = useTranslation();
 
@@ -58,6 +63,7 @@ function CodeList({
             codeList={codeList}
             onUpdateCodeListId={onUpdateCodeListId}
             onUpdateCodeList={onUpdateCodeList}
+            codeListNames={codeListNames}
           />
         </Accordion.Content>
       </Accordion.Item>

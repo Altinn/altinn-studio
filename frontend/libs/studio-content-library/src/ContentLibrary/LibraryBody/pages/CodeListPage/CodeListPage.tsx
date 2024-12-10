@@ -33,7 +33,7 @@ export function CodeListPage({
 
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
-  
+
   const codeListTitles = ArrayUtils.mapByKey<CodeListWithMetadata, 'title'>(codeLists, 'title');
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
@@ -60,6 +60,7 @@ export function CodeListPage({
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
+        codeListNames={codeListTitles}
       />
     </div>
   );

@@ -6,21 +6,26 @@ import type { CodeListWithMetadata } from '../../CodeList';
 import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
 import {updateCodeListWithMetadata} from "../CodeLists";
+import { FileNameUtils } from '@studio/pure-functions';
+import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 
 export type EditCodeListProps = {
   codeList: CodeListWithMetadata;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
+  codeListNames: string[];
 };
 
 export function EditCodeList({
   codeList,
   onUpdateCodeListId,
   onUpdateCodeList,
+  codeListNames,
 }: EditCodeListProps): React.ReactElement {
   const { t } = useTranslation();
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-  
+  const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
+
   const handleUpdateCodeListId = (newCodeListId: string) => {
     if (newCodeListId !== codeList.title) onUpdateCodeListId(codeList.title, newCodeListId);
   };
@@ -30,9 +35,15 @@ export function EditCodeList({
         onUpdateCodeList(updatedCodeListWithMetadata);
     };
 
+  const handleValidateCodeListId = (newCodeListId: string) => {
+    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, codeListNames);
+    return getInvalidInputFileNameErrorMessage(fileNameError);
+  };
+
   return (
     <>
       <StudioToggleableTextfield
+        customValidation={handleValidateCodeListId}
         inputProps={{
           icon: <KeyVerticalIcon />,
           title: t('app_content_library.code_lists.code_list_edit_id_title', {

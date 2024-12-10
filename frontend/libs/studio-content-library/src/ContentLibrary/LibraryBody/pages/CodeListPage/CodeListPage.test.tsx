@@ -109,7 +109,7 @@ describe('CodeListPage', () => {
     const newValueText = 'newValueText';
     renderCodeListPage();
     await changeCodeListContent(user, newValueText);
-    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(newValueText.length);
+    expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
       ...codeListWithMetadataMock,
       codeList: [{ ...codeListWithMetadataMock.codeList[0], value: newValueText }],
@@ -146,6 +146,7 @@ const changeCodeListContent = async (user: UserEvent, newValueText: string) => {
       textMock('code_list_editor.value_item', { number: 1 }),
   );
   await user.type(codeListFirstItemValue, newValueText);
+  await user.tab();
 };
 
 const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeListName) => {
