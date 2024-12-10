@@ -6,8 +6,7 @@ import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
-import { ArrayUtils } from '@studio/pure-functions';
-import { FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 
 export type CodeListWithMetadata = {
   codeList: StudioComponentCodeList;

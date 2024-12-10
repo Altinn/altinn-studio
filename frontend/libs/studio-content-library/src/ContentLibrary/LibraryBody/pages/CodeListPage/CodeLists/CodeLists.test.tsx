@@ -5,6 +5,7 @@ import { updateCodeListWithMetadata, CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeListPage';
 import type { RenderResult } from '@testing-library/react';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 
@@ -17,6 +18,8 @@ const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
 describe('CodeLists', () => {
+  afterEach(jest.clearAllMocks);
+
   it('renders the code list accordion closed by default', () => {
     renderCodeLists();
     const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: false });
@@ -56,23 +59,45 @@ describe('CodeLists', () => {
   it('calls onUpdateCodeListId when changing the code list id', async () => {
     const user = userEvent.setup();
     renderCodeLists();
-    const codeListIdToggleTextfield = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_view_id_title', {
-        codeListName: codeListName,
-      }),
-    );
-    await user.click(codeListIdToggleTextfield);
-    const codeListIdInput = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_edit_id_title', {
-        codeListName: codeListName,
-      }),
-    );
-    await user.type(codeListIdInput, '2');
-    await user.tab();
+    await changeCodeListId(user, codeListName, codeListName + '2');
     expect(onUpdateCodeListIdMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListIdMock).toHaveBeenLastCalledWith(codeListName, codeListName + '2');
   });
+
+  it('shows error message when assigning an invalid id to the code list', async () => {
+    const user = userEvent.setup();
+    const invalidCodeListName = 'invalidCodeListName';
+    renderCodeLists({ codeListNames: [invalidCodeListName] });
+    await changeCodeListId(user, codeListName, invalidCodeListName);
+    const errorMessage = screen.getByText(textMock('validation_errors.file_name_occupied'));
+    expect(errorMessage).toBeInTheDocument();
+  });
+
+  it('does not call onUpdateCodeListId when assigning an invalid id to the code list', async () => {
+    const user = userEvent.setup();
+    const invalidCodeListName = 'invalidCodeListName';
+    renderCodeLists({ codeListNames: [invalidCodeListName] });
+    await changeCodeListId(user, codeListName, invalidCodeListName);
+    expect(onUpdateCodeListIdMock).not.toHaveBeenCalled();
+  });
 });
+
+const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
+  const codeListIdToggleTextfield = screen.getByTitle(
+    textMock('app_content_library.code_lists.code_list_view_id_title', {
+      codeListName: oldCodeListId,
+    }),
+  );
+  await user.click(codeListIdToggleTextfield);
+  const codeListIdInput = screen.getByTitle(
+    textMock('app_content_library.code_lists.code_list_edit_id_title', {
+      codeListName: oldCodeListId,
+    }),
+  );
+  await user.clear(codeListIdInput);
+  await user.type(codeListIdInput, newCodeListId);
+  await user.tab();
+};
 
 const defaultProps: CodeListsProps = {
   codeLists: [codeListWithMetadataMock],
