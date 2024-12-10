@@ -23,14 +23,7 @@ describe('RouterRouteMapperImpl', () => {
 
   it('should include configured routes only', () => {
     const routerMapper = new RouterRouteMapperImpl({
-      codeList: {
-        props: {
-          codeLists: [],
-          onUpdateCodeList: () => {},
-          onUploadCodeList: () => {},
-          fetchDataError: false,
-        },
-      },
+      codeList: mockPagesConfig.codeList,
     });
     const routes = routerMapper.configuredRoutes;
     expect(routes.has('codeList')).toBeTruthy();
