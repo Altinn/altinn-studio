@@ -194,7 +194,7 @@ describe('CreateCustomReceiptForm', () => {
 
     await user.type(inputField, invalidFormatLayoutSetName);
 
-    const error = screen.getByText(textMock('ux_editor.pages_error_format'));
+    const error = screen.getByText(textMock('validation_errors.file_name_invalid'));
     expect(error).toBeInTheDocument();
 
     const button = screen.getByRole('button', {
