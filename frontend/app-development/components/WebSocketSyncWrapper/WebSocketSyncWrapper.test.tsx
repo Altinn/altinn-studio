@@ -68,7 +68,7 @@ describe('WebSocketSyncWrapper', () => {
     const queryClientMock = createQueryClientMock();
     const invalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
-    invalidator.invalidateQueryByFileLocation = jest.fn();
+    invalidator.invalidateQueriesByFileLocation = jest.fn();
     const mockOnWSMessageReceived = jest
       .fn()
       .mockImplementation((callback: Function) => callback(syncSuccessMock));
@@ -80,7 +80,7 @@ describe('WebSocketSyncWrapper', () => {
 
     renderWebSocketSyncWrapper();
     await waitFor(() => {
-      expect(invalidator.invalidateQueryByFileLocation).toHaveBeenCalledWith(
+      expect(invalidator.invalidateQueriesByFileLocation).toHaveBeenCalledWith(
         syncSuccessMock.source.name,
       );
     });

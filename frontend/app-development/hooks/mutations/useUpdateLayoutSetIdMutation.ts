@@ -16,6 +16,7 @@ export const useUpdateLayoutSetIdMutation = (org: string, app: string) => {
     }) => updateLayoutSetId(org, app, layoutSetIdToUpdate, newLayoutSetId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSets, org, app] });
+      queryClient.invalidateQueries({ queryKey: [QueryKey.LayoutSetsExtended, org, app] });
     },
   });
 };

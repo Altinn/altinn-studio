@@ -19,12 +19,12 @@ describe('SyncSuccessQueriesInvalidator', () => {
     jest.clearAllMocks();
   });
 
-  it('should invalidate query cache only once when invalidateQueryByFileLocation is called', async () => {
+  it('should invalidate query cache only once when invalidateQueriesByFileLocation is called', async () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
     const fileName = 'applicationmetadata.json';
-    queriesInvalidator.invalidateQueryByFileLocation(fileName);
-    queriesInvalidator.invalidateQueryByFileLocation(fileName);
+    queriesInvalidator.invalidateQueriesByFileLocation(fileName);
+    queriesInvalidator.invalidateQueriesByFileLocation(fileName);
     await waitFor(() =>
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
         queryKey: [QueryKey.AppMetadata, org, app],
@@ -33,22 +33,22 @@ describe('SyncSuccessQueriesInvalidator', () => {
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
   });
 
-  it('should not invalidate query cache when invalidateQueryByFileLocation is called with an unknown file name', async () => {
+  it('should not invalidate query cache when invalidateQueriesByFileLocation is called with an unknown file name', async () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
 
     const fileName = 'unknown.json';
-    queriesInvalidator.invalidateQueryByFileLocation(fileName);
+    queriesInvalidator.invalidateQueriesByFileLocation(fileName);
 
     await new Promise((resolve) => setTimeout(resolve, 501));
     expect(queryClientMock.invalidateQueries).not.toHaveBeenCalled();
   });
 
-  it('should invalidate query cache with layoutSetName identifier when invalidateQueryByFileLocation is called and layoutSetName has been set', async () => {
+  it('should invalidate query cache with layoutSetName identifier when invalidateQueriesByFileLocation is called and layoutSetName has been set', async () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
     queriesInvalidator.layoutSetName = selectedLayoutSet;
 
     const fileName = 'Settings.json';
-    queriesInvalidator.invalidateQueryByFileLocation(fileName);
+    queriesInvalidator.invalidateQueriesByFileLocation(fileName);
 
     await waitFor(() => {
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
@@ -58,12 +58,12 @@ describe('SyncSuccessQueriesInvalidator', () => {
     expect(queryClientMock.invalidateQueries).toHaveBeenCalledTimes(1);
   });
 
-  it('should invalidate layouts query cache with layoutSetName identifier when invalidateQueryByFileLocation is called and layoutSetName has been set', async () => {
+  it('should invalidate layouts query cache with layoutSetName identifier when invalidateQueriesByFileLocation is called and layoutSetName has been set', async () => {
     const queriesInvalidator = SyncSuccessQueriesInvalidator.getInstance(queryClientMock, org, app);
     queriesInvalidator.layoutSetName = selectedLayoutSet;
 
     const folderName = 'layouts';
-    queriesInvalidator.invalidateQueryByFileLocation(folderName);
+    queriesInvalidator.invalidateQueriesByFileLocation(folderName);
 
     await waitFor(() =>
       expect(queryClientMock.invalidateQueries).toHaveBeenCalledWith({
