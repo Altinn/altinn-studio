@@ -31,7 +31,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
     expect(addNewOverrideButton()).toBeInTheDocument();
 
-    expect(componentTargetSelect()).toBeInTheDocument();
+    expect(disabledLayoutSetTargetSelect()).toBeInTheDocument();
   });
 
   it('should select the task id from the current layout when the task id of the target is not defined', async () => {
@@ -52,7 +52,9 @@ describe('Summary2ComponentTargetSelector', () => {
 
   it('should allow selecting a task id', async () => {
     const user = userEvent.setup();
-    render();
+    render({
+      component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
+    });
 
     await user.selectOptions(targetTaskIdSelect(), 'Task_2');
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
@@ -62,7 +64,9 @@ describe('Summary2ComponentTargetSelector', () => {
 
   it('should remove the task id from the target if the task id is the same as the current layout set', async () => {
     const user = userEvent.setup();
-    render();
+    render({
+      component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
+    });
 
     await user.selectOptions(targetTaskIdSelect(), 'Task_1');
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
@@ -70,14 +74,11 @@ describe('Summary2ComponentTargetSelector', () => {
     );
   });
 
-  it('should allow selecting page target and defaults to same page', async () => {
-    const user = userEvent.setup();
+  it('should defaults to page target and disabled target select', async () => {
     render();
-
-    await user.selectOptions(targetTypeSelect(), 'page');
-    expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'page', id: layout1NameMock } }),
-    );
+    expect(targetTypeSelect()).toHaveValue('layoutSet');
+    expect(disabledLayoutSetTargetSelect()).toBeDisabled();
+    expect(disabledLayoutSetTargetSelect()).toHaveValue(layoutSet1NameMock);
   });
 
   it('should allow selecting layoutSet target', async () => {
@@ -92,8 +93,11 @@ describe('Summary2ComponentTargetSelector', () => {
 
   it('should allow selecting component target', async () => {
     const user = userEvent.setup();
-    render();
+    render({
+      component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
+    });
 
+    await user.selectOptions(targetTypeSelect(), 'component');
     const componentId = component1IdMock;
 
     await user.click(componentTargetSelect());
@@ -170,12 +174,17 @@ const targetTypeSelect = () =>
 
 const componentTargetSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('general.component'),
+    name: textMock('ux_editor.component_properties.target_unit_component'),
   });
 
 const pageTargetSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('general.page'),
+    name: textMock('ux_editor.component_properties.target_unit_page'),
+  });
+
+const disabledLayoutSetTargetSelect = () =>
+  screen.getByRole('textbox', {
+    name: textMock('ux_editor.component_properties.target_unit_layout_set'),
   });
 
 const addNewOverrideButton = () =>
