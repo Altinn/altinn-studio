@@ -10,7 +10,7 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 const mockResource1: Resource = {
   identifier: 'r1',
@@ -25,6 +25,11 @@ const mockResource1: Resource = {
     { reference: '1', referenceType: 'ServiceCode', referenceSource: 'Altinn2' },
     { reference: '2', referenceType: 'ServiceEditionCode', referenceSource: 'Altinn2' },
   ],
+  delegable: false,
+  resourceType: 'GenericAccessResource',
+  status: 'Completed',
+  contactPoints: [{ category: 'test', contactPage: '', email: '', telephone: '' }],
+  availableForType: ['Company'],
 };
 
 const mockResource2: Resource = {
@@ -55,11 +60,6 @@ describe('ResourcePage', () => {
   it('fetches validate policy on mount', () => {
     renderResourcePage();
     expect(queriesMock.getValidatePolicy).toHaveBeenCalledTimes(1);
-  });
-
-  it('fetches validate resource on mount', () => {
-    renderResourcePage();
-    expect(queriesMock.getValidateResource).toHaveBeenCalledTimes(1);
   });
 
   it('fetches resource on mount', () => {
@@ -93,7 +93,7 @@ describe('ResourcePage', () => {
   });
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
-    addFeatureFlagToLocalStorage('resourceMigration');
+    addFeatureFlagToLocalStorage(FeatureFlag.ResourceMigration);
 
     const getResource = jest
       .fn()
@@ -183,14 +183,8 @@ describe('ResourcePage', () => {
     const getResource = jest
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
-    const getValidateResource = jest.fn().mockImplementation(() =>
-      Promise.resolve({
-        status: 200,
-        errors: {},
-      }),
-    );
 
-    renderResourcePage({ getResource, getValidateResource });
+    renderResourcePage({ getResource });
     await waitForElementToBeRemoved(() =>
       screen.queryByTitle(textMock('resourceadm.about_resource_spinner')),
     );

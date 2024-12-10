@@ -1,8 +1,6 @@
 export {
   mapLanguageKeyToLanguageText,
   getMissingInputLanguageString,
-  getIsActiveTab,
-  createNavigationTab,
   getResourceIdentifierErrorMessage,
   deepCompare,
   getAvailableEnvironments,
@@ -14,5 +12,6 @@ export {
   resourceTypeMap,
   validateResource,
   getAltinn2Reference,
+  getMigrationErrorMessage,
 } from './resourceUtils';
 export type { EnvId, Environment } from './resourceUtils';

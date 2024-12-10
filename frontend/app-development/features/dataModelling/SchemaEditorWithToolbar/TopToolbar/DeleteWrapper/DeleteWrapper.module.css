@@ -1,0 +1,4 @@
+.popover {
+  /* This is so that popovers goes above the header which has an z-index of 2000 */
+  z-index: 2001;
+}

@@ -5,10 +5,10 @@ import { Fieldset } from '@digdir/designsystemet-react';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
 import { SelectDataFieldBinding } from './SelectDataFieldBinding';
 import {
-  type InternalBindingFormat,
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
+  type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';

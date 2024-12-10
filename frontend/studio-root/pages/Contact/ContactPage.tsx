@@ -1,16 +1,19 @@
 import React from 'react';
 import classes from './ContactPage.module.css';
-import { Heading, Link, Paragraph } from '@digdir/designsystemet-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
-import classNames from 'classnames';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
   EmailContactProvider,
   GitHubIssueContactProvider,
   SlackContactProvider,
 } from 'app-shared/getInTouch/providers';
-import { StudioPageImageBackgroundContainer } from '@studio/components';
+import {
+  StudioPageImageBackgroundContainer,
+  StudioHeading,
+  StudioParagraph,
+} from '@studio/components';
+import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -18,64 +21,57 @@ export const ContactPage = (): React.ReactElement => {
   const contactBySlack = new GetInTouchWith(new SlackContactProvider());
   const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
+  const contactSections: Array<ContactSectionProps> = [
+    {
+      title: t('contact.email.heading'),
+      description: t('contact.email.content'),
+      link: {
+        name: t('general.service_desk.email'),
+        href: contactByEmail.url('serviceDesk'),
+      },
+      Icon: EnvelopeClosedIcon,
+    },
+    {
+      title: t('contact.slack.heading'),
+      description: t('contact.slack.content'),
+      additionalContent: (
+        <StudioParagraph spacing asChild>
+          <ul>
+            <Trans i18nKey='contact.slack.content_list'>
+              <li />
+            </Trans>
+          </ul>
+        </StudioParagraph>
+      ),
+      link: {
+        name: t('contact.slack.link'),
+        href: contactBySlack.url('product-altinn-studio'),
+      },
+      Icon: SlackIcon,
+    },
+    {
+      title: t('contact.github_issue.heading'),
+      description: t('contact.github_issue.content'),
+      link: {
+        name: t('contact.github_issue.link_label'),
+        href: contactByGitHubIssue.url('choose'),
+      },
+      Icon: GitHubIcon,
+    },
+  ];
+
   return (
     <StudioPageImageBackgroundContainer image='/designer/img/page-background.svg'>
       <div className={classes.container}>
         <div className={classes.content}>
           <div>
-            <Heading size='medium' spacing>
+            <StudioHeading size='medium' spacing>
               {t('general.contact')}
-            </Heading>
+            </StudioHeading>
           </div>
-          <section className={classes.section}>
-            <div className={classes.iconContainer}>
-              <EnvelopeClosedIcon className={classes.icon} />
-            </div>
-            <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall' spacing>
-                {t('contact.email.heading')}
-              </Heading>
-              <Paragraph spacing>{t('contact.email.content')}</Paragraph>
-              <Link href={contactByEmail.url('serviceDesk')}>
-                {t('general.service_desk.email')}
-              </Link>
-            </div>
-          </section>
-          <section className={classes.section}>
-            <div className={classes.iconContainer}>
-              <SlackIcon className={classes.icon} />
-            </div>
-            <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall' spacing>
-                {t('contact.slack.heading')}
-              </Heading>
-              <Paragraph spacing>{t('contact.slack.content')}</Paragraph>
-              <Paragraph spacing asChild>
-                <ul>
-                  <Trans i18nKey='contact.slack.content_list'>
-                    <li />
-                  </Trans>
-                </ul>
-              </Paragraph>
-              <Link href={contactBySlack.url('product-altinn-studio')}>
-                {t('contact.slack.link')}
-              </Link>
-            </div>
-          </section>
-          <section className={classes.section}>
-            <div className={classNames(classes.iconContainer)}>
-              <GitHubIcon className={classes.icon} />
-            </div>
-            <div className={classes.textContainer}>
-              <Heading level={2} size='xsmall' spacing>
-                {t('contact.github_issue.heading')}
-              </Heading>
-              <Paragraph spacing>{t('contact.github_issue.content')}</Paragraph>
-              <Link href={contactByGitHubIssue.url('choose')}>
-                {t('contact.github_issue.link_label')}
-              </Link>
-            </div>
-          </section>
+          {contactSections.map((contactSection) => (
+            <ContactSection {...contactSection} key={contactSection.title} />
+          ))}
         </div>
       </div>
     </StudioPageImageBackgroundContainer>

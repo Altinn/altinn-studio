@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AnsattportenLogin } from './AnsattportenLogin';
+import { AnsattportenLogin, getRedirectUrl } from './AnsattportenLogin';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 jest.mock('app-shared/api/paths');
@@ -40,10 +40,22 @@ describe('AnsattportenLogin', () => {
   });
 });
 
+describe('getRedirectUrl', () => {
+  it('should build and return correct redirect url', () => {
+    mockWindowLocationHref();
+    const result = getRedirectUrl();
+    expect(result).toBe('/path/to/page?openSettingsModalWithTab=maskinporten');
+  });
+});
+
 function mockWindowLocationHref(): jest.Mock {
   const hrefMock = jest.fn();
   delete window.location;
-  window.location = { href: '' } as Location;
+  window.location = {
+    href: '',
+    origin: 'https://unit-test-com',
+    pathname: '/path/to/page',
+  } as Location;
   Object.defineProperty(window.location, 'href', {
     set: hrefMock,
   });
