@@ -7,7 +7,7 @@ import { DeploymentEnvironmentLogList } from './DeploymentEnvironmentLogList';
 import type { PipelineDeployment } from 'app-shared/types/api/PipelineDeployment';
 import type { KubernetesDeployment } from 'app-shared/types/api/KubernetesDeployment';
 import { BuildResult } from 'app-shared/types/Build';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 export interface DeploymentEnvironmentProps {
   pipelineDeploymentList: PipelineDeployment[];
@@ -52,7 +52,7 @@ export const DeploymentEnvironment = ({
           isProduction={isProduction}
           orgName={orgName}
         />
-        {shouldDisplayFeature('undeploy') && <UnDeploy />}
+        {shouldDisplayFeature(FeatureFlag.Undeploy) && <UnDeploy />}
         <DeploymentEnvironmentLogList
           envName={envName}
           isProduction={isProduction}

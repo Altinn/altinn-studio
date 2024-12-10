@@ -21,7 +21,6 @@ import {
   LongTextIcon,
   NavBarIcon,
   PaperclipIcon,
-  TextIcon,
   PaymentDetailsIcon,
   PinIcon,
   PresentationIcon,
@@ -31,6 +30,7 @@ import {
   ShortTextIcon,
   TableIcon,
   TasklistIcon,
+  TextIcon,
   TitleIcon,
   WalletIcon,
 } from '@studio/icons';
@@ -38,7 +38,7 @@ import type { ContainerComponentType } from '../types/ContainerComponent';
 import { LayoutItemType } from '../types/global';
 import type { ComponentSpecificConfig } from 'app-shared/types/ComponentSpecificConfig';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { FilterUtils } from './FilterUtils';
 
 export type FormItemConfig<T extends ComponentType | CustomComponentType = ComponentType> = {
@@ -507,7 +507,7 @@ export const advancedItems: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.Custom],
   formItemConfigs[ComponentType.RepeatingGroup],
   formItemConfigs[ComponentType.PaymentDetails],
-  shouldDisplayFeature('subform') && formItemConfigs[ComponentType.Subform],
+  shouldDisplayFeature(FeatureFlag.Subform) && formItemConfigs[ComponentType.Subform],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const schemaComponents: FormItemConfigs[ComponentType][] = [
@@ -532,7 +532,7 @@ export const schemaComponents: FormItemConfigs[ComponentType][] = [
   formItemConfigs[ComponentType.IFrame],
   formItemConfigs[ComponentType.InstanceInformation],
   formItemConfigs[ComponentType.Summary],
-  shouldDisplayFeature('summary2') && formItemConfigs[ComponentType.Summary2],
+  shouldDisplayFeature(FeatureFlag.Summary2) && formItemConfigs[ComponentType.Summary2],
 ].filter(FilterUtils.filterOutDisabledFeatureItems);
 
 export const textComponents: FormItemConfigs[ComponentType][] = [

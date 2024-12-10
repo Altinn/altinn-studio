@@ -1,9 +1,9 @@
 import React from 'react';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
-import { configComponents, componentSpecificEditConfig } from './componentConfig';
+import { componentSpecificEditConfig, configComponents } from './componentConfig';
 
 import { ComponentSpecificContent } from './componentSpecificContent';
-import { Switch, Fieldset, Heading } from '@digdir/designsystemet-react';
+import { Fieldset, Heading, Switch } from '@digdir/designsystemet-react';
 import classes from './EditFormComponent.module.css';
 import type { FormComponent } from '../../types/FormComponent';
 import { selectedLayoutNameSelector } from '../../selectors/formLayoutSelectors';
@@ -19,6 +19,7 @@ import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
   shouldDisplayFeature,
+  FeatureFlag,
 } from 'app-shared/utils/featureToggleUtils';
 import { formItemConfigs } from '../../data/formItemConfig';
 import { UnknownComponentAlert } from '../UnknownComponentAlert';
@@ -37,7 +38,7 @@ export const EditFormComponent = ({
   const selectedLayout = useSelector(selectedLayoutNameSelector);
   const { t } = useTranslation();
   const [showComponentConfigBeta, setShowComponentConfigBeta] = React.useState<boolean>(
-    shouldDisplayFeature('componentConfigBeta'),
+    shouldDisplayFeature(FeatureFlag.ComponentConfigBeta),
   );
 
   useLayoutSchemaQuery(); // Ensure we load the layout schemas so that component schemas can be loaded
@@ -65,9 +66,9 @@ export const EditFormComponent = ({
     setShowComponentConfigBeta(event.target.checked);
     // Ensure choice of feature toggling is persisted in local storage
     if (event.target.checked) {
-      addFeatureFlagToLocalStorage('componentConfigBeta');
+      addFeatureFlagToLocalStorage(FeatureFlag.ComponentConfigBeta);
     } else {
-      removeFeatureFlagFromLocalStorage('componentConfigBeta');
+      removeFeatureFlagFromLocalStorage(FeatureFlag.ComponentConfigBeta);
     }
   };
 
