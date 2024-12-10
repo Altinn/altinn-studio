@@ -287,6 +287,14 @@ describe('StudioCodeListEditor', () => {
     await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
   });
+
+  it('Does not trigger onChange during navigation if the code list is not changed', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    await user.tab();
+    await user.tab();
+    expect(onChange).not.toHaveBeenCalled();
+  });
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}) {

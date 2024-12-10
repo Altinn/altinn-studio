@@ -23,9 +23,16 @@ export function changeCodeListItem(
   index: number,
   newItem: CodeListItem,
 ): CodeList {
-  return ArrayUtils.replaceByIndex<CodeListItem>(codeList, index, newItem);
+  if (hasCodeListItemChanged(codeList[index], newItem)) {
+    return ArrayUtils.replaceByIndex<CodeListItem>(codeList, index, newItem);
+  }
+  return codeList;
 }
 
 export function isCodeListEmpty(codeList: CodeList): boolean {
   return codeList.length === 0;
+}
+
+export function hasCodeListItemChanged(oldItem: CodeListItem, newItem: CodeListItem): boolean {
+  return JSON.stringify(oldItem) !== JSON.stringify(newItem);
 }
