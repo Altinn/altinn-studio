@@ -73,12 +73,11 @@ export function OrganisationLookupComponent({
 }: PropsFromGenericComponent<'OrganisationLookup'>) {
   const { id, dataModelBindings, required } = useNodeItem(node);
   const { labelText, getHelpTextComponent, getDescriptionComponent } = useLabel({ node, overrideDisplay });
-  const [orgName, setOrgName] = useState('');
   const [tempOrgNr, setTempOrgNr] = useState('');
   const [orgNrErrors, setOrgNrErrors] = useState<string[]>();
 
   const {
-    formData: { organisation_lookup_orgnr },
+    formData: { organisation_lookup_orgnr, organisation_lookup_name: orgName },
     setValue,
   } = useDataModelBindings(dataModelBindings);
 
@@ -110,7 +109,6 @@ export function OrganisationLookupComponent({
 
     const { data } = await performLookup();
     if (data?.org) {
-      setOrgName(data.org.name);
       setValue('organisation_lookup_orgnr', data.org.orgNr);
       dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', data.org.name);
     }
@@ -119,7 +117,6 @@ export function OrganisationLookupComponent({
   function handleClear() {
     setValue('organisation_lookup_orgnr', '');
     dataModelBindings.organisation_lookup_name && setValue('organisation_lookup_name', '');
-    setOrgName('');
     setTempOrgNr('');
   }
 
