@@ -121,7 +121,8 @@ describe('StudioCodeListEditor', () => {
     const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
     const newValue = 'new text';
     await user.type(labelInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], label: newValue },
       codeList[1],
@@ -135,7 +136,8 @@ describe('StudioCodeListEditor', () => {
     const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
     const newValue = 'new text';
     await user.type(valueInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], value: newValue },
       codeList[1],
@@ -149,7 +151,8 @@ describe('StudioCodeListEditor', () => {
     const descriptionInput = screen.getByRole('textbox', { name: texts.itemDescription(1) });
     const newValue = 'new text';
     await user.type(descriptionInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], description: newValue },
       codeList[1],
@@ -163,7 +166,8 @@ describe('StudioCodeListEditor', () => {
     const helpTextInput = screen.getByRole('textbox', { name: texts.itemHelpText(1) });
     const newValue = 'new text';
     await user.type(helpTextInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeList[0], helpText: newValue },
       codeList[1],
@@ -265,7 +269,8 @@ describe('StudioCodeListEditor', () => {
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
     const newValue = 'new value';
     await user.type(validValueInput, newValue);
-    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onInvalid).toHaveBeenCalledTimes(1);
   });
 
   it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {

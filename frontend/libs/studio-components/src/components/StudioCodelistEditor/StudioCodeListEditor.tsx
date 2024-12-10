@@ -169,7 +169,7 @@ function TableBody({
     [codeList, onChange],
   );
 
-  const handleChange = useCallback(
+  const handleBlur = useCallback(
     (index: number, newItem: CodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
       onChange(updatedCodeList);
@@ -185,7 +185,7 @@ function TableBody({
           item={item}
           key={index}
           number={index + 1}
-          onChange={(newItem) => handleChange(index, newItem)}
+          onBlur={(newItem) => handleBlur(index, newItem)}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
         />
       ))}
