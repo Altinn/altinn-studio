@@ -120,6 +120,8 @@ export function nb(): FixedLanguageList {
       clear_selection: 'Fjern alle valgte',
       person_lookup_ssn: 'fødselsnummer',
       person_lookup_name: 'navn',
+      organisation_lookup_orgnr: 'organisasjonsnummer',
+      organisation_lookup_name: 'organisasjonsnavn',
     },
     navigation: {
       main: 'Appnavigasjon',

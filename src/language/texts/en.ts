@@ -120,6 +120,8 @@ export function en() {
       clear_selection: 'Clear selection',
       person_lookup_ssn: 'national ID number/D-number',
       person_lookup_name: 'name',
+      organisation_lookup_orgnr: 'organisation number',
+      organisation_lookup_name: 'organisation name',
     },
     navigation: {
       main: 'App navigation',
