@@ -1,6 +1,6 @@
 import type { CodeList } from './types/CodeList';
 import type { ReactElement } from 'react';
-import React, { useEffect, useMemo, useRef, useCallback, useState } from 'react';
+import React, { useMemo, useRef, useCallback } from 'react';
 import { StudioInputTable } from '../StudioInputTable';
 import type { CodeListItem } from './types/CodeListItem';
 import { StudioButton } from '../StudioButton';
@@ -23,23 +23,22 @@ import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './v
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
+import type { TextResource } from '../../types/TextResource';
+import { usePropState } from '@studio/hooks';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
   onChange: (codeList: CodeList) => void;
+  onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
+  textResources?: TextResource[];
   texts: CodeListEditorTexts;
 };
 
-export function StudioCodeListEditor({
-  codeList,
-  onChange,
-  onInvalid,
-  texts,
-}: StudioCodeListEditorProps): ReactElement {
+export function StudioCodeListEditor({ texts, ...rest }: StudioCodeListEditorProps): ReactElement {
   return (
     <StudioCodeListEditorContext.Provider value={{ texts }}>
-      <StatefulCodeListEditor codeList={codeList} onChange={onChange} onInvalid={onInvalid} />
+      <StatefulCodeListEditor {...rest} />
     </StudioCodeListEditorContext.Provider>
   );
 }
@@ -49,13 +48,11 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
   onChange,
+  onChangeTextResource,
   onInvalid,
+  textResources,
 }: StatefulCodeListEditorProps): ReactElement {
-  const [codeList, setCodeList] = useState<CodeList>(defaultCodeList);
-
-  useEffect(() => {
-    setCodeList(defaultCodeList);
-  }, [defaultCodeList]);
+  const [codeList, setCodeList] = usePropState<CodeList>(defaultCodeList);
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
@@ -63,18 +60,27 @@ function StatefulCodeListEditor({
       if (isCodeListValid(newCodeList)) onChange(newCodeList);
       else onInvalid();
     },
-    [onChange, onInvalid],
+    [onChange, onInvalid, setCodeList],
   );
 
-  return <ControlledCodeListEditor codeList={codeList} onChange={handleChange} />;
+  return (
+    <ControlledCodeListEditor
+      codeList={codeList}
+      onChange={handleChange}
+      onChangeTextResource={onChangeTextResource}
+      textResources={textResources}
+    />
+  );
 }
 
-type InternalCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
+type ControlledCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
 
 function ControlledCodeListEditor({
   codeList,
   onChange,
-}: InternalCodeListEditorProps): ReactElement {
+  onChangeTextResource,
+  textResources,
+}: ControlledCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
@@ -87,15 +93,22 @@ function ControlledCodeListEditor({
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable codeList={codeList} errorMap={errorMap} onChange={onChange} />
+      <CodeListTable
+        codeList={codeList}
+        errorMap={errorMap}
+        onChange={onChange}
+        onChangeTextResource={onChangeTextResource}
+        textResources={textResources}
+      />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
 }
-type InternalCodeListEditorWithErrorsProps = InternalCodeListEditorProps & ErrorsProps;
 
-function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactElement {
+type CodeListTableProps = ControlledCodeListEditorProps & ErrorsProps;
+
+function CodeListTable(props: CodeListTableProps): ReactElement {
   return isCodeListEmpty(props.codeList) ? (
     <EmptyCodeListTable />
   ) : (
@@ -108,7 +121,7 @@ function EmptyCodeListTable(): ReactElement {
   return <StudioParagraph>{texts.emptyCodeList}</StudioParagraph>;
 }
 
-function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {
+function CodeListTableWithContent(props: CodeListTableProps): ReactElement {
   return (
     <StudioInputTable>
       <Headings />
@@ -136,8 +149,10 @@ function Headings(): ReactElement {
 function CodeLists({
   codeList,
   onChange,
+  onChangeTextResource,
   errorMap,
-}: InternalCodeListEditorWithErrorsProps): ReactElement {
+  textResources,
+}: CodeListTableProps): ReactElement {
   const handleDeleteButtonClick = useCallback(
     (index: number) => {
       const updatedCodeList = removeCodeListItem(codeList, index);
@@ -163,7 +178,9 @@ function CodeLists({
           key={index}
           number={index + 1}
           onChange={(newItem) => handleChange(index, newItem)}
+          onChangeTextResource={onChangeTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
+          textResources={textResources}
         />
       ))}
     </StudioInputTable.Body>

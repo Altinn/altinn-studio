@@ -57,6 +57,7 @@ export * from './StudioTableRemotePagination';
 export * from './StudioTabs';
 export * from './StudioTag';
 export * from './StudioTextResourcePicker';
+export * from './StudioTextResourceInput';
 export * from './StudioTextarea';
 export * from './StudioTextfield';
 export * from './StudioToggleableTextfield';
