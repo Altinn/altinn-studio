@@ -79,6 +79,7 @@ const defaultProps: CodeListsProps = {
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   codeListInEditMode: undefined,
+  codeListNames: [],
 };
 
 const renderCodeLists = (props: Partial<CodeListsProps> = {}): RenderResult => {
