@@ -3,19 +3,19 @@ import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
 import { CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { CodeListWithMetadata, OnGetCodeListResult } from '../CodeList';
+import type { CodeListWithMetadata } from '../CodeList';
 import userEvent from '@testing-library/user-event';
+import type { UseLibraryQuery } from '../../../../../types/useLibraryQuery';
+import type { CodeList } from '@studio/components';
 
 const codeListName = 'codeList';
 const codeListMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: [{ value: 'value', label: 'label' }],
 };
-const onGetCodeListMock: jest.Mock<OnGetCodeListResult, [codeListId: string]> = jest.fn(
-  (codeListId: string) => {
-    return { codeListWithMetadata: { title: codeListId, codeList: codeListMock }, isError: false };
-  },
-);
+const getCodeListMock: UseLibraryQuery<CodeList, string> = (optionListId: string) => {
+  return { data: [], isError: false };
+};
 
 describe('CodeLists', () => {
   it('renders the code list', () => {
@@ -36,10 +36,10 @@ describe('CodeLists', () => {
   });
 
   it('renders error message if error fetching an option list occurred', () => {
-    const onGetCodeList = jest.fn((codeListId: string) => {
-      return { codeListWithMetadata: { title: codeListId, codeList: undefined }, isError: true };
+    const getCodeList = jest.fn(() => {
+      return { data: undefined, isError: true };
     });
-    renderCodeLists({ onGetCodeList });
+    renderCodeLists({ getCodeList });
     const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });
@@ -47,7 +47,7 @@ describe('CodeLists', () => {
 
 const defaultCodeListsProps: CodeListsProps = {
   codeListIds: [codeListName],
-  onGetCodeList: onGetCodeListMock,
+  getCodeList: getCodeListMock,
   onUpdateCodeList: jest.fn(),
 };
 

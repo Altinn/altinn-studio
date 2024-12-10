@@ -8,7 +8,7 @@ const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
 const codeListName = 'codeList';
 const codeListMock = [{ value: 'value', label: 'label' }];
-const onGetCodeListMock: jest.Mock<OnGetCodeListResult, [codeListId: string]> = jest.fn(
+const getCodeListMock: jest.Mock<OnGetCodeListResult, [codeListId: string]> = jest.fn(
   (codeListId: string) => {
     return { codeListWithMetadata: { title: codeListId, codeList: codeListMock }, isError: false };
   },
@@ -54,7 +54,7 @@ describe('CodeList', () => {
 
 const defaultCodeListProps: CodeListProps = {
   codeListIds: [codeListName],
-  onGetCodeList: onGetCodeListMock,
+  getCodeList: getCodeListMock,
   onUpdateCodeList: onUpdateCodeListMock,
   onUploadCodeList: onUploadCodeListMock,
 };

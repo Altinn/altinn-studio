@@ -6,6 +6,7 @@ import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeList.module.css';
+import type { UseLibraryQuery } from '../../../../types/useLibraryQuery';
 
 export type CodeListWithMetadata = {
   codeList: StudioComponentCodeList;
@@ -19,13 +20,13 @@ export type OnGetCodeListResult = {
 
 export type CodeListProps = {
   codeListIds: string[];
-  onGetCodeList: (codeListId: string) => OnGetCodeListResult;
+  getCodeList: UseLibraryQuery<StudioComponentCodeList, string>;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
 };
 export function CodeList({
   codeListIds,
-  onGetCodeList,
+  getCodeList,
   onUpdateCodeList,
   onUploadCodeList,
 }: CodeListProps): React.ReactElement {
@@ -40,7 +41,7 @@ export function CodeList({
       />
       <CodeLists
         codeListIds={codeListIds}
-        onGetCodeList={onGetCodeList}
+        getCodeList={getCodeList}
         onUpdateCodeList={onUpdateCodeList}
       />
     </div>
