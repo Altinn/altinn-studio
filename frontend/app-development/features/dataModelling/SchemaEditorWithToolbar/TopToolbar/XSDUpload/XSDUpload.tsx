@@ -16,9 +16,7 @@ import {
   doesFileExistInMetadataWithClassRef,
   doesFileExistInMetadataWithoutClassRef,
   extractDataTypeNamesFromAppMetadata,
-  findFileNameError,
 } from '../utils/validationUtils';
-import type { FileNameError } from '../types/FileNameError';
 import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
 
 export interface XSDUploadProps {
