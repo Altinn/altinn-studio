@@ -43,31 +43,46 @@ describe('CodeListsActionsBar', () => {
   it('does not call onUploadCodeList when uploading a file with existing file name', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
-    await uploadFileWithExistingFileName(user);
+    await uploadFileWithFileName(user, `${codeListName1}.json`);
     expect(onUploadCodeListMock).not.toHaveBeenCalled();
   });
 
   it('renders correct toast error message when uploading a file with existing file name', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
-    await uploadFileWithExistingFileName(user);
+    await uploadFileWithFileName(user, `${codeListName1}.json`);
     const toastErrorText = screen.getByText(
       textMock('validation_errors.upload_file_name_occupied'),
     );
     expect(toastErrorText).toBeInTheDocument();
   });
 
+  it('does not call onUploadCodeList when uploading a file with file name not matching regex', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    await uploadFileWithFileName(user, 'æ.json');
+    expect(onUploadCodeListMock).not.toHaveBeenCalled();
+  });
+
+  it('renders correct toast error message when uploading a file with file name not matching regex', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    await uploadFileWithFileName(user, 'æ.json');
+    const toastErrorText = screen.getByText(textMock('validation_errors.file_name_invalid'));
+    expect(toastErrorText).toBeInTheDocument();
+  });
+
   it('does not call onUploadCodeList when uploading a file with empty name', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
-    await uploadFileWithEmptyFileName(user);
+    await uploadFileWithFileName(user, '.json');
     expect(onUploadCodeListMock).not.toHaveBeenCalled();
   });
 
   it('renders correct toast error message when uploading a file with empty name', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
-    await uploadFileWithEmptyFileName(user);
+    await uploadFileWithFileName(user, '.json');
     const toastErrorText = screen.getByText(
       textMock('validation_errors.upload_file_name_required'),
     );
@@ -75,19 +90,11 @@ describe('CodeListsActionsBar', () => {
   });
 });
 
-const uploadFileWithExistingFileName = async (user: UserEvent) => {
+const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: string) => {
   const fileUploaderButton = screen.getByLabelText(
     textMock('app_content_library.code_lists.upload_code_list'),
   );
-  const file = new File(['test'], `${codeListName1}.json`, { type: 'application/json' });
-  await user.upload(fileUploaderButton, file);
-};
-
-const uploadFileWithEmptyFileName = async (user: UserEvent) => {
-  const fileUploaderButton = screen.getByLabelText(
-    textMock('app_content_library.code_lists.upload_code_list'),
-  );
-  const file = new File(['test'], '.json', { type: 'application/json' });
+  const file = new File(['test'], fileNameWithExtension, { type: 'application/json' });
   await user.upload(fileUploaderButton, file);
 };
 
