@@ -15,7 +15,7 @@ type StudioCodeListEditorRowProps = {
   error: ValueError | null;
   item: CodeListItem;
   number: number;
-  onChange: (newItem: CodeListItem) => void;
+  onBlur: (newItem: CodeListItem) => void;
   onChangeTextResource: (newTextResource: TextResource) => void;
   onDeleteButtonClick: () => void;
   textResources?: TextResource[];
@@ -25,7 +25,7 @@ export function StudioCodeListEditorRow({
   error,
   item,
   number,
-  onChange,
+  onBlur,
   onChangeTextResource,
   onDeleteButtonClick,
   textResources,
@@ -35,33 +35,33 @@ export function StudioCodeListEditorRow({
   const handleLabelChange = useCallback(
     (label: string) => {
       const updatedItem = changeLabel(item, label);
-      onChange(updatedItem);
+      onBlur(updatedItem);
     },
-    [item, onChange],
+    [item, onBlur],
   );
 
   const handleDescriptionChange = useCallback(
     (description: string) => {
       const updatedItem = changeDescription(item, description);
-      onChange(updatedItem);
+      onBlur(updatedItem);
     },
-    [item, onChange],
+    [item, onBlur],
   );
 
   const handleValueChange = useCallback(
     (value: string) => {
       const updatedItem = changeValue(item, value);
-      onChange(updatedItem);
+      onBlur(updatedItem);
     },
-    [item, onChange],
+    [item, onBlur],
   );
 
   const handleHelpTextChange = useCallback(
     (helpText: string) => {
       const updatedItem = changeHelpText(item, helpText);
-      onChange(updatedItem);
+      onBlur(updatedItem);
     },
-    [item, onChange],
+    [item, onBlur],
   );
 
   return (
@@ -70,7 +70,7 @@ export function StudioCodeListEditorRow({
         autoComplete='off'
         error={error && texts.valueErrors[error]}
         label={texts.itemValue(number)}
-        onChange={handleValueChange}
+        onBlur={handleValueChange}
         value={item.value}
       />
       <TextResourceIdCell
@@ -108,23 +108,23 @@ export function StudioCodeListEditorRow({
 type TextfieldCellProps = {
   error?: string;
   label: string;
-  onChange: (newString: string) => void;
+  onBlur: (newString: string) => void;
   value: CodeListItemValue;
   autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 
-function TextfieldCell({ error, label, value, onChange, autoComplete }: TextfieldCellProps) {
+function TextfieldCell({ error, label, value, onBlur, autoComplete }: TextfieldCellProps) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
     ref.current?.setCustomValidity(error || '');
   }, [error]);
 
-  const handleChange = useCallback(
+  const handleBlur = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>): void => {
-      onChange(event.target.value);
+      onBlur(event.target.value);
     },
-    [onChange],
+    [onBlur],
   );
 
   const handleFocus = useCallback((event: FocusEvent<HTMLInputElement>): void => {
@@ -136,7 +136,7 @@ function TextfieldCell({ error, label, value, onChange, autoComplete }: Textfiel
       aria-label={label}
       autoComplete={autoComplete}
       className={classes.textfieldCell}
-      onChange={handleChange}
+      onBlur={handleBlur}
       onFocus={handleFocus}
       ref={ref}
       value={(value as string) ?? ''}

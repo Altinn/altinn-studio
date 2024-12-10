@@ -6,6 +6,7 @@ import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeList.module.css';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export type CodeListWithMetadata = {
   codeList: StudioComponentCodeList;
@@ -29,6 +30,8 @@ export function CodeList({
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
 
+  const codeListTitles = ArrayUtils.mapByKey<CodeListWithMetadata, 'title'>(codeLists, 'title');
+
   return (
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
@@ -36,6 +39,7 @@ export function CodeList({
       <CodeListsActionsBar
         onUploadCodeList={onUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
+        codeListNames={codeListTitles}
       />
       <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
     </div>

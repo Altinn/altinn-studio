@@ -1,18 +1,15 @@
 import {
-  createNavigationTab,
-  getIsActiveTab,
   getMissingInputLanguageString,
   mapLanguageKeyToLanguageText,
   deepCompare,
   getEnvLabel,
   mapKeywordStringToKeywordTypeArray,
   validateResource,
+  getMigrationErrorMessage,
 } from './';
 import type { EnvId } from './resourceUtils';
-import type { LeftNavigationTab } from '../../components/LeftNavigationBar';
-import { TestFlaskIcon } from '@studio/icons';
-import React from 'react';
-import type { Resource, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import type { Resource, ResourceError, SupportedLanguage } from 'app-shared/types/ResourceAdm';
+import { ServerCodes } from 'app-shared/enums/ServerCodes';
 
 describe('mapKeywordStringToKeywordTypeArray', () => {
   it('should split keywords correctly', () => {
@@ -104,42 +101,6 @@ describe('getMissingInputLanguageString', () => {
       translationFunctionMock,
     );
     expect(result).toEqual(missingInputLanguageStringTestMock);
-  });
-});
-
-describe('getIsActiveTab', () => {
-  it('returns true when current page and tab id mathces', () => {
-    const isActive = getIsActiveTab('about', 'about');
-    expect(isActive).toBeTruthy();
-  });
-
-  it('returns false when current page and tab id does not match', () => {
-    const isActive = getIsActiveTab('about', 'policy');
-    expect(isActive).toBeFalsy();
-  });
-});
-
-describe('createNavigationTab', () => {
-  const mockOnClick = jest.fn();
-
-  const mockTo: string = '/about';
-
-  const mockTab: LeftNavigationTab = {
-    icon: <TestFlaskIcon />,
-    tabName: 'resourceadm.left_nav_bar_about',
-    tabId: 'about',
-    action: {
-      type: 'link',
-      onClick: mockOnClick,
-      to: mockTo,
-    },
-    isActiveTab: true,
-  };
-
-  it('creates a new tab when the function is called', () => {
-    const newTab = createNavigationTab(<TestFlaskIcon />, 'about', mockOnClick, 'about', mockTo);
-
-    expect(newTab).toEqual(mockTab);
   });
 });
 
@@ -258,5 +219,47 @@ describe('deepCompare', () => {
       const validationErrors = validateResource(resource, () => 'test');
       expect(validationErrors.length).toBe(13);
     });
+  });
+});
+
+describe('getMigrationErrorMessage', () => {
+  it('returns no error', () => {
+    const error = getMigrationErrorMessage(null, null, true);
+    expect(error).toBeNull();
+  });
+
+  it('returns error when start migration status is forbidden', () => {
+    const migrateError = { response: { status: ServerCodes.Forbidden } };
+    const error = getMigrationErrorMessage(null, migrateError as ResourceError, true);
+    expect(error.errorMessage).toEqual('resourceadm.migration_no_migration_access');
+  });
+
+  it('returns error when start migration failed', () => {
+    const migrateError = { response: { status: ServerCodes.InternalServerError } };
+    const error = getMigrationErrorMessage(null, migrateError as ResourceError, true);
+    expect(error.errorMessage).toEqual('resourceadm.migration_post_migration_failed');
+  });
+
+  it('returns error when service is not found', () => {
+    const loadDelegationCountError = { response: { status: ServerCodes.NotFound } };
+    const error = getMigrationErrorMessage(loadDelegationCountError as ResourceError, null, true);
+    expect(error.errorMessage).toEqual('resourceadm.migration_service_not_found');
+  });
+
+  it('returns error when service cannot be migrated in environment', () => {
+    const loadDelegationCountError = { response: { status: ServerCodes.Forbidden } };
+    const error = getMigrationErrorMessage(loadDelegationCountError as ResourceError, null, true);
+    expect(error.errorMessage).toEqual('resourceadm.migration_cannot_migrate_in_env');
+  });
+
+  it('returns error when unknown error occurs', () => {
+    const loadDelegationCountError = { response: { status: ServerCodes.InternalServerError } };
+    const error = getMigrationErrorMessage(loadDelegationCountError as ResourceError, null, true);
+    expect(error.errorMessage).toEqual('resourceadm.migration_technical_error');
+  });
+
+  it('returns error when resource is not published', () => {
+    const error = getMigrationErrorMessage(null, null, false);
+    expect(error.errorMessage).toEqual('resourceadm.migration_not_published');
   });
 });

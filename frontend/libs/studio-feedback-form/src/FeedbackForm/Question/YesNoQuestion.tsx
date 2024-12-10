@@ -1,5 +1,5 @@
 import React from 'react';
-import { StudioButton, StudioParagraph } from '@studio/components';
+import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { ThumbDownFillIcon, ThumbDownIcon, ThumbUpFillIcon, ThumbUpIcon } from '@studio/icons';
 import type { QuestionsProps } from '../../types/QuestionsProps';
 import classes from './YesNoQuestion.module.css';
@@ -26,7 +26,7 @@ export function YesNoQuestion({ id, label, value, buttonLabels, onChange }: YesN
 
   return (
     <div>
-      <StudioParagraph>{label}</StudioParagraph>
+      <StudioLabelAsParagraph size='sm'>{label}</StudioLabelAsParagraph>
       <div className={classes.buttons}>
         <StudioButton
           variant='tertiary'

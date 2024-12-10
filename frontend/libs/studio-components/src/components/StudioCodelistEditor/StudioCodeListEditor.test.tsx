@@ -97,7 +97,8 @@ describe('StudioCodeListEditor', () => {
     const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
     const newValue = 'new text';
     await user.type(valueInput, newValue);
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeListWithoutTextResources[0], value: newValue },
       codeListWithoutTextResources[1],
@@ -355,7 +356,8 @@ describe('StudioCodeListEditor', () => {
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
     const newValue = 'new value';
     await user.type(validValueInput, newValue);
-    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
+    await user.tab();
+    expect(onInvalid).toHaveBeenCalledTimes(1);
   });
 
   it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {
@@ -363,6 +365,15 @@ describe('StudioCodeListEditor', () => {
     renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
     const invalidValueInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
     await user.type(invalidValueInput, 'new unique value');
+    expect(onInvalid).not.toHaveBeenCalled();
+  });
+
+  it('Does not trigger onInvalid if the code list is invalid, but onInvalid is not defined', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues, onInvalid: undefined });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    const newValue = 'new value';
+    await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
   });
 });

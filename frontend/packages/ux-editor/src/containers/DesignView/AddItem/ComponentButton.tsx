@@ -20,7 +20,7 @@ export function ComponentButton({
     <StudioButton
       variant={selected ? 'primary' : 'secondary'}
       onClick={onClick}
-      size='sm'
+      size='xs'
       aria-label={tooltipContent}
       className={inline ? classes.componentButtonInline : classes.componentButton}
       title={tooltipContent}

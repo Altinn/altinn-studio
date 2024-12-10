@@ -12,3 +12,4 @@ export { useValidateComponent } from './useValidateComponent';
 export { useComponentPropertyLabel } from './useComponentPropertyLabel';
 export { useAppContext } from './useAppContext';
 export { useGetLayoutSetByName } from './useGetLayoutSetByName';
+export { useComponentPropertyHelpText } from './useComponentPropertyHelpText';
