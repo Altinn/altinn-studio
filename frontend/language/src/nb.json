@@ -102,6 +102,7 @@
   "app_deployment.table.status": "Status",
   "app_deployment.table.version_col": "Versjon",
   "app_deployment.technical_error_1": "Vi har en teknisk feil og får ikke publisert appen din. Publiser på nytt nå, eller prøv igjen senere. Hvis problemet fortsetter, <a>ta kontakt med oss</a>.",
+  "app_deployment.undeploy_button": "Avpubliser nåværende versjon",
   "app_deployment.version_label": "Versjon {{tagName}} ({{createdDateTime}})",
   "app_release.earlier_releases": "Tidligere bygg av appen",
   "app_release.release_build_log": "Bygglogg",
