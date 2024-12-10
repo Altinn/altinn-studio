@@ -2,7 +2,7 @@ import type { CodeList } from './types/CodeList';
 import {
   addEmptyCodeListItem,
   changeCodeListItem,
-  isCodeListItemChanged,
+  hasCodeListItemChanged,
   isCodeListEmpty,
   removeCodeListItem,
 } from './utils';
@@ -95,17 +95,17 @@ describe('StudioCodelistEditor utils', () => {
     });
   });
 
-  describe('isCodeListItemChanged', () => {
+  describe('hasCodeListItemChanged', () => {
     it('Return true when code list items are different', () => {
       const oldCodeList = testCodeList[0];
       const newCodeList = testCodeList[1];
-      expect(isCodeListItemChanged(oldCodeList, newCodeList)).toBeTruthy();
+      expect(hasCodeListItemChanged(oldCodeList, newCodeList)).toBeTruthy();
     });
 
     it('Returns false when the code list items are identical', () => {
-      const oldCodeList = testCodeList[0];
-      const newCodeList = testCodeList[0];
-      expect(isCodeListItemChanged(oldCodeList, newCodeList)).toBeFalsy();
+      const oldCodeList = ObjectUtils.deepCopy(testCodeList[0]);
+      const newCodeList = ObjectUtils.deepCopy(testCodeList[0]);
+      expect(hasCodeListItemChanged(oldCodeList, newCodeList)).toBeFalsy();
     });
   });
 });
