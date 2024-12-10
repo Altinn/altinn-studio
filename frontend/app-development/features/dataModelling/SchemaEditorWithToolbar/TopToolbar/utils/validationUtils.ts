@@ -46,7 +46,7 @@ const isNameFormatValid = (fileNameWithoutExtension: string): boolean => {
 const doesFileExistInMetadata = (
   appMetadata: ApplicationMetadata,
   fileNameWithoutExtension: string,
-): boolean => appMetadata.dataTypes?.some((dataType) => dataType.id === fileNameWithoutExtension);
+): boolean => appMetadata?.dataTypes?.some((dataType) => dataType.id === fileNameWithoutExtension);
 
 export const extractDataTypeNamesFromAppMetadata = (
   appMetadata?: ApplicationMetadata,
