@@ -30,6 +30,11 @@ public interface IInstanceClient
     Task<Instance> UpdateProcess(Instance instance);
 
     /// <summary>
+    /// Updates the process model of the instance and the instance events and returns the updated instance.
+    /// </summary>
+    Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events);
+
+    /// <summary>
     /// Creates an instance of an application with no data.
     /// </summary>
     /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

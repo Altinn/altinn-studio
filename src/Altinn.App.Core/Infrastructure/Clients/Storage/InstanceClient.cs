@@ -162,6 +162,39 @@ public class InstanceClient : IInstanceClient
         }
     }
 
+    /// <inheritdoc />
+    public async Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events)
+    {
+        using var activity = _telemetry?.StartUpdateProcessActivity(instance, events.Count);
+        ProcessState processState = instance.Process;
+
+        foreach (var instanceEvent in events)
+            instanceEvent.InstanceId = instance.Id;
+
+        string apiUrl = $"instances/{instance.Id}/process/instanceandevents";
+        string token = _userTokenProvider.GetUserToken();
+
+        var update = new ProcessStateUpdate { State = processState, Events = events };
+        string updateString = JsonConvert.SerializeObject(update);
+        _logger.LogInformation($"update process state: {updateString}");
+
+        StringContent httpContent = new(updateString, Encoding.UTF8, "application/json");
+        HttpResponseMessage response = await _client.PutAsync(token, apiUrl, httpContent);
+        if (response.StatusCode == HttpStatusCode.OK)
+        {
+            string instanceData = await response.Content.ReadAsStringAsync();
+            Instance updatedInstance =
+                JsonConvert.DeserializeObject<Instance>(instanceData)
+                ?? throw new Exception("Could not deserialize instance");
+            return updatedInstance;
+        }
+        else
+        {
+            _logger.LogError($"Unable to update instance process with instance id {instance.Id}");
+            throw await PlatformHttpException.CreateAsync(response);
+        }
+    }
+
     /// <inheritdoc/>
     public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
     {

@@ -116,6 +116,11 @@ public class InstanceClientMockSi : IInstanceClient
         return Task.FromResult(storedInstance);
     }
 
+    public Task<Instance> UpdateProcessAndEvents(Instance instance, List<InstanceEvent> events)
+    {
+        return UpdateProcess(instance);
+    }
+
     private static Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
     {
         string instancePath = GetInstancePath(app, org, instanceOwnerId, instanceId);

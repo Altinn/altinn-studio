@@ -127,6 +127,11 @@ public sealed partial class Telemetry : IDisposable
         public static readonly string InstanceGuid = "instance.guid";
 
         /// <summary>
+        /// Label for the guid that identifies the instance.
+        /// </summary>
+        public static readonly string InstanceEventsCount = "instance.events.count";
+
+        /// <summary>
         /// Label for the guid that identifies the data.
         /// </summary>
         public static readonly string DataGuid = "data.guid";
