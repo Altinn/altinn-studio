@@ -16,6 +16,14 @@ export type CodeListEditorTexts = {
   itemValue: (number: number) => string;
   label: string;
   value: string;
+  valueTypes: ValueTypes;
 };
 
 type ValueErrorMessages = Record<ValueError, string>;
+
+type ValueTypes = {
+  string: string;
+  number: string;
+  boolean: string;
+  undefined: string;
+};

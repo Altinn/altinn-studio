@@ -22,21 +22,19 @@ export function coerceValue(
   value: string,
   codeListValueType: CodeListValueType,
 ): CodeListItemValue {
-  if (codeListValueType === 'string') return String(value);
   if (codeListValueType === 'number') return coerceNumber(value);
   if (codeListValueType === 'boolean') return coerceBoolean(value);
-
-  throw new Error('Invalid value in codelist');
+  else return String(value);
 }
 
 function coerceNumber(value: string): number | string {
   const valueAsNumber = Number(value);
-  if (isNaN(valueAsNumber)) return value;
-  else return valueAsNumber;
+  if (!isNaN(valueAsNumber)) return valueAsNumber;
+  else return value;
 }
 
 function coerceBoolean(value: string): boolean | string {
   if (value.toLowerCase() === 'true') return true;
   if (value.toLowerCase() === 'false') return false;
-  else return String(value);
+  else return value;
 }

@@ -25,6 +25,12 @@ const texts: CodeListEditorTexts = {
   itemValue: (number) => `Value for item number ${number}`,
   label: 'Label',
   value: 'Value',
+  valueTypes: {
+    string: 'Text',
+    number: 'Number',
+    boolean: 'Boolean',
+    undefined: 'Undefined',
+  },
 };
 const codeList: CodeList = [
   {

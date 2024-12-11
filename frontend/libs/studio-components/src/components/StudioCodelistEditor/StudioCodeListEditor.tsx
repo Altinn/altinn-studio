@@ -120,19 +120,6 @@ function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps):
   );
 }
 
-const ValueHeading = (): ReactElement => {
-  const { texts, codeListValueType } = useStudioCodeListEditorContext();
-  return (
-    <div className={classes.valueHeading}>
-      {texts.value}
-      <StudioTag size='sm' title={`Denne kodelistens verdier er satt som ${codeListValueType}`}>
-        {codeListValueType}
-      </StudioTag>
-      {/*Add help text?*/}
-    </div>
-  );
-};
-
 function TableHeadings(): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
 
@@ -150,6 +137,23 @@ function TableHeadings(): ReactElement {
     </StudioInputTable.Head>
   );
 }
+
+const ValueHeading = (): ReactElement => {
+  const { texts, codeListValueType } = useStudioCodeListEditorContext();
+  const typeLabel = texts.valueTypes[codeListValueType];
+
+  return (
+    <div className={classes.valueHeading}>
+      {texts.value}
+      <StudioTag
+        size='sm'
+        title={`Kodelistens verdier er utledet til å være av typen ${typeLabel.toLowerCase()}`}
+      >
+        {typeLabel}
+      </StudioTag>
+    </div>
+  );
+};
 
 function TableBody({
   codeList,
