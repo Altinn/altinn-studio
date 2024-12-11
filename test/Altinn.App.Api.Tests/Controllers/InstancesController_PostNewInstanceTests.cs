@@ -55,10 +55,18 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         content.Add(
             new StringContent(
                 $$$"""<Skjema><melding><name>{{{testName}}}</name></melding></Skjema>""",
-                System.Text.Encoding.UTF8,
+                Encoding.UTF8,
                 "application/xml"
             ),
             "default"
+        );
+        content.Add(
+            new ByteArrayContent([1, 2, 4]) { Headers = { ContentType = new MediaTypeHeaderValue("application/pdf") } },
+            name: "9edd53de-f46f-40a1-bb4d-3efb93dc113d"
+        );
+        content.Add(
+            new ByteArrayContent([1, 2, 5]) { Headers = { ContentType = new MediaTypeHeaderValue("image/png") } },
+            name: "specificFileType"
         );
 
         // Create instance
@@ -73,8 +81,11 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
 
         // Verify Data id
         var instanceId = createResponseParsed.Id;
-        createResponseParsed.Data.Should().HaveCount(1, "Create instance should create a data element");
-        var dataGuid = createResponseParsed.Data.First().Id;
+        createResponseParsed.Data.Should().HaveCount(3, "We posted 3 data elements");
+        var dataGuid = createResponseParsed
+            .Data.Should()
+            .ContainSingle(d => d.DataType == "default", "we posted 1 default type")
+            .Which?.Id;
 
         // Verify stored data
         var readDataElementResponse = await client.GetAsync($"/{org}/{app}/instances/{instanceId}/data/{dataGuid}");
@@ -82,6 +93,26 @@ public class InstancesController_PostNewInstanceTests : ApiTestBase, IClassFixtu
         var readDataElementResponseContent = await readDataElementResponse.Content.ReadAsStringAsync();
         var readDataElementResponseParsed = JsonSerializer.Deserialize<Skjema>(readDataElementResponseContent)!;
         readDataElementResponseParsed.Melding!.Name.Should().Be(testName);
+
+        // Verify specific file types
+        var specificFileType = createResponseParsed
+            .Data.Should()
+            .ContainSingle(d => d.DataType == "specificFileType")
+            .Which;
+        specificFileType.ContentType.Should().Be("image/png");
+        var pdfContent = await client.GetByteArrayAsync(
+            $"/{org}/{app}/instances/{instanceId}/data/{specificFileType.Id}"
+        );
+        pdfContent.Should().BeEquivalentTo(new byte[] { 1, 2, 5 });
+
+        var pdfElement = createResponseParsed
+            .Data.Should()
+            .ContainSingle(d => d.ContentType == "application/pdf")
+            .Which;
+        pdfElement.DataType.Should().Be("9edd53de-f46f-40a1-bb4d-3efb93dc113d");
+        var pngContent = await client.GetByteArrayAsync($"/{org}/{app}/instances/{instanceId}/data/{pdfElement.Id}");
+        pngContent.Should().BeEquivalentTo(new byte[] { 1, 2, 4 });
+
         TestData.DeleteInstanceAndData(org, app, instanceId);
     }
 

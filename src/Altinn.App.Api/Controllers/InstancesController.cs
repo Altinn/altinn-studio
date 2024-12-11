@@ -1187,28 +1187,28 @@ public class InstancesController : ControllerBase
                 _logger.LogInformation("Storing part {partName}", part.Name);
                 dataMutator.AddBinaryDataElement(dataType.Id, part.ContentType, part.FileName, part.Bytes);
             }
-
-            var taskId = instance.Process?.CurrentTask?.ElementId;
-
-            if (taskId is null)
-                throw new InvalidOperationException("There should be a task while initializing data");
-
-            var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-            await _patchService.RunDataProcessors(dataMutator, changes, taskId, language);
-
-            if (dataMutator.GetAbandonResponse() is { } abandonResponse)
-            {
-                _logger.LogWarning(
-                    "Data processing failed for one or more data elements, the instance was created, but we try to delete the instance"
-                );
-                return abandonResponse;
-            }
-
-            // Update the changes list if it changed in data processors
-            changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
-            await dataMutator.UpdateInstanceData(changes);
-            await dataMutator.SaveChanges(changes);
         }
+
+        var taskId = instance.Process?.CurrentTask?.ElementId;
+
+        if (taskId is null)
+            throw new InvalidOperationException("There should be a task while initializing data");
+
+        var changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+        await _patchService.RunDataProcessors(dataMutator, changes, taskId, language);
+
+        if (dataMutator.GetAbandonResponse() is { } abandonResponse)
+        {
+            _logger.LogWarning(
+                "Data processing failed for one or more data elements, the instance was created, but we try to delete the instance"
+            );
+            return abandonResponse;
+        }
+
+        // Update the changes list if it changed in data processors
+        changes = dataMutator.GetDataElementChanges(initializeAltinnRowId: true);
+        await dataMutator.UpdateInstanceData(changes);
+        await dataMutator.SaveChanges(changes);
 
         return null;
     }

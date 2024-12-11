@@ -69,7 +69,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
                 )
             )
             .Returns(Task.CompletedTask)
-            .Verifiable(Times.Exactly(1));
+            .Verifiable(Times.Exactly(2));
 
         // Create instance
         var createResponse = await client.PostAsync(
@@ -171,7 +171,7 @@ public class DataController_PutTests : ApiTestBase, IClassFixture<WebApplication
                 )
             )
             .Returns(Task.CompletedTask)
-            .Verifiable(Times.Exactly(1));
+            .Verifiable(Times.Exactly(2));
 
         // Run previous test with different setup
         // Setup test data
