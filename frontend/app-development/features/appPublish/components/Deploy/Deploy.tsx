@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DeployDropdown } from './DeployDropdown';
-import { useCreateDeploymentMutation } from '../../../hooks/mutations';
+import { useCreateDeploymentMutation } from '../../../../hooks/mutations';
 import { Trans, useTranslation } from 'react-i18next';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { toast } from 'react-toastify';
