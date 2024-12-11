@@ -5,12 +5,13 @@ import { CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { CodeList as StudioComponentCodeList } from '@studio/components';
 
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
 const codeListName = 'codeList';
-const codeListMock = [{ value: 'value', label: 'label' }];
+const codeListMock: StudioComponentCodeList = [{ value: 'value', label: 'label' }];
 const codeListWithMetadataMock: CodeListWithMetadata = {
   title: codeListName,
   codeList: codeListMock,

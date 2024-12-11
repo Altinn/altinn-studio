@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeList';
 import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
-import {updateCodeListWithMetadata} from "../CodeLists";
+import { updateCodeListWithMetadata } from '../CodeLists';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 
@@ -30,10 +30,10 @@ export function EditCodeList({
     if (newCodeListId !== codeList.title) onUpdateCodeListId(codeList.title, newCodeListId);
   };
 
-    const handleBlurAny = (updatedCodeList: CodeList): void => {
-        const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
-        onUpdateCodeList(updatedCodeListWithMetadata);
-    };
+  const handleBlurAny = (updatedCodeList: CodeList): void => {
+    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
+    onUpdateCodeList(updatedCodeListWithMetadata);
+  };
 
   const handleValidateCodeListId = (newCodeListId: string) => {
     const fileNameError = FileNameUtils.findFileNameError(newCodeListId, codeListNames);

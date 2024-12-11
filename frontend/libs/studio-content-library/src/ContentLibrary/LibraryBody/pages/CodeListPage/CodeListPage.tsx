@@ -36,8 +36,8 @@ export function CodeListPage({
   const codeListTitles = ArrayUtils.mapByKey<CodeListWithMetadata, 'title'>(codeLists, 'title');
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
-    onUploadCodeList(uploadedCodeList);
     setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
+    onUploadCodeList(uploadedCodeList);
   };
 
   const handleUpdateCodeListId = (codeListId: string, newCodeListId: string) => {
