@@ -81,11 +81,6 @@ describe('PolicyAccessPackages', () => {
     const user = userEvent.setup();
     renderAccessPackages();
 
-    const showMoreTilgangspakkerButton = screen.getByRole('button', {
-      name: textMock('policy_editor.access_package_show_specialized'),
-    });
-    await user.click(showMoreTilgangspakkerButton);
-
     const accordionButton = screen.getByRole('button', { name: accessPackageAreaTransport.name });
     await user.click(accordionButton);
 
