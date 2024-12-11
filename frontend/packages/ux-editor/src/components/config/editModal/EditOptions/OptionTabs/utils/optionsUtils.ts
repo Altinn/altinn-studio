@@ -59,6 +59,6 @@ export const getOptionListValueType = (optionList: Option[]): CodeListType => {
     case 'boolean':
       return 'boolean';
     default:
-      throw new Error('Unsupported type');
+      return 'undefined';
   }
 };

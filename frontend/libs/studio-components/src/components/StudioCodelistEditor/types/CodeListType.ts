@@ -1,1 +1,1 @@
-export type CodeListType = 'string' | 'number' | 'boolean';
+export type CodeListType = 'string' | 'number' | 'boolean' | 'undefined';
