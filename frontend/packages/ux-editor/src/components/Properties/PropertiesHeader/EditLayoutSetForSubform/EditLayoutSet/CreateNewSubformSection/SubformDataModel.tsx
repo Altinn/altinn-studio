@@ -11,7 +11,6 @@ import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export type SubformDataModelProps = {
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
-  setNewDataModel: (dataModelId: string) => void;
   displayDataModelInput: boolean;
   setSelectedDataModel: (dataModelId: string) => void;
   setDataModelError?: (error: string | undefined) => void;
@@ -20,7 +19,6 @@ export type SubformDataModelProps = {
 export const SubformDataModel = ({
   setDisplayDataModelInput,
   setSelectedDataModel,
-  setNewDataModel,
   displayDataModelInput,
   setDataModelError,
 }: SubformDataModelProps): React.ReactElement => {
@@ -35,18 +33,17 @@ export const SubformDataModel = ({
     dataTypeNames,
   );
 
-  useEffect(() => {
-    setDataModelError(dataModelNameError);
-  }, [dataModelNameError, setDataModelError]);
-
-  const handleDataModel = (dataModelId: string) => {
+  const handleNewDataModel = (dataModelId: string) => {
     validateName(dataModelId);
-    if (!dataModelNameError) setNewDataModel(dataModelId);
   };
 
   const handleDisplayInput = () => {
     setDisplayDataModelInput(true);
   };
+
+  useEffect(() => {
+    if (setDataModelError) setDataModelError(dataModelNameError);
+  }, [dataModelNameError, setDataModelError]);
 
   return (
     <>
@@ -75,7 +72,7 @@ export const SubformDataModel = ({
           name='newSubformDataModel'
           label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
           size='sm'
-          onChange={(e) => handleDataModel(e.target.value)}
+          onChange={(e) => handleNewDataModel(e.target.value)}
           error={dataModelNameError}
         />
       ) : (

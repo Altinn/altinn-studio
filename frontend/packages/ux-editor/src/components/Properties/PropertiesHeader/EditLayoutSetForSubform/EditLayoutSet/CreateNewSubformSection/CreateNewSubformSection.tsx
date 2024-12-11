@@ -33,27 +33,24 @@ export const CreateNewSubformSection = ({
 }: CreateNewSubformSectionProps): React.ReactElement => {
   const { t } = useTranslation();
   const { validateLayoutSetName } = useValidateLayoutSetName();
-  const [nameError, setNameError] = useState<string>();
-  const [newDataModel, setNewDataModel] = useState<string>('');
+  const [newSubformNameError, setNewSubformNameError] = useState<string>();
   const [selectedDataModel, setSelectedDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
   const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
-  const [dataModelError, setDataModelError] = useState<string>('');
+  const [newDataModelNameError, setNewDataModelNameError] = useState<string>();
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
-    setNameError(subformNameValidation);
+    setNewSubformNameError(subformNameValidation);
   };
 
   const handleCloseButton = () => {
     if (displayDataModelInput) {
-      setNewDataModel('');
       setDisplayDataModelInput(false);
     } else {
       setShowCreateSubformCard(false);
     }
   };
-
   const handleCreateSubformSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     const formData: FormData = new FormData(e.currentTarget);
@@ -69,9 +66,11 @@ export const CreateNewSubformSection = ({
     });
   };
 
-  const hasInvalidSubformName = nameError === undefined || Boolean(nameError);
-  const hasInvalidDataModel = displayDataModelInput ? !newDataModel : !selectedDataModel;
-  const disableSaveButton = hasInvalidSubformName || hasInvalidDataModel || Boolean(dataModelError);
+  const hasInvalidSubformName = newSubformNameError === undefined || Boolean(newSubformNameError);
+  const hasInvalidDataModel = displayDataModelInput
+    ? Boolean(newDataModelNameError) || newDataModelNameError === undefined
+    : !selectedDataModel;
+  const disableSaveButton = hasInvalidSubformName || hasInvalidDataModel;
 
   return (
     <StudioRecommendedNextAction
@@ -97,14 +96,13 @@ export const CreateNewSubformSection = ({
             size='sm'
             disabled={isPendingNewSubformMutation}
             onChange={(e) => handleSubformName(e.target.value)}
-            error={nameError}
+            error={newSubformNameError}
           />
           <SubformDataModel
             setDisplayDataModelInput={setDisplayDataModelInput}
-            setNewDataModel={setNewDataModel}
             displayDataModelInput={displayDataModelInput}
             setSelectedDataModel={setSelectedDataModel}
-            setDataModelError={setDataModelError}
+            setDataModelError={setNewDataModelNameError}
           />
           <CreateNewSubformButtons
             isPendingNewSubformMutation={isPendingNewSubformMutation}

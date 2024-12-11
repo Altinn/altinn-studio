@@ -93,7 +93,6 @@ describe('SubformDataModel', () => {
 
 const defaultProps: SubformDataModelProps = {
   setDisplayDataModelInput: jest.fn(),
-  setNewDataModel: jest.fn(),
   displayDataModelInput: false,
   setSelectedDataModel: jest.fn(),
   setDataModelError: jest.fn(),
