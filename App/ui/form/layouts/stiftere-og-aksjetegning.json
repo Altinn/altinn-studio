@@ -75,7 +75,8 @@
         "id": "organisationLookup",
         "type": "OrganisationLookup",
         "dataModelBindings": {
-          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer"
+          "organisation_lookup_orgnr": "StifterVirksomhet.Organisasjonsnummer",
+          "organisation_lookup_name": "StifterVirksomhet.Navn"
         },
         "textResourceBindings": {
           "title": "stiftere-og-aksjetegning.organisasjonsnummer.title",
