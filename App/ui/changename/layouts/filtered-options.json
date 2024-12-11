@@ -20,6 +20,7 @@
         "dataModelBindings": {
           "simpleBinding": "FilteredOptions.Dislikes"
         },
+        "sortOrder": "asc",
         "optionsId": "foods",
         "optionFilter": ["not", ["or",
           ["equals", ["value", "label"], "foods.grape"],
@@ -75,6 +76,7 @@
             ["equals", ["component", "ingredientType"], ["value"]]
           ]
         ],
+        "sortOrder": "asc",
         "required": true
       },
       {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Models.Validation;
@@ -122,6 +123,26 @@ namespace Altinn.App.logic.Validation
                     Description = "Valideringsmelding på felt som aldri vises (ikke skriv 44% på kredittkort!)",
                     Severity = ValidationIssueSeverity.Error,
                 });
+            }
+
+            if (model.FilteredOptions?.Ingredients != null)
+            {
+                // Iterate the ingredients and figure out if there are any duplicates. If there are, the rows
+                // with duplicates (not the original ones) should be marked with a validation issue.
+                var foundTypes = new Dictionary<decimal?, bool>();
+                foreach (var index in Enumerable.Range(0, model.FilteredOptions.Ingredients.Count))
+                {
+                    var type = model.FilteredOptions.Ingredients[index].Type;
+                    if (type != null && !foundTypes.TryAdd(type, true))
+                    {
+                        validationIssues.Add(new ValidationIssue
+                        {
+                            Field = $"FilteredOptions.Ingredients[{index}].Type",
+                            Description = "Du kan ikke ha flere ingredienser av samme type",
+                            Severity = ValidationIssueSeverity.Error,
+                        });
+                    }
+                }
             }
 
             return Task.FromResult(validationIssues);
