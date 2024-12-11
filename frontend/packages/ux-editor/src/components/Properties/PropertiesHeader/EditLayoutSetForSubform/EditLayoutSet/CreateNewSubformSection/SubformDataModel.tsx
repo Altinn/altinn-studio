@@ -1,49 +1,38 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StudioTextfield, StudioNativeSelect, StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import classes from './SubformDataModel.module.css';
-import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
-import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
-import { useAppMetadataQuery } from 'app-shared/hooks/queries';
 
 export type SubformDataModelProps = {
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
   displayDataModelInput: boolean;
   setSelectedDataModel: (dataModelId: string) => void;
-  setDataModelError?: (error: string | undefined) => void;
+  dataModelIds?: string[] | undefined;
+  validateName?: (name: string) => void;
+  dataModelNameError: string | undefined;
+  setIsTextfieldEmpty?: (isEmpty: boolean) => void;
 };
 
 export const SubformDataModel = ({
   setDisplayDataModelInput,
   setSelectedDataModel,
   displayDataModelInput,
-  setDataModelError,
+  dataModelIds,
+  validateName,
+  dataModelNameError,
+  setIsTextfieldEmpty,
 }: SubformDataModelProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
-
-  const { data: appMetadata } = useAppMetadataQuery(org, app);
-  const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
-  const { validateName, nameError: dataModelNameError } = useValidateSchemaName(
-    dataModelIds,
-    dataTypeNames,
-  );
 
   const handleNewDataModel = (dataModelId: string) => {
     validateName(dataModelId);
+    setIsTextfieldEmpty(dataModelId === '');
   };
 
   const handleDisplayInput = () => {
     setDisplayDataModelInput(true);
   };
-
-  useEffect(() => {
-    if (setDataModelError) setDataModelError(dataModelNameError);
-  }, [dataModelNameError, setDataModelError]);
 
   return (
     <>

@@ -95,7 +95,10 @@ const defaultProps: SubformDataModelProps = {
   setDisplayDataModelInput: jest.fn(),
   displayDataModelInput: false,
   setSelectedDataModel: jest.fn(),
-  setDataModelError: jest.fn(),
+  dataModelIds: mockDataModelIds,
+  validateName: jest.fn(),
+  dataModelNameError: '',
+  setIsTextfieldEmpty: jest.fn(),
 };
 
 const renderSubformDataModelSelect = (props: Partial<SubformDataModelProps> = {}) => {

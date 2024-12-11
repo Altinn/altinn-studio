@@ -12,6 +12,11 @@ import { SubformDataModel } from './SubformDataModel';
 import { CreateNewSubformButtons } from './CreateNewSubformButtons';
 import { SubformInstructions } from './SubformInstructions';
 import { useCreateSubform } from '@altinn/ux-editor/hooks/useCreateSubform';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
+import { useAppMetadataQuery } from 'app-shared/hooks/queries';
+import { extractDataTypeNamesFromAppMetadata } from 'app-development/features/dataModelling/SchemaEditorWithToolbar/TopToolbar/utils/validationUtils';
+import { useValidateSchemaName } from 'app-shared/hooks/useValidateSchemaName';
 
 type CreateNewSubformSectionProps = {
   layoutSets: LayoutSets;
@@ -37,7 +42,16 @@ export const CreateNewSubformSection = ({
   const [selectedDataModel, setSelectedDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
   const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
-  const [newDataModelNameError, setNewDataModelNameError] = useState<string>();
+  const [isTextfieldEmpty, setIsTextfieldEmpty] = useState(true);
+
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
+  const { data: appMetadata } = useAppMetadataQuery(org, app);
+  const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
+  const { validateName, nameError: dataModelNameError } = useValidateSchemaName(
+    dataModelIds,
+    dataTypeNames,
+  );
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
@@ -68,7 +82,7 @@ export const CreateNewSubformSection = ({
 
   const hasInvalidSubformName = newSubformNameError === undefined || Boolean(newSubformNameError);
   const hasInvalidDataModel = displayDataModelInput
-    ? Boolean(newDataModelNameError) || newDataModelNameError === undefined
+    ? Boolean(dataModelNameError) || isTextfieldEmpty
     : !selectedDataModel;
   const disableSaveButton = hasInvalidSubformName || hasInvalidDataModel;
 
@@ -102,7 +116,10 @@ export const CreateNewSubformSection = ({
             setDisplayDataModelInput={setDisplayDataModelInput}
             displayDataModelInput={displayDataModelInput}
             setSelectedDataModel={setSelectedDataModel}
-            setDataModelError={setNewDataModelNameError}
+            dataModelIds={dataModelIds}
+            validateName={validateName}
+            dataModelNameError={dataModelNameError}
+            setIsTextfieldEmpty={setIsTextfieldEmpty}
           />
           <CreateNewSubformButtons
             isPendingNewSubformMutation={isPendingNewSubformMutation}
