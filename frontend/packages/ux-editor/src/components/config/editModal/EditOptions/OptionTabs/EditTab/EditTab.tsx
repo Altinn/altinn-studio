@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioDeleteButton, StudioErrorMessage } from '@studio/components';
+import { StudioErrorMessage } from '@studio/components';
 import { AddManualOptionsModal } from './AddManualOptionsModal';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
@@ -72,41 +72,20 @@ function SelectedOptionList({
 }: SelectedOptionListProps) {
   const { t } = useTranslation();
 
-  const handleDelete = () => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    const emptyOptionsId = '';
-    handleComponentChange({
-      ...component,
-      optionsId: emptyOptionsId,
-    });
-
-    setComponentHasOptionList(false);
-  };
-
   const label =
     component.optionsId !== '' && component.optionsId !== undefined
       ? component.optionsId
       : t('ux_editor.modal_properties_code_list_custom_list');
 
   return (
-    <div aria-label={label} className={classes.chosenOptionContainer}>
+    <div className={classes.chosenOptionContainer}>
       <OptionListEditor
         label={label}
         optionsId={component.optionsId}
         component={component}
         handleComponentChange={handleComponentChange}
+        setComponentHasOptionList={setComponentHasOptionList}
       />
-      <div className={classes.deleteButtonContainer}>
-        <StudioDeleteButton
-          className={classes.deleteButton}
-          onDelete={handleDelete}
-          title={t('ux_editor.options.option_remove_text')}
-          variant={'tertiary'}
-        />
-      </div>
     </div>
   );
 }

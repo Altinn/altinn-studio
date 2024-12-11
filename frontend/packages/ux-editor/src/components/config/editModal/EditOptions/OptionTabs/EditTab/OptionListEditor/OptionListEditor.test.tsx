@@ -135,9 +135,7 @@ describe('OptionListEditor', () => {
       });
 
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -154,9 +152,7 @@ describe('OptionListEditor', () => {
       ];
 
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -169,6 +165,8 @@ describe('OptionListEditor', () => {
       );
     });
   });
+
+  it('should call setComponentHasOptionList when closing', async () => {});
 });
 
 function getOptionModalButton() {
@@ -183,11 +181,18 @@ function getManualModalButton() {
   });
 }
 
+function getTextBoxInput(number: number) {
+  return screen.getByRole('textbox', {
+    name: textMock('code_list_editor.description_item', { number }),
+  });
+}
+
 const renderOptionListEditor = ({
   previewContextProps = {},
   queries = {},
   component = {},
   handleComponentChange = jest.fn(),
+  setComponentHasOptionList = jest.fn(),
 } = {}) => {
   return renderWithProviders(
     <OptionListEditor
@@ -195,6 +200,7 @@ const renderOptionListEditor = ({
       optionsId={mockComponent.optionsId}
       component={{ ...mockComponent, ...component }}
       handleComponentChange={handleComponentChange}
+      setComponentHasOptionList={setComponentHasOptionList}
     />,
     {
       queries: {

@@ -9,3 +9,22 @@
 .content {
   height: 100%;
 }
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-weight: 500;
+}
+
+.codeListLabels {
+  margin-bottom: var(--fds-spacing-2);
+}
+
+.buttonContainer {
+  display: flex;
+  gap: var(--fds-spacing-2);
+  margin-bottom: var(--fds-spacing-2);
+}

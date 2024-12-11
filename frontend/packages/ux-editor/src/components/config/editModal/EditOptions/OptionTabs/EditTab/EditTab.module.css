@@ -1,16 +1,6 @@
 .chosenOptionContainer {
-  display: flex;
+  padding-inline: var(--fds-spacing-5);
   overflow: hidden;
-}
-
-.deleteButtonContainer {
-  display: flex;
-  width: min-content;
-  margin-left: auto;
-}
-
-.deleteButton {
-  border-radius: 0;
 }
 
 .optionButtons {

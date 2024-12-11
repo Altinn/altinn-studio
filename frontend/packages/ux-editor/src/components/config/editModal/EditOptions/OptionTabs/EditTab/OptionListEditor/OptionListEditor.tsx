@@ -7,8 +7,10 @@ import {
   StudioSpinner,
   StudioErrorMessage,
   StudioAlert,
-  StudioProperty,
+  StudioParagraph,
+  StudioButton,
 } from '@studio/components';
+import { PencilIcon, TrashIcon } from '@studio/icons';
 import type { CodeListEditorTexts } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations/useUpdateOptionListMutation';
@@ -22,6 +24,7 @@ import classes from './OptionListEditor.module.css';
 type OptionListEditorProps = {
   optionsId: string;
   label: string;
+  setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export function OptionListEditor({
@@ -29,10 +32,25 @@ export function OptionListEditor({
   component,
   handleComponentChange,
   label,
+  setComponentHasOptionList,
 }: OptionListEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionsLists, status } = useOptionListsQuery(org, app);
+
+  const handleDelete = () => {
+    if (component.options) {
+      delete component.options;
+    }
+
+    const emptyOptionsId = '';
+    handleComponentChange({
+      ...component,
+      optionsId: emptyOptionsId,
+    });
+
+    setComponentHasOptionList(false);
+  };
 
   switch (status) {
     case 'pending':
@@ -52,6 +70,9 @@ export function OptionListEditor({
             label={label}
             optionsId={optionsId}
             optionsList={optionsLists[optionsId]}
+            component={component}
+            handleComponentChange={handleComponentChange}
+            handleDelete={handleDelete}
           />
         );
       }
@@ -61,6 +82,7 @@ export function OptionListEditor({
             label={label}
             component={component}
             handleComponentChange={handleComponentChange}
+            handleDelete={handleDelete}
           />
         );
       }
@@ -72,12 +94,14 @@ type EditLibraryOptionListEditorModalProps = {
   label: string;
   optionsId: string;
   optionsList: Option[];
+  handleDelete: () => void;
 };
 
 function EditLibraryOptionListEditorModal({
   label,
   optionsId,
   optionsList,
+  handleDelete,
 }: EditLibraryOptionListEditorModalProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
@@ -102,20 +126,40 @@ function EditLibraryOptionListEditorModal({
     modalRef.current?.close();
   };
 
+  const codeListLabels: string = localOptionList
+    .slice(0, 3)
+    .map((option: Option) => `${option.label}`)
+    .join(' | ');
+
   return (
-    <>
-      <StudioProperty.Button
-        value={label}
-        title={t('ux_editor.options.option_edit_text')}
-        property={t('ux_editor.modal_properties_code_list_button_title_library')}
-        onClick={() => modalRef.current.showModal()}
-      />
+    <div className={classes.container}>
+      <StudioParagraph className={classes.label}>{label}</StudioParagraph>
+      <StudioParagraph size='sm' className={classes.codeListLabels}>
+        {codeListLabels}
+      </StudioParagraph>
+      <div className={classes.buttonContainer}>
+        <StudioButton
+          icon={<PencilIcon />}
+          variant='secondary'
+          onClick={() => modalRef.current.showModal()}
+        >
+          {t('general.edit')}
+        </StudioButton>
+        <StudioButton
+          color='danger'
+          icon={<TrashIcon />}
+          variant='secondary'
+          onClick={handleDelete}
+        >
+          {t('general.delete')}
+        </StudioButton>
+      </div>
       <StudioModal.Dialog
         ref={modalRef}
         className={classes.editOptionTabModal}
         contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.modal_add_options_code_list')}
+        heading={t('ux_editor.options.modal_header_library_code_list')}
         onInteractOutside={handleClose}
         onBeforeClose={handleClose}
         footer={
@@ -130,18 +174,20 @@ function EditLibraryOptionListEditorModal({
           texts={editorTexts}
         />
       </StudioModal.Dialog>
-    </>
+    </div>
   );
 }
 
 type EditManualOptionListEditorModalProps = {
   label: string;
+  handleDelete: () => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 function EditManualOptionListEditorModal({
   label,
   component,
   handleComponentChange,
+  handleDelete,
 }: EditManualOptionListEditorModalProps): React.ReactNode {
   const { t } = useTranslation();
   const modalRef = useRef<HTMLDialogElement>(null);
@@ -158,20 +204,40 @@ function EditManualOptionListEditorModal({
     });
   };
 
+  const codeListLabels: string = component.options
+    .slice(0, 3)
+    .map((option: Option) => `${option.label}`)
+    .join(' | ');
+
   return (
-    <>
-      <StudioProperty.Button
-        value={label}
-        title={t('ux_editor.options.option_edit_text')}
-        property={t('ux_editor.modal_properties_code_list_button_title_manual')}
-        onClick={() => modalRef.current.showModal()}
-      />
+    <div className={classes.container}>
+      <StudioParagraph className={classes.label}>{label}</StudioParagraph>
+      <StudioParagraph size='sm' className={classes.codeListLabels}>
+        {codeListLabels}
+      </StudioParagraph>
+      <div className={classes.buttonContainer}>
+        <StudioButton
+          icon={<PencilIcon />}
+          variant='secondary'
+          onClick={() => modalRef.current.showModal()}
+        >
+          {t('general.edit')}
+        </StudioButton>
+        <StudioButton
+          color='danger'
+          icon={<TrashIcon />}
+          variant='secondary'
+          onClick={handleDelete}
+        >
+          {t('general.delete')}
+        </StudioButton>
+      </div>
       <StudioModal.Dialog
         ref={modalRef}
         className={classes.editOptionTabModal}
         contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
-        heading={t('ux_editor.modal_add_options_code_list')}
+        heading={t('ux_editor.options.modal_header_manual_code_list')}
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
@@ -179,6 +245,6 @@ function EditManualOptionListEditorModal({
           texts={editorTexts}
         />
       </StudioModal.Dialog>
-    </>
+    </div>
   );
 }
