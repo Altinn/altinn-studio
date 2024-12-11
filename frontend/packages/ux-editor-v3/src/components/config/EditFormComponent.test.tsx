@@ -92,8 +92,11 @@ describe('EditFormComponent', () => {
     Object.keys(labels).map(async (label) =>
       expect(await screen.findByRole(labels[label], { name: textMock(label) })),
     );
-    expect(screen.getByRole('combobox'));
-    expect(screen.getByLabelText('Autocomplete (WCAG)'));
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.autocomplete'),
+      }),
+    );
   });
 
   it('should return header specific content when type header', async () => {
