@@ -1,62 +1,59 @@
 import React from 'react';
-import type { CodeListWithMetadata } from '../CodeList';
 import { StudioCodeListEditor } from '@studio/components';
 import type { CodeList as StudioComponentsCodeList, CodeListEditorTexts } from '@studio/components';
 import { useOptionListEditorTexts } from '../hooks/useCodeListEditorTexts';
+import type { CodeListData, CodeListWithMetadata } from '../CodeList';
 import { Accordion, Alert } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
-import type { UseLibraryQuery } from '../../../../../types/useLibraryQuery';
-import type { CodeList as StudioComponentCodeList } from '@studio/components';
 
 export type CodeListsProps = {
-  codeListIds: string[];
-  getCodeList: UseLibraryQuery<StudioComponentCodeList>;
+  codeListsData: CodeListData[];
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
-export function CodeLists({ codeListIds, getCodeList, onUpdateCodeList }: CodeListsProps) {
-  return codeListIds.map((codeListId) => (
+export function CodeLists({ codeListsData, onUpdateCodeList }: CodeListsProps) {
+  return codeListsData.map((codeListData) => (
     <CodeList
-      key={codeListId}
-      codeListId={codeListId}
-      getCodeList={getCodeList}
+      key={codeListData.title}
+      codeListData={codeListData}
       onUpdateCodeList={onUpdateCodeList}
     />
   ));
 }
 
 type CodeListProps = {
-  codeListId: string;
-  getCodeList: UseLibraryQuery<StudioComponentCodeList>;
+  codeListData: CodeListData;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
 };
 
-function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
+function CodeList({ codeListData, onUpdateCodeList }: CodeListProps) {
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const handleUpdateCodeList = (updatedCodeList: StudioComponentsCodeList): void => {
-    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
+    const updatedCodeListWithMetadata = updateCodeListWithMetadata(
+      { title: codeListData.title, data: codeListData.data },
+      updatedCodeList,
+    );
     onUpdateCodeList(updatedCodeListWithMetadata);
   };
-
-  const codeListText = codeListError
-    ? t('app_content_library.code_lists.fetch_error')
-    : t('app_content_library.code_lists.edit_code_list_placeholder_text');
 
   return (
     <Accordion border>
       <Accordion.Item>
-        <Accordion.Header>{codeListId}</Accordion.Header>
+        <Accordion.Header>{codeListData.title}</Accordion.Header>
         <Accordion.Content>
-          <StudioCodeListEditor
-            codeList={codeList.codeList}
-            onChange={handleUpdateCodeList}
-            texts={editorTexts}
-          />
-          <Alert size='small' severity={codeListError ? 'danger' : 'info'}>
-            {codeListText}
-          </Alert>
+          {codeListData.hasError ? (
+            <Alert size='small' severity='danger'>
+              {t('app_content_library.code_lists.fetch_error')}
+            </Alert>
+          ) : (
+            <StudioCodeListEditor
+              codeList={codeListData.data}
+              onChange={handleUpdateCodeList}
+              texts={editorTexts}
+            />
+          )}
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
@@ -67,5 +64,5 @@ export const updateCodeListWithMetadata = (
   currentCodeListWithMetadata: CodeListWithMetadata,
   updatedCodeList: StudioComponentsCodeList,
 ): CodeListWithMetadata => {
-  return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
+  return { ...currentCodeListWithMetadata, data: updatedCodeList };
 };

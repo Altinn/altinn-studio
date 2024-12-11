@@ -72,7 +72,6 @@ import type { OrgList } from 'app-shared/types/OrgList';
 import type { RepoStatus } from 'app-shared/types/RepoStatus';
 import type { Repository, User } from 'app-shared/types/Repository';
 import type { RuleConfig } from 'app-shared/types/RuleConfig';
-
 import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
@@ -88,7 +87,7 @@ import type { Policy } from 'app-shared/types/Policy';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
-import type { OptionsLists, OptionsList } from 'app-shared/types/api/OptionsLists';
+import type { OptionsList, OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
@@ -116,7 +115,7 @@ export const getLayoutNames = (owner: string, app: string) => get<string[]>(layo
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
 export const getOptionList = (owner: string, app: string, optionListId: string) => get<OptionsList>(optionListPath(owner, app, optionListId));
-export const getOptionLists = (owner: string, app: string) => get<OptionsLists>(optionListsPath(owner, app));
+export const getOptionLists = (owner: string, app: string) => get<OptionsListsResponse>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());

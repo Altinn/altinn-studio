@@ -1,1 +1,1 @@
-export type { CodeListWithMetadata, OnGetCodeListResult } from './CodeList';
+export type { CodeListWithMetadata, CodeListData } from './CodeList';

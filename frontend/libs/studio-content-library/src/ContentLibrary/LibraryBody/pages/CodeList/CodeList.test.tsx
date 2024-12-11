@@ -1,18 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListProps, OnGetCodeListResult } from './CodeList';
+import type { CodeListProps } from './CodeList';
 import { CodeList } from './CodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
-const codeListName = 'codeList';
-const codeListMock = [{ value: 'value', label: 'label' }];
-const getCodeListMock: jest.Mock<OnGetCodeListResult, [codeListId: string]> = jest.fn(
-  (codeListId: string) => {
-    return { codeListWithMetadata: { title: codeListId, codeList: codeListMock }, isError: false };
-  },
-);
 
 describe('CodeList', () => {
   it('renders the codeList heading', () => {
@@ -47,14 +41,13 @@ describe('CodeList', () => {
 
   it('renders the code list as a clickable element', () => {
     renderCodeList();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    const codeListAccordion = screen.getByRole('button', { name: codeListsDataMock[0].title });
     expect(codeListAccordion).toBeInTheDocument();
   });
 });
 
 const defaultCodeListProps: CodeListProps = {
-  codeListIds: [codeListName],
-  getCodeList: getCodeListMock,
+  codeListsData: codeListsDataMock,
   onUpdateCodeList: onUpdateCodeListMock,
   onUploadCodeList: onUploadCodeListMock,
 };

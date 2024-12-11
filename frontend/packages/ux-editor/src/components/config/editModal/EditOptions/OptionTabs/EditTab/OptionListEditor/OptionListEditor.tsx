@@ -12,27 +12,35 @@ import {
 import type { CodeListEditorTexts } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations/useUpdateOptionListMutation';
-import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
 import { useOptionListEditorTexts } from '../../hooks/useOptionListEditorTexts';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import classes from './OptionListEditor.module.css';
+import { useOptionListQuery } from 'app-shared/hooks/queries';
 
-type OptionListEditorProps = {
-  optionsId: string;
-  label: string;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+export type OptionListEditorProps = Pick<
+  IGenericEditComponent<SelectionComponentType>,
+  'component' | 'handleComponentChange'
+>;
 
 export function OptionListEditor({
-  optionsId,
   component,
   handleComponentChange,
-  label,
 }: OptionListEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionsLists, status } = useOptionListsQuery(org, app);
+  const { data: optionsList, status } = useOptionListQuery(org, app, component.optionsId);
+
+  if (component.options !== undefined) {
+    return (
+      <EditManualOptionListEditorModal
+        label={component.label}
+        component={component}
+        handleComponentChange={handleComponentChange}
+      />
+    );
+  }
 
   switch (status) {
     case 'pending':
@@ -46,24 +54,13 @@ export function OptionListEditor({
         </StudioErrorMessage>
       );
     case 'success': {
-      if (optionsLists[optionsId] !== undefined) {
-        return (
-          <EditLibraryOptionListEditorModal
-            label={label}
-            optionsId={optionsId}
-            optionsList={optionsLists[optionsId]}
-          />
-        );
-      }
-      if (component.options !== undefined) {
-        return (
-          <EditManualOptionListEditorModal
-            label={label}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-        );
-      }
+      return (
+        <EditLibraryOptionListEditorModal
+          label={component.label}
+          optionsId={component.optionsId}
+          optionsList={optionsList}
+        />
+      );
     }
   }
 }

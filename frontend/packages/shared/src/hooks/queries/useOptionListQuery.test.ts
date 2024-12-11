@@ -5,6 +5,7 @@ import { useOptionListQuery } from 'app-shared/hooks/queries/useOptionListQuery'
 import { waitFor } from '@testing-library/react';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import type { OptionsList } from 'app-shared/types/api/OptionsLists';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 const optionsListId = 'optionsListId';
 
@@ -23,8 +24,10 @@ describe('useOptionListQuery', () => {
 });
 
 const render = async (queries: Partial<ServicesContextProps> = {}) => {
+  const queryClient = createQueryClientMock();
   const { result } = renderHookWithProviders(() => useOptionListQuery(org, app, optionsListId), {
     queries,
+    queryClient,
   });
   await waitFor(() => expect(result.current.isSuccess).toBe(true));
   return result;

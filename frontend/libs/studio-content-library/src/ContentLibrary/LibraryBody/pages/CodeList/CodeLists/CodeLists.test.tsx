@@ -8,19 +8,19 @@ import type { UserEvent } from '@testing-library/user-event';
 import type { RenderResult } from '@testing-library/react';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 import userEvent from '@testing-library/user-event';
-import type { CodeList } from '@studio/components';
+import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 
 const codeListName = 'codeList';
 const codeListWithMetadataMock: CodeListWithMetadata = {
   title: codeListName,
-  codeList: [{ value: 'value', label: 'label' }],
+  data: [{ value: 'value', label: 'label' }],
 };
 const onUpdateCodeListMock = jest.fn();
 
 describe('CodeLists', () => {
   it('renders the code list', () => {
     renderCodeLists();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    const codeListAccordion = screen.getByRole('button', { name: codeListsDataMock[0].title });
     expect(codeListAccordion).toBeInTheDocument();
   });
 
@@ -50,20 +50,20 @@ describe('CodeLists', () => {
     });
   });
 
-  it('renders error message if error fetching an option list occurred', () => {
-    renderCodeLists({ getCodeList });
+  it('renders error message if option list has error', () => {
+    renderCodeLists({ codeListsData: [{ ...codeListsDataMock[0], hasError: true, data: null }] });
     const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
     expect(errorMessage).toBeInTheDocument();
   });
 });
 
 const openCodeList = async (user: UserEvent) => {
-  const codeListAccordion = screen.getByRole('button', {name: codeListName});
+  const codeListAccordion = screen.getByRole('button', { name: codeListName });
   await user.click(codeListAccordion);
 };
 
 const defaultProps: CodeListsProps = {
-  codeLists: [codeListWithMetadataMock],
+  codeListsData: codeListsDataMock,
   onUpdateCodeList: onUpdateCodeListMock,
 };
 

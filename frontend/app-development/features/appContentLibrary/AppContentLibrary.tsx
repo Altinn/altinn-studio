@@ -9,25 +9,22 @@ import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
-import { useGetOptionListQuery } from 'app-shared/hooks/queries';
+import { useOptionListsQuery } from 'app-shared/hooks/queries';
+import { convertOptionsListsDataToCodeListsData } from './utils/convertOptionsListsDataToCodeListsData';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const {
-    data: optionLists,
-    isPending: optionListsPending,
-    isError: optionListsError,
-  } = useOptionListsQuery(org, app);
+  const { data: optionListsData, isPending: optionListsDataPending } = useOptionListsQuery(
+    org,
+    app,
+  );
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
-  const { data: optionListIds, isPending: optionListIdsPending } = useOptionListIdsQuery(org, app);
-  const getOptionList = useGetOptionListQuery(org, app);
-  const { mutate: uploadOptionList } = useAddOptionListMutation(org, app);
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
 
-  if (optionListIdsPending)
+  if (optionListsDataPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
   const handleUpload = (file: File) => {
@@ -43,16 +40,17 @@ export function AppContentLibrary(): React.ReactElement {
     });
   };
 
-  const handleUpdate = ({ title, codeList }: CodeListWithMetadata) => {
-    updateOptionList({ optionListId: title, optionsList: codeList });
+  const handleUpdate = ({ title, data }: CodeListWithMetadata) => {
+    updateOptionList({ optionListId: title, optionsList: data });
   };
+
+  const codeListsData = convertOptionsListsDataToCodeListsData(optionListsData);
 
   const { getContentResourceLibrary } = new ResourceContentLibraryImpl({
     pages: {
       codeList: {
         props: {
-          codeListIds: optionListIds,
-          getCodeList: getOptionList,
+          codeListsData,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
         },

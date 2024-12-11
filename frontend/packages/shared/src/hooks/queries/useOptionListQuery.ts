@@ -11,7 +11,7 @@ export const useOptionListQuery = (
 ): UseQueryResult<OptionsList> => {
   const { getOptionList } = useServicesContext();
   return useQuery<OptionsList>({
-    queryKey: [QueryKey.OptionLists, org, app],
+    queryKey: [QueryKey.OptionList, org, app, optionListId],
     queryFn: () => getOptionList(org, app, optionListId),
   });
 };

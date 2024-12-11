@@ -93,12 +93,7 @@ function SelectedOptionList({
 
   return (
     <div aria-label={label} className={classes.chosenOptionContainer}>
-      <OptionListEditor
-        label={label}
-        optionsId={component.optionsId}
-        component={component}
-        handleComponentChange={handleComponentChange}
-      />
+      <OptionListEditor component={component} handleComponentChange={handleComponentChange} />
       <div className={classes.deleteButtonContainer}>
         <StudioDeleteButton
           className={classes.deleteButton}

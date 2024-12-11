@@ -14,7 +14,7 @@ export const ExportForm = () => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName } = useAppContext();
   const { data: formLayouts } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
-  const { data: optionLists } = useOptionListsQuery(org, app);
+  const { data: optionListsData } = useOptionListsQuery(org, app);
 
   const { data: textResources } = useTextResourcesQuery(org, app);
   const { data: settings } = useFormLayoutSettingsQuery(org, app, selectedFormLayoutSetName);
@@ -27,11 +27,11 @@ export const ExportForm = () => {
         selectedFormLayoutSetName,
         app,
         textResources,
-        optionLists,
+        optionListsData,
         'nb',
         false,
       ),
-    [formLayouts, textResources, settings, selectedFormLayoutSetName, app, optionLists],
+    [formLayouts, textResources, settings, selectedFormLayoutSetName, app, optionListsData],
   );
 
   const [exportFormat, setExportFormat] = React.useState<ExportFormType>({
