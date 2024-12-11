@@ -9,6 +9,7 @@ import {
   addEmptyCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
+  getCodeListValueType,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -23,12 +24,10 @@ import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './v
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
-import type { CodeListType } from './types/CodeListType';
 import { StudioTag } from '../StudioTag';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
-  codeListType: CodeListType;
   onChange: (codeList: CodeList) => void;
   onInvalid?: () => void;
   texts: CodeListEditorTexts;
@@ -36,19 +35,15 @@ export type StudioCodeListEditorProps = {
 
 export function StudioCodeListEditor({
   codeList,
-  codeListType,
   onChange,
   onInvalid = () => {},
   texts,
 }: StudioCodeListEditorProps): ReactElement {
+  const codeListValueType = useMemo(() => getCodeListValueType(codeList), [codeList]);
+
   return (
-    <StudioCodeListEditorContext.Provider value={{ codeListType, texts }}>
-      <StatefulCodeListEditor
-        codeList={codeList}
-        codeListType={codeListType}
-        onChange={onChange}
-        onInvalid={onInvalid}
-      />
+    <StudioCodeListEditorContext.Provider value={{ texts, codeListValueType }}>
+      <StatefulCodeListEditor codeList={codeList} onChange={onChange} onInvalid={onInvalid} />
     </StudioCodeListEditorContext.Provider>
   );
 }
@@ -57,7 +52,6 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
-  codeListType,
   onChange,
   onInvalid,
 }: StatefulCodeListEditorProps): ReactElement {
@@ -70,34 +64,24 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      isCodeListValid(newCodeList, codeListType) ? onChange(newCodeList) : onInvalid?.();
+      isCodeListValid(newCodeList) ? onChange(newCodeList) : onInvalid?.();
     },
-    [onChange, onInvalid, codeListType],
+    [onChange, onInvalid],
   );
 
-  return (
-    <ControlledCodeListEditor
-      codeList={codeList}
-      codeListType={codeListType}
-      onChange={handleChange}
-    />
-  );
+  return <ControlledCodeListEditor codeList={codeList} onChange={handleChange} />;
 }
 
 type InternalCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
 
 function ControlledCodeListEditor({
   codeList,
-  codeListType,
   onChange,
 }: InternalCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
   const fieldsetRef = useRef<HTMLFieldSetElement>(null);
 
-  const errorMap = useMemo<ValueErrorMap>(
-    () => findCodeListErrors(codeList, codeListType),
-    [codeList, codeListType],
-  );
+  const errorMap = useMemo<ValueErrorMap>(() => findCodeListErrors(codeList), [codeList]);
 
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addEmptyCodeListItem(codeList);
@@ -106,12 +90,7 @@ function ControlledCodeListEditor({
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable
-        codeList={codeList}
-        codeListType={codeListType}
-        errorMap={errorMap}
-        onChange={onChange}
-      />
+      <CodeListTable codeList={codeList} errorMap={errorMap} onChange={onChange} />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
@@ -142,11 +121,14 @@ function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps):
 }
 
 const ValueHeading = (): ReactElement => {
-  const { texts, codeListType } = useStudioCodeListEditorContext();
+  const { texts, codeListValueType } = useStudioCodeListEditorContext();
   return (
     <div className={classes.valueHeading}>
       {texts.value}
-      <StudioTag size='sm'>{codeListType}</StudioTag>
+      <StudioTag size='sm' title={`Denne kodelistens verdier er satt som ${codeListValueType}`}>
+        {codeListValueType}
+      </StudioTag>
+      {/*Add help text?*/}
     </div>
   );
 };

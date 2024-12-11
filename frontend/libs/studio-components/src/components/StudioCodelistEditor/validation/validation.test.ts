@@ -26,22 +26,22 @@ const codeListWithDuplicateValues: CodeList = [
 describe('validation', () => {
   describe('isCodeListValid', () => {
     it('Returns true when there are no errors', () => {
-      expect(isCodeListValid(validCodeList, 'string')).toBe(true);
+      expect(isCodeListValid(validCodeList)).toBe(true);
     });
 
     it('Returns false when there are errors', () => {
-      expect(isCodeListValid(codeListWithDuplicateValues, 'string')).toBe(false);
+      expect(isCodeListValid(codeListWithDuplicateValues)).toBe(false);
     });
   });
 
   describe('findCodeListErrors', () => {
     it('Returns a corresponding array with null values only when there are no errors', () => {
-      const errors = findCodeListErrors(validCodeList, 'string');
+      const errors = findCodeListErrors(validCodeList);
       expect(errors).toEqual([null, null] satisfies ValueErrorMap);
     });
 
     it('Returns an array with code word "duplicateValue" corresponding to duplicate values', () => {
-      const errors = findCodeListErrors(codeListWithDuplicateValues, 'string');
+      const errors = findCodeListErrors(codeListWithDuplicateValues);
       expect(errors).toEqual(['duplicateValue', 'duplicateValue'] satisfies ValueErrorMap);
     });
   });

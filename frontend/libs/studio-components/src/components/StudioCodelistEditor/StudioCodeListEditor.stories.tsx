@@ -40,7 +40,6 @@ export const Preview: Story = {
       emptyCodeList: 'The code list is empty.',
       valueErrors: {
         duplicateValue: 'The value must be unique.',
-        typeMismatch: 'The value does not fit the type',
       },
       generalError: 'The code list cannot be saved because it is not valid.',
       helpText: 'Help text',

@@ -112,8 +112,6 @@ function CreateNewCodeList({
   const shouldSaveButtonBeDisabled =
     !isCodeListValid || !currentCodeListWithMetadata.title || codeListTitleError;
 
-  const codeListType = 'string'; // TODO: Create a type selector
-
   return (
     <div className={classes.createNewCodeList}>
       <StudioTextfield
@@ -126,7 +124,6 @@ function CreateNewCodeList({
       <div className={classes.codeListEditor}>
         <StudioCodeListEditor
           codeList={currentCodeListWithMetadata.codeList}
-          codeListType={codeListType}
           onChange={handleCodeListChange}
           onInvalid={handleInvalidCodeList}
           texts={editorTexts}

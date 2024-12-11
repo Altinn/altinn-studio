@@ -1,6 +1,6 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
-import { CodeListType } from '../types/CodeListType';
+import type { CodeListValueType } from '../types/CodeListValueType';
 
 export function changeLabel(item: CodeListItem, label: string): CodeListItem {
   return { ...item, label };
@@ -18,10 +18,25 @@ export function changeHelpText(item: CodeListItem, helpText: string): CodeListIt
   return { ...item, helpText };
 }
 
-export function coerceValue(updatedValue: string, codeListType: CodeListType): CodeListItemValue {
-  if (codeListType === 'string') return String(updatedValue);
-  if (codeListType === 'number') return Number(updatedValue); // Needs validation for NaN
-  if (codeListType === 'boolean') return updatedValue.toLowerCase() === 'true';
+export function coerceValue(
+  value: string,
+  codeListValueType: CodeListValueType,
+): CodeListItemValue {
+  if (codeListValueType === 'string') return String(value);
+  if (codeListValueType === 'number') return coerceNumber(value);
+  if (codeListValueType === 'boolean') return coerceBoolean(value);
 
   throw new Error('Invalid value in codelist');
+}
+
+function coerceNumber(value: string): number | string {
+  const valueAsNumber = Number(value);
+  if (isNaN(valueAsNumber)) return value;
+  else return valueAsNumber;
+}
+
+function coerceBoolean(value: string): boolean | string {
+  if (value.toLowerCase() === 'true') return true;
+  if (value.toLowerCase() === 'false') return false;
+  else return String(value);
 }

@@ -55,7 +55,6 @@ export function AddManualOptionsModal({
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
-          codeListType={'string'}
           onChange={handleOptionsChange}
           texts={editorTexts}
         />

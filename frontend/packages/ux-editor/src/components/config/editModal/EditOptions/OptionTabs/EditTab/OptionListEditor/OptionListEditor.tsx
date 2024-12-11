@@ -18,7 +18,6 @@ import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import classes from './OptionListEditor.module.css';
-import { getOptionListValueType } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/utils/optionsUtils';
 
 type OptionListEditorProps = {
   optionsId: string;
@@ -103,8 +102,6 @@ function EditLibraryOptionListEditorModal({
     modalRef.current?.close();
   };
 
-  const optionListType = getOptionListValueType(localOptionList);
-
   return (
     <>
       <StudioProperty.Button
@@ -129,7 +126,6 @@ function EditLibraryOptionListEditorModal({
       >
         <StudioCodeListEditor
           codeList={localOptionList}
-          codeListType={optionListType}
           onChange={handleOptionsChange}
           texts={editorTexts}
         />
@@ -162,8 +158,6 @@ function EditManualOptionListEditorModal({
     });
   };
 
-  const optionListType = getOptionListValueType(component?.options);
-
   return (
     <>
       <StudioProperty.Button
@@ -181,7 +175,6 @@ function EditManualOptionListEditorModal({
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
-          codeListType={optionListType}
           onChange={handleOptionsChange}
           texts={editorTexts}
         />

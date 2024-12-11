@@ -1,1 +1,1 @@
-export type ValueError = 'duplicateValue' | 'typeMismatch';
+export type ValueError = 'duplicateValue';

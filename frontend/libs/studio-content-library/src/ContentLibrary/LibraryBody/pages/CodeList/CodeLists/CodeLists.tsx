@@ -36,7 +36,6 @@ function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
         <Accordion.Content>
           <StudioCodeListEditor
             codeList={codeList.codeList}
-            codeListType={'string'}
             onChange={handleUpdateCodeList}
             texts={editorTexts}
           />

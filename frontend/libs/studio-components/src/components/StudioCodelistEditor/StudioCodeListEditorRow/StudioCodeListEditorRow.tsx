@@ -24,7 +24,7 @@ export function StudioCodeListEditorRow({
   onBlur,
   onDeleteButtonClick,
 }: StudioCodeListEditorRowProps) {
-  const { texts, codeListType } = useStudioCodeListEditorContext();
+  const { texts, codeListValueType } = useStudioCodeListEditorContext();
 
   const handleLabelChange = useCallback(
     (label: string) => {
@@ -44,13 +44,14 @@ export function StudioCodeListEditorRow({
 
   const handleValueChange = useCallback(
     (value: string) => {
-      const coercedValue = coerceValue(value, codeListType);
-      if (isNaN(Number(coercedValue))) return;
-
+      const coercedValue = coerceValue(value, codeListValueType);
+      console.log(`codeListValueType: ${codeListValueType}`);
+      console.log(`coercedValue: ${coercedValue}`);
+      console.log(`typeof coercedValue: ${typeof coercedValue}`);
       const updatedItem = changeValue(item, coercedValue);
       onBlur(updatedItem);
     },
-    [item, onBlur, codeListType],
+    [item, onBlur, codeListValueType],
   );
 
   const handleHelpTextChange = useCallback(
