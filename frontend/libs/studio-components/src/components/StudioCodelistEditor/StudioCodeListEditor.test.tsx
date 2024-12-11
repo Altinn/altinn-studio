@@ -292,7 +292,6 @@ describe('StudioCodeListEditor', () => {
     const user = userEvent.setup();
     renderCodeListEditor();
     await user.tab();
-    await user.tab();
     expect(onChange).not.toHaveBeenCalled();
   });
 });
