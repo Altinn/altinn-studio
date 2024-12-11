@@ -803,6 +803,10 @@
           {
             "label": "Shifting options",
             "value": "shifting-options"
+          },
+          {
+            "label": "Filtered options",
+            "value": "filtered-options"
           }
         ]
       },

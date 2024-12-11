@@ -236,6 +236,18 @@ namespace Altinn.App.logic.DataProcessing
                         }
                     }
                 }
+                
+                if (model?.FilteredOptions?.Ingredients != null)
+                {
+                    var usedTypes = new HashSet<decimal?>();
+                    model.FilteredOptions.UsedTypes = "";
+                    foreach (var ingredient in model.FilteredOptions.Ingredients)
+                    {
+                        usedTypes.Add(ingredient.Type);
+                    }
+                    usedTypes.Remove(null);
+                    model.FilteredOptions.UsedTypes = string.Join(",", usedTypes);
+                }
             }
 
             return Task.CompletedTask;
