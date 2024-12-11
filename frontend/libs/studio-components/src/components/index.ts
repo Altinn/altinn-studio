@@ -36,6 +36,7 @@ export * from './StudioLabelWrapper';
 export * from './StudioLink';
 export * from './StudioList';
 export * from './StudioModal';
+export * from './StudioRadio';
 export * from './StudioNativeSelect';
 export * from './StudioNotFoundPage';
 export * from './StudioPageError';
