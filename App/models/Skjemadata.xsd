@@ -35,11 +35,11 @@
               <xs:element minOccurs="0" name="Fornavn" type="xs:string" />
               <xs:element minOccurs="0" name="Mellomnavn" type="xs:string" />
               <xs:element name="Etternavn" type="xs:string" />
-              <xs:element name="Foedselsnummer" type="xs:long" />
               <xs:element name="Adresse" type="Adresse" />
               <xs:element minOccurs="0" name="Aksjetegning" type="Aksjetegning" />
               <xs:element minOccurs="0" name="HarFullmektig" type="xs:string" />
               <xs:element minOccurs="0" name="Fullmektig" type="Fullmektig" />
+              <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -47,8 +47,8 @@
           <xs:complexType>
             <xs:sequence>
               <xs:element minOccurs="0" name="Navn" type="xs:string" />
-              <xs:element name="Organisasjonsnummer" type="xs:long" />
               <xs:element minOccurs="0" name="Adresse" type="Adresse" />
+              <xs:element minOccurs="0" name="Organisasjonsnummer" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -68,7 +68,7 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="Etternavn" type="xs:string" />
-                    <xs:element name="Foedselsnummer" type="xs:long" />
+                    <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -77,7 +77,7 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="Etternavn" type="xs:string" />
-                    <xs:element name="Foedselsnummer" type="xs:long" />
+                    <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -85,7 +85,7 @@
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="Etternavn" type="xs:string" />
-                    <xs:element name="Foedselsnummer" type="xs:long" />
+                    <xs:element minOccurs="0" name="Foedselsnummer" type="xs:string" />
                   </xs:sequence>
                 </xs:complexType>
               </xs:element>
@@ -96,9 +96,9 @@
           <xs:complexType>
             <xs:sequence>
               <xs:element name="HarRevisor" type="xs:string" />
-              <xs:element name="Organisasjonsnummer" type="xs:long" />
               <xs:element name="Navn" type="xs:string" />
               <xs:element name="Adresse" type="Adresse" />
+              <xs:element minOccurs="0" name="Organisasjonsnummer" type="xs:string" />
             </xs:sequence>
           </xs:complexType>
         </xs:element>

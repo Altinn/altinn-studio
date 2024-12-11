@@ -74,33 +74,30 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Etternavn")]
     public string Etternavn { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("Foedselsnummer", Order = 4)]
-    [JsonProperty("Foedselsnummer")]
-    [JsonPropertyName("Foedselsnummer")]
-    public decimal? Foedselsnummer { get; set; }
-
-    public bool ShouldSerializeFoedselsnummer() => Foedselsnummer.HasValue;
-
-    [XmlElement("Adresse", Order = 5)]
+    [XmlElement("Adresse", Order = 4)]
     [JsonProperty("Adresse")]
     [JsonPropertyName("Adresse")]
     public Adresse Adresse { get; set; }
 
-    [XmlElement("Aksjetegning", Order = 6)]
+    [XmlElement("Aksjetegning", Order = 5)]
     [JsonProperty("Aksjetegning")]
     [JsonPropertyName("Aksjetegning")]
     public Aksjetegning Aksjetegning { get; set; }
 
-    [XmlElement("HarFullmektig", Order = 7)]
+    [XmlElement("HarFullmektig", Order = 6)]
     [JsonProperty("HarFullmektig")]
     [JsonPropertyName("HarFullmektig")]
     public string HarFullmektig { get; set; }
 
-    [XmlElement("Fullmektig", Order = 8)]
+    [XmlElement("Fullmektig", Order = 7)]
     [JsonProperty("Fullmektig")]
     [JsonPropertyName("Fullmektig")]
     public Fullmektig Fullmektig { get; set; }
+
+    [XmlElement("Foedselsnummer", Order = 8)]
+    [JsonProperty("Foedselsnummer")]
+    [JsonPropertyName("Foedselsnummer")]
+    public string Foedselsnummer { get; set; }
 
   }
 
@@ -173,18 +170,15 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Navn")]
     public string Navn { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("Organisasjonsnummer", Order = 2)]
-    [JsonProperty("Organisasjonsnummer")]
-    [JsonPropertyName("Organisasjonsnummer")]
-    public decimal? Organisasjonsnummer { get; set; }
-
-    public bool ShouldSerializeOrganisasjonsnummer() => Organisasjonsnummer.HasValue;
-
-    [XmlElement("Adresse", Order = 3)]
+    [XmlElement("Adresse", Order = 2)]
     [JsonProperty("Adresse")]
     [JsonPropertyName("Adresse")]
     public Adresse Adresse { get; set; }
+
+    [XmlElement("Organisasjonsnummer", Order = 3)]
+    [JsonProperty("Organisasjonsnummer")]
+    [JsonPropertyName("Organisasjonsnummer")]
+    public string Organisasjonsnummer { get; set; }
 
   }
 
@@ -203,7 +197,7 @@ namespace Altinn.App.Models.Skjemadata
 
     public bool ShouldSerializePaalydende() => Paalydende.HasValue;
 
-    // [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
+    [RegularExpression(@"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$")]
     [XmlElement("FristForInnbetaling", Order = 3)]
     [JsonProperty("FristForInnbetaling")]
     [JsonPropertyName("FristForInnbetaling")]
@@ -242,12 +236,10 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Etternavn")]
     public string Etternavn { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("Foedselsnummer", Order = 2)]
     [JsonProperty("Foedselsnummer")]
     [JsonPropertyName("Foedselsnummer")]
-    [Required]
-    public decimal? Foedselsnummer { get; set; }
+    public string Foedselsnummer { get; set; }
 
   }
 
@@ -258,12 +250,10 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Etternavn")]
     public string Etternavn { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("Foedselsnummer", Order = 2)]
     [JsonProperty("Foedselsnummer")]
     [JsonPropertyName("Foedselsnummer")]
-    [Required]
-    public decimal? Foedselsnummer { get; set; }
+    public string Foedselsnummer { get; set; }
 
   }
 
@@ -282,13 +272,10 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("Etternavn")]
     public string Etternavn { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
     [XmlElement("Foedselsnummer", Order = 2)]
     [JsonProperty("Foedselsnummer")]
     [JsonPropertyName("Foedselsnummer")]
-    public decimal? Foedselsnummer { get; set; }
-
-    public bool ShouldSerializeFoedselsnummer() => Foedselsnummer.HasValue;
+    public string Foedselsnummer { get; set; }
 
   }
 
@@ -299,22 +286,20 @@ namespace Altinn.App.Models.Skjemadata
     [JsonPropertyName("HarRevisor")]
     public string HarRevisor { get; set; }
 
-    [Range(Double.MinValue,Double.MaxValue)]
-    [XmlElement("Organisasjonsnummer", Order = 2)]
-    [JsonProperty("Organisasjonsnummer")]
-    [JsonPropertyName("Organisasjonsnummer")]
-    [Required]
-    public decimal? Organisasjonsnummer { get; set; }
-
-    [XmlElement("Navn", Order = 3)]
+    [XmlElement("Navn", Order = 2)]
     [JsonProperty("Navn")]
     [JsonPropertyName("Navn")]
     public string Navn { get; set; }
 
-    [XmlElement("Adresse", Order = 4)]
+    [XmlElement("Adresse", Order = 3)]
     [JsonProperty("Adresse")]
     [JsonPropertyName("Adresse")]
     public Adresse Adresse { get; set; }
+
+    [XmlElement("Organisasjonsnummer", Order = 4)]
+    [JsonProperty("Organisasjonsnummer")]
+    [JsonPropertyName("Organisasjonsnummer")]
+    public string Organisasjonsnummer { get; set; }
 
   }
 }

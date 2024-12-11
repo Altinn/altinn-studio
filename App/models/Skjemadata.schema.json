@@ -88,9 +88,6 @@
           "Etternavn": {
             "type": "string"
           },
-          "Foedselsnummer": {
-            "type": "integer"
-          },
           "Adresse": {
             "$ref": "#/$defs/Adresse"
           },
@@ -102,11 +99,13 @@
           },
           "Fullmektig": {
             "$ref": "#/$defs/Fullmektig"
+          },
+          "Foedselsnummer": {
+            "type": "string"
           }
         },
         "required": [
           "Etternavn",
-          "Foedselsnummer",
           "Adresse"
         ]
       }
@@ -120,16 +119,13 @@
           "Navn": {
             "type": "string"
           },
-          "Organisasjonsnummer": {
-            "type": "integer"
-          },
           "Adresse": {
             "$ref": "#/$defs/Adresse"
+          },
+          "Organisasjonsnummer": {
+            "type": "string"
           }
-        },
-        "required": [
-          "Organisasjonsnummer"
-        ]
+        }
       }
     },
     "Aksjekapital": {
@@ -161,12 +157,11 @@
               "type": "string"
             },
             "Foedselsnummer": {
-              "type": "integer"
+              "type": "string"
             }
           },
           "required": [
-            "Etternavn",
-            "Foedselsnummer"
+            "Etternavn"
           ]
         },
         "HarNestleder": {
@@ -179,12 +174,11 @@
               "type": "string"
             },
             "Foedselsnummer": {
-              "type": "integer"
+              "type": "string"
             }
           },
           "required": [
-            "Etternavn",
-            "Foedselsnummer"
+            "Etternavn"
           ]
         },
         "Styremedlem": {
@@ -197,12 +191,11 @@
                 "type": "string"
               },
               "Foedselsnummer": {
-                "type": "integer"
+                "type": "string"
               }
             },
             "required": [
-              "Etternavn",
-              "Foedselsnummer"
+              "Etternavn"
             ]
           }
         }
@@ -217,19 +210,18 @@
         "HarRevisor": {
           "type": "string"
         },
-        "Organisasjonsnummer": {
-          "type": "integer"
-        },
         "Navn": {
           "type": "string"
         },
         "Adresse": {
           "$ref": "#/$defs/Adresse"
+        },
+        "Organisasjonsnummer": {
+          "type": "string"
         }
       },
       "required": [
         "HarRevisor",
-        "Organisasjonsnummer",
         "Navn",
         "Adresse"
       ]

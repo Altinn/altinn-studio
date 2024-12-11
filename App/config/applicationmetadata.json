@@ -46,6 +46,9 @@
       "allowedContentTypes": [
         "application/json"
       ],
+      "allowedContributers": [
+        "app:owned"
+      ],
       "taskId": "SigningTask_Founders",
       "maxCount": 1,
       "minCount": 0,
@@ -53,13 +56,15 @@
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
-      "enabledFileValidators": [],
-      "allowedContributers": ["app:owned"]
+      "enabledFileValidators": []
     },
     {
       "id": "signatureInformation-auditor",
       "allowedContentTypes": [
         "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
       ],
       "taskId": "SigningTask_Auditor",
       "maxCount": 1,
@@ -68,8 +73,7 @@
       "enableFileScan": false,
       "validationErrorOnPendingFileScan": false,
       "enabledFileAnalysers": [],
-      "enabledFileValidators": [],
-      "allowedContributers": ["app:owned"]
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {
