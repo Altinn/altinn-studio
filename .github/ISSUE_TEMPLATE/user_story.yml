@@ -9,14 +9,21 @@ body:
         * Consider the [INVEST](https://www.pivotaltracker.com/blog/how-to-invest-in-your-user-stories) qualities when writing the story
 
   - type: textarea
-    id: description
+    id: userstory
     attributes:
-      label: Description
+      label: User story
       description: Give us a brief WHO, WHAT, and WHY of this user story.
-    value: |
-      As a [persona], I want to [do something] so that [I can achieve a goal].
+    value: As a [persona], I want to [do something] so that [I can achieve a goal].
+    placeholder: As a [persona], I want to [do something] so that [I can achieve a goal].
     validations:
       required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: User story
+      description: You can provide a more detailed description of the user story here if needed.
+    placeholder: Describe the user story in more detail
 
   - type: textarea
     id: design

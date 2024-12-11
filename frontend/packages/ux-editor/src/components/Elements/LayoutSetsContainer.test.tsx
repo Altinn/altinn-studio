@@ -17,6 +17,7 @@ import { app, org } from '@studio/testing/testids';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,
+  FeatureFlag,
 } from 'app-shared/utils/featureToggleUtils';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
@@ -65,7 +66,7 @@ describe('LayoutSetsContainer', () => {
   });
 
   it('should render the delete subform button when feature is enabled and selected layoutset is a subform', () => {
-    addFeatureFlagToLocalStorage('subform');
+    addFeatureFlagToLocalStorage(FeatureFlag.Subform);
     render({
       layoutSets: { sets: [{ id: layoutSet3SubformNameMock, type: 'subform' }] },
       selectedLayoutSet: layoutSet3SubformNameMock,
@@ -74,11 +75,11 @@ describe('LayoutSetsContainer', () => {
       name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubformButton).toBeInTheDocument();
-    removeFeatureFlagFromLocalStorage('subform');
+    removeFeatureFlagFromLocalStorage(FeatureFlag.Subform);
   });
 
   it('should not render the delete subform button when feature is enabled and selected layoutset is not a subform', () => {
-    addFeatureFlagToLocalStorage('subform');
+    addFeatureFlagToLocalStorage(FeatureFlag.Subform);
     render({
       layoutSets: { sets: [{ id: layoutSet1NameMock, dataType: 'data-model' }] },
       selectedLayoutSet: layoutSet1NameMock,
@@ -87,7 +88,7 @@ describe('LayoutSetsContainer', () => {
       name: textMock('ux_editor.delete.subform'),
     });
     expect(deleteSubformButton).not.toBeInTheDocument();
-    removeFeatureFlagFromLocalStorage('subform');
+    removeFeatureFlagFromLocalStorage(FeatureFlag.Subform);
   });
 
   it('should not render the delete subform button when feature is disabled', () => {

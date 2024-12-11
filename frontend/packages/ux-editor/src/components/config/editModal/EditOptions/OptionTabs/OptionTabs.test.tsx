@@ -9,7 +9,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../testing/mocks';
 import { OptionTabs } from './OptionTabs';
 import { componentMocks } from '../../../../../testing/componentMocks';
-import { addFeatureFlagToLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -115,7 +115,7 @@ describe('EditOptions', () => {
   });
 
   it('should render EditOptionChoice when featureFlag is enabled', async () => {
-    addFeatureFlagToLocalStorage('optionListEditor');
+    addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
     const optionsId = 'optionsId';
     renderEditOptions({
       componentProps: {
@@ -131,7 +131,7 @@ describe('EditOptions', () => {
   });
 
   it('should switch to referenceId input clicking referenceId tab', async () => {
-    addFeatureFlagToLocalStorage('optionListEditor');
+    addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
     const user = userEvent.setup();
     renderEditOptions({
       componentProps: { options: [] },

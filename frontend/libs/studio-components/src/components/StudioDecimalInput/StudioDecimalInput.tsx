@@ -8,13 +8,17 @@ import React, {
 } from 'react';
 import { convertNumberToString, convertStringToNumber, isStringValidDecimalNumber } from './utils';
 import { type StudioTextfieldProps, StudioTextfield } from '../StudioTextfield';
+import type { Override } from '../../types/Override';
 
-export interface StudioDecimalInputProps extends Omit<StudioTextfieldProps, 'onChange'> {
-  description?: string;
-  onChange: (value: number) => void;
-  value?: number;
-  validationErrorMessage: string;
-}
+export type StudioDecimalInputProps = Override<
+  {
+    description?: string;
+    onChange: (value: number) => void;
+    value?: number;
+    validationErrorMessage: string;
+  },
+  StudioTextfieldProps
+>;
 
 export const StudioDecimalInput = forwardRef(
   (

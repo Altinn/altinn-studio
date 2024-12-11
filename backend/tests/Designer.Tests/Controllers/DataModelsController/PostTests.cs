@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Utils;
@@ -15,6 +16,10 @@ namespace Designer.Tests.Controllers.DataModelsController;
 public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<WebApplicationFactory<Program>>
 {
     private static string VersionPrefix(string org, string repository) => $"/designer/api/{org}/{repository}/datamodels";
+    private static readonly string Org = "ttd";
+    private static readonly string Repo = "empty-app";
+    private static readonly string Developer = "testUser";
+
     public PostTests(WebApplicationFactory<Program> factory) : base(factory)
     {
     }
@@ -56,6 +61,32 @@ public class PostTests : DesignerEndpointsTestsBase<PostTests>, IClassFixture<We
         var getJsonSchema = JsonSchema.FromText(getContent);
         Assert.NotNull(getJsonSchema);
         Assert.Equal(postContent, getContent);
+    }
+
+    [Fact]
+    public async Task PostDatamodel_CreateNew_ShouldAddDataTypeWithModelIdToAppMetadata()
+    {
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+
+        await CopyRepositoryForTest(Org, Repo, Developer, targetRepository);
+        string url = $"{VersionPrefix(Org, targetRepository)}/new";
+
+        string modelAndSchemaName = "modelAndSchemaName";
+        var createViewModel = new CreateModelViewModel()
+        { ModelName = modelAndSchemaName, RelativeDirectory = "", Altinn2Compatible = false };
+
+        using var postRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(createViewModel, null, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+        };
+
+        using var postResponse = await HttpClient.SendAsync(postRequestMessage);
+        Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+
+        var applicationMetadata =
+            TestDataHelper.GetFileFromRepo(Org, targetRepository, Developer, "App/config/applicationmetadata.json");
+        ApplicationMetadata deserializedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(applicationMetadata, JsonSerializerOptions);
+        Assert.True(deserializedApplicationMetadata.DataTypes.Exists(dataType => dataType.Id == modelAndSchemaName));
     }
 
     [Theory]
