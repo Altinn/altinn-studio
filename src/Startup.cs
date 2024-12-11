@@ -92,6 +92,7 @@ namespace LocalTest
             services.AddSingleton<Altinn.Platform.Authorization.Services.Interface.IParties, PartiesService>();
             services.AddSingleton<IClaims, ClaimsService>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
+            services.AddSingleton<IInstanceAndEventsRepository, InstanceAndEventsRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IEventsRepository, EventsRepository>();

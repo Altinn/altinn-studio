@@ -83,6 +83,14 @@ namespace LocalTest.Services.Storage.Implementation
 
         private string GetInstanceEventPath(string instanceId, Guid instanceEventID)
         {
+            if (string.IsNullOrEmpty(instanceId))
+            {
+                throw new ArgumentException("Instance ID cannot be null or empty");
+            }
+            if (instanceEventID == Guid.Empty)
+            {
+                throw new ArgumentException("Instance event ID cannot be null or empty");
+            }
             return GetInstanceEventFolder() + instanceId.Replace("/", "_") + "_" + instanceEventID.ToString() + ".json";
         }
 

@@ -11,6 +11,14 @@ namespace Altinn.Platform.Storage.Services
     public interface IInstanceEventService
     {
         /// <summary>
+        /// Construct an instance event given a type
+        /// </summary>
+        /// <param name="eventType">Event type</param>
+        /// <param name="instance">Instance</param>
+        /// <returns></returns>
+        public InstanceEvent BuildInstanceEvent(InstanceEventType eventType, Instance instance);
+        
+        /// <summary>
         /// Dispatch an instance event to the repository
         /// </summary>
         /// <param name="eventType">The event type</param>

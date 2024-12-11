@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.Services
         }
 
         /// <inheritdoc/>
-        public async Task DispatchEvent(InstanceEventType eventType, Instance instance)
+        public InstanceEvent BuildInstanceEvent(InstanceEventType eventType, Instance instance)
         {
             var user = _contextAccessor.HttpContext.User;
 
@@ -47,6 +47,14 @@ namespace Altinn.Platform.Storage.Services
                 ProcessInfo = instance.Process,
                 Created = DateTime.UtcNow,
             };
+
+            return instanceEvent;
+        }
+
+        /// <inheritdoc/>
+        public async Task DispatchEvent(InstanceEventType eventType, Instance instance)
+        {
+            var instanceEvent = BuildInstanceEvent(eventType, instance);
 
             await _repository.InsertInstanceEvent(instanceEvent);
         }
