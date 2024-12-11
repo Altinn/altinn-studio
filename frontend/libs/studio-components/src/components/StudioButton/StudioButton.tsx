@@ -8,12 +8,16 @@ import type { OverridableComponent } from '../../types/OverridableComponent';
 import type { IconPlacement } from '../../types/IconPlacement';
 import type { OverridableComponentRef } from '../../types/OverridableComponentRef';
 import type { OverridableComponentProps } from '../../types/OverridableComponentProps';
+import type { Override } from '../../types/Override';
 
-export type StudioButtonProps = Omit<ButtonProps, 'icon' | 'color' | 'asChild'> & {
-  icon?: ReactNode;
-  iconPlacement?: IconPlacement;
-  color?: ButtonProps['color'] | 'inverted';
-};
+export type StudioButtonProps = Override<
+  {
+    icon?: ReactNode;
+    iconPlacement?: IconPlacement;
+    color?: ButtonProps['color'] | 'inverted';
+  },
+  Omit<ButtonProps, 'asChild'>
+>;
 
 const StudioButton: OverridableComponent<StudioButtonProps, HTMLButtonElement> = forwardRef(
   <As extends ElementType = 'button'>(
