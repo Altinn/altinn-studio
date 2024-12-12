@@ -39,7 +39,8 @@
         "textResourceBindings": {
           "title": "Side1.Input-Name.title"
         },
-        "required": true
+        "required": true,
+        "showValidations": ["AllExceptRequired"]
       },
       {
         "dataModelBindings": {
@@ -62,14 +63,37 @@
           "title": "attachments.title"
         },
         "maxFileSizeInMB": 10,
-        "maxNumberOfAttachments": 2,
+        "maxNumberOfAttachments": 20,
         "minNumberOfAttachments": 0,
         "displayMode": "list",
         "hasCustomFileEndings": true,
         "validFileEndings": ".png",
         "dataModelBindings": {
           "list": "AttachmentId"
-        }
+        },
+        "showValidations": ["AllExceptRequired"]
+      },
+      {
+        "id": "debug-attachmentIds-frontend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Vedleggenes IDer (fra frontend)"
+        },
+        "value": ["dataModel", "AttachmentIdJoined"],
+        "direction": "vertical",
+        "hidden": ["not", ["startsWith", ["component", "Input-Name"], "debug"]],
+        "grid": { "md": 6 }
+      },
+      {
+        "id": "debug-attachmentNames-backend",
+        "type": "Text",
+        "textResourceBindings": {
+          "title": "Navn på vedlegg (fra backend)"
+        },
+        "value": ["dataModel", "AttachmentNameJoined"],
+        "direction": "vertical",
+        "hidden": ["not", ["startsWith", ["component", "Input-Name"], "debug"]],
+        "grid": { "md": 6 }
       },
       {
         "id": "subform-mopeder",

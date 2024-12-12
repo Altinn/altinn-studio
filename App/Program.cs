@@ -1,15 +1,19 @@
 using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
+using Altinn.App.Core.Features;
+using Altinn.App.logic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
 void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
     // Register your apps custom service implementations here.
+    services.AddTransient<IDataWriteProcessor, DataWriteProcessor>();
+    services.AddTransient<IFormDataValidator, ModelValidator>();
+    services.AddTransient<IDataElementValidator, AttachmentValidator>();
 }
 
 // ###########################################################################

@@ -92,7 +92,7 @@
       ],
       "taskId": "Task_1",
       "maxSize": 10,
-      "maxCount": 2,
+      "maxCount": 20,
       "minCount": 0,
       "enablePdfCreation": false,
       "enableFileScan": false,
