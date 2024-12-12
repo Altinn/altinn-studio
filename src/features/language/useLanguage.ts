@@ -327,6 +327,21 @@ function getTextResourceByKey(
   return getTextResourceByKey(value, textResources, dataSources);
 }
 
+function splitNTimes(text: string, sep: string, n: number) {
+  if (n === 0) {
+    return [text];
+  } else if (n < 0) {
+    throw new Error(`Invalid N:${n}`);
+  }
+  const parts = text.split(sep);
+  const out: string[] = [];
+  for (let i = 0; i < n; i++) {
+    out.push(parts.shift() ?? '');
+  }
+  out.push(parts.join(sep));
+  return out;
+}
+
 function replaceVariables(text: string, variables: IVariable[], dataSources: TextResourceVariablesDataSources) {
   const {
     node,
@@ -345,7 +360,7 @@ function replaceVariables(text: string, variables: IVariable[], dataSources: Tex
     let value = variables[idx].key;
 
     if (variable.dataSource.startsWith('dataModel')) {
-      const dataModelName = variable.dataSource.split('.')[1];
+      const dataModelName = splitNTimes(variable.dataSource, '.', 1)[1];
       const cleanPath = getKeyWithoutIndexIndicators(value);
 
       const dataTypeToRead =
