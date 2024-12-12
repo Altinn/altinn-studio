@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { PolicyAccordion } from '../PolicyAccordion/PolicyAccordion';
+import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
+import { StudioSpinner } from '@studio/components';
 
 interface PolicyAccessPackageAccordionProps {
   accessPackage: PolicyAccessPackage;
@@ -17,6 +19,17 @@ export const PolicyAccessPackageAccordion = ({
   selectPackageElement,
 }: PolicyAccessPackageAccordionProps): React.ReactElement => {
   const { t } = useTranslation();
+  const [isServicesEnabled, setIsServicesEnabled] = useState<boolean>(false);
+
+  const { data: services, isLoading } = useResourceAccessPackageServicesQuery(
+    accessPackage.urn,
+    localStorage.getItem('policyEditorAccessPackageEnv') || 'prod', // hardcoded to prod for now
+    isServicesEnabled,
+  );
+
+  const onOpenAccordion = () => {
+    setIsServicesEnabled(true);
+  };
 
   return (
     <div className={classes.accessPackageAccordion}>
@@ -24,13 +37,15 @@ export const PolicyAccessPackageAccordion = ({
         title={accessPackage.name}
         subTitle={accessPackage.description}
         extraHeaderContent={selectPackageElement}
+        onOpened={onOpenAccordion}
       >
-        {accessPackage.services.length > 0 ? (
+        {isLoading && <StudioSpinner spinnerTitle='Laster tjenester...' />}
+        {services?.length > 0 && (
           <>
             <div className={classes.serviceContainerHeader}>
               {t('policy_editor.access_package_services')}
             </div>
-            {accessPackage.services.map((resource) => {
+            {services.map((resource) => {
               return (
                 <div key={resource.identifier} className={classes.serviceContainer}>
                   {resource.logoUrl ? (
@@ -49,7 +64,8 @@ export const PolicyAccessPackageAccordion = ({
               );
             })}
           </>
-        ) : (
+        )}
+        {services?.length === 0 && (
           <Paragraph size='xs'>{t('policy_editor.access_package_no_services')}</Paragraph>
         )}
       </PolicyAccordion>

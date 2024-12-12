@@ -1,10 +1,8 @@
 #nullable enable
 
-using System.Collections.Generic;
-
-namespace Altinn.Studio.Designer.Models
+namespace PolicyAdmin.Models
 {
-    public class AccessPackage
+    public class AccessPackageOption
     {
         public required string Id { get; set; }
 
@@ -17,7 +15,5 @@ namespace Altinn.Studio.Designer.Models
         public List<AccessPackageTag> Tags { get; set; } = [];
 
         public AccessPackageArea Area { get; set; }
-
-        public List<AccessPackageService> Services { get; set; } = [];
     }
 }

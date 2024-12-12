@@ -14,11 +14,12 @@ import type { AxiosError } from 'axios';
  */
 export const useResourceAccessPackagesQuery = (
   org: string,
+  repo: string,
 ): UseQueryResult<PolicyAccessPackage[], AxiosError> => {
   const { getAccessPackages } = useServicesContext();
 
   return useQuery<PolicyAccessPackage[], AxiosError>({
     queryKey: [QueryKey.ResourcePolicyAccessPackages, org],
-    queryFn: () => getAccessPackages(org),
+    queryFn: () => getAccessPackages(org, repo),
   });
 };

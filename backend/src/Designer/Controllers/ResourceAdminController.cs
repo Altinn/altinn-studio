@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using PolicyAdmin.Models;
 using RepositoryModel = Altinn.Studio.Designer.RepositoryClient.Model.Repository;
 
 namespace Altinn.Studio.Designer.Controllers
@@ -604,7 +605,7 @@ namespace Altinn.Studio.Designer.Controllers
                 Name = "Bransjespesifikke"
             };
 
-            List<AccessPackage> accessPackages =
+            List<AccessPackageOption> accessPackages =
             [
                 new()
                 {
@@ -962,6 +963,7 @@ namespace Altinn.Studio.Designer.Controllers
                 }
             });
 
+            /*
             // 3. GET full list of resources
             List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false);
 
@@ -989,8 +991,72 @@ namespace Altinn.Studio.Designer.Controllers
 
                 });
             });
-
+            */
             return Ok(accessPackages);
+        }
+
+        [HttpGet]
+        [Route("designer/api/accesspackageservices/{accesspackage}/{env}")]
+        public async Task<ActionResult<List<AccessPackageService>>> GetServicesForAccessPackage(string org, string accesspackage, string env)
+        {
+            // 2. POST to get all resources per access package
+            List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources([accesspackage], env);
+
+            // start test data
+            subjectResources.Add(new SubjectResources()
+            {
+                Subject = new AttributeMatchV2()
+                {
+                    Type = "",
+                    Value = "",
+                    Urn = "urn:altinn:accesspackage:akvakultur"
+                },
+                Resources = new List<AttributeMatchV2>() {
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "innsyn-i-driftsplaner-for-akvakulturanlegg-i-sj-vann",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "ske-innrapportering-omsetning-raafisk",
+                        Urn = ""
+                    },
+                    new AttributeMatchV2() {
+                        Type = "",
+                        Value = "mat-maskinportenschema-lakselusrapportering",
+                        Urn = ""
+                    },
+                }
+            });
+            // end test data
+
+            // 3. GET full list of resources
+            List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
+            List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
+            
+            OrgList orgList = await GetOrgList();
+            List<AccessPackageService> result = [];
+
+            resources?.ForEach(resourceMatch =>
+            {
+                ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
+
+                if (fullResource != null)
+                {
+                    orgList.Orgs.TryGetValue(fullResource.HasCompetentAuthority.Orgcode.ToLower(), out Org organization);
+
+                    result.Add(new AccessPackageService()
+                    {
+                        Identifier = resourceMatch.Value,
+                        Title = fullResource?.Title,
+                        HasCompetentAuthority = fullResource.HasCompetentAuthority,
+                        LogoUrl = organization.Logo
+                    });
+                }
+            });
+
+            return result;
         }
 
         [HttpGet]

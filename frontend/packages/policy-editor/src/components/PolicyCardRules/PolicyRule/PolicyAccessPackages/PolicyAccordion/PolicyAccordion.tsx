@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import cn from 'classnames';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import * as StudioIcons from '@studio/icons';
@@ -10,6 +10,8 @@ interface PolicyAccordion {
   title: string;
   subTitle: string;
   extraHeaderContent?: React.ReactNode;
+  defaultOpen?: boolean;
+  onOpened?: () => void;
   children: React.ReactNode;
 }
 
@@ -18,10 +20,18 @@ export const PolicyAccordion = ({
   title,
   subTitle,
   extraHeaderContent,
+  defaultOpen,
+  onOpened,
   children,
 }: PolicyAccordion): React.ReactNode => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(defaultOpen || false);
   const IconComponent = StudioIcons[icon];
+
+  useEffect(() => {
+    if (isExpanded && onOpened) {
+      onOpened();
+    }
+  }, [isExpanded, onOpened]);
 
   return (
     <div className={classes.accordion}>

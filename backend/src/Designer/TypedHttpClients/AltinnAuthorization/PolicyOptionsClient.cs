@@ -20,6 +20,27 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             _logger = logger;
         }
 
+        public async Task<List<AccessPackageOption>> GetAccessPackageOptions(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // Temp location. Will be moved to CDN
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackageoptions.json";
+
+            List<AccessPackageOption> accessPackageOptions;
+
+            try
+            {
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
+                accessPackageOptions = System.Text.Json.JsonSerializer.Deserialize<List<AccessPackageOption>>(accessPackageOptionsString);
+                return accessPackageOptions;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Something went wrong when retrieving Action options", ex);
+            }
+        }
+
         public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();

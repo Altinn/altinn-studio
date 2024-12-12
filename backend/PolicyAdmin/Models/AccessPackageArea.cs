@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace Altinn.Studio.Designer.Models
+namespace PolicyAdmin.Models
 {
     public class AccessPackageArea
     {

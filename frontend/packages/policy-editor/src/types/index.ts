@@ -24,7 +24,6 @@ export interface PolicyAccessPackage {
   urn: string;
   name: string;
   description: string;
-  services: AccessPackageResource[];
   tags: {
     id: string;
     name: string;

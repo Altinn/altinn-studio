@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Integration point for retrieving the full list of resources
         /// </summary>
         /// <returns>The resource full list of all resources if exists</returns>
-        Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2);
+        Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false);
 
         /// <summary>
         /// Get Resource from Altinn 2 service

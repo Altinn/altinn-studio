@@ -228,7 +228,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         ///     Get resource list
         /// </summary>
         /// <returns>List of all resources</returns>
-        public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2)
+        public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false)
         {
 
             string endpointUrl;
@@ -236,11 +236,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps=false&includeAltinn2={includeAltinn2}";
+                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
             }
             else
             {
-                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps=false&includeAltinn2={includeAltinn2}";
+                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
             }
 
             JsonSerializerOptions options = new JsonSerializerOptions

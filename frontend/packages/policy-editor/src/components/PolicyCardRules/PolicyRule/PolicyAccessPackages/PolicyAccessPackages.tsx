@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Paragraph, Alert, CheckboxGroup, Checkbox } from '@digdir/designsystemet-react';
-import { StudioLabelAsParagraph } from '@studio/components';
-import type { PolicyAccessPackage } from '../../../../types';
+import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
+import type { PolicyAccessPackage, PolicyAccessPackageArea } from '../../../../types';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
@@ -16,6 +16,7 @@ const selectedLanguage = 'nb';
 
 export const PolicyAccessPackages = (): React.ReactElement => {
   const { t } = useTranslation();
+  const [searchValue, setSearchValue] = useState<string>('');
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();
   const { policyRule } = usePolicyRuleContext();
 
@@ -64,6 +65,42 @@ export const PolicyAccessPackages = (): React.ReactElement => {
     savePolicy(updatedRules);
   };
 
+  const handleSearch = (search: string) => {
+    setSearchValue(search);
+  };
+
+  const isStringMatch = (matchString: string) => {
+    return matchString.toLowerCase().includes(searchValue.toLowerCase());
+  };
+
+  const accessPackagesToRender = groupedAccessPackagesByArea.reduce(
+    (
+      areas: {
+        area: PolicyAccessPackageArea;
+        packages: PolicyAccessPackage[];
+      }[],
+      area,
+    ): {
+      area: PolicyAccessPackageArea;
+      packages: PolicyAccessPackage[];
+    }[] => {
+      const matchingPackages = area.packages.filter(
+        (pack) =>
+          !searchValue ||
+          isStringMatch(pack.name) ||
+          isStringMatch(pack.description) ||
+          isStringMatch(pack.area.name) ||
+          isStringMatch(pack.area.description),
+      );
+      const returnAreas = [...areas];
+      if (matchingPackages.length > 0) {
+        returnAreas.push({ ...area, packages: matchingPackages });
+      }
+      return returnAreas;
+    },
+    [],
+  );
+
   const renderAccessPackageAccordion = (accessPackage: PolicyAccessPackage): React.ReactNode => {
     const isChecked = chosenAccessPackages.includes(accessPackage.urn);
     const checkboxLabel = t(
@@ -103,6 +140,12 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='sm' spacing>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
+      <StudioTextfield
+        label='Søk'
+        size='small'
+        value={searchValue}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)}
+      />
       {chosenAccessPackages.length > 0 && (
         <>
           <StudioLabelAsParagraph size='xs' spacing>
@@ -116,13 +159,14 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='xs' spacing>
         {t('policy_editor.access_package_all_packages')}
       </StudioLabelAsParagraph>
-      {groupedAccessPackagesByArea.map(({ area, packages }) => {
+      {accessPackagesToRender.map(({ area, packages }) => {
         return (
           <PolicyAccordion
-            key={area.id}
+            key={`${searchValue}-${area.id}`}
             icon={area.iconName}
             title={area.name}
             subTitle={area.shortDescription}
+            defaultOpen={!!searchValue}
           >
             {packages.map(renderAccessPackageAccordion)}
           </PolicyAccordion>
