@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Metamodel;
+using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -84,5 +85,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Returns the model metadata</returns>
         Task<ModelMetadata> GenerateModelMetadataFromJsonSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the model metadata for a given model.
+        /// </summary>
+        Task<DataType> GetModelMetadata(string org, string app, string modelName);
+
+        /// <summary>
+        /// Updates the model metadata for a given model.
+        /// </summary>
+        Task UpdateModelMetadata(string org, string app, string modelName, DataType dataType);
     }
 }

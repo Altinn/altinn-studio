@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -246,6 +247,27 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NoContent();
             }
+        }
+
+        /// <summary>
+        /// Gets the model metadata for a given model.
+        /// </summary>
+        [HttpGet("datamodel/{modelName}/metadata")]
+        [UseSystemTextJson]
+        public async Task<IActionResult> GetDataTypeConfiguration(string org, string repository, string modelName)
+        {
+            var dataTypeConfiguration = await _schemaModelService.GetModelMetadata(org, repository, modelName);
+            return Ok(dataTypeConfiguration);
+        }
+
+        /// <summary>
+        /// Updates the model metadata for a given model.
+        /// </summary>
+        [HttpPut("datamodel/{modelName}/metadata")]
+        [UseSystemTextJson]
+        public async Task PostDataTypeConfiguration(string org, string repository, string modelName, [FromBody] DataType dataType)
+        {
+            await _schemaModelService.UpdateModelMetadata(org, repository, modelName, dataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
