@@ -99,7 +99,7 @@ describe('EditFormComponent', () => {
       screen.getByRole('combobox', {
         name: textMock('ux_editor.component_properties.autocomplete'),
       }),
-    );
+    ).toBeInTheDocument();
   });
 
   it('should return header specific content when type header', async () => {
