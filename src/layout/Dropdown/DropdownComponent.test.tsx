@@ -335,4 +335,17 @@ describe('DropdownComponent', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut land');
   });
+
+  it('should render autocomplete prop if provided', async () => {
+    await render({
+      component: {
+        optionsId: 'countries',
+        autocomplete: 'name',
+      },
+      options: countries,
+    });
+
+    const inputComponent = screen.getByRole('combobox') as HTMLInputElement;
+    expect(inputComponent).toHaveAttribute('autocomplete', 'name');
+  });
 });

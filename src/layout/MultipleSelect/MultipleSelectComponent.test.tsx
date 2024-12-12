@@ -84,4 +84,23 @@ describe('MultipleSelect', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
     expect(screen.getByRole('listitem')).toHaveTextContent('Du må fylle ut velg');
   });
+
+  it('should render autocomplete prop if provided', async () => {
+    await render({
+      component: {
+        autocomplete: 'name',
+        dataModelBindings: {
+          simpleBinding: { dataType: defaultDataTypeMock, field: 'value' },
+          label: { dataType: defaultDataTypeMock, field: 'label' },
+          metadata: { dataType: defaultDataTypeMock, field: 'metadata' },
+        },
+      },
+      queries: {
+        fetchFormData: () => Promise.resolve({ simpleBinding: '', label: '', metadata: '' }),
+      },
+    });
+
+    const inputComponent = screen.getByRole('combobox') as HTMLInputElement;
+    expect(inputComponent).toHaveAttribute('autocomplete', 'name');
+  });
 });

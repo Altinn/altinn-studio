@@ -23,7 +23,7 @@ export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
   const item = useNodeItem(node);
   const isValid = useIsValid(node);
-  const { id, readOnly, textResourceBindings, alertOnChange, grid, required } = item;
+  const { id, readOnly, textResourceBindings, alertOnChange, grid, required, autocomplete } = item;
   const { langAsString, lang } = useLanguage(node);
 
   const { labelText, getRequiredComponent, getOptionalComponent, getHelpTextComponent, getDescriptionComponent } =
@@ -94,6 +94,7 @@ export function DropdownComponent({ node, overrideDisplay }: IDropdownProps) {
             label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
             aria-label={overrideDisplay?.renderedInTable ? langAsString(textResourceBindings?.title) : undefined}
             className={comboboxClasses.container}
+            autoComplete={autocomplete}
           >
             <Combobox.Empty>
               <Lang id='form_filler.no_options_found' />

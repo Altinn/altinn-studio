@@ -188,6 +188,21 @@ describe('InputComponent', () => {
     expect(inputComponent).toHaveValue(initialValue);
   });
 
+  it('should render autocomplete prop if provided', async () => {
+    const initialValue = 'initial value';
+    await render({
+      component: {
+        autocomplete: 'name',
+      },
+      queries: {
+        fetchFormData: () => Promise.resolve({ some: { field: initialValue } }),
+      },
+    });
+
+    const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
+    expect(inputComponent).toHaveAttribute('autocomplete', 'name');
+  });
+
   const render = async ({ component, ...rest }: Partial<RenderGenericComponentTestProps<'Input'>> = {}) =>
     await renderGenericComponentTest({
       type: 'Input',

@@ -1,4 +1,4 @@
-import { EXTERNAL_INPUT_TYPE } from 'src/app-components/Input/constants';
+import { EXTERNAL_INPUT_TYPE, INPUT_AUTO_COMPLETE } from 'src/app-components/Input/constants';
 import { CG } from 'src/codegen/CG';
 import { CompCategory } from 'src/layout/common';
 
@@ -59,6 +59,17 @@ export const Config = new CG.component({
         .setTitle('Max length')
         .setDescription(
           'Max length of the input field. Will add a counter to let the user know how many characters are left.',
+        ),
+    ),
+  )
+  .addProperty(
+    new CG.prop(
+      'autocomplete',
+      new CG.enum(...INPUT_AUTO_COMPLETE)
+        .optional()
+        .setTitle('Autocomplete')
+        .setDescription(
+          'The HTML autocomplete attribute helps browsers suggest or autofill input values based on the expected type of data.',
         ),
     ),
   )
