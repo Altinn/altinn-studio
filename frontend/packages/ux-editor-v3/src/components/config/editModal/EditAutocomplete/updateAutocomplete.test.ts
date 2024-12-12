@@ -18,4 +18,21 @@ describe('updateAutocomplete', () => {
       autocomplete: newAutocomplete,
     });
   });
+
+  it('Removes the autocomplete property from the object when it receives an empty string', () => {
+    const component: FormComponent<ComponentTypeV3.Input> = {
+      id: 'test',
+      type: ComponentTypeV3.Input,
+      autocomplete: 'on',
+      itemType: 'COMPONENT',
+      dataModelBindings: {},
+    };
+    const result = updateAutocomplete(component, '');
+    expect(result).toEqual({
+      id: component.id,
+      type: component.type,
+      itemType: component.itemType,
+      dataModelBindings: component.dataModelBindings,
+    });
+  });
 });
