@@ -1,16 +1,9 @@
-import { FileNameErrorResult } from '@studio/pure-functions';
-import { useTranslation } from 'react-i18next';
+import type { FileNameErrorResult } from '@studio/pure-functions';
+import { useCodeListNameErrorMessages } from './useCodeListNameErrorMessages';
 
 export function useUploadCodeListNameErrorMessage(): (
   fileNameError: FileNameErrorResult,
 ) => string {
-  const { t } = useTranslation();
-
-  const errorMessages: Record<FileNameErrorResult, string> = {
-    [FileNameErrorResult.FileNameIsEmpty]: t('validation_errors.upload_file_name_required'),
-    [FileNameErrorResult.FileExists]: t('validation_errors.upload_file_name_occupied'),
-    [FileNameErrorResult.NoRegExMatch]: t('validation_errors.file_name_invalid'),
-  };
-
+  const errorMessages = useCodeListNameErrorMessages({ isNameFromUpload: true });
   return (fileNameError: FileNameErrorResult): string => errorMessages[fileNameError];
 }
