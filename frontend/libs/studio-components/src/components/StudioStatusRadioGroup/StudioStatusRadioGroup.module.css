@@ -1,0 +1,62 @@
+.radioGroup {
+  display: flex;
+  gap: var(--fds-spacing-4);
+  flex-wrap: wrap;
+}
+
+.radioButton {
+  --radio-button-width: 240px;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-4);
+  padding-top: var(--fds-spacing-4);
+  padding-bottom: var(--fds-spacing-6);
+  padding-inline: var(--fds-spacing-4);
+  border-radius: var(--fds-sizing-2);
+  cursor: pointer;
+  position: relative;
+  width: var(--radio-button-width);
+}
+
+.input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.radioButton:has(input:checked) {
+  border-color: black;
+}
+
+.radioButton:focus-within {
+  outline: 2px solid blue; /* Visible focus indicator for keyboard navigation */
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.title {
+  font-weight: bold;
+  text-align: left;
+}
+
+.text {
+  font-size: 0.9rem;
+}
+
+/* Color Styles */
+.red {
+  background-color: #ffe5e5;
+}
+
+.green {
+  background-color: #e5ffe5;
+}
+
+.blue {
+  background-color: #e5e5ff;
+}
