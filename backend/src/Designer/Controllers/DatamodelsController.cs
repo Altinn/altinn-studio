@@ -254,7 +254,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpGet("datamodel/{modelName}/metadata")]
         [UseSystemTextJson]
-        public async Task<IActionResult> GetDataTypeConfiguration(string org, string repository, string modelName)
+        public async Task<IActionResult> GetModelMetadata(string org, string repository, string modelName)
         {
             var dataTypeConfiguration = await _schemaModelService.GetModelMetadata(org, repository, modelName);
             return Ok(dataTypeConfiguration);
@@ -265,7 +265,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpPut("datamodel/{modelName}/metadata")]
         [UseSystemTextJson]
-        public async Task PostDataTypeConfiguration(string org, string repository, string modelName, [FromBody] DataType dataType)
+        public async Task UpdateModelMetadata(string org, string repository, string modelName, [FromBody] DataType dataType)
         {
             await _schemaModelService.UpdateModelMetadata(org, repository, modelName, dataType);
         }
