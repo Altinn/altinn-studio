@@ -42,7 +42,7 @@
       "enabledFileValidators": []
     },
     {
-      "id": "signatureInformation-founders",
+      "id": "signatures-founders",
       "allowedContentTypes": [
         "application/json"
       ],
@@ -59,7 +59,41 @@
       "enabledFileValidators": []
     },
     {
-      "id": "signatureInformation-auditor",
+      "id": "signeeStates-founders",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "taskId": "SigningTask_Founders",
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signatures-auditor",
+      "allowedContentTypes": [
+        "application/json"
+      ],
+      "allowedContributers": [
+        "app:owned"
+      ],
+      "taskId": "SigningTask_Auditor",
+      "maxCount": 1,
+      "minCount": 0,
+      "enablePdfCreation": false,
+      "enableFileScan": false,
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
+    },
+    {
+      "id": "signeeStates-auditor",
       "allowedContentTypes": [
         "application/json"
       ],

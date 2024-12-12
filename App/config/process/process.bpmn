@@ -32,7 +32,8 @@
             <altinn:dataTypesToSign>
               <altinn:dataType>Skjemadata</altinn:dataType>
             </altinn:dataTypesToSign>
-            <altinn:signatureDataTypeId>signatureInformation-founders</altinn:signatureDataTypeId>
+            <altinn:signatureDataType>signatures-founders</altinn:signatureDataType>
+            <altinn:signeeStatesDataTypeId>signeeStates-founders</altinn:signeeStatesDataTypeId>
             <altinn:signeeProviderId>founders</altinn:signeeProviderId>
           </altinn:signatureConfig>
         </altinn:taskExtension>
@@ -61,7 +62,8 @@
             <altinn:action>reject</altinn:action>
           </altinn:actions>
           <altinn:signatureConfig>
-            <altinn:signatureDataTypeId>signatureInformation-auditor</altinn:signatureDataTypeId>
+            <altinn:signeeStatesDataTypeId>signatures-auditor</altinn:signeeStatesDataTypeId>
+            <altinn:signatureDataType>signeeStates-auditor</altinn:signatureDataType>
             <altinn:signeeProviderId>auditor</altinn:signeeProviderId>
           </altinn:signatureConfig>
         </altinn:taskExtension>
