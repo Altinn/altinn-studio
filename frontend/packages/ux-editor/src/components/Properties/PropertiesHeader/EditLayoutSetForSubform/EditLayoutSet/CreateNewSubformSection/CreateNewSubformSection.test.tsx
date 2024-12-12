@@ -125,6 +125,31 @@ describe('CreateNewSubformLayoutSet ', () => {
     expect(saveButton).toBeDisabled();
   });
 
+  it('Toggles the save button disabling based on data model input validation', async () => {
+    const user = userEvent.setup();
+    renderCreateNewSubformLayoutSet({});
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'NewSubform');
+
+    const saveButton = screen.getByRole('button', { name: textMock('general.save') });
+
+    const displayDataModelInput = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_new_data_model'),
+    });
+    await user.click(displayDataModelInput);
+
+    const dataModelInput = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.create_new_data_model_label'),
+    });
+    await user.type(dataModelInput, 'æøå');
+    expect(saveButton).toBeDisabled();
+
+    await user.clear(dataModelInput);
+    await user.type(dataModelInput, 'datamodel');
+    expect(saveButton).not.toBeDisabled();
+  });
+
   it('enables save button when both input and data model is valid', async () => {
     const user = userEvent.setup();
     renderCreateNewSubformLayoutSet({});
@@ -158,6 +183,31 @@ describe('CreateNewSubformLayoutSet ', () => {
     });
     await user.type(dataModelInput, 'datamodel');
     expect(saveButton).not.toBeDisabled();
+  });
+
+  it('Should toggle ErrorMessage visibility based on input validity', async () => {
+    const user = userEvent.setup();
+    renderCreateNewSubformLayoutSet({});
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'NewSubform');
+
+    const displayDataModelInput = screen.getByRole('button', {
+      name: textMock('ux_editor.component_properties.subform.create_new_data_model'),
+    });
+    await user.click(displayDataModelInput);
+
+    const dataModelInput = screen.getByRole('textbox', {
+      name: textMock('ux_editor.component_properties.subform.create_new_data_model_label'),
+    });
+
+    await user.type(dataModelInput, 'new');
+    const errorMessage = screen.getByText(textMock('schema_editor.error_reserved_keyword'));
+    expect(errorMessage).toBeInTheDocument();
+
+    await user.clear(dataModelInput);
+    await user.type(dataModelInput, 'datamodel');
+    expect(errorMessage).not.toBeInTheDocument();
   });
 });
 
