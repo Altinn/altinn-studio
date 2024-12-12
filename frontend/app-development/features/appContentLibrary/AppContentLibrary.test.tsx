@@ -9,9 +9,9 @@ import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { CodeList } from '@studio/components';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
@@ -46,10 +46,6 @@ jest.mock(
   }),
 );
 
-const optionListsMock: OptionsLists = {
-  list1: [{ label: 'label', value: 'value' }],
-};
-
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
 
@@ -66,7 +62,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders a spinner when waiting for option lists', () => {
-    renderAppContentLibrary({ optionLists: {} });
+    renderAppContentLibrary({ optionListsData: [] });
     const spinner = screen.getByText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
@@ -149,16 +145,16 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
 
 type renderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
-  optionLists?: OptionsLists;
+  optionListsData?: OptionsListsResponse;
 };
 
 const renderAppContentLibrary = ({
   queries = {},
-  optionLists = optionListsMock,
+  optionListsData = [],
 }: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
-  if (Object.keys(optionLists).length) {
-    queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionLists);
+  if (optionListsData.length) {
+    queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionListsData);
   }
   renderWithProviders(queries, queryClientMock)(<AppContentLibrary />);
 };
