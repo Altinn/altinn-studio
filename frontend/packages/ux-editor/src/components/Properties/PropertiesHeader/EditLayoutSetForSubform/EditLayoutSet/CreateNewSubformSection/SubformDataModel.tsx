@@ -8,10 +8,10 @@ export type SubformDataModelProps = {
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
   displayDataModelInput: boolean;
   setSelectedDataModel: (dataModelId: string) => void;
-  dataModelIds?: string[] | undefined;
-  validateName?: (name: string) => void;
-  dataModelNameError: string | undefined;
-  setIsTextfieldEmpty?: (isEmpty: boolean) => void;
+  dataModelIds?: string[];
+  validateName: (name: string) => void;
+  dataModelNameError: string;
+  setIsTextfieldEmpty: (isEmpty: boolean) => void;
 };
 
 export const SubformDataModel = ({

@@ -42,16 +42,17 @@ export const CreateNewSubformSection = ({
   const [selectedDataModel, setSelectedDataModel] = useState<string>('');
   const [displayDataModelInput, setDisplayDataModelInput] = useState(false);
   const { createSubform, isPendingNewSubformMutation } = useCreateSubform();
-  const [isTextfieldEmpty, setIsTextfieldEmpty] = useState(true);
+  const [isNewDataModelFieldEmpty, setIsNewDataModelFieldEmpty] = useState(true);
 
   const { org, app } = useStudioEnvironmentParams();
   const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
   const { data: appMetadata } = useAppMetadataQuery(org, app);
   const dataTypeNames = extractDataTypeNamesFromAppMetadata(appMetadata);
-  const { validateName, nameError: dataModelNameError } = useValidateSchemaName(
-    dataModelIds,
-    dataTypeNames,
-  );
+  const {
+    validateName,
+    nameError: dataModelNameError,
+    setNameError: setDataModelNameError,
+  } = useValidateSchemaName(dataModelIds, dataTypeNames);
 
   const handleSubformName = (subformName: string) => {
     const subformNameValidation = validateLayoutSetName(subformName, layoutSets);
@@ -60,6 +61,8 @@ export const CreateNewSubformSection = ({
 
   const handleCloseButton = () => {
     if (displayDataModelInput) {
+      setDataModelNameError('');
+      setIsNewDataModelFieldEmpty(true);
       setDisplayDataModelInput(false);
     } else {
       setShowCreateSubformCard(false);
@@ -82,7 +85,7 @@ export const CreateNewSubformSection = ({
 
   const hasInvalidSubformName = newSubformNameError === undefined || Boolean(newSubformNameError);
   const hasInvalidDataModel = displayDataModelInput
-    ? Boolean(dataModelNameError) || isTextfieldEmpty
+    ? Boolean(dataModelNameError) || isNewDataModelFieldEmpty
     : !selectedDataModel;
   const disableSaveButton = hasInvalidSubformName || hasInvalidDataModel;
 
@@ -119,7 +122,7 @@ export const CreateNewSubformSection = ({
             dataModelIds={dataModelIds}
             validateName={validateName}
             dataModelNameError={dataModelNameError}
-            setIsTextfieldEmpty={setIsTextfieldEmpty}
+            setIsTextfieldEmpty={setIsNewDataModelFieldEmpty}
           />
           <CreateNewSubformButtons
             isPendingNewSubformMutation={isPendingNewSubformMutation}

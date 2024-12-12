@@ -125,7 +125,7 @@ describe('CreateNewSubformLayoutSet ', () => {
     expect(saveButton).toBeDisabled();
   });
 
-  it('Toggles the save button disabling based on input validation', async () => {
+  it('Toggles the save button disabling based on data model input validation', async () => {
     const user = userEvent.setup();
     renderCreateNewSubformLayoutSet({});
 
