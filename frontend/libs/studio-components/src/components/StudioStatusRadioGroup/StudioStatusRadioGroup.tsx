@@ -1,62 +1,70 @@
-import React, { type ReactElement } from 'react';
-import styles from './StudioStatusRadioGroup.module.css';
+import React, { type ChangeEvent, type ReactElement } from 'react';
+import classes from './StudioStatusRadioGroup.module.css';
+import cn from 'classnames';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import { StudioParagraph } from '../StudioParagraph';
 
-interface RadioButton {
+type StudioStatusRadioButtonColor = 'success' | 'info' | 'warning';
+
+export type StudioStatusRadioButtonItem = {
   title: string;
   text: string;
-  color: 'red' | 'green' | 'blue';
+  color: StudioStatusRadioButtonColor;
   value: string;
-}
+};
 
 export type StudioStatusRadioGroupProps = {
-  options: RadioButton[];
-  name: string; // For grouping radio buttons
+  options: StudioStatusRadioButtonItem[];
+  title: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
 };
 
 export const StudioStatusRadioGroup = ({
   options,
-  name,
+  title: name,
   defaultValue,
   onChange,
 }: StudioStatusRadioGroupProps): ReactElement => {
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (onChange) {
       onChange(event.target.value);
     }
   };
 
   return (
-    <div className={styles.radioGroup} role='radiogroup'>
-      {options.map(({ title, text, color, value }) => {
-        const inputId = `${name}-${value}`;
-        return (
-          <div key={value} className={`${styles.radioButton} ${styles[color]}`}>
-            <input
-              type='radio'
-              id={inputId}
-              name={name}
-              value={value}
-              defaultChecked={defaultValue === value}
-              onChange={handleChange}
-              className={styles.input}
-              aria-labelledby={`${inputId}-title`}
-              aria-describedby={`${inputId}-text`}
-            />
-            <label htmlFor={inputId} className={styles.content}>
-              <StudioLabelAsParagraph id={`${inputId}-title`} className={styles.title}>
-                {title}
-              </StudioLabelAsParagraph>
-              <StudioParagraph id={`${inputId}-text`} className={styles.text}>
-                {text}
-              </StudioParagraph>
+    <div className={classes.radioGroupContainer}>
+      <StudioLabelAsParagraph size='md'>{name}</StudioLabelAsParagraph>
+      <div className={classes.radioGroup} role='radiogroup'>
+        {options.map(({ title, text, color, value }: StudioStatusRadioButtonItem) => {
+          const inputId = `${name}-${value}`;
+          const inputTitleId = `${inputId}-title`;
+          const inputTextId = `${inputId}-text`;
+          return (
+            <label key={value} className={cn(classes.radioButton, classes[color])}>
+              <input
+                type='radio'
+                id={inputId}
+                name={title}
+                value={value}
+                defaultChecked={defaultValue === value}
+                onChange={handleChange}
+                className={classes.input}
+                aria-labelledby={inputTitleId}
+                aria-describedby={inputTextId}
+              />
+              <div className={classes.textContent}>
+                <StudioLabelAsParagraph id={inputTitleId} className={classes.title} size='sm'>
+                  {title}
+                </StudioLabelAsParagraph>
+                <StudioParagraph id={inputTextId} className={classes.text} size='xs'>
+                  {text}
+                </StudioParagraph>
+              </div>
             </label>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };

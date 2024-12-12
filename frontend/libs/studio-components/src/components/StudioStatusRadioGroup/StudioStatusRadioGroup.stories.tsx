@@ -4,14 +4,24 @@ import { StudioStatusRadioGroup, type StudioStatusRadioGroupProps } from './Stud
 
 const options: StudioStatusRadioGroupProps['options'] = [
   {
-    value: 'prod',
-    title: 'Produksjon',
+    value: 'value1',
+    title: 'Miljø 1',
     text: 'Sist publisert 11.06.2023 kl 14:03',
-    color: 'green',
+    color: 'success',
   },
-  { value: 'at02', title: 'AT02', text: 'Sist publisert 11.06.2023 kl 14:03', color: 'blue' },
-  { value: 'at21', title: 'AT21', text: 'Forløpig ingen publiseringer', color: 'red' },
-  { value: 'at22', title: 'AT22', text: 'Forløpig ingen publiseringer', color: 'red' },
+  {
+    value: 'value2',
+    title: 'Miljø 2',
+    text: 'Sist publisert 11.06.2023 kl 14:03',
+    color: 'success',
+  },
+  { value: 'value3', title: 'Miljø 3', text: 'Forløpig ingen publiseringer', color: 'info' },
+  {
+    value: 'value4',
+    title: 'Miljø 4',
+    text: 'Applikasjonen er utilgjengelig i miljø',
+    color: 'warning',
+  },
 ];
 
 type Story = StoryFn<typeof StudioStatusRadioGroup>;
@@ -22,21 +32,17 @@ const meta: Meta = {
   argTypes: {},
 };
 
-export const Preview: Story = (args) => {
+export const Preview: Story = () => {
   const [selectedValue, setSelectedValue] = useState<string | undefined>();
 
   return (
     <StudioStatusRadioGroup
-      name='Test'
+      title='Velg et av alternativene under'
       options={options}
       onChange={(value) => setSelectedValue(value)}
       defaultValue={selectedValue}
-    ></StudioStatusRadioGroup>
+    />
   );
-};
-
-Preview.args = {
-  options,
 };
 
 export default meta;
