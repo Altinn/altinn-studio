@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { OptionsList } from 'app-shared/types/api/OptionsLists';
 import type { Option } from 'app-shared/types/Option';
+import type { OptionListEditorProps } from './OptionListEditor';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
@@ -62,6 +63,23 @@ describe('OptionListEditor', () => {
       await user.tab();
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should delete optionsId field from component if it was set when manual options editor is blurred', async () => {
+      const user = userEvent.setup();
+      renderOptionListEditor({ props: { component: { ...mockComponent, optionsId: undefined } } });
+      const text = 'test';
+      await user.click(getManualModalButton());
+      const textBox = screen.getByRole('textbox', {
+        name: textMock('code_list_editor.description_item', { number: 2 }),
+      });
+      await user.type(textBox, text);
+      await user.tab();
+
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+      expect(handleComponentChange).toHaveBeenCalledWith(
+        expect.not.objectContaining({ optionsId: expect.anything() }),
+      );
     });
   });
 

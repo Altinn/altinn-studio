@@ -115,7 +115,7 @@ export const getInstanceIdForPreview = (owner: string, app: string) => get<strin
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
-export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionsList>(optionListPath(owner, app));
+export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionsList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionsLists>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());

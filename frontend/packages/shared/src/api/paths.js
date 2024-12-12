@@ -41,7 +41,7 @@ export const submitFeedbackPath = (org, app) => `${basePath}/${org}/${app}/feedb
 // FormEditor
 export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/${app}/app-development/rule-handler?${s({ layoutSetName })}`; // Get, Post
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
-export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/option-lists/${optionsListId}`; // Get
+export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Get
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put

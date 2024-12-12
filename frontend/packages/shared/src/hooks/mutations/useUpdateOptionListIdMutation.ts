@@ -1,5 +1,5 @@
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { OptionsList, OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import { ObjectUtils } from '@studio/pure-functions';

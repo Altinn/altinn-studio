@@ -86,13 +86,8 @@ function SelectedOptionList({
     setComponentHasOptionList(false);
   };
 
-  const label =
-    component.optionsId !== '' && component.optionsId !== undefined
-      ? component.optionsId
-      : t('ux_editor.modal_properties_code_list_custom_list');
-
   return (
-    <div aria-label={label} className={classes.chosenOptionContainer}>
+    <div className={classes.chosenOptionContainer}>
       <OptionListEditor component={component} handleComponentChange={handleComponentChange} />
       <div className={classes.deleteButtonContainer}>
         <StudioDeleteButton
