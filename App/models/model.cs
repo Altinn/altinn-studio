@@ -29,5 +29,15 @@ namespace Altinn.App.Models.model
     [JsonPropertyName("AttachmentId")]
     public List<string> AttachmentId { get; set; }
 
+    [XmlElement("AttachmentIdFromBackend", Order = 4)]
+    [JsonProperty("AttachmentIdFromBackend")]
+    [JsonPropertyName("AttachmentIdFromBackend")]
+    public List<string> AttachmentIdFromBackend { get; set; }
+
+    [XmlElement("AttachmentIdJoined", Order = 5)]
+    [JsonProperty("AttachmentIdJoined")]
+    [JsonPropertyName("AttachmentIdJoined")]
+    public string AttachmentIdJoined { get; set; }
+
   }
 }

@@ -35,6 +35,15 @@
       "items": {
         "type": "string"
       }
+    },
+    "AttachmentIdFromBackend": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "AttachmentIdJoined": {
+      "type": "string"
     }
   }
 }
