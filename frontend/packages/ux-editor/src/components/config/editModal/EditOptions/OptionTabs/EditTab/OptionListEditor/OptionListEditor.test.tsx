@@ -67,7 +67,9 @@ describe('OptionListEditor', () => {
 
     it('should delete optionsId field from component if it was set when manual options editor is blurred', async () => {
       const user = userEvent.setup();
-      renderOptionListEditor({ props: { component: { ...mockComponent, optionsId: undefined } } });
+      renderOptionListEditor({
+        props: { component: { ...mockComponent, optionsId: 'optionsId' } },
+      });
       const text = 'test';
       await user.click(getManualModalButton());
       const textBox = screen.getByRole('textbox', {
