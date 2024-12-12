@@ -27,7 +27,10 @@
         "autoCreate": true,
         "classRef": "Altinn.App.Models.model.model",
         "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false
+        "autoDeleteOnProcessEnd": false,
+        "allowUserCreate": false,
+        "allowUserDelete": false,
+        "allowInSubform": false
       },
       "taskId": "Task_1",
       "maxCount": 1,
@@ -47,8 +50,8 @@
         "classRef": "Altinn.App.Models.Moped.Moped",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserDelete": true,
         "allowUserCreate": true,
+        "allowUserDelete": true,
         "allowInSubform": true
       },
       "taskId": "Task_1",
@@ -69,8 +72,8 @@
         "classRef": "Altinn.App.Models.Bok.Bok",
         "allowAnonymousOnStateless": false,
         "autoDeleteOnProcessEnd": false,
-        "allowUserDelete": true,
         "allowUserCreate": true,
+        "allowUserDelete": true,
         "allowInSubform": true
       },
       "taskId": "Task_1",
@@ -84,16 +87,18 @@
     },
     {
       "id": "attachments",
-      "taskId": "Task_1",
       "allowedContentTypes": [
         "image/png"
       ],
+      "taskId": "Task_1",
       "maxSize": 10,
       "maxCount": 2,
       "minCount": 0,
       "enablePdfCreation": false,
       "enableFileScan": false,
-      "validationErrorOnPendingFileScan": false
+      "validationErrorOnPendingFileScan": false,
+      "enabledFileAnalysers": [],
+      "enabledFileValidators": []
     }
   ],
   "partyTypesAllowed": {
