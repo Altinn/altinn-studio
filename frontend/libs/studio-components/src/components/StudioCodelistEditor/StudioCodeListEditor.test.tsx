@@ -22,12 +22,14 @@ import {
 import type { TextResource } from '../../types/TextResource';
 
 // Test data:
+const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onChangeTextResource = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
   codeList: codeListWithoutTextResources,
   texts,
+  onBlurAny,
   onChange,
   onChangeTextResource,
   onInvalid,
@@ -97,8 +99,7 @@ describe('StudioCodeListEditor', () => {
     const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
     const newValue = 'new text';
     await user.type(valueInput, newValue);
-    await user.tab();
-    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
       { ...codeListWithoutTextResources[0], value: newValue },
       codeListWithoutTextResources[1],
@@ -285,6 +286,21 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
+  it('Calls the onBlurAny callback with the current code list when an item in the table is blurred', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+    const newValue = 'new text';
+    await user.type(valueInput, newValue);
+    await user.tab();
+    expect(onBlurAny).toHaveBeenCalledTimes(1);
+    expect(onBlurAny).toHaveBeenLastCalledWith([
+      { ...codeListWithoutTextResources[0], value: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
+    ]);
+  });
+
   it('Updates itself when the user changes something', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
@@ -356,8 +372,7 @@ describe('StudioCodeListEditor', () => {
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
     const newValue = 'new value';
     await user.type(validValueInput, newValue);
-    await user.tab();
-    expect(onInvalid).toHaveBeenCalledTimes(1);
+    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
   });
 
   it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {

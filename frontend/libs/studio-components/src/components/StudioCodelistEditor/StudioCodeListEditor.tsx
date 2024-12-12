@@ -25,10 +25,13 @@ import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
 import type { TextResource } from '../../types/TextResource';
 import { usePropState } from '@studio/hooks';
+import type { Override } from '../../types/Override';
+import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
-  onChange: (codeList: CodeList) => void;
+  onBlurAny?: (codeList: CodeList) => void;
+  onChange?: (codeList: CodeList) => void;
   onChangeTextResource?: (textResource: TextResource) => void;
   onInvalid?: () => void;
   textResources?: TextResource[];
@@ -47,6 +50,7 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
+  onBlurAny,
   onChange,
   onChangeTextResource,
   onInvalid,
@@ -57,14 +61,19 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      isCodeListValid(newCodeList) ? onChange(newCodeList) : onInvalid?.();
+      isCodeListValid(newCodeList) ? onChange?.(newCodeList) : onInvalid?.();
     },
     [onChange, onInvalid, setCodeList],
   );
 
+  const handleBlurAny = useCallback(() => {
+    onBlurAny?.(codeList);
+  }, [onBlurAny, codeList]);
+
   return (
     <ControlledCodeListEditor
       codeList={codeList}
+      onBlurAny={handleBlurAny}
       onChange={handleChange}
       onChangeTextResource={onChangeTextResource}
       textResources={textResources}
@@ -72,10 +81,14 @@ function StatefulCodeListEditor({
   );
 }
 
-type ControlledCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
+type ControlledCodeListEditorProps = Override<
+  Pick<StudioInputTableProps, 'onBlurAny'>,
+  Omit<StatefulCodeListEditorProps, 'onInvalid'>
+>;
 
 function ControlledCodeListEditor({
   codeList,
+  onBlurAny,
   onChange,
   onChangeTextResource,
   textResources,
@@ -95,6 +108,7 @@ function ControlledCodeListEditor({
       <CodeListTable
         codeList={codeList}
         errorMap={errorMap}
+        onBlurAny={onBlurAny}
         onChange={onChange}
         onChangeTextResource={onChangeTextResource}
         textResources={textResources}
@@ -120,11 +134,11 @@ function EmptyCodeListTable(): ReactElement {
   return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
-function CodeListTableWithContent(props: CodeListTableProps): ReactElement {
+function CodeListTableWithContent({ onBlurAny, ...rest }: CodeListTableProps): ReactElement {
   return (
-    <StudioInputTable>
+    <StudioInputTable onBlurAny={onBlurAny}>
       <TableHeadings />
-      <TableBody {...props} />
+      <TableBody {...rest} />
     </StudioInputTable>
   );
 }
@@ -160,7 +174,7 @@ function TableBody({
     [codeList, onChange],
   );
 
-  const handleBlur = useCallback(
+  const handleChange = useCallback(
     (index: number, newItem: CodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
       onChange(updatedCodeList);
@@ -176,7 +190,7 @@ function TableBody({
           item={item}
           key={index}
           number={index + 1}
-          onBlur={(newItem) => handleBlur(index, newItem)}
+          onChange={(newItem) => handleChange(index, newItem)}
           onChangeTextResource={onChangeTextResource}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
           textResources={textResources}

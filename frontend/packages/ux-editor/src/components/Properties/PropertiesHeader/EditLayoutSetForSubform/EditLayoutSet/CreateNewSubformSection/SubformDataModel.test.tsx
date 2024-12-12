@@ -8,8 +8,6 @@ import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMeta
 
 jest.mock('app-shared/hooks/queries/useAppMetadataModelIdsQuery');
 
-const user = userEvent.setup();
-
 const mockDataModelIds = ['dataModelId1', 'dataModelId2'];
 
 (useAppMetadataModelIdsQuery as jest.Mock).mockReturnValue({ data: mockDataModelIds });
@@ -41,6 +39,7 @@ describe('SubformDataModel', () => {
   });
 
   it('Calls setDataModel when selecting an option', async () => {
+    const user = userEvent.setup();
     const setSelectedDataModel = jest.fn();
     renderSubformDataModelSelect({ setSelectedDataModel });
 
@@ -53,6 +52,7 @@ describe('SubformDataModel', () => {
   });
 
   it('Should call setDisplayDataModelInput true when clicking create new data model button', async () => {
+    const user = userEvent.setup();
     const setDisplayDataModelInput = jest.fn();
     renderSubformDataModelSelect({ setDisplayDataModelInput });
     const displayDataModelInput = screen.getByRole('button', {
@@ -75,9 +75,12 @@ describe('SubformDataModel', () => {
 
 const defaultProps: SubformDataModelProps = {
   setDisplayDataModelInput: jest.fn(),
-  setNewDataModel: jest.fn(),
   displayDataModelInput: false,
   setSelectedDataModel: jest.fn(),
+  dataModelIds: mockDataModelIds,
+  validateName: jest.fn(),
+  dataModelNameError: '',
+  setIsTextfieldEmpty: jest.fn(),
 };
 
 const renderSubformDataModelSelect = (props: Partial<SubformDataModelProps> = {}) => {
