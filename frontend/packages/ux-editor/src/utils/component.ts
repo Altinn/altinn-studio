@@ -143,8 +143,7 @@ export const generateFormItem = <T extends ComponentType | CustomComponentType>(
 ): FormItem<T> => {
   const { defaultProperties, itemType, componentRef } = formItemConfigs[type];
   const componentType = componentRef ? componentRef : type;
-  console.log(defaultProperties);
-  console.log(formItemConfigs[type]);
+
   return { ...defaultProperties, id, type: componentType, itemType } as FormItem<T>;
 };
 

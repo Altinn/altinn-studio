@@ -121,7 +121,7 @@ export const FormDesigner = (): JSX.Element => {
         triggerDepthAlert();
         return;
       }
-      console.log(type);
+
       addItemToLayout(
         { componentType: type, newId, parentId, index },
         {
