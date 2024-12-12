@@ -25,16 +25,20 @@ import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
 import { StudioTag } from '../StudioTag';
+import type { Override } from '../../types/Override';
+import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
-  onChange: (codeList: CodeList) => void;
+  onBlurAny?: (codeList: CodeList) => void;
+  onChange?: (codeList: CodeList) => void;
   onInvalid?: () => void;
   texts: CodeListEditorTexts;
 };
 
 export function StudioCodeListEditor({
   codeList,
+  onBlurAny,
   onChange,
   onInvalid = () => {},
   texts,
@@ -43,7 +47,12 @@ export function StudioCodeListEditor({
 
   return (
     <StudioCodeListEditorContext.Provider value={{ texts, codeListValueType }}>
-      <StatefulCodeListEditor codeList={codeList} onChange={onChange} onInvalid={onInvalid} />
+      <StatefulCodeListEditor
+        codeList={codeList}
+        onBlurAny={onBlurAny}
+        onChange={onChange}
+        onInvalid={onInvalid}
+      />
     </StudioCodeListEditorContext.Provider>
   );
 }
@@ -52,6 +61,7 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
+  onBlurAny,
   onChange,
   onInvalid,
 }: StatefulCodeListEditorProps): ReactElement {
@@ -64,18 +74,32 @@ function StatefulCodeListEditor({
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
       setCodeList(newCodeList);
-      isCodeListValid(newCodeList) ? onChange(newCodeList) : onInvalid?.();
+      isCodeListValid(newCodeList) ? onChange?.(newCodeList) : onInvalid?.();
     },
     [onChange, onInvalid],
   );
 
-  return <ControlledCodeListEditor codeList={codeList} onChange={handleChange} />;
+  const handleBlurAny = useCallback(() => {
+    onBlurAny?.(codeList);
+  }, [onBlurAny, codeList]);
+
+  return (
+    <ControlledCodeListEditor
+      codeList={codeList}
+      onBlurAny={handleBlurAny}
+      onChange={handleChange}
+    />
+  );
 }
 
-type InternalCodeListEditorProps = Omit<StatefulCodeListEditorProps, 'onInvalid'>;
+type InternalCodeListEditorProps = Override<
+  Pick<StudioInputTableProps, 'onBlurAny'>,
+  Omit<StatefulCodeListEditorProps, 'onInvalid'>
+>;
 
 function ControlledCodeListEditor({
   codeList,
+  onBlurAny,
   onChange,
 }: InternalCodeListEditorProps): ReactElement {
   const { texts } = useStudioCodeListEditorContext();
@@ -90,12 +114,18 @@ function ControlledCodeListEditor({
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
-      <CodeListTable codeList={codeList} errorMap={errorMap} onChange={onChange} />
+      <CodeListTable
+        codeList={codeList}
+        errorMap={errorMap}
+        onBlurAny={onBlurAny}
+        onChange={onChange}
+      />
       <AddButton onClick={handleAddButtonClick} />
       <Errors errorMap={errorMap} />
     </StudioFieldset>
   );
 }
+
 type InternalCodeListEditorWithErrorsProps = InternalCodeListEditorProps & ErrorsProps;
 
 function CodeListTable(props: InternalCodeListEditorWithErrorsProps): ReactElement {
@@ -111,11 +141,14 @@ function EmptyCodeListTable(): ReactElement {
   return <StudioParagraph size='small'>{texts.emptyCodeList}</StudioParagraph>;
 }
 
-function CodeListTableWithContent(props: InternalCodeListEditorWithErrorsProps): ReactElement {
+function CodeListTableWithContent({
+  onBlurAny,
+  ...rest
+}: InternalCodeListEditorWithErrorsProps): ReactElement {
   return (
-    <StudioInputTable>
+    <StudioInputTable onBlurAny={onBlurAny}>
       <TableHeadings />
-      <TableBody {...props} />
+      <TableBody {...rest} />
     </StudioInputTable>
   );
 }
@@ -166,7 +199,7 @@ function TableBody({
     [codeList, onChange],
   );
 
-  const handleBlur = useCallback(
+  const handleChange = useCallback(
     (index: number, newItem: CodeListItem) => {
       const updatedCodeList = changeCodeListItem(codeList, index, newItem);
       onChange(updatedCodeList);
@@ -182,7 +215,7 @@ function TableBody({
           item={item}
           key={index}
           number={index + 1}
-          onBlur={(newItem) => handleBlur(index, newItem)}
+          onChange={(newItem) => handleChange(index, newItem)}
           onDeleteButtonClick={() => handleDeleteButtonClick(index)}
         />
       ))}

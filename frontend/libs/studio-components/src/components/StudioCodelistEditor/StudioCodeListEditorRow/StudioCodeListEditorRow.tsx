@@ -13,7 +13,7 @@ type StudioCodeListEditorRowProps = {
   error: ValueError | null;
   item: CodeListItem;
   number: number;
-  onBlur: (newItem: CodeListItem) => void;
+  onChange: (newItem: CodeListItem) => void;
   onDeleteButtonClick: () => void;
 };
 
@@ -21,7 +21,7 @@ export function StudioCodeListEditorRow({
   error,
   item,
   number,
-  onBlur,
+  onChange,
   onDeleteButtonClick,
 }: StudioCodeListEditorRowProps) {
   const { texts, codeListValueType } = useStudioCodeListEditorContext();
@@ -29,37 +29,38 @@ export function StudioCodeListEditorRow({
   const handleLabelChange = useCallback(
     (label: string) => {
       const updatedItem = changeLabel(item, label);
-      onBlur(updatedItem);
+      onChange(updatedItem);
     },
-    [item, onBlur],
+    [item, onChange],
   );
 
   const handleDescriptionChange = useCallback(
     (description: string) => {
       const updatedItem = changeDescription(item, description);
-      onBlur(updatedItem);
+      onChange(updatedItem);
     },
-    [item, onBlur],
+    [item, onChange],
   );
 
   const handleValueChange = useCallback(
     (value: string) => {
+      // need to update codeListValueType before value is coerced
       const coercedValue = coerceValue(value, codeListValueType);
       console.log(`codeListValueType: ${codeListValueType}`);
       console.log(`coercedValue: ${coercedValue}`);
       console.log(`typeof coercedValue: ${typeof coercedValue}`);
-      const updatedItem = changeValue(item, coercedValue);
-      onBlur(updatedItem);
+      const updatedItem = changeValue(item, value);
+      onChange(updatedItem);
     },
-    [item, onBlur, codeListValueType],
+    [item, onChange, codeListValueType],
   );
 
   const handleHelpTextChange = useCallback(
     (helpText: string) => {
       const updatedItem = changeHelpText(item, helpText);
-      onBlur(updatedItem);
+      onChange(updatedItem);
     },
-    [item, onBlur],
+    [item, onChange],
   );
 
   return (
@@ -68,22 +69,22 @@ export function StudioCodeListEditorRow({
         autoComplete='off'
         error={error && texts.valueErrors[error]}
         label={texts.itemValue(number)}
-        onBlur={handleValueChange}
+        onChange={handleValueChange}
         value={item.value}
       />
       <TextfieldCell
         label={texts.itemLabel(number)}
-        onBlur={handleLabelChange}
+        onChange={handleLabelChange}
         value={item.label}
       />
       <TextfieldCell
         label={texts.itemDescription(number)}
-        onBlur={handleDescriptionChange}
+        onChange={handleDescriptionChange}
         value={item.description}
       />
       <TextfieldCell
         label={texts.itemHelpText(number)}
-        onBlur={handleHelpTextChange}
+        onChange={handleHelpTextChange}
         value={item.helpText}
       />
       <DeleteButtonCell onClick={onDeleteButtonClick} number={number} />
@@ -94,23 +95,23 @@ export function StudioCodeListEditorRow({
 type TextfieldCellProps = {
   error?: string;
   label: string;
-  onBlur: (newString: string) => void;
+  onChange: (newString: string) => void;
   value: CodeListItemValue;
   autoComplete?: HTMLInputAutoCompleteAttribute;
 };
 
-function TextfieldCell({ error, label, value, onBlur, autoComplete }: TextfieldCellProps) {
+function TextfieldCell({ error, label, value, onChange, autoComplete }: TextfieldCellProps) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect((): void => {
     ref.current?.setCustomValidity(error || '');
   }, [error]);
 
-  const handleBlur = useCallback(
+  const handleChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>): void => {
-      onBlur(event.target.value);
+      onChange(event.target.value);
     },
-    [onBlur],
+    [onChange],
   );
 
   const handleFocus = useCallback((event: FocusEvent<HTMLInputElement>): void => {
@@ -122,7 +123,7 @@ function TextfieldCell({ error, label, value, onBlur, autoComplete }: TextfieldC
       aria-label={label}
       autoComplete={autoComplete}
       className={classes.textfieldCell}
-      onBlur={handleBlur}
+      onChange={handleChange}
       onFocus={handleFocus}
       ref={ref}
       value={(value as string) ?? ''}
