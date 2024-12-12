@@ -28,6 +28,7 @@ const mockTableColumn: TableColumn = {
 const defaultProps: ColumnElementProps = {
   tableColumn: mockTableColumn,
   columnNumber: columnNumberMock,
+  initialOpenForEdit: false,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
   layoutSetName: layoutSet3SubformNameMock,
@@ -110,6 +111,18 @@ describe('ColumnElement', () => {
     await user.click(deleteButton);
 
     expect(onDeleteColumnMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render EditColumnElement when initialOpenForEdit is true', async () => {
+    renderColumnElement({
+      initialOpenForEdit: true,
+    });
+
+    const editColumnElement = screen.getByRole('button', {
+      name: textMock('general.save'),
+    });
+
+    expect(editColumnElement).toBeInTheDocument();
   });
 });
 

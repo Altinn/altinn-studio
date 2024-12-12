@@ -18,7 +18,7 @@ export const EditSubformTableColumns = ({
   component,
   handleComponentChange,
 }: EditSubformTableColumnsProps): ReactElement => {
-  const [newColumnIndex, setNewColumnIndex] = useState<number | null>(null);
+  const [newColumnNumber, setNewColumnNumber] = useState<number>();
   const { t } = useTranslation();
   var subformLayoutIsConfigured = useSubformLayoutValidation(component.layoutSet);
 
@@ -32,7 +32,7 @@ export const EditSubformTableColumns = ({
     const updatedComponent = updateComponentWithSubform(component, [
       { headerContent: '', cellContent: { query: '', default: '' } },
     ]);
-    setNewColumnIndex(tableColumns.length + 1);
+    setNewColumnNumber(tableColumns.length + 1);
     handleComponentChange(updatedComponent);
   };
 
@@ -65,7 +65,7 @@ export const EditSubformTableColumns = ({
             key={getUniqueKey(index)}
             tableColumn={tableColum}
             columnNumber={index + 1}
-            initialOpen={newColumnIndex === index + 1}
+            initialOpenForEdit={newColumnNumber === index + 1}
             onDeleteColumn={() => deleteColumn(tableColum, index)}
             onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
           />
