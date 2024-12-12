@@ -97,6 +97,7 @@ const GenerateRow = React.memo(function GenerateRow({ rowIndex, questionsBinding
       hidden: parentItem.hidden,
       pageBreak: parentItem.pageBreak,
       renderAsSummary: parentItem.renderAsSummary,
+      columns: parentItem.columns,
     }),
     [parentItem, childId],
   );

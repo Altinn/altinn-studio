@@ -69,3 +69,16 @@ Altinn, and making sure they are consistent. */
   margin: 0;
   gap: 0;
 }
+
+.likertCellDividerStart {
+  border-inline-start: 1px solid #dde3e5;
+}
+
+.likertCellDividerEnd {
+  border-inline-end: 1px solid #dde3e5;
+}
+
+.likertCellDividerBoth {
+  border-inline-start: 1px solid #dde3e5;
+  border-inline-end: 1px solid #dde3e5;
+}

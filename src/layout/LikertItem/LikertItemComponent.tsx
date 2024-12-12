@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 
 import { Label, Radio, Table } from '@digdir/designsystemet-react';
+import cn from 'classnames';
 
 import { RequiredIndicator } from 'src/components/form/RequiredIndicator';
 import { getLabelId } from 'src/components/label/Label';
@@ -14,7 +15,6 @@ import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { BaseLayoutNode } from 'src/utils/layout/LayoutNode';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IControlledRadioGroupProps } from 'src/layout/RadioButtons/ControlledRadioGroup';
 
 export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>(
   (props, ref) => {
@@ -36,7 +36,7 @@ export const LikertItemComponent = forwardRef<HTMLTableRowElement, PropsFromGene
 );
 LikertItemComponent.displayName = 'LikertItemComponent';
 
-const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroupProps>((props, ref) => {
+const RadioGroupTableRow = forwardRef<HTMLTableRowElement, PropsFromGenericComponent<'LikertItem'>>((props, ref) => {
   const { node } = props;
   const { selectedValues, handleChange, calculatedOptions, fetchingOptions } = useRadioButtons(props);
   const validations = useUnifiedValidationsForNode(node);
@@ -44,6 +44,8 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
   const { id, readOnly, textResourceBindings, required } = useNodeItem(node);
   const groupContainer =
     node.parent instanceof BaseLayoutNode && node.parent.isType('Likert') ? node.parent : undefined;
+
+  const columns = useNodeItem(props.node, (i) => i.columns);
 
   return (
     <Table.Row
@@ -72,9 +74,17 @@ const RadioGroupTableRow = forwardRef<HTMLTableRowElement, IControlledRadioGroup
         const isChecked = selectedValues[0] === option.value;
         const rowLabelId = getLabelId(id);
         const labelledby = `${rowLabelId} ${groupContainer?.baseId}-likert-columnheader-${index}`;
+        const divider = columns?.find((column) => column.value == option.value)?.divider;
 
         return (
-          <Table.Cell key={option.value}>
+          <Table.Cell
+            key={option.value}
+            className={cn({
+              [classes.likertCellDividerStart]: divider === 'before',
+              [classes.likertCellDividerEnd]: divider === 'after',
+              [classes.likertCellDividerBoth]: divider === 'both',
+            })}
+          >
             <Radio
               checked={isChecked}
               readOnly={readOnly}

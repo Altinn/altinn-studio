@@ -31,6 +31,7 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
   const firstLikertNodeId = rowNodeIds[0];
   const firstLikertNode = useNode(firstLikertNodeId) as LayoutNode<'LikertItem'> | undefined;
   const { options: calculatedOptions, isFetching } = useNodeOptions(firstLikertNode);
+  const columns = useNodeItem(node, (item) => item.columns);
 
   const id = node.id;
 
@@ -122,15 +123,24 @@ export const LikertComponent = ({ node }: LikertComponentProps) => {
                   <Lang id={textResourceBindings?.leftColumnHeader ?? 'likert.left_column_default_header_text'} />
                 </span>
               </Table.HeaderCell>
-              {calculatedOptions.map((option, index) => (
-                <Table.HeaderCell
-                  key={option.value}
-                  scope='col'
-                  id={`${id}-likert-columnheader-${index}`}
-                >
-                  <Lang id={option.label} />
-                </Table.HeaderCell>
-              ))}
+              {calculatedOptions.map((option, index) => {
+                const divider = columns?.find((column) => column.value == option.value)?.divider;
+
+                return (
+                  <Table.HeaderCell
+                    key={option.value}
+                    scope='col'
+                    id={`${id}-likert-columnheader-${index}`}
+                    className={cn({
+                      [classes.likertCellDividerStart]: divider === 'before',
+                      [classes.likertCellDividerEnd]: divider === 'after',
+                      [classes.likertCellDividerBoth]: divider === 'both',
+                    })}
+                  >
+                    <Lang id={option.label} />
+                  </Table.HeaderCell>
+                );
+              })}
             </Table.Row>
           </Table.Head>
           <Table.Body>

@@ -88,4 +88,5 @@ export const Config = new CG.component({
         .exportAs('ILikertFilter'),
     ),
   )
+  .extends(CG.common('ILikertColumnProperties'))
   .addPlugin(new OptionsPlugin({ supportsPreselection: false, type: 'single' }));

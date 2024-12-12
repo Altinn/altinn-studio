@@ -48,5 +48,6 @@ export const Config = new CG.component({
         .setDescription('Boolean value indicating if the label should be visible when only one option exists in table'),
     ),
   )
+  .extends(CG.common('ILikertColumnProperties'))
   .addPlugin(new OptionsPlugin({ supportsPreselection: true, type: 'single' }))
   .addProperty(new CG.prop('layout', CG.common('LayoutStyle').optional()));
