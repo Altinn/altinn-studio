@@ -141,7 +141,6 @@ export const FormComponentConfig = ({
           propertyKey={propertyKey}
           defaultValue={properties[propertyKey].default}
           key={propertyKey}
-          helpText={properties[propertyKey]?.description}
         />
       ))}
       {showOtherComponents &&
