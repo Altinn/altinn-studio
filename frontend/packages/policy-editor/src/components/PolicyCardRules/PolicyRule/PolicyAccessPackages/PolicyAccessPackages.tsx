@@ -74,23 +74,9 @@ export const PolicyAccessPackages = (): React.ReactElement => {
   };
 
   const accessPackagesToRender = groupedAccessPackagesByArea.reduce(
-    (
-      areas: {
-        area: PolicyAccessPackageArea;
-        packages: PolicyAccessPackage[];
-      }[],
-      area,
-    ): {
-      area: PolicyAccessPackageArea;
-      packages: PolicyAccessPackage[];
-    }[] => {
+    (areas: PolicyAccessPackageArea[], area): PolicyAccessPackageArea[] => {
       const matchingPackages = area.packages.filter(
-        (pack) =>
-          !searchValue ||
-          isStringMatch(pack.name) ||
-          isStringMatch(pack.description) ||
-          isStringMatch(pack.area.name) ||
-          isStringMatch(pack.area.description),
+        (pack) => !searchValue || isStringMatch(pack.name) || isStringMatch(pack.description),
       );
       const returnAreas = [...areas];
       if (matchingPackages.length > 0) {
@@ -159,16 +145,16 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='xs' spacing>
         {t('policy_editor.access_package_all_packages')}
       </StudioLabelAsParagraph>
-      {accessPackagesToRender.map(({ area, packages }) => {
+      {accessPackagesToRender.map((area) => {
         return (
           <PolicyAccordion
             key={`${searchValue}-${area.id}`}
-            icon={area.iconName}
+            icon={area.icon}
             title={area.name}
-            subTitle={area.shortDescription}
+            subTitle={area.description}
             defaultOpen={!!searchValue}
           >
-            {packages.map(renderAccessPackageAccordion)}
+            {area.packages.map(renderAccessPackageAccordion)}
           </PolicyAccordion>
         );
       })}

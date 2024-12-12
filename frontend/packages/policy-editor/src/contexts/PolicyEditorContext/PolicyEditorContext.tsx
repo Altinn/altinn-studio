@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import type {
-  PolicyAccessPackage,
+  PolicyAccessPackageAreaGroup,
   PolicyAction,
   PolicyEditorUsage,
   PolicyRuleCard,
@@ -12,7 +12,7 @@ export type PolicyEditorContextProps = {
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
   actions: PolicyAction[];
   subjects: PolicySubject[];
-  accessPackages: PolicyAccessPackage[];
+  accessPackages: PolicyAccessPackageAreaGroup[];
   usageType: PolicyEditorUsage;
   resourceType: string;
   resourceId: string;

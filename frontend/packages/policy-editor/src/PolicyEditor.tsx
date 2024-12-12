@@ -8,7 +8,7 @@ import type {
   PolicySubject,
   RequiredAuthLevel,
   PolicyEditorUsage,
-  PolicyAccessPackage,
+  PolicyAccessPackageAreaGroup,
 } from './types';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCard,
@@ -26,7 +26,7 @@ export type PolicyEditorProps = {
   policy: Policy;
   actions: PolicyAction[];
   subjects: PolicySubject[];
-  accessPackages?: PolicyAccessPackage[];
+  accessPackages?: PolicyAccessPackageAreaGroup[];
   resourceId?: string;
   onSave: (policy: Policy) => void; // MAYBE MOVE TO CONTEXT
   showAllErrors: boolean;

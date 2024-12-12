@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -20,19 +21,23 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             _logger = logger;
         }
 
-        public async Task<List<AccessPackageOption>> GetAccessPackageOptions(CancellationToken cancellationToken = default)
+        public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackageoptions.json";
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/accesspackages_hier/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
 
-            List<AccessPackageOption> accessPackageOptions;
+            List<AccessPackageAreaGroup> accessPackageOptions;
+            JsonSerializerOptions options = new()
+            {
+                PropertyNameCaseInsensitive = true,
+            };
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                accessPackageOptions = System.Text.Json.JsonSerializer.Deserialize<List<AccessPackageOption>>(accessPackageOptionsString);
+                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, options);
                 return accessPackageOptions;
             }
             catch (Exception ex)

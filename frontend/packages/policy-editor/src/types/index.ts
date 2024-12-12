@@ -24,19 +24,25 @@ export interface PolicyAccessPackage {
   urn: string;
   name: string;
   description: string;
-  tags: {
-    id: string;
-    name: string;
-  }[];
-  area: PolicyAccessPackageArea;
 }
 
 export interface PolicyAccessPackageArea {
   id: string;
+  urn: string;
   name: string;
   description: string;
-  iconName: string;
-  shortDescription: string;
+  icon: string;
+  areaGroup: string;
+  packages: PolicyAccessPackage[];
+}
+
+export interface PolicyAccessPackageAreaGroup {
+  id: string;
+  urn: string;
+  name: string;
+  description: string;
+  type: string;
+  areas: PolicyAccessPackageArea[];
 }
 
 export interface AccessPackageResource {

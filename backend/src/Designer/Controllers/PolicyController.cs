@@ -169,7 +169,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("accesspackageoptions")]
         public async Task<ActionResult> GetAccessPackageOptions(string org, string app, CancellationToken cancellationToken)
         {
-            List<AccessPackageOption> accessPackageOptions = await _policyOptions.GetAccessPackageOptions(cancellationToken);
+            List<AccessPackageAreaGroup> accessPackageOptions = await _policyOptions.GetAccessPackageOptions(cancellationToken);
             return Ok(accessPackageOptions);
         }
 
