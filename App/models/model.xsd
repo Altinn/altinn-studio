@@ -13,6 +13,7 @@
         <xs:element minOccurs="0" maxOccurs="unbounded" name="AttachmentId" type="xs:string" />
         <xs:element minOccurs="0" maxOccurs="unbounded" name="AttachmentIdFromBackend" type="xs:string" />
         <xs:element minOccurs="0" name="AttachmentIdJoined" type="xs:string" />
+        <xs:element minOccurs="0" name="AttachmentIdFromBackendJoined" type="xs:string" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
