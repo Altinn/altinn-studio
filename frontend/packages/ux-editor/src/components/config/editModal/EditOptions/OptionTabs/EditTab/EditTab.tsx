@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { StudioErrorMessage } from '@studio/components';
 import { AddManualOptionsModal } from './AddManualOptionsModal';
 import { OptionListSelector } from './OptionListSelector';
@@ -70,17 +69,9 @@ function SelectedOptionList({
   component,
   handleComponentChange,
 }: SelectedOptionListProps) {
-  const { t } = useTranslation();
-
-  const label =
-    component.optionsId !== '' && component.optionsId !== undefined
-      ? component.optionsId
-      : t('ux_editor.modal_properties_code_list_custom_list');
-
   return (
     <div className={classes.chosenOptionContainer}>
       <OptionListEditor
-        label={label}
         optionsId={component.optionsId}
         component={component}
         handleComponentChange={handleComponentChange}
