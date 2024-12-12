@@ -711,7 +711,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             {
                 throw new NotFoundException("Options folder not found.");
             }
-            
+
             string[] fileNames = GetFilesByRelativeDirectoryAscSorted(optionsFolder, "*.json");
             IEnumerable<string> optionsListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
             return optionsListIds.ToArray();
@@ -775,7 +775,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-<<<<<<< HEAD
         /// Updates the ID of the option list by updating file name.
         /// </summary>
         /// <param name="oldOptionsListFileName">The file name of the option list to change filename of.</param>
@@ -788,20 +787,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the ID of the option list by updating file name.
-        /// </summary>
-        /// <param name="oldOptionsListFileName">The file name of the option list to change filename of.</param>
-        /// <param name="newOptionsListFileName">The new file name of the option list file.</param>
-        public void UpdateOptionsListId(string oldOptionsListFileName, string newOptionsListFileName)
-        {
-            string currentFilePath = Path.Combine(OptionsFolderPath, oldOptionsListFileName);
-            string newFilePath = Path.Combine(OptionsFolderPath, newOptionsListFileName);
-            MoveFileByRelativePath(currentFilePath, newFilePath, newOptionsListFileName);
-        }
-
-        /// <summary>
-=======
->>>>>>> 73065a186 (remove backend changes from this PR)
         /// Saves the process definition file on disk.
         /// </summary>
         /// <param name="file">Stream of the file to be saved.</param>
