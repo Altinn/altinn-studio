@@ -28,5 +28,6 @@ export const useOptionListEditorTexts = (): CodeListEditorTexts => {
       boolean: t('general.boolean'),
       undefined: t('general.undefined'),
     },
+    typeTooltip: (type: string) => t('code_list_editor.type_tooltip', { type }),
   };
 };

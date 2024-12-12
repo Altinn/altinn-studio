@@ -141,14 +141,12 @@ function TableHeadings(): ReactElement {
 const ValueHeading = (): ReactElement => {
   const { texts, codeListValueType } = useStudioCodeListEditorContext();
   const typeLabel = texts.valueTypes[codeListValueType];
+  const typeTooltip = texts.typeTooltip(typeLabel.toLowerCase());
 
   return (
     <div className={classes.valueHeading}>
       {texts.value}
-      <StudioTag
-        size='sm'
-        title={`Kodelistens verdier er utledet til å være av typen ${typeLabel.toLowerCase()}`}
-      >
+      <StudioTag size='sm' title={typeTooltip}>
         {typeLabel}
       </StudioTag>
     </div>

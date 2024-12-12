@@ -31,6 +31,7 @@ const texts: CodeListEditorTexts = {
     boolean: 'Boolean',
     undefined: 'Undefined',
   },
+  typeTooltip: (type) => `Values are saved as ${type}`,
 };
 const codeList: CodeList = [
   {

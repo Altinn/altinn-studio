@@ -55,6 +55,7 @@ export const Preview: Story = {
         boolean: 'Boolean',
         undefined: 'Undefined',
       },
+      typeTooltip: (type) => `Values are saved as type ${type}`,
     },
   },
 };

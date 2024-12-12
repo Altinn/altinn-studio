@@ -127,6 +127,7 @@
   "code_list_editor.help_text_item": "Hjelpetekst for alternativ {{number}}",
   "code_list_editor.label_item": "Ledetekst for alternativ {{number}}",
   "code_list_editor.legend": "Kodeliste",
+  "code_list_editor.type_tooltip": "Verdiene blir lagret som {{type}}",
   "code_list_editor.value_item": "Verdi for alternativ {{number}}",
   "contact.email.content": "Du kan skrive en e-post til Altinn servicedesk hvis du har spørsmål om å opprette organisasjoner eller miljøer, opplever tekniske problemer eller har spørsmål om dokumentasjonen eller andre ting.",
   "contact.email.heading": "Send e-post",
