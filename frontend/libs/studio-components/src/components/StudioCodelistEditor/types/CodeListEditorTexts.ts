@@ -26,5 +26,4 @@ type ValueTypes = {
   string: string;
   number: string;
   boolean: string;
-  undefined: string;
 };

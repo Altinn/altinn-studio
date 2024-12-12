@@ -53,7 +53,6 @@ export const Preview: Story = {
         string: 'Text',
         number: 'Number',
         boolean: 'Boolean',
-        undefined: 'Undefined',
       },
       typeTooltip: (type) => `Values are saved as type ${type}`,
     },

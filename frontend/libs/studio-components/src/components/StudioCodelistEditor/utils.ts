@@ -37,8 +37,6 @@ export function getCodeListValueType(codeList: CodeList): CodeListValueType {
       return 'boolean';
     case areAllValuesNumber(codeList):
       return 'number';
-    case areSomeValuesEmptyString(codeList):
-      return 'undefined';
     default:
       return 'string';
   }
@@ -64,8 +62,4 @@ function areAllValuesNumber(codeList: CodeList): boolean {
   });
 
   return result;
-}
-
-function areSomeValuesEmptyString(codeList: CodeList): boolean {
-  return codeList.some((codeListItem) => codeListItem.value === '');
 }
