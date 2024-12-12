@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { Option } from 'app-shared/types/Option';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
@@ -10,7 +11,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -29,14 +29,14 @@ describe('OptionListEditor', () => {
   describe('ManualOptionListEditorModal', () => {
     it('should render the open Dialog button', async () => {
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
-      expect(getManualModalButton()).toBeInTheDocument();
+      expect(getOptionModalButton()).toBeInTheDocument();
     });
 
     it('should open Dialog', async () => {
       const user = userEvent.setup();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
-      await user.click(getManualModalButton());
+      await user.click(getOptionModalButton());
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
@@ -45,7 +45,7 @@ describe('OptionListEditor', () => {
       const user = userEvent.setup();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
-      await user.click(getManualModalButton());
+      await user.click(getOptionModalButton());
       await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -62,7 +62,7 @@ describe('OptionListEditor', () => {
       });
       const text = 'test';
 
-      await user.click(getManualModalButton());
+      await user.click(getOptionModalButton());
       const textBox = screen.getByRole('textbox', {
         name: textMock('code_list_editor.description_item', { number: 2 }),
       });
@@ -171,13 +171,7 @@ describe('OptionListEditor', () => {
 
 function getOptionModalButton() {
   return screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_button_title_library'),
-  });
-}
-
-function getManualModalButton() {
-  return screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_button_title_manual'),
+    name: textMock('general.edit'),
   });
 }
 
@@ -196,7 +190,6 @@ const renderOptionListEditor = ({
 } = {}) => {
   return renderWithProviders(
     <OptionListEditor
-      label={mockComponent.optionsId}
       optionsId={mockComponent.optionsId}
       component={{ ...mockComponent, ...component }}
       handleComponentChange={handleComponentChange}

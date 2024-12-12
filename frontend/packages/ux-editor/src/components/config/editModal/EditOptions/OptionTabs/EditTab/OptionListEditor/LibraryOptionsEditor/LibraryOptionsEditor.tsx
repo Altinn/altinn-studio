@@ -14,8 +14,8 @@ import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
 import { useOptionListEditorTexts } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/hooks';
+import type { OptionListEditorProps } from '../OptionListEditor';
 import classes from './LibraryOptionsEditor.module.css';
-import { OptionListEditorProps } from '../OptionListEditor';
 
 type LibraryOptionsEditorProps = {
   optionsList: Option[];
