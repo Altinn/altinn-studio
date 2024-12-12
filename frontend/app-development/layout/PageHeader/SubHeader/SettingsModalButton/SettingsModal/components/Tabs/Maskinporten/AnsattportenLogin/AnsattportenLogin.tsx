@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { StudioButton, StudioParagraph } from '@studio/components';
 import { EnterIcon } from '@studio/icons';
 import { loginWithAnsattPorten } from 'app-shared/api/paths';
+import { openSettingsModalWithTabQueryKey } from '../../../../../../../../../hooks/useOpenSettingsModalBasedQueryParam';
+import type { SettingsModalTabId } from '../../../../../../../../../types/SettingsModalTabId';
 
 export const AnsattportenLogin = (): ReactElement => {
   const { t } = useTranslation();
 
   const handleLoginWithAnsattporten = (): void => {
-    window.location.href = loginWithAnsattPorten(window.location.pathname + window.location.search);
+    window.location.href = loginWithAnsattPorten(getRedirectUrl());
   };
 
   return (
@@ -39,3 +41,10 @@ const LoginIcon = (): ReactElement => {
     </div>
   );
 };
+
+export function getRedirectUrl(): string {
+  const maskinportenTab: SettingsModalTabId = 'maskinporten';
+  const url = new URL(window.location.origin + window.location.pathname);
+  url.searchParams.set(openSettingsModalWithTabQueryKey, maskinportenTab);
+  return url.pathname + url.search;
+}

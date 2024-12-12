@@ -57,7 +57,7 @@ export class FileNameUtils {
     fileName: string,
     invalidFileNames: string[],
     regEx?: RegExp,
-  ): FileNameErrorResult => {
+  ): FileNameErrorResult | null => {
     if (fileName === '') {
       return FileNameErrorResult.FileNameIsEmpty;
     }

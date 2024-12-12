@@ -1,7 +1,9 @@
 import React from 'react';
 import type { CodeListWithMetadata } from '../CodeList';
-import { Accordion, Alert } from '@digdir/designsystemet-react';
-import { useTranslation } from 'react-i18next';
+import { Accordion } from '@digdir/designsystemet-react';
+import { StudioCodeListEditor } from '@studio/components';
+import type { CodeList as StudioComponentsCodeList, CodeListEditorTexts } from '@studio/components';
+import { useOptionListEditorTexts } from '../hooks/useCodeListEditorTexts';
 
 export type CodeListsProps = {
   codeLists: CodeListWithMetadata[];
@@ -20,18 +22,32 @@ type CodeListProps = {
 };
 
 function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
-  const { t } = useTranslation();
+  const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+
+  const handleBlurAny = (updatedCodeList: StudioComponentsCodeList): void => {
+    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
+    onUpdateCodeList(updatedCodeListWithMetadata);
+  };
 
   return (
     <Accordion border>
       <Accordion.Item>
         <Accordion.Header>{codeList.title}</Accordion.Header>
         <Accordion.Content>
-          <Alert size='small'>
-            {t('app_content_library.code_lists.edit_code_list_placeholder_text')}
-          </Alert>
+          <StudioCodeListEditor
+            codeList={codeList.codeList}
+            onBlurAny={handleBlurAny}
+            texts={editorTexts}
+          />
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
   );
 }
+
+export const updateCodeListWithMetadata = (
+  currentCodeListWithMetadata: CodeListWithMetadata,
+  updatedCodeList: StudioComponentsCodeList,
+): CodeListWithMetadata => {
+  return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
+};

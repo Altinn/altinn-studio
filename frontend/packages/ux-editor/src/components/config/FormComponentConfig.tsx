@@ -57,6 +57,7 @@ export const FormComponentConfig = ({
     'dataTypeIds',
     'target',
     'tableColumns',
+    'overrides',
   ];
 
   const booleanPropertyKeys: string[] = getSupportedPropertyKeysForPropertyType(
@@ -151,7 +152,6 @@ export const FormComponentConfig = ({
             propertyKey={propertyKey}
             defaultValue={properties[propertyKey].default}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
           />
         ))}
       {restOfBooleanKeys.length > 0 && (
@@ -168,7 +168,6 @@ export const FormComponentConfig = ({
         <>
           <EditBooleanValue
             propertyKey='hasCustomFileEndings'
-            helpText={hasCustomFileEndings.description}
             component={component}
             defaultValue={hasCustomFileEndings.default}
             handleComponentChange={(updatedComponent: FormComponent) => {
