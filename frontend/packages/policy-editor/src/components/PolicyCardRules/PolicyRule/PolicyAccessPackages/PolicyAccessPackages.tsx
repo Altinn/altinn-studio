@@ -137,7 +137,8 @@ export const PolicyAccessPackages = (): React.ReactElement => {
           <StudioLabelAsParagraph size='xs' spacing>
             {t('policy_editor.access_package_chosen_packages')}
           </StudioLabelAsParagraph>
-          {accessPackages
+          {groupedAccessPackagesByArea
+            .flatMap((area) => area.packages)
             .filter((accessPackage) => chosenAccessPackages.includes(accessPackage.urn))
             .map(renderAccessPackageAccordion)}
         </>
