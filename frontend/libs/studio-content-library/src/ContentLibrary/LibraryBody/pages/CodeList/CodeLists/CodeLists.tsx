@@ -24,7 +24,7 @@ type CodeListProps = {
 function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
 
-  const handleUpdateCodeList = (updatedCodeList: StudioComponentsCodeList): void => {
+  const handleBlurAny = (updatedCodeList: StudioComponentsCodeList): void => {
     const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
     onUpdateCodeList(updatedCodeListWithMetadata);
   };
@@ -36,7 +36,7 @@ function CodeList({ codeList, onUpdateCodeList }: CodeListProps) {
         <Accordion.Content>
           <StudioCodeListEditor
             codeList={codeList.codeList}
-            onChange={handleUpdateCodeList}
+            onBlurAny={handleBlurAny}
             texts={editorTexts}
           />
         </Accordion.Content>
