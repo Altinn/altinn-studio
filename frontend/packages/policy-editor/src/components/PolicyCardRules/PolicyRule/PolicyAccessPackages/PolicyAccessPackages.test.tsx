@@ -7,39 +7,16 @@ import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleCont
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
-
-const accessPackageAreaSkatt = {
-  id: 'skatt-area',
-  name: 'Skatt',
-  description: '',
-  iconName: 'BankNoteIcon',
-  shortDescription: '',
-};
-
-const accessPackageAreaTransport = {
-  id: 'transport-area',
-  name: 'Lagring og transport',
-  description: '',
-  iconName: 'TruckIcon',
-  shortDescription: '',
-};
-
-const accessPackageAreaOther = {
-  id: 'other-area',
-  name: 'Annet',
-  description: '',
-  iconName: 'TruckIcon',
-  shortDescription: '',
-};
+import type { PolicyAccessPackageAreaGroup } from '@altinn/policy-editor/types';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const skattPackage = {
   id: 'urn:altinn:accesspackage:skatt',
   urn: 'urn:altinn:accesspackage:skatt',
   name: 'Sjøfart',
   description: '',
-  services: [],
-  tags: [{ id: 'ofteBrukt', name: 'Ofte brukt' }],
-  area: accessPackageAreaSkatt,
 };
 
 const sjofartPackage = {
@@ -47,9 +24,6 @@ const sjofartPackage = {
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
-  services: [],
-  tags: [{ id: 'bransjespesifikk', name: 'Bransjespesifikke' }],
-  area: accessPackageAreaTransport,
 };
 
 const lufttransportPackage = {
@@ -57,9 +31,6 @@ const lufttransportPackage = {
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
-  services: [],
-  tags: [{ id: 'bransjespesifikk', name: 'Bransjespesifikke' }],
-  area: accessPackageAreaTransport,
 };
 
 const revisorPackage = {
@@ -67,12 +38,46 @@ const revisorPackage = {
   urn: 'urn:altinn:accesspackage:revisor',
   name: 'Revisor',
   description: '',
-  services: [],
-  tags: [],
-  area: accessPackageAreaOther,
 };
 
-const accessPackages = [sjofartPackage, lufttransportPackage, skattPackage, revisorPackage];
+const accessPackageAreaSkatt = {
+  id: 'skatt-area',
+  urn: 'accesspackage:area:skatt_avgift_regnskap_og_toll',
+  name: 'Skatt',
+  description: '',
+  icon: 'BankNoteIcon',
+  areaGroup: 'Vanlig',
+  packages: [skattPackage],
+};
+
+const accessPackageAreaTransport = {
+  id: 'transport-area',
+  urn: 'accesspackage:area:transport',
+  name: 'Lagring og transport',
+  description: '',
+  icon: 'TruckIcon',
+  areaGroup: 'Vanlig',
+  packages: [sjofartPackage, lufttransportPackage],
+};
+
+const accessPackageAreaOther = {
+  id: 'other-area',
+  urn: 'accesspackage:area:annet',
+  name: 'Annet',
+  description: '',
+  icon: 'TruckIcon',
+  areaGroup: 'Vanlig',
+  packages: [revisorPackage],
+};
+
+const accessPackageAreaGroupVanlig: PolicyAccessPackageAreaGroup = {
+  id: 'vanlig',
+  urn: 'accesspackage:areagroup:vanlig',
+  name: 'Vanlig',
+  description: 'Mest vanlige pakkenegruppene',
+  type: 'Organisasjon',
+  areas: [accessPackageAreaSkatt, accessPackageAreaTransport, accessPackageAreaOther],
+};
 
 describe('PolicyAccessPackages', () => {
   afterEach(jest.clearAllMocks);
@@ -112,21 +117,25 @@ describe('PolicyAccessPackages', () => {
 });
 
 const renderAccessPackages = () => {
+  const queryClient = createQueryClientMock();
+
   return render(
-    <PolicyEditorContext.Provider
-      value={{ ...mockPolicyEditorContextValue, accessPackages: accessPackages }}
-    >
-      <PolicyRuleContext.Provider
-        value={{
-          ...mockPolicyRuleContextValue,
-          policyRule: {
-            ...mockPolicyRuleContextValue.policyRule,
-            accessPackages: [lufttransportPackage.urn],
-          },
-        }}
+    <ServicesContextProvider {...queriesMock} client={queryClient}>
+      <PolicyEditorContext.Provider
+        value={{ ...mockPolicyEditorContextValue, accessPackages: [accessPackageAreaGroupVanlig] }}
       >
-        <PolicyAccessPackages />
-      </PolicyRuleContext.Provider>
-    </PolicyEditorContext.Provider>,
+        <PolicyRuleContext.Provider
+          value={{
+            ...mockPolicyRuleContextValue,
+            policyRule: {
+              ...mockPolicyRuleContextValue.policyRule,
+              accessPackages: [lufttransportPackage.urn],
+            },
+          }}
+        >
+          <PolicyAccessPackages />
+        </PolicyRuleContext.Provider>
+      </PolicyEditorContext.Provider>
+    </ServicesContextProvider>,
   );
 };

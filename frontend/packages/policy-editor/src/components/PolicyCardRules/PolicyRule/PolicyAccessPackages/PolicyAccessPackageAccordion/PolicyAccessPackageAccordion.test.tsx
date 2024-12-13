@@ -3,6 +3,11 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
+import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
+import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { QueryClient } from '@tanstack/react-query';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const defaultAccessPackageProp = {
   id: 'urn:altinn:accesspackage:sjofart',
@@ -10,15 +15,6 @@ const defaultAccessPackageProp = {
   name: 'Sjøfart',
   description:
     'Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
-  services: [],
-  tags: [],
-  area: {
-    id: 'transport-id',
-    name: 'Transport og lagring',
-    description: '',
-    iconName: '',
-    shortDescription: '',
-  },
 };
 
 const resource = {
@@ -37,7 +33,7 @@ const resource = {
     organization: '974761076',
     orgcode: 'skd',
   },
-  logoUrl: '',
+  logoUrl: 'https://altinncdn.no/orgs/skd/skd.png',
 };
 
 describe('PolicyAccessPackageAccordion', () => {
@@ -45,13 +41,7 @@ describe('PolicyAccessPackageAccordion', () => {
 
   it('should show text if access package contains no services', async () => {
     const user = userEvent.setup();
-    render(
-      <PolicyAccessPackageAccordion
-        accessPackage={defaultAccessPackageProp}
-        selectedLanguage='nb'
-        selectPackageElement={<div />}
-      />,
-    );
+    renderAccordion();
 
     const accordionButton = screen.getByRole('button');
     await user.click(accordionButton);
@@ -63,14 +53,11 @@ describe('PolicyAccessPackageAccordion', () => {
 
   it('should show list of services', async () => {
     const user = userEvent.setup();
+    const getAccessPackageServices = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([resource]));
 
-    render(
-      <PolicyAccessPackageAccordion
-        accessPackage={{ ...defaultAccessPackageProp, services: [resource] }}
-        selectedLanguage='nb'
-        selectPackageElement={<div />}
-      />,
-    );
+    renderAccordion({ getAccessPackageServices });
 
     const accordionButton = screen.getByRole('button');
     await user.click(accordionButton);
@@ -80,17 +67,11 @@ describe('PolicyAccessPackageAccordion', () => {
 
   it('should show logo for services', async () => {
     const user = userEvent.setup();
+    const getAccessPackageServices = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve([resource]));
 
-    render(
-      <PolicyAccessPackageAccordion
-        accessPackage={{
-          ...defaultAccessPackageProp,
-          services: [{ ...resource, logoUrl: 'https://altinncdn.no/orgs/skd/skd.png' }],
-        }}
-        selectedLanguage='nb'
-        selectPackageElement={<div />}
-      />,
-    );
+    renderAccordion({ getAccessPackageServices });
 
     const accordionButton = screen.getByRole('button');
     await user.click(accordionButton);
@@ -98,3 +79,21 @@ describe('PolicyAccessPackageAccordion', () => {
     expect(screen.getByAltText(resource.hasCompetentAuthority.name.nb)).toBeInTheDocument();
   });
 });
+
+const renderAccordion = (queries: Partial<ServicesContextProps> = {}) => {
+  const queryClient: QueryClient = createQueryClientMock();
+  const allQueries: ServicesContextProps = {
+    ...queriesMock,
+    ...queries,
+  };
+  return render(
+    <ServicesContextProvider {...allQueries} client={queryClient}>
+      <PolicyAccessPackageAccordion
+        accessPackage={defaultAccessPackageProp}
+        selectedLanguage='nb'
+        selectPackageElement={<div />}
+      />
+      ,
+    </ServicesContextProvider>,
+  );
+};
