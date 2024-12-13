@@ -1,7 +1,7 @@
 import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import { type TableColumn } from '../../types/TableColumn';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   StudioActionCloseButton,
   StudioCard,
@@ -9,15 +9,15 @@ import {
   StudioDeleteButton,
   StudioDivider,
   StudioParagraph,
-  StudioTextfield,
+  StudioToggleableTextfield,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import type { FormItem } from '../../../../../types/FormItem';
-import { PadlockLockedFillIcon } from '@studio/icons';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
+import { KeyVerticalIcon } from '@studio/icons';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -75,17 +75,7 @@ export const EditColumnElement = ({
           components={componentsWithLabelAndDataModel}
           onSelectComponent={selectComponent}
         />
-        <StudioTextfield
-          label={
-            <>
-              <PadlockLockedFillIcon />
-              {t('ux_editor.modal_properties_textResourceBindings_title')}
-            </>
-          }
-          disabled={true}
-          size='sm'
-          value={textKeyValue}
-        />
+        {tableColumn.headerContent && <EditColumnElementTitle textKeyValue={textKeyValue} />}
         <div className={classes.buttons}>
           <StudioActionCloseButton
             variant='secondary'
@@ -145,5 +135,33 @@ export const EditColumnElementComponentSelect = ({
         {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
       </StudioCombobox.Empty>
     </StudioCombobox>
+  );
+};
+
+type EditColumnElementTitleProps = {
+  textKeyValue: string;
+};
+
+const EditColumnElementTitle = ({ textKeyValue }: EditColumnElementTitleProps) => {
+  const { t } = useTranslation();
+  return (
+    <StudioToggleableTextfield
+      inputProps={{
+        icon: <KeyVerticalIcon />,
+        label: t('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
+        value: textKeyValue,
+        size: 'sm',
+      }}
+      viewProps={{
+        children: (
+          <Trans
+            i18nKey={'ux_editor.properties_panel.subform_table_columns.column_title_unedit'}
+            values={{ item: textKeyValue }}
+          />
+        ),
+        title: textKeyValue,
+        variant: 'tertiary',
+      }}
+    />
   );
 };
