@@ -7,15 +7,15 @@ import { useTranslation } from 'react-i18next';
 import React, { useRef } from 'react';
 import { StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 
-type EditManualOptionListEditorModalProps = Pick<
+type ManualOptionsEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function EditManualOptionListEditorModal({
+export function ManualOptionsEditor({
   component,
   handleComponentChange,
-}: EditManualOptionListEditorModalProps): React.ReactNode {
+}: ManualOptionsEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const modalRef = useRef<HTMLDialogElement>(null);
   const editorTexts = useOptionListEditorTexts();

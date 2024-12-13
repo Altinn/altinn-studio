@@ -5,8 +5,8 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListQuery } from 'app-shared/hooks/queries';
-import { EditManualOptionListEditorModal } from './ManualOptionsEditor/ManualOptionsEditor';
-import { EditLibraryOptionListEditorModal } from './LibraryOptionsEditor/LibraryOptionsEditor';
+import { LibraryOptionsEditor } from './LibraryOptionsEditor';
+import { ManualOptionsEditor } from './ManualOptionsEditor';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -23,10 +23,7 @@ export function OptionListEditor({
 
   if (component.options !== undefined) {
     return (
-      <EditManualOptionListEditorModal
-        component={component}
-        handleComponentChange={handleComponentChange}
-      />
+      <ManualOptionsEditor component={component} handleComponentChange={handleComponentChange} />
     );
   }
 
@@ -42,13 +39,7 @@ export function OptionListEditor({
         </StudioErrorMessage>
       );
     case 'success': {
-      return (
-        <EditLibraryOptionListEditorModal
-          label={component.label}
-          optionsId={component.optionsId}
-          optionsList={optionsList}
-        />
-      );
+      return <LibraryOptionsEditor optionsId={component.optionsId} optionsList={optionsList} />;
     }
   }
 }

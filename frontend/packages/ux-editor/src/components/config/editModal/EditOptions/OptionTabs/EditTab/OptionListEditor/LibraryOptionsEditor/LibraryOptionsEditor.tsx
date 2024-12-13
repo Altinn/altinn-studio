@@ -9,16 +9,15 @@ import type { CodeListEditorTexts } from '@studio/components';
 import { StudioAlert, StudioCodeListEditor, StudioModal, StudioProperty } from '@studio/components';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 
-type EditLibraryOptionListEditorModalProps = {
-  label: string;
+type LibraryOptionsEditorProps = {
   optionsId: string;
   optionsList: Option[];
 };
 
-export function EditLibraryOptionListEditorModal({
+export function LibraryOptionsEditor({
   optionsId,
   optionsList,
-}: EditLibraryOptionListEditorModalProps): React.ReactNode {
+}: LibraryOptionsEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { doReloadPreview } = usePreviewContext();
