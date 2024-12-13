@@ -19,7 +19,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { StudioButton, StudioNativeSelect } from '@studio/components';
 
 export interface TextResourceProps {
@@ -180,7 +180,7 @@ export const TextResource = ({
                 color: 'second',
                 disabled:
                   !handleRemoveTextResource ||
-                  !(!!textResourceId || shouldDisplayFeature('componentConfigBeta')),
+                  !(!!textResourceId || shouldDisplayFeature(FeatureFlag.ComponentConfigBeta)),
                 icon: <TrashIcon />,
                 onClick: () => setIsConfirmDeleteDialogOpen(true),
                 title: t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey)),

@@ -43,7 +43,7 @@ describe('useUpdateProcessDataTypeMutation', () => {
 
     await renderHook({ queryClient });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(2);
+    expect(invalidateQueriesSpy).toHaveBeenCalledTimes(3);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.AppMetadataModelIds, org, app],
     });

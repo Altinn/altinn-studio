@@ -46,11 +46,13 @@ const codeList: CodeList = [
     helpText: 'Test 3 help text',
   },
 ];
+const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
   codeList,
   texts,
+  onBlurAny,
   onChange,
   onInvalid,
 };
@@ -189,6 +191,21 @@ describe('StudioCodeListEditor', () => {
         label: '',
         value: '',
       },
+    ]);
+  });
+
+  it('Calls the onBlurAny callback with the current code list when an item in the table is blurred', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+    const newValue = 'new text';
+    await user.type(valueInput, newValue);
+    await user.tab();
+    expect(onBlurAny).toHaveBeenCalledTimes(1);
+    expect(onBlurAny).toHaveBeenLastCalledWith([
+      { ...codeList[0], value: newValue },
+      codeList[1],
+      codeList[2],
     ]);
   });
 

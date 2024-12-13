@@ -3,20 +3,17 @@ import React, { forwardRef, useCallback } from 'react';
 import type { TextResource } from '../../types/TextResource';
 import type { StudioComboboxProps } from '../StudioCombobox';
 import { StudioCombobox } from '../StudioCombobox';
+import type { Override } from '../../types/Override';
 
-export type StudioTextResourcePickerProps = Omit<StudioComboboxProps, keyof OverriddenProps> &
-  OverriddenProps &
-  AdditionalProps;
-
-type OverriddenProps = {
-  onValueChange: (id: string) => void;
-  value?: string;
-};
-
-type AdditionalProps = {
-  emptyListText: string;
-  textResources: TextResource[];
-};
+export type StudioTextResourcePickerProps = Override<
+  {
+    emptyListText: string;
+    onValueChange: (id: string) => void;
+    textResources: TextResource[];
+    value?: string;
+  },
+  StudioComboboxProps
+>;
 
 export const StudioTextResourcePicker = forwardRef<HTMLInputElement, StudioTextResourcePickerProps>(
   ({ textResources, onSelect, onValueChange, emptyListText, value, ...rest }, ref) => {

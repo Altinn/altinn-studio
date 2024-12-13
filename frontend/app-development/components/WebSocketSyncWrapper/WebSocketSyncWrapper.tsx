@@ -48,8 +48,8 @@ export const WebSocketSyncWrapper = ({
 
     const isSuccessMessage = 'source' in message;
     if (isSuccessMessage) {
-      // Please extend the "fileNameCacheKeyMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
-      invalidator.invalidateQueryByFileLocation(message.source.name);
+      // Please extend the "fileNameCacheKeysMap" inside the "SyncSuccessQueriesInvalidator" class. Do not add query-client invalidation directly here.
+      invalidator.invalidateQueriesByFileLocation(message.source.name);
     }
   });
 
