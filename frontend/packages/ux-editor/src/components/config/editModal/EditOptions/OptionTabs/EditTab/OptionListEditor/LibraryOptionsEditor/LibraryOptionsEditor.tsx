@@ -47,10 +47,6 @@ export function LibraryOptionsEditor({
     }
   };
 
-  const handleClose = () => {
-    modalRef.current?.close();
-  };
-
   const codeListLabels: string = localOptionList
     .slice(0, 3)
     .map((option: Option) => `${option.label}`)
@@ -85,8 +81,6 @@ export function LibraryOptionsEditor({
         contentClassName={classes.content}
         closeButtonTitle={t('general.close')}
         heading={t('ux_editor.options.modal_header_library_code_list')}
-        onInteractOutside={handleClose}
-        onBeforeClose={handleClose}
         footer={
           <StudioAlert severity={'warning'} size='sm'>
             {t('ux_editor.modal_properties_code_list_alert_title')}
