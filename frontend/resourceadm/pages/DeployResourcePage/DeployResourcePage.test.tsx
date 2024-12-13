@@ -277,6 +277,24 @@ describe('DeployResourcePage', () => {
     expect(prodButton).toBeDisabled();
   });
 
+  it('disables the deploy buttons when there is no policy', async () => {
+    await resolveAndWaitForSpinnerToDisappear({
+      getValidatePolicy: () => Promise.resolve<Validation>({ status: 404, errors: [] }),
+    });
+    const tt02 = textMock('resourceadm.deploy_test_env');
+    const prod = textMock('resourceadm.deploy_prod_env');
+
+    const tt02Button = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: tt02 }),
+    });
+    const prodButton = screen.getByRole('button', {
+      name: textMock('resourceadm.deploy_card_publish', { env: prod }),
+    });
+
+    expect(tt02Button).toBeDisabled();
+    expect(prodButton).toBeDisabled();
+  });
+
   it('disables the deploy buttons when there is validate policy error', async () => {
     await resolveAndWaitForSpinnerToDisappear({
       getValidatePolicy: () => Promise.resolve<Validation>(mockValidatePolicyData2),
