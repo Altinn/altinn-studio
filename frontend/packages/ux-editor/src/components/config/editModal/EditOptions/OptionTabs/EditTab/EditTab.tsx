@@ -33,7 +33,7 @@ export function EditTab({
           handleComponentChange={handleComponentChange}
         />
       ) : (
-        <div className={classes.optionButtons}>
+        <div className={classes.container}>
           <AddManualOptionsModal
             setComponentHasOptionList={setComponentHasOptionList}
             component={component}

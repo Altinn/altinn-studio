@@ -1,4 +1,4 @@
-.optionButtons {
+.container {
   display: flex;
   flex-direction: column;
   gap: var(--fds-spacing-2);
