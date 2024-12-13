@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
         {
             cancellationToken.ThrowIfCancellationRequested();
             // Temp location. Will be moved to CDN
-            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/accesspackages_hier/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
 
             List<AccessPackageAreaGroup> accessPackageOptions;
             JsonSerializerOptions options = new()
