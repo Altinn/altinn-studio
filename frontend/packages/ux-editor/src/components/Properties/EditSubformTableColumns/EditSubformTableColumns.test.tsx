@@ -46,10 +46,9 @@ describe('EditSubformTableColumns', () => {
       },
     });
 
-    const addColumnButton = getAddColumnButton();
-    await user.click(addColumnButton);
-
+    await user.click(getAddColumnButton());
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
+
     const numberOfColumnsAfterAdded = getUpdatedTableColumns(handleComponentChangeMock).length;
     expect(numberOfColumnsAfterAdded).toBe(1);
   });
@@ -62,8 +61,7 @@ describe('EditSubformTableColumns', () => {
       props: { handleComponentChange: handleComponentChangeMock },
     });
 
-    const addColumnButton = getAddColumnButton();
-    await user.click(addColumnButton);
+    await user.click(getAddColumnButton());
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
 
     const numberOfColumnsAfterAdded = getUpdatedTableColumns(handleComponentChangeMock).length;
@@ -83,8 +81,7 @@ describe('EditSubformTableColumns', () => {
     });
     await user.click(editButton);
 
-    const componentSelector = getComponentSelector();
-    await user.click(componentSelector);
+    await user.click(getComponentSelector());
     await user.click(
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
     );
@@ -146,9 +143,7 @@ describe('EditSubformTableColumns', () => {
       props: { handleComponentChange: handleComponentChangeMock },
     });
 
-    const addColumnButton = getAddColumnButton();
-    await user.click(addColumnButton);
-
+    await user.click(getAddColumnButton());
     const updatedProps = {
       handleComponentChange: handleComponentChangeMock,
       component: {
@@ -157,9 +152,7 @@ describe('EditSubformTableColumns', () => {
       },
     };
     rerender(<EditSubformTableColumns {...updatedProps} />);
-
-    const componentSelector = getComponentSelector();
-    expect(componentSelector).toBeInTheDocument();
+    expect(getComponentSelector()).toBeInTheDocument();
   });
 });
 
