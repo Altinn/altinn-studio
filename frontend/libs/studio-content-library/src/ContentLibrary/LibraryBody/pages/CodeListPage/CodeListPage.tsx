@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
-import classes from './CodeList.module.css';
+import classes from './CodeListPage.module.css';
 import { ArrayUtils } from '@studio/pure-functions';
 
 export type CodeListWithMetadata = {
@@ -13,18 +13,18 @@ export type CodeListWithMetadata = {
   title: string;
 };
 
-export type CodeListProps = {
+export type CodeListPageProps = {
   codeLists: CodeListWithMetadata[];
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
   fetchDataError: boolean;
 };
-export function CodeList({
+export function CodeListPage({
   codeLists,
   onUpdateCodeList,
   onUploadCodeList,
   fetchDataError,
-}: CodeListProps): React.ReactElement {
+}: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
 
   if (fetchDataError)
