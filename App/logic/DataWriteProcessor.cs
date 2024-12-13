@@ -90,11 +90,11 @@ namespace Altinn.App.logic
                                 {
                                     instanceDataMutator.RemoveDataElement(element);
                                     formData.AttachmentName.Remove(name);
-                                    formData.AttachmentId.Remove(element.Id);
+                                    // We should update the IDs here as well, but not doing it here forces frontend
+                                    // to update the IDs. Leaving it out allows us to test that it happens correctly.
                                 }
                             }
                             formData.AttachmentNameJoined = string.Join(", ", formData.AttachmentName);
-                            formData.AttachmentIdJoined = string.Join(", ", formData.AttachmentId);
                             formData.Navn = "debug";
                         } else if (formData.Navn != "debug")
                         {
