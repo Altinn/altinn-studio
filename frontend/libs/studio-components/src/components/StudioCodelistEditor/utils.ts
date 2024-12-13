@@ -1,7 +1,6 @@
 import type { CodeListItem } from './types/CodeListItem';
 import type { CodeList } from './types/CodeList';
 import { ArrayUtils } from '@studio/pure-functions';
-import type { CodeListValueType } from './types/CodeListValueType';
 
 export function addEmptyCodeListItem(codeList: CodeList): CodeList {
   const emptyItem: CodeListItem = {
@@ -29,37 +28,4 @@ export function changeCodeListItem(
 
 export function isCodeListEmpty(codeList: CodeList): boolean {
   return codeList.length === 0;
-}
-
-export function getCodeListValueType(codeList: CodeList): CodeListValueType {
-  switch (true) {
-    case areAllValuesBoolean(codeList):
-      return 'boolean';
-    case areAllValuesNumber(codeList):
-      return 'number';
-    default:
-      return 'string';
-  }
-}
-
-function areAllValuesBoolean(codeList: CodeList): boolean {
-  let result = true;
-  codeList.forEach((codeListItem) => {
-    if (String(codeListItem.value) !== 'true' && String(codeListItem.value) !== 'false') {
-      result = false;
-    }
-  });
-
-  return result;
-}
-
-function areAllValuesNumber(codeList: CodeList): boolean {
-  let result = true;
-  codeList.forEach((codeListItem) => {
-    if (isNaN(Number(codeListItem.value)) || codeListItem.value === '') {
-      result = false;
-    }
-  });
-
-  return result;
 }

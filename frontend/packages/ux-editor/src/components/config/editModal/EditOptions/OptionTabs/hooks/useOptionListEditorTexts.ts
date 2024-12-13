@@ -22,11 +22,5 @@ export const useOptionListEditorTexts = (): CodeListEditorTexts => {
       duplicateValue: t('code_list_editor.duplicate_values_error'),
     },
     generalError: t('code_list_editor.general_error'),
-    valueTypes: {
-      string: t('general.text'),
-      number: t('general.number'),
-      boolean: t('general.boolean'),
-    },
-    typeTooltip: (type: string) => t('code_list_editor.type_tooltip', { type }),
   };
 };

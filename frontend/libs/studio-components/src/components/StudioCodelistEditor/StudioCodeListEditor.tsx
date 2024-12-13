@@ -9,7 +9,6 @@ import {
   addEmptyCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
-  getCodeListValueType,
 } from './utils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
@@ -24,9 +23,9 @@ import { areThereCodeListErrors, findCodeListErrors, isCodeListValid } from './v
 import type { ValueErrorMap } from './types/ValueErrorMap';
 import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
-import { StudioTag } from '../StudioTag';
 import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
+import { updateCodeListValueType } from './valueTypeUtils';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
@@ -43,10 +42,8 @@ export function StudioCodeListEditor({
   onInvalid = () => {},
   texts,
 }: StudioCodeListEditorProps): ReactElement {
-  const codeListValueType = useMemo(() => getCodeListValueType(codeList), [codeList]);
-
   return (
-    <StudioCodeListEditorContext.Provider value={{ texts, codeListValueType }}>
+    <StudioCodeListEditorContext.Provider value={{ texts }}>
       <StatefulCodeListEditor
         codeList={codeList}
         onBlurAny={onBlurAny}
@@ -73,6 +70,7 @@ function StatefulCodeListEditor({
 
   const handleChange = useCallback(
     (newCodeList: CodeList) => {
+      updateCodeListValueType(newCodeList);
       setCodeList(newCodeList);
       isCodeListValid(newCodeList) ? onChange?.(newCodeList) : onInvalid?.();
     },
@@ -159,9 +157,7 @@ function TableHeadings(): ReactElement {
   return (
     <StudioInputTable.Head>
       <StudioInputTable.Row>
-        <StudioInputTable.HeaderCell>
-          <ValueHeading />
-        </StudioInputTable.HeaderCell>
+        <StudioInputTable.HeaderCell>{texts.value}</StudioInputTable.HeaderCell>
         <StudioInputTable.HeaderCell>{texts.label}</StudioInputTable.HeaderCell>
         <StudioInputTable.HeaderCell>{texts.description}</StudioInputTable.HeaderCell>
         <StudioInputTable.HeaderCell>{texts.helpText}</StudioInputTable.HeaderCell>
@@ -170,21 +166,6 @@ function TableHeadings(): ReactElement {
     </StudioInputTable.Head>
   );
 }
-
-const ValueHeading = (): ReactElement => {
-  const { texts, codeListValueType } = useStudioCodeListEditorContext();
-  const typeLabel = texts.valueTypes[codeListValueType];
-  const typeTooltip = texts.typeTooltip(typeLabel.toLowerCase());
-
-  return (
-    <div className={classes.valueHeading}>
-      {texts.value}
-      <StudioTag size='sm' title={typeTooltip}>
-        {typeLabel}
-      </StudioTag>
-    </div>
-  );
-};
 
 function TableBody({
   codeList,

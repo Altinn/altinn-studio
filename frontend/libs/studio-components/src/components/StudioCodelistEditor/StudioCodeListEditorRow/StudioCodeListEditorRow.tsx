@@ -4,7 +4,7 @@ import { StudioInputTable } from '../../StudioInputTable';
 import { TrashIcon } from '../../../../../studio-icons';
 import type { FocusEvent, HTMLInputAutoCompleteAttribute } from 'react';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { changeDescription, changeHelpText, changeLabel, changeValue, coerceValue } from './utils';
+import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 import { useStudioCodeListEditorContext } from '../StudioCodeListEditorContext';
 import type { ValueError } from '../types/ValueError';
 import classes from './StudioCodeListEditorRow.module.css';
@@ -24,7 +24,7 @@ export function StudioCodeListEditorRow({
   onChange,
   onDeleteButtonClick,
 }: StudioCodeListEditorRowProps) {
-  const { texts, codeListValueType } = useStudioCodeListEditorContext();
+  const { texts } = useStudioCodeListEditorContext();
 
   const handleLabelChange = useCallback(
     (label: string) => {
@@ -44,15 +44,10 @@ export function StudioCodeListEditorRow({
 
   const handleValueChange = useCallback(
     (value: string) => {
-      // need to update codeListValueType before value is coerced
-      const coercedValue = coerceValue(value, codeListValueType);
-      console.log(`codeListValueType: ${codeListValueType}`);
-      console.log(`coercedValue: ${coercedValue}`);
-      console.log(`typeof coercedValue: ${typeof coercedValue}`);
       const updatedItem = changeValue(item, value);
       onChange(updatedItem);
     },
-    [item, onChange, codeListValueType],
+    [item, onChange],
   );
 
   const handleHelpTextChange = useCallback(
