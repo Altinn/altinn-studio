@@ -4,7 +4,6 @@ import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { StudioParagraph, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
-import classes from './ReferenceTab.module.css';
 
 export function ReferenceTab({
   component,
