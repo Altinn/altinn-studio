@@ -466,7 +466,7 @@ namespace Altinn.Studio.Designer.Controllers
             // 3. GET full list of resources
             List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
             List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
-            
+
             OrgList orgList = await GetOrgList();
             List<AccessPackageService> result = [];
 
