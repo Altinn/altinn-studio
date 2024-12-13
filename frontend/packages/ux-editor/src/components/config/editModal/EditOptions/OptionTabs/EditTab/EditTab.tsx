@@ -70,13 +70,11 @@ function SelectedOptionList({
   handleComponentChange,
 }: SelectedOptionListProps) {
   return (
-    <div className={classes.chosenOptionContainer}>
-      <OptionListEditor
-        optionsId={component.optionsId}
-        component={component}
-        handleComponentChange={handleComponentChange}
-        setComponentHasOptionList={setComponentHasOptionList}
-      />
-    </div>
+    <OptionListEditor
+      optionsId={component.optionsId}
+      component={component}
+      handleComponentChange={handleComponentChange}
+      setComponentHasOptionList={setComponentHasOptionList}
+    />
   );
 }

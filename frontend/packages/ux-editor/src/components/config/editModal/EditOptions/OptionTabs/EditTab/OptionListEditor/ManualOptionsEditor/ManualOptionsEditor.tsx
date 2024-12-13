@@ -1,5 +1,5 @@
-import type { IGenericEditComponent } from '@altinn/ux-editor/components/config/componentConfig';
-import type { SelectionComponentType } from '@altinn/ux-editor/types/FormComponent';
+import type { IGenericEditComponent } from '../../../../../../componentConfig';
+import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -9,7 +9,7 @@ import {
   StudioButton,
 } from '@studio/components';
 import { PencilIcon, TrashIcon } from '@studio/icons';
-import { useOptionListEditorTexts } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/hooks';
+import { useOptionListEditorTexts } from '../../../hooks';
 import type { Option } from 'app-shared/types/Option';
 import classes from './ManualOptionsEditor.module.css';
 

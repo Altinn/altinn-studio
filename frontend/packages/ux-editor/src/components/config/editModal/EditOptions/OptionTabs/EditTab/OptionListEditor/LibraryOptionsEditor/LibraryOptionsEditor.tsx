@@ -1,5 +1,5 @@
 import type { Option } from 'app-shared/types/Option';
-import React, { createRef, useState } from 'react';
+import React, { createRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StudioCodeListEditor,
@@ -13,18 +13,17 @@ import { PencilIcon, TrashIcon } from '@studio/icons';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
-import { useOptionListEditorTexts } from '@altinn/ux-editor/components/config/editModal/EditOptions/OptionTabs/hooks';
+import { useOptionListEditorTexts } from '../../../hooks';
 import type { OptionListEditorProps } from '../OptionListEditor';
 import classes from './LibraryOptionsEditor.module.css';
 
 type LibraryOptionsEditorProps = {
   optionsList: Option[];
   handleDelete: () => void;
-} & Pick<OptionListEditorProps, 'optionsId' | 'component'>;
+} & Pick<OptionListEditorProps, 'component'>;
 
 export function LibraryOptionsEditor({
   component,
-  optionsId,
   optionsList,
   handleDelete,
 }: LibraryOptionsEditorProps): React.ReactNode {
@@ -32,22 +31,20 @@ export function LibraryOptionsEditor({
   const { org, app } = useStudioEnvironmentParams();
   const { doReloadPreview } = usePreviewContext();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
-  const [localOptionList, setLocalOptionList] = useState<Option[]>(optionsList);
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
   const optionListHasChanged = (options: Option[]): boolean =>
-    JSON.stringify(options) !== JSON.stringify(localOptionList);
+    JSON.stringify(options) !== JSON.stringify(optionsList);
 
   const handleOptionsChange = (options: Option[]) => {
     if (optionListHasChanged(options)) {
-      updateOptionList({ optionListId: optionsId, optionsList: options });
-      setLocalOptionList(options);
+      updateOptionList({ optionListId: component.optionsId, optionsList: options });
       doReloadPreview();
     }
   };
 
-  const codeListLabels: string = localOptionList
+  const codeListLabels: string = optionsList
     .slice(0, 3)
     .map((option: Option) => `${option.label}`)
     .join(' | ');
@@ -88,7 +85,7 @@ export function LibraryOptionsEditor({
         }
       >
         <StudioCodeListEditor
-          codeList={localOptionList}
+          codeList={optionsList}
           onChange={handleOptionsChange}
           texts={editorTexts}
         />

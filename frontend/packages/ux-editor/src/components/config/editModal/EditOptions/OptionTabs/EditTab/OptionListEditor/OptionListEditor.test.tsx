@@ -28,13 +28,13 @@ describe('OptionListEditor', () => {
 
   describe('ManualOptionListEditorModal', () => {
     it('should render the open Dialog button', async () => {
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+      await renderOptionListEditor();
       expect(getOptionModalButton()).toBeInTheDocument();
     });
 
     it('should open Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+      await renderOptionListEditor();
 
       await user.click(getOptionModalButton());
 
@@ -43,7 +43,7 @@ describe('OptionListEditor', () => {
 
     it('should close Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+      await renderOptionListEditor();
 
       await user.click(getOptionModalButton());
       await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
@@ -56,7 +56,7 @@ describe('OptionListEditor', () => {
       const componentWithOptionsId = mockComponent;
       componentWithOptionsId.optionsId = 'optionsID';
       const handleComponentChange = jest.fn();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+      await renderOptionListEditor({
         handleComponentChange,
         component: componentWithOptionsId,
       });

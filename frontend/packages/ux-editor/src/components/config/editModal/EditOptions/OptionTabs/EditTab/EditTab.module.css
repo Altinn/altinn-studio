@@ -1,7 +1,3 @@
-.chosenOptionContainer {
-  padding-inline: var(--fds-spacing-5);
-}
-
 .optionButtons {
   display: flex;
   flex-direction: column;

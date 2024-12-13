@@ -37,6 +37,16 @@ export function OptionListEditor({
     setComponentHasOptionList(false);
   };
 
+  if (component.options !== undefined) {
+    return (
+      <ManualOptionsEditor
+        component={component}
+        handleComponentChange={handleComponentChange}
+        handleDelete={handleDelete}
+      />
+    );
+  }
+
   switch (status) {
     case 'pending':
       return (
@@ -53,26 +63,16 @@ export function OptionListEditor({
         return (
           <LibraryOptionsEditor
             component={component}
-            optionsId={optionsId}
             optionsList={optionsLists[optionsId]}
             handleDelete={handleDelete}
           />
         );
-      } else if (component.options !== undefined) {
-        return (
-          <ManualOptionsEditor
-            component={component}
-            handleComponentChange={handleComponentChange}
-            handleDelete={handleDelete}
-          />
-        );
-      } else {
-        return (
-          <StudioAlert severity={'info'} size='sm'>
-            {t('ux_editor.options.tab_code_list_alert_title')}
-          </StudioAlert>
-        );
       }
+      return (
+        <StudioAlert severity={'info'} size='sm'>
+          {t('ux_editor.options.tab_option_list_alert_title')}
+        </StudioAlert>
+      );
     }
   }
 }

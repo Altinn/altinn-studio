@@ -18,7 +18,7 @@ describe('EditTab', () => {
   it('should render DisplayChosenOption', async () => {
     renderEditTab();
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
+      screen.getByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
     ).toBeInTheDocument();
   });
 
