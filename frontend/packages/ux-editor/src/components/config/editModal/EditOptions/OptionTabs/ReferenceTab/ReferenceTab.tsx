@@ -23,7 +23,7 @@ export function ReferenceTab({
   };
 
   return (
-    <div className={classes.container}>
+    <>
       <StudioParagraph spacing size='small'>
         {t('ux_editor.options.code_list_referenceId.description')}
       </StudioParagraph>
@@ -46,6 +46,6 @@ export function ReferenceTab({
           />
         </Trans>
       </p>
-    </div>
+    </>
   );
 }
