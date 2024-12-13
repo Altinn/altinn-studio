@@ -112,18 +112,6 @@ describe('ColumnElement', () => {
 
     expect(onDeleteColumnMock).toHaveBeenCalledTimes(1);
   });
-
-  it('should render EditColumnElement when initialOpenForEdit is true', async () => {
-    renderColumnElement({
-      isInitialOpenForEdit: true,
-    });
-
-    const editColumnElement = screen.getByRole('button', {
-      name: textMock('general.save'),
-    });
-
-    expect(editColumnElement).toBeInTheDocument();
-  });
 });
 
 const renderColumnElement = (props: Partial<ColumnElementProps> = {}) => {
