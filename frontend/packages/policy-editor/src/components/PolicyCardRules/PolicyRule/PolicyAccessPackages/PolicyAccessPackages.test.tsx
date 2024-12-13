@@ -15,7 +15,7 @@ import { queriesMock } from 'app-shared/mocks/queriesMock';
 const skattPackage = {
   id: 'urn:altinn:accesspackage:skatt',
   urn: 'urn:altinn:accesspackage:skatt',
-  name: 'Sjøfart',
+  name: 'Skatt',
   description: '',
 };
 
@@ -113,6 +113,16 @@ describe('PolicyAccessPackages', () => {
     await user.click(packageCheckbox);
 
     expect(packageCheckbox).not.toBeChecked();
+  });
+
+  it('should filter list on search', async () => {
+    const user = userEvent.setup();
+    renderAccessPackages();
+
+    const searchField = screen.getByLabelText(textMock('policy_editor.access_package_search'));
+    await user.type(searchField, 'Sjø');
+
+    expect(screen.getByText('Sjøfart')).toBeInTheDocument();
   });
 });
 

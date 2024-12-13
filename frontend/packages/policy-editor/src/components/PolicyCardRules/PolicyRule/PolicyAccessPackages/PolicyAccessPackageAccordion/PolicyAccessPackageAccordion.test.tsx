@@ -33,7 +33,7 @@ const resource = {
     organization: '974761076',
     orgcode: 'skd',
   },
-  logoUrl: 'https://altinncdn.no/orgs/skd/skd.png',
+  logoUrl: '',
 };
 
 describe('PolicyAccessPackageAccordion', () => {
@@ -69,7 +69,9 @@ describe('PolicyAccessPackageAccordion', () => {
     const user = userEvent.setup();
     const getAccessPackageServices = jest
       .fn()
-      .mockImplementation(() => Promise.resolve([resource]));
+      .mockImplementation(() =>
+        Promise.resolve([{ ...resource, logoUrl: 'https://altinncdn.no/orgs/skd/skd.png' }]),
+      );
 
     renderAccordion({ getAccessPackageServices });
 

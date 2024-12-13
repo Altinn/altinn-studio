@@ -39,7 +39,9 @@ export const PolicyAccessPackageAccordion = ({
         extraHeaderContent={selectPackageElement}
         onOpened={onOpenAccordion}
       >
-        {isLoading && <StudioSpinner spinnerTitle='Laster tjenester...' />}
+        {isLoading && (
+          <StudioSpinner spinnerTitle={t('policy_editor.access_package_loading_services')} />
+        )}
         {services?.length > 0 && (
           <>
             <div className={classes.serviceContainerHeader}>

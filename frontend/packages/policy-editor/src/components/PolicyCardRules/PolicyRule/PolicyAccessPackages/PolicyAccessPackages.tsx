@@ -126,12 +126,6 @@ export const PolicyAccessPackages = (): React.ReactElement => {
       <StudioLabelAsParagraph size='sm' spacing>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
-      <StudioTextfield
-        label='Søk'
-        size='small'
-        value={searchValue}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)}
-      />
       {chosenAccessPackages.length > 0 && (
         <>
           <StudioLabelAsParagraph size='xs' spacing>
@@ -143,6 +137,12 @@ export const PolicyAccessPackages = (): React.ReactElement => {
             .map(renderAccessPackageAccordion)}
         </>
       )}
+      <StudioTextfield
+        label={t('policy_editor.access_package_search')}
+        size='small'
+        value={searchValue}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)}
+      />
       <StudioLabelAsParagraph size='xs' spacing>
         {t('policy_editor.access_package_all_packages')}
       </StudioLabelAsParagraph>
