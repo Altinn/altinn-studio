@@ -28,7 +28,7 @@ const mockTableColumn: TableColumn = {
 const defaultProps: ColumnElementProps = {
   tableColumn: mockTableColumn,
   columnNumber: columnNumberMock,
-  initialOpenForEdit: false,
+  isInitialOpenForEdit: false,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
   layoutSetName: layoutSet3SubformNameMock,
@@ -115,7 +115,7 @@ describe('ColumnElement', () => {
 
   it('should render EditColumnElement when initialOpenForEdit is true', async () => {
     renderColumnElement({
-      initialOpenForEdit: true,
+      isInitialOpenForEdit: true,
     });
 
     const editColumnElement = screen.getByRole('button', {

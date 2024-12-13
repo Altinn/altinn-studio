@@ -12,7 +12,7 @@ export type ColumnElementProps = {
   layoutSetName: string;
   tableColumn: TableColumn;
   columnNumber: number;
-  initialOpenForEdit: boolean;
+  isInitialOpenForEdit: boolean;
   onDeleteColumn: () => void;
   onEdit: (tableColumn: TableColumn) => void;
 };
@@ -20,13 +20,13 @@ export type ColumnElementProps = {
 export const ColumnElement = ({
   tableColumn,
   columnNumber,
-  initialOpenForEdit,
+  isInitialOpenForEdit,
   onDeleteColumn,
   onEdit,
   layoutSetName,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState(initialOpenForEdit);
+  const [editing, setEditing] = useState(isInitialOpenForEdit);
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 

@@ -59,14 +59,14 @@ export const EditSubformTableColumns = ({
   return (
     <EditSubformTableColumnsWrapper>
       {tableColumns.length > 0 &&
-        tableColumns.map((tableColum: TableColumn, index: number) => (
+        tableColumns.map((tableColumn: TableColumn, index: number) => (
           <ColumnElement
             layoutSetName={component.layoutSet}
             key={getUniqueKey(index)}
-            tableColumn={tableColum}
+            tableColumn={tableColumn}
             columnNumber={index + 1}
-            initialOpenForEdit={newColumnNumber === index + 1}
-            onDeleteColumn={() => deleteColumn(tableColum, index)}
+            isInitialOpenForEdit={newColumnNumber === index + 1}
+            onDeleteColumn={() => deleteColumn(tableColumn, index)}
             onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
           />
         ))}
