@@ -7,7 +7,7 @@ import { EditOptions } from './editModal/EditOptions';
 import { EditPreselectedIndex } from './editModal/EditPreselectedIndex';
 import { EditReadOnly } from './editModal/EditReadOnly';
 import { EditRequired } from './editModal/EditRequired';
-import { EditAutoComplete } from './editModal/EditAutoComplete';
+import { EditAutocomplete } from './editModal/EditAutocomplete';
 import { EditTextResourceBinding } from './editModal/EditTextResourceBinding';
 import type { FormComponent } from '../../types/FormComponent';
 
@@ -121,7 +121,7 @@ export const configComponents: IConfigComponents = {
   [EditSettings.Options]: EditOptions,
   [EditSettings.CodeList]: EditCodeList,
   [EditSettings.PreselectedIndex]: EditPreselectedIndex,
-  [EditSettings.AutoComplete]: EditAutoComplete,
+  [EditSettings.AutoComplete]: EditAutocomplete,
   [EditSettings.Help]: ({ component, handleComponentChange }: IGenericEditComponent) => (
     <EditTextResourceBinding
       component={component}

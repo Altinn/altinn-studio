@@ -1,7 +1,9 @@
 import React, { forwardRef, useId } from 'react';
 import { NativeSelect, type NativeSelectProps } from '@digdir/designsystemet-react';
 
-export const StudioNativeSelect = forwardRef<HTMLSelectElement, NativeSelectProps>(
+export type StudioNativeSelectProps = NativeSelectProps;
+
+export const StudioNativeSelect = forwardRef<HTMLSelectElement, StudioNativeSelectProps>(
   ({ children, description, label, id, size, ...rest }, ref): React.JSX.Element => {
     const defaultId = useId();
     id = id ?? defaultId;
