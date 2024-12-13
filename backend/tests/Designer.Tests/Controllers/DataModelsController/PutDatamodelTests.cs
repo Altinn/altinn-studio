@@ -149,7 +149,6 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         var location = Path.GetFullPath(Path.Combine(TestRepoPath, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
-        var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
 
         Assert.True(File.Exists(xsdSchemaLocation));
         Assert.True(File.Exists(jsonSchemaLocation));
