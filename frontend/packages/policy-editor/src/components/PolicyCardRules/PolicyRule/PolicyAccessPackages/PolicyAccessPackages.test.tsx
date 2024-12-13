@@ -45,7 +45,7 @@ const accessPackageAreaSkatt = {
   urn: 'accesspackage:area:skatt_avgift_regnskap_og_toll',
   name: 'Skatt',
   description: '',
-  icon: 'BankNoteIcon',
+  icon: '',
   areaGroup: 'Vanlig',
   packages: [skattPackage],
 };

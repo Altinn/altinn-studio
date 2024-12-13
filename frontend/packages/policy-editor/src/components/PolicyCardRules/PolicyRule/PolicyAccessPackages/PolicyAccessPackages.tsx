@@ -150,7 +150,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         return (
           <PolicyAccordion
             key={`${searchValue}-${area.id}`}
-            icon={area.icon}
+            icon={area.icon || 'PackageIcon'}
             title={area.name}
             subTitle={area.description}
             defaultOpen={!!searchValue}
