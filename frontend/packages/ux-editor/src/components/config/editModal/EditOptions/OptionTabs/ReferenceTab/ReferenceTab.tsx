@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioParagraph, StudioTextfield } from '@studio/components';
+import { StudioAlert, StudioParagraph, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 
 export function ReferenceTab({
@@ -36,7 +36,13 @@ export function ReferenceTab({
         value={component.optionsId}
         size='small'
       />
-      <p style={{ marginBottom: 0 }}>
+      {(component.optionsId || component.options) && (
+        <StudioAlert severity={'info'} size='sm'>
+          Du har allerede referert til en kodeliste. Skriver du inn en ID, vil referansen din bli
+          slettet.
+        </StudioAlert>
+      )}
+      <p>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
             href={altinnDocsUrl({ relativeUrl: 'altinn-studio/guides/options/dynamic-codelists/' })}
