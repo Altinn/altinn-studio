@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Paragraph, Alert, CheckboxGroup, Checkbox } from '@digdir/designsystemet-react';
+import { Paragraph, Alert, CheckboxGroup, Checkbox, Label } from '@digdir/designsystemet-react';
 import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
 import type { PolicyAccessPackage, PolicyAccessPackageArea } from '../../../../types';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
@@ -123,7 +123,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         </StudioLabelAsParagraph>
         <Paragraph size='sm'>{t('policy_editor.access_package_warning_body')}</Paragraph>
       </Alert>
-      <StudioLabelAsParagraph size='sm' spacing>
+      <StudioLabelAsParagraph size='md' spacing>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
       {chosenAccessPackages.length > 0 && (
@@ -138,7 +138,7 @@ export const PolicyAccessPackages = (): React.ReactElement => {
         </>
       )}
       <StudioTextfield
-        label={t('policy_editor.access_package_search')}
+        label={<Label size='xs'>{t('policy_editor.access_package_search')}</Label>}
         size='small'
         value={searchValue}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)}
