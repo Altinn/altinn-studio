@@ -83,11 +83,8 @@ describe('EditSubformTableColumns', () => {
     });
     await user.click(editButton);
 
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-
-    await user.click(componentSelect);
+    const componentSelector = getComponentSelector();
+    await user.click(componentSelector);
     await user.click(
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
     );
@@ -161,7 +158,8 @@ describe('EditSubformTableColumns', () => {
     };
     rerender(<EditSubformTableColumns {...updatedProps} />);
 
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    const componentSelector = getComponentSelector();
+    expect(componentSelector).toBeInTheDocument();
   });
 });
 
@@ -177,6 +175,11 @@ const getAddColumnButton = () =>
   screen.getByRole('button', {
     name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
   });
+const getComponentSelector = () =>
+  screen.getByRole('combobox', {
+    name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+  });
+
 const getUpdatedTableColumns = (mockFn: jest.Mock) => mockFn.mock.calls[0][0].tableColumns;
 
 const renderEditSubformTableColumns = (
