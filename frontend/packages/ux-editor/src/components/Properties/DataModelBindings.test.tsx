@@ -17,7 +17,7 @@ import { layoutSet1NameMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import type { DataModelMetadataResponse } from 'app-shared/types/api';
 
-const defaultModel = 'testModel';
+const defaultModel = 'testModelField';
 
 const defaultDataModel = 'testModel';
 const secondDataModel = 'secondDataModel';
