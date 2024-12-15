@@ -561,7 +561,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     editingContext.Repo,
                     editingContext.Developer);
 
-            bool hasChanges = false;
+            bool hasLayoutSetChanges = false;
 
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 
@@ -572,6 +572,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var filteredLayoutSets = layoutSets.Sets.Where(item => !deletedLayoutsSetIds.Contains(item.Id)).ToList();
             foreach (LayoutSetConfig layoutSet in filteredLayoutSets)
             {
+                bool hasLayoutChanges = false;
+
                 Dictionary<string, JsonNode> formLayouts = await altinnAppGitRepository.GetFormLayouts(layoutSet.Id, cancellationToken);
 
                 var deletedLayoutIds = deletedLayouts.Where(item => item.Type == "page" && item.LayoutSetName == layoutSet.Id).Select(item => item.Id).ToList();
@@ -583,46 +585,76 @@ namespace Altinn.Studio.Designer.Services.Implementation
                         return false;
                     }
 
-                    int initialCount = layoutArray.Count;
-                    layoutArray.RemoveAll(jsonNode =>
+                    for (int i = layoutArray.Count - 1; i >= 0; i--)
                     {
-                        string componentType = jsonNode["type"]?.GetValue<string>();
+                        JsonNode jsonNode = layoutArray[i];
+                        if (jsonNode is not JsonObject jsonObject)
+                        {
+                            continue;
+                        }
+                        string componentType = jsonObject["type"]?.GetValue<string>();
                         switch (componentType)
                         {
                             case "Subform":
-                                return deletedLayoutsSetIds.Contains(jsonNode["layoutSet"]?.GetValue<string>());
-                            case "Summary2":
-                                if (jsonNode["target"] is not JsonObject targetObject)
+                                if (deletedLayoutsSetIds.Contains(jsonObject["layoutSet"]?.GetValue<string>()))
                                 {
-                                    return false;
+                                    layoutArray.RemoveAt(i);
+                                    hasLayoutChanges = true;
                                 }
-
-                                string type = targetObject["type"]?.GetValue<string>();
-                                string id = targetObject["id"]?.GetValue<string>();
-                                string taskId = targetObject["taskId"]?.GetValue<string>();
-                                string layouSetId = string.IsNullOrEmpty(taskId) ? layoutSet.Id : layoutSets.Sets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
-
-                                return type switch
+                                break;
+                            case "Summary2":
+                                if (jsonObject["target"] is JsonObject targetObject)
                                 {
-                                    "layoutSet" => deletedLayoutsSetIds.Contains(layouSetId),
-                                    "page" => deletedLayouts.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
-                                    "component" => deletedComponents.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
-                                    _ => false,
-                                };
+                                    string type = targetObject["type"]?.GetValue<string>();
+                                    string id = targetObject["id"]?.GetValue<string>();
+                                    string taskId = targetObject["taskId"]?.GetValue<string>();
+                                    string layouSetId = string.IsNullOrEmpty(taskId) ? layoutSet.Id : layoutSets.Sets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
+
+                                    if (type switch
+                                    {
+                                        "layoutSet" => deletedLayoutsSetIds.Contains(layouSetId),
+                                        "page" => deletedLayouts.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
+                                        "component" => deletedComponents.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
+                                        _ => false
+                                    })
+                                    {
+                                        layoutArray.RemoveAt(i);
+                                        hasLayoutChanges = true;
+                                    }
+
+                                    if (jsonNode["overrides"] is JsonArray overridesArray)
+                                    {
+                                        overridesArray.RemoveAll(overrideObject =>
+                                        {
+                                            string componentId = overrideObject["componentId"]?.GetValue<string>();
+                                            if (deletedComponents.Exists(item => item.LayoutSetName == layouSetId && item.Id == componentId))
+                                            {
+                                                hasLayoutChanges = true;
+                                                return true;
+                                            }
+
+                                            return false;
+                                        });
+
+                                        if (overridesArray.Count == 0)
+                                        {
+                                            jsonObject.Remove("overrides");
+                                        }
+                                    }
+                                }
+                                break;
                         }
+                    }
 
-                        return false;
-                    });
-
-                    if (layoutArray.Count != initialCount)
+                    if (hasLayoutChanges)
                     {
                         await altinnAppGitRepository.SaveLayout(layoutSet.Id, $"{formLayout.Key}.json", formLayout.Value, cancellationToken);
-                        hasChanges = true;
+                        hasLayoutSetChanges = true;
                     }
                 }
             }
 
-            return hasChanges;
+            return hasLayoutSetChanges;
         }
     }
 }

@@ -14,12 +14,6 @@
       ]
     },
     {
-      "id": "layoutSet",
-      "tasks": [
-        "layoutSet"
-      ]
-    },
-    {
       "id": "component2",
       "tasks": [
         "component2"

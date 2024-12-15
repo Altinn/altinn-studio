@@ -95,8 +95,8 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
         }
 
         [Theory]
-        [InlineData("ttd", "testUser", "form", "Side1")]
-        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutSetName, string layoutName)
+        [InlineData("ttd", "testUser", "component", "Side2", "Input-Om7N3y")]
+        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string componentId)
         {
             string actualApp = "deleted-component-before-delete";
             string app = TestDataHelper.GenerateTestRepoName();
@@ -113,7 +113,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
                 ["componentIdsChange"] = new JsonArray() {
                     new JsonObject
                     {
-                        ["oldComponentId"] = "Input-XDDxRp",
+                        ["oldComponentId"] = componentId,
                     }
                 },
                 ["layout"] = layoutWithDeletedComponent
@@ -124,12 +124,10 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string expectedApp = "deleted-component-after-delete";
 
             string[] layoutPaths = [
-                "form/layouts/Side1.json",
-                "form/layouts/Side2.json",
-                "form/layouts/Side3.json",
-                "Activity_0z4cgvm/layouts/Side1.json",
-                "Activity_0z4cgvm/layouts/Side2.json",
-                "Activity_0z4cgvm/layouts/Side3.json"
+                "component/layouts/Side1.json",
+                "component/layouts/Side2.json",
+                "component2/layouts/Side1.json",
+                "component2/layouts/Side2.json"
             ];
 
             layoutPaths.ToList().ForEach(file =>

@@ -30,7 +30,7 @@ public class LayoutPageDeletedHandler(
                         notification.EditingContext.Repo,
                         notification.EditingContext.Developer);
 
-                JsonNode deletedLayout = await altinnAppGitRepository.GetLayout(notification.LayoutSetName, notification.LayoutName, cancellationToken);
+                JsonNode deletedLayout = await altinnAppGitRepository.GetLayout(notification.LayoutSetName, $"{notification.LayoutName}.json", cancellationToken);
 
                 List<Reference> referencesToDelete = [new Reference("page", notification.LayoutSetName, notification.LayoutName)];
                 if (deletedLayout["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)

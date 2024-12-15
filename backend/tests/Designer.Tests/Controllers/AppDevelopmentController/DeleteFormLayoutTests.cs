@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc.Testing;
+using SharedResources.Tests;
 using Xunit;
 
 namespace Designer.Tests.Controllers.AppDevelopmentController
@@ -54,6 +56,37 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Theory]
+        [InlineData("ttd", "testUser", "layout", "Side2")]
+        public async Task DeleteFormLayout_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutSetName, string layoutName)
+        {
+            string actualApp = "deleted-component-before-delete";
+            string app = TestDataHelper.GenerateTestRepoName();
+            await CopyRepositoryForTest(org, actualApp, developer, app);
+
+            string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
+            using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, url);
+
+            using var response = await HttpClient.SendAsync(httpRequestMessage);
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            string expectedApp = "deleted-component-after-delete";
+
+            string[] layoutPaths = [
+                "layout/layouts/Side1.json",
+                "layout/layouts/Side2.json",
+                "layout2/layouts/Side1.json",
+                "layout2/layouts/Side2.json",
+            ];
+
+            layoutPaths.ToList().ForEach(file =>
+            {
+                string actual = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{file}");
+                string expected = TestDataHelper.GetFileFromRepo(org, expectedApp, developer, $"App/ui/{file}");
+                JsonUtils.DeepEquals(actual, expected).Should().BeTrue();
+            });
         }
     }
 }
