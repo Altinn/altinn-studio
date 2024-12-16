@@ -2,30 +2,32 @@ import React from 'react';
 import { StudioTextfield, StudioNativeSelect, StudioProperty } from '@studio/components';
 import { LinkIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useAppMetadataModelIdsQuery } from 'app-shared/hooks/queries/useAppMetadataModelIdsQuery';
 import classes from './SubformDataModel.module.css';
 
 export type SubformDataModelProps = {
   setDisplayDataModelInput: (setDisplayDataModelInput: boolean) => void;
-  setNewDataModel: (dataModelId: string) => void;
   displayDataModelInput: boolean;
   setSelectedDataModel: (dataModelId: string) => void;
+  dataModelIds?: string[];
+  validateName: (name: string) => void;
+  dataModelNameError: string;
+  setIsTextfieldEmpty: (isEmpty: boolean) => void;
 };
 
 export const SubformDataModel = ({
   setDisplayDataModelInput,
   setSelectedDataModel,
-  setNewDataModel,
   displayDataModelInput,
+  dataModelIds,
+  validateName,
+  dataModelNameError,
+  setIsTextfieldEmpty,
 }: SubformDataModelProps): React.ReactElement => {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: dataModelIds } = useAppMetadataModelIdsQuery(org, app, false);
 
-  const handleDataModel = (dataModelId: string) => {
-    // TODO: https://github.com/Altinn/altinn-studio/issues/14184
-    setNewDataModel(dataModelId);
+  const handleNewDataModel = (dataModelId: string) => {
+    validateName(dataModelId);
+    setIsTextfieldEmpty(dataModelId === '');
   };
 
   const handleDisplayInput = () => {
@@ -59,7 +61,8 @@ export const SubformDataModel = ({
           name='newSubformDataModel'
           label={t('ux_editor.component_properties.subform.create_new_data_model_label')}
           size='sm'
-          onChange={(e) => handleDataModel(e.target.value)}
+          onChange={(e) => handleNewDataModel(e.target.value)}
+          error={dataModelNameError}
         />
       ) : (
         <StudioProperty.Button

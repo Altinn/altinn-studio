@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { Image, ImagesProps } from './Images';
-import { Images } from './Images';
+import type { Image, ImagesPageProps } from './ImagesPage';
+import { ImagesPage } from './ImagesPage';
 
 const onUpdateImageMock = jest.fn();
 const imageMock: Image = {
@@ -11,7 +11,7 @@ const imageMock: Image = {
   imageSrc: 'www.external-image-url.com',
 };
 
-describe('Images', () => {
+describe('ImagesPage', () => {
   it('renders the images heading', () => {
     renderImages();
     const imagesHeading = screen.getByRole('heading', {
@@ -36,11 +36,11 @@ describe('Images', () => {
   });
 });
 
-const defaultImagesProps: ImagesProps = {
+const defaultImagesProps: ImagesPageProps = {
   images: [imageMock],
   onUpdateImage: onUpdateImageMock,
 };
 
-const renderImages = (imagesProps: ImagesProps = defaultImagesProps) => {
-  render(<Images {...imagesProps} />);
+const renderImages = (imagesProps: ImagesPageProps = defaultImagesProps) => {
+  render(<ImagesPage {...imagesProps} />);
 };
