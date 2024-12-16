@@ -45,7 +45,7 @@ function valueFitsBoolean(value: CodeListItemValue): boolean {
   return lowerCaseValue === 'true' || lowerCaseValue === 'false';
 }
 
-export function coerceValues(codeList: CodeList, type: CodeListValueType): void {
+function coerceValues(codeList: CodeList, type: CodeListValueType): void {
   codeList.forEach((codeListItem) => {
     switch (type) {
       case 'number':

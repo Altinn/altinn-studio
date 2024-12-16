@@ -1,120 +1,17 @@
 import type { CodeList } from '../types/CodeList';
-import { coerceValues, inferValueType, updateCodeListValueType } from './valueTypeUtils';
-
-export const emptyCodeList: CodeList = [];
-
-export const codeListWithStrings: CodeList = [
-  {
-    label: 'Test 1',
-    value: 'test1',
-    description: 'Test 1 description',
-  },
-  {
-    label: 'Test 2',
-    value: 'test2',
-    description: 'Test 2 description',
-  },
-];
-
-export const codeListWithStringifiedNumbers: CodeList = [
-  {
-    value: '42',
-    label: 'Forty two',
-  },
-  {
-    value: '3.14',
-    label: 'Pi',
-  },
-  {
-    value: '100',
-    label: 'One hundred',
-  },
-];
-
-export const codeListWithNumbers: CodeList = [
-  {
-    value: 42,
-    label: 'Forty two',
-  },
-  {
-    value: 3.14,
-    label: 'Pi',
-  },
-  {
-    value: 100,
-    label: 'One hundred',
-  },
-];
-
-export const codeListWithStringifiedBooleans: CodeList = [
-  {
-    value: 'true',
-    label: 'Yes',
-  },
-  {
-    value: 'false',
-    label: 'No',
-  },
-];
-
-export const codeListWithStringifiedMixedCaseBooleans: CodeList = [
-  {
-    value: 'TRUE',
-    label: 'Yes',
-  },
-  {
-    value: 'fAlSe',
-    label: 'No',
-  },
-];
-
-export const codeListWithBooleans: CodeList = [
-  {
-    value: true,
-    label: 'Yes',
-  },
-  {
-    value: false,
-    label: 'No',
-  },
-];
-
-export const codeListMixedValues: CodeList = [
-  {
-    value: true,
-    label: 'Yes',
-  },
-  {
-    value: 0,
-    label: 'No',
-  },
-];
-
-export const codeListStringifiedMixedValues: CodeList = [
-  {
-    value: 'true',
-    label: 'Yes',
-  },
-  {
-    value: '0',
-    label: 'No',
-  },
-];
-
-export const codeListWithEmptyStringValue: CodeList = [
-  {
-    value: '42',
-    label: 'Forty two',
-  },
-  {
-    value: '',
-    label: 'Pi',
-  },
-  {
-    value: '100',
-    label: 'One hundred',
-  },
-];
+import { inferValueType, updateCodeListValueType } from './valueTypeUtils';
+import {
+  codeListWithMixedValues,
+  codeListWithStringifiedMixedValues,
+  codeListWithBooleans,
+  codeListWithEmptyStringValue,
+  codeListWithNumbers,
+  codeListWithStringifiedBooleans,
+  codeListWithStringifiedMixedCaseBooleans,
+  codeListWithStringifiedNumbers,
+  codeListWithStrings,
+  emptyCodeList,
+} from '../testData';
 
 describe('updateCodeListValueType', () => {
   it('should keep string values as strings', () => {
@@ -136,9 +33,9 @@ describe('updateCodeListValueType', () => {
   });
 
   it('should infer and coerce values as string if not all fit number or boolean', () => {
-    const codeList: CodeList = codeListMixedValues;
+    const codeList: CodeList = codeListWithMixedValues;
     updateCodeListValueType(codeList);
-    expect(codeList).toEqual(codeListStringifiedMixedValues);
+    expect(codeList).toEqual(codeListWithStringifiedMixedValues);
   });
 
   it('should handle mixed case booleans when inferring boolean type', () => {
@@ -176,36 +73,10 @@ describe('inferValueType', () => {
   });
 
   it('should return "string" if codelist contains both numeric and boolean strings', () => {
-    expect(inferValueType(codeListStringifiedMixedValues)).toBe('string');
+    expect(inferValueType(codeListWithStringifiedMixedValues)).toBe('string');
   });
 
   it('should return "string" if there is an empty string value', () => {
     expect(inferValueType(codeListWithEmptyStringValue)).toBe('string');
-  });
-});
-
-describe('coerceValues', () => {
-  it('should coerce string values to string', () => {
-    const codeList: CodeList = codeListWithStrings;
-    coerceValues(codeList, 'string');
-    expect(codeList).toEqual(codeListWithStrings);
-  });
-
-  it('should coerce number values to number', () => {
-    const codeList: CodeList = codeListWithStringifiedNumbers;
-    coerceValues(codeList, 'number');
-    expect(codeList).toEqual(codeListWithNumbers);
-  });
-
-  it('should coerce boolean values to boolean', () => {
-    const codeList: CodeList = codeListWithStringifiedBooleans;
-    coerceValues(codeList, 'boolean');
-    expect(codeList).toEqual(codeListWithBooleans);
-  });
-
-  it('should coerce mixed values to string', () => {
-    const codeList: CodeList = codeListMixedValues;
-    coerceValues(codeList, 'string');
-    expect(codeList).toEqual(codeListStringifiedMixedValues);
   });
 });
