@@ -29,7 +29,7 @@ const layoutSetWithDataTask: LayoutSetConfig = {
 
 const layoutSetIdTextKeys: Record<string, string> = {
   [emptyLayoutSetName]: 'validation_errors.required',
-  [invalidFormatLayoutSetName]: 'ux_editor.pages_error_format',
+  [invalidFormatLayoutSetName]: 'validation_errors.file_name_invalid',
   [existingLayoutSetName]: 'process_editor.configuration_panel_layout_set_id_not_unique',
 };
 
