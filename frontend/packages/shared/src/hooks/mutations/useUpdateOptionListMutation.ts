@@ -23,6 +23,7 @@ export const useUpdateOptionListMutation = (org: string, app: string, meta?: Mut
       const newData = { ...oldData };
       newData[optionListId] = updatedOptionList;
       queryClient.setQueryData([QueryKey.OptionLists, org, app], newData);
+      queryClient.setQueryData([QueryKey.OptionList, org, app, optionListId], updatedOptionList);
     },
     meta,
   });

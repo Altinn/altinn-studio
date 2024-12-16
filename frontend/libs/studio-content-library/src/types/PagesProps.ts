@@ -1,11 +1,11 @@
-import type { CodeListProps } from '../ContentLibrary/LibraryBody/pages/CodeList';
+import type { CodeListPageProps } from '../ContentLibrary/LibraryBody/pages/CodeListPage';
 import type { PageName } from './PageName';
-import type { ImagesProps } from '../ContentLibrary/LibraryBody/pages/Images';
+import type { ImagesPageProps } from '../ContentLibrary/LibraryBody/pages/ImagesPage';
 
 export type PagePropsMap<P extends PageName> = {
   landingPage: {};
-  codeList: CodeListProps;
-  images: ImagesProps;
+  codeList: CodeListPageProps;
+  images: ImagesPageProps;
 }[P];
 
 type GlobalPageConfig<T> = {
