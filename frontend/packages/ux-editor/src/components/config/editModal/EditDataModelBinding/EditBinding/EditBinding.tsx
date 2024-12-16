@@ -52,7 +52,7 @@ export const EditBinding = ({
           ...component.dataModelBindings,
           [bindingKey]: shouldDisplayFeature(FeatureFlag.MultipleDataModelsPerTask)
             ? updatedBinding
-            : selectedDataFieldElement,
+            : selectedDataFieldElement || undefined,
         },
         required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
         timeStamp: getXsdDataTypeFromDataModelFields(
