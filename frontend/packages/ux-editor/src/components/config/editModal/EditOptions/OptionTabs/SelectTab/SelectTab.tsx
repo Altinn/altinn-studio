@@ -26,7 +26,6 @@ export function SelectTab<T extends SelectionComponentType>({
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
-  const generalFileNameRegEx = /^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/;
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -43,7 +42,6 @@ export function SelectTab<T extends SelectionComponentType>({
     const fileNameError = FileNameUtils.findFileNameError(
       FileNameUtils.removeExtension(file.name),
       optionListIds,
-      generalFileNameRegEx,
     );
     if (fileNameError) handleInvalidFileName(fileNameError);
     else handleUpload(file);

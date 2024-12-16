@@ -86,13 +86,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         Task<ModelMetadata> GenerateModelMetadataFromJsonSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets the model metadata for a given model.
+        /// Gets the dataType for a given model.
         /// </summary>
-        Task<DataType> GetModelMetadata(string org, string app, string modelName);
+        Task<DataType> GetModelDataType(string org, string app, string modelId);
 
         /// <summary>
-        /// Updates the model metadata for a given model.
+        /// Updates the dataType for a given model.
         /// </summary>
-        Task UpdateModelMetadata(string org, string app, string modelName, DataType dataType);
+        Task SetModelDataType(string org, string app, string modelId, DataType dataType);
     }
 }

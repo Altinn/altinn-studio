@@ -1,6 +1,6 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { subformLayoutMock } from '../../../testing/subformLayoutMock';
@@ -46,15 +46,11 @@ describe('EditSubformTableColumns', () => {
       },
     });
 
-    const addColumnButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
-    });
-
-    await user.click(addColumnButton);
-
+    await user.click(getAddColumnButton());
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
-    const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
-    expect(updatedComponent.tableColumns.length).toBe(1);
+
+    const numberOfColumnsAfterAdded = getUpdatedTableColumns(handleComponentChangeMock).length;
+    expect(numberOfColumnsAfterAdded).toBe(1);
   });
 
   it('should call handleComponentChange when a new column is added when tableColumns has a value', async () => {
@@ -65,15 +61,11 @@ describe('EditSubformTableColumns', () => {
       props: { handleComponentChange: handleComponentChangeMock },
     });
 
-    const addColumnButton = screen.getByRole('button', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
-    });
-
-    await user.click(addColumnButton);
-
+    await user.click(getAddColumnButton());
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
-    const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
-    expect(updatedComponent.tableColumns.length).toBe(2);
+
+    const numberOfColumnsAfterAdded = getUpdatedTableColumns(handleComponentChangeMock).length;
+    expect(numberOfColumnsAfterAdded).toBe(2);
   });
 
   it('should call handleComponentChange when a column is edited', async () => {
@@ -89,28 +81,17 @@ describe('EditSubformTableColumns', () => {
     });
     await user.click(editButton);
 
-    const componentSelect = screen.getByRole('combobox', {
-      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
-    });
-
-    await user.click(componentSelect);
+    await user.click(getComponentSelector());
     await user.click(
       screen.getByRole('option', { name: new RegExp(`${subformLayoutMock.component1Id}`) }),
     );
 
-    await waitFor(async () => {
-      await user.click(
-        screen.getByRole('button', {
-          name: textMock('general.save'),
-        }),
-      );
-    });
-
+    const saveButton = await screen.findByRole('button', { name: textMock('general.save') });
+    await user.click(saveButton);
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
-    const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
-    expect(updatedComponent.tableColumns[0].headerContent).toBe(
-      subformLayoutMock.component1.textResourceBindings.title,
-    );
+
+    const columnTitleKey = getUpdatedTableColumns(handleComponentChangeMock)[0].headerContent;
+    expect(columnTitleKey).toBe(componentTextKeyId);
   });
 
   it('should call handleComponentChange when a column is deleted', async () => {
@@ -132,8 +113,8 @@ describe('EditSubformTableColumns', () => {
     await user.click(deleteButton);
 
     expect(handleComponentChangeMock).toHaveBeenCalledTimes(1);
-    const updatedComponent = handleComponentChangeMock.mock.calls[0][0];
-    expect(updatedComponent.tableColumns.length).toBe(0);
+    const numberOfColumnsAfterDeletion = getUpdatedTableColumns(handleComponentChangeMock);
+    expect(numberOfColumnsAfterDeletion.length).toBe(0);
   });
 
   it('should show warning if subform validation is false', () => {
@@ -154,15 +135,45 @@ describe('EditSubformTableColumns', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('should render new column in edit mode when add column button is clicked', async () => {
+    const user = userEvent.setup();
+    const handleComponentChangeMock = jest.fn();
+    const { rerender } = renderEditSubformTableColumns({
+      props: { handleComponentChange: handleComponentChangeMock },
+    });
+
+    await user.click(getAddColumnButton());
+    const updatedProps = {
+      handleComponentChange: handleComponentChangeMock,
+      component: {
+        ...subformComponentMock,
+        tableColumns: [...getUpdatedTableColumns(handleComponentChangeMock)],
+      },
+    };
+    rerender(<EditSubformTableColumns {...updatedProps} />);
+    expect(getComponentSelector()).toBeInTheDocument();
+  });
 });
 
-const textKeyId = subformLayoutMock.component1.textResourceBindings.title;
-const textKeyValue = 'testtext';
-const textResourcesMock = { ['nb']: [{ id: textKeyId, value: textKeyValue }] };
+const componentTextKeyId = subformLayoutMock.component1.textResourceBindings.title;
+const componentTextKeyValue = 'testtext';
+const textResourcesMock = { ['nb']: [{ id: componentTextKeyId, value: componentTextKeyValue }] };
 type renderEditSubformTableColumnsParameters = {
   props?: Partial<EditSubformTableColumnsProps>;
   isSubformLayoutConfigured?: boolean;
 };
+
+const getAddColumnButton = () =>
+  screen.getByRole('button', {
+    name: textMock('ux_editor.properties_panel.subform_table_columns.add_column'),
+  });
+const getComponentSelector = () =>
+  screen.getByRole('combobox', {
+    name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+  });
+
+const getUpdatedTableColumns = (mockFn: jest.Mock) => mockFn.mock.calls[0][0].tableColumns;
 
 const renderEditSubformTableColumns = (
   { props, isSubformLayoutConfigured }: renderEditSubformTableColumnsParameters = {
