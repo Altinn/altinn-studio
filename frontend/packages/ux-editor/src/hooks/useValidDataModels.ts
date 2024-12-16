@@ -18,10 +18,10 @@ export const useValidDataModels = (currentDataModel: string) => {
 
   const dataModel = Boolean(currentDataModel)
     ? currentDataModel
-    : layoutSets?.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)?.dataType;
+    : (layoutSets?.sets.find((layoutSet) => layoutSet.id === selectedFormLayoutSetName)?.dataType ??
+      dataModels?.[0]);
 
   const isDataModelValid = validateSelectedDataModel(dataModel, dataModels);
-
   const { data: dataModelMetadata, isPending: isPendingDataModelMetadata } =
     useDataModelMetadataQuery(
       {
