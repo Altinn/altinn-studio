@@ -38,7 +38,6 @@ export function ManualOptionsEditor({
   };
 
   const codeListLabels: string = component.options
-    .slice(0, 3)
     .map((option: Option) => `${option.label}`)
     .join(' | ');
 

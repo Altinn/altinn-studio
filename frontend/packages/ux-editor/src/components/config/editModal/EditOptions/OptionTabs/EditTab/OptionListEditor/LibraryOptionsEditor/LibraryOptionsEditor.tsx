@@ -44,15 +44,12 @@ export function LibraryOptionsEditor({
     }
   };
 
-  const codeListLabels: string = optionsList
-    .slice(0, 3)
-    .map((option: Option) => `${option.label}`)
-    .join(' | ');
+  const codeListLabels: string = optionsList.map((option: Option) => `${option.label}`).join(' | ');
 
   return (
     <div className={classes.container}>
       <StudioParagraph className={classes.label}>{component.optionsId}</StudioParagraph>
-      <StudioParagraph size='sm' className={classes.codeListLabels}>
+      <StudioParagraph size='sm' className={classes.codeListLabels} variant='short'>
         {codeListLabels}
       </StudioParagraph>
       <div className={classes.buttonContainer}>
