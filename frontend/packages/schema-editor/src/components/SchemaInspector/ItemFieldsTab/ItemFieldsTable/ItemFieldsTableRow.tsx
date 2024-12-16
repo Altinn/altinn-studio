@@ -9,7 +9,7 @@ import { Switch } from '@digdir/designsystemet-react';
 import { AltinnConfirmDialog } from 'app-shared/components';
 import { useTranslation } from 'react-i18next';
 import { TrashIcon } from '@studio/icons';
-import { StudioButton, StudioCenter } from '@studio/components';
+import { StudioCenter } from '@studio/components';
 import { nameFieldClass } from '@altinn/schema-editor/components/SchemaInspector/ItemFieldsTab/domUtils';
 import { ItemFieldType } from './ItemFieldType';
 
@@ -96,15 +96,13 @@ export const ItemFieldsTableRow = ({
             confirmText={t('schema_editor.data_model_field_deletion_confirm')}
             onConfirm={deleteHandler}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
-            trigger={
-              <StudioButton
-                title={t('schema_editor.delete_field')}
-                icon={<TrashIcon />}
-                onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
-                color='danger'
-                variant='tertiary'
-              />
-            }
+            triggerProps={{
+              title: t('schema_editor.delete_field'),
+              icon: <TrashIcon />,
+              onClick: () => setIsConfirmDeleteDialogOpen((prevState) => !prevState),
+              color: 'danger',
+              variant: 'tertiary',
+            }}
           >
             <p>{t('schema_editor.data_model_field_deletion_text')}</p>
             <p>{t('schema_editor.data_model_field_deletion_info')}</p>
