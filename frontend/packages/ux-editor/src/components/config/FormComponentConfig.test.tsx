@@ -31,14 +31,48 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('FormComponentConfig', () => {
-  it('should render expected components', async () => {
+  it('should render expected default components', async () => {
     render({});
+    const properties = ['readOnly', 'required', 'hidden'];
+    for (const property of properties) {
+      expect(
+        await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
+      ).toBeInTheDocument();
+    }
+  });
 
+  it('should render the show-button', async () => {
+    render({});
+    const button = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    expect(button).toBeInTheDocument();
+  });
+
+  it('should render the hide-button after clikcing on show-button', async () => {
+    const user = userEvent.setup();
+    render({});
+    const button = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    expect(button).toBeInTheDocument();
+    await user.click(button);
+    expect(
+      screen.getByRole('button', {
+        name: textMock('ux_editor.component_other_properties_hide_many_settings'),
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('Should render the rest of the components when show-button is clicked and show hide-button', async () => {
+    const use = userEvent.setup();
+    render({});
+    const button = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    expect(button).toBeInTheDocument();
+    await use.click(button);
     const properties = [
-      'grid',
-      'readOnly',
-      'required',
-      'hidden',
       'renderAsSummary',
       'variant',
       'autocomplete',
@@ -47,12 +81,15 @@ describe('FormComponentConfig', () => {
       'pageBreak',
       'formatting',
     ];
-
     for (const property of properties) {
       expect(
         await screen.findByText(textMock(`ux_editor.component_properties.${property}`)),
       ).toBeInTheDocument();
     }
+    const hideButton = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_hide_many_settings'),
+    });
+    expect(hideButton).toBeInTheDocument();
   });
 
   it('should render "RedirectToLayoutSet"', () => {
@@ -174,12 +211,18 @@ describe('FormComponentConfig', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render default boolean values if defined', () => {
+  it('should render default boolean values if defined', async () => {
+    const user = userEvent.setup();
     render({
       props: {
         schema: DatepickerSchema,
       },
     });
+    const button = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    expect(button).toBeInTheDocument();
+    await user.click(button);
     const timeStampSwitch = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.timeStamp'),
     });
@@ -196,6 +239,11 @@ describe('FormComponentConfig', () => {
         handleComponentUpdate: handleComponentUpdateMock,
       },
     });
+    const button = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    expect(button).toBeInTheDocument();
+    await user.click(button);
     const timeStampSwitch = screen.getByRole('checkbox', {
       name: textMock('ux_editor.component_properties.timeStamp'),
     });

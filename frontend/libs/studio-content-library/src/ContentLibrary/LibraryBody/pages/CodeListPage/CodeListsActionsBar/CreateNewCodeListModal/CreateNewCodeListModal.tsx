@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
-import type { CodeListWithMetadata } from '../../CodeList';
+import type { CodeListWithMetadata } from '../../CodeListPage';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 

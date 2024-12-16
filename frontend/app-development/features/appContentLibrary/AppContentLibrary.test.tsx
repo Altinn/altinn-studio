@@ -18,9 +18,9 @@ const updateCodeListButtonTextMock = 'Update Code List';
 const codeListNameMock = 'codeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
 jest.mock(
-  '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeList',
+  '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeList: ({ onUpdateCodeList, onUploadCodeList }: any) => (
+    CodeListPage: ({ onUpdateCodeList, onUploadCodeList }: any) => (
       <div>
         <button
           onClick={() =>
