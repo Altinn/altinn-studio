@@ -1,6 +1,5 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { StudioButton } from '@studio/components';
 import { TrashIcon } from '@studio/icons';
 import { useDeleteDataModelMutation } from '../../../../../hooks/mutations';
 import type { MetadataOption } from '../../../../../types/MetadataOption';
@@ -43,18 +42,15 @@ export function DeleteWrapper({ selectedOption }: DeleteWrapperProps) {
       confirmText={t('schema_editor.confirm_deletion')}
       onConfirm={onDeleteConfirmClick}
       onClose={() => setDialogOpen(false)}
-      trigger={
-        <StudioButton
-          id='delete-model-button'
-          disabled={!schemaName}
-          onClick={onDeleteClick}
-          color='danger'
-          icon={<TrashIcon />}
-          variant='tertiary'
-        >
-          {t('schema_editor.delete_data_model')}
-        </StudioButton>
-      }
+      triggerProps={{
+        id: 'delete-model-button',
+        disabled: !schemaName,
+        onClick: onDeleteClick,
+        color: 'danger',
+        icon: <TrashIcon />,
+        variant: 'tertiary',
+        children: t('schema_editor.delete_data_model'),
+      }}
     >
       <p>
         <Trans
