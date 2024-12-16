@@ -263,7 +263,7 @@ describe('StudioCodeListEditor', () => {
     expect(onInvalid).not.toHaveBeenCalled();
   });
 
-  it('Should save all values as number, when a code list that only contains numbers is modified', async () => {
+  it('Should save all values as numbers, when a code list that only contains numbers is modified', async () => {
     const user = userEvent.setup();
     renderCodeListEditor({ codeList: codeListWithNumbers });
 
@@ -299,7 +299,7 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
-  it('Should save all values as string, when code list values are not all numbers or all booleans', async () => {
+  it('Should save all values as strings, when code list values are not all numbers or all booleans', async () => {
     const user = userEvent.setup();
     renderCodeListEditor({ codeList: codeListWithMixedValues });
 

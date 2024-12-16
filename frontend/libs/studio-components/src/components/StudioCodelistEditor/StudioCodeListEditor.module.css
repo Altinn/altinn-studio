@@ -10,9 +10,3 @@
 .codeListEditor > legend {
   display: none;
 }
-
-.valueHeading {
-  display: flex;
-  align-items: center;
-  gap: var(--fds-spacing-2);
-}

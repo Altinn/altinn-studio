@@ -39,7 +39,7 @@ export function StudioCodeListEditor({
   codeList,
   onBlurAny,
   onChange,
-  onInvalid = () => {},
+  onInvalid,
   texts,
 }: StudioCodeListEditorProps): ReactElement {
   return (
