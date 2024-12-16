@@ -15,6 +15,10 @@ import {
   headerCheckboxLabel,
   textareaLabel,
   textfieldLabel,
+  textResourcePickerLabel,
+  textResourceProps,
+  textResourceSearchLabel,
+  textResourceValueLabel,
 } from './test-data/testTableData';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
@@ -27,13 +31,15 @@ import type { EventName } from './types/EventName';
 import type { EventProps } from './types/EventProps';
 import type { EventPropName } from './types/EventPropName';
 import { StringUtils } from '@studio/pure-functions';
+import type { CellTextResourceInputProps } from './Cell/CellTextResource';
 
-type ElementName = 'checkbox' | 'textfield' | 'textarea' | 'button';
+type ElementName = 'checkbox' | 'textfield' | 'textarea' | 'button' | 'textResource';
 type NativeElement<Name extends ElementName> = {
   checkbox: HTMLInputElement;
   textfield: HTMLInputElement;
   textarea: HTMLTextAreaElement;
   button: HTMLButtonElement;
+  textResource: HTMLInputElement;
 }[Name];
 
 // Test data:
@@ -108,18 +114,23 @@ describe('StudioInputTable', () => {
     expect(getTextfieldInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to textarea 2
     expect(getTextareaInRow(2)).toHaveFocus();
+    await user.keyboard('{ArrowRight}'); // Move right to text resource 2
+    expect(getTextResourceValueInRow(2)).toHaveFocus();
+    await user.keyboard('{ArrowRight}'); // Unselect text in text resource 2
+    expect(getTextResourceValueInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to button 2
     expect(getButtonInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowUp}'); // Move up to button 1
     expect(getButtonInRow(1)).toHaveFocus();
-    await user.keyboard('{ArrowLeft}'); // Move left to textarea 1
-    expect(getTextareaInRow(1)).toHaveFocus();
+    await user.keyboard('{ArrowLeft}'); // Move left to text resource 1
+    expect(getTextResourceValueInRow(1)).toHaveFocus();
   });
 
   type TextboxTestCase = () => HTMLInputElement | HTMLTextAreaElement;
   const textboxTestCases: { [key: string]: TextboxTestCase } = {
     textfield: () => getTextfieldInRow(2),
     textarea: () => getTextareaInRow(2),
+    textResource: () => getTextResourceValueInRow(2),
   };
   type TextboxTestCaseName = keyof typeof textboxTestCases;
   const textboxTestCaseNames: TextboxTestCaseName[] = Object.keys(textboxTestCases);
@@ -147,8 +158,8 @@ describe('StudioInputTable', () => {
     render(<TestTable />);
     const textbox = textboxTestCases[key]();
     await user.type(textbox, 'test');
-    await user.keyboard('{ArrowRight}'); // Move focus out
-    await user.keyboard('{ArrowLeft}'); // Move focus back in - now the text should be selected
+    await user.click(document.body); // Move focus out
+    await user.click(textbox); // Move focus back in - now the text should be selected
     expect(textbox.selectionStart).toBe(0);
     expect(textbox.selectionEnd).toBe(4);
   });
@@ -221,6 +232,21 @@ describe('StudioInputTable', () => {
     },
   );
 
+  const keysThatShouldNotMoveFocusInSearchMode: MovementKey[] = ['ArrowUp', 'ArrowDown', 'Enter'];
+
+  it.each(keysThatShouldNotMoveFocusInSearchMode)(
+    'Does not move focus when the user presses the %s key in a text resource input element in search mode',
+    async (key) => {
+      const user = userEvent.setup();
+      render(<TestTable />);
+      await user.click(getSearchButtonInRow(2));
+      const combobox = getTextResourceComboboxInRow(2);
+      await user.click(combobox);
+      await user.keyboard(`{${key}}`);
+      expect(combobox).toHaveFocus();
+    },
+  );
+
   describe('Forwards the refs to the input elements', () => {
     type TestCase<Element extends HTMLElement = HTMLElement> = {
       render: (ref: ForwardedRef<Element>) => RenderResult;
@@ -245,6 +271,10 @@ describe('StudioInputTable', () => {
       button: {
         render: (ref) => renderSingleButtonCell({ children: testLabel }, ref),
         getElement: () => getButton(testLabel),
+      },
+      textResource: {
+        render: (ref) => renderSingleTextResourceCell(textResourceProps(0), ref),
+        getElement: () => getTextbox(textResourceValueLabel(0)) as HTMLInputElement,
       },
     };
 
@@ -332,6 +362,23 @@ describe('StudioInputTable', () => {
           },
         },
       },
+      textResource: {
+        change: {
+          render: (onChange) => renderSingleTextResourceCell({ ...textResourceProps(0), onChange }),
+          action: (user) => user.type(screen.getByRole('textbox'), 'a'),
+        },
+        focus: {
+          render: (onFocus) => renderSingleTextResourceCell({ ...textResourceProps(0), onFocus }),
+          action: (user) => user.click(screen.getByRole('textbox')),
+        },
+        blur: {
+          render: (onBlur) => renderSingleTextResourceCell({ ...textResourceProps(0), onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('textbox'));
+            await user.tab();
+          },
+        },
+      },
     };
 
     describe.each(Object.keys(testCases))('%s', (key) => {
@@ -357,6 +404,7 @@ describe('StudioInputTable', () => {
 });
 
 type ArrowKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight';
+type MovementKey = ArrowKey | 'Enter' | 'Tab';
 
 const renderStudioInputTable = (props: StudioInputTableProps = {}): RenderResult =>
   render(<TestTable {...defaultProps} {...props} />);
@@ -401,6 +449,16 @@ const renderSingleCheckboxCell = (
     </SingleRow>,
   );
 
+const renderSingleTextResourceCell = (
+  props: CellTextResourceInputProps,
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.TextResource {...props} ref={ref} />
+    </SingleRow>,
+  );
+
 const getTable = (): HTMLTableElement => screen.getByRole('table');
 const getCheckbox = (name: string): HTMLInputElement =>
   screen.getByRole('checkbox', { name }) as HTMLInputElement;
@@ -415,6 +473,12 @@ const getButton = (name: string): HTMLButtonElement =>
   screen.getByRole('button', { name }) as HTMLButtonElement;
 const getButtonInRow = (rowNumber: number): HTMLButtonElement =>
   getButton(buttonLabel(rowNumber)) as HTMLButtonElement;
+const getTextResourceValueInRow = (rowNumber: number): HTMLInputElement =>
+  getTextbox(textResourceValueLabel(rowNumber)) as HTMLInputElement;
+const getTextResourceComboboxInRow = (rowNumber: number): HTMLInputElement =>
+  screen.getByRole('combobox', { name: textResourcePickerLabel(rowNumber) }) as HTMLInputElement;
+const getSearchButtonInRow = (rowNumber: number): HTMLButtonElement =>
+  screen.getByRole('radio', { name: textResourceSearchLabel(rowNumber) }) as HTMLButtonElement;
 
 const expectCaretPosition = (
   element: HTMLInputElement | HTMLTextAreaElement,
@@ -438,7 +502,7 @@ const placeCaretAtPosition = (
   position: number,
 ): void => element.setSelectionRange(position, position);
 
-const expectedNumberOfColumns = 5;
+const expectedNumberOfColumns = 6;
 const expectedNumberOfHeaderRows = 1;
 const expectedNumberOfBodyRows = 3;
 const expectedNumberOfRows = expectedNumberOfBodyRows + expectedNumberOfHeaderRows;

@@ -28,6 +28,7 @@ const mockTableColumn: TableColumn = {
 const defaultProps: ColumnElementProps = {
   tableColumn: mockTableColumn,
   columnNumber: columnNumberMock,
+  isInitialOpenForEdit: false,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
   layoutSetName: layoutSet3SubformNameMock,

@@ -1,6 +1,7 @@
-import React, { type ReactElement, type ReactNode } from 'react';
+import React, { useState, type ReactElement, type ReactNode } from 'react';
 import classes from './EditSubformTableColumns.module.css';
 import { StudioButton, StudioHeading } from '@studio/components';
+import { PlusIcon } from '@studio/icons';
 import { useTranslation } from 'react-i18next';
 import { type IGenericEditComponent } from '../../config/componentConfig';
 import { type ComponentType } from 'app-shared/types/ComponentType';
@@ -17,6 +18,7 @@ export const EditSubformTableColumns = ({
   component,
   handleComponentChange,
 }: EditSubformTableColumnsProps): ReactElement => {
+  const [newColumnNumber, setNewColumnNumber] = useState<number>();
   const { t } = useTranslation();
   var subformLayoutIsConfigured = useSubformLayoutValidation(component.layoutSet);
 
@@ -30,6 +32,7 @@ export const EditSubformTableColumns = ({
     const updatedComponent = updateComponentWithSubform(component, [
       { headerContent: '', cellContent: { query: '', default: '' } },
     ]);
+    setNewColumnNumber(tableColumns.length + 1);
     handleComponentChange(updatedComponent);
   };
 
@@ -56,17 +59,23 @@ export const EditSubformTableColumns = ({
   return (
     <EditSubformTableColumnsWrapper>
       {tableColumns.length > 0 &&
-        tableColumns.map((tableColum: TableColumn, index: number) => (
+        tableColumns.map((tableColumn: TableColumn, index: number) => (
           <ColumnElement
             layoutSetName={component.layoutSet}
             key={getUniqueKey(index)}
-            tableColumn={tableColum}
+            tableColumn={tableColumn}
             columnNumber={index + 1}
-            onDeleteColumn={() => deleteColumn(tableColum, index)}
+            isInitialOpenForEdit={newColumnNumber === index + 1}
+            onDeleteColumn={() => deleteColumn(tableColumn, index)}
             onEdit={(updatedTableColumn: TableColumn) => editColumn(updatedTableColumn, index)}
           />
         ))}
-      <StudioButton color='second' className={classes.addColumnButton} onClick={handleAddColumn}>
+      <StudioButton
+        variant='secondary'
+        icon={<PlusIcon />}
+        className={classes.addColumnButton}
+        onClick={handleAddColumn}
+      >
         {t('ux_editor.properties_panel.subform_table_columns.add_column')}
       </StudioButton>
     </EditSubformTableColumnsWrapper>

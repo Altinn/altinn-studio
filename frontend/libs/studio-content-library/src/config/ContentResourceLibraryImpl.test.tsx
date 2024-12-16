@@ -3,24 +3,13 @@ import type { PagesConfig } from '../types/PagesProps';
 import { ResourceContentLibraryImpl } from './ContentResourceLibraryImpl';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
+import { mockPagesConfig } from '../../mocks/mockPagesConfig';
 
 describe('ContentResourceLibraryImpl', () => {
   it('renders ContentResourceLibraryImpl with given pages', () => {
     const pagesConfig: PagesConfig = {
-      codeList: {
-        props: {
-          codeLists: [],
-          onUpdateCodeList: () => {},
-          onUploadCodeList: () => {},
-          fetchDataError: false,
-        },
-      },
-      images: {
-        props: {
-          images: [],
-          onUpdateImage: () => {},
-        },
-      },
+      codeList: mockPagesConfig.codeList,
+      images: mockPagesConfig.images,
     };
     renderContentResourceLibraryImpl(pagesConfig);
     const libraryTitle = screen.getByRole('heading', {

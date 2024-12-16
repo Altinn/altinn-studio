@@ -41,6 +41,7 @@ export const InputPopover = ({
 
   const [errorMessage, setErrorMessage] = useState<string>(null);
   const [newName, setNewName] = useState<string>(oldName);
+
   const shouldSavingBeEnabled = errorMessage === null && newName !== oldName;
 
   /**
@@ -68,18 +69,16 @@ export const InputPopover = ({
 
   return (
     <StudioPopover open={isEditDialogOpen} onClose={handleClose}>
-      <StudioPopover.Trigger asChild>
-        <DropdownMenu.Item
-          onClick={() => setIsEditDialogOpen(true)}
-          id='edit-page-button'
-          disabled={disabled}
-          ref={newNameRef}
-          aria-expanded={isEditDialogOpen}
-        >
-          <PencilIcon />
-          {t('ux_editor.page_menu_edit')}
-        </DropdownMenu.Item>
-      </StudioPopover.Trigger>
+      <DropdownMenu.Item
+        onClick={() => setIsEditDialogOpen(true)}
+        id='edit-page-button'
+        disabled={disabled}
+        ref={newNameRef}
+        aria-expanded={isEditDialogOpen}
+      >
+        <PencilIcon />
+        {t('ux_editor.page_menu_edit')}
+      </DropdownMenu.Item>
       <StudioPopover.Content>
         <Textfield
           label={t('ux_editor.input_popover_label')}
