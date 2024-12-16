@@ -96,7 +96,7 @@ const InnerDevNavigationButtons = () => {
       <div className={cn(classes.dropdown, { [classes.responsiveDropdown]: !compactView })}>
         <Combobox
           size='sm'
-          value={[pageKey!]}
+          value={pageKey ? [pageKey] : []}
           onValueChange={handleChange}
           className={comboboxClasses.container}
         >

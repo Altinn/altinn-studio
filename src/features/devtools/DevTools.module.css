@@ -1,10 +1,25 @@
 @media print {
-  .appContainer {
-    display: contents;
+  .page-padding {
+    display: none;
   }
   .panel {
     display: none;
   }
+}
+
+.panel-error > * {
+  margin-top: 0;
+}
+.panel-error {
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--fds-colors-red-600);
+  border: 3px solid var(--fds-colors-red-600);
 }
 
 .panel {

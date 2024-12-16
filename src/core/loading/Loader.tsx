@@ -3,7 +3,6 @@ import React from 'react';
 import { AltinnContentIconFormData } from 'src/components/atoms/AltinnContentIconFormData';
 import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 import { PresentationComponent, useHasPresentation } from 'src/components/presentation/Presentation';
-import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { LoadingProvider } from 'src/core/loading/LoadingContext';
 import { Lang } from 'src/features/language/Lang';
 import { ProcessTaskType } from 'src/types';
@@ -14,17 +13,8 @@ interface LoaderProps {
 }
 
 export const Loader = (props: LoaderProps) => {
-  const overriddenDataModelUuid = useTaskStore((state) => state.overriddenDataModelUuid);
-  const overriddenTaskId = useTaskStore((state) => state.overriddenTaskId);
   const hasPresentation = useHasPresentation();
 
-  if (overriddenDataModelUuid) {
-    return null;
-  }
-
-  if (overriddenTaskId) {
-    return null;
-  }
   if (!hasPresentation) {
     return (
       <LoadingProvider reason={props.reason}>

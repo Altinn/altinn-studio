@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import React, { useState } from 'react';
-import type { PropsWithChildren } from 'react';
+import type { ErrorInfo, PropsWithChildren } from 'react';
 
 import { Close } from '@navikt/ds-icons';
 
@@ -12,12 +12,12 @@ function clampHeight(height: number): number {
   return Math.min(Math.max(height, 10), window.innerHeight);
 }
 
-interface IDevToolsPanelProps extends PropsWithChildren {
+interface IDevToolsPanelProps {
   isOpen: boolean;
   close: () => void;
 }
 
-export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) => {
+export const DevToolsPanel = ({ isOpen, close }: IDevToolsPanelProps) => {
   const [height, setHeight] = useState(250);
 
   const resizeHandler = (mouseDownEvent: React.MouseEvent) => {
@@ -56,16 +56,13 @@ export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) 
     document.body.addEventListener('touchend', onTouchEnd, { once: true });
   };
 
-  return (
-    <>
-      <div
-        id='appContainer'
-        className={classes.appContainer}
-        style={{ paddingBottom: isOpen ? height : 0 }}
-      >
-        {children}
-      </div>
-      {isOpen && (
+  if (isOpen) {
+    return (
+      <>
+        <div
+          className={classes.pagePadding}
+          style={{ paddingBottom: height }}
+        />
         <div
           className={classes.panel}
           style={{ height }}
@@ -91,10 +88,53 @@ export const DevToolsPanel = ({ isOpen, close, children }: IDevToolsPanelProps) 
                 />
               </Button>
             </div>
-            <DevToolsControls />
+            <DevToolsErrorBoundary>
+              <DevToolsControls />
+            </DevToolsErrorBoundary>
           </div>
         </div>
-      )}
-    </>
-  );
+      </>
+    );
+  }
+
+  return null;
 };
+
+interface IErrorBoundary {
+  lastError?: Error;
+}
+class DevToolsErrorBoundary extends React.Component<PropsWithChildren, IErrorBoundary> {
+  constructor(props: PropsWithChildren) {
+    super(props);
+    this.state = { lastError: undefined };
+  }
+
+  static getDerivedStateFromError(lastError: Error): IErrorBoundary {
+    return { lastError };
+  }
+
+  componentDidCatch(_: Error, info: ErrorInfo) {
+    /**
+     * In development, react already logs the component trace, so no need to do it manually as well.
+     */
+    if (process.env.NODE_ENV !== 'development') {
+      console.error(`The above error occurred in the component:`, info.componentStack);
+    }
+  }
+
+  render(): React.ReactNode {
+    const { lastError } = this.state;
+    const { children } = this.props;
+
+    if (lastError) {
+      return (
+        <div className={classes.panelError}>
+          <h2>An uncaught error occured</h2>
+          <p>Check the browser&apos;s console for details</p>
+        </div>
+      );
+    }
+
+    return children;
+  }
+}

@@ -108,3 +108,12 @@ const { Provider: PresentationProvider, useHasProvider } = createContext<undefin
 });
 
 export const useHasPresentation = () => useHasProvider();
+
+/**
+ * The loader component will check if a presentation component already exists,
+ * and if so, will not create one. In cases where we don't want to show any presentation
+ * for loaders, this can be used to prevent the loader from creating a presentation.
+ */
+export function DummyPresentation({ children }: PropsWithChildren) {
+  return <PresentationProvider value={undefined}>{children}</PresentationProvider>;
+}

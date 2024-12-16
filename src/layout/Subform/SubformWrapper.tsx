@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 
 import { Form } from 'src/components/form/Form';
+import { PresentationComponent } from 'src/components/presentation/Presentation';
 import { useTaskStore } from 'src/core/contexts/taskStoreContext';
 import { Loader } from 'src/core/loading/Loader';
 import { FormProvider } from 'src/features/form/FormContext';
 import { useDataTypeFromLayoutSet } from 'src/features/form/layout/LayoutsContext';
 import { useNavigationParam } from 'src/features/routing/AppRoutingContext';
 import { useNavigatePage } from 'src/hooks/useNavigatePage';
+import { ProcessTaskType } from 'src/types';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -19,7 +21,9 @@ export function SubformWrapper({ node }: { node: LayoutNode<'Subform'> }) {
 
   return (
     <FormProvider>
-      <Form />
+      <PresentationComponent type={ProcessTaskType.Data}>
+        <Form />
+      </PresentationComponent>
     </FormProvider>
   );
 }
