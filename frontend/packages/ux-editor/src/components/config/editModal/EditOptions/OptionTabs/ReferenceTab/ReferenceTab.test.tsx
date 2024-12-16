@@ -18,7 +18,7 @@ describe('ReferenceTab', () => {
   it('should render', async () => {
     renderReferenceTab();
     await waitForElementToBeRemoved(() =>
-      screen.getByText(textMock('ux_editor.modal_properties_loading')),
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
     );
 
     expect(
