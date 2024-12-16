@@ -110,11 +110,6 @@ export const FormComponentConfig = ({
     ? t('ux_editor.component_other_properties_hide_many_settings')
     : t('ux_editor.component_other_properties_show_many_settings');
 
-  const hideBooleanKeyHelpText = (propertyKey: string) => {
-    const isFirstBooleanKey = propertyKey === booleanPropertyKeys[0];
-    return isFirstBooleanKey ? t('ux_editor.component_properties.hidden-help-text') : undefined;
-  };
-
   return (
     <>
       {layoutSet && component['layoutSet'] && (
@@ -146,7 +141,6 @@ export const FormComponentConfig = ({
           propertyKey={propertyKey}
           defaultValue={properties[propertyKey].default}
           key={propertyKey}
-          helpText={hideBooleanKeyHelpText(propertyKey)}
         />
       ))}
       {showOtherComponents &&
@@ -219,7 +213,7 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={t('ux_editor.component_properties.preselected-help-text')}
+            helpText={properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum}
           />
         );
