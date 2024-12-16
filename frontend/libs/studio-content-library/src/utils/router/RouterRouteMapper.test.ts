@@ -1,6 +1,6 @@
 import { RouterRouteMapperImpl } from './RouterRouteMapper';
 import { LandingPage } from '../../ContentLibrary/LibraryBody/pages/LandingPage';
-import { CodeList } from '../../ContentLibrary/LibraryBody/pages/CodeList';
+import { CodeListPage } from '../../ContentLibrary/LibraryBody/pages/CodeListPage';
 import { mockPagesConfig } from '../../../mocks/mockPagesConfig';
 
 describe('RouterRouteMapperImpl', () => {
@@ -11,7 +11,7 @@ describe('RouterRouteMapperImpl', () => {
     expect(routes.has('landingPage')).toBeTruthy();
     expect(routes.has('codeList')).toBeTruthy();
     expect(routes.get('landingPage')).toBe(LandingPage);
-    expect(routes.get('codeList')).toBe(CodeList);
+    expect(routes.get('codeList')).toBe(CodeListPage);
   });
 
   it('should always include landingPage even when noe pages are passed', () => {

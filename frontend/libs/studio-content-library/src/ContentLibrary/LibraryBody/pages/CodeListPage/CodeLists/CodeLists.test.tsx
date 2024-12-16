@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
 import { updateCodeListWithMetadata, CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import type { CodeListWithMetadata } from '../CodeList';
+import type { CodeListWithMetadata } from '../CodeListPage';
 import type { UserEvent } from '@testing-library/user-event';
 import type { RenderResult } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
