@@ -3,7 +3,12 @@ import classes from './AltinnConfirmDialog.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 import { StudioButton, StudioPopover } from '@studio/components';
-import type { StudioButtonProps, StudioPopoverProps } from '@studio/components';
+import type {
+  StudioButtonProps,
+  StudioPopoverProps,
+  StudioPopoverTriggerProps,
+} from '@studio/components';
+import type { WithDataAttributes } from 'app-shared/types/WithDataAttributes';
 
 export type AltinnConfirmDialogProps = {
   confirmText?: string;
@@ -11,7 +16,7 @@ export type AltinnConfirmDialogProps = {
   cancelText?: string;
   onConfirm: (event: React.MouseEvent<HTMLButtonElement>) => void;
   onClose: (event: React.MouseEvent<HTMLButtonElement> | MouseEvent) => void;
-  trigger?: React.ReactNode;
+  triggerProps?: WithDataAttributes<StudioPopoverTriggerProps>;
   className?: string;
 } & Partial<Pick<StudioPopoverProps, 'open' | 'placement' | 'children'>>;
 
@@ -23,7 +28,7 @@ export function AltinnConfirmDialog({
   onClose,
   placement,
   children,
-  trigger = <div />,
+  triggerProps,
   open = false,
   className,
 }: AltinnConfirmDialogProps) {
@@ -48,7 +53,7 @@ export function AltinnConfirmDialog({
   return (
     <div ref={dialogRef}>
       <StudioPopover variant='warning' placement={placement} open={open}>
-        <StudioPopover.Trigger asChild>{trigger}</StudioPopover.Trigger>
+        <StudioPopover.Trigger {...triggerProps} />
         <StudioPopover.Content className={cn(className, classes.popover)}>
           {children}
           <div className={classes.buttonContainer}>

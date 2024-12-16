@@ -62,12 +62,7 @@ describe('useUpdateOptionListIdMutation', () => {
   test('Invalidates the optionListIds query cache', async () => {
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
-    const oldData: OptionsLists = {
-      firstOptionList: optionListMock,
-      optionListId: optionListMock,
-      lastOptionList: optionListMock,
-    };
-    queryClient.setQueryData([QueryKey.OptionLists, org, app], oldData);
+    queryClient.setQueryData([QueryKey.OptionLists, org, app], []);
     const renderUpdateOptionListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListIdMutation(org, app),
       { queryClient },
@@ -76,6 +71,21 @@ describe('useUpdateOptionListIdMutation', () => {
     expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.OptionListIds, org, app],
+    });
+  });
+
+  test('Removes the option list query cache for the old Id', async () => {
+    const queryClient = createQueryClientMock();
+    const removeQueriesSpy = jest.spyOn(queryClient, 'removeQueries');
+    queryClient.setQueryData([QueryKey.OptionLists, org, app], []);
+    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+      () => useUpdateOptionListIdMutation(org, app),
+      { queryClient },
+    ).result;
+    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    expect(removeQueriesSpy).toHaveBeenCalledTimes(1);
+    expect(removeQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.OptionList, org, app, optionListId],
     });
   });
 });

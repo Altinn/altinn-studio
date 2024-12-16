@@ -60,25 +60,16 @@ describe('XSDUpload', () => {
     expect(fileInput).toBeInTheDocument();
   });
 
-  it('uploads a file', async () => {
-    const errorCode = 'ModelWithTheSameTypeNameExists';
+  it('uploads a valid file', async () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
-    renderXsdUpload({
-      queries: {
-        uploadDataModel: jest
-          .fn()
-          .mockImplementation(() => Promise.reject(createApiErrorMock(400, errorCode))),
-      },
-      queryClient: null,
-    });
-
+    renderXsdUpload();
     await clickUploadButton();
-
     const fileInput = getFileInputElement();
-
     await user.upload(fileInput, file);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(textMock(`api_errors.${errorCode}`));
+    const formDataMock = new FormData();
+    formDataMock.append('file', file);
+    expect(queriesMock.uploadDataModel).toHaveBeenCalledWith(org, app, formDataMock);
   });
 
   it('shows a specific error message when api returns an errorCode', async () => {

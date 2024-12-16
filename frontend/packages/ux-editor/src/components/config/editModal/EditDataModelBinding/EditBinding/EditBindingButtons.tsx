@@ -17,11 +17,7 @@ export const EditBindingButtons = ({
   const { t } = useTranslation();
 
   const handleDelete = () => {
-    const updatedDataModelBinding = {
-      field: '',
-      dataType: '',
-    };
-    handleBindingChange(updatedDataModelBinding);
+    handleBindingChange(undefined);
     onSetDataModelSelectVisible(false);
   };
 
