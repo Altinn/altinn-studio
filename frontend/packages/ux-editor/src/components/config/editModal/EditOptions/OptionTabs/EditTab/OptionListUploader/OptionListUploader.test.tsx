@@ -54,7 +54,7 @@ describe('OptionListUploader', () => {
 
   it('should render alert on invalid file name', async () => {
     const user = userEvent.setup();
-    const invalidFileName = '_InvalidFileName.json';
+    const invalidFileName = 'æ.json';
     const file = new File([optionListIdsMock[0]], invalidFileName, {
       type: 'text/json',
     });
@@ -64,7 +64,7 @@ describe('OptionListUploader', () => {
     await user.upload(getFileInput(), file);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      textMock('validation_errors.file_name_occupied'),
+      textMock('validation_errors.file_name_invalid'),
     );
   });
 });
@@ -80,7 +80,6 @@ function getFileInput() {
 function renderEditOptionList({ queries = {}, componentProps = {} } = {}) {
   return renderWithProviders(
     <OptionListUploader
-      setComponentHasOptionList={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,

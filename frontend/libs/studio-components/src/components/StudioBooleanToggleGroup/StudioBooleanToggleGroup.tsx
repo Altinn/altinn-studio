@@ -1,13 +1,18 @@
 import type { ToggleGroupProps } from '@digdir/designsystemet-react';
 import { ToggleGroup } from '@digdir/designsystemet-react';
 import React, { forwardRef, useEffect, useState } from 'react';
+import type { Override } from '../../types/Override';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
-export type StudioBooleanToggleGroupProps = {
-  onChange?: (value: boolean) => void;
-  value?: boolean;
-  trueLabel: string;
-  falseLabel: string;
-} & Omit<ToggleGroupProps, 'onChange' | 'value'>;
+export type StudioBooleanToggleGroupProps = Override<
+  {
+    onChange?: (value: boolean) => void;
+    value?: boolean;
+    trueLabel: string;
+    falseLabel: string;
+  },
+  WithoutAsChild<ToggleGroupProps>
+>;
 
 const StudioBooleanToggleGroup = forwardRef<HTMLDivElement, StudioBooleanToggleGroupProps>(
   ({ falseLabel, onChange, trueLabel, value: givenValue, ...rest }, ref) => {

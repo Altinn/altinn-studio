@@ -6,10 +6,14 @@ import type { StudioInputTableProps } from '../StudioInputTable';
 import {
   buttonHeader,
   headerCheckboxLabel,
-  textareaHeader,
   textfieldHeader,
+  numberfieldHeader,
+  textareaHeader,
   textHeader,
+  textResourceHeader,
+  textResourceTexts,
 } from './testTableData';
+import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
 export function TestTable(props: StudioInputTableProps): ReactElement {
   return (
@@ -19,7 +23,9 @@ export function TestTable(props: StudioInputTableProps): ReactElement {
           <StudioInputTable.HeaderCell.Checkbox aria-label={headerCheckboxLabel} />
           <StudioInputTable.HeaderCell>{textHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textfieldHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{numberfieldHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textareaHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{textResourceHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{buttonHeader}</StudioInputTable.HeaderCell>
         </StudioInputTable.Row>
       </StudioInputTable.Head>
@@ -49,9 +55,21 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
         name={testData.textfieldName(rn)}
         label={testData.textfieldLabel(rn)}
       />
+      <StudioInputTable.Cell.Numberfield
+        name={testData.numberfieldName(rn)}
+        label={testData.numberfieldLabel(rn)}
+        onChange={() => {}}
+      />
       <StudioInputTable.Cell.Textarea
         name={testData.textareaName(rn)}
         label={testData.textareaLabel(rn)}
+      />
+      <StudioInputTable.Cell.TextResource
+        textResources={textResourcesMock}
+        currentId='land.NO'
+        onChangeCurrentId={() => {}}
+        onChangeTextResource={() => {}}
+        texts={textResourceTexts(rn)}
       />
       <StudioInputTable.Cell.Button>{testData.buttonLabel(rn)}</StudioInputTable.Cell.Button>
     </StudioInputTable.Row>
