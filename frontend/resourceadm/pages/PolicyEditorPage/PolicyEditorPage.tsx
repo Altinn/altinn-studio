@@ -50,7 +50,7 @@ export const PolicyEditorPage = ({
     org,
     app,
   );
-  const { data: accessPackages, isPending: isLoadingAccessPackages } =
+  const { data: accessPackages, isLoading: isLoadingAccessPackages } =
     useResourceAccessPackagesQuery(org, app);
 
   // Mutation function to update policy
