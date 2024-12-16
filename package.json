@@ -10,8 +10,8 @@
     "@microsoft/applicationinsights-react-js": "17.3.4",
     "@microsoft/applicationinsights-web": "3.3.4",
     "@microsoft/signalr": "8.0.7",
-    "@tanstack/react-query": "5.62.2",
-    "@tanstack/react-query-devtools": "5.62.2",
+    "@tanstack/react-query": "5.62.7",
+    "@tanstack/react-query-devtools": "5.62.7",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
     "i18next": "23.16.8",
@@ -19,13 +19,13 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-error-boundary": "4.1.2",
-    "react-i18next": "15.1.3",
+    "react-i18next": "15.2.0",
     "react-router-dom": "6.28.0",
     "react-toastify": "10.0.6"
   },
   "devDependencies": {
     "@svgr/webpack": "8.1.0",
-    "@swc/core": "1.10.0",
+    "@swc/core": "1.10.1",
     "@swc/jest": "0.2.37",
     "@testing-library/dom": "10.4.0",
     "@testing-library/jest-dom": "6.6.3",
@@ -33,8 +33,8 @@
     "@testing-library/user-event": "14.5.2",
     "@types/css-modules": "1.0.5",
     "@types/jest": "29.5.14",
-    "@types/react": "18.3.14",
-    "@types/react-dom": "18.3.2",
+    "@types/react": "18.3.16",
+    "@types/react-dom": "18.3.5",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
     "cross-env": "7.0.3",
@@ -52,7 +52,7 @@
     "jest-environment-jsdom": "29.7.0",
     "jest-fail-on-console": "3.3.1",
     "jest-junit": "16.0.0",
-    "lint-staged": "15.2.10",
+    "lint-staged": "15.2.11",
     "mini-css-extract-plugin": "2.9.2",
     "prettier": "3.4.2",
     "source-map-loader": "5.0.0",
@@ -62,13 +62,13 @@
     "typescript-plugin-css-modules": "5.1.0",
     "webpack": "5.97.1",
     "webpack-cli": "5.1.4",
-    "webpack-dev-server": "5.1.0",
+    "webpack-dev-server": "5.2.0",
     "whatwg-fetch": "3.6.20"
   },
   "resolutions": {
     "@testing-library/dom": "10.4.0",
     "@babel/traverse": "7.26.4",
-    "caniuse-lite": "1.0.30001687"
+    "caniuse-lite": "1.0.30001688"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",
