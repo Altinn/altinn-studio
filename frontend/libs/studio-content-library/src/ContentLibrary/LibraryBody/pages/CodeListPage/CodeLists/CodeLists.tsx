@@ -1,5 +1,5 @@
 import React from 'react';
-import type { CodeListWithMetadata } from '../CodeList';
+import type { CodeListWithMetadata } from '../CodeListPage';
 import { Accordion } from '@digdir/designsystemet-react';
 import { StudioCodeListEditor } from '@studio/components';
 import type { CodeList as StudioComponentsCodeList, CodeListEditorTexts } from '@studio/components';
