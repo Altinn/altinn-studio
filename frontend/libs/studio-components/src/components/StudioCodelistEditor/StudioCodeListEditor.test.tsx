@@ -25,12 +25,6 @@ const texts: CodeListEditorTexts = {
   itemValue: (number) => `Value for item number ${number}`,
   label: 'Label',
   value: 'Value',
-  valueTypes: {
-    string: 'Text',
-    number: 'Number',
-    boolean: 'Boolean',
-  },
-  typeTooltip: (type) => `Values are saved as ${type}`,
 };
 const codeList: CodeList = [
   {
@@ -306,54 +300,7 @@ describe('StudioCodeListEditor', () => {
     expect(onInvalid).not.toHaveBeenCalled();
   });
 
-  describe('Value type tag', () => {
-    it('Should display "Text" in type tag, when all values are text', () => {
-      renderCodeListEditor();
-      const typeTag = screen.getByText(texts.valueTypes.string);
-      expect(typeTag).toBeInTheDocument();
-    });
-
-    it('Should display "Number" in type tag, when all values are numbers', () => {
-      const codeListWithNumberValue: CodeList = [
-        {
-          label: 'Test label',
-          value: 1,
-        },
-      ];
-      renderCodeListEditor({ codeList: codeListWithNumberValue });
-      const typeTag = screen.getByText(texts.valueTypes.number);
-      expect(typeTag).toBeInTheDocument();
-    });
-
-    it('Should display "Boolean" in type tag, when all values are boolean', () => {
-      const codeListWithNumberValue: CodeList = [
-        {
-          label: 'Test label',
-          value: true,
-        },
-      ];
-      renderCodeListEditor({ codeList: codeListWithNumberValue });
-      const typeTag = screen.getByText(texts.valueTypes.boolean);
-      expect(typeTag).toBeInTheDocument();
-    });
-
-    // works in UI, but not in test. Update of tag is too slow.
-    it('Should display "Text" in type tag, when values are of mixed types', () => {
-      const codeListWithNumberValue: CodeList = [
-        {
-          label: 'Test label',
-          value: 1,
-        },
-        {
-          label: 'Test label',
-          value: true,
-        },
-      ];
-      renderCodeListEditor({ codeList: codeListWithNumberValue });
-      const typeTag = screen.getByText(texts.valueTypes.string);
-      expect(typeTag).toBeInTheDocument();
-    });
-  });
+  // Todo: add type coercion tests
 });
 
 function renderCodeListEditor(props: Partial<StudioCodeListEditorProps> = {}) {

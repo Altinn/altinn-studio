@@ -1,6 +1,6 @@
-import type { CodeList } from './types/CodeList';
-import type { CodeListValueType } from './types/CodeListValueType';
-import type { CodeListItemValue } from './types/CodeListItemValue';
+import type { CodeList } from '../types/CodeList';
+import type { CodeListValueType } from '../types/CodeListValueType';
+import type { CodeListItemValue } from '../types/CodeListItemValue';
 
 export function updateCodeListValueType(codeList: CodeList): void {
   const updatedCodeListValueType = inferValueType(codeList);

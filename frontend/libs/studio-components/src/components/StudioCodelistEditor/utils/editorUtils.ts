@@ -1,5 +1,5 @@
-import type { CodeListItem } from './types/CodeListItem';
-import type { CodeList } from './types/CodeList';
+import type { CodeListItem } from '../types/CodeListItem';
+import type { CodeList } from '../types/CodeList';
 import { ArrayUtils } from '@studio/pure-functions';
 
 export function addEmptyCodeListItem(codeList: CodeList): CodeList {

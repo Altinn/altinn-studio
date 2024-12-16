@@ -1,6 +1,6 @@
 import type { CodeListItem } from '../types/CodeListItem';
 import { ObjectUtils } from '@studio/pure-functions';
-import { changeDescription, changeHelpText, changeLabel, changeValue, coerceValue } from './utils';
+import { changeDescription, changeHelpText, changeLabel, changeValue } from './utils';
 
 // Test data:
 const testItem: CodeListItem = {
@@ -68,42 +68,6 @@ describe('StudioCodeListEditorRow utils', () => {
       const item = createTestItem();
       const updatedItem = changeHelpText(item, 'Updated help text');
       expect(updatedItem).not.toBe(item);
-    });
-  });
-
-  describe('coerceValue', () => {
-    it('Should coerce value to string, when codeListType is string', () => {
-      const updatedValue = '123';
-      expect(coerceValue(updatedValue, 'string')).toBe('123');
-    });
-
-    it('Should coerce value to number, when codeListType is number', () => {
-      const value = '123';
-      expect(coerceValue(value, 'number')).toBe(123);
-    });
-
-    it('Should coerce value to NaN, when value is not number and codeListType is number', () => {
-      const value = 'test-string';
-      expect(coerceValue(value, 'number')).toBe(NaN);
-    });
-
-    it('Should coerce value to true, when string equals true and codeListType is boolean', () => {
-      const lowerCaseValue = 'true';
-      expect(coerceValue(lowerCaseValue, 'boolean')).toBe(true);
-
-      const mixedCaseValue = 'True';
-      expect(coerceValue(mixedCaseValue, 'boolean')).toBe(true);
-    });
-
-    it('Should coerce value to false, when string does not equal true and codeListType is boolean', () => {
-      const emptyValue = '';
-      expect(coerceValue(emptyValue, 'boolean')).toBe(false);
-
-      const falseValue = 'false';
-      expect(coerceValue(falseValue, 'boolean')).toBe(false);
-
-      const randomValue = 'abc123øæå';
-      expect(coerceValue(randomValue, 'boolean')).toBe(false);
     });
   });
 });

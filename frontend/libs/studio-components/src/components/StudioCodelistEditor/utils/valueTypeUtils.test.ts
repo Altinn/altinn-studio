@@ -1,9 +1,9 @@
-import type { CodeList } from './types/CodeList';
+import type { CodeList } from '../types/CodeList';
 import { coerceValues, inferValueType, updateCodeListValueType } from './valueTypeUtils';
 
-const emptyCodeList: CodeList = [];
+export const emptyCodeList: CodeList = [];
 
-const codeListWithStrings: CodeList = [
+export const codeListWithStrings: CodeList = [
   {
     label: 'Test 1',
     value: 'test1',
@@ -16,7 +16,7 @@ const codeListWithStrings: CodeList = [
   },
 ];
 
-const codeListWithStringifiedNumbers: CodeList = [
+export const codeListWithStringifiedNumbers: CodeList = [
   {
     value: '42',
     label: 'Forty two',
@@ -31,7 +31,7 @@ const codeListWithStringifiedNumbers: CodeList = [
   },
 ];
 
-const codeListWithNumbers: CodeList = [
+export const codeListWithNumbers: CodeList = [
   {
     value: 42,
     label: 'Forty two',
@@ -46,7 +46,7 @@ const codeListWithNumbers: CodeList = [
   },
 ];
 
-const codeListWithStringifiedBooleans: CodeList = [
+export const codeListWithStringifiedBooleans: CodeList = [
   {
     value: 'true',
     label: 'Yes',
@@ -57,7 +57,7 @@ const codeListWithStringifiedBooleans: CodeList = [
   },
 ];
 
-const codeListWithStringifiedMixedCaseBooleans: CodeList = [
+export const codeListWithStringifiedMixedCaseBooleans: CodeList = [
   {
     value: 'TRUE',
     label: 'Yes',
@@ -68,7 +68,7 @@ const codeListWithStringifiedMixedCaseBooleans: CodeList = [
   },
 ];
 
-const codeListWithBooleans: CodeList = [
+export const codeListWithBooleans: CodeList = [
   {
     value: true,
     label: 'Yes',
@@ -79,7 +79,7 @@ const codeListWithBooleans: CodeList = [
   },
 ];
 
-const codeListMixedValues: CodeList = [
+export const codeListMixedValues: CodeList = [
   {
     value: true,
     label: 'Yes',
@@ -90,7 +90,7 @@ const codeListMixedValues: CodeList = [
   },
 ];
 
-const codeListStringifiedMixedValues: CodeList = [
+export const codeListStringifiedMixedValues: CodeList = [
   {
     value: 'true',
     label: 'Yes',
@@ -101,7 +101,7 @@ const codeListStringifiedMixedValues: CodeList = [
   },
 ];
 
-const codeListWithEmptyStringValue: CodeList = [
+export const codeListWithEmptyStringValue: CodeList = [
   {
     value: '42',
     label: 'Forty two',

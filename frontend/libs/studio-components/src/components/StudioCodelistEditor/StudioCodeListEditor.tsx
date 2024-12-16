@@ -9,7 +9,7 @@ import {
   addEmptyCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
-} from './utils';
+} from './utils/editorUtils';
 import { StudioCodeListEditorRow } from './StudioCodeListEditorRow/StudioCodeListEditorRow';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import {
@@ -25,7 +25,7 @@ import { StudioFieldset } from '../StudioFieldset';
 import { StudioErrorMessage } from '../StudioErrorMessage';
 import type { Override } from '../../types/Override';
 import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable';
-import { updateCodeListValueType } from './valueTypeUtils';
+import { updateCodeListValueType } from './utils/valueTypeUtils';
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;

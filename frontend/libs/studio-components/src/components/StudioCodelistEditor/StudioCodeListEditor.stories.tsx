@@ -49,12 +49,6 @@ export const Preview: Story = {
       itemValue: (number) => `Value for item number ${number}`,
       label: 'Label',
       value: 'Value',
-      valueTypes: {
-        string: 'Text',
-        number: 'Number',
-        boolean: 'Boolean',
-      },
-      typeTooltip: (type) => `Values are saved as type ${type}`,
     },
   },
 };
