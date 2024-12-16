@@ -1,24 +1,34 @@
-import React from 'react';
-import {
-  type PopoverProps,
-  Popover,
-  type PopoverTriggerProps,
-  type PopoverContentProps,
-} from '@digdir/designsystemet-react';
+import React, { forwardRef } from 'react';
+import { type PopoverProps, Popover, type PopoverContentProps } from '@digdir/designsystemet-react';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
+import type { StudioButtonProps } from '../StudioButton';
+import { StudioButton } from '../StudioButton';
 
-const StudioPopoverTrigger = ({ ...rest }: PopoverTriggerProps): React.ReactElement => {
-  return <Popover.Trigger {...rest} />;
-};
+export type StudioPopoverTriggerProps = StudioButtonProps;
 
-const StudioPopoverContent = ({ ...rest }: PopoverContentProps): React.ReactElement => {
-  return <Popover.Content {...rest} />;
-};
+const StudioPopoverTrigger = forwardRef<HTMLButtonElement, StudioPopoverTriggerProps>(
+  (props, ref): React.ReactElement => (
+    <Popover.Trigger asChild>
+      <StudioButton {...props} ref={ref} />
+    </Popover.Trigger>
+  ),
+);
 
-export type StudioPopoverProps = PopoverProps;
+StudioPopoverTrigger.displayName = 'StudioPopover.Trigger';
 
-const StudioPopoverRoot = ({ ...rest }: StudioPopoverProps): React.ReactElement => {
-  return <Popover {...rest} />;
-};
+export type StudioPopoverContentProps = WithoutAsChild<PopoverContentProps>;
+
+const StudioPopoverContent = forwardRef<HTMLDivElement, StudioPopoverContentProps>(
+  (props, ref): React.ReactElement => <Popover.Content {...props} ref={ref} />,
+);
+
+StudioPopoverContent.displayName = 'StudioPopover.Content';
+
+export type StudioPopoverProps = WithoutAsChild<PopoverProps>;
+
+function StudioPopoverRoot(props: StudioPopoverProps): React.ReactElement {
+  return <Popover {...props} />;
+}
 
 type StudioPopoverComponent = typeof StudioPopoverRoot & {
   Trigger: typeof StudioPopoverTrigger;

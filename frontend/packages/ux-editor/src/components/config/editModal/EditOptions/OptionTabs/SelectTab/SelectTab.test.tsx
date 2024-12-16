@@ -141,7 +141,7 @@ describe('SelectTab', () => {
 
   it('should render alert on invalid file name', async () => {
     const user = userEvent.setup();
-    const invalidFileName = '_InvalidFileName.json';
+    const invalidFileName = 'æ.json';
     const file = new File([optionListIdsMock[0]], invalidFileName, {
       type: 'text/json',
     });
