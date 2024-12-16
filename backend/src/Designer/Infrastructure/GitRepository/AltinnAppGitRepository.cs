@@ -8,6 +8,8 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
@@ -710,13 +712,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 throw new NotFoundException("Options folder not found.");
             }
 
-            string[] fileNames = GetFilesByRelativeDirectory(optionsFolder, "*.json");
-            List<string> optionsListIds = [];
-            foreach (string fileName in fileNames.Select(Path.GetFileNameWithoutExtension))
-            {
-                optionsListIds.Add(fileName);
-            }
-
+            string[] fileNames = GetFilesByRelativeDirectoryAscSorted(optionsFolder, "*.json");
+            IEnumerable<string> optionsListIds = fileNames.Select(Path.GetFileNameWithoutExtension);
             return optionsListIds.ToArray();
         }
 
@@ -778,6 +775,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Updates the ID of the option list by updating file name.
+        /// </summary>
+        /// <param name="oldOptionsListFileName">The file name of the option list to change filename of.</param>
+        /// <param name="newOptionsListFileName">The new file name of the option list file.</param>
+        public void UpdateOptionsListId(string oldOptionsListFileName, string newOptionsListFileName)
+        {
+            string currentFilePath = Path.Combine(OptionsFolderPath, oldOptionsListFileName);
+            string newFilePath = Path.Combine(OptionsFolderPath, newOptionsListFileName);
+            MoveFileByRelativePath(currentFilePath, newFilePath, newOptionsListFileName);
+        }
+
+        /// <summary>
         /// Saves the process definition file on disk.
         /// </summary>
         /// <param name="file">Stream of the file to be saved.</param>
@@ -802,6 +811,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return OpenStreamByRelativePath(ProcessDefinitionFilePath);
+        }
+
+        public Definitions GetDefinitions()
+        {
+            Stream processDefinitionStream = GetProcessDefinitionFile();
+            XmlSerializer serializer = new(typeof(Definitions));
+            return (Definitions)serializer.Deserialize(processDefinitionStream);
         }
 
         /// <summary>

@@ -11,7 +11,10 @@ import type { DataModelMetadataResponse } from 'app-shared/types/api';
 import { dataModelNameMock, layoutSet1NameMock } from '@altinn/ux-editor-v3/testing/layoutSetsMock';
 import { app, org } from '@studio/testing/testids';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { removeFeatureFlagFromLocalStorage } from 'app-shared/utils/featureToggleUtils';
+import {
+  removeFeatureFlagFromLocalStorage,
+  FeatureFlag,
+} from 'app-shared/utils/featureToggleUtils';
 
 // Test data:
 const srcValueLabel = 'Source';
@@ -68,7 +71,7 @@ const getDataModelMetadata = () =>
 
 describe('EditFormComponent', () => {
   beforeEach(() => {
-    removeFeatureFlagFromLocalStorage('componentConfigBeta');
+    removeFeatureFlagFromLocalStorage(FeatureFlag.ComponentConfigBeta);
     jest.clearAllMocks();
   });
 
@@ -92,8 +95,11 @@ describe('EditFormComponent', () => {
     Object.keys(labels).map(async (label) =>
       expect(await screen.findByRole(labels[label], { name: textMock(label) })),
     );
-    expect(screen.getByRole('combobox'));
-    expect(screen.getByLabelText('Autocomplete (WCAG)'));
+    expect(
+      screen.getByRole('combobox', {
+        name: textMock('ux_editor.component_properties.autocomplete'),
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should return header specific content when type header', async () => {

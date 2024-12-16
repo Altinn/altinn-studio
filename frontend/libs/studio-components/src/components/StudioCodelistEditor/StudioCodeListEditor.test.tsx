@@ -46,11 +46,13 @@ const codeList: CodeList = [
     helpText: 'Test 3 help text',
   },
 ];
+const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
   codeList,
   texts,
+  onBlurAny,
   onChange,
   onInvalid,
 };
@@ -192,6 +194,21 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
+  it('Calls the onBlurAny callback with the current code list when an item in the table is blurred', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+    const newValue = 'new text';
+    await user.type(valueInput, newValue);
+    await user.tab();
+    expect(onBlurAny).toHaveBeenCalledTimes(1);
+    expect(onBlurAny).toHaveBeenLastCalledWith([
+      { ...codeList[0], value: newValue },
+      codeList[1],
+      codeList[2],
+    ]);
+  });
+
   it('Updates itself when the user changes something', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
@@ -271,6 +288,15 @@ describe('StudioCodeListEditor', () => {
     renderCodeListEditor({ codeList: codeListWithDuplicatedValues });
     const invalidValueInput = screen.getByRole('textbox', { name: texts.itemValue(2) });
     await user.type(invalidValueInput, 'new unique value');
+    expect(onInvalid).not.toHaveBeenCalled();
+  });
+
+  it('Does not trigger onInvalid if the code list is invalid, but onInvalid is not defined', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({ codeList: codeListWithDuplicatedValues, onInvalid: undefined });
+    const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
+    const newValue = 'new value';
+    await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
   });
 });

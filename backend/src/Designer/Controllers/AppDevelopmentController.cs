@@ -356,6 +356,17 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(layoutSets);
         }
 
+        [HttpGet("layout-sets/extended")]
+        [UseSystemTextJson]
+        public async Task<LayoutSetsModel> GetLayoutSetsExtended(string org, string app, CancellationToken cancellationToken)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer);
+
+            LayoutSetsModel layoutSetsModel = await _appDevelopmentService.GetLayoutSetsExtended(editingContext, cancellationToken);
+            return layoutSetsModel;
+        }
+
         /// <summary>
         /// Add a new layout set
         /// </summary>

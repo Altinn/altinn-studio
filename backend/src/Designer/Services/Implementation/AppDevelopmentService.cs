@@ -7,12 +7,14 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using NuGet.Versioning;
@@ -266,6 +268,43 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 "No layout set found for this app.");
         }
 
+        private static string TaskTypeFromDefinitions(Definitions definitions, string taskId)
+        {
+            return definitions.Process.Tasks.FirstOrDefault(task => task.Id == taskId)?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
+        }
+
+        public async Task<LayoutSetsModel> GetLayoutSetsExtended(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org, altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+            LayoutSets layoutSetsFile = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
+            Definitions definitions = altinnAppGitRepository.GetDefinitions();
+
+            LayoutSetsModel layoutSetsModel = new();
+            layoutSetsFile.Sets.ForEach(set =>
+            {
+                LayoutSetModel layoutSetModel = new()
+                {
+                    id = set.Id,
+                    dataType = set.DataType,
+                    type = set.Type,
+                };
+                string taskId = set.Tasks?[0];
+                if (taskId != null)
+                {
+                    string taskType = TaskTypeFromDefinitions(definitions, taskId);
+                    layoutSetModel.task = new TaskModel
+                    {
+                        id = taskId,
+                        type = taskType
+                    };
+                }
+                layoutSetsModel.sets.Add(layoutSetModel);
+            });
+            return layoutSetsModel;
+        }
+
         /// <inheritdoc />
         public async Task<LayoutSetConfig> GetLayoutSetConfig(AltinnRepoEditingContext altinnRepoEditingContext, string layoutSetId,
             CancellationToken cancellationToken = default)
@@ -500,9 +539,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var csprojFiles = altinnAppGitRepository.FindFiles(new[] { "*.csproj" });
 
+            string[] packageNames = ["Altinn.App.Api", "Altinn.App.Api.Experimental"];
+
             foreach (string csprojFile in csprojFiles)
             {
-                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, "Altinn.App.Api",
+                if (PackageVersionHelper.TryGetPackageVersionFromCsprojFile(csprojFile, packageNames,
                         out SemanticVersion version))
                 {
                     return version;

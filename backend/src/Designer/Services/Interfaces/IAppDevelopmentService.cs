@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Metamodel;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using JetBrains.Annotations;
 
 namespace Altinn.Studio.Designer.Services.Interfaces
@@ -105,6 +106,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
         public Task<LayoutSets> GetLayoutSets(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Extended version of layout sets with the intention of adding information not included in the raw layout-sets.json file.
+        /// </summary>
+        /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is canceled.</param>
+        public Task<LayoutSetsModel> GetLayoutSetsExtended(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets a layoutSet config.

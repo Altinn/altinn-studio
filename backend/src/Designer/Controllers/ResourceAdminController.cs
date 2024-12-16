@@ -34,9 +34,8 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly CacheSettings _cacheSettings;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
-        private readonly ResourceRegistryIntegrationSettings _resourceRegistrySettings;
 
-        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IOptions<ResourceRegistryIntegrationSettings> resourceRegistryEnvironment, IResourceRegistry resourceRegistry)
+        public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
         {
             _giteaApi = gitea;
             _repository = repository;
@@ -44,7 +43,6 @@ namespace Altinn.Studio.Designer.Controllers
             _memoryCache = memoryCache;
             _cacheSettings = cacheSettings.Value;
             _orgService = orgService;
-            _resourceRegistrySettings = resourceRegistryEnvironment.Value;
             _resourceRegistry = resourceRegistry;
         }
 
@@ -175,12 +173,14 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (includeEnvResources)
             {
-                foreach (string environment in _resourceRegistrySettings.Keys)
+                IEnumerable<string> environments = GetEnvironmentsForOrg(org);
+                foreach (string environment in environments)
                 {
                     string cacheKey = $"resourcelist_${environment}";
                     if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
                     {
                         environmentResources = await _resourceRegistry.GetResourceList(environment, false);
+
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
                             .SetPriority(CacheItemPriority.High)
                             .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
@@ -239,7 +239,8 @@ namespace Altinn.Studio.Designer.Controllers
                 PublishedVersions = []
             };
 
-            foreach (string envir in _resourceRegistrySettings.Keys)
+            IEnumerable<string> environments = GetEnvironmentsForOrg(org);
+            foreach (string envir in environments)
             {
                 resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
             }
@@ -332,6 +333,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/{org}/resources/altinn2/delegationcount/{serviceCode}/{serviceEdition}/{env}")]
         public async Task<ActionResult> GetDelegationCount(string org, string serviceCode, int serviceEdition, string env)
         {
+            List<ServiceResource> allResources = await _resourceRegistry.GetResourceList(env.ToLower(), true);
+            bool serviceExists = allResources.Any(x => x.Identifier.Equals($"se_{serviceCode}_{serviceEdition}"));
+            if (!serviceExists)
+            {
+                return new NotFoundResult();
+            }
+
             ServiceResource resource = await _resourceRegistry.GetServiceResourceFromService(serviceCode, serviceEdition, env.ToLower());
             if (!IsServiceOwner(resource, org))
             {
@@ -642,6 +650,16 @@ namespace Altinn.Studio.Designer.Controllers
         private string GetRepositoryName(string org)
         {
             return string.Format("{0}-resources", org);
+        }
+
+        private List<string> GetEnvironmentsForOrg(string org)
+        {
+            List<string> environmentsForOrg = ["prod", "tt02"];
+            if (OrgUtil.IsTestEnv(org))
+            {
+                environmentsForOrg.AddRange(["at22", "at23", "at24", "yt01"]);
+            }
+            return environmentsForOrg;
         }
     }
 }
