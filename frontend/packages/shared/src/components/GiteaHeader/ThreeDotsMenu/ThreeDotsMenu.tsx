@@ -21,14 +21,12 @@ export const ThreeDotsMenu = ({ isClonePossible = false }: ThreeDotsMenuProps) =
 
   return (
     <StudioPopover>
-      <StudioPopover.Trigger asChild>
-        <StudioPageHeader.HeaderButton
-          icon={<MenuElipsisVerticalIcon />}
-          title={t('sync_header.gitea_menu')}
-          color='light'
-          variant='regular'
-        />
-      </StudioPopover.Trigger>
+      <StudioPageHeader.PopoverTrigger
+        icon={<MenuElipsisVerticalIcon />}
+        title={t('sync_header.gitea_menu')}
+        color='light'
+        variant='regular'
+      />
       <StudioPopover.Content className={classes.popover}>
         <ul className={classes.menuItems}>
           {isClonePossible && (
