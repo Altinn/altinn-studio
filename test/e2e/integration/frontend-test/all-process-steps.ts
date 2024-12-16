@@ -407,6 +407,7 @@ const knownDataModels: { [key: string]: unknown } = {
       ],
     },
     ShiftingOptions: null,
+    FilteredOptions: null,
   },
   'nested-group': {
     skjemanummer: 1603,

@@ -28,15 +28,15 @@ export function EffectStoreLabel({ valueType, options }: Props) {
   const { langAsString } = useLanguage();
   const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
   const { formData, setValue } = useDataModelBindings(dataModelBindings);
-  const unsafeSelectedValues = useSetOptions(valueType, dataModelBindings, options).unsafeSelectedValues;
+  const { selectedValues } = useSetOptions(valueType, dataModelBindings, options);
 
   const translatedLabels = useMemo(
     () =>
       options
-        ?.filter((option) => unsafeSelectedValues.includes(option.value))
+        .filter((option) => selectedValues.includes(option.value))
         .map((option) => option.label)
         .map((label) => langAsString(label)),
-    [langAsString, options, unsafeSelectedValues],
+    [langAsString, options, selectedValues],
   );
 
   const labelsHaveChanged = !deepEqual(translatedLabels, 'label' in formData ? formData.label : undefined);

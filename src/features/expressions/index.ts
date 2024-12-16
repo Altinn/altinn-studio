@@ -18,6 +18,7 @@ import type {
   ExprPositionalArgs,
   ExprValToActual,
   ExprValToActualOrExpr,
+  ExprValueArgs,
 } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { LayoutPage } from 'src/utils/layout/LayoutPage';
@@ -32,6 +33,7 @@ export interface EvalExprOptions {
   onBeforeFunctionCall?: BeforeFuncCallback;
   onAfterFunctionCall?: AfterFuncCallback;
   positionalArguments?: ExprPositionalArgs;
+  valueArguments?: ExprValueArgs;
 }
 
 export type SimpleEval<T extends ExprVal> = (
@@ -47,6 +49,7 @@ export type EvaluateExpressionParams = {
   node: LayoutNode | LayoutPage | NodeNotFoundWithoutContext;
   dataSources: ExpressionDataSources;
   positionalArguments?: ExprPositionalArgs;
+  valueArguments?: ExprValueArgs;
 };
 
 /**
@@ -87,6 +90,7 @@ export function evalExpr(
     node,
     dataSources,
     positionalArguments: options?.positionalArguments,
+    valueArguments: options?.valueArguments,
   };
 
   try {

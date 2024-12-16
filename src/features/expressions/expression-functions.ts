@@ -70,6 +70,37 @@ export const ExprFunctions = {
     args: [ExprVal.Number] as const,
     returns: ExprVal.Any,
   }),
+  value: defineFunc({
+    impl(key) {
+      const config = this.valueArguments;
+      if (!config) {
+        throw new ExprRuntimeError(this.expr, this.path, 'No value arguments available');
+      }
+
+      const realKey = key ?? config.defaultKey;
+      if (!realKey || typeof realKey !== 'string') {
+        throw new ExprRuntimeError(
+          this.expr,
+          this.path,
+          `Invalid key (expected string, got ${realKey ? typeof realKey : 'null'})`,
+        );
+      }
+
+      if (!Object.prototype.hasOwnProperty.call(config.data, realKey)) {
+        throw new ExprRuntimeError(
+          this.expr,
+          this.path,
+          `Unknown key ${realKey}, Valid keys are: ${Object.keys(config.data).join(', ')}`,
+        );
+      }
+
+      const value = config.data[realKey];
+      return value ?? null;
+    },
+    minArguments: 0,
+    args: [ExprVal.String] as const,
+    returns: ExprVal.Any,
+  }),
   equals: defineFunc({
     impl: (arg1, arg2) => arg1 === arg2,
     args: [ExprVal.String, ExprVal.String] as const,

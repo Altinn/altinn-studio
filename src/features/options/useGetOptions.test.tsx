@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { jest } from '@jest/globals';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { AxiosResponse } from 'axios';
 
@@ -9,8 +9,9 @@ import { defaultDataTypeMock } from 'src/__mocks__/getLayoutSetsMock';
 import { ALTINN_ROW_ID } from 'src/features/formData/types';
 import { useGetOptions } from 'src/features/options/useGetOptions';
 import { renderWithNode } from 'src/test/renderWithProviders';
+import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
-import type { IRawOption, ISelectionComponent } from 'src/layout/common.generated';
+import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
 import type { fetchOptions } from 'src/queries/queries';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
@@ -19,6 +20,9 @@ interface RenderProps {
   via: 'layout' | 'api' | 'repeatingGroups';
   options?: IRawOption[];
   mapping?: Record<string, string>;
+  optionFilter?: ExprValToActualOrExpr<ExprVal.Boolean>;
+  selected?: string;
+  preselectedOptionIndex?: number;
   fetchOptions?: jest.Mock<typeof fetchOptions>;
 }
 
@@ -40,7 +44,7 @@ function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'>
 }
 
 async function render(props: RenderProps) {
-  const layoutConfig: ISelectionComponent = {
+  const layoutConfig: ISelectionComponentFull = {
     options: props.via === 'layout' ? props.options : undefined,
     optionsId: props.via === 'api' ? 'myOptions' : undefined,
     mapping: props.via === 'api' ? props.mapping : undefined,
@@ -52,6 +56,8 @@ async function render(props: RenderProps) {
             label: 'myLabel',
           }
         : undefined,
+    optionFilter: props.optionFilter,
+    preselectedOptionIndex: props.preselectedOptionIndex,
   };
 
   return renderWithNode({
@@ -83,7 +89,7 @@ async function render(props: RenderProps) {
           [ALTINN_ROW_ID]: `row-${index}`,
           ...option,
         })),
-        result: '',
+        result: props.selected ?? '',
         someOther: 'value',
       }),
       fetchOptions:
@@ -121,6 +127,25 @@ describe('useGetOptions', () => {
     { type: 'multi', via: 'api' },
     { type: 'multi', via: 'repeatingGroups' },
   ];
+
+  const filteredOptions = [{ label: 'first', value: 'foo' }];
+
+  const unfilteredOptions = [
+    { label: 'second', value: 'bar' },
+    { label: 'third', value: 'baz' },
+    { label: 'fourth', value: 'qux' },
+  ];
+
+  beforeEach(() => {
+    jest
+      .spyOn(window, 'logWarnOnce')
+      .mockImplementation(() => {})
+      .mockName(`window.logWarnOnce`);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it.each(permutations)('options should be cast to strings for $type + $via', async (props) => {
     const options = [
@@ -176,6 +201,42 @@ describe('useGetOptions', () => {
 
     expect(fetchOptionsMock).toHaveBeenCalledWith(
       expect.stringMatching(/^.+\/api\/options\/myOptions.+someParam=value&someEmpty=$/),
+    );
+  });
+
+  it('should produce a warning if options are filtered out when selected', async () => {
+    await render({
+      type: 'single',
+      via: 'api',
+      options: [...filteredOptions, ...unfilteredOptions],
+      selected: 'foo',
+      optionFilter: ['notEquals', ['value'], 'foo'], // Filters out the selected option
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('options').textContent).toEqual(JSON.stringify(unfilteredOptions));
+    });
+
+    expect(window.logWarnOnce).toHaveBeenCalledWith(
+      `Node 'myComponent': Option with value "foo" was selected, but the option filter ` +
+        `excludes it. This will cause the option to be deselected. If this was unintentional, add a check ` +
+        `for the currently selected option in your optionFilter expression.`,
+    );
+  });
+
+  it('should produce a warning if option values are duplicated', async () => {
+    const remainingOption = { label: 'first', value: 'foo' };
+    await render({
+      type: 'single',
+      via: 'api',
+      options: [remainingOption, { label: 'second', value: 'foo' }],
+    });
+
+    await waitFor(() => expect(screen.getByTestId('options').textContent).toEqual(JSON.stringify([remainingOption])));
+
+    expect(window.logWarnOnce).toHaveBeenCalledWith(
+      'Option was duplicate value (and was removed). With duplicate values, it is impossible to tell which of the options the user selected.\n',
+      JSON.stringify({ label: 'second', value: 'foo' }, null, 2),
     );
   });
 });

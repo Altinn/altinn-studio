@@ -17,7 +17,7 @@ import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import type { SharedTestFunctionContext } from 'src/features/expressions/shared';
-import type { ExprValToActualOrExpr } from 'src/features/expressions/types';
+import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
@@ -25,9 +25,19 @@ import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 jest.mock('src/features/externalApi/useExternalApi');
 
-function ExpressionRunner({ node, expression }: { node: LayoutNode; expression: ExprValToActualOrExpr<ExprVal.Any> }) {
+interface Props {
+  node: LayoutNode;
+  expression: ExprValToActualOrExpr<ExprVal.Any>;
+  positionalArguments?: ExprPositionalArgs;
+  valueArguments?: ExprValueArgs;
+}
+
+function ExpressionRunner({ node, expression, positionalArguments, valueArguments }: Props) {
   const dataSources = useExpressionDataSources();
-  const result = useEvalExpression(ExprVal.Any, node, expression, null, dataSources);
+  const result = useEvalExpression(ExprVal.Any, node, expression, null, dataSources, {
+    positionalArguments,
+    valueArguments,
+  });
   return <div data-testid='expr-result'>{JSON.stringify(result)}</div>;
 }
 
@@ -100,6 +110,8 @@ describe('Expressions shared function tests', () => {
         textResources,
         profileSettings,
         externalApis,
+        positionalArguments,
+        valueArguments,
       } = test;
 
       if (disabledFrontend) {
@@ -223,6 +235,8 @@ describe('Expressions shared function tests', () => {
           <ExpressionRunner
             node={node}
             expression={expression}
+            positionalArguments={positionalArguments}
+            valueArguments={valueArguments}
           />
         ),
         inInstance: !!instance,

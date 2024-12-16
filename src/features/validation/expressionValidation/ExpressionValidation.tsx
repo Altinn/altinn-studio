@@ -10,7 +10,7 @@ import { getKeyWithoutIndex } from 'src/utils/databindings';
 import { NodesInternal } from 'src/utils/layout/NodesContext';
 import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 import { useNodeTraversal } from 'src/utils/layout/useNodeTraversal';
-import type { Expression } from 'src/features/expressions/types';
+import type { Expression, ExprValueArgs } from 'src/features/expressions/types';
 import type { IDataModelReference, ILayoutSet } from 'src/layout/common.generated';
 import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
@@ -82,8 +82,10 @@ function IndividualExpressionValidation({ dataType }: { dataType: string }) {
           }
 
           for (const validationDef of validationDefs) {
+            const valueArguments: ExprValueArgs<{ field: string }> = { data: { field }, defaultKey: 'field' };
             const isInvalid = evalExpr(validationDef.condition as Expression, node, modifiedDataSources, {
               positionalArguments: [field],
+              valueArguments,
             });
             if (isInvalid) {
               if (!validations[field]) {

@@ -364,6 +364,15 @@ const common = {
           .optional(),
       ),
       new CG.prop('source', CG.common('IOptionSource').optional()),
+      new CG.prop(
+        'optionFilter',
+        new CG.expr(ExprVal.Boolean)
+          .optional()
+          .setTitle('Filter options (using an expression)')
+          .setDescription(
+            'Setting this to an expression allows you to filter the list of options (the expression should return true to keep the option, false to remove it). To get the option value, use ["value"]. You can also use ["value", "label"] to get the label text resource id, likewise also "description" and "helpText".',
+          ),
+      ),
     ),
   ISelectionComponentFull: () =>
     new CG.obj(

@@ -3,7 +3,6 @@ import { ExprValidation } from 'src/features/expressions/validation';
 import { useMemoDeepEqual } from 'src/hooks/useStateDeepEqual';
 import { getKeyWithoutIndexIndicators } from 'src/utils/databindings';
 import { transposeDataBinding } from 'src/utils/databindings/DataBinding';
-import { GeneratorData } from 'src/utils/layout/generator/GeneratorDataSources';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelReference, IOptionSource } from 'src/layout/common.generated';
@@ -13,12 +12,11 @@ import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSo
 interface IUseSourceOptionsArgs {
   source: IOptionSource | undefined;
   node: LayoutNode;
+  dataSources: ExpressionDataSources;
 }
 
-export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOptionInternal[] | undefined => {
-  const dataSources = GeneratorData.useExpressionDataSources();
-
-  return useMemoDeepEqual(() => {
+export const useSourceOptions = ({ source, node, dataSources }: IUseSourceOptionsArgs): IOptionInternal[] | undefined =>
+  useMemoDeepEqual(() => {
     if (!source) {
       return undefined;
     }
@@ -84,7 +82,6 @@ export const useSourceOptions = ({ source, node }: IUseSourceOptionsArgs): IOpti
 
     return output;
   }, [source, node, dataSources]);
-};
 
 function resolveText(
   text: ExprValToActualOrExpr<ExprVal.String> | undefined,

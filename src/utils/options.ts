@@ -1,30 +1,34 @@
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 
-/**
- * Fast method for removing duplicate option values
- */
-export function filterDuplicateOptions(options: IOptionInternal[]): IOptionInternal[] {
-  const seen = new Set<string>();
-  const out: IOptionInternal[] = [];
-  let j = 0;
-  for (let i = 0; i < options.length; i++) {
-    if (!seen.has(options[i].value)) {
-      seen.add(options[i].value);
-      out[j++] = options[i];
-    }
-  }
-  return out;
-}
-
-export function verifyOptions(options: IOptionInternal[] | undefined, multi: boolean): void {
+const emptyArray: IOptionInternal[] = [];
+export function verifyAndDeduplicateOptions(options: IOptionInternal[] | undefined, multi: boolean): IOptionInternal[] {
   if (!options) {
-    return;
+    return emptyArray;
   }
 
-  for (const option of options) {
+  const deduplicated: IOptionInternal[] = [];
+  const seenValues = new Set<string>();
+  let j = 0;
+
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+
     // Option value is required
     if (option.value == null) {
       window.logErrorOnce('Option has a null value\n', JSON.stringify(option, null, 2));
+      deduplicated[j++] = option; // Still add it, for backwards compatibility
+    } else {
+      // Option value must be unique. If they're not unique, we cannot tell which one is selected when we only have
+      // the value from the data model.
+      if (seenValues.has(option.value)) {
+        window.logWarnOnce(
+          'Option was duplicate value (and was removed). With duplicate values, it is impossible to tell which of the options the user selected.\n',
+          JSON.stringify(option, null, 2),
+        );
+        continue;
+      }
+      seenValues.add(option.value);
+      deduplicated[j++] = option;
     }
 
     // Option used for multiple select should not use empty values
@@ -63,4 +67,6 @@ export function verifyOptions(options: IOptionInternal[] | undefined, multi: boo
       );
     }
   }
+
+  return deduplicated;
 }

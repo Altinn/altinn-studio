@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 
+import { evalExpr } from 'src/features/expressions';
+import { ExprValidation } from 'src/features/expressions/validation';
 import { useDataModelBindings } from 'src/features/formData/useDataModelBindings';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -8,24 +10,29 @@ import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGe
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
 import { useSourceOptions } from 'src/hooks/useSourceOptions';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
-import { filterDuplicateOptions, verifyOptions } from 'src/utils/options';
+import { verifyAndDeduplicateOptions } from 'src/utils/options';
+import type { ExprValueArgs } from 'src/features/expressions/types';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IDataModelBindingsOptionsSimple } from 'src/layout/common.generated';
 import type { CompIntermediateExact, CompWithBehavior } from 'src/layout/layout';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 export type OptionsValueType = 'single' | 'multi';
 
 interface FetchOptionsProps {
   node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
+  dataSources: ExpressionDataSources;
 }
 
-interface SortedOptionsProps {
+interface FilteredAndSortedOptionsProps {
   unsorted: IOptionInternal[];
   valueType: OptionsValueType;
+  node: LayoutNode<CompWithBehavior<'canHaveOptions'>>;
   item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>;
+  dataSources: ExpressionDataSources;
 }
 
 export interface GetOptionsResult {
@@ -104,16 +111,20 @@ export function useSetOptions(
   };
 }
 
-function useOptionsUrl(node: LayoutNode, item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>) {
+function useOptionsUrl(
+  node: LayoutNode,
+  item: CompIntermediateExact<CompWithBehavior<'canHaveOptions'>>,
+  dataSources: ExpressionDataSources,
+) {
   const { optionsId, secure, mapping, queryParameters } = item;
-  return useGetOptionsUrl(node, optionsId, mapping, queryParameters, secure);
+  return useGetOptionsUrl(node, dataSources, optionsId, mapping, queryParameters, secure);
 }
 
-export function useFetchOptions({ node, item }: FetchOptionsProps) {
+export function useFetchOptions({ node, item, dataSources }: FetchOptionsProps) {
   const { options, optionsId, source } = item;
-  const url = useOptionsUrl(node, item);
+  const url = useOptionsUrl(node, item, dataSources);
 
-  const sourceOptions = useSourceOptions({ source, node });
+  const sourceOptions = useSourceOptions({ source, node, dataSources });
   const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
   const { data, isFetching, error } = useGetOptionsQuery(url);
   useLogFetchError(error, item);
@@ -144,42 +155,75 @@ function useLogFetchError(error: Error | null, item: CompIntermediateExact<CompW
   }, [error, item]);
 }
 
-const emptyArray: never[] = [];
-export function useSortedOptions({ unsorted, valueType, item }: SortedOptionsProps) {
+export function useFilteredAndSortedOptions({
+  unsorted,
+  valueType,
+  node,
+  item,
+  dataSources,
+}: FilteredAndSortedOptionsProps) {
   const sortOrder = item.sortOrder;
-  const preselectedOptionIndex = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
+  const preselected = 'preselectedOptionIndex' in item ? item.preselectedOptionIndex : undefined;
   const language = useLanguage();
   const langAsString = language.langAsString;
   const selectedLanguage = useCurrentLanguage();
+  const optionFilter = item.optionFilter;
+  const dataModelBindings = item.dataModelBindings as IDataModelBindingsOptionsSimple | undefined;
+  const selectedValues = useSetOptions(valueType, dataModelBindings, unsorted).selectedValues;
 
   return useMemo(() => {
-    let options = structuredClone(unsorted);
-    verifyOptions(options, valueType === 'multi');
-    let preselectedOption: IOptionInternal | undefined = undefined;
-    if (preselectedOptionIndex !== undefined && options && options[preselectedOptionIndex]) {
-      // This index uses the original options array, before any filtering or sorting
-      preselectedOption = options[preselectedOptionIndex];
+    let preselectedOption: IOptionInternal | undefined;
+    if (preselected !== undefined) {
+      preselectedOption = unsorted[preselected];
     }
 
-    verifyOptions(options, valueType === 'multi');
+    let options = verifyAndDeduplicateOptions(unsorted, valueType === 'multi');
 
-    if (!options || options.length === 0) {
-      return { options: emptyArray, preselectedOption };
+    if (optionFilter !== undefined && ExprValidation.isValid(optionFilter)) {
+      options = options.filter((option) => {
+        const valueArguments: ExprValueArgs<IOptionInternal> = {
+          data: option,
+          defaultKey: 'value',
+        };
+        const keep = evalExpr(optionFilter, node, dataSources, { valueArguments });
+        if (!keep && selectedValues.includes(option.value)) {
+          window.logWarnOnce(
+            `Node '${node.id}': Option with value "${option.value}" was selected, but the option filter ` +
+              `excludes it. This will cause the option to be deselected. If this was unintentional, add a check ` +
+              `for the currently selected option in your optionFilter expression.`,
+          );
+        }
+        return keep;
+      });
+
+      // If we have an option filter AND a preselected option, we need to set which option is preselected
+      // again at this point. Previously, the preselected option was always just set to the first option in the list
+      // before any sorting an filtering was done, but for it to work correctly with optionFilter, we need to set it
+      // again here. Just setting it after the filtering is done might break some apps that rely on the old behavior.
+      if (preselected !== undefined) {
+        preselectedOption = options[preselected];
+      }
     }
 
-    if (options.length < 2) {
-      // No need to sort or filter if there are 0 or 1 options. Using langAsString() can lead to re-rendering, so
-      // we avoid it if we don't need it.
-      return { options, preselectedOption };
-    }
-
-    options = filterDuplicateOptions(options);
-    if (sortOrder) {
-      options = [...options].sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
+    // No need to sort if there are 0 or 1 options. Using langAsString() can lead to re-rendering, so
+    // we avoid it if we don't need it.
+    if (options.length > 1 && sortOrder) {
+      options.sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
     }
 
     return { options, preselectedOption };
-  }, [langAsString, preselectedOptionIndex, selectedLanguage, sortOrder, unsorted, valueType]);
+  }, [
+    unsorted,
+    valueType,
+    optionFilter,
+    preselected,
+    sortOrder,
+    node,
+    dataSources,
+    selectedValues,
+    langAsString,
+    selectedLanguage,
+  ]);
 }
 
 export function useGetOptions(

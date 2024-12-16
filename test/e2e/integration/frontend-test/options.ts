@@ -349,4 +349,75 @@ describe('Options', () => {
 
     assertRows(1, 2, 3, 4, 5, 6, 7, 8, 9);
   });
+
+  it('optionsFilter should remove options based on a condition', () => {
+    cy.gotoHiddenPage('filtered-options');
+
+    cy.findByRole('checkbox', { name: 'Blåbær' }).dsCheck();
+    cy.findByRole('checkbox', { name: 'Druer' }).should('not.exist'); // Filtered out
+    cy.findByRole('checkbox', { name: 'Banan' }).should('not.exist'); // Filtered out
+
+    cy.findByRole('button', { name: 'Legg til ny' }).click();
+
+    cy.dsReady('[data-componentid="ingredientType-0"]');
+    cy.get('[data-componentid="ingredientType-0"]').findByRole('combobox').click();
+    cy.get('[class*="fds-combobox__option"]').should('contain.text', 'Vannmelon');
+    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Blåbær');
+    cy.get('[class*="fds-combobox__option"]').findByText('Vannmelon').click();
+    cy.get('[data-componentid="ingredientId-0"]').should('have.text', '10');
+
+    cy.findByRole('button', { name: 'Legg til ny' }).click();
+    cy.dsReady('[data-componentid="ingredientType-1"]');
+    cy.get('[data-componentid="ingredientType-1"]').findByRole('combobox').click();
+    cy.get('[class*="fds-combobox__option"]').should('contain.text', 'Banan');
+    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Vannmelon');
+    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Blåbær');
+    cy.get('[class*="fds-combobox__option"]').findByText('Banan').click();
+    cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
+
+    // Disliking 'vannmelon' will remove the selection and not allow it to be re-selected
+    cy.findByRole('checkbox', { name: 'Vannmelon' }).dsCheck();
+    cy.get('[data-componentid="ingredientId-0"]').should('have.text', '');
+    cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5');
+    cy.get('[data-componentid="ingredientType-0"]').findByRole('combobox').click();
+    cy.get('[class*="fds-combobox__option"]').should('not.contain.text', 'Vannmelon');
+    cy.get('[data-componentid="ingredientType-0"]').type('{esc}');
+
+    // Add two rows with no ingredients selected
+    cy.findByRole('button', { name: 'Legg til ny' }).click();
+    cy.get('[data-componentid="ingredientType-2"]').should('be.visible');
+    cy.findByRole('button', { name: 'Legg til ny' }).click();
+    cy.get('[data-componentid="ingredientType-3"]').should('be.visible');
+    cy.get('[data-componentid="ingredientType-4"]').should('not.exist');
+
+    cy.changeLayout((comp) => {
+      if (comp.type === 'Dropdown' && comp.sortOrder) {
+        // At this point grapes are the first option, not yet selected in any of the rows. Using this as a
+        // preselected option will cause grapes to be selected for both the rows we
+        // just added (and the one where watermelon was removed)
+        comp.preselectedOptionIndex = 0;
+      }
+    });
+
+    // Assert that the grapes are selected in the first row, along with the two last rows we added
+    cy.get('[data-componentid="ingredientId-0"]').should('have.text', '1');
+    cy.get('[data-componentid="ingredientId-1"]').should('have.text', '5'); // Bananas!
+    cy.get('[data-componentid="ingredientId-2"]').should('have.text', '1');
+    cy.get('[data-componentid="ingredientId-3"]').should('have.text', '1');
+
+    const errMsg = 'Du kan ikke ha flere ingredienser av samme type';
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').eq(0).should('contain.text', errMsg);
+    cy.get(appFrontend.errorReport).findAllByRole('listitem').eq(1).should('contain.text', errMsg);
+
+    // Select something else than grapes in the third and fourth row
+    cy.dsSelect('#ingredientType-2', 'Jordbær');
+    cy.dsSelect('#ingredientType-3', 'Mais');
+
+    cy.get(appFrontend.errorReport).should('not.exist');
+
+    // Adding a new row now finds the first available option (spinach)
+    cy.findByRole('button', { name: 'Legg til ny' }).click();
+    cy.get('[data-componentid="ingredientId-4"]').should('have.text', '3');
+  });
 });

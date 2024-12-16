@@ -26,6 +26,12 @@ describe('expression schema tests', () => {
       expect(expressionSchema.definitions[`func-${name}`].type).toBe('array');
       expect(expressionSchema.definitions[`func-${name}`].items[0]).toEqual({ const: name });
 
+      // It might be tempting to add these into the definitions to make the schema stricter and properly validate
+      // min/max arguments, but this would make the schema less useful for the user, as they would not get
+      // autocompletion in vscode until they had the minimum number of arguments.
+      expect(expressionSchema.definitions[`func-${name}`].minItems).toBe(undefined);
+      expect(expressionSchema.definitions[`func-${name}`].maxItems).toBe(undefined);
+
       if (returns === ExprVal.Any) {
         // At least one of the definitions should be a match
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

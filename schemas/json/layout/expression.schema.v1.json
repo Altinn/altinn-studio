@@ -79,7 +79,8 @@
         { "$ref": "#/definitions/func-lowerCase" },
         { "$ref": "#/definitions/func-upperCase" },
         { "$ref": "#/definitions/func-_experimentalSelectAndMap" },
-        { "$ref": "#/definitions/func-argv"}
+        { "$ref": "#/definitions/func-argv"},
+        { "$ref": "#/definitions/func-value"}
       ]
     },
     "boolean": {
@@ -503,6 +504,16 @@
       "items": [
         { "const":  "argv" },
         { "$ref": "#/definitions/number" }
+      ],
+      "additionalItems": false
+    },
+    "func-value": {
+      "title": "Value argument function",
+      "description": "This function returns the value of argument(s) passed to the expression. The optional argument to this function should be a string naming other value arguments to return.",
+      "type": "array",
+      "items": [
+        { "const":  "value" },
+        { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false
     }

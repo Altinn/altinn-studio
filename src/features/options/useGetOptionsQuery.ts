@@ -14,6 +14,7 @@ import type { QueryDefinition } from 'src/core/queries/usePrefetchQuery';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IMapping, IQueryParameters } from 'src/layout/common.generated';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
+import type { ExpressionDataSources } from 'src/utils/layout/useExpressionDataSources';
 
 // Also used for prefetching @see staticOptionsPrefetcher.tsx
 export function useGetOptionsQueryDef(url?: string): QueryDefinition<{ data: IOptionInternal[] | undefined }> {
@@ -37,6 +38,7 @@ export const useGetOptionsQuery = (
 
 export const useGetOptionsUrl = (
   node: LayoutNode,
+  dataSources: ExpressionDataSources,
   optionsId: string | undefined,
   mapping?: IMapping,
   queryParameters?: IQueryParameters,
@@ -45,7 +47,6 @@ export const useGetOptionsUrl = (
   const mappingResult = FD.useMapping(mapping, GeneratorData.useDefaultDataType());
   const language = useCurrentLanguage();
   const instanceId = useLaxInstanceId();
-  const dataSources = GeneratorData.useExpressionDataSources();
   const resolvedQueryParameters = resolveQueryParameters(queryParameters, node, dataSources);
 
   return optionsId
