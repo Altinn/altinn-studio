@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Paragraph } from '@digdir/designsystemet-react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
@@ -68,7 +67,9 @@ export const PolicyAccessPackageAccordion = ({
           </>
         )}
         {services?.length === 0 && (
-          <Paragraph size='xs'>{t('policy_editor.access_package_no_services')}</Paragraph>
+          <div className={classes.noServicesText}>
+            {t('policy_editor.access_package_no_services')}
+          </div>
         )}
       </PolicyAccordion>
     </div>

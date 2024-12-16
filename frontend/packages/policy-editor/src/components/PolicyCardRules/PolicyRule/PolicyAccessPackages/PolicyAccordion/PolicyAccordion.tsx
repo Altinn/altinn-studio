@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import cn from 'classnames';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import * as StudioIcons from '@studio/icons';
@@ -24,6 +24,7 @@ export const PolicyAccordion = ({
   onOpened,
   children,
 }: PolicyAccordion): React.ReactNode => {
+  const contentId = useId();
   const [isExpanded, setIsExpanded] = useState<boolean>(defaultOpen || false);
   const IconComponent = StudioIcons[icon];
 
@@ -40,6 +41,7 @@ export const PolicyAccordion = ({
           fullWidth
           variant='tertiary'
           aria-expanded={isExpanded ? 'true' : 'false'}
+          aria-controls={contentId}
           onClick={() => setIsExpanded((oldIsExpanded) => !oldIsExpanded)}
         >
           <div className={classes.accordionButton}>
@@ -62,7 +64,11 @@ export const PolicyAccordion = ({
         </StudioButton>
         {extraHeaderContent}
       </div>
-      {isExpanded && <div className={classes.accordionContent}>{children}</div>}
+      {isExpanded && (
+        <div id={contentId} className={classes.accordionContent}>
+          {children}
+        </div>
+      )}
     </div>
   );
 };
