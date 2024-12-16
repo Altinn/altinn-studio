@@ -1344,6 +1344,7 @@
   "ux_editor.component_properties.pageRef": "Navnet til siden det gjelder (pageRef)",
   "ux_editor.component_properties.pagination": "Paginering",
   "ux_editor.component_properties.position": "Plassering av valuta",
+  "ux_editor.component_properties.preselectedOptionIndex": "Indeks/plassering av forhåndsvalgt verdi (preselectedOptionIndex)",
   "ux_editor.component_properties.queryParameters": "Parametere i spørringen",
   "ux_editor.component_properties.readOnly": "Feltet kan kun leses",
   "ux_editor.component_properties.receiver": "Den som mottar skjemaet",
