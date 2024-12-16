@@ -24,7 +24,7 @@ describe('CodeListPage', () => {
     defaultCodeListPageProps.fetchDataError = false;
     jest.clearAllMocks();
   });
-  
+
   it('renders the codeList heading', () => {
     renderCodeListPage();
     const codeListHeading = screen.getByRole('heading', {
@@ -74,7 +74,10 @@ describe('CodeListPage', () => {
     });
     expect(codeListAccordionClosed).toHaveAttribute('aria-expanded', 'false');
     await uploadCodeList(user, uploadedCodeListName);
-    defaultCodeListPageProps.codeLists.push({ title: uploadedCodeListName, codeList: codeListMock });
+    defaultCodeListPageProps.codeLists.push({
+      title: uploadedCodeListName,
+      codeList: codeListMock,
+    });
     rerender(
       <CodeListPage
         codeLists={defaultCodeListProps.codeLists}
@@ -128,15 +131,15 @@ describe('CodeListPage', () => {
 
 const changeCodeListId = async (user: UserEvent, codeListNameToChange: string) => {
   const codeListIdToggleTextfield = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_view_id_title', {
-        codeListName: codeListNameToChange,
-      }),
+    textMock('app_content_library.code_lists.code_list_view_id_title', {
+      codeListName: codeListNameToChange,
+    }),
   );
   await user.click(codeListIdToggleTextfield);
   const codeListIdInput = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_edit_id_title', {
-        codeListName: codeListNameToChange,
-      }),
+    textMock('app_content_library.code_lists.code_list_edit_id_title', {
+      codeListName: codeListNameToChange,
+    }),
   );
   await user.type(codeListIdInput, '2');
   await user.tab();
@@ -144,7 +147,7 @@ const changeCodeListId = async (user: UserEvent, codeListNameToChange: string) =
 
 const changeCodeListContent = async (user: UserEvent, newValueText: string) => {
   const codeListFirstItemValue = screen.getByLabelText(
-      textMock('code_list_editor.value_item', { number: 1 }),
+    textMock('code_list_editor.value_item', { number: 1 }),
   );
   await user.type(codeListFirstItemValue, newValueText);
   await user.tab();
@@ -152,7 +155,7 @@ const changeCodeListContent = async (user: UserEvent, newValueText: string) => {
 
 const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeListName) => {
   const fileUploaderButton = screen.getByLabelText(
-      textMock('app_content_library.code_lists.upload_code_list'),
+    textMock('app_content_library.code_lists.upload_code_list'),
   );
   const file = new File(['test'], `${fileName}.json`, { type: 'application/json' });
   await user.upload(fileUploaderButton, file);

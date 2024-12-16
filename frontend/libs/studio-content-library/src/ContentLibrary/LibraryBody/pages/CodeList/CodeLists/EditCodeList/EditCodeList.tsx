@@ -8,6 +8,7 @@ import { KeyVerticalIcon } from '@studio/icons';
 import { updateCodeListWithMetadata } from '../CodeLists';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
+import classes from './EditCodeList.module.css';
 
 export type EditCodeListProps = {
   codeList: CodeListWithMetadata;
@@ -41,10 +42,11 @@ export function EditCodeList({
   };
 
   return (
-    <>
+    <div className={classes.editCodeList}>
       <StudioToggleableTextfield
         customValidation={handleValidateCodeListId}
         inputProps={{
+          label: t('app_content_library.code_lists.code_list_edit_id_label'),
           icon: <KeyVerticalIcon />,
           title: t('app_content_library.code_lists.code_list_edit_id_title', {
             codeListName: codeList.title,
@@ -66,6 +68,6 @@ export function EditCodeList({
         onBlurAny={handleBlurAny}
         texts={editorTexts}
       />
-    </>
+    </div>
   );
 }
