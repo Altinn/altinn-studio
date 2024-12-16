@@ -4,12 +4,16 @@ import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { StudioAlert, StudioParagraph, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 
 export function ReferenceTab({
   component,
   handleComponentChange,
 }: IGenericEditComponent<SelectionComponentType>) {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: optionListIds } = useOptionListIdsQuery(org, app);
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -20,6 +24,10 @@ export function ReferenceTab({
       optionsId,
     });
   };
+
+  const isOptionsIdInLibrary = optionListIds?.some(
+    (optionId: string) => optionId == component.optionsId,
+  );
 
   return (
     <>
@@ -36,7 +44,7 @@ export function ReferenceTab({
         value={component.optionsId}
         size='small'
       />
-      {(component.optionsId || component.options) && (
+      {(isOptionsIdInLibrary || component.options) && (
         <StudioAlert severity={'info'} size='sm'>
           Du har allerede referert til en kodeliste. Skriver du inn en ID, vil referansen din bli
           slettet.
