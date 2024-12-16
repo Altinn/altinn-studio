@@ -46,7 +46,7 @@ describe('SchemaInspector', () => {
     renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
     const tablist = screen.getByRole('tablist');
     expect(tablist).toBeDefined();
-    expect(screen.getAllByRole('tab')).toHaveLength(2);
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
     const textboxes = screen.getAllByRole('textbox');
 
     for (const textbox of textboxes) {
