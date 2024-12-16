@@ -83,7 +83,7 @@ export function LibraryOptionsEditor({
       >
         <StudioCodeListEditor
           codeList={optionsList}
-          onChange={handleOptionsChange}
+          onBlurAny={handleOptionsChange}
           texts={editorTexts}
         />
       </StudioModal.Dialog>

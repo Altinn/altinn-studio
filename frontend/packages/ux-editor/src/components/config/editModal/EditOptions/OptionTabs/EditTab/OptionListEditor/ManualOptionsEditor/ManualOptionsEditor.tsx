@@ -75,7 +75,7 @@ export function ManualOptionsEditor({
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
-          onChange={handleOptionsChange}
+          onBlurAny={handleOptionsChange}
           texts={editorTexts}
         />
       </StudioModal.Dialog>
