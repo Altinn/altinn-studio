@@ -434,35 +434,6 @@ namespace Altinn.Studio.Designer.Controllers
             // 2. POST to get all resources per access package
             List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources([accesspackage], env);
 
-            // start test data
-            subjectResources.Add(new SubjectResources()
-            {
-                Subject = new AttributeMatchV2()
-                {
-                    Type = "",
-                    Value = "",
-                    Urn = "urn:altinn:accesspackage:akvakultur"
-                },
-                Resources = new List<AttributeMatchV2>() {
-                    new AttributeMatchV2() {
-                        Type = "",
-                        Value = "innsyn-i-driftsplaner-for-akvakulturanlegg-i-sj-vann",
-                        Urn = ""
-                    },
-                    new AttributeMatchV2() {
-                        Type = "",
-                        Value = "ske-innrapportering-omsetning-raafisk",
-                        Urn = ""
-                    },
-                    new AttributeMatchV2() {
-                        Type = "",
-                        Value = "mat-maskinportenschema-lakselusrapportering",
-                        Urn = ""
-                    },
-                }
-            });
-            // end test data
-
             // 3. GET full list of resources
             List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
             List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
