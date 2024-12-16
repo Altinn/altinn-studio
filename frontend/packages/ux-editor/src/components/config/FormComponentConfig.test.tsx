@@ -383,6 +383,47 @@ describe('FormComponentConfig', () => {
     );
   });
 
+  it('should call handleComponentUpdate when a boolean value is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: DatepickerSchema,
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.readOnly'),
+    });
+    await user.click(timeStampSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ readOnly: true }),
+    );
+  });
+
+  it('should call handleComponentUpdate for custom file endings', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          properties: {
+            hasCustomFileEndings: { type: 'boolean', default: false },
+            validFileEndings: { type: 'string', description: 'Valid file endings' },
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
+    });
+    await user.click(hasCustomFileEndingsSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ hasCustomFileEndings: true }),
+    );
+  });
+
   const render = ({
     props = {},
     queries = {},
