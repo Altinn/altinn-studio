@@ -250,24 +250,31 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the model metadata for a given model.
+        /// Gets the dataType for a given datamodel.
         /// </summary>
-        [HttpGet("datamodel/{modelName}/metadata")]
+        [HttpGet("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task<IActionResult> GetModelMetadata(string org, string repository, string modelName)
+        public async Task<ActionResult<DataType>> GetModelDataType(string org, string repository, string modelName)
         {
-            var dataTypeConfiguration = await _schemaModelService.GetModelMetadata(org, repository, modelName);
-            return Ok(dataTypeConfiguration);
+            DataType dataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(dataType);
         }
 
         /// <summary>
-        /// Updates the model metadata for a given model.
+        /// Updates the dataType for a given model.
         /// </summary>
-        [HttpPut("datamodel/{modelName}/metadata")]
+        [HttpPut("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task UpdateModelMetadata(string org, string repository, string modelName, [FromBody] DataType dataType)
+        public async Task<ActionResult> SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
         {
-            await _schemaModelService.UpdateModelMetadata(org, repository, modelName, dataType);
+            if (!Equals(modelName, dataType.Id))
+            {
+                return BadRequest("Model name in path and request body does not match");
+            }
+
+            await _schemaModelService.SetModelDataType(org, repository, modelName, dataType);
+            DataType updatedDataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(updatedDataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
