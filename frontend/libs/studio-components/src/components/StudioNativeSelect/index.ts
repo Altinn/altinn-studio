@@ -1,1 +1,1 @@
-export { StudioNativeSelect } from './StudioNativeSelect';
+export * from './StudioNativeSelect';

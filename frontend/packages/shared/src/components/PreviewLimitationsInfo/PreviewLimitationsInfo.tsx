@@ -34,13 +34,11 @@ export const PreviewLimitationsInfo = () => {
       <div className={classes.alert}>
         {t('preview.limitations_info')}
         <StudioPopover open={openSaveChoiceInSession}>
-          <StudioPopover.Trigger asChild>
-            <StudioButton
-              onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)}
-              variant='tertiary'
-              icon={<XMarkIcon />}
-            />
-          </StudioPopover.Trigger>
+          <StudioPopover.Trigger
+            onClick={() => setOpenShowSaveChoiceInSession(!openSaveChoiceInSession)}
+            variant='tertiary'
+            icon={<XMarkIcon />}
+          />
           <StudioPopover.Content className={classes.popoverContent}>
             <p className={classes.message}>{t('session.reminder')}</p>
             <StudioButton

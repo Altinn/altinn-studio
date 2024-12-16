@@ -174,21 +174,18 @@ export const TextResource = ({
               confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
               onConfirm={handleDeleteButtonClick}
               onClose={() => setIsConfirmDeleteDialogOpen(false)}
-              trigger={
-                <StudioButton
-                  aria-label={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
-                  className={classes.button}
-                  color='second'
-                  disabled={
-                    !handleRemoveTextResource ||
-                    !(!!textResourceId || shouldDisplayFeature(FeatureFlag.ComponentConfigBeta))
-                  }
-                  icon={<TrashIcon />}
-                  onClick={() => setIsConfirmDeleteDialogOpen(true)}
-                  title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
-                  variant='tertiary'
-                />
-              }
+              triggerProps={{
+                'aria-label': t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey)),
+                className: classes.button,
+                color: 'second',
+                disabled:
+                  !handleRemoveTextResource ||
+                  !(!!textResourceId || shouldDisplayFeature(FeatureFlag.ComponentConfigBeta)),
+                icon: <TrashIcon />,
+                onClick: () => setIsConfirmDeleteDialogOpen(true),
+                title: t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey)),
+                variant: 'tertiary',
+              }}
             >
               <div>
                 <p>{t('ux_editor.text_resource_bindings.delete_confirm_question')}</p>

@@ -1,10 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -54,6 +58,51 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Empty(responseList);
+    }
+
+    [Fact]
+    public async Task GetOptionLists_Returns200OK_WithOptionListsData()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        string targetRepository = TestDataHelper.GenerateTestRepoName();
+        await CopyRepositoryForTest("ttd", repo, "testUser", targetRepository);
+        string apiUrl = $"/designer/api/ttd/{targetRepository}/options/option-lists";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+        string optionListMissingValue = @"[{ ""label"": ""someLabel""}]";
+        string optionListMissingLabel = @"[{ ""value"": ""someValue""}]";
+        string optionListTrailingComma = @"[{ ""value"": ""someValue"", ""label"": ""someLabel"",}]";
+        string optionListLabelWithObject = @"[{ ""value"": ""someValue"", ""label"": {}}]";
+        string optionListLabelWithNumber = @"[{ ""value"": ""someValue"", ""label"": 12345}]";
+        string optionListLabelWithBool = @"[{ ""value"": ""someValue"", ""label"": true}]";
+        string repoPath = TestDataHelper.GetTestDataRepositoryDirectory("ttd", targetRepository, "testUser");
+        string filePath = Path.Combine(repoPath, "App/options");
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListMissingValue.json"), optionListMissingValue);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListMissingLabel.json"), optionListMissingLabel);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListTrailingComma.json"), optionListTrailingComma);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithObject.json"), optionListLabelWithObject);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithNumber.json"), optionListLabelWithNumber);
+        await File.WriteAllTextAsync(Path.Combine(filePath, "optionListLabelWithBool.json"), optionListLabelWithBool);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        responseList.Should().BeEquivalentTo(new List<OptionListData>
+        {
+            new () { Title = "options-with-null-fields", Data = null, HasError = true },
+            new () { Title = "other-options", HasError = false },
+            new () { Title = "test-options", HasError = false },
+            new () { Title = "optionListMissingValue", Data = null, HasError = true },
+            new () { Title = "optionListMissingLabel", Data = null, HasError = true },
+            new () { Title = "optionListTrailingComma", Data = null, HasError = true },
+            new () { Title = "optionListLabelWithObject", Data = null, HasError = true },
+            new () { Title = "optionListLabelWithNumber", Data = null, HasError = true },
+            new () { Title = "optionListLabelWithBool", Data = null, HasError = true }
+        }, options => options.Excluding(x => x.Data));
     }
 
     [Fact]

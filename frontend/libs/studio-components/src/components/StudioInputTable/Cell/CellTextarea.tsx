@@ -7,7 +7,7 @@ import { StudioTextarea } from '../../StudioTextarea';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';
 import { isCaretAtEnd, isCaretAtStart, isSomethingSelected } from '../dom-utils/caretUtils';
-import { useEventProps } from './useEventProps';
+import { useFormEventProps } from './useFormEventProps';
 
 export type CellTextareaProps = StudioTextareaProps;
 
@@ -27,7 +27,7 @@ export class CellTextarea extends BaseInputCell<HTMLTextAreaElement, CellTextare
       [onFocus],
     );
 
-    const eventProps = useEventProps<HTMLTextAreaElement>({ onFocus: handleFocus, ...rest });
+    const eventProps = useFormEventProps<HTMLTextAreaElement>({ onFocus: handleFocus, ...rest });
 
     const className = cn(classes.textareaCell, givenClass);
     return (
