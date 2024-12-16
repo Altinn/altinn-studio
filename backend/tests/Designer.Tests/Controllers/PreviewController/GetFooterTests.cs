@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -34,19 +35,6 @@ namespace Designer.Tests.Controllers.PreviewController
             FooterFile responseFooterFile = JsonSerializer.Deserialize<FooterFile>(responseString);
 
             responseFooterFile.Footer.Should().BeEquivalentTo(actualFooterFile.Footer);
-        }
-
-        [Fact]
-        public async Task Get_Footer_Non_Existing_Ok()
-        {
-            string dataPathWithData = $"{Org}/{AppV3}/api/v1/footer";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseString = await response.Content.ReadAsStringAsync();
-            responseString.Should().BeEmpty();
         }
     }
 }

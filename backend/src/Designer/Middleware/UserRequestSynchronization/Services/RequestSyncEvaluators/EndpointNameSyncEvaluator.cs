@@ -13,10 +13,11 @@ namespace Altinn.Studio.Designer.Middleware.UserRequestSynchronization.Services.
 public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
 {
     private const string RemoveControllerSuffix = "Controller";
+    private static string TrimmedControllerName(string controllerName) => controllerName.Replace(RemoveControllerSuffix, string.Empty);
     private readonly FrozenDictionary<string, FrozenSet<string>> _endpointsWhiteList = new Dictionary<string, FrozenSet<string>>
     {
         {
-            nameof(RepositoryController).Replace(RemoveControllerSuffix, string.Empty),
+            TrimmedControllerName(nameof(RepositoryController)),
             GenerateFrozenSet(
                 nameof(RepositoryController.RepoStatus),
                 nameof(RepositoryController.RepoDiff),
@@ -28,7 +29,7 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
             )
         },
         {
-            nameof(AppDevelopmentController).Replace(RemoveControllerSuffix, string.Empty),
+            TrimmedControllerName(nameof(AppDevelopmentController)),
             GenerateFrozenSet(
                 nameof(AppDevelopmentController.SaveFormLayout),
                 nameof(AppDevelopmentController.UpdateFormLayoutName),
@@ -42,24 +43,37 @@ public class EndpointNameSyncEvaluator : IRequestSyncEvaluator
             )
         },
         {
-            nameof(ApplicationMetadataController).Replace(RemoveControllerSuffix, string.Empty),
+            TrimmedControllerName(nameof(ApplicationMetadataController)),
             GenerateFrozenSet(
                 nameof(ApplicationMetadataController.DeleteMetadataForAttachment)
             )
         },
         {
-            nameof(ProcessModelingController).Replace(RemoveControllerSuffix, string.Empty),
+            TrimmedControllerName( nameof(ProcessModelingController)),
             GenerateFrozenSet(
                 nameof(ProcessModelingController.AddDataTypeToApplicationMetadata),
                 nameof(ProcessModelingController.DeleteDataTypeFromApplicationMetadata),
                 nameof(ProcessModelingController.UpsertProcessDefinitionAndNotify),
+                nameof(ProcessModelingController.ProcessDataTypesChangedNotify),
                 nameof(ProcessModelingController.SaveProcessDefinitionFromTemplate)
             )
         },
         {
-            nameof(ResourceAdminController).Replace(RemoveControllerSuffix, string.Empty),
+            TrimmedControllerName( nameof(ResourceAdminController)),
             GenerateFrozenSet(
                 nameof(ResourceAdminController.UpdateResource)
+            )
+        },
+        {
+            TrimmedControllerName(nameof(ReleasesController)),
+            GenerateFrozenSet(
+                nameof(ReleasesController.Create)
+            )
+        },
+        {
+            TrimmedControllerName(nameof(DeploymentsController)),
+            GenerateFrozenSet(
+                nameof(DeploymentsController.Create)
             )
         }
     }.ToFrozenDictionary();

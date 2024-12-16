@@ -23,7 +23,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class.
         /// </summary>
         /// <param name="applicationMetadataService">The application metadata service</param>
-        /// <param name="userRequestsSynchronizationService">The user requests synchronization service</param>
         public ApplicationMetadataController(IApplicationMetadataService applicationMetadataService)
         {
             _applicationMetadataService = applicationMetadataService;
