@@ -20,7 +20,6 @@ public class ComponentDeletedHandler(IFileSyncHandlerExecutor fileSyncHandlerExe
             async () =>
             {
                 List<Reference> referencesToDelete = [new Reference("component", notification.LayoutSetName, notification.ComponentId)];
-
                 return await appDevelopmentService.DeleteFromLayouts(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }
