@@ -8,12 +8,12 @@ export type Image = {
   imageSrc: string;
 };
 
-export type ImagesProps = {
+export type ImagesPageProps = {
   images: Image[];
   onUpdateImage: (updatedImage: Image) => void;
 };
 
-export function Images({ images, onUpdateImage }: ImagesProps): React.ReactElement {
+export function ImagesPage({ images, onUpdateImage }: ImagesPageProps): React.ReactElement {
   const { t } = useTranslation();
 
   const noExistingImages = images.length === 0;

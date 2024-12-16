@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListProps, CodeListWithMetadata } from './CodeList';
-import { CodeList } from './CodeList';
+import type { CodeListPageProps, CodeListWithMetadata } from './CodeListPage';
+import { CodeListPage } from './CodeListPage';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 
 const onUpdateCodeListMock = jest.fn();
@@ -12,7 +12,7 @@ const codeListMock: CodeListWithMetadata = {
   codeList: [{ value: 'value', label: 'label' }],
 };
 
-describe('CodeList', () => {
+describe('CodeListPage', () => {
   it('renders the codeList heading', () => {
     renderCodeList();
     const codeListHeading = screen.getByRole('heading', {
@@ -56,7 +56,7 @@ describe('CodeList', () => {
   });
 });
 
-const defaultCodeListProps: CodeListProps = {
+const defaultCodeListProps: CodeListPageProps = {
   codeLists: [codeListMock],
   onUpdateCodeList: onUpdateCodeListMock,
   onUploadCodeList: onUploadCodeListMock,
@@ -68,9 +68,9 @@ const renderCodeList = ({
   onUpdateCodeList,
   onUploadCodeList,
   fetchDataError,
-}: Partial<CodeListProps> = defaultCodeListProps) => {
+}: Partial<CodeListPageProps> = defaultCodeListProps) => {
   render(
-    <CodeList
+    <CodeListPage
       codeLists={codeLists}
       onUpdateCodeList={onUpdateCodeList}
       onUploadCodeList={onUploadCodeList}

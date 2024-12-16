@@ -3,7 +3,7 @@ import { Search } from '@digdir/designsystemet-react';
 import { StudioFileUploader } from '@studio/components';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../CodeList';
+import type { CodeListWithMetadata } from '../CodeListPage';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';
