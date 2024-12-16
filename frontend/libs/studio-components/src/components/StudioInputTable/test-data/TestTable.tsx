@@ -9,7 +9,10 @@ import {
   textareaHeader,
   textfieldHeader,
   textHeader,
+  textResourceHeader,
+  textResourceTexts,
 } from './testTableData';
+import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
 export function TestTable(props: StudioInputTableProps): ReactElement {
   return (
@@ -20,6 +23,7 @@ export function TestTable(props: StudioInputTableProps): ReactElement {
           <StudioInputTable.HeaderCell>{textHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textfieldHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textareaHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{textResourceHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{buttonHeader}</StudioInputTable.HeaderCell>
         </StudioInputTable.Row>
       </StudioInputTable.Head>
@@ -52,6 +56,13 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
       <StudioInputTable.Cell.Textarea
         name={testData.textareaName(rn)}
         label={testData.textareaLabel(rn)}
+      />
+      <StudioInputTable.Cell.TextResource
+        textResources={textResourcesMock}
+        currentId='land.NO'
+        onChangeCurrentId={() => {}}
+        onChangeTextResource={() => {}}
+        texts={textResourceTexts(rn)}
       />
       <StudioInputTable.Cell.Button>{testData.buttonLabel(rn)}</StudioInputTable.Cell.Button>
     </StudioInputTable.Row>

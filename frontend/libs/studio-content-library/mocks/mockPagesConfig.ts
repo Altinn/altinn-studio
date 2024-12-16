@@ -7,6 +7,7 @@ export const mockPagesConfig: PagesConfig = {
         { title: 'CodeList1', codeList: [] },
         { title: 'CodeList2', codeList: [] },
       ],
+      onUpdateCodeListId: () => {},
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
       fetchDataError: false,

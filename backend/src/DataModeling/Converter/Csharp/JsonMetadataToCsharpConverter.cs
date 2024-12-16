@@ -223,7 +223,7 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
             var nullableReference = useNullableReferenceTypes ? "?" : string.Empty;
             WriteRestrictionAnnotations(classBuilder, element);
             elementOrder += 1;
-            AddXmlElementAnnotation(element, classBuilder, elementOrder);
+            AddXmlElementAnnotation(element, classBuilder, elementOrder, element.Nillable ?? false);
 
             // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
             // deserialization, we need both JsonProperty and JsonPropertyName annotations.
