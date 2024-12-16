@@ -44,6 +44,7 @@
   }
 
   .orgname {
+    margin-top: var(--fds-spacing-1);
     grid-area: orgname;
     align-self: start;
   }

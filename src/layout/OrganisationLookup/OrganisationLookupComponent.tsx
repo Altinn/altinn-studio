@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { ErrorMessage } from '@digdir/designsystemet-react';
+import { ErrorMessage, Paragraph } from '@digdir/designsystemet-react';
 import { queryOptions, useQuery } from '@tanstack/react-query';
 
 import type { PropsFromGenericComponent } from '..';
@@ -198,7 +198,7 @@ export function OrganisationLookupComponent({
             className={classes.orgname}
             aria-label={langAsString('organisation_lookup.org_name')}
           >
-            {hasSuccessfullyFetched && <span>{orgName}</span>}
+            {hasSuccessfullyFetched && <Paragraph size='sm'>{orgName}</Paragraph>}
           </div>
         </div>
       </ComponentStructureWrapper>
