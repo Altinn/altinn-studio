@@ -330,6 +330,59 @@ describe('FormComponentConfig', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should call handleComponentUpdate with validFileEndings undefined when hasCustomFileEndings is false', async () => {
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          properties: {
+            hasCustomFileEndings: { type: 'boolean', default: true },
+            validFileEndings: { type: 'string', description: 'Valid file endings' },
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const user = userEvent.setup();
+    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
+    });
+    expect(hasCustomFileEndingsSwitch).toBeChecked();
+    await user.click(hasCustomFileEndingsSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hasCustomFileEndings: false,
+        validFileEndings: undefined,
+      }),
+    );
+  });
+
+  it('should call handleComponentUpdate with updated component when hasCustomFileEndings is true', async () => {
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: {
+          properties: {
+            hasCustomFileEndings: { type: 'boolean', default: false },
+            validFileEndings: { type: 'string', description: 'Valid file endings' },
+          },
+        },
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const user = userEvent.setup();
+    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
+    });
+    expect(hasCustomFileEndingsSwitch).not.toBeChecked();
+    await user.click(hasCustomFileEndingsSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hasCustomFileEndings: true,
+      }),
+    );
+  });
+
   const render = ({
     props = {},
     queries = {},
