@@ -14,16 +14,16 @@ import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/feat
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
 
-describe('EditOptions', () => {
+describe('OptionTabs', () => {
   afterEach(() => jest.clearAllMocks());
 
   it('should render component', () => {
-    renderEditOptions();
+    renderOptionTabs();
     expect(screen.getByText(textMock('ux_editor.options.tab_code_list'))).toBeInTheDocument();
   });
 
   it('should show code list input by default when neither options nor optionId are set', () => {
-    renderEditOptions({
+    renderOptionTabs({
       componentProps: { options: undefined, optionsId: undefined },
     });
     expect(
@@ -35,7 +35,7 @@ describe('EditOptions', () => {
 
   it('should show code list tab when component has optionsId defined matching an optionId in optionsID-list', () => {
     const optionsId = 'optionsId';
-    renderEditOptions({
+    renderOptionTabs({
       componentProps: {
         optionsId,
         options: undefined,
@@ -52,7 +52,7 @@ describe('EditOptions', () => {
 
   it('should show referenceId tab when component has optionsId defined not matching an optionId in optionsId-list', () => {
     const optionsId = 'optionsId';
-    renderEditOptions({
+    renderOptionTabs({
       componentProps: {
         optionsId,
         options: undefined,
@@ -62,7 +62,7 @@ describe('EditOptions', () => {
 
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       }),
     ).toBeInTheDocument();
   });
@@ -70,7 +70,7 @@ describe('EditOptions', () => {
   it('should switch to code list tab when clicking code list tab', async () => {
     const user = userEvent.setup();
     const optionsId = 'optionsId';
-    renderEditOptions({
+    renderOptionTabs({
       componentProps: {
         optionsId,
       },
@@ -98,71 +98,70 @@ describe('EditOptions', () => {
 
   it('should switch to referenceId input clicking referenceId tab', async () => {
     const user = userEvent.setup();
-    renderEditOptions({
+    renderOptionTabs({
       componentProps: { options: [] },
     });
 
     const referenceIdElement = screen.getByRole('tab', {
-      name: textMock('ux_editor.options.tab_referenceId'),
+      name: textMock('ux_editor.options.tab_reference_id'),
     });
     await user.click(referenceIdElement);
 
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       }),
     ).toBeInTheDocument();
   });
 
-  it('should render EditOptionChoice when featureFlag is enabled', async () => {
+  it('should render the preview title for manual options when manual options are set and featureFlag is enabled', async () => {
     addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
-    const optionsId = 'optionsId';
-    renderEditOptions({
+    const options = [{ value: '1', label: 'label 1' }];
+    renderOptionTabs({
       componentProps: {
-        optionsId,
-        options: undefined,
+        optionsId: undefined,
+        options,
       },
-      optionListIds: [optionsId],
     });
 
     expect(
-      await screen.findByRole('button', { name: textMock('ux_editor.options.option_remove_text') }),
+      await screen.findByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
     ).toBeInTheDocument();
   });
 
   it('should switch to referenceId input clicking referenceId tab', async () => {
     addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
     const user = userEvent.setup();
-    renderEditOptions({
+    renderOptionTabs({
       componentProps: { options: [] },
     });
 
     const referenceIdElement = screen.getByRole('tab', {
-      name: textMock('ux_editor.options.tab_referenceId'),
+      name: textMock('ux_editor.options.tab_reference_id'),
     });
     await user.click(referenceIdElement);
 
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       }),
     ).toBeInTheDocument();
   });
 });
 
-type renderEditOptionsProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
+type renderOptionTabsProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
   componentProps?: Partial<FormItem<T>>;
   handleComponentChange?: () => void;
   queries?: Partial<ServicesContextProps>;
   optionListIds?: string[];
 };
 
-function renderEditOptions<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
+function renderOptionTabs<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
   componentProps = {},
   handleComponentChange = jest.fn(),
   queries = {},
   optionListIds = [],
-}: renderEditOptionsProps<T> = {}) {
+}: renderOptionTabsProps<T> = {}) {
   return renderWithProviders(
     <OptionTabs
       optionListIds={optionListIds}

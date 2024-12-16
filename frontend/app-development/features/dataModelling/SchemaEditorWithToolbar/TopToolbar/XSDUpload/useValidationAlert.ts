@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useCallback } from 'react';
-import type { FileNameError } from '../types/FileNameError';
+import { FileNameErrorResult } from '@studio/pure-functions';
 
 export const useValidationAlert = () => {
   const { t } = useTranslation();
 
   return useCallback(
-    (error: FileNameError): void => {
-      if (error === 'invalidFileName') {
+    (error: FileNameErrorResult): void => {
+      if (error === FileNameErrorResult.NoRegExMatch) {
         alert(t('app_data_modelling.upload_xsd_invalid_name_error'));
       }
     },

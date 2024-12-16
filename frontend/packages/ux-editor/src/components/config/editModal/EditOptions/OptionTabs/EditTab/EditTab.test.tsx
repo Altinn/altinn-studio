@@ -2,12 +2,11 @@ import React from 'react';
 import { EditTab } from './EditTab';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -15,52 +14,98 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 describe('EditTab', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('should render DisplayChosenOption', async () => {
+  it('should render spinner', () => {
     renderEditTab();
     expect(
-      screen.getByRole('button', { name: textMock('ux_editor.options.option_remove_text') }),
+      screen.getByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
     ).toBeInTheDocument();
   });
 
-  it('should render EditOptionList', async () => {
+  it('should render error message when query fails', async () => {
+    renderEditTab({
+      queries: { getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()) },
+    });
+
+    await waitForSpinnerToBeRemoved();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render preview of a custom code list when component has manual options set', async () => {
+    renderEditTab({ componentProps: { optionsId: undefined } });
+
+    await waitForSpinnerToBeRemoved();
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render upload option list button when option list is not defined on component', async () => {
     renderEditTab({
       componentProps: {
         options: undefined,
+        optionsId: undefined,
       },
     });
 
+    await waitForSpinnerToBeRemoved();
     expect(
       screen.getByRole('button', { name: textMock('ux_editor.options.upload_title') }),
     ).toBeInTheDocument();
   });
 
-  it('should set optionsId to blank when removing choice', async () => {
+  it('should call handleComponentChange with empty options array when clicking create new options', async () => {
     const user = userEvent.setup();
-    const handleOptionsIdChange = jest.fn();
-    renderEditTab({ handleComponentChange: handleOptionsIdChange });
-    const expectedArgs = mockComponent;
-    expectedArgs.optionsId = '';
-    delete expectedArgs.options;
-
-    const button = await screen.findByRole('button', {
-      name: textMock('ux_editor.options.option_remove_text'),
+    const handleComponentChange = jest.fn();
+    renderEditTab({
+      componentProps: {
+        options: undefined,
+        optionsId: undefined,
+      },
+      handleComponentChange,
     });
-    await user.click(button);
 
-    expect(handleOptionsIdChange).toHaveBeenCalledTimes(1);
-    expect(handleOptionsIdChange).toHaveBeenCalledWith(expectedArgs);
+    await waitForSpinnerToBeRemoved();
+    const addManualOptionsButton = screen.getByRole('button', {
+      name: textMock('general.create_new'),
+    });
+    await user.click(addManualOptionsButton);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [],
+      optionsId: undefined,
+    });
+  });
+
+  it('should render alert when options ID is a reference ID', async () => {
+    renderEditTab({
+      componentProps: {
+        options: undefined,
+        optionsId: 'option-id-that-does-not-exist-in-app',
+      },
+    });
+
+    await waitForSpinnerToBeRemoved();
+    expect(
+      screen.getByText(textMock('ux_editor.options.tab_option_list_alert_title')),
+    ).toBeInTheDocument();
   });
 });
 
-type renderProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
-  componentProps?: Partial<FormItem<T>>;
-  handleComponentChange?: () => void;
-};
+async function waitForSpinnerToBeRemoved() {
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+  );
+}
 
-function renderEditTab<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
+function renderEditTab({
   componentProps = {},
   handleComponentChange = jest.fn(),
-}: renderProps<T> = {}) {
+  queries = {},
+} = {}) {
   return renderWithProviders(
     <EditTab
       component={{
@@ -70,6 +115,7 @@ function renderEditTab<T extends ComponentType.Checkboxes | ComponentType.RadioB
       handleComponentChange={handleComponentChange}
     />,
     {
+      queries,
       queryClient: createQueryClientMock(),
     },
   );

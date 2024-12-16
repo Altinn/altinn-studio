@@ -69,7 +69,11 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type {
+  OptionListsReferences,
+  OptionsList,
+  OptionsListsResponse,
+} from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
@@ -102,14 +106,17 @@ export const queriesMock: ServicesContextProps = {
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getLayoutSetsExtended: jest
     .fn()
     .mockImplementation(() => Promise.resolve<LayoutSetsModel>(layoutSetsExtendedMock)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
+  getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionsList>([])),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsListsResponse>([])),
+  getOptionListsReferences: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<OptionListsReferences>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -149,6 +156,8 @@ export const queriesMock: ServicesContextProps = {
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getAccessPackages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getAccessPackageServices: jest.fn().mockImplementation(() => Promise.resolve([])),
   getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
   getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
   getResourcePublishStatus: jest
@@ -251,6 +260,9 @@ export const queriesMock: ServicesContextProps = {
   addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   migrateDelegations: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Preview
+  createPreviewInstance: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),
