@@ -149,8 +149,8 @@ describe('OptionListEditor', () => {
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       const expectedResultAfterEdit: Option[] = [
         { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-        { value: 2, label: 'label number', description: 'test', helpText: null },
-        { value: true, label: 'label boolean', description: null, helpText: null },
+        { value: '2', label: 'label number', description: 'test', helpText: null },
+        { value: 'true', label: 'label boolean', description: null, helpText: null },
       ];
 
       await user.click(getOptionModalButton());
