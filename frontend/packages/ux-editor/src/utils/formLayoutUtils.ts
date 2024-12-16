@@ -4,7 +4,7 @@ import type {
   InternalLayoutData,
   IToolbarElement,
 } from '../types/global';
-import { BASE_CONTAINER_ID, MAX_NESTED_GROUP_LEVEL } from 'app-shared/constants';
+import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { ArrayUtils, ObjectUtils } from '@studio/pure-functions';
 import { ComponentType, type CustomComponentType } from 'app-shared/types/ComponentType';
 import type { FormComponent } from '../types/FormComponent';
@@ -361,14 +361,6 @@ export const getDepth = (layout: IInternalLayout): number => {
   if (containers.length <= 1) return 0;
   else return Math.max(...containers.map((id) => numberOfContainerLevels(layout, id)));
 };
-
-/**
- * Checks if the depth of a layout is within the allowed range.
- * @param layout The layout to check.
- * @returns True if the depth is within the allowed range, false otherwise.
- */
-export const validateDepth = (layout: IInternalLayout): boolean =>
-  getDepth(layout) <= MAX_NESTED_GROUP_LEVEL;
 
 export const isComponentTypeValidChild = (
   layout: IInternalLayout,

@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
 import { Label, type LabelProps } from '@digdir/designsystemet-react';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
-type StudioLabelAsParagraphProps = Omit<LabelProps, 'asChild'>;
+type StudioLabelAsParagraphProps = WithoutAsChild<LabelProps>;
 
 export const StudioLabelAsParagraph = forwardRef<HTMLLabelElement, StudioLabelAsParagraphProps>(
   ({ children, ...rest }, ref) => {

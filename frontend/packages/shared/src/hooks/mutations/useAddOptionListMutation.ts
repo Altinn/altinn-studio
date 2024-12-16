@@ -14,11 +14,9 @@ export const useAddOptionListMutation = (org: string, app: string, meta?: Mutati
 
   return useMutation({
     mutationFn,
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] }),
-        queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org, app] }),
-      ]);
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] });
+      void queryClient.invalidateQueries({ queryKey: [QueryKey.OptionLists, org, app] });
     },
     meta,
   });
