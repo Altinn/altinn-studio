@@ -46,8 +46,7 @@ export function ReferenceTab({
       />
       {(isOptionsIdInLibrary || component.options) && (
         <StudioAlert severity={'info'} size='sm'>
-          Du har allerede referert til en kodeliste. Skriver du inn en ID, vil referansen din bli
-          slettet.
+          {t('ux_editor.options.tab_referenceid_alert_title')}
         </StudioAlert>
       )}
       <p>
