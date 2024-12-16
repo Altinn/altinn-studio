@@ -76,4 +76,5 @@ export enum QueryKey {
   PartiesRegistrySearch = 'PartiesRegistrySearch',
   SubPartiesRegistrySearch = 'SubPartiesRegistrySearch',
   Altinn2DelegationCount = 'Altinn2DelegationCount',
+  UpdateDataType = 'UpdateDataType',
 }
