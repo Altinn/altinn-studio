@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
+import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { ReferenceTab } from './ReferenceTab';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -7,23 +7,32 @@ import type { FormComponent } from '../../../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../testing/componentMocks';
+import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockComponent = componentMocks[ComponentType.Dropdown];
+const mockOptionListIds = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve<string[]>(['test1', 'test2']));
 
 describe('ReferenceTab', () => {
-  it('should render', () => {
+  it('should render', async () => {
     renderReferenceTab();
+    await waitForElementToBeRemoved(() =>
+      screen.getByText(textMock('ux_editor.modal_properties_loading')),
+    );
+
     expect(
       screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
     ).toBeInTheDocument();
   });
 
-  it('should render value when optionsId is set', () => {
+  it('should render value when optionsId is set', async () => {
     renderReferenceTab({
       componentProps: {
         optionsId: 'some-id',
       },
     });
+
     expect(screen.getByDisplayValue('some-id')).toBeInTheDocument();
   });
 
@@ -79,5 +88,6 @@ const renderReferenceTab = ({
         ...componentProps,
       }}
     />,
+    { queries: { ...queriesMock, getOptionListIds: mockOptionListIds } },
   );
 };

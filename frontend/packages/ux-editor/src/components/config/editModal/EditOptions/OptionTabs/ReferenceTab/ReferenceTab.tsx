@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioAlert, StudioParagraph, StudioTextfield } from '@studio/components';
+import { StudioAlert, StudioParagraph, StudioSpinner, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
@@ -13,7 +13,7 @@ export function ReferenceTab({
 }: IGenericEditComponent<SelectionComponentType>) {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -24,6 +24,15 @@ export function ReferenceTab({
       optionsId,
     });
   };
+
+  if (isPending) {
+    return (
+      <StudioSpinner
+        showSpinnerTitle={false}
+        spinnerTitle={t('ux_editor.modal_properties_loading')}
+      />
+    );
+  }
 
   const isOptionsIdInLibrary = optionListIds?.some(
     (optionId: string) => optionId == component.optionsId,
