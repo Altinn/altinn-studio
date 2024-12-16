@@ -44,7 +44,9 @@ export function LibraryOptionsEditor({
     }
   };
 
-  const codeListLabels: string = optionsList.map((option: Option) => `${option.label}`).join(' | ');
+  const codeListLabels: string = optionsList
+    .map((option: Option) => `${option.label || t('general.empty_string')}`)
+    .join(' | ');
 
   return (
     <div className={classes.container}>

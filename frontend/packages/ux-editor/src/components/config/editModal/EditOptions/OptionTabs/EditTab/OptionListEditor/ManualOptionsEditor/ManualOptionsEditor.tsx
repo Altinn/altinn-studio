@@ -38,7 +38,7 @@ export function ManualOptionsEditor({
   };
 
   const codeListLabels: string = component.options
-    .map((option: Option) => `${option.label}`)
+    .map((option: Option) => `${option.label || t('general.empty_string')}`)
     .join(' | ');
 
   return (
