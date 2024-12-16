@@ -272,7 +272,7 @@ describe('EditBinding without featureFlag', () => {
     );
   });
 
-  it('should call handleComponentChange when click on delete button', async () => {
+  it('should set the data model binding to the default value when click on delete button', async () => {
     window.confirm = jest.fn(() => true);
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
@@ -311,6 +311,37 @@ describe('EditBinding without featureFlag', () => {
         onSuccess: expect.any(Function),
       },
     );
+  });
+
+  it('should delete the data model binding when click on delete button and no default value is defined', async () => {
+    window.confirm = jest.fn(() => true);
+    const user = userEvent.setup();
+    const handleComponentChange = jest.fn();
+    renderEditBinding({
+      editBindingProps: {
+        ...defaultEditBinding,
+        component: componentMocks[ComponentType.FileUpload],
+        handleComponentChange,
+      },
+      queries: {
+        getAppMetadataModelIds: getAppMetadataModelIdsMock,
+        getDataModelMetadata: getDataModelMetadataMock,
+      },
+    });
+
+    await waitForElementToBeRemoved(() =>
+      screen.queryByTitle(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    const deleteButton = screen.getByRole('button', {
+      name: textMock('general.delete'),
+    });
+    await user.click(deleteButton);
+
+    expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    expect(handleComponentChange).toHaveBeenCalledWith(componentMocks[ComponentType.FileUpload], {
+      onSuccess: expect.any(Function),
+    });
   });
 });
 

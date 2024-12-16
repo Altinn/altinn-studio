@@ -18,4 +18,4 @@ export type CodeListEditorTexts = {
   value: string;
 };
 
-type ValueErrorMessages = Record<ValueError, string>;
+export type ValueErrorMessages = Record<ValueError, string>;
