@@ -13,6 +13,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
     alias: {
       src: path.resolve(__dirname, './src'),
+      axios: require.resolve('./node_modules/axios/dist/browser/axios.cjs'),
     },
   },
   module: {
