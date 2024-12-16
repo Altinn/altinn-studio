@@ -4,7 +4,6 @@ import { useServicesContext } from 'app-shared/contexts/ServicesContext';
 import type { PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AxiosError } from 'axios';
-import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
 
 /**
  * Query to get the list of access package categories
@@ -22,6 +21,5 @@ export const useResourceAccessPackagesQuery = (
   return useQuery<PolicyAccessPackageAreaGroup[], AxiosError>({
     queryKey: [QueryKey.ResourcePolicyAccessPackages, org],
     queryFn: () => getAccessPackages(org, repo),
-    enabled: shouldDisplayFeature(FeatureFlag.AccessPackages),
   });
 };
