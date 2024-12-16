@@ -8,14 +8,14 @@ namespace PolicyAdmin.Models
 
         public required string Urn { get; set; }
 
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
-        public string Icon { get; set; }
+        public string? Icon { get; set; }
 
-        public string AreaGroup { get; set; }
+        public string? AreaGroup { get; set; }
 
-        public IEnumerable<AccessPackageOption> Packages { get; set; }
+        public IEnumerable<AccessPackageOption> Packages { get; set; } = [];
     }
 }

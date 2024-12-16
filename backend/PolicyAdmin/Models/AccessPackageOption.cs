@@ -1,5 +1,3 @@
-#nullable enable
-
 namespace PolicyAdmin.Models
 {
     public class AccessPackageOption
@@ -8,8 +6,8 @@ namespace PolicyAdmin.Models
 
         public required string Urn { get; set; }
 
-        public string Name { get; set; }
+        public required string  Name { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 }

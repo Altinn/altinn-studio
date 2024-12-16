@@ -14,6 +14,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
     {
         private readonly HttpClient _client;
         private readonly ILogger<PolicyOptionsClient> _logger;
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, };
 
         public PolicyOptionsClient(HttpClient httpClient, ILogger<PolicyOptionsClient> logger)
         {
@@ -28,16 +29,12 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
             string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
 
             List<AccessPackageAreaGroup> accessPackageOptions;
-            JsonSerializerOptions options = new()
-            {
-                PropertyNameCaseInsensitive = true,
-            };
 
             try
             {
                 HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
                 string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
-                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, options);
+                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, _serializerOptions);
                 return accessPackageOptions;
             }
             catch (Exception ex)
