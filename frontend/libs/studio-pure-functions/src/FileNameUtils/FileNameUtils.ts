@@ -1,5 +1,7 @@
 import { StringUtils } from '@studio/pure-functions';
 
+export const FILE_NAME_REGEX = /^[a-zA-Z0-9_\-]{2,28}$/;
+
 export enum FileNameErrorResult {
   FileNameIsEmpty = 'fileNameIsEmpty',
   NoRegExMatch = 'noRegExMatch',
@@ -47,7 +49,7 @@ export class FileNameUtils {
   };
 
   /**
-   * Validates if file name does not exist in list of invalid names and if name matches regEx, if provided.
+   * Validates if file name does not exist in list of invalid names and if name matches regEx. (case-insensitive)
    * @param fileName
    * @param invalidFileNames
    * @param regEx
@@ -56,15 +58,15 @@ export class FileNameUtils {
   static findFileNameError = (
     fileName: string,
     invalidFileNames: string[],
-    regEx?: RegExp,
+    regEx = FILE_NAME_REGEX,
   ): FileNameErrorResult | null => {
     if (fileName === '') {
       return FileNameErrorResult.FileNameIsEmpty;
     }
 
-    const isFileNameNotMatchingRegEx: boolean = regEx ? Boolean(!fileName.match(regEx)) : false;
-    const isFileNameInInvalidList: boolean = invalidFileNames.some(
-      (invalidFileName) => invalidFileName === fileName,
+    const isFileNameNotMatchingRegEx: boolean = Boolean(!fileName.match(regEx));
+    const isFileNameInInvalidList: boolean = invalidFileNames.some((invalidFileName) =>
+      StringUtils.areCaseInsensitiveEqual(invalidFileName, fileName),
     );
 
     if (isFileNameNotMatchingRegEx) {
@@ -75,4 +77,12 @@ export class FileNameUtils {
     }
     return null;
   };
+
+  static findFileNameErrorByGivenRegEx(
+    fileName: string,
+    invalidFileNames: string[],
+    regEx: RegExp,
+  ) {
+    return this.findFileNameError(fileName, invalidFileNames, regEx);
+  }
 }

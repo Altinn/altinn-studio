@@ -6,7 +6,7 @@ import { useUpdateOptionListIdMutation } from './useUpdateOptionListIdMutation';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { Option } from 'app-shared/types/Option';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 
 // Test data:
 const optionListId: string = 'optionListId';
@@ -17,7 +17,7 @@ const args: UpdateOptionListIdMutationArgs = { optionListId, newOptionListId };
 describe('useUpdateOptionListIdMutation', () => {
   test('Calls useUpdateOptionIdList with correct parameters', async () => {
     const queryClient = createQueryClientMock();
-    queryClient.setQueryData([QueryKey.OptionLists, org, app], [{ optionListId: optionListMock }]);
+    queryClient.setQueryData([QueryKey.OptionLists, org, app], []);
     const renderUpdateOptionListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListIdMutation(org, app),
       { queryClient },
@@ -38,11 +38,11 @@ describe('useUpdateOptionListIdMutation', () => {
     const optionListC = 'optionListC';
     const optionListZ = 'optionListZ';
     const queryClient = createQueryClientMock();
-    const oldData: OptionsLists = {
-      optionListA: optionListMock,
-      optionListB: optionListMock,
-      optionListZ: optionListMock,
-    };
+    const oldData: OptionsListsResponse = [
+      { title: optionListA, data: optionListMock },
+      { title: optionListB, data: optionListMock },
+      { title: optionListZ, data: optionListMock },
+    ];
     queryClient.setQueryData([QueryKey.OptionLists, org, app], oldData);
     const renderUpdateOptionListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListIdMutation(org, app),
@@ -52,21 +52,24 @@ describe('useUpdateOptionListIdMutation', () => {
       optionListId: optionListA,
       newOptionListId: optionListC,
     });
-    const cacheData = queryClient.getQueryData([QueryKey.OptionLists, org, app]);
-    const cacheDataKeys = Object.keys(cacheData);
-    expect(cacheDataKeys[0]).toEqual(optionListB);
-    expect(cacheDataKeys[1]).toEqual(optionListC);
-    expect(cacheDataKeys[2]).toEqual(optionListZ);
+    const cacheData: OptionsListsResponse = queryClient.getQueryData([
+      QueryKey.OptionLists,
+      org,
+      app,
+    ]);
+    expect(cacheData[0].title).toEqual(optionListB);
+    expect(cacheData[1].title).toEqual(optionListC);
+    expect(cacheData[2].title).toEqual(optionListZ);
   });
 
   test('Invalidates the optionListIds query cache', async () => {
     const queryClient = createQueryClientMock();
     const invalidateQueriesSpy = jest.spyOn(queryClient, 'invalidateQueries');
-    const oldData: OptionsLists = {
-      firstOptionList: optionListMock,
-      optionListId: optionListMock,
-      lastOptionList: optionListMock,
-    };
+    const oldData: OptionsListsResponse = [
+      { title: 'firstOptionList', data: optionListMock },
+      { title: 'optionListId', data: optionListMock },
+      { title: 'lastOptionList', data: optionListMock },
+    ];
     queryClient.setQueryData([QueryKey.OptionLists, org, app], oldData);
     const renderUpdateOptionListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListIdMutation(org, app),
@@ -76,6 +79,21 @@ describe('useUpdateOptionListIdMutation', () => {
     expect(invalidateQueriesSpy).toHaveBeenCalledTimes(1);
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({
       queryKey: [QueryKey.OptionListIds, org, app],
+    });
+  });
+
+  test('Removes the option list query cache for the old Id', async () => {
+    const queryClient = createQueryClientMock();
+    const removeQueriesSpy = jest.spyOn(queryClient, 'removeQueries');
+    queryClient.setQueryData([QueryKey.OptionLists, org, app], []);
+    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+      () => useUpdateOptionListIdMutation(org, app),
+      { queryClient },
+    ).result;
+    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    expect(removeQueriesSpy).toHaveBeenCalledTimes(1);
+    expect(removeQueriesSpy).toHaveBeenCalledWith({
+      queryKey: [QueryKey.OptionList, org, app, optionListId],
     });
   });
 });
