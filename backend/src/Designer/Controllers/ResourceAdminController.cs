@@ -431,16 +431,27 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("designer/api/accesspackageservices/{accesspackage}/{env}")]
         public async Task<ActionResult<List<AccessPackageService>>> GetServicesForAccessPackage(string org, string accesspackage, string env)
         {
-            // 2. POST to get all resources per access package
+            // POST to get all resources per access package
             List<SubjectResources> subjectResources = await _resourceRegistry.GetSubjectResources([accesspackage], env);
 
-            // 3. GET full list of resources
-            List<ServiceResource> environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
+            // GET full list of resources (with apps) in environment
+            string cacheKey = $"resourcelist_with_apps${env}";
+            if (!_memoryCache.TryGetValue(cacheKey, out List<ServiceResource> environmentResources))
+            {
+                environmentResources = await _resourceRegistry.GetResourceList(env, false, true);
+
+                MemoryCacheEntryOptions cacheEntryOptions = new MemoryCacheEntryOptions()
+                    .SetPriority(CacheItemPriority.High)
+                    .SetAbsoluteExpiration(new TimeSpan(0, _cacheSettings.DataNorgeApiCacheTimeout, 0));
+                _memoryCache.Set(cacheKey, environmentResources, cacheEntryOptions);
+            }
+
             List<AttributeMatchV2> resources = subjectResources.Find(x => x.Subject.Urn == accesspackage)?.Resources;
 
             OrgList orgList = await GetOrgList();
             List<AccessPackageService> result = [];
 
+            // return resources for all subjectResources
             resources?.ForEach(resourceMatch =>
             {
                 ServiceResource fullResource = environmentResources.Find(x => x.Identifier == resourceMatch.Value);
