@@ -5,6 +5,7 @@ import type {
 } from '@digdir/designsystemet-react';
 import { List } from '@digdir/designsystemet-react';
 import { StudioListRoot } from './StudioListRoot';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 type StudioListComponent = typeof List;
 
@@ -21,7 +22,7 @@ StudioList.Unordered.displayName = 'StudioList.UnorderedList';
 
 export type { StudioListRootProps } from './StudioListRoot';
 
-export type StudioListItemProps = ListItemProps;
-export type StudioListUnorderedProps = ListUnorderedProps;
-export type StudioListOrderedProps = ListUnorderedProps;
-export type StudioListHeadingProps = ListHeadingProps;
+export type StudioListItemProps = WithoutAsChild<ListItemProps>;
+export type StudioListUnorderedProps = WithoutAsChild<ListUnorderedProps>;
+export type StudioListOrderedProps = WithoutAsChild<ListUnorderedProps>;
+export type StudioListHeadingProps = WithoutAsChild<ListHeadingProps>;
