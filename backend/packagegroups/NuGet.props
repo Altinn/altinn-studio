@@ -15,7 +15,7 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.31.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="7.0.0" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="7.0.1" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -31,7 +31,7 @@
     <PackageReference Update="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Update="HtmlAgilityPack" Version="1.11.71" />
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
     <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
