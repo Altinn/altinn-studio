@@ -15,7 +15,7 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.31.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="7.0.0" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="7.0.1" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
@@ -31,7 +31,7 @@
     <PackageReference Update="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Update="HtmlAgilityPack" Version="1.11.71" />
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
     <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
@@ -53,11 +53,11 @@
     <PackageReference Update="xunit" Version="2.9.2" />
     <PackageReference Update="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Update="coverlet.collector" Version="6.0.2" />
-    <PackageReference Update="Basic.Reference.Assemblies" Version="1.7.8" />
+    <PackageReference Update="Basic.Reference.Assemblies" Version="1.7.9" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.9.2" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
     <PackageReference Update="Testcontainers" Version="3.10.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0" />
