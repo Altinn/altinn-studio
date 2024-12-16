@@ -50,6 +50,7 @@ export enum QueryKey {
   IsLoggedInWithAnsattporten = 'IsLoggedInWithAnsattporten',
   AppScopes = 'AppScopes',
   SelectedAppScopes = 'SelectedAppScopes',
+  DataType = 'DataType',
 
   // Resourceadm
   ResourceList = 'ResourceList',

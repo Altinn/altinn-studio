@@ -8,10 +8,12 @@ import { useTranslation } from 'react-i18next';
 import { useSchemaEditorAppContext } from '../../hooks/useSchemaEditorAppContext';
 import { useSavableSchemaModel } from '../../hooks/useSavableSchemaModel';
 import { NoItemSelectedMessage } from '../NoItemSelectedMessage';
+import { ItemMetadataTab } from './ItemMetadataTab';
 
 enum SchemaInspectorTabs {
   Properties = 'Properties',
   Fields = 'Fields',
+  Metadata = 'Metadata',
 }
 
 export const SchemaInspector = () => {
@@ -30,12 +32,16 @@ export const SchemaInspector = () => {
       <Tabs.List>
         <Tabs.Tab value={SchemaInspectorTabs.Properties}>{t('schema_editor.properties')}</Tabs.Tab>
         <Tabs.Tab value={SchemaInspectorTabs.Fields}>{t('schema_editor.fields')}</Tabs.Tab>
+        <Tabs.Tab value={SchemaInspectorTabs.Metadata}>{t('schema_editor.metadata')}</Tabs.Tab>
       </Tabs.List>
       <Tabs.Content value={SchemaInspectorTabs.Properties}>
         <ItemPropertiesTab selectedItem={selectedItem} />
       </Tabs.Content>
       <Tabs.Content value={SchemaInspectorTabs.Fields}>
         <ItemFieldsTab selectedItem={selectedItem} />
+      </Tabs.Content>
+      <Tabs.Content value={SchemaInspectorTabs.Metadata}>
+        <ItemMetadataTab />
       </Tabs.Content>
     </Tabs>
   );
