@@ -26,22 +26,22 @@ namespace Altinn.App.Models
 
   public class Felles
   {
-    [XmlElement("innsenderPerson", Order = 1)]
+    [XmlElement("innsenderPerson", Order = 1, IsNullable = true)]
     [JsonProperty("innsenderPerson")]
     [JsonPropertyName("innsenderPerson")]
     public InnsenderPerson innsenderPerson { get; set; }
 
-    [XmlElement("innsenderOrganisasjon", Order = 2)]
+    [XmlElement("innsenderOrganisasjon", Order = 2, IsNullable = true)]
     [JsonProperty("innsenderOrganisasjon")]
     [JsonPropertyName("innsenderOrganisasjon")]
     public InnsenderOrganisasjon innsenderOrganisasjon { get; set; }
 
-    [XmlElement("hvemGjelderHenvendelsen", Order = 3)]
+    [XmlElement("hvemGjelderHenvendelsen", Order = 3, IsNullable = true)]
     [JsonProperty("hvemGjelderHenvendelsen")]
     [JsonPropertyName("hvemGjelderHenvendelsen")]
     public HvemGjelderHenvendelsen hvemGjelderHenvendelsen { get; set; }
 
-    [XmlElement("hvorSkalHenvendelsenSendes", Order = 4)]
+    [XmlElement("hvorSkalHenvendelsenSendes", Order = 4, IsNullable = true)]
     [JsonProperty("hvorSkalHenvendelsenSendes")]
     [JsonPropertyName("hvorSkalHenvendelsenSendes")]
     public HvorSkalHenvendelsenSendes hvorSkalHenvendelsenSendes { get; set; }
@@ -55,12 +55,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("navn")]
     public string navn { get; set; }
 
-    [XmlElement("bostedsadresse", Order = 2)]
+    [XmlElement("bostedsadresse", Order = 2, IsNullable = true)]
     [JsonProperty("bostedsadresse")]
     [JsonPropertyName("bostedsadresse")]
     public Adresse bostedsadresse { get; set; }
 
-    [XmlElement("postadresse", Order = 3)]
+    [XmlElement("postadresse", Order = 3, IsNullable = true)]
     [JsonProperty("postadresse")]
     [JsonPropertyName("postadresse")]
     public Adresse postadresse { get; set; }
@@ -132,12 +132,12 @@ namespace Altinn.App.Models
     [JsonPropertyName("organisasjonsnummer")]
     public string organisasjonsnummer { get; set; }
 
-    [XmlElement("postadresse", Order = 4)]
+    [XmlElement("postadresse", Order = 4, IsNullable = true)]
     [JsonProperty("postadresse")]
     [JsonPropertyName("postadresse")]
     public Adresse postadresse { get; set; }
 
-    [XmlElement("forretningsadresse", Order = 5)]
+    [XmlElement("forretningsadresse", Order = 5, IsNullable = true)]
     [JsonProperty("forretningsadresse")]
     [JsonPropertyName("forretningsadresse")]
     public Adresse forretningsadresse { get; set; }
@@ -188,7 +188,7 @@ namespace Altinn.App.Models
 
   public class SkjemaSpesifikt
   {
-    [XmlElement("hvaGjelderHenvendelsen", Order = 1)]
+    [XmlElement("hvaGjelderHenvendelsen", Order = 1, IsNullable = true)]
     [JsonProperty("hvaGjelderHenvendelsen")]
     [JsonPropertyName("hvaGjelderHenvendelsen")]
     public HvaGjelderHenvendelsen hvaGjelderHenvendelsen { get; set; }
