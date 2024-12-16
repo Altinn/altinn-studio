@@ -57,19 +57,17 @@ export const FetchChangesPopover = (): React.ReactElement => {
 
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-      <StudioPopover.Trigger asChild>
-        <StudioPageHeader.HeaderButton
-          onClick={handleOpenPopover}
-          disabled={hasMergeConflict}
-          icon={<DownloadIcon />}
-          color='light'
-          variant='regular'
-          aria-label={t('sync_header.fetch_changes')}
-        >
-          {shouldDisplayText && t('sync_header.fetch_changes')}
-          {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
-        </StudioPageHeader.HeaderButton>
-      </StudioPopover.Trigger>
+      <StudioPageHeader.PopoverTrigger
+        onClick={handleOpenPopover}
+        disabled={hasMergeConflict}
+        icon={<DownloadIcon />}
+        color='light'
+        variant='regular'
+        aria-label={t('sync_header.fetch_changes')}
+      >
+        {shouldDisplayText && t('sync_header.fetch_changes')}
+        {displayNotification && <Notification numChanges={repoStatus?.behindBy ?? 0} />}
+      </StudioPageHeader.PopoverTrigger>
       <StudioPopover.Content className={classes.popoverContent}>
         {isLoading && <SyncLoadingIndicator heading={t('sync_header.fetching_latest_version')} />}
         {!isLoading && <GiteaFetchCompleted heading={t('sync_header.service_updated_to_latest')} />}
