@@ -13,12 +13,12 @@ import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 
-type EditOptionListProps<T extends SelectionComponentType> = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
+type EditOptionListProps<T extends SelectionComponentType> = {} & Pick<
+  IGenericEditComponent<T>,
+  'component' | 'handleComponentChange'
+>;
 
 export function OptionListUploader<T extends SelectionComponentType>({
-  setComponentHasOptionList,
   component,
   handleComponentChange,
 }: EditOptionListProps<T>) {
@@ -38,8 +38,6 @@ export function OptionListUploader<T extends SelectionComponentType>({
       ...component,
       optionsId,
     });
-
-    setComponentHasOptionList(true);
   };
 
   const onSubmit = (file: File) => {

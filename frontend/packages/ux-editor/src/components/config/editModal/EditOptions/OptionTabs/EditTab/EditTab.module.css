@@ -1,10 +1,6 @@
 .container {
   display: flex;
   flex-direction: column;
+  width: 60%;
   gap: var(--fds-spacing-2);
-  margin-left: var(--fds-spacing-5);
-}
-
-.errorMessage {
-  margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
 }
