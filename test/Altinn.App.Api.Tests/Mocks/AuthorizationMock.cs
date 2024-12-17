@@ -78,7 +78,7 @@ public class AuthorizationMock : IAuthorizationClient
         List<Role> roles = new List<Role>
         {
             new Role { Type = "altinn", Value = "bobet" },
-            new Role { Type = "altinn", Value = "bobes" }
+            new Role { Type = "altinn", Value = "bobes" },
         };
 
         return roles;
