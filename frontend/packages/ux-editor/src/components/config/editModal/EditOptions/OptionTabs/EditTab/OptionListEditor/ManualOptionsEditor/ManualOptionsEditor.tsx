@@ -11,6 +11,7 @@ import {
 import { PencilIcon, TrashIcon } from '@studio/icons';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
+import { handleOptionsChange } from '../../utils/utils';
 import type { Option } from 'app-shared/types/Option';
 import classes from './ManualOptionsEditor.module.css';
 
@@ -24,15 +25,8 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const modalRef = useForwardedRef(ref);
     const editorTexts = useOptionListEditorTexts();
 
-    const handleOptionsChange = (options: Option[]) => {
-      if (component.optionsId) {
-        delete component.optionsId;
-      }
-
-      handleComponentChange({
-        ...component,
-        options,
-      });
+    const handleBlurAny = (options: Option[]) => {
+      handleOptionsChange({ options, component, handleComponentChange });
     };
 
     const codeListLabels: string = component.options
@@ -73,7 +67,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
         >
           <StudioCodeListEditor
             codeList={component.options}
-            onBlurAny={handleOptionsChange}
+            onBlurAny={handleBlurAny}
             texts={editorTexts}
           />
         </StudioModal.Dialog>

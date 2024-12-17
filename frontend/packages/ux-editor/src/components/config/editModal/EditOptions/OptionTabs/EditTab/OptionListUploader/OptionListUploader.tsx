@@ -12,6 +12,7 @@ import type { FileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
+import { handleOptionsIdChange } from '../utils/utils';
 
 type EditOptionListProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -26,17 +27,6 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
     hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
   });
 
-  const handleOptionsIdChange = (optionsId: string) => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    handleComponentChange({
-      ...component,
-      optionsId,
-    });
-  };
-
   const onSubmit = (file: File) => {
     const fileNameError = findFileNameError(optionListIds, file.name);
     if (fileNameError) {
@@ -49,9 +39,14 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        handleOptionsIdChange(FileNameUtils.removeExtension(file.name));
+        handleOptionsIdChange({
+          component,
+          handleComponentChange,
+          optionsId: FileNameUtils.removeExtension(file.name),
+        });
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
+
       onError: (error: AxiosError<ApiError>) => {
         if (!error.response?.data?.errorCode) {
           toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);

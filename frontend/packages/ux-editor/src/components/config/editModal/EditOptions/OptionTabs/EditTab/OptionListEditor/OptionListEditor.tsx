@@ -7,6 +7,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
+import { handleOptionsIdChange } from '../utils/utils';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -20,14 +21,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
     const { data: optionsLists, status } = useOptionListsQuery(org, app);
 
     const handleDelete = () => {
-      if (component.options) {
-        delete component.options;
-      }
-
-      handleComponentChange({
-        ...component,
-        optionsId: undefined,
-      });
+      handleOptionsIdChange({ component, handleComponentChange, optionsId: undefined });
     };
 
     if (component.options !== undefined) {

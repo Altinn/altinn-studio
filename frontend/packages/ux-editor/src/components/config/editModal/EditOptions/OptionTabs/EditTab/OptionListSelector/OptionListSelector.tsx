@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioDropdownMenu, StudioSpinner } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { handleOptionsIdChange } from '../utils/utils';
 import classes from './OptionListSelector.module.css';
 
 type OptionListSelectorProps = Pick<
@@ -22,17 +23,6 @@ export function OptionListSelector({
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
 
-  const handleOptionsIdChange = (optionsId: string) => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    handleComponentChange({
-      ...component,
-      optionsId,
-    });
-  };
-
   switch (status) {
     case 'pending':
       return (
@@ -47,7 +37,8 @@ export function OptionListSelector({
       return (
         <OptionListSelectorWithData
           optionListIds={optionListIds}
-          handleOptionsIdChange={handleOptionsIdChange}
+          component={component}
+          handleComponentChange={handleComponentChange}
         />
       );
   }
@@ -55,14 +46,18 @@ export function OptionListSelector({
 
 type OptionListSelectorWithDataProps = {
   optionListIds: string[];
-  handleOptionsIdChange: (optionsId: string) => void;
-};
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 function OptionListSelectorWithData({
+  component,
+  handleComponentChange,
   optionListIds,
-  handleOptionsIdChange,
 }: OptionListSelectorWithDataProps): React.ReactNode {
   const { t } = useTranslation();
+
+  const handleClick = (optionsId: string) => {
+    handleOptionsIdChange({ component, handleComponentChange, optionsId });
+  };
 
   if (!optionListIds.length) return null;
   return (
@@ -75,13 +70,13 @@ function OptionListSelectorWithData({
         children: t('ux_editor.modal_properties_code_list'),
       }}
     >
-      {optionListIds.map((optionListId: string) => (
+      {optionListIds.map((optionsId: string) => (
         <StudioDropdownMenu.Item
-          key={optionListId}
+          key={optionsId}
           icon={<BookIcon />}
-          onClick={() => handleOptionsIdChange(optionListId)}
+          onClick={() => handleClick(optionsId)}
         >
-          {optionListId}
+          {optionsId}
         </StudioDropdownMenu.Item>
       ))}
     </StudioDropdownMenu>
