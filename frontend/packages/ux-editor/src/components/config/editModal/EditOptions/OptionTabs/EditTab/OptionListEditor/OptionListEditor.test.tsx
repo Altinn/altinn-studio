@@ -27,7 +27,7 @@ describe('OptionListEditor', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('ManualOptionListEditorModal', () => {
-    it('should render the open Dialog button', async () => {
+    it('should render the open Dialog button', () => {
       renderOptionListEditor();
       expect(getOptionModalButton()).toBeInTheDocument();
     });
@@ -70,6 +70,13 @@ describe('OptionListEditor', () => {
       await user.tab();
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should display general.empty_string when option-list has an empty string', () => {
+      mockComponent.options = [{ value: 2, label: '', description: 'test', helpText: null }];
+      renderOptionListEditor({});
+
+      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
     });
   });
 
@@ -164,9 +171,22 @@ describe('OptionListEditor', () => {
         expectedResultAfterEdit,
       );
     });
-  });
 
-  it('should call setComponentHasOptionList when closing', async () => {});
+    it('should display general.empty_string when option-list has an empty string', async () => {
+      const apiResultWithEmptyLabel: OptionsLists = {
+        options: [{ value: true, label: '', description: null, helpText: null }],
+      };
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+        queries: {
+          getOptionLists: jest
+            .fn()
+            .mockImplementation(() => Promise.resolve<OptionsLists>(apiResultWithEmptyLabel)),
+        },
+      });
+
+      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+    });
+  });
 });
 
 function getOptionModalButton() {
@@ -221,8 +241,8 @@ const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({
     component,
     handleComponentChange,
   });
-  await waitForElementToBeRemoved(() => {
-    return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-  });
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+  );
   return view;
 };
