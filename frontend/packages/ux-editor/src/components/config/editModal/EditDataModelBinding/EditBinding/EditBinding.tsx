@@ -43,8 +43,8 @@ export const EditBinding = ({
     internalBindingFormat.dataType,
   );
 
-  const handleBindingChange = (updatedBinding: InternalBindingFormat) => {
-    const selectedDataFieldElement = updatedBinding.field;
+  const handleBindingChange = (updatedBinding?: InternalBindingFormat) => {
+    const selectedDataFieldElement = updatedBinding?.field;
     handleComponentChange(
       {
         ...component,
@@ -52,7 +52,7 @@ export const EditBinding = ({
           ...component.dataModelBindings,
           [bindingKey]: shouldDisplayFeature(FeatureFlag.MultipleDataModelsPerTask)
             ? updatedBinding
-            : selectedDataFieldElement || undefined,
+            : selectedDataFieldElement,
         },
         required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
         timeStamp: getXsdDataTypeFromDataModelFields(
