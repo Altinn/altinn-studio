@@ -1804,7 +1804,7 @@
             "description": "OK"
           },
           "425": {
-            "description": "Too Early"
+            "description": "Client Error"
           },
           "500": {
             "description": "Internal Server Error"
@@ -5259,7 +5259,8 @@
           "actions": {
             "type": "object",
             "additionalProperties": {
-              "type": "boolean"
+              "type": "boolean",
+              "nullable": true
             },
             "nullable": true
           },
@@ -5365,8 +5366,7 @@
             "type": "boolean"
           },
           "allowInSubform": {
-            "type": "boolean",
-            "deprecated": true
+            "type": "boolean"
           },
           "shadowFields": {
             "$ref": "#/components/schemas/ShadowFields"
@@ -5464,7 +5464,7 @@
           "copyInstanceSettings": {
             "$ref": "#/components/schemas/CopyInstanceSettings"
           },
-          "storageAccountNumber": {
+          "storageContainerNumber": {
             "type": "integer",
             "format": "int32",
             "nullable": true
@@ -5479,7 +5479,8 @@
           "features": {
             "type": "object",
             "additionalProperties": {
-              "type": "boolean"
+              "type": "boolean",
+              "nullable": true
             },
             "nullable": true
           },
@@ -6502,8 +6503,12 @@
       "JsonNodeOptions": {
         "type": "object",
         "properties": {
-          "propertyNameCaseInsensitive": {
-            "type": "boolean"
+          "hasValue": {
+            "type": "boolean",
+            "readOnly": true
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonNodeOptions"
           }
         },
         "additionalProperties": false
@@ -7344,7 +7349,8 @@
                 "items": {
                   "$ref": "#/components/schemas/ValidationIssueWithSource"
                 }
-              }
+              },
+              "nullable": true
             },
             "nullable": true
           },

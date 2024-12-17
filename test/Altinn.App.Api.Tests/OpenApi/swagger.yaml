@@ -1101,7 +1101,7 @@ paths:
         '200':
           description: OK
         '425':
-          description: Too Early
+          description: Client Error
         '500':
           description: Internal Server Error
         '401':
@@ -3215,6 +3215,7 @@ components:
           type: object
           additionalProperties:
             type: boolean
+            nullable: true
           nullable: true
         userActions:
           type: array
@@ -3290,7 +3291,6 @@ components:
           type: boolean
         allowInSubform:
           type: boolean
-          deprecated: true
         shadowFields:
           $ref: '#/components/schemas/ShadowFields'
       additionalProperties: false
@@ -3361,7 +3361,7 @@ components:
           $ref: '#/components/schemas/MessageBoxConfig'
         copyInstanceSettings:
           $ref: '#/components/schemas/CopyInstanceSettings'
-        storageAccountNumber:
+        storageContainerNumber:
           type: integer
           format: int32
           nullable: true
@@ -3374,6 +3374,7 @@ components:
           type: object
           additionalProperties:
             type: boolean
+            nullable: true
           nullable: true
         logo:
           $ref: '#/components/schemas/Logo'
@@ -4114,8 +4115,11 @@ components:
     JsonNodeOptions:
       type: object
       properties:
-        propertyNameCaseInsensitive:
+        hasValue:
           type: boolean
+          readOnly: true
+        value:
+          $ref: '#/components/schemas/JsonNodeOptions'
       additionalProperties: false
     JsonPatch:
       type: object
@@ -4723,6 +4727,7 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ValidationIssueWithSource'
+            nullable: true
           nullable: true
         clientActions:
           type: array
