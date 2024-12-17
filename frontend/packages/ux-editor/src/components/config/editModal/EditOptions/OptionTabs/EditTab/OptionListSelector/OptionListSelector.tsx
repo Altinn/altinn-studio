@@ -9,18 +9,18 @@ import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import classes from './OptionListSelector.module.css';
 
-type OptionListSelectorProps<T extends SelectionComponentType> = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
+type OptionListSelectorProps = Pick<
+  IGenericEditComponent<SelectionComponentType>,
+  'component' | 'handleComponentChange'
+>;
 
-export function OptionListSelector<T extends SelectionComponentType>({
-  setComponentHasOptionList,
+export function OptionListSelector({
   component,
   handleComponentChange,
-}: OptionListSelectorProps<T>): React.ReactNode {
+}: OptionListSelectorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -31,8 +31,6 @@ export function OptionListSelector<T extends SelectionComponentType>({
       ...component,
       optionsId,
     });
-
-    setComponentHasOptionList(true);
   };
 
   switch (status) {
@@ -44,11 +42,7 @@ export function OptionListSelector<T extends SelectionComponentType>({
         />
       );
     case 'error':
-      return (
-        <ErrorMessage>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
-        </ErrorMessage>
-      );
+      return <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>;
     case 'success':
       return (
         <OptionListSelectorWithData

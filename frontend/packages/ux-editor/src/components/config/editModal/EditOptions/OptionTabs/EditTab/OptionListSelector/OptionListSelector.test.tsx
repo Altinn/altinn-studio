@@ -70,7 +70,9 @@ describe('OptionListSelector', () => {
       },
     });
 
-    expect(await screen.findByText('Error')).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+    ).toBeInTheDocument();
   });
 
   it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
@@ -97,7 +99,6 @@ function getDropdownOption(): HTMLElement {
 function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
   return renderWithProviders(
     <OptionListSelector
-      setComponentHasOptionList={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,

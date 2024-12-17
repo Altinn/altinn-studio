@@ -206,13 +206,11 @@ const renderOptionListEditor = ({
   queries = {},
   component = {},
   handleComponentChange = jest.fn(),
-  setComponentHasOptionList = jest.fn(),
 } = {}) => {
   return renderWithProviders(
     <OptionListEditor
       component={{ ...mockComponent, ...component }}
       handleComponentChange={handleComponentChange}
-      setComponentHasOptionList={setComponentHasOptionList}
     />,
     {
       queries: {

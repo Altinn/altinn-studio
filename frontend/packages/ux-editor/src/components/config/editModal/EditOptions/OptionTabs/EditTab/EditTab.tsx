@@ -1,79 +1,67 @@
-import React, { useState } from 'react';
-import { StudioErrorMessage } from '@studio/components';
-import { AddManualOptionsModal } from './AddManualOptionsModal';
+import React, { useRef } from 'react';
+import { StudioButton, StudioErrorMessage, usePrevious } from '@studio/components';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './/OptionListEditor';
 import { useComponentErrorMessage } from '../../../../../../hooks';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import { useTranslation } from 'react-i18next';
+import { useUpdate } from 'app-shared/hooks/useUpdate';
 import classes from './EditTab.module.css';
 
-type EditOptionChoiceProps = Pick<
+type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function EditTab({
-  component,
-  handleComponentChange,
-}: EditOptionChoiceProps): React.ReactElement {
-  const initialComponentHasOptionList: boolean = !!component.optionsId || !!component.options;
-  const [componentHasOptionList, setComponentHasOptionList] = useState<boolean>(
-    initialComponentHasOptionList,
-  );
+export function EditTab({ component, handleComponentChange }: EditTabProps): React.ReactElement {
+  const componentHasOptionList: boolean = !!component.optionsId || !!component.options;
   const errorMessage = useComponentErrorMessage(component);
+  const previousComponent = usePrevious(component);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useUpdate(() => {
+    if (!previousComponent.options && !!component.options) dialogRef.current.showModal();
+  }, [component, previousComponent]);
 
   return (
     <>
       {componentHasOptionList ? (
-        <SelectedOptionList
-          setComponentHasOptionList={setComponentHasOptionList}
+        <OptionListEditor
+          ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
         />
       ) : (
         <div className={classes.container}>
-          <AddManualOptionsModal
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-          <OptionListSelector
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-          <OptionListUploader
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
+          <AddOptionList component={component} handleComponentChange={handleComponentChange} />
         </div>
       )}
-      {errorMessage && (
-        <StudioErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </StudioErrorMessage>
-      )}
+      {errorMessage && <StudioErrorMessage size='small'>{errorMessage}</StudioErrorMessage>}
     </>
   );
 }
 
-type SelectedOptionListProps = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+type AddOptionListProps = EditTabProps;
 
-function SelectedOptionList({
-  setComponentHasOptionList,
-  component,
-  handleComponentChange,
-}: SelectedOptionListProps) {
+function AddOptionList({ component, handleComponentChange }: AddOptionListProps) {
+  const { t } = useTranslation();
+
+  const handleInitialManualOptionsChange = () => {
+    handleComponentChange({
+      ...component,
+      options: [],
+    });
+  };
+
   return (
-    <OptionListEditor
-      component={component}
-      handleComponentChange={handleComponentChange}
-      setComponentHasOptionList={setComponentHasOptionList}
-    />
+    <div className={classes.container}>
+      <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
+        {t('general.create_new')}
+      </StudioButton>
+      <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
+      <OptionListUploader component={component} handleComponentChange={handleComponentChange} />
+    </div>
   );
 }
