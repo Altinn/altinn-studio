@@ -47,7 +47,6 @@ export const getCodeListSourcesById = (
     (codeListUsage) => codeListUsage.codeListId === codeListTitle,
   );
   return codeListUsages?.codeListIdSources ?? [];
-};
 
 type CodeListProps = {
   codeList: CodeListWithMetadata;
@@ -84,6 +83,15 @@ function CodeList({
             onUpdateCodeList={onUpdateCodeList}
             codeListNames={codeListNames}
           />
+          {codeListSources &&
+            codeListSources.map(
+              (codeListSource) =>
+                codeListSource.layoutSetId +
+                ', ' +
+                codeListSource.layoutName +
+                ', ' +
+                codeListSource.componentIds,
+            )}
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>
