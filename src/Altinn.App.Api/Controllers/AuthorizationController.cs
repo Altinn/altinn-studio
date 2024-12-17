@@ -89,7 +89,7 @@ public class AuthorizationController : Controller
     /// <returns>Boolean indicating if the selected party is valid.</returns>
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/roles")]
-    public async Task<IActionResult> FetchRolesForCurrentParty()
+    public async Task<IActionResult> GetRolesForCurrentParty()
     {
         Party? currentParty = await GetCurrentPartyAsync(HttpContext);
         UserContext userContext = await _userHelper.GetUserContext(HttpContext);
@@ -101,9 +101,6 @@ public class AuthorizationController : Controller
         }
 
         List<Role> roles = await _authorization.GetUserRolesAsync(userId, currentParty.PartyId);
-
-        // TODO: implement actual logic here using currentParty
-        // For now, return false as before
         return Ok(roles);
     }
 
