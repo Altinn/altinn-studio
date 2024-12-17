@@ -7,12 +7,13 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { useDebounce } from '@studio/hooks';
 import type { DataType } from 'app-shared/types/DataType';
 import { useUpdateDataTypeMutation } from 'app-shared/hooks/mutations/useUpdateDataTypeMutation';
+import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
 
 export const ItemMetadataTab = () => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { name: modelName } = useSchemaEditorAppContext();
-  const { debounce } = useDebounce({ debounceTimeInMs: 500 });
+  const { debounce } = useDebounce({ debounceTimeInMs: AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS });
 
   const { data: dataType, isPending } = useDataTypeQuery(org, app, modelName);
   const { mutate: mutateDataType } = useUpdateDataTypeMutation(org, app, modelName);
@@ -38,7 +39,7 @@ export const ItemMetadataTab = () => {
         value={dataType.maxCount}
         type='number'
         max={Number.MAX_SAFE_INTEGER}
-        min={dataType.minCount}
+        min={dataType.minCount || 0}
         error={
           dataType.maxCount < dataType.minCount ? t('schema_editor.metadata.maxCount.error') : false
         }
@@ -51,7 +52,7 @@ export const ItemMetadataTab = () => {
         label={t('schema_editor.metadata.minCount')}
         value={dataType.minCount}
         type='number'
-        max={dataType.maxCount}
+        max={dataType.maxCount || Number.MAX_SAFE_INTEGER}
         min={0}
         error={
           dataType.minCount > dataType.maxCount ? t('schema_editor.metadata.minCount.error') : false
