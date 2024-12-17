@@ -1,6 +1,5 @@
 import { ObjectUtils } from '@studio/pure-functions';
 import type {
-  PolicyAccessPackageAreaGroup,
   PolicyAction,
   PolicyEditorUsage,
   PolicyRule,
@@ -208,12 +207,6 @@ export const mergeSubjectsFromPolicyWithSubjectOptions = (
   });
 
   return copiedSubjects;
-};
-
-export const groupAccessPackagesByArea = (
-  accessPackageAreaGroups: PolicyAccessPackageAreaGroup[],
-) => {
-  return accessPackageAreaGroups.flatMap((group) => group.areas);
 };
 
 export const convertSubjectStringToSubjectId = (subjectString: string): string => {

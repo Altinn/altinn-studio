@@ -45,7 +45,7 @@ export interface PolicyAccessPackageAreaGroup {
   areas: PolicyAccessPackageArea[];
 }
 
-export type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
+type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
 
 export interface AccessPackageResource {
   identifier: string;

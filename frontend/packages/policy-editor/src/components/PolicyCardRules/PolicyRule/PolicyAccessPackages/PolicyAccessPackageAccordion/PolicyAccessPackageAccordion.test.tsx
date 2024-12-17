@@ -92,8 +92,10 @@ const renderPolicyAccessPackageAccordion = (queries: Partial<ServicesContextProp
     <ServicesContextProvider {...allQueries} client={queryClient}>
       <PolicyAccessPackageAccordion
         accessPackage={defaultAccessPackageProp}
-        selectedLanguage='nb'
-        selectPackageElement={<div />}
+        isChecked={false}
+        handleSelectChange={() => {
+          /** */
+        }}
       />
       ,
     </ServicesContextProvider>,

@@ -1,18 +1,22 @@
 import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Paragraph, Alert, CheckboxGroup, Checkbox, Label } from '@digdir/designsystemet-react';
-import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
-import type { PolicyAccessPackage, PolicyAccessPackageArea } from '../../../../types';
+import {
+  StudioAlert,
+  StudioLabelAsParagraph,
+  StudioParagraph,
+  StudioTextfield,
+} from '@studio/components';
 import { getUpdatedRules } from '../../../../utils/PolicyRuleUtils';
 import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext';
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
 import { PolicyAccordion } from './PolicyAccordion';
-import { groupAccessPackagesByArea } from '@altinn/policy-editor/utils';
-
-const CHECKED_VALUE = 'on';
-const selectedLanguage = 'nb';
+import {
+  filterAccessPackagesBySearchString,
+  groupAccessPackagesByArea,
+} from './policyAccessPackageUtils';
+import type { PolicyAccessPackageArea } from '@altinn/policy-editor';
 
 export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();
@@ -28,26 +32,15 @@ export const PolicyAccessPackages = (): ReactElement => {
     return groupAccessPackagesByArea(accessPackages);
   }, [accessPackages]);
 
-  const onPackageSelectChange = (accessPackage: PolicyAccessPackage): void => {
-    const isSelected = chosenAccessPackages.includes(accessPackage.urn);
-    if (isSelected) {
-      handleRemoveAccessPackage(accessPackage.urn);
-    } else {
-      handleAddAccessPackage(accessPackage.urn);
-    }
-  };
-
-  const handleRemoveAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
-    const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
-
+  const handleSelectAccessPackage = (packageUrn: string): void => {
+    setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
+    const urnsToSave = [...policyRule.accessPackages, packageUrn];
     handleAccessPackageChange(urnsToSave);
   };
 
-  const handleAddAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
-    const urnsToSave = [...policyRule.accessPackages, packageUrn];
-
+  const handleDeselectAccessPackage = (packageUrn: string): void => {
+    setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
+    const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
     handleAccessPackageChange(urnsToSave);
   };
 
@@ -60,105 +53,137 @@ export const PolicyAccessPackages = (): ReactElement => {
       policyRule.ruleId,
       policyRules,
     );
-
     setPolicyRules(updatedRules);
     savePolicy(updatedRules);
   };
 
-  const handleSearch = (search: string) => {
-    setSearchValue(search);
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(event.target.value);
   };
 
-  const isStringMatch = (matchString: string) => {
-    return matchString.toLowerCase().includes(searchValue.toLowerCase());
-  };
-
-  const accessPackagesToRender = groupedAccessPackagesByArea.reduce(
-    (areas: PolicyAccessPackageArea[], area): PolicyAccessPackageArea[] => {
-      const matchingPackages = area.packages.filter(
-        (pack) => !searchValue || isStringMatch(pack.name) || isStringMatch(pack.description),
-      );
-      const returnAreas = [...areas];
-      if (matchingPackages.length > 0) {
-        returnAreas.push({ ...area, packages: matchingPackages });
-      }
-      return returnAreas;
-    },
-    [],
+  const accessPackagesToRender = filterAccessPackagesBySearchString(
+    groupedAccessPackagesByArea,
+    searchValue,
   );
-
-  const renderAccessPackageAccordion = (accessPackage: PolicyAccessPackage): React.ReactNode => {
-    const isChecked = chosenAccessPackages.includes(accessPackage.urn);
-    const checkboxLabel = t(
-      isChecked ? 'policy_editor.access_package_remove' : 'policy_editor.access_package_add',
-      {
-        packageName: accessPackage.name,
-      },
-    );
-    const packageCheckbox = (
-      <CheckboxGroup
-        legend=''
-        className={classes.accordionCheckbox}
-        value={isChecked ? [CHECKED_VALUE] : []}
-        onChange={() => onPackageSelectChange(accessPackage)}
-      >
-        <Checkbox value={CHECKED_VALUE} aria-label={checkboxLabel} />
-      </CheckboxGroup>
-    );
-    return (
-      <PolicyAccessPackageAccordion
-        key={accessPackage.urn}
-        accessPackage={accessPackage}
-        selectedLanguage={selectedLanguage}
-        selectPackageElement={packageCheckbox}
-      />
-    );
-  };
 
   return (
     <div className={classes.accessPackages}>
-      <Alert severity='warning' size='sm'>
+      <StudioAlert severity='warning' size='sm'>
         <StudioLabelAsParagraph size='md' spacing>
           {t('policy_editor.access_package_warning_header')}
         </StudioLabelAsParagraph>
-        <Paragraph size='sm'>{t('policy_editor.access_package_warning_body')}</Paragraph>
-      </Alert>
+        <StudioParagraph size='sm'>
+          {t('policy_editor.access_package_warning_body')}
+        </StudioParagraph>
+      </StudioAlert>
       <StudioLabelAsParagraph size='md' spacing>
         {t('policy_editor.access_package_header')}
       </StudioLabelAsParagraph>
-      {chosenAccessPackages.length > 0 && (
-        <>
-          <StudioLabelAsParagraph size='xs' spacing>
-            {t('policy_editor.access_package_chosen_packages')}
-          </StudioLabelAsParagraph>
-          {groupedAccessPackagesByArea
-            .flatMap((area) => area.packages)
-            .filter((accessPackage) => chosenAccessPackages.includes(accessPackage.urn))
-            .map(renderAccessPackageAccordion)}
-        </>
-      )}
-      <StudioTextfield
-        label={<Label size='xs'>{t('policy_editor.access_package_search')}</Label>}
-        size='small'
-        value={searchValue}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)}
+      <ChosenAccessPackages
+        chosenAccessPackages={chosenAccessPackages}
+        groupedAccessPackagesByArea={groupedAccessPackagesByArea}
+        handleDeselectAccessPackage={handleDeselectAccessPackage}
       />
       <StudioLabelAsParagraph size='xs' spacing>
         {t('policy_editor.access_package_all_packages')}
       </StudioLabelAsParagraph>
-      {accessPackagesToRender.map((area) => {
-        return (
-          <PolicyAccordion
-            key={`${searchValue}-${area.id}`}
-            icon={area.icon || 'PackageIcon'}
-            title={area.name}
-            subTitle={area.description}
-            defaultOpen={!!searchValue}
-          >
-            {area.packages.map(renderAccessPackageAccordion)}
-          </PolicyAccordion>
-        );
-      })}
+      <StudioTextfield
+        label={
+          <StudioLabelAsParagraph size='xs'>
+            {t('policy_editor.access_package_search')}
+          </StudioLabelAsParagraph>
+        }
+        hideLabel
+        placeholder={t('policy_editor.access_package_search')}
+        size='small'
+        value={searchValue}
+        onChange={handleSearch}
+      />
+      <AllAccessPackages
+        chosenAccessPackages={chosenAccessPackages}
+        accessPackagesToRender={accessPackagesToRender}
+        searchValue={searchValue}
+        handleSelectAccessPackage={handleSelectAccessPackage}
+        handleDeselectAccessPackage={handleDeselectAccessPackage}
+      />
     </div>
   );
+};
+
+interface ChosenAccessPackagesProps {
+  chosenAccessPackages: string[];
+  groupedAccessPackagesByArea: PolicyAccessPackageArea[];
+  handleDeselectAccessPackage: (accessPackageUrn: string) => void;
+}
+const ChosenAccessPackages = ({
+  chosenAccessPackages,
+  groupedAccessPackagesByArea,
+  handleDeselectAccessPackage,
+}: ChosenAccessPackagesProps): ReactElement => {
+  const { t } = useTranslation();
+  return (
+    chosenAccessPackages.length > 0 && (
+      <>
+        <StudioLabelAsParagraph size='xs' spacing>
+          {t('policy_editor.access_package_chosen_packages')}
+        </StudioLabelAsParagraph>
+        {groupedAccessPackagesByArea
+          .flatMap((area) => area.packages)
+          .filter((accessPackage) => chosenAccessPackages.includes(accessPackage.urn))
+          .map((accessPackage) => {
+            return (
+              <PolicyAccessPackageAccordion
+                key={accessPackage.urn}
+                accessPackage={accessPackage}
+                isChecked={true}
+                handleSelectChange={handleDeselectAccessPackage}
+              />
+            );
+          })}
+      </>
+    )
+  );
+};
+
+interface AllAccessPackagesProps {
+  chosenAccessPackages: string[];
+  accessPackagesToRender: PolicyAccessPackageArea[];
+  searchValue: string;
+  handleSelectAccessPackage: (accessPackageUrn: string) => void;
+  handleDeselectAccessPackage: (accessPackageUrn: string) => void;
+}
+const AllAccessPackages = ({
+  chosenAccessPackages,
+  accessPackagesToRender,
+  searchValue,
+  handleSelectAccessPackage,
+  handleDeselectAccessPackage,
+}: AllAccessPackagesProps): ReactElement[] => {
+  const handleSelectChange = (accessPackageUrn: string): void => {
+    const isChecked = chosenAccessPackages.includes(accessPackageUrn);
+    if (isChecked) {
+      handleDeselectAccessPackage(accessPackageUrn);
+    } else {
+      handleSelectAccessPackage(accessPackageUrn);
+    }
+  };
+
+  return accessPackagesToRender.map((area) => (
+    <PolicyAccordion
+      key={`${searchValue}-${area.id}`}
+      icon={area.icon || 'PackageIcon'}
+      title={area.name}
+      subTitle={area.description}
+      defaultOpen={!!searchValue}
+    >
+      {area.packages.map((accessPackage) => (
+        <PolicyAccessPackageAccordion
+          key={accessPackage.urn}
+          accessPackage={accessPackage}
+          isChecked={chosenAccessPackages.includes(accessPackage.urn)}
+          handleSelectChange={handleSelectChange}
+        />
+      ))}
+    </PolicyAccordion>
+  ));
 };
