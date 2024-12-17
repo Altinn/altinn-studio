@@ -28,7 +28,11 @@ export const SchemaInspector = () => {
   const selectedItem: UiSchemaNode = savableModel.getNodeByUniquePointer(selectedUniquePointer);
 
   return (
-    <Tabs defaultValue={SchemaInspectorTabs.Properties} className={classes.root}>
+    <Tabs
+      key={selectedItem.schemaPointer}
+      defaultValue={SchemaInspectorTabs.Properties}
+      className={classes.root}
+    >
       <Tabs.List>
         <Tabs.Tab value={SchemaInspectorTabs.Properties}>{t('schema_editor.properties')}</Tabs.Tab>
         <Tabs.Tab value={SchemaInspectorTabs.Fields}>{t('schema_editor.fields')}</Tabs.Tab>
