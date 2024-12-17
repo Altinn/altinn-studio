@@ -6,7 +6,7 @@ import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
@@ -401,27 +401,37 @@ describe('FormComponentConfig', () => {
     );
   });
 
-  it('should call handleComponentUpdate for custom file endings', async () => {
-    const user = userEvent.setup();
+  it('should render object properties with headings, descriptions, and nested FormComponentConfig', async () => {
     const handleComponentUpdateMock = jest.fn();
-    render({
-      props: {
-        schema: {
+
+    const testSchema = {
+      properties: {
+        objectProperty1: {
+          type: 'object',
+          description: 'This is a description for objectProperty1',
           properties: {
-            hasCustomFileEndings: { type: 'boolean', default: false },
-            validFileEndings: { type: 'string', description: 'Valid file endings' },
+            nestedProperty: {
+              type: 'string',
+              description: 'Nested property description',
+            },
           },
         },
-        handleComponentUpdate: handleComponentUpdateMock,
       },
-    });
-    const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
-    });
-    await user.click(hasCustomFileEndingsSwitch);
-    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ hasCustomFileEndings: true }),
+    };
+    renderWithProviders(
+      <FormComponentConfig
+        schema={testSchema}
+        component={componentMocks.Input}
+        handleComponentUpdate={handleComponentUpdateMock}
+        editFormId='test-form'
+      />,
     );
+    expect(
+      screen.getByRole('heading', { name: textMock('ux_editor.component_other_properties_title') }),
+    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Nested property description')).toBeInTheDocument();
+    });
   });
 
   const render = ({
