@@ -20,6 +20,12 @@ describe('ItemMetadataTab', () => {
     expect(minCountSpinButton()).toBeInTheDocument();
   });
 
+  it('should show "no metadata" if datatype is not present on datamodel', async () => {
+    render({ dataType: null });
+    await waitForLoadingToFinish();
+    expect(noMetadataErrorMessage()).toBeInTheDocument();
+  });
+
   it('should call mutation editing fields', async () => {
     const user = userEvent.setup({ delay: null });
     jest.useFakeTimers();
@@ -109,3 +115,4 @@ const minCountSpinButton = () =>
   screen.getByRole('spinbutton', { name: /schema_editor\.metadata\.minCount/i });
 const autoCreateCheckbox = () =>
   screen.getByRole('checkbox', { name: /schema_editor\.metadata\.autoCreate/i });
+const noMetadataErrorMessage = () => screen.getByText(/schema_editor.metadata.not_found/);
