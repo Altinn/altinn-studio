@@ -301,7 +301,7 @@ describe('EditBinding without featureFlag', () => {
       {
         ...componentMocks[ComponentType.Input],
         dataModelBindings: {
-          simpleBinding: undefined,
+          simpleBinding: '',
         },
         maxCount: undefined,
         required: undefined,
