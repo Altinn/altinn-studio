@@ -8,7 +8,6 @@ using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using LibGit2Sharp;
 
 namespace Altinn.Studio.Designer.Services.Implementation;
@@ -21,7 +20,7 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// </remarks>
 /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
 /// <param name="dataService"></param>
-public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, IDataService dataService) : IPreviewService
+public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IPreviewService
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     public const string MockDataModelIdPrefix = "MockDataModel";
