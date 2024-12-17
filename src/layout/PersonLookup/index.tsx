@@ -24,7 +24,7 @@ export class PersonLookup extends PersonLookupDef {
   );
 
   renderSummary(_props: SummaryRendererProps<'PersonLookup'>): JSX.Element | null {
-    throw new Error('Method not implemented.');
+    return null;
   }
 
   renderSummary2(props: Summary2Props<'PersonLookup'>): JSX.Element | null {

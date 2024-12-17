@@ -29,7 +29,7 @@ export class OrganisationLookup extends OrganisationLookupDef {
   }
 
   renderSummary(_props: SummaryRendererProps<'OrganisationLookup'>): JSX.Element | null {
-    throw new Error('Method not implemented.');
+    return null;
   }
 
   validateDataModelBindings(_ctx: LayoutValidationCtx<'OrganisationLookup'>): string[] {
