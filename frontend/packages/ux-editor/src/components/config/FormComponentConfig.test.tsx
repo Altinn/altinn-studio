@@ -336,7 +336,7 @@ describe('FormComponentConfig', () => {
       props: {
         schema: {
           properties: {
-            hasCustomFileEnding: { type: 'boolean', default: true },
+            hasCustomFileEndings: { type: 'boolean', default: true },
             validFileEndings: { type: 'string', description: 'Valid file endings' },
           },
         },
@@ -345,13 +345,14 @@ describe('FormComponentConfig', () => {
     });
     const user = userEvent.setup();
     const hasCustomFileEndingsSwitch = screen.getByRole('checkbox', {
-      name: textMock('ux_editor.component_properties.hasCustomFileEnding'),
+      name: textMock('ux_editor.component_properties.hasCustomFileEndings'),
     });
     expect(hasCustomFileEndingsSwitch).toBeChecked();
     await user.click(hasCustomFileEndingsSwitch);
     expect(handleComponentUpdateMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        hasCustomFileEnding: false,
+        hasCustomFileEndings: false,
+        validFileEndings: undefined,
       }),
     );
   });
