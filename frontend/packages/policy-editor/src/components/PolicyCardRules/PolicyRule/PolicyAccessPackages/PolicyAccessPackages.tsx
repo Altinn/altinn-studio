@@ -33,15 +33,16 @@ export const PolicyAccessPackages = (): ReactElement => {
   }, [accessPackages]);
 
   const handleSelectAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
-    const urnsToSave = [...policyRule.accessPackages, packageUrn];
-    handleAccessPackageChange(urnsToSave);
-  };
-
-  const handleDeselectAccessPackage = (packageUrn: string): void => {
-    setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
-    const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
-    handleAccessPackageChange(urnsToSave);
+    const isChecked = chosenAccessPackages.includes(packageUrn);
+    if (isChecked) {
+      setChosenAccessPackages((oldUrns) => oldUrns.filter((urn) => urn !== packageUrn));
+      const urnsToSave = policyRule.accessPackages.filter((x) => x !== packageUrn);
+      handleAccessPackageChange(urnsToSave);
+    } else {
+      setChosenAccessPackages((oldUrns) => [...oldUrns, packageUrn]);
+      const urnsToSave = [...policyRule.accessPackages, packageUrn];
+      handleAccessPackageChange(urnsToSave);
+    }
   };
 
   const handleAccessPackageChange = (newSelectedAccessPackageUrns: string[]): void => {
@@ -82,7 +83,7 @@ export const PolicyAccessPackages = (): ReactElement => {
       <ChosenAccessPackages
         chosenAccessPackages={chosenAccessPackages}
         groupedAccessPackagesByArea={groupedAccessPackagesByArea}
-        handleDeselectAccessPackage={handleDeselectAccessPackage}
+        handleSelectAccessPackage={handleSelectAccessPackage}
       />
       <StudioLabelAsParagraph size='xs' spacing>
         {t('policy_editor.access_package_all_packages')}
@@ -104,7 +105,6 @@ export const PolicyAccessPackages = (): ReactElement => {
         accessPackagesToRender={accessPackagesToRender}
         searchValue={searchValue}
         handleSelectAccessPackage={handleSelectAccessPackage}
-        handleDeselectAccessPackage={handleDeselectAccessPackage}
       />
     </div>
   );
@@ -113,12 +113,12 @@ export const PolicyAccessPackages = (): ReactElement => {
 interface ChosenAccessPackagesProps {
   chosenAccessPackages: string[];
   groupedAccessPackagesByArea: PolicyAccessPackageArea[];
-  handleDeselectAccessPackage: (accessPackageUrn: string) => void;
+  handleSelectAccessPackage: (accessPackageUrn: string) => void;
 }
 const ChosenAccessPackages = ({
   chosenAccessPackages,
   groupedAccessPackagesByArea,
-  handleDeselectAccessPackage,
+  handleSelectAccessPackage,
 }: ChosenAccessPackagesProps): ReactElement => {
   const { t } = useTranslation();
   return (
@@ -136,7 +136,7 @@ const ChosenAccessPackages = ({
                 key={accessPackage.urn}
                 accessPackage={accessPackage}
                 isChecked={true}
-                handleSelectChange={handleDeselectAccessPackage}
+                handleSelectChange={handleSelectAccessPackage}
               />
             );
           })}
@@ -150,24 +150,13 @@ interface AllAccessPackagesProps {
   accessPackagesToRender: PolicyAccessPackageArea[];
   searchValue: string;
   handleSelectAccessPackage: (accessPackageUrn: string) => void;
-  handleDeselectAccessPackage: (accessPackageUrn: string) => void;
 }
 const AllAccessPackages = ({
   chosenAccessPackages,
   accessPackagesToRender,
   searchValue,
   handleSelectAccessPackage,
-  handleDeselectAccessPackage,
 }: AllAccessPackagesProps): ReactElement[] => {
-  const handleSelectChange = (accessPackageUrn: string): void => {
-    const isChecked = chosenAccessPackages.includes(accessPackageUrn);
-    if (isChecked) {
-      handleDeselectAccessPackage(accessPackageUrn);
-    } else {
-      handleSelectAccessPackage(accessPackageUrn);
-    }
-  };
-
   return accessPackagesToRender.map((area) => (
     <PolicyAccordion
       key={`${searchValue}-${area.id}`}
@@ -181,7 +170,7 @@ const AllAccessPackages = ({
           key={accessPackage.urn}
           accessPackage={accessPackage}
           isChecked={chosenAccessPackages.includes(accessPackage.urn)}
-          handleSelectChange={handleSelectChange}
+          handleSelectChange={handleSelectAccessPackage}
         />
       ))}
     </PolicyAccordion>
