@@ -39,7 +39,7 @@ describe('EditTab', () => {
     const handleOptionsIdChange = jest.fn();
     renderEditTab({ handleComponentChange: handleOptionsIdChange });
     const expectedArgs = mockComponent;
-    expectedArgs.optionsId = '';
+    expectedArgs.optionsId = undefined;
     delete expectedArgs.options;
 
     const button = await screen.findByText(textMock('general.delete'));

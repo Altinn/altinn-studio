@@ -9,12 +9,10 @@ import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
 
 export type OptionListEditorProps = {
-  optionsId: string;
   setComponentHasOptionList: (value: boolean) => void;
 } & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 export function OptionListEditor({
-  optionsId,
   component,
   handleComponentChange,
   setComponentHasOptionList,
@@ -28,10 +26,9 @@ export function OptionListEditor({
       delete component.options;
     }
 
-    const emptyOptionsId = '';
     handleComponentChange({
       ...component,
-      optionsId: emptyOptionsId,
+      optionsId: undefined,
     });
 
     setComponentHasOptionList(false);
@@ -59,11 +56,11 @@ export function OptionListEditor({
         </StudioErrorMessage>
       );
     case 'success': {
-      if (optionsLists[optionsId] !== undefined) {
+      if (optionsLists[component.optionsId] !== undefined) {
         return (
           <LibraryOptionsEditor
             component={component}
-            optionsList={optionsLists[optionsId]}
+            optionsList={optionsLists[component.optionsId]}
             handleDelete={handleDelete}
           />
         );

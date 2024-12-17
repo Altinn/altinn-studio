@@ -71,7 +71,6 @@ function SelectedOptionList({
 }: SelectedOptionListProps) {
   return (
     <OptionListEditor
-      optionsId={component.optionsId}
       component={component}
       handleComponentChange={handleComponentChange}
       setComponentHasOptionList={setComponentHasOptionList}
