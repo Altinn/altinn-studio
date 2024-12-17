@@ -55,7 +55,11 @@ import {
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
+<<<<<<< HEAD
   optionListPath,
+=======
+  optionListReferencesPath,
+>>>>>>> 275bbc489 (pass optionListsUsages from appContentLibrary to visualize in code list in library)
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -114,6 +118,7 @@ export const getLayoutNames = (owner: string, app: string) => get<string[]>(layo
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionsList>(optionListPath(owner, app, optionsListId));
+export const getOptionListsReferences = (owner: string, app: string) => get<any>(optionListReferencesPath(owner, app));
 export const getOptionLists = (owner: string, app: string) => get<OptionsLists>(optionListsPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
