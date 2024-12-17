@@ -401,6 +401,47 @@ describe('FormComponentConfig', () => {
     );
   });
 
+  it('should call handleComponentUpdate when propertyKey is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: DatepickerSchema,
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const button = screen.getByRole('button', {
+      name: textMock('ux_editor.component_other_properties_show_many_settings'),
+    });
+    expect(button).toBeInTheDocument();
+    await user.click(button);
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.timeStamp'),
+    });
+    await user.click(timeStampSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ timeStamp: false }),
+    );
+  });
+
+  it('should call handleComponentUpdate when a boolean value is toggled', async () => {
+    const user = userEvent.setup();
+    const handleComponentUpdateMock = jest.fn();
+    render({
+      props: {
+        schema: DatepickerSchema,
+        handleComponentUpdate: handleComponentUpdateMock,
+      },
+    });
+    const timeStampSwitch = screen.getByRole('checkbox', {
+      name: textMock('ux_editor.component_properties.readOnly'),
+    });
+    await user.click(timeStampSwitch);
+    expect(handleComponentUpdateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ readOnly: true }),
+    );
+  });
+
   const render = ({
     props = {},
     queries = {},
