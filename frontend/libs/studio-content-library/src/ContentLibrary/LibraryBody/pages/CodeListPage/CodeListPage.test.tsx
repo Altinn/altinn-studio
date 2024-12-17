@@ -80,11 +80,11 @@ describe('CodeListPage', () => {
     });
     rerender(
       <CodeListPage
-        codeLists={defaultCodeListProps.codeLists}
+        codeLists={defaultCodeListPageProps.codeLists}
         onUpdateCodeListId={onUpdateCodeListIdMock}
         onUpdateCodeList={onUpdateCodeListMock}
         onUploadCodeList={onUploadCodeListMock}
-        fetchDataError={defaultCodeListProps.fetchDataError}
+        fetchDataError={defaultCodeListPageProps.fetchDataError}
       />,
     );
     const codeListAccordionOpen = screen.getByRole('button', {
@@ -170,7 +170,7 @@ const renderCodeListPage = ({
   codeLists,
   fetchDataError,
 }: Partial<CodeListPageProps> = defaultCodeListPageProps) => {
-  render(
+  return render(
     <CodeListPage
       codeLists={codeLists}
       onUpdateCodeListId={onUpdateCodeListIdMock}

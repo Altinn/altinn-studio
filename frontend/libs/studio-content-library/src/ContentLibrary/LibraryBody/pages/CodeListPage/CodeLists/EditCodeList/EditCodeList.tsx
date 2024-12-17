@@ -2,7 +2,7 @@ import type { CodeList, CodeListEditorTexts } from '@studio/components';
 import { StudioCodeListEditor, StudioToggleableTextfield } from '@studio/components';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../../CodeList';
+import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
 import { updateCodeListWithMetadata } from '../CodeLists';
