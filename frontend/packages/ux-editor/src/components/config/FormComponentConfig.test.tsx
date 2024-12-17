@@ -6,7 +6,7 @@ import { componentMocks } from '../../testing/componentMocks';
 import InputSchema from '../../testing/schemas/json/component/Input.schema.v1.json';
 import DatepickerSchema from '../../testing/schemas/json/component/Datepicker.schema.v1.json';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { KeyValuePairs } from 'app-shared/types/KeyValuePairs';
 import userEvent from '@testing-library/user-event';
