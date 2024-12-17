@@ -46,7 +46,7 @@ public class AuthorizationController : Controller
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
     public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
     {
-        Party? currentParty = await GetCurrentPartyAsync(HttpContext);
+        (Party? currentParty, _) = await GetCurrentPartyAsync(HttpContext);
 
         if (returnPartyObject)
         {
@@ -86,30 +86,30 @@ public class AuthorizationController : Controller
     /// <summary>
     /// Fetches roles for current party.
     /// </summary>
-    /// <returns>Boolean indicating if the selected party is valid.</returns>
+    /// <returns>List of roles for the current user and party.</returns>
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/roles")]
     public async Task<IActionResult> GetRolesForCurrentParty()
     {
-        Party? currentParty = await GetCurrentPartyAsync(HttpContext);
-        UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-        int userId = userContext.UserId;
+        (Party? currentParty, UserContext userContext) = await GetCurrentPartyAsync(HttpContext);
 
         if (currentParty == null)
         {
             return BadRequest("Both userId and partyId must be provided.");
         }
 
+        int userId = userContext.UserId;
         List<Role> roles = await _authorization.GetUserRolesAsync(userId, currentParty.PartyId);
+
         return Ok(roles);
     }
 
     /// <summary>
-    /// Helper method to retrieve the current party from the HTTP context.
+    /// Helper method to retrieve the current party and user context from the HTTP context.
     /// </summary>
     /// <param name="context">The current HttpContext.</param>
-    /// <returns>The current party or null if none could be determined.</returns>
-    private async Task<Party?> GetCurrentPartyAsync(HttpContext context)
+    /// <returns>A tuple containing the current party and user context.</returns>
+    private async Task<(Party? party, UserContext userContext)> GetCurrentPartyAsync(HttpContext context)
     {
         UserContext userContext = await _userHelper.GetUserContext(context);
         int userId = userContext.UserId;
@@ -150,6 +150,6 @@ public class AuthorizationController : Controller
             );
         }
 
-        return userContext.Party;
+        return (userContext.Party, userContext);
     }
 }

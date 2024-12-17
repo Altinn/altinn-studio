@@ -187,40 +187,45 @@ public class AuthorizationClient : IAuthorizationClient
     /// <param name="userId">The user id.</param>
     /// <param name="userPartyId">The user party id.</param>
     /// <returns>A list of roles for the user on the specified party.</returns>
-    public async Task<List<Role>?> GetUserRolesAsync(int userId, int userPartyId)
-    {
-        List<Role>? roles = null;
-        string apiUrl = $"roles?coveredByUserId={userId}&offeredByPartyId={userPartyId}";
-        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+public async Task<List<Role>> GetUserRolesAsync(int userId, int userPartyId)
+{
+    List<Role> roles = new();
+    string apiUrl = $"roles?coveredByUserId={userId}&offeredByPartyId={userPartyId}";
+    string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
 
-        try
+    try
+    {
+        HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+        if (response.IsSuccessStatusCode)
         {
-            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
-            if (response.IsSuccessStatusCode)
+            string responseContent = await response.Content.ReadAsStringAsync();
+            var deserialized = JsonConvert.DeserializeObject<List<Role>>(responseContent);
+            if (deserialized is not null)
             {
-                string responseContent = await response.Content.ReadAsStringAsync();
-                roles = JsonConvert.DeserializeObject<List<Role>>(responseContent);
-            }
-            else
-            {
-                _logger.LogError(
-                    "Failed to retrieve roles for userId {UserId} and partyId {PartyId}. StatusCode: {StatusCode}",
-                    userId,
-                    userPartyId,
-                    response.StatusCode
-                );
+                roles = deserialized;
             }
         }
-        catch (Exception ex)
+        else
         {
             _logger.LogError(
-                ex,
-                "An error occurred while retrieving roles for userId {UserId} and partyId {PartyId}",
+                "Failed to retrieve roles for userId {UserId} and partyId {PartyId}. StatusCode: {StatusCode}",
                 userId,
-                userPartyId
+                userPartyId,
+                response.StatusCode
             );
         }
-
-        return roles;
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(
+            ex,
+            "An error occurred while retrieving roles for userId {UserId} and partyId {PartyId}",
+            userId,
+            userPartyId
+        );
+    }
+
+    return roles;
+}
+
 }
