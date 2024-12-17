@@ -1,4 +1,4 @@
-import type { CodeListWithMetadata } from '@studio/content-library';
+import type { CodeListReference, CodeListWithMetadata } from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import React from 'react';
 import { useOptionListsQuery } from 'app-shared/hooks/queries';
@@ -15,6 +15,8 @@ import {
   useUpdateOptionListMutation,
   useUpdateOptionListIdMutation,
 } from 'app-shared/hooks/mutations';
+import { useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
+import { convertOptionListsUsageToCodeListsUsage } from './utils/convertOptionListsUsageToCodeListsUsage';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -28,12 +30,17 @@ export function AppContentLibrary(): React.ReactElement {
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
-
-  if (optionListsDataPending)
+  const { data: optionListsUsage, isPending: optionListsUsageIsPending } =
+    useOptionListsReferencesQuery(org, app);
+  
+  if (optionListsDataPending || optionListsUsageIsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
   const codeListsData = convertOptionsListsDataToCodeListsData(optionListsData);
 
+  const codeListsUsages: CodeListReference[] =
+      convertOptionListsUsageToCodeListsUsage(optionListsUsage);
+  
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
   };
@@ -63,6 +70,7 @@ export function AppContentLibrary(): React.ReactElement {
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
+          codeListsUsages,
         },
       },
       images: {

@@ -58,6 +58,7 @@ import {
   selectedMaskinportenScopesPath,
   resourceAccessPackageServicesPath,
   optionListPath,
+  optionListReferencesPath,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -118,6 +119,7 @@ export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(lay
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
 export const getOptionList = (owner: string, app: string, optionsListId: string) => get<OptionsList>(optionListPath(owner, app, optionsListId));
 export const getOptionLists = (owner: string, app: string) => get<OptionsListsResponse>(optionListsPath(owner, app));
+export const getOptionListsReferences = (owner: string, app: string) => get<any>(optionListReferencesPath(owner, app));
 export const getOptionListIds = (owner: string, app: string) => get<string[]>(optionListIdsPath(owner, app));
 export const getOrgList = () => get<OrgList>(orgListUrl());
 export const getOrganizations = () => get<Organization[]>(orgsListPath());
