@@ -7,7 +7,7 @@ export const useDataTypeQuery = (org: string, app: string, dataModelName: string
   const { getDataType } = useServicesContext();
 
   return useQuery<DataType>({
-    queryKey: [QueryKey.DataType, dataModelName],
+    queryKey: [QueryKey.DataType, org, app, dataModelName],
     queryFn: () =>
       getDataType(org, app, dataModelName).then((dataType) => {
         return dataType;
