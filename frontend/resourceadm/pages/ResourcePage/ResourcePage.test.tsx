@@ -93,8 +93,6 @@ describe('ResourcePage', () => {
   });
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.ResourceMigration);
-
     const getResource = jest
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));
