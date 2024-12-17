@@ -75,4 +75,12 @@ describe('EditBooleanValue', () => {
       screen.getByText(textMock('ux_editor.component_properties.config_is_expression_message')),
     ).toBeInTheDocument();
   });
+
+  it('should display custom help text', () => {
+    const customHelpText = textMock('ux_editor.component_properties_help_text.required');
+    renderEditBooleanValue({
+      helpText: customHelpText,
+    });
+    expect(screen.getByRole('button')).toHaveTextContent(customHelpText);
+  });
 });
