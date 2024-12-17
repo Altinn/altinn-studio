@@ -46,9 +46,6 @@ export const ItemMetadataTab = () => {
         type='number'
         max={Number.MAX_SAFE_INTEGER}
         min={dataType.minCount || 0}
-        error={
-          dataType.maxCount < dataType.minCount ? t('schema_editor.metadata.maxCount.error') : false
-        }
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           dataType.maxCount = parseInt(event.target.value);
           saveMetadata(dataType);
@@ -60,9 +57,6 @@ export const ItemMetadataTab = () => {
         type='number'
         max={dataType.maxCount || Number.MAX_SAFE_INTEGER}
         min={0}
-        error={
-          dataType.minCount > dataType.maxCount ? t('schema_editor.metadata.minCount.error') : false
-        }
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           dataType.minCount = parseInt(event.target.value);
           saveMetadata(dataType);
