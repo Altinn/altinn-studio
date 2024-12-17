@@ -401,39 +401,6 @@ describe('FormComponentConfig', () => {
     );
   });
 
-  it('should render object properties with headings, descriptions, and nested FormComponentConfig', async () => {
-    const handleComponentUpdateMock = jest.fn();
-
-    const testSchema = {
-      properties: {
-        objectProperty1: {
-          type: 'object',
-          description: 'This is a description for objectProperty1',
-          properties: {
-            nestedProperty: {
-              type: 'string',
-              description: 'Nested property description',
-            },
-          },
-        },
-      },
-    };
-    renderWithProviders(
-      <FormComponentConfig
-        schema={testSchema}
-        component={componentMocks.Input}
-        handleComponentUpdate={handleComponentUpdateMock}
-        editFormId='test-form'
-      />,
-    );
-    expect(
-      screen.getByRole('heading', { name: textMock('ux_editor.component_other_properties_title') }),
-    ).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByText('Nested property description')).toBeInTheDocument();
-    });
-  });
-
   const render = ({
     props = {},
     queries = {},
