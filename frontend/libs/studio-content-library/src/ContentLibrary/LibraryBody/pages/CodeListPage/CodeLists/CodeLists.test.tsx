@@ -56,6 +56,14 @@ describe('CodeLists', () => {
     });
   });
 
+  it('renders the code list title label', () => {
+    renderCodeLists();
+    const codeListTitleLabel = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_edit_id_label'),
+    );
+    expect(codeListTitleLabel).toBeInTheDocument();
+  });
+
   it('calls onUpdateCodeListId when changing the code list id', async () => {
     const user = userEvent.setup();
     renderCodeLists();

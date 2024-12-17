@@ -56,6 +56,7 @@ export function EditCodeList({
           size: 'small',
         }}
         viewProps={{
+          label: t('app_content_library.code_lists.code_list_edit_id_label'),
           children: codeList.title,
           variant: 'tertiary',
           title: t('app_content_library.code_lists.code_list_view_id_title', {
