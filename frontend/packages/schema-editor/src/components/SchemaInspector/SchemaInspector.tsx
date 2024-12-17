@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from '@digdir/designsystemet-react';
-import type { UiSchemaNode } from '@altinn/schema-model';
+import { ROOT_POINTER, type UiSchemaNode } from '@altinn/schema-model';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { ItemFieldsTab } from './ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
@@ -32,7 +32,9 @@ export const SchemaInspector = () => {
       <Tabs.List>
         <Tabs.Tab value={SchemaInspectorTabs.Properties}>{t('schema_editor.properties')}</Tabs.Tab>
         <Tabs.Tab value={SchemaInspectorTabs.Fields}>{t('schema_editor.fields')}</Tabs.Tab>
-        <Tabs.Tab value={SchemaInspectorTabs.Metadata}>{t('schema_editor.metadata')}</Tabs.Tab>
+        {selectedItem.schemaPointer == ROOT_POINTER && (
+          <Tabs.Tab value={SchemaInspectorTabs.Metadata}>{t('schema_editor.metadata')}</Tabs.Tab>
+        )}
       </Tabs.List>
       <Tabs.Content value={SchemaInspectorTabs.Properties}>
         <ItemPropertiesTab selectedItem={selectedItem} />
