@@ -42,7 +42,7 @@ export const ItemMetadataTab = () => {
     <StudioFieldset legend={t('schema_editor.metadata')}>
       <StudioTextfield
         label={t('schema_editor.metadata.maxCount')}
-        value={dataType.maxCount}
+        value={dataType.maxCount || 0}
         type='number'
         max={Number.MAX_SAFE_INTEGER}
         min={dataType.minCount || 0}
@@ -53,7 +53,7 @@ export const ItemMetadataTab = () => {
       />
       <StudioTextfield
         label={t('schema_editor.metadata.minCount')}
-        value={dataType.minCount}
+        value={dataType.minCount || 0}
         type='number'
         max={dataType.maxCount || Number.MAX_SAFE_INTEGER}
         min={0}
