@@ -1796,6 +1796,7 @@
   "ux_editor.properties_panel.texts.no_properties": "Det er ingen tekster å konfigurere for denne komponenten.",
   "ux_editor.properties_panel.texts.sub_title_images": "Valg for bilde",
   "ux_editor.properties_panel.texts.sub_title_texts": "Tekster",
+  "ux_editor.radios_error_DuplicateValues": "Alle verdier må være unike.",
   "ux_editor.radios_error_NoOptions": "Det må være minst én radioknapp.",
   "ux_editor.radios_option": "Radioknapp {{optionNumber}}",
   "ux_editor.search_text_resources_close": "Lukk tekstsøk",
