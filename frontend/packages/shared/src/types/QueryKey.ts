@@ -27,6 +27,7 @@ export enum QueryKey {
   LayoutSchema = 'LayoutSchema',
   LayoutSets = 'LayoutSets',
   LayoutSetsExtended = 'LayoutSetsExtended',
+  OptionListsUsage = 'OptionListsUsage',
   OptionLists = 'OptionLists',
   OptionListIds = 'OptionListIds',
   OrgList = 'OrgList',
