@@ -7,7 +7,7 @@ import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleCont
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
-import type { PolicyAccessPackageAreaGroup } from '@altinn/policy-editor/types';
+import type { PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';

@@ -1,18 +1,17 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { type ReactNode, useEffect, useId, useState } from 'react';
 import cn from 'classnames';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import * as StudioIcons from '@studio/icons';
-import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
 
 interface PolicyAccordion {
   icon?: string;
   title: string;
   subTitle: string;
-  extraHeaderContent?: React.ReactNode;
+  extraHeaderContent?: ReactNode;
   defaultOpen?: boolean;
   onOpened?: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const PolicyAccordion = ({
@@ -23,9 +22,10 @@ export const PolicyAccordion = ({
   defaultOpen,
   onOpened,
   children,
-}: PolicyAccordion): React.ReactNode => {
+}: PolicyAccordion): ReactNode => {
   const contentId = useId();
-  const [isExpanded, setIsExpanded] = useState<boolean>(defaultOpen || false);
+  const initialExpandedState: boolean = defaultOpen || false;
+  const [isExpanded, setIsExpanded] = useState<boolean>(initialExpandedState);
   const IconComponent = StudioIcons[icon];
 
   useEffect(() => {
@@ -56,11 +56,7 @@ export const PolicyAccordion = ({
               <div className={classes.accordionSubTitle}>{subTitle}</div>
             </div>
           </div>
-          {isExpanded ? (
-            <ChevronUpIcon className={classes.accordionIcon} aria-hidden />
-          ) : (
-            <ChevronDownIcon className={classes.accordionIcon} aria-hidden />
-          )}
+          <PolicyAccordionIcon isExpanded={isExpanded} />
         </StudioButton>
         {extraHeaderContent}
       </div>
@@ -71,4 +67,9 @@ export const PolicyAccordion = ({
       )}
     </div>
   );
+};
+
+const PolicyAccordionIcon = ({ isExpanded }: { isExpanded: boolean }): ReactNode => {
+  const IconComponent = isExpanded ? StudioIcons.ChevronUpIcon : StudioIcons.ChevronDownIcon;
+  return <IconComponent className={classes.accordionIcon} aria-hidden />;
 };

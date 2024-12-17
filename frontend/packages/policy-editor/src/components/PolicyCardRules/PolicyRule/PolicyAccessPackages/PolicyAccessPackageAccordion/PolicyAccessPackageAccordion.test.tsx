@@ -41,7 +41,7 @@ describe('PolicyAccessPackageAccordion', () => {
 
   it('should show text if access package contains no services', async () => {
     const user = userEvent.setup();
-    renderAccordion();
+    renderPolicyAccessPackageAccordion();
 
     const accordionButton = screen.getByRole('button');
     await user.click(accordionButton);
@@ -57,7 +57,7 @@ describe('PolicyAccessPackageAccordion', () => {
       .fn()
       .mockImplementation(() => Promise.resolve([resource]));
 
-    renderAccordion({ getAccessPackageServices });
+    renderPolicyAccessPackageAccordion({ getAccessPackageServices });
 
     const accordionButton = screen.getByRole('button');
     await user.click(accordionButton);
@@ -73,7 +73,7 @@ describe('PolicyAccessPackageAccordion', () => {
         Promise.resolve([{ ...resource, logoUrl: 'https://altinncdn.no/orgs/skd/skd.png' }]),
       );
 
-    renderAccordion({ getAccessPackageServices });
+    renderPolicyAccessPackageAccordion({ getAccessPackageServices });
 
     const accordionButton = screen.getByRole('button');
     await user.click(accordionButton);
@@ -82,7 +82,7 @@ describe('PolicyAccessPackageAccordion', () => {
   });
 });
 
-const renderAccordion = (queries: Partial<ServicesContextProps> = {}) => {
+const renderPolicyAccessPackageAccordion = (queries: Partial<ServicesContextProps> = {}) => {
   const queryClient: QueryClient = createQueryClientMock();
   const allQueries: ServicesContextProps = {
     ...queriesMock,

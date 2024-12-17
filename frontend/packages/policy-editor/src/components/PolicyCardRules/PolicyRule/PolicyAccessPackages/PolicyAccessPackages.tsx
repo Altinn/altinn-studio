@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { type ReactElement, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Paragraph, Alert, CheckboxGroup, Checkbox, Label } from '@digdir/designsystemet-react';
 import { StudioLabelAsParagraph, StudioTextfield } from '@studio/components';
@@ -8,13 +8,13 @@ import { usePolicyEditorContext } from '../../../../contexts/PolicyEditorContext
 import { usePolicyRuleContext } from '../../../../contexts/PolicyRuleContext';
 import classes from './PolicyAccessPackages.module.css';
 import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
-import { PolicyAccordion } from './PolicyAccordion/PolicyAccordion';
+import { PolicyAccordion } from './PolicyAccordion';
 import { groupAccessPackagesByArea } from '@altinn/policy-editor/utils';
 
 const CHECKED_VALUE = 'on';
 const selectedLanguage = 'nb';
 
-export const PolicyAccessPackages = (): React.ReactElement => {
+export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState<string>('');
   const { policyRules, accessPackages, setPolicyRules, savePolicy } = usePolicyEditorContext();

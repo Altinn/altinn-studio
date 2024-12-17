@@ -45,19 +45,13 @@ export interface PolicyAccessPackageAreaGroup {
   areas: PolicyAccessPackageArea[];
 }
 
+export type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
+
 export interface AccessPackageResource {
   identifier: string;
-  title: {
-    nb: string;
-    nn: string;
-    en: string;
-  };
+  title: AccessPackageResourceLanguage;
   hasCompetentAuthority?: {
-    name: {
-      nb: string;
-      nn: string;
-      en: string;
-    };
+    name: AccessPackageResourceLanguage;
     organization: string;
     orgcode: string;
   };

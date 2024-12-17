@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
-import type { PolicyAccessPackage } from '@altinn/policy-editor/types';
-import { PolicyAccordion } from '../PolicyAccordion/PolicyAccordion';
+import type { AccessPackageResourceLanguage, PolicyAccessPackage } from '@altinn/policy-editor';
+import { PolicyAccordion } from '../PolicyAccordion';
 import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
 import { StudioSpinner } from '@studio/components';
 
 interface PolicyAccessPackageAccordionProps {
   accessPackage: PolicyAccessPackage;
-  selectedLanguage: 'nb' | 'nn' | 'en';
-  selectPackageElement: React.ReactNode;
+  selectedLanguage: AccessPackageResourceLanguage;
+  selectPackageElement: ReactNode;
 }
 
 export const PolicyAccessPackageAccordion = ({

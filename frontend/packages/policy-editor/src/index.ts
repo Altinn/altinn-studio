@@ -6,6 +6,8 @@ export type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
   PolicyAccessPackageAreaGroup,
+  AccessPackageResourceLanguage,
+  AccessPackageResource,
   PolicyRule,
   PolicyRuleResource,
   RequiredAuthLevel,

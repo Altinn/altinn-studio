@@ -4,8 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { PolicyAccordion } from './PolicyAccordion';
 
 describe('PolicyAccordion', () => {
-  afterEach(jest.clearAllMocks);
-
   it('should show children when expanded', async () => {
     const user = userEvent.setup();
     const childElementText = 'TEST CHILD ELEMENT';
