@@ -5,10 +5,10 @@
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-rc9.signing-delegation.47ad35fc">
+    <PackageReference Include="Altinn.App.Api.Experimental" Version="8.5.0-rc9.signing-delegation.9652e074">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.5.0-rc9.signing-delegation.47ad35fc" />
+    <PackageReference Include="Altinn.App.Core.Experimental" Version="8.5.0-rc9.signing-delegation.9652e074" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
