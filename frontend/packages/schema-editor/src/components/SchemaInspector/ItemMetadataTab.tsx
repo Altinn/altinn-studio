@@ -1,4 +1,10 @@
-import { StudioFieldset, StudioSwitch, StudioTextfield } from '@studio/components';
+import {
+  StudioErrorMessage,
+  StudioFieldset,
+  StudioSpinner,
+  StudioSwitch,
+  StudioTextfield,
+} from '@studio/components';
 import { useDataTypeQuery } from 'app-shared/hooks/queries/useDataTypeQuery';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,11 +31,11 @@ export const ItemMetadataTab = () => {
   };
 
   if (isPending) {
-    return <div>{t('general.loading')}</div>;
+    return <StudioSpinner spinnerTitle={t('general.loading')}></StudioSpinner>;
   }
 
   if (!dataType) {
-    return <div>{t('schema_editor.metadata.not_found')}</div>;
+    return <StudioErrorMessage>{t('schema_editor.metadata.not_found')}</StudioErrorMessage>;
   }
 
   return (
