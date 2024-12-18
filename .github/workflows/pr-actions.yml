@@ -25,6 +25,10 @@ jobs:
         working-directory: app-frontend
         run: yarn --immutable
 
+      - name: run build
+        working-directory: app-frontend
+        run: yarn build
+
       - name: Git author config
         run: |
           git config --global user.name "github-actions[bot]"
