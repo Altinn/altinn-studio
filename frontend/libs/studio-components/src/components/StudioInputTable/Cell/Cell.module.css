@@ -32,5 +32,5 @@
 }
 
 .textResourceCell .currentTextId {
-  padding-inline: var(--fds-spacing-2);
+  padding-inline-start: var(--fds-spacing-2);
 }
