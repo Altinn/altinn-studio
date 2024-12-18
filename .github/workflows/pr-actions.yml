@@ -23,6 +23,11 @@ jobs:
         working-directory: app-frontend
         run: yarn --immutable
 
+      - name: Git author config
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Build PR release version
         working-directory: app-frontend
         env:
@@ -31,7 +36,7 @@ jobs:
           sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid' | cut -c1-8)
           branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
           version=$(git describe --abbrev=0 --tags 2>/dev/null).$branch.$sha
-          git tag -a $version -m "PR release $version"
+          git tag --author=. -a $version -m "PR release $version"
           echo "FRONTEND_PACKAGE_VERSION=$version" >> $GITHUB_ENV
 
       - name: Checkout Altinn-CDN repository
