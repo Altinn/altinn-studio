@@ -7,10 +7,3 @@ export const useValidation = (currentPage: number, validationRules: boolean[]) =
 
   return { isValid };
 };
-
-/*
- const { isValid } = useValidation(currentPage, [
-  // Valideringsregel: første side krever at input-feltet er fylt ut
-  (page) => (page === 0 ? inputValue.trim() !== "" : true),
- ]);
- */
