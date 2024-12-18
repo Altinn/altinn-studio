@@ -87,14 +87,14 @@ AUTHOR_NAME="$(echo "$AUTHOR_FULL" | sed -r 's/<.*//')"
 AUTHOR_EMAIL="$(echo "$AUTHOR_FULL" | sed -r 's/^.*?<//' | sed 's/>//')"
 COMMIT_ID=$(git rev-parse HEAD~0)
 
-echo "Git tag:       $CURRENT_VERSION"
-echo "Full version:  $APP_FULL"
-echo "Major version: $APP_MAJOR"
-echo "Major + minor: $APP_MAJOR_MINOR"
-echo "Latest author: $AUTHOR_FULL"
-echo "Author name:   $AUTHOR_NAME"
-echo "Author email:  $AUTHOR_EMAIL"
-echo "Commit ID:     $COMMIT_ID"
+echo "Git tag:       '$CURRENT_VERSION'"
+echo "Full version:  '$APP_FULL'"
+echo "Major version: '$APP_MAJOR'"
+echo "Major + minor: '$APP_MAJOR_MINOR'"
+echo "Latest author: '$AUTHOR_FULL'"
+echo "Author name:   '$AUTHOR_NAME'"
+echo "Author email:  '$AUTHOR_EMAIL'"
+echo "Commit ID:     '$COMMIT_ID'"
 echo "-------------------------------------"
 
 if ! [[ "$CURRENT_VERSION" =~ ^v ]]; then
