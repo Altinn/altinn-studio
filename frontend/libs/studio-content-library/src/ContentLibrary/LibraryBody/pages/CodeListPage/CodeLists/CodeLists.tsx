@@ -39,14 +39,14 @@ export function CodeLists({
   });
 }
 
-const getCodeListSourcesById = (
+export const getCodeListSourcesById = (
   codeListsUsages: CodeListReference[],
   codeListTitle: string,
 ): CodeListIdSource[] => {
-  const codeListUsages = codeListsUsages?.find(
+  const codeListUsages: CodeListReference | undefined = codeListsUsages.find(
     (codeListUsage) => codeListUsage.codeListId === codeListTitle,
   );
-  return codeListUsages?.codeListIdSources;
+  return codeListUsages?.codeListIdSources ?? [];
 };
 
 type CodeListProps = {
@@ -84,15 +84,6 @@ function CodeList({
             onUpdateCodeList={onUpdateCodeList}
             codeListNames={codeListNames}
           />
-          {codeListSources &&
-            codeListSources.map(
-              (codeListSource) =>
-                codeListSource.layoutSetId +
-                ', ' +
-                codeListSource.layoutName +
-                ', ' +
-                codeListSource.componentIds,
-            )}
         </Accordion.Content>
       </Accordion.Item>
     </Accordion>

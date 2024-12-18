@@ -85,6 +85,7 @@ describe('CodeListPage', () => {
         onUpdateCodeList={onUpdateCodeListMock}
         onUploadCodeList={onUploadCodeListMock}
         fetchDataError={defaultCodeListPageProps.fetchDataError}
+        codeListsUsages={[]}
       />,
     );
     const codeListAccordionOpen = screen.getByRole('button', {
@@ -177,6 +178,7 @@ const renderCodeListPage = ({
       onUpdateCodeList={onUpdateCodeListMock}
       onUploadCodeList={onUploadCodeListMock}
       fetchDataError={fetchDataError}
+      codeListsUsages={[]}
     />,
   );
 };

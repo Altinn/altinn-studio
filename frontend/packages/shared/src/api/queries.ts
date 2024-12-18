@@ -55,11 +55,8 @@ import {
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
-<<<<<<< HEAD
   optionListPath,
-=======
   optionListReferencesPath,
->>>>>>> 275bbc489 (pass optionListsUsages from appContentLibrary to visualize in code list in library)
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
