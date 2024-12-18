@@ -14,3 +14,7 @@
 .description {
   padding-bottom: var(--fds-spacing-2);
 }
+
+.labelPadding {
+  padding-bottom: var(--fds-spacing-2);
+}

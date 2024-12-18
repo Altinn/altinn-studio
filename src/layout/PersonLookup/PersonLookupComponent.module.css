@@ -15,7 +15,7 @@
   .componentWrapper {
     grid-template-columns: repeat(2, minmax(250px, 250px)) auto;
     grid-template-areas: 'ssnLabel nameLabel .' 'ssn name submit' 'apiError apiError .';
-    align-items: end;
+    align-items: start;
     column-gap: var(--fds-spacing-6);
   }
   .nameLabel,
@@ -26,30 +26,31 @@
 
 .componentWrapper {
   display: grid;
+  align-items: start;
 
   .ssnLabel {
     grid-area: ssnLabel;
-    align-self: start;
   }
 
   .ssn {
     grid-area: ssn;
-    align-self: start;
   }
 
   .nameLabel {
     grid-area: nameLabel;
-    align-self: start;
   }
 
   .name {
     grid-area: name;
-    align-self: start;
   }
 
   .submit {
     grid-area: submit;
-    align-self: start;
     white-space: nowrap;
+  }
+
+  .apiError {
+    grid-area: apiError;
+    padding-top: var(--fds-spacing-2);
   }
 }

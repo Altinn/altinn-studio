@@ -54,7 +54,9 @@ export function Label({
               weight='medium'
               size='md'
               htmlFor={htmlFor}
-              className={cn(className)}
+              className={cn(className, {
+                [classes.labelPadding]: !children,
+              })}
               style={style}
             >
               {label}
