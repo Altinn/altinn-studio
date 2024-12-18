@@ -1790,7 +1790,7 @@
   "ux_editor.properties_panel.subform_table_columns.choose_component_description": "Listen viser bare de komponentene som har minst én datamodellbinding og en ledetekst",
   "ux_editor.properties_panel.subform_table_columns.column_header": "Kolonne {{columnNumber}}",
   "ux_editor.properties_panel.subform_table_columns.column_title_edit": "Kolonnetittel",
-  "ux_editor.properties_panel.subform_table_columns.column_title_unedit": "Kolonnetittel:",
+  "ux_editor.properties_panel.subform_table_columns.column_title_unedit": "Kolonnetittel: {{title}}",
   "ux_editor.properties_panel.subform_table_columns.delete_column": "Slett kolonne {{columnNumber}}",
   "ux_editor.properties_panel.subform_table_columns.header_content_label": "Header Content",
   "ux_editor.properties_panel.subform_table_columns.heading": "Valg for tabell",

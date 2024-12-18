@@ -1,7 +1,7 @@
 import React, { useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import { type TableColumn } from '../../types/TableColumn';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import {
   StudioActionCloseButton,
   StudioCard,
@@ -9,22 +9,19 @@ import {
   StudioDeleteButton,
   StudioDivider,
   StudioParagraph,
-  StudioToggleableTextfield,
 } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import type { FormItem } from '../../../../../types/FormItem';
-import { useTextResourcesQuery } from 'app-shared/hooks/queries';
-import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
-import { KeyVerticalIcon } from '@studio/icons';
+import { EditColumnElementTitle } from './EditColumnElementTitle';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
   columnNumber: number;
   onDeleteColumn: () => void;
   onEdit: (tableColumn: TableColumn) => void;
-  layoutSetName: string;
+  subformLayout: string;
 };
 
 export const EditColumnElement = ({
@@ -32,19 +29,13 @@ export const EditColumnElement = ({
   columnNumber,
   onDeleteColumn,
   onEdit,
-  layoutSetName,
+  subformLayout,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const subformLayout = layoutSetName;
   const [tableColumn, setTableColumn] = useState(sourceColumn);
   const { data: formLayouts } = useFormLayoutsQuery(org, app, subformLayout);
-  const { data: textResources } = useTextResourcesQuery(org, app);
 
-  const textKeyValue = textResourceByLanguageAndIdSelector(
-    'nb',
-    tableColumn.headerContent,
-  )(textResources)?.value;
   const components = formLayouts
     ? Object.values(formLayouts).flatMap((layout) => {
         return getAllLayoutComponents(layout);
@@ -75,7 +66,7 @@ export const EditColumnElement = ({
           components={componentsWithLabelAndDataModel}
           onSelectComponent={selectComponent}
         />
-        {tableColumn.headerContent && <EditColumnElementTitle textKeyValue={textKeyValue} />}
+        <EditColumnElementTitle tableColumn={tableColumn} />
         <div className={classes.buttons}>
           <StudioActionCloseButton
             variant='secondary'
@@ -135,33 +126,5 @@ export const EditColumnElementComponentSelect = ({
         {t('ux_editor.properties_panel.subform_table_columns.no_components_available_message')}
       </StudioCombobox.Empty>
     </StudioCombobox>
-  );
-};
-
-type EditColumnElementTitleProps = {
-  textKeyValue: string;
-};
-
-const EditColumnElementTitle = ({ textKeyValue }: EditColumnElementTitleProps) => {
-  const { t } = useTranslation();
-  return (
-    <StudioToggleableTextfield
-      inputProps={{
-        icon: <KeyVerticalIcon />,
-        label: t('ux_editor.properties_panel.subform_table_columns.column_title_edit'),
-        value: textKeyValue,
-        size: 'sm',
-      }}
-      viewProps={{
-        children: (
-          <Trans
-            i18nKey={'ux_editor.properties_panel.subform_table_columns.column_title_unedit'}
-            values={{ item: textKeyValue }}
-          />
-        ),
-        title: textKeyValue,
-        variant: 'tertiary',
-      }}
-    />
   );
 };

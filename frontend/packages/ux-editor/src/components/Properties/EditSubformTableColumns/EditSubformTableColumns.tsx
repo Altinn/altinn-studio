@@ -58,7 +58,7 @@ export const EditSubformTableColumns = ({
       {tableColumns.length > 0 &&
         tableColumns.map((tableColumn: TableColumn, index: number) => (
           <ColumnElement
-            layoutSetName={component.layoutSet}
+            subformLayout={component.layoutSet}
             key={getUniqueKey(index)}
             tableColumn={tableColumn}
             columnNumber={index + 1}
