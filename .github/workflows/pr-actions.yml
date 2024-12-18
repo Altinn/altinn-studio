@@ -9,6 +9,8 @@ jobs:
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/publish')
     permissions:
       id-token: write
+      pull-requests: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -88,7 +90,7 @@ jobs:
         name: Comment on PR
         with:
           script: |
-            const version = process.env.FRONTEND_PACKAGE_VERSION;
+            const version = process.env.FRONTEND_PACKAGE_VERSION.slice(1);
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
