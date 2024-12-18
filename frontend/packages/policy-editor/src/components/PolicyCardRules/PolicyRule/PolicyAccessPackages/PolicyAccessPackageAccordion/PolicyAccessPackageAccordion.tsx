@@ -1,4 +1,4 @@
-import React, { type ReactElement, useState } from 'react';
+import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import type { AccessPackageResource, PolicyAccessPackage } from '@altinn/policy-editor';
@@ -19,26 +19,6 @@ export const PolicyAccessPackageAccordion = ({
   isChecked,
   handleSelectChange,
 }: PolicyAccessPackageAccordionProps): React.ReactElement => {
-  const { t } = useTranslation();
-  const [isServicesEnabled, setIsServicesEnabled] = useState<boolean>(false);
-
-  // Determine enviroment to load resources/apps connected to each access packages from. Option to override this
-  // value with a localStorage setting is for testing. Valid options are 'at22', 'at23', 'at24', 'tt02'
-  const accessPackageResourcesEnv = localStorage.getItem('accessPackageResourcesEnv') || 'prod';
-
-  const { data: services, isLoading } = useResourceAccessPackageServicesQuery(
-    accessPackage.urn,
-    accessPackageResourcesEnv,
-    isServicesEnabled,
-  );
-
-  const onOpenAccordion = () => {
-    setIsServicesEnabled(true);
-  };
-
-  const hasServices: boolean = services?.length > 0;
-  const serviceListIsEmpty: boolean = services?.length === 0;
-
   return (
     <div className={classes.accessPackageAccordion}>
       <PolicyAccordion
@@ -51,19 +31,39 @@ export const PolicyAccessPackageAccordion = ({
             accessPackage={accessPackage}
           />
         }
-        onOpened={onOpenAccordion}
       >
-        {isLoading && (
-          <StudioSpinner spinnerTitle={t('policy_editor.access_package_loading_services')} />
-        )}
-        {hasServices && <Services services={services} />}
-        {serviceListIsEmpty && (
-          <StudioParagraph className={classes.noServicesText}>
-            {t('policy_editor.access_package_no_services')}
-          </StudioParagraph>
-        )}
+        <AccordionContent accessPackageUrn={accessPackage.urn} />
       </PolicyAccordion>
     </div>
+  );
+};
+
+type AccordionContentProps = { accessPackageUrn: string };
+const AccordionContent = ({ accessPackageUrn }: AccordionContentProps): ReactElement => {
+  const { t } = useTranslation();
+  // Determine enviroment to load resources/apps connected to each access packages from. Option to override this
+  // value with a localStorage setting is for testing. Valid options are 'at22', 'at23', 'at24', 'tt02'
+  const accessPackageResourcesEnv = localStorage.getItem('accessPackageResourcesEnv') || 'prod';
+
+  const { data: services, isLoading } = useResourceAccessPackageServicesQuery(
+    accessPackageUrn,
+    accessPackageResourcesEnv,
+  );
+
+  const hasServices: boolean = services?.length > 0;
+  const serviceListIsEmpty: boolean = services?.length === 0;
+  return (
+    <>
+      {isLoading && (
+        <StudioSpinner spinnerTitle={t('policy_editor.access_package_loading_services')} />
+      )}
+      {hasServices && <Services services={services} />}
+      {serviceListIsEmpty && (
+        <StudioParagraph className={classes.noServicesText}>
+          {t('policy_editor.access_package_no_services')}
+        </StudioParagraph>
+      )}
+    </>
   );
 };
 

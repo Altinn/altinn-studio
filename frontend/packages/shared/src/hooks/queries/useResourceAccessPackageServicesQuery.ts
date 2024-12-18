@@ -16,13 +16,11 @@ import type { AxiosError } from 'axios';
 export const useResourceAccessPackageServicesQuery = (
   accessPackageUrn: string,
   env: string,
-  enabled: boolean,
 ): UseQueryResult<AccessPackageResource[], AxiosError> => {
   const { getAccessPackageServices } = useServicesContext();
 
   return useQuery<AccessPackageResource[], AxiosError>({
     queryKey: [QueryKey.ResourcePolicyAccessPackageServices, accessPackageUrn, env],
     queryFn: () => getAccessPackageServices(accessPackageUrn, env),
-    enabled: enabled,
   });
 };
