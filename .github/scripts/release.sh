@@ -102,7 +102,7 @@ if ! [[ "$CURRENT_VERSION" =~ ^v ]]; then
   exit 1
 fi
 
-VERSION_REGEX="^[\d\.]+(-[a-z0-9.]+)?$"
+VERSION_REGEX="^[\d\.]+(-[a-z0-9.\-]+)?$"
 if ! echo "$APP_FULL" | grep --quiet --perl-regexp "$VERSION_REGEX"; then
   echo "Error: Broken/unexpected version number: $APP_FULL"
   exit 1

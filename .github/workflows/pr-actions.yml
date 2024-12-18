@@ -1,0 +1,90 @@
+name: PR actions
+on:
+  issue_comment:
+    types: [created, edited]
+jobs:
+  publish:
+    name: Publish PR packages
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/publish')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ format('refs/pull/{0}/head', github.event.issue.number) }}
+          path: app-frontend
+          fetch-depth: 0
+
+      - name: install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: install dependencies
+        working-directory: app-frontend
+        run: yarn --immutable
+
+      - name: Build PR release version
+        working-directory: app-frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid' | cut -c1-8)
+          branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
+          version=$(git describe --abbrev=0 --tags 2>/dev/null).$branch.$sha
+          git tag -a $version -m "PR release $version"
+          echo "FRONTEND_PACKAGE_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Checkout Altinn-CDN repository
+        uses: actions/checkout@v4
+        if: '!env.ACT'
+        with:
+          repository: 'Altinn/altinn-cdn'
+          token: ${{secrets.ALTINN_CDN_TOKEN}}
+          path: cdn
+
+      - name: Azure login
+        uses: azure/login@v2
+        if: '!env.ACT'
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID_FC }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID_FC }}
+          subscription-id: ${{ secrets.AZURE_CDN_SUBSCRIPTION_ID_FC }}
+
+      - name: Run release script (pre-release)
+        working-directory: app-frontend
+        if: '!env.ACT'
+        env:
+          FD_DOMAIN: ${{ vars.AZURE_DOMAIN_FC }}
+          FD_ENDPOINT: ${{ vars.AZURE_ENDPOINT_FC }}
+          FD_PROFILE: ${{ vars.AZURE_PROFILE_FC }}
+          FD_RESOURCEGROUP: ${{ vars.AZURE_RESOURCE_GROUP_FC }}
+        run: |
+          bash .github/scripts/release.sh \
+            --frontend . \
+            --cdn ../cdn \
+            --commit \
+            --pre-release \
+            --azure-sync-cdn \
+            --azure-sa-name "${{ secrets.PRODUCTION_STORAGEACCOUNT_NAME }}" \
+            --azure-sa-token "${{ secrets.PRODUCTION_ALTINN_CDN_SAS_TOKEN }}"
+
+      - name: Push to CDN
+        working-directory: cdn
+        if: '!env.ACT'
+        run: git push
+
+      - uses: actions/github-script@v7
+        name: Comment on PR
+        with:
+          script: |
+            const version = process.env.FRONTEND_PACKAGE_VERSION;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Published PR packages:\n` +
+                `\n` +
+                `* \`<link rel="stylesheet" type="text/css" href="https://altinncdn.no/toolkits/altinn-app-frontend/${version}/altinn-app-frontend.css">\`\n` +
+                `* \`<script src="https://altinncdn.no/toolkits/altinn-app-frontend/${version}/altinn-app-frontend.js"></script>\`\n`
+            })
