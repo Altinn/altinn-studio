@@ -1,7 +1,9 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
@@ -31,7 +33,8 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_options_exists_for_v4_app_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}/options/test-options";
+            Instance instance = await createInstance();
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/options/test-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
@@ -45,8 +48,9 @@ namespace Designer.Tests.Controllers.PreviewController
         [Fact]
         public async Task Get_Options_when_no_options_exist_returns_Ok_empty_list()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/api/options/non-existing-options";
+            string dataPathWithData = $"{Org}/{AppV4}/api/options/non-existing-options";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

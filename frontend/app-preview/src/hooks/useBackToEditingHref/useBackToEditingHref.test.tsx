@@ -5,7 +5,7 @@ import { app, org } from '@studio/testing/testids';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 
 const mockLayoutId: string = 'layout1';
-const mockUiEditorPath: string = `/editor/${org}/${app}/${RoutePaths.UIEditor}?layout=${mockLayoutId}`;
+const mockUiEditorPath: string = `/editor/${org}/${app}/${RoutePaths.UIEditor}`;
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),

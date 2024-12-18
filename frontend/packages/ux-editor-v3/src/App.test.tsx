@@ -30,7 +30,6 @@ describe('App', () => {
 
   it('should render the component', async () => {
     const mockQueries: Partial<ServicesContextProps> = {
-      getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
       getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
       getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
       getFormLayoutSettings: jest
@@ -47,7 +46,6 @@ describe('App', () => {
     const removeSelectedLayoutSetMock = jest.fn();
     const layoutSetThatDoesNotExist = 'layout-set-that-does-not-exist';
     const mockQueries: Partial<ServicesContextProps> = {
-      getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
       getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
       getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
       getFormLayoutSettings: jest
@@ -67,7 +65,6 @@ describe('App', () => {
   it('Does not remove the preview layout set from local storage if it exists', async () => {
     const removeSelectedLayoutSetMock = jest.fn();
     const mockQueries: Partial<ServicesContextProps> = {
-      getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
       getRuleModel: jest.fn().mockImplementation(() => Promise.resolve(ruleHandlerMock)),
       getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
       getFormLayoutSettings: jest
