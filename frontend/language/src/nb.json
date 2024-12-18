@@ -978,7 +978,7 @@
   "schema_editor.maximum_inclusive": "Mindre enn eller lik",
   "schema_editor.metadata": "Metadata",
   "schema_editor.metadata.autoCreate": "Opprett automatisk",
-  "schema_editor.metadata.maxCount": "Maksimum antall",
+  "schema_editor.metadata.maxCount": "Største mulige antall",
   "schema_editor.metadata.minCount": "Minimum antall",
   "schema_editor.metadata.not_found": "Finner ikke metadata",
   "schema_editor.minItems": "Minimalt antall elementer",
