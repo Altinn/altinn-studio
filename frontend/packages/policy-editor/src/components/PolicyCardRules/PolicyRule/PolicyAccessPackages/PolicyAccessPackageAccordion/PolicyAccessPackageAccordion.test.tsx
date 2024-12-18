@@ -98,11 +98,8 @@ const renderPolicyAccessPackageAccordion = (queries: Partial<ServicesContextProp
       <PolicyAccessPackageAccordion
         accessPackage={defaultAccessPackageProp}
         isChecked={false}
-        handleSelectChange={() => {
-          /** */
-        }}
+        handleSelectChange={jest.fn()}
       />
-      ,
     </ServicesContextProvider>,
   );
 };

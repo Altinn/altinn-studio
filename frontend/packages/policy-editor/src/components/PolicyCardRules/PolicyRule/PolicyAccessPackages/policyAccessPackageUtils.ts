@@ -1,7 +1,23 @@
-import type { PolicyAccessPackageArea, PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
+import type {
+  PolicyAccessPackage,
+  PolicyAccessPackageArea,
+  PolicyAccessPackageAreaGroup,
+} from 'app-shared/types/PolicyAccessPackages';
 
 const isStringMatch = (matchString: string, searchString: string): boolean => {
   return matchString.toLowerCase().includes(searchString.toLowerCase());
+};
+
+const filterAreaPackagesBySearchString = (
+  area: PolicyAccessPackageArea,
+  searchString: string,
+): PolicyAccessPackage[] => {
+  return area.packages.filter(
+    (pack) =>
+      !searchString ||
+      isStringMatch(pack.name, searchString) ||
+      isStringMatch(pack.description, searchString),
+  );
 };
 
 export const filterAccessPackagesBySearchString = (
@@ -10,17 +26,11 @@ export const filterAccessPackagesBySearchString = (
 ): PolicyAccessPackageArea[] => {
   return accessPackageAreas.reduce(
     (areas: PolicyAccessPackageArea[], area): PolicyAccessPackageArea[] => {
-      const matchingPackages = area.packages.filter(
-        (pack) =>
-          !searchString ||
-          isStringMatch(pack.name, searchString) ||
-          isStringMatch(pack.description, searchString),
-      );
-      const returnAreas = [...areas];
+      const matchingPackages = filterAreaPackagesBySearchString(area, searchString);
       if (matchingPackages.length > 0) {
-        returnAreas.push({ ...area, packages: matchingPackages });
+        return [...areas, { ...area, packages: matchingPackages }];
       }
-      return returnAreas;
+      return areas;
     },
     [],
   );
@@ -29,5 +39,27 @@ export const filterAccessPackagesBySearchString = (
 export const groupAccessPackagesByArea = (
   accessPackageAreaGroups: PolicyAccessPackageAreaGroup[],
 ): PolicyAccessPackageArea[] => {
-  return accessPackageAreaGroups.flatMap((group) => group.areas);
+  return accessPackageAreaGroups.flatMap((group: PolicyAccessPackageAreaGroup) => group.areas);
+};
+
+export const flatMapAreaPackageList = (
+  areaList: PolicyAccessPackageArea[],
+): PolicyAccessPackage[] => {
+  return areaList.flatMap((area: PolicyAccessPackageArea) => area.packages);
+};
+
+export const filterAccessPackagesById = (
+  accessPackageList: PolicyAccessPackage[],
+  chosenAccessPackageUrns: string[],
+): PolicyAccessPackage[] => {
+  return accessPackageList.filter((accessPackage: PolicyAccessPackage) =>
+    isAccessPackageSelected(accessPackage.urn, chosenAccessPackageUrns),
+  );
+};
+
+export const isAccessPackageSelected = (
+  accessPackageUrn: string,
+  chosenAccessPackageUrns: string[],
+): boolean => {
+  return chosenAccessPackageUrns.includes(accessPackageUrn);
 };

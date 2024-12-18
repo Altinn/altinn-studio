@@ -1,17 +1,17 @@
-import React, { type ReactNode, useId, useState } from 'react';
+import React, { type ReactNode, type ReactElement, useId, useState } from 'react';
 import cn from 'classnames';
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import * as StudioIcons from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
 
-interface PolicyAccordion {
+type PolicyAccordion = {
   icon?: string;
   title: string;
   subTitle: string;
   extraHeaderContent?: ReactNode;
   defaultOpen?: boolean;
   children: ReactNode;
-}
+};
 
 export const PolicyAccordion = ({
   icon,
@@ -20,7 +20,7 @@ export const PolicyAccordion = ({
   extraHeaderContent,
   defaultOpen,
   children,
-}: PolicyAccordion): ReactNode => {
+}: PolicyAccordion): ReactElement => {
   const contentId = useId();
   const initialExpandedState: boolean = defaultOpen || false;
   const [isExpanded, setIsExpanded] = useState<boolean>(initialExpandedState);

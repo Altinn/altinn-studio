@@ -8,7 +8,6 @@ import type {
   PolicySubject,
   RequiredAuthLevel,
   PolicyEditorUsage,
-  PolicyAccessPackageAreaGroup,
 } from './types';
 import {
   mapPolicyRulesBackendObjectToPolicyRuleCard,
@@ -21,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { SecurityLevelSelect } from './components/SecurityLevelSelect';
 import { PolicyEditorContextProvider } from './contexts/PolicyEditorContext';
 import { PolicyCardRules } from './components/PolicyCardRules';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 export type PolicyEditorProps = {
   policy: Policy;

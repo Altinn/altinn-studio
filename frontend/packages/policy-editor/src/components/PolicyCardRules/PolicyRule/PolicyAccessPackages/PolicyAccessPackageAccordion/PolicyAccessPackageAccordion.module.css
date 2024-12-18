@@ -1,5 +1,5 @@
 :root {
-  --logo-size: 20px;
+  --logo-size: var(--fds-sizing-5);
 }
 
 .accessPackageAccordion {

@@ -78,7 +78,7 @@ import type { WidgetSettingsResponse } from 'app-shared/types/widgetTypes';
 import { buildQueryParams } from 'app-shared/utils/urlUtils';
 import { orgListUrl } from '../cdn-paths';
 import type { JsonSchema } from 'app-shared/types/JsonSchema';
-import type { PolicyAction, PolicySubject, AccessPackageResource, PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
+import type { PolicyAction, PolicySubject } from '@altinn/policy-editor';
 import type { BrregPartySearchResult, BrregSubPartySearchResult, AccessList, Resource, ResourceListItem, ResourceVersionStatus, Validation, AccessListsResponse, AccessListMembersResponse, DelegationCountOverview } from 'app-shared/types/ResourceAdm';
 import type { AppConfig } from 'app-shared/types/AppConfig';
 import type { ApplicationMetadata } from 'app-shared/types/ApplicationMetadata';
@@ -91,6 +91,7 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));

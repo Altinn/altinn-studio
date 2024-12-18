@@ -7,40 +7,44 @@ import { PolicyRuleContext } from '@altinn/policy-editor/contexts/PolicyRuleCont
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { mockPolicyRuleContextValue } from '../../../../../test/mocks/policyRuleContextMock';
 import { mockPolicyEditorContextValue } from '../../../../../test/mocks/policyEditorContextMock';
-import type { PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type {
+  PolicyAccessPackage,
+  PolicyAccessPackageArea,
+  PolicyAccessPackageAreaGroup,
+} from 'app-shared/types/PolicyAccessPackages';
 
-const skattPackage = {
+const skattPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:skatt',
   urn: 'urn:altinn:accesspackage:skatt',
   name: 'Skatt',
   description: '',
 };
 
-const sjofartPackage = {
+const sjofartPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:sjofart',
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
   description: '',
 };
 
-const lufttransportPackage = {
+const lufttransportPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:lufttransport',
   urn: 'urn:altinn:accesspackage:lufttransport',
   name: 'Lufttransport',
   description: '',
 };
 
-const revisorPackage = {
+const revisorPackage: PolicyAccessPackage = {
   id: 'urn:altinn:accesspackage:revisor',
   urn: 'urn:altinn:accesspackage:revisor',
   name: 'Revisor',
   description: '',
 };
 
-const accessPackageAreaSkatt = {
+const accessPackageAreaSkatt: PolicyAccessPackageArea = {
   id: 'skatt-area',
   urn: 'accesspackage:area:skatt_avgift_regnskap_og_toll',
   name: 'Skatt',
@@ -50,7 +54,7 @@ const accessPackageAreaSkatt = {
   packages: [skattPackage],
 };
 
-const accessPackageAreaTransport = {
+const accessPackageAreaTransport: PolicyAccessPackageArea = {
   id: 'transport-area',
   urn: 'accesspackage:area:transport',
   name: 'Lagring og transport',
@@ -60,7 +64,7 @@ const accessPackageAreaTransport = {
   packages: [sjofartPackage, lufttransportPackage],
 };
 
-const accessPackageAreaOther = {
+const accessPackageAreaOther: PolicyAccessPackageArea = {
   id: 'other-area',
   urn: 'accesspackage:area:annet',
   name: 'Annet',

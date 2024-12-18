@@ -1,136 +1,36 @@
 import React, { type ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
 import classes from './PolicyAccessPackageAccordion.module.css';
-import type { AccessPackageResource, PolicyAccessPackage } from '@altinn/policy-editor';
 import { PolicyAccordion } from '../PolicyAccordion';
-import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
-import { StudioCheckbox, StudioParagraph, StudioSpinner } from '@studio/components';
+import { PolicyAccessPackageAccordionContent } from './PolicyAccessPackageAccordionContent';
+import { PolicyAccessPackageAccordionCheckBox } from './PolicyAccessPackageAccordionCheckbox';
+import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
-const selectedLanguage = 'nb';
-
-interface PolicyAccessPackageAccordionProps {
+type PolicyAccessPackageAccordionProps = {
   accessPackage: PolicyAccessPackage;
   isChecked: boolean;
   handleSelectChange: (accessPackageUrn: string) => void;
-}
+};
 
 export const PolicyAccessPackageAccordion = ({
   accessPackage,
   isChecked,
   handleSelectChange,
-}: PolicyAccessPackageAccordionProps): React.ReactElement => {
+}: PolicyAccessPackageAccordionProps): ReactElement => {
   return (
     <div className={classes.accessPackageAccordion}>
       <PolicyAccordion
         title={accessPackage.name}
         subTitle={accessPackage.description}
         extraHeaderContent={
-          <PolicyAccordionCheckBox
+          <PolicyAccessPackageAccordionCheckBox
             isChecked={isChecked}
             handleSelectChange={handleSelectChange}
             accessPackage={accessPackage}
           />
         }
       >
-        <AccordionContent accessPackageUrn={accessPackage.urn} />
+        <PolicyAccessPackageAccordionContent accessPackageUrn={accessPackage.urn} />
       </PolicyAccordion>
     </div>
-  );
-};
-
-type AccordionContentProps = { accessPackageUrn: string };
-const AccordionContent = ({ accessPackageUrn }: AccordionContentProps): ReactElement => {
-  const { t } = useTranslation();
-  // Determine enviroment to load resources/apps connected to each access packages from. Option to override this
-  // value with a localStorage setting is for testing. Valid options are 'at22', 'at23', 'at24', 'tt02'
-  const accessPackageResourcesEnv = localStorage.getItem('accessPackageResourcesEnv') || 'prod';
-
-  const { data: services, isLoading } = useResourceAccessPackageServicesQuery(
-    accessPackageUrn,
-    accessPackageResourcesEnv,
-  );
-
-  const hasServices: boolean = services?.length > 0;
-  const serviceListIsEmpty: boolean = services?.length === 0;
-  return (
-    <>
-      {isLoading && (
-        <StudioSpinner spinnerTitle={t('policy_editor.access_package_loading_services')} />
-      )}
-      {hasServices && <Services services={services} />}
-      {serviceListIsEmpty && (
-        <StudioParagraph size='xs'>{t('policy_editor.access_package_no_services')}</StudioParagraph>
-      )}
-    </>
-  );
-};
-
-type ServicesProps = {
-  services: AccessPackageResource[];
-};
-const Services = ({ services }: ServicesProps): ReactElement => {
-  const { t } = useTranslation();
-
-  return (
-    <>
-      <StudioParagraph className={classes.serviceContainerHeader}>
-        {t('policy_editor.access_package_services')}
-      </StudioParagraph>
-      {services.map((resource) => (
-        <div key={resource.identifier} className={classes.serviceContainer}>
-          <ResourceImage resource={resource} />
-          <div className={classes.serviceLabel}>{resource.title[selectedLanguage]}</div>
-          <div>{resource.hasCompetentAuthority.name[selectedLanguage]}</div>
-        </div>
-      ))}
-    </>
-  );
-};
-
-type ResourceImageProps = {
-  resource: AccessPackageResource;
-};
-const ResourceImage = ({ resource }: ResourceImageProps): ReactElement => {
-  if (resource.logoUrl) {
-    return (
-      <img
-        className={classes.logo}
-        src={resource.logoUrl}
-        alt={resource.hasCompetentAuthority.name[selectedLanguage]}
-        title={resource.hasCompetentAuthority.name[selectedLanguage]}
-      />
-    );
-  }
-  return <div className={classes.emptyLogo} />;
-};
-
-type PolicyAccordionCheckBoxProps = Pick<
-  PolicyAccessPackageAccordionProps,
-  'accessPackage' | 'isChecked' | 'handleSelectChange'
->;
-const PolicyAccordionCheckBox = ({
-  accessPackage,
-  isChecked,
-  handleSelectChange,
-}: PolicyAccordionCheckBoxProps): ReactElement => {
-  const { t } = useTranslation();
-  const CHECKED_VALUE = 'on';
-
-  const checkboxLabel = t(
-    isChecked ? 'policy_editor.access_package_remove' : 'policy_editor.access_package_add',
-    {
-      packageName: accessPackage.name,
-    },
-  );
-
-  return (
-    <StudioCheckbox.Group
-      legend=''
-      className={classes.accordionCheckbox}
-      value={isChecked ? [CHECKED_VALUE] : []}
-      onChange={() => handleSelectChange(accessPackage.urn)}
-    >
-      <StudioCheckbox value={CHECKED_VALUE} aria-label={checkboxLabel} />
-    </StudioCheckbox.Group>
   );
 };

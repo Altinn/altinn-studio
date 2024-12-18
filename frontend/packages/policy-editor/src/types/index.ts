@@ -19,45 +19,6 @@ export interface PolicySubject {
   subjectDescription: string;
 }
 
-export interface PolicyAccessPackage {
-  id: string;
-  urn: string;
-  name: string;
-  description: string;
-}
-
-export interface PolicyAccessPackageArea {
-  id: string;
-  urn: string;
-  name: string;
-  description: string;
-  icon: string;
-  areaGroup: string;
-  packages: PolicyAccessPackage[];
-}
-
-export interface PolicyAccessPackageAreaGroup {
-  id: string;
-  urn: string;
-  name: string;
-  description: string;
-  type: string;
-  areas: PolicyAccessPackageArea[];
-}
-
-type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
-
-export interface AccessPackageResource {
-  identifier: string;
-  title: AccessPackageResourceLanguage;
-  hasCompetentAuthority?: {
-    name: AccessPackageResourceLanguage;
-    organization: string;
-    orgcode: string;
-  };
-  logoUrl: string;
-}
-
 export interface PolicyAction {
   actionId: string;
   actionTitle: string;

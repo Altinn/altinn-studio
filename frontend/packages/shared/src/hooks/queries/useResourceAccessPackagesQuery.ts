@@ -1,7 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import type { PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 import { QueryKey } from 'app-shared/types/QueryKey';
 import type { AxiosError } from 'axios';
 
