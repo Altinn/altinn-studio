@@ -1,8 +1,10 @@
-import React, { type ChangeEvent, useState } from 'react';
+import React, { type ChangeEvent, type ReactNode, useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
-import { StudioPaginatedContent, type StudioPaginatedContentProps } from './StudioPaginatedContent';
+import { StudioPaginatedContent } from './StudioPaginatedContent';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioTextfield } from '../StudioTextfield';
+import { useValidation } from './hooks/useValidation';
+import { usePagination } from './hooks/usePagination';
 
 type ChildrenProps = {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -21,6 +23,9 @@ const Children1 = ({ onChange, value }: ChildrenProps) => {
     </div>
   );
 };
+const Children2 = () => <StudioParagraph size='sm'>Children 2</StudioParagraph>;
+const Children3 = () => <StudioParagraph size='sm'>Children 3</StudioParagraph>;
+const Children4 = () => <StudioParagraph size='sm'>Children 4</StudioParagraph>;
 
 type Story = StoryFn<typeof StudioPaginatedContent>;
 
@@ -31,39 +36,38 @@ const meta: Meta = {
 };
 
 export const Preview: Story = () => {
-  const [disableNext, setDisableNext] = useState(true);
   const [inputValue, setInputValue] = useState('');
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     setInputValue(value);
-    if (value === '3') {
-      setDisableNext(false);
-    } else {
-      setDisableNext(true);
-    }
   };
 
-  const items: StudioPaginatedContentProps['items'] = [
-    {
-      children: <Children1 value={inputValue} onChange={handleInputChange} />,
-      disableNext: disableNext,
-    },
-    {
-      children: <StudioParagraph size='sm'>Children 2</StudioParagraph>,
-      disableNext: false,
-    },
-    {
-      children: <StudioParagraph size='sm'>Children 3</StudioParagraph>,
-      disableNext: false,
-    },
-    {
-      children: <StudioParagraph size='sm'>Children 4</StudioParagraph>,
-      disableNext: false,
-    },
+  const pages: ReactNode[] = [
+    <Children1 key={1} value={inputValue} onChange={handleInputChange} />,
+    <Children2 key={2} />,
+    <Children3 key={3} />,
+    <Children4 key={4} />,
   ];
 
-  return <StudioPaginatedContent items={items} previousButtonText='Back' nextButtonText='Next' />;
+  const { currentPage, goNext, goPrevious, hasPreviousPage, hasNextPage } = usePagination(
+    pages.length,
+  );
+  const { isValid } = useValidation(currentPage, [currentPage === 0 ? inputValue === '3' : true]);
+
+  return (
+    <StudioPaginatedContent
+      previousButtonText='Previous'
+      nextButtonText='Next'
+      componentToRender={pages[currentPage]}
+      canGoNext={hasNextPage && isValid}
+      canGoPrevious={hasPreviousPage}
+      onNext={goNext}
+      onPrevious={goPrevious}
+      currentPageNumber={currentPage}
+      totalPages={pages.length}
+    />
+  );
 };
 
 export default meta;
