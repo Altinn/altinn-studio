@@ -981,7 +981,7 @@
   "schema_editor.metadata.maxCount": "Største mulige antall",
   "schema_editor.metadata.minCount": "Minimum antall",
   "schema_editor.metadata.not_found": "Finner ikke metadataene",
-  "schema_editor.minItems": "Minimalt antall elementer",
+  "schema_editor.minItems": "Minste mulige antall elementer",
   "schema_editor.minLength": "Minimal lengde",
   "schema_editor.minimum_exclusive": "Større enn",
   "schema_editor.minimum_inclusive": "Større enn eller lik",
