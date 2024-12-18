@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 
-const codeListName = 'codeList';
+const codeListName = codeListsDataMock[0].title;
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
@@ -19,7 +19,7 @@ describe('CodeLists', () => {
 
   it('renders the code list accordion closed by default', () => {
     renderCodeLists();
-    const codeListAccordion = screen.getByRole('button', { name: codeListsDataMock[0].title, expanded: false });
+    const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: false });
     expect(codeListAccordion).toBeInTheDocument();
     expect(codeListAccordion).toHaveAttribute('aria-expanded', 'false');
   });
@@ -49,10 +49,10 @@ describe('CodeLists', () => {
     expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
       codeList: [expect.objectContaining({ value: codeListValueText })],
-      title: codeListsDataMock[0].title,
+      title: codeListName,
     });
   });
-  
+
   it('renders the code list title label', () => {
     renderCodeLists();
     const codeListTitleLabel = screen.getByText(
@@ -118,14 +118,9 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
   await user.tab();
 };
 
-const openCodeList = async (user: UserEvent) => {
-  const codeListAccordion = screen.getByRole('button', { name: codeListsDataMock[0].title });
-  await user.click(codeListAccordion);
-};
-
 const defaultProps: CodeListsProps = {
-  codeListsData: codeListsDataMock, 
-  onUpdateCodeListId: onUpdateCodeListIdMock, 
+  codeListsData: codeListsDataMock,
+  onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   codeListInEditMode: undefined,
   codeListNames: [],

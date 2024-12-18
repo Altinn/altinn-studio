@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { StudioHeading } from '@studio/components';
-import type { CodeList as StudioComponentCodeList } from '@studio/components';
+import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
@@ -9,13 +9,13 @@ import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 
 export type CodeListWithMetadata = {
-  codeList: StudioComponentCodeList;
+  codeList: CodeList;
   title: string;
 };
 
 export type CodeListData = {
   title: string;
-  data?: StudioComponentCodeList;
+  data?: CodeList;
   hasError?: boolean;
 };
 
