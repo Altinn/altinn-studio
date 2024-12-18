@@ -1,6 +1,7 @@
 import type {
   ListHeadingProps,
   ListItemProps,
+  ListOrderedProps,
   ListUnorderedProps,
 } from '@digdir/designsystemet-react';
 import { List } from '@digdir/designsystemet-react';
@@ -23,5 +24,5 @@ export type { StudioListRootProps } from './StudioListRoot';
 
 export type StudioListItemProps = ListItemProps;
 export type StudioListUnorderedProps = ListUnorderedProps;
-export type StudioListOrderedProps = ListUnorderedProps;
+export type StudioListOrderedProps = ListOrderedProps;
 export type StudioListHeadingProps = ListHeadingProps;
