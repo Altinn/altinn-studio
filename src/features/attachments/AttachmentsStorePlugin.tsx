@@ -289,7 +289,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
         const { mutateAsync: uploadAttachment } = useAttachmentsUploadMutation();
 
         const applicationMetadata = useApplicationMetadata();
-        const supportsNewAttatchmentAPI = appSupportsNewAttatchmentAPI(applicationMetadata);
+        const supportsNewAttachmentAPI = appSupportsNewAttachmentAPI(applicationMetadata);
 
         const setAttachmentsInDataModel = useSetAttachmentInDataModel();
         const { lock, unlock } = FD.useLocking('__attachment__upload__');
@@ -302,7 +302,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
             };
             upload(fullAction);
 
-            if (supportsNewAttatchmentAPI) {
+            if (supportsNewAttachmentAPI) {
               await lock();
               const results: AttachmentUploadResult[] = [];
 
@@ -362,7 +362,7 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
           },
           [
             upload,
-            supportsNewAttatchmentAPI,
+            supportsNewAttachmentAPI,
             lock,
             setAttachmentsInDataModel,
             uploadFinished,
@@ -586,6 +586,16 @@ export class AttachmentsStorePlugin extends NodeDataPlugin<AttachmentsStorePlugi
   }
 }
 
+/**
+ * When an attachment is uploaded, it may be added to the data model via a list or a simpleBinding. In repeating groups,
+ * this is required to ensure we know which row the attachment belongs to.
+ *
+ * If the attachment is deleted from the instance data outside of these functions (i.e. by a backend hook), these
+ * components will make sure to remove the attachment ID from the data model:
+ *
+ * @see MaintainListDataModelBinding
+ * @see MaintainSimpleDataModelBinding
+ */
 function useSetAttachmentInDataModel() {
   const setLeafValue = FD.useSetLeafValue();
   const appendToListUnique = FD.useAppendToListUnique();
@@ -728,6 +738,6 @@ function useAttachmentsRemoveMutation() {
   });
 }
 
-export function appSupportsNewAttatchmentAPI({ altinnNugetVersion }: ApplicationMetadata) {
+export function appSupportsNewAttachmentAPI({ altinnNugetVersion }: ApplicationMetadata) {
   return !altinnNugetVersion || isAtLeastVersion({ actualVersion: altinnNugetVersion, minimumVersion: '8.5.0.153' });
 }
