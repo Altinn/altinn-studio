@@ -1,5 +1,5 @@
 {
-  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.13.0-preview.1/schemas/json/layout/layout-sets.schema.v1.json",
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4.13.0-preview.1.navigation.f6f45827/schemas/json/layout/layout-sets.schema.v1.json",
   "sets": [
     {
       "id": "form",
@@ -11,8 +11,10 @@
     "taskNavigation": [
       {
         "name": "tasks.form",
-        "taskId": "Task_1",
-        "type": "data"
+        "taskId": "Task_1"
+      },
+      {
+        "taskId": "Task_Confirm"
       },
       {
         "type": "receipt"
