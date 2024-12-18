@@ -144,7 +144,7 @@ public class AuthorizationClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .ReturnsAsync(reponseMessage);
-
+        reponseMessage.Dispose();
         var httpClient = new HttpClient(httpMessageHandler.Object);
 
         TelemetrySink telemetrySink = new();
@@ -211,6 +211,7 @@ public class AuthorizationClientTests
                 ItExpr.IsAny<CancellationToken>()
             )
             .ReturnsAsync(reponseMessage);
+        reponseMessage.Dispose();
 
         var httpClient = new HttpClient(httpMessageHandler.Object);
 
