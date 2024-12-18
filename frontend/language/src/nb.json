@@ -973,7 +973,7 @@
   "schema_editor.loading_available_components": "Laster tilgjengelige komponenter",
   "schema_editor.loading_page": "Laster inn siden",
   "schema_editor.maxItems": "Maksimalt antall elementer",
-  "schema_editor.maxLength": "Maksimal lengde",
+  "schema_editor.maxLength": "Største mulige lengde",
   "schema_editor.maximum_exclusive": "Mindre enn ",
   "schema_editor.maximum_inclusive": "Mindre enn eller lik",
   "schema_editor.metadata": "Metadata",
