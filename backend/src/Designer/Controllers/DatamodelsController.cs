@@ -265,9 +265,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpPut("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
+        public async Task SetModelDataType(string org, string repository, [FromBody] DataType dataType)
         {
-            await _schemaModelService.SetModelDataType(org, repository, modelName, dataType);
+            await _schemaModelService.SetModelDataType(org, repository, dataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
