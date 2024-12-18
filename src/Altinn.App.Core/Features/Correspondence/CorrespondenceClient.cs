@@ -95,7 +95,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug("Fetching correspondence status");
+        _logger.LogDebug("Fetching correspondence status for {CorrespondenceId}", payload.CorrespondenceId);
         using Activity? activity = _telemetry?.StartCorrespondenceStatusActivity(payload.CorrespondenceId);
 
         try
