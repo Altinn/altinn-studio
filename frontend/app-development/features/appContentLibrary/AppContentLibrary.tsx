@@ -6,11 +6,15 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeLists';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useAddOptionListMutation, useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import type { AxiosError } from 'axios';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
+import {
+  useAddOptionListMutation,
+  useUpdateOptionListMutation,
+  useUpdateOptionListIdMutation,
+} from 'app-shared/hooks/mutations';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -24,11 +28,16 @@ export function AppContentLibrary(): React.ReactElement {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
+  const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
 
   if (optionListsPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
   const codeLists = convertOptionListsToCodeLists(optionLists);
+
+  const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
+    updateOptionListId({ optionListId, newOptionListId });
+  };
 
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
@@ -52,6 +61,7 @@ export function AppContentLibrary(): React.ReactElement {
       codeList: {
         props: {
           codeLists: codeLists,
+          onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
           fetchDataError: optionListsError,
