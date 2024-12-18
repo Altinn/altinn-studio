@@ -39,26 +39,32 @@ public class SortPetsAction : IUserAction
         if (sortOrder == "ascSpecies")
         {
             data.Pets = data.Pets.OrderBy(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
+            data.PetSortOrder = "descSpecies";
         }
         else if (sortOrder == "descSpecies")
         {
             data.Pets = data.Pets.OrderByDescending(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
+            data.PetSortOrder = "ascSpecies";
         }
         else if (sortOrder == "ascName")
         {
             data.Pets = data.Pets.OrderBy(p => p.Name).ThenBy(p => p.Age).ToList();
+            data.PetSortOrder = "descName";
         }
         else if (sortOrder == "descName")
         {
             data.Pets = data.Pets.OrderByDescending(p => p.Name).ThenBy(p => p.Age).ToList();
+            data.PetSortOrder = "ascName";
         }
         else if (sortOrder == "ascAge")
         {
             data.Pets = data.Pets.OrderBy(p => p.Age).ToList();
+            data.PetSortOrder = "descAge";
         }
         else if (sortOrder == "descAge")
         {
             data.Pets = data.Pets.OrderByDescending(p => p.Age).ToList();
+            data.PetSortOrder = "ascAge";
         }
         else
         {
