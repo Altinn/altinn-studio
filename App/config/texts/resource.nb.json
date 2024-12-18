@@ -99,7 +99,7 @@
     },
     {
       "id": "group.info",
-      "value": "Informasjon"
+      "value": "Informasjon med veldig lang tekst"
     },
     {
       "id": "group.form",
@@ -108,7 +108,10 @@
     {
       "id": "group.summary",
       "value": "Innsending"
+    },
+    {
+      "id": "tasks.form",
+      "value": "Personopplysninger"
     }
   ]
 }
-
