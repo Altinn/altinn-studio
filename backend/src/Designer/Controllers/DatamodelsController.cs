@@ -250,24 +250,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the model metadata for a given model.
+        /// Gets the dataType for a given datamodel.
         /// </summary>
-        [HttpGet("datamodel/{modelName}/metadata")]
+        [HttpGet("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task<IActionResult> GetModelMetadata(string org, string repository, string modelName)
+        public async Task<IActionResult> GetModelDataType(string org, string repository, string modelName)
         {
-            var dataTypeConfiguration = await _schemaModelService.GetModelMetadata(org, repository, modelName);
+            DataType dataTypeConfiguration = await _schemaModelService.GetModelDataType(org, repository, modelName);
             return Ok(dataTypeConfiguration);
         }
 
         /// <summary>
-        /// Updates the model metadata for a given model.
+        /// Updates the dataType for a given model.
         /// </summary>
-        [HttpPut("datamodel/{modelName}/metadata")]
+        [HttpPut("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task UpdateModelMetadata(string org, string repository, string modelName, [FromBody] DataType dataType)
+        public async Task SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
         {
-            await _schemaModelService.UpdateModelMetadata(org, repository, modelName, dataType);
+            await _schemaModelService.SetModelDataType(org, repository, modelName, dataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
