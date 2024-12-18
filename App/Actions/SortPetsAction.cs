@@ -38,11 +38,11 @@ public class SortPetsAction : IUserAction
         // Always secondary sort by age
         if (sortOrder == "ascSpecies")
         {
-            data.Pets = data.Pets.OrderBy(p => p.Species).ThenBy(p => p.Age).ToList();
+            data.Pets = data.Pets.OrderBy(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
         }
         else if (sortOrder == "descSpecies")
         {
-            data.Pets = data.Pets.OrderByDescending(p => p.Species).ThenBy(p => p.Age).ToList();
+            data.Pets = data.Pets.OrderByDescending(p => p.SpeciesLabel).ThenBy(p => p.Age).ToList();
         }
         else if (sortOrder == "ascName")
         {

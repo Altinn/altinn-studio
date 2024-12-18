@@ -301,7 +301,7 @@
       "value": "{0} named {1} (age {2})",
       "variables": [
         {
-          "key": "Pets.Species",
+          "key": "Pets.SpeciesLabel",
           "dataSource": "dataModel.nested-group",
           "defaultValue": "???"
         },

@@ -158,18 +158,11 @@
           "items": {
             "type": "object",
             "properties": {
-              "UniqueId": {
-                "type": "string"
-              },
-              "Species": {
-                "type": "string"
-              },
-              "Name": {
-                "type": "string"
-              },
-              "Age": {
-                "type": "number"
-              }
+              "UniqueId": { "type": "string" },
+              "Species": { "type": "string" },
+              "SpeciesLabel": { "type": "string" },
+              "Name": { "type": "string" },
+              "Age": { "type": "number" }
             }
           }
         },

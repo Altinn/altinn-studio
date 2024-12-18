@@ -125,6 +125,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("Species")]
     public string Species { get; set; }
 
+    [XmlElement("SpeciesLabel")]
+    [JsonProperty("SpeciesLabel")]
+    [JsonPropertyName("SpeciesLabel")]
+    public string SpeciesLabel { get; set; }
+
     [XmlElement("Name")]
     [JsonProperty("Name")]
     [JsonPropertyName("Name")]

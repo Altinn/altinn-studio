@@ -8,13 +8,6 @@
         "type": "NavigationBar"
       },
       {
-        "id": "NoteToDevs",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "Funksjonalitet vi kan teste her i fremtiden:<br><ul><li>Lagring av visningsverdi i options-komponenter (som igjen kan hentes ut i sjekkboksene under)</li><li>Sortering i backend ved hjelp av visningsverdi (nå sorteres det vha. lagret verdi)</li><li>Ytelsesforbedringer for Dropdown-komponenten</li></ul>"
-        }
-      },
-      {
         "id": "generatePanel",
         "type": "Group",
         "textResourceBindings": {
@@ -100,7 +93,8 @@
           "title": "Pets.Species"
         },
         "dataModelBindings": {
-          "simpleBinding": "Pets.Species"
+          "simpleBinding": "Pets.Species",
+          "label": "Pets.SpeciesLabel"
         },
         "optionsId": "pet-species",
         "required": true,
@@ -185,7 +179,14 @@
           "label": "PetName",
           "value": "Pets.UniqueId"
         },
-        "hidden": ["not", ["dataModel", "ForceShowPets"]]
+        "hidden": ["not", ["dataModel", "ForceShowPets"]],
+        "optionFilter": [
+          "and",
+          ["notEquals", ["dataModel", "Pets.Age"], null],
+          ["notEquals", ["dataModel", "Pets.Name"], null],
+          ["notEquals", ["dataModel", "Pets.Name"], "Tullekjæledyr som ikke skal få være med"],
+          ["notEquals", ["dataModel", "Pets.Species"], null]
+        ]
       },
       {
         "id": "futureSortOrder-outside",
