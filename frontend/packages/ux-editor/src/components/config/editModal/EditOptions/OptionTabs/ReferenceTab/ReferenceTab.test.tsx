@@ -19,7 +19,7 @@ describe('ReferenceTab', () => {
     expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();
   });
 
-  it('should render the component', async () => {
+  it('should render the component', () => {
     renderReferenceTab();
 
     expect(
