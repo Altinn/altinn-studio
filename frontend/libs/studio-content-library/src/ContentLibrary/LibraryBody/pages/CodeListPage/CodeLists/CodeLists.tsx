@@ -37,14 +37,14 @@ export function CodeLists({
       });
 }
 
-const getCodeListSourcesById = (
-    codeListsUsages: CodeListReference[],
-    codeListTitle: string,
+export const getCodeListSourcesById = (
+  codeListsUsages: CodeListReference[],
+  codeListTitle: string,
 ): CodeListIdSource[] => {
-  const codeListUsages = codeListsUsages?.find(
-      (codeListUsage) => codeListUsage.codeListId === codeListTitle,
+  const codeListUsages: CodeListReference | undefined = codeListsUsages.find(
+    (codeListUsage) => codeListUsage.codeListId === codeListTitle,
   );
-  return codeListUsages?.codeListIdSources;
+  return codeListUsages?.codeListIdSources ?? [];
 };
 
 type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> & { codeListData: CodeListData, codeListSources: CodeListIdSource[] };

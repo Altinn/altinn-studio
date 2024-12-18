@@ -5,6 +5,7 @@ export const convertOptionListsUsageToCodeListsUsage = (
   optionListsUsages: OptionListsReferences,
 ): CodeListReference[] => {
   const codeListsUsages: CodeListReference[] = [];
+  if (!optionListsUsages) return codeListsUsages;
   optionListsUsages.map((optionListsUsage) =>
     codeListsUsages.push({
       codeListId: optionListsUsage.optionListId,

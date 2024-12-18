@@ -4,7 +4,6 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import type { OptionListsReferences } from 'app-shared/types/api/OptionsLists';
 
-// TODO: FIX TYPE
 export const useOptionListsReferencesQuery = (
   org: string,
   app: string,
