@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
-import { getCodeListSourcesById, updateCodeListWithMetadata, CodeLists } from './CodeLists';
+import { getCodeListSourcesById, CodeLists } from './CodeLists';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeListPage';
 import type { RenderResult } from '@testing-library/react';
