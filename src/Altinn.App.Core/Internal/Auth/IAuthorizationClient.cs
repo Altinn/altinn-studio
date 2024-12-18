@@ -58,5 +58,5 @@ public interface IAuthorizationClient
     /// <param name="userId">The user id.</param>
     /// <param name="userPartyId">The user party id.</param>
     /// <returns>A list of roles for the user on the specified party.</returns>
-    Task<List<Role>> GetUserRolesAsync(int userId, int userPartyId);
+    Task<IEnumerable<Role>> GetUserRolesAsync(int userId, int userPartyId);
 }

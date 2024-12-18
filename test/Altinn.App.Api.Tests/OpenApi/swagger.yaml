@@ -306,6 +306,24 @@ paths:
       responses:
         '200':
           description: OK
+  '/{org}/{app}/api/authorization/roles':
+    get:
+      tags:
+        - Authorization
+      parameters:
+        - name: org
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: app
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
   '/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data':
     post:
       tags:
@@ -1101,7 +1119,7 @@ paths:
         '200':
           description: OK
         '425':
-          description: Client Error
+          description: Too Early
         '500':
           description: Internal Server Error
         '401':
@@ -3215,7 +3233,6 @@ components:
           type: object
           additionalProperties:
             type: boolean
-            nullable: true
           nullable: true
         userActions:
           type: array
@@ -3291,6 +3308,7 @@ components:
           type: boolean
         allowInSubform:
           type: boolean
+          deprecated: true
         shadowFields:
           $ref: '#/components/schemas/ShadowFields'
       additionalProperties: false
@@ -3361,7 +3379,7 @@ components:
           $ref: '#/components/schemas/MessageBoxConfig'
         copyInstanceSettings:
           $ref: '#/components/schemas/CopyInstanceSettings'
-        storageContainerNumber:
+        storageAccountNumber:
           type: integer
           format: int32
           nullable: true
@@ -3374,7 +3392,6 @@ components:
           type: object
           additionalProperties:
             type: boolean
-            nullable: true
           nullable: true
         logo:
           $ref: '#/components/schemas/Logo'
@@ -4115,11 +4132,8 @@ components:
     JsonNodeOptions:
       type: object
       properties:
-        hasValue:
+        propertyNameCaseInsensitive:
           type: boolean
-          readOnly: true
-        value:
-          $ref: '#/components/schemas/JsonNodeOptions'
       additionalProperties: false
     JsonPatch:
       type: object
@@ -4727,7 +4741,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/ValidationIssueWithSource'
-            nullable: true
           nullable: true
         clientActions:
           type: array

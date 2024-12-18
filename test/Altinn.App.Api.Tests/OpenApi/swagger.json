@@ -507,6 +507,36 @@
         }
       }
     },
+    "/{org}/{app}/api/authorization/roles": {
+      "get": {
+        "tags": [
+          "Authorization"
+        ],
+        "parameters": [
+          {
+            "name": "org",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/{org}/{app}/instances/{instanceOwnerPartyId}/{instanceGuid}/data": {
       "post": {
         "tags": [
@@ -1804,7 +1834,7 @@
             "description": "OK"
           },
           "425": {
-            "description": "Client Error"
+            "description": "Too Early"
           },
           "500": {
             "description": "Internal Server Error"
@@ -5259,8 +5289,7 @@
           "actions": {
             "type": "object",
             "additionalProperties": {
-              "type": "boolean",
-              "nullable": true
+              "type": "boolean"
             },
             "nullable": true
           },
@@ -5366,7 +5395,8 @@
             "type": "boolean"
           },
           "allowInSubform": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true
           },
           "shadowFields": {
             "$ref": "#/components/schemas/ShadowFields"
@@ -5464,7 +5494,7 @@
           "copyInstanceSettings": {
             "$ref": "#/components/schemas/CopyInstanceSettings"
           },
-          "storageContainerNumber": {
+          "storageAccountNumber": {
             "type": "integer",
             "format": "int32",
             "nullable": true
@@ -5479,8 +5509,7 @@
           "features": {
             "type": "object",
             "additionalProperties": {
-              "type": "boolean",
-              "nullable": true
+              "type": "boolean"
             },
             "nullable": true
           },
@@ -6503,12 +6532,8 @@
       "JsonNodeOptions": {
         "type": "object",
         "properties": {
-          "hasValue": {
-            "type": "boolean",
-            "readOnly": true
-          },
-          "value": {
-            "$ref": "#/components/schemas/JsonNodeOptions"
+          "propertyNameCaseInsensitive": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -7349,8 +7374,7 @@
                 "items": {
                   "$ref": "#/components/schemas/ValidationIssueWithSource"
                 }
-              },
-              "nullable": true
+              }
             },
             "nullable": true
           },

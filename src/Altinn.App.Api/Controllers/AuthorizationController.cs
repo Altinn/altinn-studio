@@ -99,7 +99,7 @@ public class AuthorizationController : Controller
         }
 
         int userId = userContext.UserId;
-        List<Role> roles = await _authorization.GetUserRolesAsync(userId, currentParty.PartyId);
+        IEnumerable<Role> roles = await _authorization.GetUserRolesAsync(userId, currentParty.PartyId);
 
         return Ok(roles);
     }
