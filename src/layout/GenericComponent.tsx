@@ -5,11 +5,11 @@ import classNames from 'classnames';
 
 import { NavigationResult, useFinishNodeNavigation } from 'src/features/form/layout/NavigateToNode';
 import { Lang } from 'src/features/language/Lang';
-import { useIsDev } from 'src/hooks/useIsDev';
 import { FormComponentContextProvider } from 'src/layout/FormComponentContext';
 import classes from 'src/layout/GenericComponent.module.css';
 import { SummaryComponent } from 'src/layout/Summary/SummaryComponent';
 import { gridBreakpoints, pageBreakStyles } from 'src/utils/formComponentUtils';
+import { isDev } from 'src/utils/isDev';
 import { ComponentErrorBoundary } from 'src/utils/layout/ComponentErrorBoundary';
 import { Hidden, NodesInternal, useNode } from 'src/utils/layout/NodesContext';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
@@ -257,8 +257,7 @@ const gridToClasses = (labelGrid: IGridStyling | undefined, classes: { [key: str
 
 const ErrorList = ({ node, errors }: { node: LayoutNode; errors: string[] }) => {
   const id = node.id;
-  const isDev = useIsDev();
-  if (!isDev) {
+  if (!isDev()) {
     return null;
   }
 

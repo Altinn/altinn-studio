@@ -4,10 +4,9 @@ import { OpenDevToolsButton } from 'src/features/devtools/components/OpenDevTool
 import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsPanel } from 'src/features/devtools/DevToolsPanel';
 import { useLayoutValidation } from 'src/features/devtools/layoutValidation/useLayoutValidation';
-import { useIsDev } from 'src/hooks/useIsDev';
+import { isDev } from 'src/utils/isDev';
 
 export const DevTools = () => {
-  const isDev = useIsDev();
   const panelOpen = useDevToolsStore((state) => state.isOpen);
   const { open: openPanel, close: closePanel } = useDevToolsStore((state) => state.actions);
 
@@ -41,7 +40,7 @@ export const DevTools = () => {
 
   return (
     <>
-      {isDev && (
+      {isDev() && (
         <OpenDevToolsButton
           isHidden={panelOpen}
           onClick={() => setPanelOpen(true)}

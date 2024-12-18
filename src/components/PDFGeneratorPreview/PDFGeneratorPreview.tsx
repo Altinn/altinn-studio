@@ -10,8 +10,8 @@ import { useTaskTypeFromBackend } from 'src/features/instance/ProcessContext';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
-import { useIsLocalOrStaging } from 'src/hooks/useIsDev';
 import { ProcessTaskType } from 'src/types';
+import { isLocalOrStaging } from 'src/utils/isDev';
 import { getPdfPreviewUrl } from 'src/utils/urls/appUrlHelper';
 
 export function PDFGeneratorPreview({
@@ -30,9 +30,8 @@ export function PDFGeneratorPreview({
   const taskType = useTaskTypeFromBackend();
   const instanceId = useLaxInstance((state) => state.instanceId);
   const language = useCurrentLanguage();
-  const isLocalOrStaging = useIsLocalOrStaging();
 
-  const disabled = taskType !== ProcessTaskType.Data || !instanceId || !isLocalOrStaging;
+  const disabled = taskType !== ProcessTaskType.Data || !instanceId || !isLocalOrStaging();
 
   const { langAsString } = useLanguage();
 

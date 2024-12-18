@@ -5,11 +5,10 @@ import { useDevToolsStore } from 'src/features/devtools/data/DevToolsStore';
 import { DevToolsTab } from 'src/features/devtools/data/types';
 import { InstantiationErrorPage } from 'src/features/instantiate/containers/InstantiationErrorPage';
 import { Lang } from 'src/features/language/Lang';
-import { useIsDev } from 'src/hooks/useIsDev';
+import { isDev } from 'src/utils/isDev';
 import type { InvalidSubformLayoutException } from 'src/features/formData/InvalidSubformLayoutException';
 
 export function InvalidSubformLayoutError({ error }: { error: InvalidSubformLayoutException }) {
-  const isDev = useIsDev();
   const open = useDevToolsStore((s) => s.actions.open);
   const setActiveTab = useDevToolsStore((s) => s.actions.setActiveTab);
 
@@ -47,7 +46,7 @@ export function InvalidSubformLayoutError({ error }: { error: InvalidSubformLayo
               />,
             ]}
           />
-          {isDev && (
+          {isDev() && (
             <>
               <br />
               <br />

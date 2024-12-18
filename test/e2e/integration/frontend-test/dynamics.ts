@@ -171,4 +171,33 @@ describe('Dynamics', () => {
     cy.get(appFrontend.changeOfName.reference).should('be.visible');
     cy.get(appFrontend.changeOfName.reference2).should('be.visible');
   });
+
+  it('Deeply linked hidden with component lookups', () => {
+    cy.gotoHiddenPage('linked-hidden');
+
+    function fillOut(componentId: string, correctValue = 'Ja', incorrectValue = 'Nei') {
+      if (incorrectValue) {
+        cy.get('[data-componentid="TrapAlert"]').should('not.exist');
+        cy.get('[data-componentid="NoShowAlert"]').should('not.exist');
+        cy.get(`[data-componentid="${componentId}"]`).findByRole('radio', { name: incorrectValue }).click();
+        componentId === 'LinkedHidden6' && cy.get('[data-componentid="TrapAlert"]').should('be.visible');
+        cy.get('[data-componentid="NoShowAlert"]').should('be.visible');
+      }
+      cy.get(`[data-componentid="${componentId}"]`).findByRole('radio', { name: correctValue }).click();
+      cy.get('[data-componentid="NoShowAlert"]').should('not.exist');
+      cy.get('[data-componentid="TrapAlert"]').should('not.exist');
+    }
+
+    fillOut('LinkedHidden1');
+    fillOut('LinkedHidden2');
+    fillOut('LinkedHidden3');
+    fillOut('LinkedHidden4');
+    fillOut('LinkedHidden5');
+    fillOut('LinkedHidden6', 'Nei', 'Ja');
+    fillOut('LinkedHidden7', 'Neida, jeg gikk ikke på den, jeg lover', '');
+    fillOut('LinkedHidden8', 'Ja!');
+    fillOut('LinkedHidden9', 'Jeg lover', 'Nei, nå er jeg sur');
+
+    cy.get('[data-componentid="TheTextField"]').find('input').type('Jeg bestod testen, hurra!');
+  });
 });

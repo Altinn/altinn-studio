@@ -5,6 +5,7 @@ import type { StoreApi } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { ShallowArrayMap } from 'src/core/structures/ShallowArrayMap';
+import { isDev } from 'src/utils/isDev';
 
 type Selector<T, U> = (state: T) => U;
 type SelectorMap<C extends DSConfig> = ShallowArrayMap<{
@@ -28,7 +29,10 @@ type ModeFromConf<C extends DSConfig> = C extends DSConfig<any, infer M> ? M : n
  * will not be able to be used as a cache key.
  */
 export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSReturn<C> {
-  const state = useRef(new SingleDelayedSelectorController(props));
+  const state = useRef<SingleDelayedSelectorController<C>>();
+  if (!state.current) {
+    state.current = new SingleDelayedSelectorController(props);
+  }
 
   // Check if any deps have changed
   state.current.checkDeps(props);
@@ -37,7 +41,10 @@ export function useDelayedSelector<C extends DSConfig>(props: DSProps<C>): DSRet
 }
 
 export function useMultipleDelayedSelectors<P extends MultiDSProps>(...props: P): { [I in keyof P]: DSReturn<P[I]> } {
-  const state = useRef(new MultiDelayedSelectorController(props));
+  const state = useRef<MultiDelayedSelectorController<P>>();
+  if (!state.current) {
+    state.current = new MultiDelayedSelectorController(props);
+  }
 
   // Check if any deps have changed
   state.current.checkDeps(props);
@@ -169,12 +176,16 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
 
     const cacheKey = this.makeCacheKey(args);
     const prev = this.selectorsCalled?.get(cacheKey);
+    let returnPrev = false;
     if (prev) {
       // Performance-wise we could also just have called the selector here, it doesn't really matter. What is
       // important however, is that we let developers know as early as possible if they forgot to include a dependency
       // or otherwise used the hook incorrectly, so we'll make sure to return the value to them here even if it
       // could be stale (but only when improperly used).
-      return prev.value;
+      returnPrev = true;
+      if (!isDev()) {
+        return prev.value;
+      }
     }
 
     // We don't need to initialize the arraymap before checking for the previous value,
@@ -186,33 +197,41 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
       this.unsubscribeMethod = this.subscribeToStore();
     }
 
-    const state = this.store.getState();
+    let fullSelector: Selector<TypeFromConf<C>, unknown>;
 
     if (this.mode.mode === 'simple') {
       const { selector } = this.mode as SimpleArgMode;
-      const fullSelector: Selector<TypeFromConf<C>, unknown> = (state) => selector(...args)(state);
-      const value = fullSelector(state);
-      this.selectorsCalled.set(cacheKey, { fullSelector, value });
-      return value;
-    }
-
-    if (this.mode.mode === 'innerSelector') {
+      fullSelector = (state) => selector(...args)(state);
+    } else if (this.mode.mode === 'innerSelector') {
       const { makeArgs } = this.mode as InnerSelectorMode;
       if (typeof args[0] !== 'function' || !Array.isArray(args[1]) || args.length !== 2) {
         throw new Error('useDelayedSelector: innerSelector must be a function');
       }
-      const fullSelector: Selector<TypeFromConf<C>, unknown> = (state) => {
+      fullSelector = (state) => {
         const innerArgs = makeArgs(state);
         const innerSelector = args[0] as (...args: typeof innerArgs) => unknown;
         return innerSelector(...innerArgs);
       };
-
-      const value = fullSelector(state);
-      this.selectorsCalled.set(cacheKey, { fullSelector, value });
-      return value;
+    } else {
+      throw new Error('useDelayedSelector: invalid mode');
     }
 
-    throw new Error('useDelayedSelector: invalid mode');
+    const value = fullSelector(this.store.getState());
+
+    if (returnPrev && prev) {
+      if (!this.equalityFn(value, prev.value)) {
+        console.warn(
+          'Delayed selector: When selecting, the prev and next value are not equal. You probably forgot ' +
+            'to pass one or more dependencies. The prev value will be returned, even if the next ' +
+            'value is the latest state.',
+          { prev: prev.value, next: value },
+        );
+      }
+      return prev.value;
+    }
+
+    this.selectorsCalled.set(cacheKey, { fullSelector, value });
+    return value;
   }
 }
 
@@ -243,11 +262,9 @@ class SingleDelayedSelectorController<C extends DSConfig> extends BaseDelayedSel
 }
 
 class MultiDelayedSelector<C extends DSConfig> extends BaseDelayedSelector<C> {
-  private changeCount = 0;
-  private lastSelectChangeCount = 0;
-  private onChange: (lastSelectChangeCount: number) => void;
+  private readonly onChange: () => void;
 
-  constructor(props: DSProps<C>, onChange: (lastSelectChangeCount: number) => void) {
+  constructor(props: DSProps<C>, onChange: () => void) {
     super(props);
     this.onChange = onChange;
   }
@@ -256,16 +273,8 @@ class MultiDelayedSelector<C extends DSConfig> extends BaseDelayedSelector<C> {
     return this.selectorFunc;
   }
 
-  public setChangeCount(count: number) {
-    this.changeCount = count;
-  }
-
-  protected onCallSelector(): void {
-    this.lastSelectChangeCount = this.changeCount;
-  }
-
   protected onUpdateSelector(): void {
-    this.onChange(this.lastSelectChangeCount);
+    this.onChange();
   }
 }
 
@@ -276,15 +285,12 @@ class MultiDelayedSelectorController<P extends MultiDSProps> {
   private triggerRender: (() => void) | null = null;
   private shouldTriggerOnSubscribe = false;
 
-  private changeCount = 0;
   private controllers: MultiDelayedSelector<DSConfig>[] = [];
   private selectorFuncs: DSReturn<DSConfig>[] = [];
 
   constructor(props: P) {
     for (let i = 0; i < props.length; i++) {
-      const MDS = new MultiDelayedSelector(props[i], (lastSelectChangeCount: number) =>
-        this.onUpdateSelector(i, lastSelectChangeCount),
-      );
+      const MDS = new MultiDelayedSelector(props[i], () => this.onUpdateSelector(i));
       this.controllers.push(MDS);
       this.selectorFuncs.push(MDS.getSelectorFunc());
     }
@@ -307,19 +313,14 @@ class MultiDelayedSelectorController<P extends MultiDSProps> {
     }
   }
 
-  private onUpdateSelector(index: number, lastSelectChangeCount: number): void {
-    // Prevent multiple re-renders at the same time
+  private onUpdateSelector(index: number): void {
     this.selectorFuncs[index] = this.controllers[index].getSelectorFunc();
-    if (lastSelectChangeCount === this.changeCount) {
-      this.selectorFuncs = [...this.selectorFuncs];
-      if (this.triggerRender) {
-        this.triggerRender();
-      } else {
-        this.shouldTriggerOnSubscribe = true;
-      }
+    this.selectorFuncs = [...this.selectorFuncs];
+    if (this.triggerRender) {
+      this.triggerRender();
+    } else {
+      this.shouldTriggerOnSubscribe = true;
     }
-    this.changeCount += 1;
-    this.controllers.forEach((ds) => ds.setChangeCount(this.changeCount));
   }
 }
 
