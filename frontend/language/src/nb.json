@@ -1735,6 +1735,7 @@
   "ux_editor.options.tab_code_list": "Velg kodeliste",
   "ux_editor.options.tab_manual": "Sett opp egne alternativer",
   "ux_editor.options.tab_referenceId": "Angi referanse-ID",
+  "ux_editor.options.tab_referenceId_alert_title": "Du har allerede referert til en kodeliste. Skriver du inn en ID, vil referansen bli slettet.",
   "ux_editor.options.upload_title": "Last opp egen kodeliste",
   "ux_editor.page": "Side",
   "ux_editor.page_config_pdf_abort_converting_page_to_pdf": "Avbryt å gjøre om siden til PDF",

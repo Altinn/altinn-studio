@@ -35,9 +35,11 @@ export function ReferenceTab({
     );
   }
 
-  const isOptionsIdInLibrary = optionListIds?.some(
-    (optionId: string) => optionId == component.optionsId,
+  const isOptionsIdInLibrary: boolean = optionListIds?.some(
+    (optionId: string): boolean => optionId == component.optionsId,
   );
+
+  const isOptionsIdInLibraryOrComponent: boolean = isOptionsIdInLibrary || !!component.options;
 
   return (
     <div className={classes.container}>
@@ -54,9 +56,9 @@ export function ReferenceTab({
         value={component.optionsId}
         size='small'
       />
-      {(isOptionsIdInLibrary || component.options) && (
+      {isOptionsIdInLibraryOrComponent && (
         <StudioAlert severity={'info'} size='sm'>
-          {t('ux_editor.options.tab_referenceid_alert_title')}
+          {t('ux_editor.options.tab_referenceId_alert_title')}
         </StudioAlert>
       )}
       <p>
