@@ -36,7 +36,7 @@ jobs:
           sha=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefOid | jq -r '.headRefOid' | cut -c1-8)
           branch=$(gh pr view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json headRefName | jq -r '.headRefName' | sed 's/.*\///')
           version=$(git describe --abbrev=0 --tags 2>/dev/null).$branch.$sha
-          git tag --author=. -a $version -m "PR release $version"
+          git tag -a $version -m "PR release $version"
           echo "FRONTEND_PACKAGE_VERSION=$version" >> $GITHUB_ENV
 
       - name: Checkout Altinn-CDN repository
