@@ -66,7 +66,7 @@ describe('designViewUtils', () => {
         mockOldName,
         mockLayoutOrder,
       );
-      expect(nameErrorkey).toEqual('ux_editor.pages_error_format');
+      expect(nameErrorkey).toEqual('validation_errors.file_name_invalid');
     });
 
     it('returns null when oldname and new name is the same', () => {

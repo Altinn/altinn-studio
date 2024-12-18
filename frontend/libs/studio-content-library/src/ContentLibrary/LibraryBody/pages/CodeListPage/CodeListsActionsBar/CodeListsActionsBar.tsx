@@ -3,7 +3,7 @@ import { Search } from '@digdir/designsystemet-react';
 import { StudioFileUploader } from '@studio/components';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
-import type { CodeListWithMetadata } from '../CodeList';
+import type { CodeListWithMetadata } from '../CodeListPage';
 import { CreateNewCodeListModal } from './CreateNewCodeListModal/CreateNewCodeListModal';
 import { FileNameUtils } from '@studio/pure-functions';
 import { useUploadCodeListNameErrorMessage } from '../hooks/useUploadCodeListNameErrorMessage';
@@ -24,7 +24,10 @@ export function CodeListsActionsBar({
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
   const onSubmit = (file: File) => {
-    const fileNameError = getFileNameError(file.name, codeListNames);
+    const fileNameError = FileNameUtils.findFileNameError(
+      FileNameUtils.removeExtension(file.name),
+      codeListNames,
+    );
     if (fileNameError) {
       return toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));
     }
@@ -49,6 +52,3 @@ export function CodeListsActionsBar({
     </div>
   );
 }
-
-const getFileNameError = (fileName: string, invalidFileNames: string[]) =>
-  FileNameUtils.findFileNameError(FileNameUtils.removeExtension(fileName), invalidFileNames);
