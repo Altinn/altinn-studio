@@ -436,17 +436,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return application.DataTypes.All(d => d.AppLogic?.ClassRef != $"Altinn.App.Models.{csharpModelName}");
         }
 
-        public async Task<DataType> GetModelMetadata(string org, string app, string modelName)
+        public async Task<DataType> GetModelDataType(string org, string app, string modelId)
         {
             ApplicationMetadata applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            DataType dataType = applicationMetadata.DataTypes.Find((dataType) => dataType.Id == modelName);
+            DataType dataType = applicationMetadata.DataTypes.Find((dataType) => dataType.Id == modelId);
             return dataType;
         }
 
-        public async Task UpdateModelMetadata(string org, string app, string modelName, DataType dataType)
+        public async Task SetModelDataType(string org, string app, string modelId, DataType dataType)
         {
             ApplicationMetadata applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-            applicationMetadata.DataTypes.RemoveAll((dataType) => dataType.Id == modelName);
+            applicationMetadata.DataTypes.RemoveAll((dataType) => dataType.Id == modelId);
             applicationMetadata.DataTypes.Add(dataType);
             await _applicationMetadataService.UpdateApplicationMetaDataLocally(org, app, applicationMetadata);
         }
