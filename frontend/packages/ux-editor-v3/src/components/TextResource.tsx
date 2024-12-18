@@ -19,7 +19,7 @@ import type { ITextResource } from 'app-shared/types/global';
 import { FormField } from './FormField';
 import { AltinnConfirmDialog } from 'app-shared/components/AltinnConfirmDialog';
 import { useTranslation } from 'react-i18next';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { StudioButton, StudioNativeSelect } from '@studio/components';
 
 export interface TextResourceProps {
@@ -174,21 +174,18 @@ export const TextResource = ({
               confirmText={t('ux_editor.text_resource_bindings.delete_confirm')}
               onConfirm={handleDeleteButtonClick}
               onClose={() => setIsConfirmDeleteDialogOpen(false)}
-              trigger={
-                <StudioButton
-                  aria-label={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
-                  className={classes.button}
-                  color='second'
-                  disabled={
-                    !handleRemoveTextResource ||
-                    !(!!textResourceId || shouldDisplayFeature('componentConfigBeta'))
-                  }
-                  icon={<TrashIcon />}
-                  onClick={() => setIsConfirmDeleteDialogOpen(true)}
-                  title={t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey))}
-                  variant='tertiary'
-                />
-              }
+              triggerProps={{
+                'aria-label': t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey)),
+                className: classes.button,
+                color: 'second',
+                disabled:
+                  !handleRemoveTextResource ||
+                  !(!!textResourceId || shouldDisplayFeature(FeatureFlag.ComponentConfigBeta)),
+                icon: <TrashIcon />,
+                onClick: () => setIsConfirmDeleteDialogOpen(true),
+                title: t(getTextKeyForButton('delete', generateIdOptions?.textResourceKey)),
+                variant: 'tertiary',
+              }}
             >
               <div>
                 <p>{t('ux_editor.text_resource_bindings.delete_confirm_question')}</p>

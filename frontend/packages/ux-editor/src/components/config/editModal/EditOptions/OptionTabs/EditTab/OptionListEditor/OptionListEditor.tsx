@@ -90,7 +90,7 @@ function EditLibraryOptionListEditorModal({
   const optionListHasChanged = (options: Option[]): boolean =>
     JSON.stringify(options) !== JSON.stringify(localOptionList);
 
-  const handleOptionsChange = (options: Option[]) => {
+  const handleBlurAny = (options: Option[]) => {
     if (optionListHasChanged(options)) {
       updateOptionList({ optionListId: optionsId, optionsList: options });
       setLocalOptionList(options);
@@ -126,7 +126,7 @@ function EditLibraryOptionListEditorModal({
       >
         <StudioCodeListEditor
           codeList={localOptionList}
-          onChange={handleOptionsChange}
+          onBlurAny={handleBlurAny}
           texts={editorTexts}
         />
       </StudioModal.Dialog>
@@ -147,7 +147,7 @@ function EditManualOptionListEditorModal({
   const modalRef = useRef<HTMLDialogElement>(null);
   const editorTexts = useOptionListEditorTexts();
 
-  const handleOptionsChange = (options: Option[]) => {
+  const handleBlurAny = (options: Option[]) => {
     if (component.optionsId) {
       delete component.optionsId;
     }
@@ -175,7 +175,7 @@ function EditManualOptionListEditorModal({
       >
         <StudioCodeListEditor
           codeList={component.options ?? []}
-          onChange={handleOptionsChange}
+          onBlurAny={handleBlurAny}
           texts={editorTexts}
         />
       </StudioModal.Dialog>

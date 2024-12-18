@@ -15,7 +15,7 @@ import { RoutePaths } from 'app-development/enums/RoutePaths';
 import { DatabaseIcon } from '@studio/icons';
 import { HeaderMenuGroupKey } from 'app-development/enums/HeaderMenuGroupKey';
 import { typedLocalStorage } from '@studio/pure-functions';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 jest.mock('app-shared/utils/featureToggleUtils');
 
@@ -137,7 +137,7 @@ describe('headerMenuUtils', () => {
         icon: DatabaseIcon,
         repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         group: HeaderMenuGroupKey.Tools,
-        featureFlagName: 'shouldOverrideAppLibCheck',
+        featureFlagName: FeatureFlag.ShouldOverrideAppLibCheck,
       };
 
       expect(filterRoutesByFeatureFlag(menuItem)).toBe(true);
@@ -152,7 +152,7 @@ describe('headerMenuUtils', () => {
         icon: DatabaseIcon,
         repositoryTypes: [RepositoryType.App, RepositoryType.DataModels],
         group: HeaderMenuGroupKey.Tools,
-        featureFlagName: 'shouldOverrideAppLibCheck',
+        featureFlagName: FeatureFlag.ShouldOverrideAppLibCheck,
       };
 
       expect(filterRoutesByFeatureFlag(menuItem)).toBe(false);

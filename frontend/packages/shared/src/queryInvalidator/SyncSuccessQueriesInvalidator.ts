@@ -21,16 +21,19 @@ export class SyncSuccessQueriesInvalidator extends Queue {
   private _queryClient: QueryClient;
 
   // Maps file names to their cache keys for invalidation upon sync success - can be extended to include more files
-  private readonly fileNameCacheKeyMap: Record<string, Array<QueryKey | string>> = {
-    'applicationmetadata.json': [QueryKey.AppMetadata, '[org]', '[app]'],
-    'layout-sets.json': [QueryKey.LayoutSets, '[org]', '[app]'],
-    'policy.xml': [QueryKey.AppPolicy, '[org]', '[app]'],
-    'Settings.json': [QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]'],
+  private readonly fileNameCacheKeysMap: Record<string, Array<Array<QueryKey | string>>> = {
+    'applicationmetadata.json': [[QueryKey.AppMetadata, '[org]', '[app]']],
+    'layout-sets.json': [
+      [QueryKey.LayoutSets, '[org]', '[app]'],
+      [QueryKey.LayoutSetsExtended, '[org]', '[app]'],
+    ],
+    'policy.xml': [[QueryKey.AppPolicy, '[org]', '[app]']],
+    'Settings.json': [[QueryKey.FormLayoutSettings, '[org]', '[app]', '[layoutSetName]']],
   };
 
   // Maps folder names to their cache keys for invalidation upon sync success - can be extended to include more folders
-  private readonly folderNameCacheKeyMap: Record<string, Array<QueryKey | string>> = {
-    layouts: [QueryKey.FormLayouts, '[org]', '[app]'],
+  private readonly folderNameCacheKeysMap: Record<string, Array<Array<QueryKey | string>>> = {
+    layouts: [[QueryKey.FormLayouts, '[org]', '[app]']],
   };
 
   public set layoutSetName(layoutSetName: string) {
@@ -67,32 +70,36 @@ export class SyncSuccessQueriesInvalidator extends Queue {
     SyncSuccessQueriesInvalidator.instance = null;
   }
 
-  public invalidateQueryByFileLocation(fileOrFolderName: string): void {
-    const cacheKey = this.getCacheKeyByFileLocation(fileOrFolderName);
-    if (!cacheKey) return;
+  public invalidateQueriesByFileLocation(fileOrFolderName: string): void {
+    const cacheKeys = this.getCacheKeysByFileLocation(fileOrFolderName);
+    if (!cacheKeys) return;
 
     this.addTaskToQueue({
       id: fileOrFolderName,
       callback: () => {
-        this._queryClient.invalidateQueries({ queryKey: cacheKey });
+        cacheKeys.forEach((cacheKey) => {
+          this._queryClient.invalidateQueries({ queryKey: cacheKey });
+        });
       },
     });
   }
 
-  private getCacheKeyByFileLocation(fileOrFolderName: string): string[] {
-    const cacheKey =
-      this.fileNameCacheKeyMap[fileOrFolderName] || this.folderNameCacheKeyMap[fileOrFolderName];
-    if (!cacheKey) return undefined;
+  private getCacheKeysByFileLocation(fileOrFolderName: string): Array<string[]> {
+    const cacheKeys =
+      this.fileNameCacheKeysMap[fileOrFolderName] || this.folderNameCacheKeysMap[fileOrFolderName];
+    if (!cacheKeys) return undefined;
 
-    return this.replaceCacheKeyPlaceholders(cacheKey);
+    return this.replaceCacheKeysPlaceholders(cacheKeys);
   }
 
-  private replaceCacheKeyPlaceholders(cacheKey: string[]): string[] {
-    return cacheKey.map((key) =>
-      key
-        .replace('[org]', this._org)
-        .replace('[app]', this._app)
-        .replace('[layoutSetName]', this._layoutSetName),
+  private replaceCacheKeysPlaceholders(cacheKeys: Array<string[]>): Array<string[]> {
+    return cacheKeys.map((cacheKey) =>
+      cacheKey.map((key) =>
+        key
+          .replace('[org]', this._org)
+          .replace('[app]', this._app)
+          .replace('[layoutSetName]', this._layoutSetName),
+      ),
     );
   }
 }
