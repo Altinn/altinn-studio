@@ -1,112 +1,69 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { StudioDeleteButton, StudioErrorMessage } from '@studio/components';
-import { AddManualOptionsModal } from './AddManualOptionsModal';
+import React, { useRef } from 'react';
+import { StudioButton, StudioErrorMessage, usePrevious } from '@studio/components';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './/OptionListEditor';
 import { useComponentErrorMessage } from '../../../../../../hooks';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import { useTranslation } from 'react-i18next';
+import { useUpdate } from 'app-shared/hooks/useUpdate';
+import { handleOptionsChange } from './utils/utils';
 import classes from './EditTab.module.css';
 
-type EditOptionChoiceProps = Pick<
+type EditTabProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
   'component' | 'handleComponentChange'
 >;
 
-export function EditTab({
-  component,
-  handleComponentChange,
-}: EditOptionChoiceProps): React.ReactElement {
-  const initialComponentHasOptionList: boolean = !!component.optionsId || !!component.options;
-  const [componentHasOptionList, setComponentHasOptionList] = useState<boolean>(
-    initialComponentHasOptionList,
-  );
+export function EditTab({ component, handleComponentChange }: EditTabProps): React.ReactElement {
+  const componentHasOptionList: boolean = !!component.optionsId || !!component.options;
   const errorMessage = useComponentErrorMessage(component);
+  const previousComponent = usePrevious(component);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useUpdate(() => {
+    if (!previousComponent.options && !!component.options) dialogRef.current.showModal();
+  }, [component, previousComponent]);
 
   return (
     <>
       {componentHasOptionList ? (
-        <SelectedOptionList
-          setComponentHasOptionList={setComponentHasOptionList}
+        <OptionListEditor
+          ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
         />
       ) : (
-        <div className={classes.optionButtons}>
-          <AddManualOptionsModal
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-          <OptionListSelector
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
-          <OptionListUploader
-            setComponentHasOptionList={setComponentHasOptionList}
-            component={component}
-            handleComponentChange={handleComponentChange}
-          />
+        <div className={classes.container}>
+          <AddOptionList component={component} handleComponentChange={handleComponentChange} />
         </div>
       )}
-      {errorMessage && (
-        <StudioErrorMessage className={classes.errorMessage} size='small'>
-          {errorMessage}
-        </StudioErrorMessage>
-      )}
+      {errorMessage && <StudioErrorMessage size='small'>{errorMessage}</StudioErrorMessage>}
     </>
   );
 }
 
-type SelectedOptionListProps = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
+type AddOptionListProps = EditTabProps;
 
-function SelectedOptionList({
-  setComponentHasOptionList,
-  component,
-  handleComponentChange,
-}: SelectedOptionListProps) {
+function AddOptionList({ component, handleComponentChange }: AddOptionListProps) {
   const { t } = useTranslation();
 
-  const handleDelete = () => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    const emptyOptionsId = '';
-    handleComponentChange({
-      ...component,
-      optionsId: emptyOptionsId,
-    });
-
-    setComponentHasOptionList(false);
+  const handleInitialManualOptionsChange = () => {
+    handleOptionsChange({ component, handleComponentChange, options: [] });
   };
 
-  const label =
-    component.optionsId !== '' && component.optionsId !== undefined
-      ? component.optionsId
-      : t('ux_editor.modal_properties_code_list_custom_list');
-
   return (
-    <div aria-label={label} className={classes.chosenOptionContainer}>
-      <OptionListEditor
-        label={label}
-        optionsId={component.optionsId}
-        component={component}
-        handleComponentChange={handleComponentChange}
-      />
-      <div className={classes.deleteButtonContainer}>
-        <StudioDeleteButton
-          className={classes.deleteButton}
-          onDelete={handleDelete}
-          title={t('ux_editor.options.option_remove_text')}
-          variant={'tertiary'}
-        />
-      </div>
+    <div className={classes.container}>
+      <StudioButton
+        className={classes.createNewButton}
+        variant='secondary'
+        onClick={handleInitialManualOptionsChange}
+      >
+        {t('general.create_new')}
+      </StudioButton>
+      <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
+      <OptionListUploader component={component} handleComponentChange={handleComponentChange} />
     </div>
   );
 }

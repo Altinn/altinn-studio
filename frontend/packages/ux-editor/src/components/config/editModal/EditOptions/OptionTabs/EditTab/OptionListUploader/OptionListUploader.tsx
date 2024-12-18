@@ -12,35 +12,20 @@ import type { FileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
+import { handleOptionsIdChange } from '../utils/utils';
 
-type EditOptionListProps<T extends SelectionComponentType> = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
+type EditOptionListProps = Pick<
+  IGenericEditComponent<SelectionComponentType>,
+  'component' | 'handleComponentChange'
+>;
 
-export function OptionListUploader<T extends SelectionComponentType>({
-  setComponentHasOptionList,
-  component,
-  handleComponentChange,
-}: EditOptionListProps<T>) {
+export function OptionListUploader({ component, handleComponentChange }: EditOptionListProps) {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
   });
-
-  const handleOptionsIdChange = (optionsId: string) => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    handleComponentChange({
-      ...component,
-      optionsId,
-    });
-
-    setComponentHasOptionList(true);
-  };
 
   const onSubmit = (file: File) => {
     const fileNameError = findFileNameError(optionListIds, file.name);
@@ -54,9 +39,14 @@ export function OptionListUploader<T extends SelectionComponentType>({
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        handleOptionsIdChange(FileNameUtils.removeExtension(file.name));
+        handleOptionsIdChange({
+          component,
+          handleComponentChange,
+          optionsId: FileNameUtils.removeExtension(file.name),
+        });
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
+
       onError: (error: AxiosError<ApiError>) => {
         if (!error.response?.data?.errorCode) {
           toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);

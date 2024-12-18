@@ -18,7 +18,7 @@ describe('EditTab', () => {
   it('should render DisplayChosenOption', async () => {
     renderEditTab();
     expect(
-      screen.getByRole('button', { name: textMock('ux_editor.options.option_remove_text') }),
+      screen.getByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
     ).toBeInTheDocument();
   });
 
@@ -34,17 +34,15 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should set optionsId to blank when removing choice', async () => {
+  it('should set optionsId to blank when removing chosen code list', async () => {
     const user = userEvent.setup();
     const handleOptionsIdChange = jest.fn();
     renderEditTab({ handleComponentChange: handleOptionsIdChange });
     const expectedArgs = mockComponent;
-    expectedArgs.optionsId = '';
+    expectedArgs.optionsId = undefined;
     delete expectedArgs.options;
 
-    const button = await screen.findByRole('button', {
-      name: textMock('ux_editor.options.option_remove_text'),
-    });
+    const button = await screen.findByText(textMock('general.delete'));
     await user.click(button);
 
     expect(handleOptionsIdChange).toHaveBeenCalledTimes(1);

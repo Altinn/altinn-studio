@@ -7,33 +7,21 @@ import { useTranslation } from 'react-i18next';
 import { StudioDropdownMenu, StudioSpinner } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { handleOptionsIdChange } from '../utils/utils';
 import classes from './OptionListSelector.module.css';
 
-type OptionListSelectorProps<T extends SelectionComponentType> = {
-  setComponentHasOptionList: (value: boolean) => void;
-} & Pick<IGenericEditComponent<T>, 'component' | 'handleComponentChange'>;
+type OptionListSelectorProps = Pick<
+  IGenericEditComponent<SelectionComponentType>,
+  'component' | 'handleComponentChange'
+>;
 
-export function OptionListSelector<T extends SelectionComponentType>({
-  setComponentHasOptionList,
+export function OptionListSelector({
   component,
   handleComponentChange,
-}: OptionListSelectorProps<T>): React.ReactNode {
+}: OptionListSelectorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
-
-  const handleOptionsIdChange = (optionsId: string) => {
-    if (component.options) {
-      delete component.options;
-    }
-
-    handleComponentChange({
-      ...component,
-      optionsId,
-    });
-
-    setComponentHasOptionList(true);
-  };
+  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
 
   switch (status) {
     case 'pending':
@@ -44,16 +32,13 @@ export function OptionListSelector<T extends SelectionComponentType>({
         />
       );
     case 'error':
-      return (
-        <ErrorMessage>
-          {error instanceof Error ? error.message : t('ux_editor.modal_properties_error_message')}
-        </ErrorMessage>
-      );
+      return <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>;
     case 'success':
       return (
         <OptionListSelectorWithData
           optionListIds={optionListIds}
-          handleOptionsIdChange={handleOptionsIdChange}
+          component={component}
+          handleComponentChange={handleComponentChange}
         />
       );
   }
@@ -61,14 +46,18 @@ export function OptionListSelector<T extends SelectionComponentType>({
 
 type OptionListSelectorWithDataProps = {
   optionListIds: string[];
-  handleOptionsIdChange: (optionsId: string) => void;
-};
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component' | 'handleComponentChange'>;
 
 function OptionListSelectorWithData({
+  component,
+  handleComponentChange,
   optionListIds,
-  handleOptionsIdChange,
 }: OptionListSelectorWithDataProps): React.ReactNode {
   const { t } = useTranslation();
+
+  const handleClick = (optionsId: string) => {
+    handleOptionsIdChange({ component, handleComponentChange, optionsId });
+  };
 
   if (!optionListIds.length) return null;
   return (
@@ -81,13 +70,13 @@ function OptionListSelectorWithData({
         children: t('ux_editor.modal_properties_code_list'),
       }}
     >
-      {optionListIds.map((optionListId: string) => (
+      {optionListIds.map((optionsId: string) => (
         <StudioDropdownMenu.Item
-          key={optionListId}
+          key={optionsId}
           icon={<BookIcon />}
-          onClick={() => handleOptionsIdChange(optionListId)}
+          onClick={() => handleClick(optionsId)}
         >
-          {optionListId}
+          {optionsId}
         </StudioDropdownMenu.Item>
       ))}
     </StudioDropdownMenu>

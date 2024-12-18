@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { Option } from 'app-shared/types/Option';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
@@ -10,7 +11,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -27,25 +27,25 @@ describe('OptionListEditor', () => {
   afterEach(() => jest.clearAllMocks());
 
   describe('ManualOptionListEditorModal', () => {
-    it('should render the open Dialog button', async () => {
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
-      expect(getManualModalButton()).toBeInTheDocument();
+    it('should render the open Dialog button', () => {
+      renderOptionListEditor();
+      expect(getOptionModalButton()).toBeInTheDocument();
     });
 
     it('should open Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+      renderOptionListEditor();
 
-      await user.click(getManualModalButton());
+      await user.click(getOptionModalButton());
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
 
     it('should close Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+      renderOptionListEditor();
 
-      await user.click(getManualModalButton());
+      await user.click(getOptionModalButton());
       await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -56,13 +56,13 @@ describe('OptionListEditor', () => {
       const componentWithOptionsId = mockComponent;
       componentWithOptionsId.optionsId = 'optionsID';
       const handleComponentChange = jest.fn();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+      renderOptionListEditor({
         handleComponentChange,
         component: componentWithOptionsId,
       });
       const text = 'test';
 
-      await user.click(getManualModalButton());
+      await user.click(getOptionModalButton());
       const textBox = screen.getByRole('textbox', {
         name: textMock('code_list_editor.description_item', { number: 2 }),
       });
@@ -70,6 +70,13 @@ describe('OptionListEditor', () => {
       await user.tab();
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should display general.empty_string when option-list has an empty string', () => {
+      mockComponent.options = [{ value: 2, label: '', description: 'test', helpText: null }];
+      renderOptionListEditor({});
+
+      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
     });
   });
 
@@ -135,9 +142,7 @@ describe('OptionListEditor', () => {
       });
 
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -154,9 +159,7 @@ describe('OptionListEditor', () => {
       ];
 
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -168,18 +171,33 @@ describe('OptionListEditor', () => {
         expectedResultAfterEdit,
       );
     });
+
+    it('should display general.empty_string when option-list has an empty string', async () => {
+      const apiResultWithEmptyLabel: OptionsLists = {
+        options: [{ value: true, label: '', description: null, helpText: null }],
+      };
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+        queries: {
+          getOptionLists: jest
+            .fn()
+            .mockImplementation(() => Promise.resolve<OptionsLists>(apiResultWithEmptyLabel)),
+        },
+      });
+
+      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+    });
   });
 });
 
 function getOptionModalButton() {
   return screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_button_title_library'),
+    name: textMock('general.edit'),
   });
 }
 
-function getManualModalButton() {
-  return screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_button_title_manual'),
+function getTextBoxInput(number: number) {
+  return screen.getByRole('textbox', {
+    name: textMock('code_list_editor.description_item', { number }),
   });
 }
 
@@ -191,8 +209,6 @@ const renderOptionListEditor = ({
 } = {}) => {
   return renderWithProviders(
     <OptionListEditor
-      label={mockComponent.optionsId}
-      optionsId={mockComponent.optionsId}
       component={{ ...mockComponent, ...component }}
       handleComponentChange={handleComponentChange}
     />,
@@ -223,8 +239,8 @@ const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({
     component,
     handleComponentChange,
   });
-  await waitForElementToBeRemoved(() => {
-    return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-  });
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+  );
   return view;
 };
