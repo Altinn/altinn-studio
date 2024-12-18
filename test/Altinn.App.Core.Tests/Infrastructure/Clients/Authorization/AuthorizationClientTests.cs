@@ -125,6 +125,13 @@ public class AuthorizationClientTests
         var responseJson = JsonSerializer.Serialize(expectedRoles);
 
         var httpMessageHandler = new Mock<HttpMessageHandler>();
+
+        var reponseMessage = new HttpResponseMessage
+        {
+            StatusCode = System.Net.HttpStatusCode.OK,
+            Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json"),
+        };
+
         httpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -136,13 +143,7 @@ public class AuthorizationClientTests
                 ),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(
-                new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new StringContent(responseJson, System.Text.Encoding.UTF8, "application/json"),
-                }
-            );
+            .ReturnsAsync(reponseMessage);
 
         var httpClient = new HttpClient(httpMessageHandler.Object);
 
@@ -191,6 +192,13 @@ public class AuthorizationClientTests
         var userPartyId = 2001;
 
         var httpMessageHandler = new Mock<HttpMessageHandler>();
+
+        var reponseMessage = new HttpResponseMessage
+        {
+            StatusCode = System.Net.HttpStatusCode.InternalServerError,
+            Content = new StringContent("Internal Server Error"),
+        };
+
         httpMessageHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
@@ -202,13 +210,7 @@ public class AuthorizationClientTests
                 ),
                 ItExpr.IsAny<CancellationToken>()
             )
-            .ReturnsAsync(
-                new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.InternalServerError,
-                    Content = new StringContent("Internal Server Error"),
-                }
-            );
+            .ReturnsAsync(reponseMessage);
 
         var httpClient = new HttpClient(httpMessageHandler.Object);
 
