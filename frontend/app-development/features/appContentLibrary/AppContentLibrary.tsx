@@ -40,8 +40,8 @@ export function AppContentLibrary(): React.ReactElement {
   const codeLists = convertOptionListsToCodeLists(optionLists);
 
   const codeListsUsages: CodeListReference[] =
-      convertOptionListsUsageToCodeListsUsage(optionListsUsage);
-  
+    convertOptionListsUsageToCodeListsUsage(optionListsUsage);
+
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
   };
