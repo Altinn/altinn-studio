@@ -13,8 +13,7 @@ const defaultAccessPackageProp = {
   id: 'urn:altinn:accesspackage:sjofart',
   urn: 'urn:altinn:accesspackage:sjofart',
   name: 'Sjøfart',
-  description:
-    'Denne fullmakten gir tilgang til alle tjenester knyttet til skipsarbeidstakere og fartøy til sjøs. Ved regelverksendringer eller innføring av nye digitale tjenester kan det bli endringer i tilganger som fullmakten gir.',
+  description: '',
 };
 
 const resource = {
@@ -43,7 +42,9 @@ describe('PolicyAccessPackageAccordion', () => {
     const user = userEvent.setup();
     renderPolicyAccessPackageAccordion();
 
-    const accordionButton = screen.getByRole('button');
+    const accordionButton = screen.getByRole('button', {
+      name: defaultAccessPackageProp.name,
+    });
     await user.click(accordionButton);
 
     expect(
@@ -59,7 +60,9 @@ describe('PolicyAccessPackageAccordion', () => {
 
     renderPolicyAccessPackageAccordion({ getAccessPackageServices });
 
-    const accordionButton = screen.getByRole('button');
+    const accordionButton = screen.getByRole('button', {
+      name: defaultAccessPackageProp.name,
+    });
     await user.click(accordionButton);
 
     expect(screen.getByText(resource.title.nb)).toBeInTheDocument();
@@ -75,7 +78,9 @@ describe('PolicyAccessPackageAccordion', () => {
 
     renderPolicyAccessPackageAccordion({ getAccessPackageServices });
 
-    const accordionButton = screen.getByRole('button');
+    const accordionButton = screen.getByRole('button', {
+      name: defaultAccessPackageProp.name,
+    });
     await user.click(accordionButton);
 
     expect(screen.getByAltText(resource.hasCompetentAuthority.name.nb)).toBeInTheDocument();

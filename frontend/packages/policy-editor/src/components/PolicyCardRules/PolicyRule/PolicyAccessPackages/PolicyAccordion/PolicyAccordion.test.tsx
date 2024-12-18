@@ -7,13 +7,14 @@ describe('PolicyAccordion', () => {
   it('should show children when expanded', async () => {
     const user = userEvent.setup();
     const childElementText = 'TEST CHILD ELEMENT';
+    const buttonText = 'Test';
     render(
-      <PolicyAccordion icon='TruckIcon' title='Test' subTitle='SubTest'>
+      <PolicyAccordion icon='TruckIcon' title={buttonText} subTitle=''>
         <div>{childElementText}</div>
       </PolicyAccordion>,
     );
 
-    const accordionButton = screen.getByRole('button');
+    const accordionButton = screen.getByRole('button', { name: buttonText });
     await user.click(accordionButton);
 
     expect(screen.getByText(childElementText)).toBeInTheDocument();
