@@ -50,7 +50,6 @@
 }
 
 .range::-moz-range-thumb {
-  appearance: none;
   visibility: hidden;
   width: var(--thumb-width);
 }
