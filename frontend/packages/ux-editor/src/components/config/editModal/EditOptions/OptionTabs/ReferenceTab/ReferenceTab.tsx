@@ -2,18 +2,15 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../../../componentConfig';
 import { useTranslation, Trans } from 'react-i18next';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
-import { StudioAlert, StudioParagraph, StudioSpinner, StudioTextfield } from '@studio/components';
+import { StudioParagraph, StudioTextfield } from '@studio/components';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
-import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
-import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import classes from './ReferenceTab.module.css';
 
 export function ReferenceTab({
   component,
   handleComponentChange,
 }: IGenericEditComponent<SelectionComponentType>) {
   const { t } = useTranslation();
-  const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, isPending } = useOptionListIdsQuery(org, app);
 
   const handleOptionsIdChange = (optionsId: string) => {
     if (component.options) {
@@ -25,21 +22,8 @@ export function ReferenceTab({
     });
   };
 
-  if (isPending) {
-    return (
-      <StudioSpinner
-        showSpinnerTitle={false}
-        spinnerTitle={t('ux_editor.modal_properties_loading')}
-      />
-    );
-  }
-
-  const isOptionsIdInLibrary = optionListIds?.some(
-    (optionId: string) => optionId == component.optionsId,
-  );
-
   return (
-    <>
+    <div className={classes.container}>
       <StudioParagraph spacing size='small'>
         {t('ux_editor.options.code_list_referenceId.description')}
       </StudioParagraph>
@@ -53,12 +37,7 @@ export function ReferenceTab({
         value={component.optionsId}
         size='small'
       />
-      {(isOptionsIdInLibrary || component.options) && (
-        <StudioAlert severity={'info'} size='sm'>
-          {t('ux_editor.options.tab_referenceid_alert_title')}
-        </StudioAlert>
-      )}
-      <p>
+      <p style={{ marginBottom: 0 }}>
         <Trans i18nKey={'ux_editor.modal_properties_code_list_read_more'}>
           <a
             href={altinnDocsUrl({ relativeUrl: 'altinn-studio/guides/options/dynamic-codelists/' })}
@@ -67,6 +46,6 @@ export function ReferenceTab({
           />
         </Trans>
       </p>
-    </>
+    </div>
   );
 }
