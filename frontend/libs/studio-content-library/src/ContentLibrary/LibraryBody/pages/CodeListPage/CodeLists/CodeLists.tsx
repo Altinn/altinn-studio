@@ -47,6 +47,7 @@ export const getCodeListSourcesById = (
     (codeListUsage) => codeListUsage.codeListId === codeListTitle,
   );
   return codeListUsages?.codeListIdSources ?? [];
+};
 
 type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> & {
   codeListData: CodeListData;
