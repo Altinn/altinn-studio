@@ -7,6 +7,8 @@ jobs:
     name: Publish PR packages
     runs-on: ubuntu-latest
     if: github.event.issue.pull_request && contains(github.event.comment.body, '/publish')
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
