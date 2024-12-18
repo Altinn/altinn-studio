@@ -24,7 +24,10 @@ export function CodeListsActionsBar({
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
 
   const onSubmit = (file: File) => {
-    const fileNameError = getFileNameError(file.name, codeListNames);
+    const fileNameError = FileNameUtils.findFileNameError(
+      FileNameUtils.removeExtension(file.name),
+      codeListNames,
+    );
     if (fileNameError) {
       return toast.error(getInvalidUploadFileNameErrorMessage(fileNameError));
     }
@@ -49,6 +52,3 @@ export function CodeListsActionsBar({
     </div>
   );
 }
-
-const getFileNameError = (fileName: string, invalidFileNames: string[]) =>
-  FileNameUtils.findFileNameError(FileNameUtils.removeExtension(fileName), invalidFileNames);
