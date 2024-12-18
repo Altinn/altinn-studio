@@ -45,9 +45,9 @@ export const codeListWithDuplicatedValues: CodeList = [
   },
 ];
 
-export const codeListWithStringifiedNumbers: CodeList = [
+export const codeListWithSingleNumber: CodeList = [
   {
-    value: '3.14',
+    value: 3.14,
     label: 'Pi',
   },
   {
@@ -75,9 +75,9 @@ export const codeListWithNumbers: CodeList = [
   },
 ];
 
-export const codeListWithStringifiedBooleans: CodeList = [
+export const codeListWithSingleBoolean: CodeList = [
   {
-    value: 'true',
+    value: true,
     label: 'Yes',
   },
   {
@@ -86,9 +86,9 @@ export const codeListWithStringifiedBooleans: CodeList = [
   },
 ];
 
-export const codeListWithStringifiedMixedCaseBooleans: CodeList = [
+export const codeListWithMixedCaseBooleanString: CodeList = [
   {
-    value: 'TRUE',
+    value: true,
     label: 'Yes',
   },
   {
@@ -119,28 +119,28 @@ export const codeListWithMixedValues: CodeList = [
   },
 ];
 
-export const codeListWithStringifiedMixedValues: CodeList = [
+export const CodeListWithNumbers1and0: CodeList = [
   {
-    value: 'true',
+    value: 1,
     label: 'Yes',
   },
   {
-    value: '0',
+    value: 0,
     label: 'No',
   },
 ];
 
-export const codeListWithEmptyStringValue: CodeList = [
+export const codeListWithNumbersAndEmptyStringValue: CodeList = [
   {
-    value: '42',
+    value: 3.14,
+    label: 'Pi',
+  },
+  {
+    value: 42,
     label: 'Forty two',
   },
   {
     value: '',
-    label: 'Pi',
-  },
-  {
-    value: '100',
-    label: 'One hundred',
+    label: '',
   },
 ];

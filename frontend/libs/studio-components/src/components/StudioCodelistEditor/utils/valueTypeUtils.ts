@@ -3,53 +3,36 @@ import type { CodeListValueType } from '../types/CodeListValueType';
 import type { CodeListItemValue } from '../types/CodeListItemValue';
 
 export function updateCodeListValueType(codeList: CodeList): void {
-  const updatedCodeListValueType = inferValueType(codeList);
+  const updatedCodeListValueType = getValueType(codeList);
   coerceValues(codeList, updatedCodeListValueType);
 }
 
-export function inferValueType(codeList: CodeList): CodeListValueType {
+export function getValueType(codeList: CodeList): CodeListValueType {
   switch (true) {
     case codeList.length === 0:
       return 'undefined';
-    case allValuesFitNumber(codeList):
+    case someValuesAreNumbers(codeList):
       return 'number';
-    case allValuesFitBoolean(codeList):
+    case someValuesAreBooleans(codeList):
       return 'boolean';
     default:
       return 'string';
   }
 }
 
-function allValuesFitNumber(codeList: CodeList): boolean {
-  return codeList.every((codeListItem) => valueFitsNumber(codeListItem.value));
+function someValuesAreNumbers(codeList: CodeList): boolean {
+  return codeList.some((codeListItem) => typeof codeListItem.value === 'number');
 }
 
-function allValuesFitBoolean(codeList: CodeList): boolean {
-  return codeList.every((codeListItem) => valueFitsBoolean(codeListItem.value));
-}
-
-function valueFitsNumber(value: CodeListItemValue): boolean {
-  return !valueIsNaN(value) && !valueIsEmptyString(value) && !valueFitsBoolean(value);
-}
-
-function valueIsNaN(value: CodeListItemValue): boolean {
-  return isNaN(Number(value));
-}
-
-function valueIsEmptyString(value: CodeListItemValue): boolean {
-  return value === '';
-}
-
-function valueFitsBoolean(value: CodeListItemValue): boolean {
-  const lowerCaseValue = String(value).toLowerCase();
-  return lowerCaseValue === 'true' || lowerCaseValue === 'false';
+function someValuesAreBooleans(codeList: CodeList): boolean {
+  return codeList.some((codeListItem) => typeof codeListItem.value === 'boolean');
 }
 
 function coerceValues(codeList: CodeList, type: CodeListValueType): void {
   codeList.forEach((codeListItem) => {
     switch (type) {
       case 'number':
-        codeListItem.value = Number(codeListItem.value);
+        codeListItem.value = tryCoerceNumber(codeListItem.value);
         break;
       case 'boolean':
         codeListItem.value = coerceBoolean(codeListItem.value);
@@ -60,6 +43,11 @@ function coerceValues(codeList: CodeList, type: CodeListValueType): void {
         codeListItem.value = String(codeListItem.value);
     }
   });
+}
+
+function tryCoerceNumber(value: CodeListItemValue): string | number {
+  if (value === '') return value; // Avoids prefilling the value field in new options with "0"
+  return Number(value);
 }
 
 function coerceBoolean(value: CodeListItemValue): boolean {

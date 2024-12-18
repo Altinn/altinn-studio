@@ -1,16 +1,16 @@
 import type { CodeList } from '../types/CodeList';
-import { inferValueType, updateCodeListValueType } from './valueTypeUtils';
+import { getValueType, updateCodeListValueType } from './valueTypeUtils';
 import {
   codeListWithMixedValues,
-  codeListWithStringifiedMixedValues,
   codeListWithBooleans,
-  codeListWithEmptyStringValue,
+  codeListWithNumbersAndEmptyStringValue,
   codeListWithNumbers,
-  codeListWithStringifiedBooleans,
-  codeListWithStringifiedMixedCaseBooleans,
-  codeListWithStringifiedNumbers,
+  codeListWithSingleBoolean,
+  codeListWithMixedCaseBooleanString,
+  codeListWithSingleNumber,
   codeListWithStrings,
   emptyCodeList,
+  CodeListWithNumbers1and0,
 } from '../testData';
 
 describe('updateCodeListValueType', () => {
@@ -20,63 +20,55 @@ describe('updateCodeListValueType', () => {
     expect(codeList).toEqual(codeListWithStrings);
   });
 
-  it('should infer and coerce values to numbers if all fit number type', () => {
-    const codeList: CodeList = [...codeListWithStringifiedNumbers];
+  it('should coerce all values to numbers, if at least one value has number type', () => {
+    const codeList: CodeList = [...codeListWithSingleNumber];
     updateCodeListValueType(codeList);
     expect(codeList).toEqual(codeListWithNumbers);
   });
 
-  it('should infer and coerce values to booleans if all fit boolean type', () => {
-    const codeList: CodeList = [...codeListWithStringifiedBooleans];
+  it('should coerce all values to booleans, if at least one value has boolean type', () => {
+    const codeList: CodeList = [...codeListWithSingleBoolean];
     updateCodeListValueType(codeList);
     expect(codeList).toEqual(codeListWithBooleans);
   });
 
-  it('should infer and coerce values as strings, when values are not all numbers or all booleans', () => {
+  it('should handle mixed case strings when coercing to boolean', () => {
+    const codeList: CodeList = [...codeListWithMixedCaseBooleanString];
+    updateCodeListValueType(codeList);
+    expect(codeList).toEqual(codeListWithBooleans);
+  });
+
+  it('should coerce all values to numbers, if code list has both numbers and booleans', () => {
     const codeList: CodeList = [...codeListWithMixedValues];
     updateCodeListValueType(codeList);
-    expect(codeList).toEqual(codeListWithStringifiedMixedValues);
+    expect(codeList).toEqual(CodeListWithNumbers1and0);
   });
 
-  it('should handle mixed case booleans when inferring boolean type', () => {
-    const codeList: CodeList = [...codeListWithStringifiedMixedCaseBooleans];
+  it('should not convert empty strings to number type', () => {
+    const codeList = [...codeListWithNumbersAndEmptyStringValue];
     updateCodeListValueType(codeList);
-    expect(codeList).toEqual(codeListWithBooleans);
-  });
-
-  it('should infer empty values to string', () => {
-    const codeList = [...codeListWithEmptyStringValue];
-    updateCodeListValueType(codeList);
-    expect(codeList).toEqual(codeListWithEmptyStringValue);
+    expect(codeList).toEqual(codeListWithNumbersAndEmptyStringValue);
   });
 });
 
-describe('inferValueType', () => {
+describe('getValueType', () => {
   it('should return "undefined" for an empty code list', () => {
-    expect(inferValueType(emptyCodeList)).toBe('undefined');
+    expect(getValueType(emptyCodeList)).toBe('undefined');
   });
 
-  it('should return "string" when some values cannot be inferred as number or boolean', () => {
-    expect(inferValueType(codeListWithStrings)).toBe('string');
+  it('should return "string" when no values can be inferred as number or boolean', () => {
+    expect(getValueType(codeListWithStrings)).toBe('string');
   });
 
-  it('should return "number" when all values are numeric strings', () => {
-    expect(inferValueType(codeListWithStringifiedNumbers)).toBe('number');
+  it('should return "number" when at least one value is a number', () => {
+    expect(getValueType(codeListWithSingleNumber)).toBe('number');
   });
 
-  it('should return "boolean" when all values are lower case boolean strings', () => {
-    expect(inferValueType(codeListWithStringifiedBooleans)).toBe('boolean');
+  it('should return "boolean" when at least one value is a boolean', () => {
+    expect(getValueType(codeListWithSingleBoolean)).toBe('boolean');
   });
 
-  it('should return "boolean" when values are booleans in mixed case strings', () => {
-    expect(inferValueType(codeListWithStringifiedMixedCaseBooleans)).toBe('boolean');
-  });
-
-  it('should return "string" if code list contains both numeric and boolean strings', () => {
-    expect(inferValueType(codeListWithStringifiedMixedValues)).toBe('string');
-  });
-
-  it('should return "string" if code list contains an empty string value', () => {
-    expect(inferValueType(codeListWithEmptyStringValue)).toBe('string');
+  it('should return "number" if code list contains both numbers and booleans', () => {
+    expect(getValueType(codeListWithMixedValues)).toBe('number');
   });
 });
