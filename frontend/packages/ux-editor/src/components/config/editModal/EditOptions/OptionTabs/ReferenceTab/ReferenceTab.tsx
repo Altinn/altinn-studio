@@ -6,6 +6,7 @@ import { StudioAlert, StudioParagraph, StudioSpinner, StudioTextfield } from '@s
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import classes from './ReferenceTab.module.css';
 
 export function ReferenceTab({
   component,
@@ -39,7 +40,7 @@ export function ReferenceTab({
   );
 
   return (
-    <>
+    <div className={classes.container}>
       <StudioParagraph spacing size='small'>
         {t('ux_editor.options.code_list_referenceId.description')}
       </StudioParagraph>
@@ -67,6 +68,6 @@ export function ReferenceTab({
           />
         </Trans>
       </p>
-    </>
+    </div>
   );
 }
