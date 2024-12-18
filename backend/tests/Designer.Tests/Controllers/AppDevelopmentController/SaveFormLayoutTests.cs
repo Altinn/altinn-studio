@@ -105,7 +105,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             string layout = TestDataHelper.GetFileFromRepo(org, app, developer, $"App/ui/{layoutSetName}/layouts/{layoutName}.json");
             JsonNode layoutWithDeletedComponent = JsonNode.Parse(layout);
             JsonArray layoutArray = layoutWithDeletedComponent["data"]["layout"] as JsonArray;
-            layoutArray.RemoveAt(0);
+            layoutArray?.RemoveAt(0);
 
             string url = $"{VersionPrefix(org, app)}/form-layout/{layoutName}?layoutSetName={layoutSetName}";
             var payload = new JsonObject

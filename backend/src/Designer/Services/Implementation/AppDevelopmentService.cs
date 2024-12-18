@@ -611,7 +611,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var deletedLayouts = referencesToDelete.Where(item => item.Type == "page").ToList();
             var deletedComponents = referencesToDelete.Where(item => item.Type == "component").ToList();
 
-            foreach (LayoutSetConfig layoutSet in layoutSets.Sets)
+            foreach (LayoutSetConfig layoutSet in layoutSets.Sets ?? [new() { Id = null }])
             {
                 bool isLayoutSetDeleted = deletedLayoutsSetIds.Contains(layoutSet.Id);
 
@@ -622,8 +622,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 {
                     bool isLayoutDeleted = deletedLayoutIds.Contains(formLayout.Key);
                     bool hasLayoutChanges = false;
-
-                    var filteredLayouts = formLayouts.Where(item => !deletedLayoutIds.Contains(item.Key)).ToList();
 
                     if (formLayout.Value["data"] is not JsonObject data || data["layout"] is not JsonArray layoutArray)
                     {
