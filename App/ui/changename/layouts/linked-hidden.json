@@ -1,0 +1,216 @@
+{
+  "$schema": "https://altinncdn.no/toolkits/altinn-app-frontend/4/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "hidden": [
+      "not",
+      ["commaContains", ["dataModel", "ChooseExtraPages"], "linked-hidden"]
+    ],
+    "layout": [
+      {
+        "id": "LinkedHiddenNavBar",
+        "type": "NavigationBar"
+      },
+      {
+        "id": "LinkedHidden1",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Vil du se tekstfeltet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value1"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja" },
+          { "value": "Nei", "label": "Nei" }
+        ]
+      },
+      {
+        "id": "LinkedHidden2",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Er du sikker?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value2"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja" },
+          { "value": "Nei", "label": "Nei" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden1"], "Ja"]
+      },
+      {
+        "id": "LinkedHidden3",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Er du helt sikker?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value3"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja" },
+          { "value": "Nei", "label": "Nei" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden2"], "Ja"]
+      },
+      {
+        "id": "LinkedHidden4",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Er du helt, **helt** sikker?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value4"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja" },
+          { "value": "Nei", "label": "Nei" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden3"], "Ja"]
+      },
+      {
+        "id": "GroupForLinkedHidden5AndUp",
+        "type": "Group",
+        "hidden": ["notEquals", ["component", "LinkedHidden4"], "Ja"],
+        "children": [
+          "LinkedHidden5",
+          "LinkedHidden6",
+          "LinkedHidden7",
+          "LinkedHidden8",
+          "LinkedHidden9",
+          "TheTextField"
+        ]
+      },
+      {
+        "id": "LinkedHidden5",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Du har fortsatt lyst?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value5"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja" },
+          { "value": "Nei", "label": "Nei" }
+        ]
+      },
+      {
+        "id": "LinkedHidden6",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Angrer du på alt du har svart til nå?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value6"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja" },
+          { "value": "Nei", "label": "Nei" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden5"], "Ja"]
+      },
+      {
+        "id": "TrapAlert",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Ha!",
+          "body": "Du har falt i fella! Du skulle ikke svare ja på alt!"
+        },
+        "severity": "warning",
+        "hidden": ["notEquals", ["component", "LinkedHidden6"], "Ja"]
+      },
+      {
+        "id": "LinkedHidden7",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Haha, du gikk ikke på den nei?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value7"
+        },
+        "options": [
+          { "value": "Fortsett", "label": "Neida, jeg gikk ikke på den, jeg lover" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden6"], "Nei"]
+      },
+      {
+        "id": "LinkedHidden8",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Nåvel, hva var det jeg spurte om... Vil du se tekstfeltet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value8"
+        },
+        "options": [
+          { "value": "Ja", "label": "Ja!" },
+          { "value": "Nei", "label": "Nei" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden7"], "Fortsett"]
+      },
+      {
+        "id": "LinkedHidden9",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Okeida, hvis du lover å være snill med det?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value9"
+        },
+        "options": [
+          { "value": "Ja", "label": "Jeg lover" },
+          { "value": "Nei", "label": "Nei, nå er jeg sur" }
+        ],
+        "hidden": ["notEquals", ["component", "LinkedHidden8"], "Ja"]
+      },
+      {
+        "id": "TheTextField",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Okeida, fornøyd nå?",
+          "description": "Her er det berømte tekstfeltet du har ventet på. Skriv noe fint!",
+          "help": "Det var egentlig ikke verdt alt arbeidet, var det vel?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "LinkedHidden.Value10"
+        },
+        "hidden": ["notEquals", ["component", "LinkedHidden9"], "Ja"]
+      },
+      {
+        "id": "NoShowAlert",
+        "type": "Alert",
+        "textResourceBindings": {
+          "title": "Din søknad er ferdigbehandlet",
+          "body": "Vi har besluttet at du ikke får se tekstfeltet. Det var egentlig også det vi håpte på. Ha en fin dag!"
+        },
+        "severity": "success",
+        "hidden": ["not", ["or",
+          ["equals", ["component", "LinkedHidden1"], "Nei"],
+          ["equals", ["component", "LinkedHidden2"], "Nei"],
+          ["equals", ["component", "LinkedHidden3"], "Nei"],
+          ["equals", ["component", "LinkedHidden4"], "Nei"],
+          ["equals", ["component", "LinkedHidden5"], "Nei"],
+          ["equals", ["component", "LinkedHidden6"], "Ja"],
+          ["equals", ["component", "LinkedHidden8"], "Nei"],
+          ["equals", ["component", "LinkedHidden9"], "Nei"]
+        ]]
+      },
+      {
+        "id": "LinkedHiddenNavigate",
+        "type": "NavigationButtons",
+        "textResourceBindings": {
+          "back": "Tilbake",
+          "next": "Neste"
+        },
+        "validateOnNext": {
+          "page": "current",
+          "show": ["All"]
+        },
+        "showBackButton": true
+      }
+    ]
+  }
+}
+

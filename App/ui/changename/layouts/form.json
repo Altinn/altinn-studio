@@ -807,6 +807,10 @@
           {
             "label": "Filtered options",
             "value": "filtered-options"
+          },
+          {
+            "label": "Linked hidden",
+            "value": "linked-hidden"
           }
         ]
       },

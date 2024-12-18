@@ -146,6 +146,11 @@ namespace Altinn.App.Models
         [JsonProperty("FilteredOptions")]
         [JsonPropertyName("FilteredOptions")]
         public FilteredOptions? FilteredOptions { get; set; }
+
+        [XmlElement("LinkedHidden")]
+        [JsonProperty("LinkedHidden")]
+        [JsonPropertyName("LinkedHidden")]
+        public LinkedHidden? LinkedHidden { get; set; }
     }
 
     public class Numeric
@@ -2480,5 +2485,58 @@ namespace Altinn.App.Models
         [JsonPropertyName("Amount")]
         [Required]
         public decimal? Amount { get; set; }
+    }
+
+    public class LinkedHidden
+    {
+        [XmlElement("Value1")]
+        [JsonProperty("Value1")]
+        [JsonPropertyName("Value1")]
+        public string? Value1 { get; set; }
+
+        [XmlElement("Value2")]
+        [JsonProperty("Value2")]
+        [JsonPropertyName("Value2")]
+        public string? Value2 { get; set; }
+
+        [XmlElement("Value3")]
+        [JsonProperty("Value3")]
+        [JsonPropertyName("Value3")]
+        public string? Value3 { get; set; }
+
+        [XmlElement("Value4")]
+        [JsonProperty("Value4")]
+        [JsonPropertyName("Value4")]
+        public string? Value4 { get; set; }
+
+        [XmlElement("Value5")]
+        [JsonProperty("Value5")]
+        [JsonPropertyName("Value5")]
+        public string? Value5 { get; set; }
+
+        [XmlElement("Value6")]
+        [JsonProperty("Value6")]
+        [JsonPropertyName("Value6")]
+        public string? Value6 { get; set; }
+
+        [XmlElement("Value7")]
+        [JsonProperty("Value7")]
+        [JsonPropertyName("Value7")]
+        public string? Value7 { get; set; }
+
+        [XmlElement("Value8")]
+        [JsonProperty("Value8")]
+        [JsonPropertyName("Value8")]
+        public string? Value8 { get; set; }
+
+        [XmlElement("Value9")]
+        [JsonProperty("Value9")]
+        [JsonPropertyName("Value9")]
+        public string? Value9 { get; set; }
+
+        [XmlElement("Value10")]
+        [JsonProperty("Value10")]
+        [JsonPropertyName("Value10")]
+        public string? Value10 { get; set; }
     }
 }

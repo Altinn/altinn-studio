@@ -542,7 +542,8 @@
         },
         "ConflictingOptions": { "$ref": "#/definitions/ConflictingOptions" },
         "ShiftingOptions": { "$ref": "#/definitions/ShiftingOptions" },
-        "FilteredOptions": { "$ref": "#/definitions/FilteredOptions" }
+        "FilteredOptions": { "$ref": "#/definitions/FilteredOptions" },
+        "LinkedHidden": { "$ref": "#/definitions/LinkedHidden" }
       },
       "required": ["skjemanummer", "spesifikasjonsnummer"],
       "@xsdAnyAttribute": true
@@ -2800,6 +2801,21 @@
           }
         }
       }
+    },
+    "LinkedHidden": {
+        "type": "object",
+        "properties": {
+          "Value1": { "type": "string" },
+          "Value2": { "type": "string" },
+          "Value3": { "type": "string" },
+          "Value4": { "type": "string" },
+          "Value5": { "type": "string" },
+          "Value6": { "type": "string" },
+          "Value7": { "type": "string" },
+          "Value8": { "type": "string" },
+          "Value9": { "type": "string" },
+          "Value10": { "type": "string" }
+        }
     }
   }
 }
