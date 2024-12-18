@@ -66,7 +66,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders a spinner when waiting for option lists', () => {
-    renderAppContentLibrary({ optionLists: {} });
+    renderAppContentLibrary({ shouldPutDataOnCache: false });
     const spinner = screen.getByText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
@@ -123,7 +123,7 @@ describe('AppContentLibrary', () => {
 
   it('calls onUpdateOptionListId when onUpdateCodeListId is triggered', async () => {
     const user = userEvent.setup();
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary();
     await goToLibraryPage(user, 'code_lists');
     const updateCodeListIdButton = screen.getByRole('button', {
       name: updateCodeListIdButtonTextMock,
@@ -149,16 +149,19 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
 
 type renderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
+  shouldPutDataOnCache?: boolean;
   optionLists?: OptionsLists;
 };
 
 const renderAppContentLibrary = ({
   queries = {},
+  shouldPutDataOnCache = true,
   optionLists = optionListsMock,
 }: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
-  if (Object.keys(optionLists).length) {
+  if (shouldPutDataOnCache) {
     queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionLists);
+    queryClientMock.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   }
   renderWithProviders(queries, queryClientMock)(<AppContentLibrary />);
 };
