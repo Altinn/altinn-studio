@@ -59,9 +59,7 @@ const AccordionContent = ({ accessPackageUrn }: AccordionContentProps): ReactEle
       )}
       {hasServices && <Services services={services} />}
       {serviceListIsEmpty && (
-        <StudioParagraph className={classes.noServicesText}>
-          {t('policy_editor.access_package_no_services')}
-        </StudioParagraph>
+        <StudioParagraph size='xs'>{t('policy_editor.access_package_no_services')}</StudioParagraph>
       )}
     </>
   );

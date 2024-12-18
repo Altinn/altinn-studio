@@ -40,10 +40,6 @@
   border-top: 1px solid var(--fds-semantic-border-neutral-subtle);
 }
 
-.noServicesText {
-  font-size: var(--fds-sizing-4);
-}
-
 .accordionCheckbox {
   display: block;
   padding: 0 var(--fds-spacing-4);
