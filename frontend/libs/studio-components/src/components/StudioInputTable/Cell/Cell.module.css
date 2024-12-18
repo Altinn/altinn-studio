@@ -1,7 +1,9 @@
 .textfieldCell,
 .textareaCell,
 .textResourceCell {
-  padding: var(--fds-spacing-1) 0;
+  padding-block: var(--fds-spacing-1);
+  padding-inline-end: var(--fds-spacing-2);
+  padding-inline-start: 0;
   font-size: var(--studio-input-table-font-size);
 }
 
