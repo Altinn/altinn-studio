@@ -1,13 +1,13 @@
 import type { PolicyAccessPackageArea, PolicyAccessPackageAreaGroup } from '@altinn/policy-editor';
 
-const isStringMatch = (matchString: string, searchString: string) => {
+const isStringMatch = (matchString: string, searchString: string): boolean => {
   return matchString.toLowerCase().includes(searchString.toLowerCase());
 };
 
 export const filterAccessPackagesBySearchString = (
   accessPackageAreas: PolicyAccessPackageArea[],
   searchString: string,
-) => {
+): PolicyAccessPackageArea[] => {
   return accessPackageAreas.reduce(
     (areas: PolicyAccessPackageArea[], area): PolicyAccessPackageArea[] => {
       const matchingPackages = area.packages.filter(
@@ -28,6 +28,6 @@ export const filterAccessPackagesBySearchString = (
 
 export const groupAccessPackagesByArea = (
   accessPackageAreaGroups: PolicyAccessPackageAreaGroup[],
-) => {
+): PolicyAccessPackageArea[] => {
   return accessPackageAreaGroups.flatMap((group) => group.areas);
 };

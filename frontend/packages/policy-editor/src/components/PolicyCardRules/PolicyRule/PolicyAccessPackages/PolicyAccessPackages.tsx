@@ -58,7 +58,7 @@ export const PolicyAccessPackages = (): ReactElement => {
     savePolicy(updatedRules);
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchValue(event.target.value);
   };
 
@@ -121,8 +121,9 @@ const ChosenAccessPackages = ({
   handleSelectAccessPackage,
 }: ChosenAccessPackagesProps): ReactElement => {
   const { t } = useTranslation();
-  return (
-    chosenAccessPackages.length > 0 && (
+
+  if (chosenAccessPackages.length > 0) {
+    return (
       <>
         <StudioLabelAsParagraph size='xs' spacing>
           {t('policy_editor.access_package_chosen_packages')}
@@ -141,8 +142,9 @@ const ChosenAccessPackages = ({
             );
           })}
       </>
-    )
-  );
+    );
+  }
+  return null;
 };
 
 interface AllAccessPackagesProps {

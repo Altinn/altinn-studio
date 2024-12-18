@@ -26,6 +26,10 @@ export const PolicyAccordion = ({
   const [isExpanded, setIsExpanded] = useState<boolean>(initialExpandedState);
   const IconComponent = StudioIcons[icon];
 
+  const handleToggleExpanded = (): void => {
+    setIsExpanded((oldIsExpanded) => !oldIsExpanded);
+  };
+
   return (
     <div className={classes.accordion}>
       <div className={classes.accordionHeader}>
@@ -34,7 +38,7 @@ export const PolicyAccordion = ({
           variant='tertiary'
           aria-expanded={isExpanded ? 'true' : 'false'}
           aria-controls={contentId}
-          onClick={() => setIsExpanded((oldIsExpanded) => !oldIsExpanded)}
+          onClick={handleToggleExpanded}
         >
           <div className={classes.accordionButton}>
             {icon && Object.keys(StudioIcons).includes(icon) && (
