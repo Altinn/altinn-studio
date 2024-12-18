@@ -26,4 +26,15 @@ public class GetTests : DesignerEndpointsTestsBase<GetTests>, IClassFixture<WebA
         using var response = await HttpClient.SendAsync(httpRequestMessage);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
+
+    [Theory]
+    [InlineData("test", "ttd", "hvem-er-hvem")]
+    public async Task GetDatamodelDataType_ShouldReturnContent(string modelName, string org, string repo)
+    {
+        string url = $"{VersionPrefix(org, repo)}/datamodel/{modelName}/dataType";
+        using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 }
