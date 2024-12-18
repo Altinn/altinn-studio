@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { StudioLabelAsParagraph } from '../StudioLabelAsParagraph';
 import { StudioParagraph } from '../StudioParagraph';
 
-type StudioStatusRadioButtonColor = 'success' | 'info' | 'warning';
+type StudioStatusRadioButtonColor = 'success' | 'info';
 
 export type StudioStatusRadioButtonItem = {
   title: string;
@@ -45,7 +45,7 @@ export const StudioStatusRadioGroup = ({
               <input
                 type='radio'
                 id={inputId}
-                name={title}
+                name={name}
                 value={value}
                 defaultChecked={defaultValue === value}
                 onChange={handleChange}

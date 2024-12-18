@@ -31,10 +31,6 @@
   pointer-events: none;
 }
 
-.radioButton:has(input:checked) {
-  border-color: var(--fds-semantic-border-action-default);
-}
-
 .textContent {
   display: flex;
   flex-direction: column;
@@ -60,6 +56,10 @@
   background-color: var(--fds-semantic-surface-success-subtle-hover);
 }
 
+.success:has(input:checked) {
+  border-color: var(--fds-semantic-border-success-active);
+}
+
 .info {
   background-color: var(--fds-semantic-surface-action-first-subtle);
 }
@@ -68,10 +68,6 @@
   background-color: var(--fds-semantic-surface-action-first-subtle-hover);
 }
 
-.warning {
-  background-color: var(--fds-semantic-surface-warning-subtle);
-}
-
-.warning:hover {
-  background-color: var(--fds-semantic-surface-warning-subtle-hover);
+.info:has(input:checked) {
+  border-color: var(--fds-semantic-border-info-default);
 }

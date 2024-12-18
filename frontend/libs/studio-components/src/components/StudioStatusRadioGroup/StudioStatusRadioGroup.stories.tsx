@@ -20,7 +20,7 @@ const options: StudioStatusRadioGroupProps['options'] = [
     value: 'value4',
     title: 'Miljø 4',
     text: 'Applikasjonen er utilgjengelig i miljø',
-    color: 'warning',
+    color: 'info',
   },
 ];
 

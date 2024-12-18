@@ -5,15 +5,12 @@ import { StudioStatusRadioGroup, type StudioStatusRadioGroupProps } from './Stud
 
 const mockTitle1: string = 'Success';
 const mockTitle2: string = 'Info';
-const mockTitle3: string = 'Warning';
 
 const mockText1: string = 'Success text';
 const mockText2: string = 'Info text';
-const mockText3: string = 'Warning text';
 
 const mockValue1: string = 'success';
 const mockValue2: string = 'info';
-const mockValue3: string = 'warning';
 
 const mockOption1: StudioStatusRadioGroupProps['options'][number] = {
   title: mockTitle1,
@@ -27,14 +24,8 @@ const mockOption2: StudioStatusRadioGroupProps['options'][number] = {
   color: 'info',
   value: mockValue2,
 };
-const mockOption3: StudioStatusRadioGroupProps['options'][number] = {
-  title: mockTitle3,
-  text: mockText3,
-  color: 'warning',
-  value: mockValue3,
-};
 
-const mockOptions: StudioStatusRadioGroupProps['options'] = [mockOption1, mockOption2, mockOption3];
+const mockOptions: StudioStatusRadioGroupProps['options'] = [mockOption1, mockOption2];
 const mockGroupTitle: string = 'Status group';
 const mockOnChange = jest.fn();
 
@@ -53,8 +44,6 @@ describe('StudioStatusRadioGroup', () => {
     expect(screen.getByText(mockText1)).toBeInTheDocument();
     expect(screen.getByText(mockTitle2)).toBeInTheDocument();
     expect(screen.getByText(mockText2)).toBeInTheDocument();
-    expect(screen.getByText(mockTitle3)).toBeInTheDocument();
-    expect(screen.getByText(mockText3)).toBeInTheDocument();
   });
 
   it('allows selecting a radio button', async () => {
@@ -63,18 +52,14 @@ describe('StudioStatusRadioGroup', () => {
 
     const successRadioButton = screen.getByRole('radio', { name: `${mockTitle1} ${mockText1}` }); // Any way to do it without having both title and text?
     const infoRadioButton = screen.getByRole('radio', { name: `${mockTitle2} ${mockText2}` });
-    const warningRadioButton = screen.getByRole('radio', { name: `${mockTitle3} ${mockText3}` });
 
-    // Initially, no button should be selected
     expect(successRadioButton).not.toBeChecked();
     expect(infoRadioButton).not.toBeChecked();
-    expect(warningRadioButton).not.toBeChecked();
 
     await user.click(infoRadioButton);
 
     expect(infoRadioButton).toBeChecked();
     expect(successRadioButton).not.toBeChecked();
-    expect(warningRadioButton).not.toBeChecked();
   });
 
   it('calls onChange with correct value when a radio button is selected', async () => {
