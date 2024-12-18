@@ -11,19 +11,8 @@ export const StudioActionCloseButton: OverridableComponent<
   StudioActionCloseButtonProps,
   HTMLButtonElement
 > = forwardRef<HTMLButtonElement, StudioActionCloseButtonProps>(
-  (
-    {
-      onClick = () => {},
-      type = 'button',
-      variant = 'secondary',
-      ...rest
-    }: StudioActionCloseButtonProps,
-    ref,
-  ) => {
+  ({ onClick, variant = 'secondary', ...rest }: StudioActionCloseButtonProps, ref) => {
     const handleOnClick = (event: MouseEvent<HTMLButtonElement>): void => {
-      if (type === 'submit') {
-        event.preventDefault();
-      }
       onClick(event);
     };
 
