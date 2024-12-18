@@ -443,7 +443,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return dataType;
         }
 
-        public async Task SetModelDataType(string org, string app, string modelId, DataType dataType)
+        public async Task SetModelDataType(string org, string app, DataType dataType)
         {
             if (dataType.Id != modelId)
             {
