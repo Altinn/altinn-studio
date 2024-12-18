@@ -14,20 +14,3 @@
   display: flex;
   flex-direction: column;
 }
-
-.label {
-  font-weight: 500;
-}
-
-.codeListLabels {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: var(--fds-spacing-2);
-}
-
-.buttonContainer {
-  display: flex;
-  gap: var(--fds-spacing-2);
-  margin-bottom: var(--fds-spacing-2);
-}

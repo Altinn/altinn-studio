@@ -7,7 +7,7 @@ import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
-import { handleOptionsIdChange } from '../utils/utils';
+import { handleOptionsChange, resetComponentOptions } from '../utils/utils';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -20,8 +20,14 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
     const { org, app } = useStudioEnvironmentParams();
     const { data: optionsLists, status } = useOptionListsQuery(org, app);
 
-    const handleDelete = () => {
-      handleOptionsIdChange({ component, handleComponentChange, optionsId: undefined });
+    const handleManualDelete = () => {
+      const updatedComponent = resetComponentOptions(component);
+      handleOptionsChange(updatedComponent, handleComponentChange);
+    };
+
+    const handleLibraryDelete = () => {
+      const updatedComponent = resetComponentOptions(component);
+      handleOptionsChange(updatedComponent, handleComponentChange);
     };
 
     if (component.options !== undefined) {
@@ -30,7 +36,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
           ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
-          handleDelete={handleDelete}
+          handleDelete={handleManualDelete}
         />
       );
     }
@@ -52,7 +58,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
             <LibraryOptionsEditor
               component={component}
               optionsList={optionsLists[component.optionsId]}
-              handleDelete={handleDelete}
+              handleDelete={handleLibraryDelete}
             />
           );
         }

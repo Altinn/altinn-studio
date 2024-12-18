@@ -7,8 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioDropdownMenu, StudioSpinner } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { handleOptionsIdChange } from '../utils/utils';
-import classes from './OptionListSelector.module.css';
+import { handleOptionsChange, updateComponentOptionsId } from '../utils/utils';
 
 type OptionListSelectorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -21,7 +20,7 @@ export function OptionListSelector({
 }: OptionListSelectorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
+  const { data: optionListIds, status, error } = useOptionListIdsQuery(org, app);
 
   switch (status) {
     case 'pending':
@@ -32,7 +31,13 @@ export function OptionListSelector({
         />
       );
     case 'error':
-      return <ErrorMessage>{t('ux_editor.modal_properties_error_message')}</ErrorMessage>;
+      return (
+        <ErrorMessage>
+          {error instanceof Error
+            ? error.message
+            : t('ux_editor.modal_properties_fetch_option_list_ids_error_message')}
+        </ErrorMessage>
+      );
     case 'success':
       return (
         <OptionListSelectorWithData
@@ -56,7 +61,8 @@ function OptionListSelectorWithData({
   const { t } = useTranslation();
 
   const handleClick = (optionsId: string) => {
-    handleOptionsIdChange({ component, handleComponentChange, optionsId });
+    const updatedComponent = updateComponentOptionsId(component, optionsId);
+    handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
   if (!optionListIds.length) return null;
@@ -64,8 +70,6 @@ function OptionListSelectorWithData({
     <StudioDropdownMenu
       size='small'
       anchorButtonProps={{
-        className: classes.modalTrigger,
-
         variant: 'secondary',
         children: t('ux_editor.modal_properties_code_list'),
       }}

@@ -12,7 +12,7 @@ import type { FileNameError } from './utils/findFileNameError';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
-import { handleOptionsIdChange } from '../utils/utils';
+import { handleOptionsChange, updateComponentOptionsId } from '../utils/utils';
 
 type EditOptionListProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -39,11 +39,9 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
   const handleUpload = (file: File) => {
     uploadOptionList(file, {
       onSuccess: () => {
-        handleOptionsIdChange({
-          component,
-          handleComponentChange,
-          optionsId: FileNameUtils.removeExtension(file.name),
-        });
+        const optionsId = FileNameUtils.removeExtension(file.name);
+        const updatedComponent = updateComponentOptionsId(component, optionsId);
+        handleOptionsChange(updatedComponent, handleComponentChange);
         toast.success(t('ux_editor.modal_properties_code_list_upload_success'));
       },
 

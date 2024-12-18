@@ -8,7 +8,7 @@ import type { IGenericEditComponent } from '../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
 import { useTranslation } from 'react-i18next';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
-import { handleOptionsChange } from './utils/utils';
+import { handleOptionsChange, updateComponentOptions } from './utils/utils';
 import classes from './EditTab.module.css';
 
 type EditTabProps = Pick<
@@ -35,9 +35,7 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
           handleComponentChange={handleComponentChange}
         />
       ) : (
-        <div className={classes.container}>
-          <AddOptionList component={component} handleComponentChange={handleComponentChange} />
-        </div>
+        <AddOptionList component={component} handleComponentChange={handleComponentChange} />
       )}
       {errorMessage && <StudioErrorMessage size='small'>{errorMessage}</StudioErrorMessage>}
     </>
@@ -50,16 +48,13 @@ function AddOptionList({ component, handleComponentChange }: AddOptionListProps)
   const { t } = useTranslation();
 
   const handleInitialManualOptionsChange = () => {
-    handleOptionsChange({ component, handleComponentChange, options: [] });
+    const updatedComponent = updateComponentOptions(component, []);
+    handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
   return (
     <div className={classes.container}>
-      <StudioButton
-        className={classes.createNewButton}
-        variant='secondary'
-        onClick={handleInitialManualOptionsChange}
-      >
+      <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
         {t('general.create_new')}
       </StudioButton>
       <OptionListSelector component={component} handleComponentChange={handleComponentChange} />

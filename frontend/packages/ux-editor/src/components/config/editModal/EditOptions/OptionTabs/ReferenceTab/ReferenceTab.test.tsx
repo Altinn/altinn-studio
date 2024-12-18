@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { ReferenceTab } from './ReferenceTab';
 import { renderWithProviders } from '../../../../../../testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
@@ -17,9 +17,6 @@ const mockOptionListIds = jest
 describe('ReferenceTab', () => {
   it('should render', async () => {
     renderReferenceTab();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
-    );
 
     expect(
       screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),

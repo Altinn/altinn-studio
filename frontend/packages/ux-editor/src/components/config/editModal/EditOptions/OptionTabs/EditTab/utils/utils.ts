@@ -1,43 +1,61 @@
-import type { IGenericEditComponent } from '../../../../../componentConfig';
-import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
+import type {
+  FormComponent,
+  SelectionComponentType,
+} from '../../../../../../../types/FormComponent';
+import type { FormItem } from '../../../../../../../types/FormItem';
+import type { FormContainer } from '../../../../../../../types/FormContainer';
 import type { Option } from 'app-shared/types/Option';
 
-type handleOptionsChangeProps = { options: Option[] } & Pick<
-  IGenericEditComponent<SelectionComponentType>,
-  'component' | 'handleComponentChange'
->;
-
-export function handleOptionsChange({
-  options,
-  component,
-  handleComponentChange,
-}: handleOptionsChangeProps) {
-  if (component.optionsId) {
-    delete component.optionsId;
-  }
-
-  handleComponentChange({
-    ...component,
-    options,
-  });
+export function handleOptionsChange(
+  component: FormItem<SelectionComponentType>,
+  handleComponentChange: (item: FormContainer | FormComponent) => void,
+): void {
+  handleComponentChange(component);
 }
 
-type handleOptionsIdChangeProps = { optionsId: string } & Pick<
-  IGenericEditComponent<SelectionComponentType>,
-  'component' | 'handleComponentChange'
->;
+export function resetComponentOptions(
+  component: FormItem<SelectionComponentType>,
+): FormItem<SelectionComponentType> {
+  const newComponent = { ...component };
 
-export function handleOptionsIdChange({
-  optionsId,
-  component,
-  handleComponentChange,
-}: handleOptionsIdChangeProps): void {
-  if (component.options) {
-    delete component.options;
+  newComponent.optionsId = undefined;
+  newComponent.options = undefined;
+
+  return newComponent;
+}
+
+export function updateComponentOptionsId(
+  component: FormItem<SelectionComponentType>,
+  optionsId: string,
+): FormItem<SelectionComponentType> {
+  const newComponent = { ...component };
+
+  clearOppositeOptionSetting(component, 'optionsId');
+  newComponent.optionsId = optionsId;
+
+  return newComponent;
+}
+
+export function updateComponentOptions(
+  component: FormItem<SelectionComponentType>,
+  options: Option[],
+): FormItem<SelectionComponentType> {
+  const newComponent = { ...component };
+
+  clearOppositeOptionSetting(component, 'options');
+  newComponent.options = options;
+
+  return newComponent;
+}
+
+function clearOppositeOptionSetting(
+  component: FormItem<SelectionComponentType>,
+  optionToKeep: 'options' | 'optionsId',
+) {
+  if (optionToKeep === 'options') {
+    if (component.options) delete component.options;
   }
-
-  handleComponentChange({
-    ...component,
-    optionsId,
-  });
+  if (optionToKeep === 'optionsId') {
+    if (component.optionsId) delete component.optionsId;
+  }
 }

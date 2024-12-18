@@ -2,16 +2,12 @@ import type { IGenericEditComponent } from '../../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../../types/FormComponent';
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  StudioCodeListEditor,
-  StudioModal,
-  StudioParagraph,
-  StudioButton,
-} from '@studio/components';
-import { PencilIcon, TrashIcon } from '@studio/icons';
+import { StudioCodeListEditor, StudioModal } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
-import { handleOptionsChange } from '../../utils/utils';
+import { handleOptionsChange, updateComponentOptions } from '../../utils/utils';
+import { OptionListLabels } from '../OptionListLabels';
+import { OptionListButtons } from '../OptionListButtons';
 import type { Option } from 'app-shared/types/Option';
 import classes from './ManualOptionsEditor.module.css';
 
@@ -26,38 +22,23 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     const editorTexts = useOptionListEditorTexts();
 
     const handleBlurAny = (options: Option[]) => {
-      handleOptionsChange({ options, component, handleComponentChange });
+      const updatedComponent = updateComponentOptions(component, options);
+      handleOptionsChange(updatedComponent, handleComponentChange);
     };
 
-    const codeListLabels: string = component.options
-      .map((option: Option) => `${option.label || t('general.empty_string')}`)
-      .join(' | ');
+    const handleClick = () => {
+      modalRef.current?.showModal();
+    };
 
     return (
       <div className={classes.container}>
-        <StudioParagraph className={classes.label}>
-          {t('ux_editor.modal_properties_code_list_custom_list')}
-        </StudioParagraph>
-        <StudioParagraph size='sm' className={classes.codeListLabels}>
-          {codeListLabels}
-        </StudioParagraph>
-        <div className={classes.buttonContainer}>
-          <StudioButton
-            icon={<PencilIcon />}
-            variant='secondary'
-            onClick={() => modalRef.current.showModal()}
-          >
-            {t('general.edit')}
-          </StudioButton>
-          <StudioButton
-            color='danger'
-            icon={<TrashIcon />}
-            variant='secondary'
-            onClick={handleDelete}
-          >
-            {t('general.delete')}
-          </StudioButton>
-        </div>
+        <OptionListLabels component={component} optionsList={component.options} />
+        <OptionListButtons
+          optionsList={component.options}
+          component={component}
+          handleDelete={handleDelete}
+          handleClick={handleClick}
+        />
         <StudioModal.Dialog
           ref={modalRef}
           className={classes.editOptionTabModal}
