@@ -29,7 +29,7 @@ export const EditColumnElementContent = ({
           value={title}
           autoFocus={true}
           onChange={(e) => setTitle(e.target.value)}
-          error={title.trim() === '' && errorMessage}
+          error={!title?.trim() && errorMessage}
         />
       ) : (
         <StudioProperty.Button

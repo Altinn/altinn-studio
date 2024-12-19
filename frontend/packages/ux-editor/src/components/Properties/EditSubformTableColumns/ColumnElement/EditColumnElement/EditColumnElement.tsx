@@ -75,7 +75,7 @@ export const EditColumnElement = ({
   };
 
   const availableComponents = getComponentsForSubformTable(formLayouts);
-  const isSaveButtonDisabled = !tableColumn.headerContent || !title.trim();
+  const isSaveButtonDisabled = !tableColumn.headerContent || !title?.trim();
 
   return (
     <StudioCard className={classes.wrapper}>
