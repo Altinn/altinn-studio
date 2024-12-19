@@ -15,8 +15,8 @@ import {
   groupAccessPackagesByArea,
   isAccessPackageSelected,
 } from './policyAccessPackageUtils';
-import { ChosenAccessPackages } from './ChosenAccessPackages';
-import { AllAccessPackages } from './AllAccessPackages';
+import { ChosenAccessPackages } from './ChosenAccessPackages/ChosenAccessPackages';
+import { AllAccessPackages } from './AllAccessPackages/AllAccessPackages';
 
 export const PolicyAccessPackages = (): ReactElement => {
   const { t } = useTranslation();

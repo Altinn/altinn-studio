@@ -27,14 +27,14 @@ export type PolicyAccessPackageAreaGroup = {
 type AccessPackageResourceLanguage = 'nb' | 'nn' | 'en';
 
 type CompetentAuthority = {
-  name: AccessPackageResourceLanguage;
+  name: Record<AccessPackageResourceLanguage, string>;
   organization: string;
   orgcode: string;
 };
 
 export type AccessPackageResource = {
   identifier: string;
-  title: AccessPackageResourceLanguage;
+  title: Record<AccessPackageResourceLanguage, string>;
   hasCompetentAuthority?: CompetentAuthority;
   logoUrl: string;
 };

@@ -9,7 +9,7 @@ describe('PolicyAccordion', () => {
     const childElementText = 'TEST CHILD ELEMENT';
     const buttonText = 'Test';
     render(
-      <PolicyAccordion icon='TruckIcon' title={buttonText} subTitle=''>
+      <PolicyAccordion title={buttonText} subTitle=''>
         <div>{childElementText}</div>
       </PolicyAccordion>,
     );

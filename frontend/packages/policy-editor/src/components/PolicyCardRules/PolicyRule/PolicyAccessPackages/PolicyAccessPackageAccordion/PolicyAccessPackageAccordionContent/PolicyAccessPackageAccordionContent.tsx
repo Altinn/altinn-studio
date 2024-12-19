@@ -2,9 +2,10 @@ import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useResourceAccessPackageServicesQuery } from 'app-shared/hooks/queries/useResourceAccessPackageServicesQuery';
 import { StudioParagraph, StudioSpinner } from '@studio/components';
-import { PolicyAccessPackageServices } from './PolicyAccessPackageServices';
+import { PolicyAccessPackageServices } from '../PolicyAccessPackageServices';
 
 type PolicyAccessPackageAccordionContentProps = { accessPackageUrn: string };
+
 export const PolicyAccessPackageAccordionContent = ({
   accessPackageUrn,
 }: PolicyAccessPackageAccordionContentProps): ReactElement => {

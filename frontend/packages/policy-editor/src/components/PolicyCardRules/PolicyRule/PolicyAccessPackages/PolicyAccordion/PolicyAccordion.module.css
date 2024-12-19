@@ -34,9 +34,3 @@
   color: var(--colors-grey-700);
   font-size: var(--fds-sizing-3);
 }
-
-.iconContainer {
-  background-color: var(--brand-default-third-100);
-  border-radius: var(--fds-border_radius-small);
-  padding: var(--fds-sizing-2);
-}

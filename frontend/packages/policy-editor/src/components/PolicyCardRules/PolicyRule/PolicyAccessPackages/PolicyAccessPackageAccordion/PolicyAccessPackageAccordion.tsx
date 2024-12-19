@@ -2,7 +2,7 @@ import React, { type ReactElement } from 'react';
 import classes from './PolicyAccessPackageAccordion.module.css';
 import { PolicyAccordion } from '../PolicyAccordion';
 import { PolicyAccessPackageAccordionContent } from './PolicyAccessPackageAccordionContent';
-import { PolicyAccessPackageAccordionCheckBox } from './PolicyAccessPackageAccordionCheckbox';
+import { PolicyAccessPackageAccordionCheckbox } from './PolicyAccessPackageAccordionCheckbox';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
 type PolicyAccessPackageAccordionProps = {
@@ -22,7 +22,7 @@ export const PolicyAccessPackageAccordion = ({
         title={accessPackage.name}
         subTitle={accessPackage.description}
         extraHeaderContent={
-          <PolicyAccessPackageAccordionCheckBox
+          <PolicyAccessPackageAccordionCheckbox
             isChecked={isChecked}
             handleSelectChange={handleSelectChange}
             accessPackage={accessPackage}

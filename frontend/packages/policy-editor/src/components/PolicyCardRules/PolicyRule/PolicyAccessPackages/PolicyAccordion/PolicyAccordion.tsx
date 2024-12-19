@@ -1,11 +1,11 @@
 import React, { type ReactNode, type ReactElement, useId, useState } from 'react';
-import cn from 'classnames';
+
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
-import * as StudioIcons from '@studio/icons';
+import { ChevronUpIcon, ChevronDownIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
 
 type PolicyAccordion = {
-  icon?: string;
+  icon?: ReactElement;
   title: string;
   subTitle: string;
   extraHeaderContent?: ReactNode;
@@ -24,7 +24,6 @@ export const PolicyAccordion = ({
   const contentId = useId();
   const initialExpandedState: boolean = defaultOpen || false;
   const [isExpanded, setIsExpanded] = useState<boolean>(initialExpandedState);
-  const IconComponent = StudioIcons[icon];
 
   const handleToggleExpanded = (): void => {
     setIsExpanded((oldIsExpanded) => !oldIsExpanded);
@@ -41,12 +40,7 @@ export const PolicyAccordion = ({
           onClick={handleToggleExpanded}
         >
           <div className={classes.accordionButton}>
-            {icon && Object.keys(StudioIcons).includes(icon) && (
-              <IconComponent
-                className={cn(classes.accordionIcon, classes.iconContainer)}
-                aria-hidden
-              />
-            )}
+            {icon}
             <div className={classes.accordionTitle}>
               <StudioLabelAsParagraph size='sm'>{title}</StudioLabelAsParagraph>
               <div className={classes.accordionSubTitle}>{subTitle}</div>
@@ -66,6 +60,6 @@ export const PolicyAccordion = ({
 };
 
 const PolicyAccordionIcon = ({ isExpanded }: { isExpanded: boolean }): ReactNode => {
-  const IconComponent = isExpanded ? StudioIcons.ChevronUpIcon : StudioIcons.ChevronDownIcon;
+  const IconComponent = isExpanded ? ChevronUpIcon : ChevronDownIcon;
   return <IconComponent className={classes.accordionIcon} aria-hidden />;
 };

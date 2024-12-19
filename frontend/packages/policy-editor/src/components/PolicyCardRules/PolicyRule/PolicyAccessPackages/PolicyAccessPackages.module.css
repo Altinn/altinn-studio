@@ -4,9 +4,3 @@
   gap: var(--fds-spacing-2);
   margin-top: var(--fds-spacing-8);
 }
-
-.accordionContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fds-spacing-2);
-}

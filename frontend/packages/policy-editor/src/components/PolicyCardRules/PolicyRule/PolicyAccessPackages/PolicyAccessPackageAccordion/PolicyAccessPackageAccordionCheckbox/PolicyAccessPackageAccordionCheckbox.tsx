@@ -1,22 +1,20 @@
 import React, { type ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import classes from './PolicyAccessPackageAccordion.module.css';
+import classes from './PolicyAccessPackageAccordionCheckbox.module.css';
 import { StudioCheckbox } from '@studio/components';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
-type PolicyAccessPackageAccordionCheckBoxProps = {
+type PolicyAccessPackageAccordionCheckboxProps = {
   accessPackage: PolicyAccessPackage;
   isChecked: boolean;
   handleSelectChange: (accessPackageUrn: string) => void;
 };
-export const PolicyAccessPackageAccordionCheckBox = ({
+export const PolicyAccessPackageAccordionCheckbox = ({
   accessPackage,
   isChecked,
   handleSelectChange,
-}: PolicyAccessPackageAccordionCheckBoxProps): ReactElement => {
+}: PolicyAccessPackageAccordionCheckboxProps): ReactElement => {
   const { t } = useTranslation();
-  const CHECKED_VALUE = 'on';
-
   const checkboxLabel = t(
     isChecked ? 'policy_editor.access_package_remove' : 'policy_editor.access_package_add',
     {
@@ -25,13 +23,12 @@ export const PolicyAccessPackageAccordionCheckBox = ({
   );
 
   return (
-    <StudioCheckbox.Group
-      legend=''
+    <StudioCheckbox
+      value='on'
+      checked={isChecked}
       className={classes.accordionCheckbox}
-      value={isChecked ? [CHECKED_VALUE] : []}
       onChange={() => handleSelectChange(accessPackage.urn)}
-    >
-      <StudioCheckbox value={CHECKED_VALUE} aria-label={checkboxLabel} />
-    </StudioCheckbox.Group>
+      aria-label={checkboxLabel}
+    />
   );
 };
