@@ -47,6 +47,5 @@ const PolicyAccordionIcon = ({ icon }: PolicyAccordionIconProps): ReactElement =
   const IconComponent = Object.keys(StudioIcons).includes(icon)
     ? StudioIcons[icon]
     : StudioIcons.PackageIcon;
-  console.log(IconComponent);
   return <IconComponent className={cn(classes.accordionIcon, classes.iconContainer)} aria-hidden />;
 };
