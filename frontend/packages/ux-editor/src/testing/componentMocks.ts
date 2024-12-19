@@ -97,7 +97,7 @@ const subformComponent: FormComponent<ComponentType.Subform> = {
 };
 const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
   ...commonProps(ComponentType.FileUpload),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: undefined,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
@@ -107,7 +107,7 @@ const fileUploadComponent: FormComponent<ComponentType.FileUpload> = {
 };
 const fileUploadWithTagComponent: FormComponent<ComponentType.FileUploadWithTag> = {
   ...commonProps(ComponentType.FileUploadWithTag),
-  dataModelBindings: { simpleBinding: '' },
+  dataModelBindings: undefined,
   description: 'test',
   displayMode: 'list',
   hasCustomFileEndings: false,
