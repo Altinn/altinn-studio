@@ -443,8 +443,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return dataType;
         }
 
-        public async Task SetModelDataType(string org, string app, DataType dataType)
+        public async Task SetModelDataType(string org, string app, string modelId, DataType dataType)
         {
+            if (dataType.Id != modelId)
+            {
+                throw new ArgumentException("Provided modelId does not match the DataType's Id");
+            }
             ApplicationMetadata applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
             applicationMetadata.DataTypes.RemoveAll((dt) => dt.Id == dataType.Id);
             applicationMetadata.DataTypes.Add(dataType);

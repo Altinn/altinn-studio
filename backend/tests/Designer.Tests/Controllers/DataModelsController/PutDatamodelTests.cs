@@ -147,10 +147,10 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
     }
 
     [Theory]
-    [InlineData("test", "ttd", "hvem-er-hvem")]
+    [InlineData("testmodelname", "ttd", "hvem-er-hvem")]
     public async Task PutDatamodelDataType_ShouldReturnWithoutErrors(string datamodelName, string org, string repo)
     {
-        string url = $"{VersionPrefix(org, repo)}/datamodel/{datamodelName}/dataType";
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel/{datamodelName}/dataType";
         await CopyRepositoryForTest(org, repo, "testUser", TargetTestRepository);
 
         DataType dataType = new()
@@ -159,14 +159,40 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
             MaxCount = 1,
             MinCount = 1,
         };
-        using var request = new HttpRequestMessage(HttpMethod.Get, url)
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, url)
         {
             Content = JsonContent.Create(dataType)
         };
 
-        HttpResponseMessage response = await HttpClient.SendAsync(request);
+        HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
         response.StatusCode.Should().Be(HttpStatusCode.OK);
+        DataType dataTypeResponse = await response.Content.ReadFromJsonAsync<DataType>();
+        dataTypeResponse.Should().NotBeNull();
+        dataTypeResponse.Should().BeEquivalentTo(dataType);
     }
+
+    [Theory]
+    [InlineData("testmodelname", "ttd", "hvem-er-hvem")]
+    public async Task PutDatamodelDataType_FailsIfDatamodelNameMismatchesObjectId(string datamodelName, string org, string repo)
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel/{datamodelName}/dataType";
+        await CopyRepositoryForTest(org, repo, "testUser", TargetTestRepository);
+
+        DataType dataType = new()
+        {
+            Id = "wrongId",
+            MaxCount = 1,
+            MinCount = 1,
+        };
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = JsonContent.Create(dataType)
+        };
+
+        HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {

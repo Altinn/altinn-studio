@@ -93,6 +93,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <summary>
         /// Updates the dataType for a given model.
         /// </summary>
-        Task SetModelDataType(string org, string app, DataType dataType);
+        Task SetModelDataType(string org, string app, string modelId, DataType dataType);
     }
 }
