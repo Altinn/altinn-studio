@@ -23,7 +23,7 @@ describe('ReferenceTab', () => {
     renderReferenceTab();
 
     expect(
-      screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
+      screen.getByText(textMock('ux_editor.options.code_list_reference_id.description')),
     ).toBeInTheDocument();
   });
 

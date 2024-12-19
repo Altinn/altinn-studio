@@ -44,10 +44,10 @@ export function ReferenceTab({
   return (
     <div className={classes.container}>
       <StudioParagraph spacing size='small'>
-        {t('ux_editor.options.code_list_referenceId.description')}
+        {t('ux_editor.options.code_list_reference_id.description')}
       </StudioParagraph>
       <StudioParagraph spacing size='small'>
-        {t('ux_editor.options.code_list_referenceId.description_details')}
+        {t('ux_editor.options.code_list_reference_id.description_details')}
       </StudioParagraph>
       <StudioTextfield
         type='text'
@@ -58,7 +58,7 @@ export function ReferenceTab({
       />
       {isOptionsIdInLibraryOrComponent && (
         <StudioAlert severity={'info'} size='sm'>
-          {t('ux_editor.options.tab_referenceId_alert_title')}
+          {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
       )}
       <p>
