@@ -34,10 +34,6 @@ export function CodeListPage({
 
   const handleSearchCodeLists = useCallback(
     (codeListPatternMatch: string) => {
-      if (codeListPatternMatch === '*') {
-        setCodeListsSearchMatch(codeLists);
-        return;
-      }
       const filteredCodeLists = getCodeListsSearchMatch(codeLists, codeListPatternMatch);
       setCodeListsSearchMatch(filteredCodeLists);
     },
@@ -81,7 +77,7 @@ export function CodeListPage({
 }
 
 const escapeRegExp = (pattern: string): string => {
-  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
 };
 
 const getCodeListsSearchMatch = (

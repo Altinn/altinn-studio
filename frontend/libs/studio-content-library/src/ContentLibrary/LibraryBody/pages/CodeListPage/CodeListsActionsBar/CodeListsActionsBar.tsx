@@ -25,7 +25,7 @@ export function CodeListsActionsBar({
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
-  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('*');
+  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('.*');
 
   useEffect(() => {
     onHandleSearchCodeLists(codeListSearchPattern);
@@ -51,7 +51,7 @@ export function CodeListsActionsBar({
         onChange={(event: ChangeEvent<HTMLInputElement>) =>
           setCodeListSearchPattern(event.target.value)
         }
-        onClear={() => setCodeListSearchPattern('*')}
+        onClear={() => setCodeListSearchPattern('.*')}
       />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
       <StudioFileUploader
