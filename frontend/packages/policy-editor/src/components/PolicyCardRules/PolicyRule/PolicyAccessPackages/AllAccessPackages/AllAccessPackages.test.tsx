@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { AllAccessPackages } from './AllAccessPackages';
-import { PolicyAccordion } from '../PolicyAccordion';
 import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
