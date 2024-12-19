@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { subformLayoutMock } from '../../../../../testing/subformLayoutMock';
@@ -85,6 +85,26 @@ describe('EditColumnElementComponentSelect', () => {
         name: new RegExp(`${subformLayoutMock.component2Id}`),
       }),
     ).toBeInTheDocument();
+  });
+
+  it('should make sure that selected component selected still selected', async () => {
+    const mockOnSelectComponent = jest.fn();
+    const selectedComponentId = [subformLayoutMock.component1Id];
+    renderEditColumnElementComponentSelect({
+      onSelectComponent: mockOnSelectComponent,
+      selectedComponentId,
+    });
+
+    const componentSelect = screen.getByRole('combobox', {
+      name: textMock('ux_editor.properties_panel.subform_table_columns.choose_component'),
+    });
+
+    expect(componentSelect).toBeInTheDocument();
+    expect(componentSelect).toHaveValue(selectedComponentId[0]);
+    await waitFor(() => {
+      expect(mockOnSelectComponent).not.toHaveBeenCalled();
+    });
+    expect(componentSelect).toHaveValue(selectedComponentId[0]);
   });
 });
 
