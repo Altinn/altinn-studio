@@ -1,6 +1,8 @@
 import type { CodeList } from '../types/CodeList';
 import type { CodeListItem } from '../types/CodeListItem';
 
+export const emptyCodeList: CodeList = [];
+
 const item1: CodeListItem = {
   description: 'Test 1 description',
   helpText: 'Test 1 help text',
@@ -24,28 +26,11 @@ const item3: CodeListItem = {
 
 export const codeListWithStrings: CodeList = [item1, item2, item3];
 
-export const emptyCodeList: CodeList = [];
-
 const duplicatedValue = 'duplicate';
 export const codeListWithDuplicatedValues: CodeList = [
-  {
-    label: 'Test 1',
-    value: duplicatedValue,
-    description: 'Test 1 description',
-    helpText: 'Test 1 help text',
-  },
-  {
-    label: 'Test 2',
-    value: duplicatedValue,
-    description: 'Test 2 description',
-    helpText: 'Test 2 help text',
-  },
-  {
-    label: 'Test 3',
-    value: 'unique',
-    description: 'Test 3 description',
-    helpText: 'Test 3 help text',
-  },
+  { ...item1, value: duplicatedValue },
+  { ...item2, value: duplicatedValue },
+  item3,
 ];
 
 export const codeListWithSingleNumber: CodeList = [
