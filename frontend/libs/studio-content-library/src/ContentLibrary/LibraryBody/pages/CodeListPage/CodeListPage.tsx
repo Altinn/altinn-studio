@@ -89,14 +89,17 @@ export function CodeListPage({
 }
 
 const escapeRegExp = (pattern: string): string => {
-  return pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 };
 
-const getCodeListsSearchMatch = (
+export const getCodeListsSearchMatch = (
   codeLists: CodeListWithMetadata[],
   codeListPatternMatch: string,
 ): CodeListWithMetadata[] => {
-  const safePattern = escapeRegExp(codeListPatternMatch);
+  let safePattern = codeListPatternMatch;
+  if (codeListPatternMatch !== '.*') {
+    safePattern = escapeRegExp(codeListPatternMatch);
+  }
   const regex = new RegExp(safePattern, 'i');
   return codeLists.filter((codeList) => regex.test(codeList.title));
 };

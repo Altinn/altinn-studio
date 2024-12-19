@@ -1,12 +1,14 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { CodeListsActionsBarProps } from './CodeListsActionsBar';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 
 const onUploadCodeListMock = jest.fn();
+const onHandleSearchCodeListsMock = jest.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
@@ -19,6 +21,36 @@ describe('CodeListsActionsBar', () => {
       name: textMock('app_content_library.code_lists.search_label'),
     });
     expect(searchFieldLabelText).toBeInTheDocument();
+  });
+
+  it('calls handleSearchCodeLists during first render to show all', async () => {
+    renderCodeListsActionsBar();
+    expect(onHandleSearchCodeListsMock).toHaveBeenCalledTimes(1);
+    expect(onHandleSearchCodeListsMock).toHaveBeenCalledWith('.*');
+  });
+
+  it('calls handleSearchCodeLists when searching for code lists', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    const searchInput = screen.getByRole('searchbox');
+    const codeListSearchParam = 'code';
+    await user.type(searchInput, codeListSearchParam);
+    expect(onHandleSearchCodeListsMock).toHaveBeenCalledTimes(codeListSearchParam.length + 1); // +1 due to initial run
+    expect(onHandleSearchCodeListsMock).toHaveBeenCalledWith(codeListSearchParam);
+  });
+
+  it('calls handleSearchCodeLists with ".*" when clearing search', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    const searchInput = screen.getByRole('searchbox');
+    const codeListSearchParam = 'code';
+    await user.type(searchInput, codeListSearchParam);
+    const clearSearchButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.clear_search_button_label'),
+    });
+    await user.click(clearSearchButton);
+    expect(onHandleSearchCodeListsMock).toHaveBeenCalledTimes(codeListSearchParam.length + 2); // +2 due to initial run and clearing search
+    expect(onHandleSearchCodeListsMock).toHaveBeenLastCalledWith('.*');
   });
 
   it('renders the file uploader button', () => {
@@ -98,12 +130,13 @@ const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: st
   await user.upload(fileUploaderButton, file);
 };
 
+const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
+  onUploadCodeList: onUploadCodeListMock,
+  onUpdateCodeList: jest.fn(),
+  codeListNames: [codeListName1, codeListName2],
+  onHandleSearchCodeLists: onHandleSearchCodeListsMock,
+};
+
 const renderCodeListsActionsBar = () => {
-  renderWithProviders(
-    <CodeListsActionsBar
-      onUploadCodeList={onUploadCodeListMock}
-      onUpdateCodeList={jest.fn()}
-      codeListNames={[codeListName1, codeListName2]}
-    />,
-  );
+  return renderWithProviders(<CodeListsActionsBar {...defaultCodeListActionBarProps} />);
 };

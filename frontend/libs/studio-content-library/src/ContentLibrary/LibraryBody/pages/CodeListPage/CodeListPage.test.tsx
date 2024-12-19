@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListPageProps } from './CodeListPage';
-import { CodeListPage } from './CodeListPage';
+import type { CodeListPageProps, CodeListWithMetadata } from './CodeListPage';
+import { getCodeListsSearchMatch, CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -59,12 +59,41 @@ describe('CodeListPage', () => {
 
   it('renders the code list accordion', () => {
     renderCodeListPage();
-    const codeListAccordion = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle: codeListName,
-      }),
-    );
+    const codeListAccordion = getCodeListAccordion(codeListName);
     expect(codeListAccordion).toBeInTheDocument();
+  });
+
+  it('renders all code lists when search param matches all lists', async () => {
+    const user = userEvent.setup();
+    const codeList2 = 'codeList2';
+    const codeListsSearchParam = 'code';
+    renderCodeListPage({
+      codeListsData: [...codeListsDataMock, { title: codeList2, data: codeListMock }],
+    });
+    const searchInput = screen.getByRole('searchbox');
+    await user.type(searchInput, codeListsSearchParam);
+    [codeListName, codeList2].forEach((codeListTitle) => {
+      expect(getCodeListAccordion(codeListTitle)).toBeInTheDocument();
+    });
+  });
+
+  it('renders the matching code lists when search param limits result', async () => {
+    const user = userEvent.setup();
+    const codeList2 = 'codeList2';
+    const codeListsSearchParam = '2';
+    renderCodeListPage({
+      codeListsData: [...codeListsDataMock, { title: codeList2, data: codeListMock }],
+    });
+    const searchInput = screen.getByRole('searchbox');
+    await user.type(searchInput, codeListsSearchParam);
+    expect(getCodeListAccordion(codeList2)).toBeInTheDocument();
+    expect(
+      screen.queryByTitle(
+        textMock('app_content_library.code_lists.code_list_accordion_title', {
+          codeListTitle: codeListName,
+        }),
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it('render the code list accordion as default open when uploading a code list', async () => {
@@ -149,6 +178,14 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
   await user.upload(fileUploaderButton, file);
 };
 
+const getCodeListAccordion = (codeListTitle: string) => {
+  return screen.getByTitle(
+      textMock('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle,
+      }),
+  );
+};
+
 const defaultCodeListPageProps: CodeListPageProps = {
   codeListsData: codeListsDataMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
@@ -160,3 +197,47 @@ const defaultCodeListPageProps: CodeListPageProps = {
 const renderCodeListPage = (props: Partial<CodeListPageProps> = {}) => {
   return render(<CodeListPage {...defaultCodeListPageProps} {...props} />);
 };
+
+describe('getCodeListsSearchMatch', () => {
+  const codeLists: CodeListWithMetadata[] = [
+    { title: 'codeList1', codeList: codeListMock },
+    { title: 'codeList2', codeList: codeListMock },
+    { title: 'myCodeList', codeList: codeListMock },
+    { title: 'otherList', codeList: codeListMock },
+  ];
+
+  it('returns matching code lists for exact pattern match', () => {
+    const result = getCodeListsSearchMatch(codeLists, 'codeList1');
+    const resultTitles = result.map((res) => res.title);
+    expect(resultTitles).toEqual(['codeList1']);
+  });
+
+  it('returns matching code lists for partial pattern match (case-insensitive)', () => {
+    const result = getCodeListsSearchMatch(codeLists, 'CODELIST');
+    const resultTitles = result.map((res) => res.title);
+    expect(resultTitles).toEqual(['codeList1', 'codeList2', 'myCodeList']);
+  });
+
+  it('returns all code lists when search pattern is .*', () => {
+    const result = getCodeListsSearchMatch(codeLists, '.*');
+    const resultTitles = result.map((res) => res.title);
+    expect(resultTitles).toBe(['codeList1', 'codeList2', 'myCodeList', 'otherCodeList']);
+  });
+
+  it('returns no matches when no code list matches the pattern', () => {
+    const result = getCodeListsSearchMatch(codeLists, 'patternWithoutMatch');
+    expect(result).toHaveLength(0);
+  });
+
+  it('handles empty code list array', () => {
+    const emptyCodeLists: CodeListWithMetadata[] = [];
+    const result = getCodeListsSearchMatch(emptyCodeLists, 'codeList');
+    expect(result).toHaveLength(0);
+  });
+
+  it('returns empty list when using the pattern .* in an empty list', () => {
+    const emptyCodeLists: CodeListWithMetadata[] = [];
+    const result = getCodeListsSearchMatch(emptyCodeLists, '.*');
+    expect(result).toHaveLength(0);
+  });
+});
