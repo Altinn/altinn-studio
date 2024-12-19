@@ -1,10 +1,10 @@
-import type { CodeList } from './types/CodeList';
+import type { CodeList } from '../types/CodeList';
 import {
   addEmptyCodeListItem,
   changeCodeListItem,
   isCodeListEmpty,
   removeCodeListItem,
-} from './utils';
+} from './editorUtils';
 import { ObjectUtils } from '@studio/pure-functions';
 
 // Test data:
