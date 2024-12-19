@@ -220,6 +220,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
         /// <param name="referencesToDelete">The references to delete.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<bool> DeleteFromLayouts(AltinnRepoEditingContext altinnRepoEditingContext, List<Reference> referencesToDelete, CancellationToken cancellationToken);
+        public Task<bool> DeleteReferencesFromLayouts(AltinnRepoEditingContext altinnRepoEditingContext, List<Reference> referencesToDelete, CancellationToken cancellationToken);
     }
 }

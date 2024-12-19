@@ -9,18 +9,18 @@ using MediatR;
 
 namespace Altinn.Studio.Designer.EventHandlers.LayoutSetDeleted;
 
-public class LayoutSetDeletedComponentRefHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutSetDeletedEvent>
+public class LayoutSetDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutSetDeletedEvent>
 {
     public async Task Handle(LayoutSetDeletedEvent notification, CancellationToken cancellationToken)
     {
         await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
             notification.EditingContext,
-            SyncErrorCodes.LayoutSetSubLayoutSyncError,
+            SyncErrorCodes.LayoutSetDeletedLayoutsSyncError,
             "layouts",
             async () =>
             {
                 List<Reference> referencesToDelete = [new Reference("layoutSet", notification.LayoutSetName, notification.LayoutSetName)];
-                return await appDevelopmentService.DeleteFromLayouts(notification.EditingContext, referencesToDelete, cancellationToken);
+                return await appDevelopmentService.DeleteReferencesFromLayouts(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }
 }
