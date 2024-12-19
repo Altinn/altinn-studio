@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 
 const onUploadCodeListMock = jest.fn();
-const onHandleSearchCodeListsMock = jest.fn();
+const onSetCodeListSearchPatternMock = jest.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
@@ -23,23 +23,17 @@ describe('CodeListsActionsBar', () => {
     expect(searchFieldLabelText).toBeInTheDocument();
   });
 
-  it('calls handleSearchCodeLists during first render to show all', async () => {
-    renderCodeListsActionsBar();
-    expect(onHandleSearchCodeListsMock).toHaveBeenCalledTimes(1);
-    expect(onHandleSearchCodeListsMock).toHaveBeenCalledWith('.*');
-  });
-
-  it('calls handleSearchCodeLists when searching for code lists', async () => {
+  it('calls onSetCodeListSearchPatternMock when searching for code lists', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
     const searchInput = screen.getByRole('searchbox');
     const codeListSearchParam = 'code';
     await user.type(searchInput, codeListSearchParam);
-    expect(onHandleSearchCodeListsMock).toHaveBeenCalledTimes(codeListSearchParam.length + 1); // +1 due to initial run
-    expect(onHandleSearchCodeListsMock).toHaveBeenCalledWith(codeListSearchParam);
+    expect(onSetCodeListSearchPatternMock).toHaveBeenCalledTimes(codeListSearchParam.length);
+    expect(onSetCodeListSearchPatternMock).toHaveBeenCalledWith(codeListSearchParam);
   });
 
-  it('calls handleSearchCodeLists with ".*" when clearing search', async () => {
+  it('calls onSetCodeListSearchPatternMock with ".*" when clearing search', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
     const searchInput = screen.getByRole('searchbox');
@@ -49,8 +43,8 @@ describe('CodeListsActionsBar', () => {
       name: textMock('app_content_library.code_lists.clear_search_button_label'),
     });
     await user.click(clearSearchButton);
-    expect(onHandleSearchCodeListsMock).toHaveBeenCalledTimes(codeListSearchParam.length + 2); // +2 due to initial run and clearing search
-    expect(onHandleSearchCodeListsMock).toHaveBeenLastCalledWith('.*');
+    expect(onSetCodeListSearchPatternMock).toHaveBeenCalledTimes(codeListSearchParam.length + 1); // +1 due to clearing search
+    expect(onSetCodeListSearchPatternMock).toHaveBeenLastCalledWith('.*');
   });
 
   it('renders the file uploader button', () => {
@@ -134,7 +128,7 @@ const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
   onUploadCodeList: onUploadCodeListMock,
   onUpdateCodeList: jest.fn(),
   codeListNames: [codeListName1, codeListName2],
-  onHandleSearchCodeLists: onHandleSearchCodeListsMock,
+  onSetCodeListSearchPattern: onSetCodeListSearchPatternMock,
 };
 
 const renderCodeListsActionsBar = () => {

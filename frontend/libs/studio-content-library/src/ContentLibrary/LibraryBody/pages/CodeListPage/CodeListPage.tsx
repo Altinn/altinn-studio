@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StudioHeading } from '@studio/components';
 import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -36,6 +36,7 @@ export function CodeListPage({
   codeListsUsages,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
+  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('.*');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
   const [codeListsSearchMatch, setCodeListsSearchMatch] =
     useState<CodeListWithMetadata[]>(codeListsData);
@@ -51,6 +52,10 @@ export function CodeListPage({
     },
     [codeListsData, setCodeListsSearchMatch],
   );
+  
+  useEffect(() => {
+    handleSearchCodeLists(codeListSearchPattern);
+  }, [codeListsData, codeListSearchPattern, handleSearchCodeLists]);
 
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
@@ -75,6 +80,7 @@ export function CodeListPage({
         codeLists={codeListsData}
         onSetCodeListsSearchMatch={setCodeListsSearchMatch}
         onHandleSearchCodeLists={handleSearchCodeLists}
+        onSetCodeListSearchPattern={setCodeListSearchPattern}
       />
       <CodeLists
         codeListsData={codeListsSearchMatch}
