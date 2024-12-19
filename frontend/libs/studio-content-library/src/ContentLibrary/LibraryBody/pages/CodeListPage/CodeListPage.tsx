@@ -29,6 +29,8 @@ export function CodeListPage({
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+  const [codeListsSearchMatch, setCodeListsSearchMatch] =
+    useState<CodeListWithMetadata[]>(codeLists);
 
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
@@ -53,9 +55,11 @@ export function CodeListPage({
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
+        codeLists={codeLists}
+        onSetCodeListsSearchMatch={setCodeListsSearchMatch}
       />
       <CodeLists
-        codeLists={codeLists}
+        codeLists={codeListsSearchMatch}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
