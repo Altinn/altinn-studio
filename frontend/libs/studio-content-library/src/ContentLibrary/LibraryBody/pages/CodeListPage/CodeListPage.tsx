@@ -89,7 +89,7 @@ export function CodeListPage({
 }
 
 const escapeRegExp = (pattern: string): string => {
-  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
 };
 
 const getCodeListsSearchMatch = (
