@@ -1,25 +1,31 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { PolicyAccessPackageAccordion } from './PolicyAccessPackageAccordion';
-import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
+import {
+  PolicyAccessPackageAccordion,
+  type PolicyAccessPackageAccordionProps,
+} from './PolicyAccessPackageAccordion';
 
-const defaultAccessPackageProp: PolicyAccessPackage = {
-  id: 'urn:altinn:accesspackage:sjofart',
-  urn: 'urn:altinn:accesspackage:sjofart',
-  name: 'Sjøfart',
-  description: '',
+const defaultProps = {
+  accessPackage: {
+    id: 'urn:altinn:accesspackage:sjofart',
+    urn: 'urn:altinn:accesspackage:sjofart',
+    name: 'Sjøfart',
+    description: '',
+  },
+  isChecked: false,
+  handleSelectChange: jest.fn(),
 };
 
 describe('PolicyAccessPackageAccordion', () => {
   it('should show accordion for accesspackage', () => {
-    render(
-      <PolicyAccessPackageAccordion
-        accessPackage={defaultAccessPackageProp}
-        isChecked={false}
-        handleSelectChange={jest.fn()}
-      />,
-    );
+    renderPolicyAccessPackageAccordion();
 
-    expect(screen.getByText(defaultAccessPackageProp.name)).toBeInTheDocument();
+    expect(screen.getByText(defaultProps.accessPackage.name)).toBeInTheDocument();
   });
 });
+
+const renderPolicyAccessPackageAccordion = (
+  props: Partial<PolicyAccessPackageAccordionProps> = {},
+) => {
+  render(<PolicyAccessPackageAccordion {...defaultProps} {...props} />);
+};

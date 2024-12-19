@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { AllAccessPackages } from './AllAccessPackages';
+import { AllAccessPackages, type AllAccessPackagesProps } from './AllAccessPackages';
 import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
@@ -50,30 +50,24 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
     packages: [package3],
   },
 ];
+
+const defaultProps = {
+  chosenAccessPackages: [],
+  accessPackagesToRender: groupedAccessPackagesByArea,
+  searchValue: '',
+  handleSelectAccessPackage: jest.fn(),
+};
+
 describe('AllAccessPackages', () => {
   it('should render each package with search hits when searching', () => {
-    render(
-      <AllAccessPackages
-        chosenAccessPackages={[]}
-        accessPackagesToRender={groupedAccessPackagesByArea}
-        searchValue='skatt'
-        handleSelectAccessPackage={jest.fn()}
-      />,
-    );
+    renderAllAccessPackages({ searchValue: 'skatt' });
 
     expect(screen.getByText(package1Name)).toBeInTheDocument();
     expect(screen.getByText(package2Name)).toBeInTheDocument();
   });
 
   it('should not render any access packages when not expanded', () => {
-    render(
-      <AllAccessPackages
-        chosenAccessPackages={[]}
-        accessPackagesToRender={groupedAccessPackagesByArea}
-        searchValue=''
-        handleSelectAccessPackage={jest.fn()}
-      />,
-    );
+    renderAllAccessPackages();
 
     expect(screen.queryByText(package1Name)).not.toBeInTheDocument();
     expect(screen.queryByText(package2Name)).not.toBeInTheDocument();
@@ -81,16 +75,13 @@ describe('AllAccessPackages', () => {
   });
 
   it('should render PolicyAccordion components for each area', () => {
-    render(
-      <AllAccessPackages
-        chosenAccessPackages={[]}
-        accessPackagesToRender={groupedAccessPackagesByArea}
-        searchValue=''
-        handleSelectAccessPackage={jest.fn()}
-      />,
-    );
+    renderAllAccessPackages();
 
     expect(screen.getByText(area1Name)).toBeInTheDocument();
     expect(screen.getByText(area2Name)).toBeInTheDocument();
   });
 });
+
+const renderAllAccessPackages = (props: Partial<AllAccessPackagesProps> = {}) => {
+  render(<AllAccessPackages {...defaultProps} {...props} />);
+};

@@ -2,7 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
-import { PolicyAccessPackageAccordionCheckbox } from './PolicyAccessPackageAccordionCheckbox';
+import {
+  PolicyAccessPackageAccordionCheckbox,
+  type PolicyAccessPackageAccordionCheckboxProps,
+} from './PolicyAccessPackageAccordionCheckbox';
 
 const defaultProps = {
   accessPackage: {
@@ -17,7 +20,7 @@ const defaultProps = {
 
 describe('PolicyAccessPackageAccordionCheckbox', () => {
   it('should show checked text', () => {
-    render(<PolicyAccessPackageAccordionCheckbox {...defaultProps} />);
+    renderPolicyAccessPackageAccordionCheckbox();
 
     const expectedAddText = textMock('policy_editor.access_package_add', {
       packageName: defaultProps.accessPackage.name,
@@ -26,7 +29,7 @@ describe('PolicyAccessPackageAccordionCheckbox', () => {
   });
 
   it('should show unchecked text', () => {
-    render(<PolicyAccessPackageAccordionCheckbox {...defaultProps} isChecked={true} />);
+    renderPolicyAccessPackageAccordionCheckbox({ isChecked: true });
 
     const expectedRemoveText = textMock('policy_editor.access_package_remove', {
       packageName: defaultProps.accessPackage.name,
@@ -38,12 +41,7 @@ describe('PolicyAccessPackageAccordionCheckbox', () => {
     const user = userEvent.setup();
     const handleSelectChangeFn = jest.fn();
 
-    render(
-      <PolicyAccessPackageAccordionCheckbox
-        {...defaultProps}
-        handleSelectChange={handleSelectChangeFn}
-      />,
-    );
+    renderPolicyAccessPackageAccordionCheckbox({ handleSelectChange: handleSelectChangeFn });
 
     const expectedAddText = textMock('policy_editor.access_package_add', {
       packageName: defaultProps.accessPackage.name,
@@ -54,3 +52,9 @@ describe('PolicyAccessPackageAccordionCheckbox', () => {
     expect(handleSelectChangeFn).toHaveBeenCalledWith('urn');
   });
 });
+
+const renderPolicyAccessPackageAccordionCheckbox = (
+  props: Partial<PolicyAccessPackageAccordionCheckboxProps> = {},
+) => {
+  render(<PolicyAccessPackageAccordionCheckbox {...defaultProps} {...props} />);
+};

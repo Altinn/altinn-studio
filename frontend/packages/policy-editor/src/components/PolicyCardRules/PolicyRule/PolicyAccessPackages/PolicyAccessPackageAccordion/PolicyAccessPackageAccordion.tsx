@@ -5,7 +5,7 @@ import { PolicyAccessPackageAccordionContent } from './PolicyAccessPackageAccord
 import { PolicyAccessPackageAccordionCheckbox } from './PolicyAccessPackageAccordionCheckbox';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
-type PolicyAccessPackageAccordionProps = {
+export type PolicyAccessPackageAccordionProps = {
   accessPackage: PolicyAccessPackage;
   isChecked: boolean;
   handleSelectChange: (accessPackageUrn: string) => void;

@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { PolicyAccessPackageServices } from './PolicyAccessPackageServices';
+import {
+  PolicyAccessPackageServices,
+  type PolicyAccessPackageServicesProps,
+} from './PolicyAccessPackageServices';
 import type { AccessPackageResource } from 'app-shared/types/PolicyAccessPackages';
 
 const resource: AccessPackageResource = {
@@ -22,26 +25,34 @@ const resource: AccessPackageResource = {
   logoUrl: '',
 };
 
+const defaultProps = {
+  services: [resource],
+};
+
 describe('PolicyAccessPackageServices', () => {
   it('should show list of services', () => {
-    render(<PolicyAccessPackageServices services={[resource]} />);
+    renderPolicyAccessPackageServices();
 
     expect(screen.getByText(resource.title.nb)).toBeInTheDocument();
   });
 
   it('should show logo for services', () => {
-    render(
-      <PolicyAccessPackageServices
-        services={[{ ...resource, logoUrl: 'https://altinncdn.no/orgs/skd/skd.png' }]}
-      />,
-    );
+    renderPolicyAccessPackageServices({
+      services: [{ ...resource, logoUrl: 'https://altinncdn.no/orgs/skd/skd.png' }],
+    });
 
     expect(screen.getByAltText(resource.hasCompetentAuthority.name.nb)).toBeInTheDocument();
   });
 
   it('should show empty container if resource has no logo', () => {
-    render(<PolicyAccessPackageServices services={[resource]} />);
+    renderPolicyAccessPackageServices();
 
     expect(screen.getByTestId('no-service-logo')).toBeInTheDocument();
   });
 });
+
+const renderPolicyAccessPackageServices = (
+  props: Partial<PolicyAccessPackageServicesProps> = {},
+) => {
+  render(<PolicyAccessPackageServices {...defaultProps} {...props} />);
+};

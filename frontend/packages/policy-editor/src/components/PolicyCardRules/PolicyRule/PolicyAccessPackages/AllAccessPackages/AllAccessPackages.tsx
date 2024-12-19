@@ -10,7 +10,7 @@ import classes from './AllAccessPackages.module.css';
 // this will be changed later in early 2025, when we will use specific icons for access package areas
 import * as StudioIcons from '@studio/icons';
 
-type AllAccessPackagesProps = {
+export type AllAccessPackagesProps = {
   chosenAccessPackages: string[];
   accessPackagesToRender: PolicyAccessPackageArea[];
   searchValue: string;

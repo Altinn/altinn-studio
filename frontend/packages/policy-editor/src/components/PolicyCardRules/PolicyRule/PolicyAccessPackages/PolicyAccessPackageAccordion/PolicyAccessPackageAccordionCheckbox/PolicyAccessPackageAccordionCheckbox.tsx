@@ -4,7 +4,7 @@ import classes from './PolicyAccessPackageAccordionCheckbox.module.css';
 import { StudioCheckbox } from '@studio/components';
 import type { PolicyAccessPackage } from 'app-shared/types/PolicyAccessPackages';
 
-type PolicyAccessPackageAccordionCheckboxProps = {
+export type PolicyAccessPackageAccordionCheckboxProps = {
   accessPackage: PolicyAccessPackage;
   isChecked: boolean;
   handleSelectChange: (accessPackageUrn: string) => void;

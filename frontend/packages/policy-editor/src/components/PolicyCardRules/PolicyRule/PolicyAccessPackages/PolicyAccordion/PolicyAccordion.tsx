@@ -1,10 +1,9 @@
 import React, { type ReactNode, type ReactElement, useId, useState } from 'react';
-
 import { StudioButton, StudioLabelAsParagraph } from '@studio/components';
 import { ChevronUpIcon, ChevronDownIcon } from '@studio/icons';
 import classes from './PolicyAccordion.module.css';
 
-type PolicyAccordion = {
+export type PolicyAccordionProps = {
   icon?: ReactElement;
   title: string;
   subTitle: string;
@@ -20,7 +19,7 @@ export const PolicyAccordion = ({
   extraHeaderContent,
   defaultOpen,
   children,
-}: PolicyAccordion): ReactElement => {
+}: PolicyAccordionProps): ReactElement => {
   const contentId = useId();
   const initialExpandedState: boolean = defaultOpen || false;
   const [isExpanded, setIsExpanded] = useState<boolean>(initialExpandedState);

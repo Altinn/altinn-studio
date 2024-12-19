@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { ChosenAccessPackages } from './ChosenAccessPackages';
+import { ChosenAccessPackages, type ChosenAccessPackagesProps } from './ChosenAccessPackages';
 import type {
   PolicyAccessPackage,
   PolicyAccessPackageArea,
@@ -46,33 +46,31 @@ const groupedAccessPackagesByArea: PolicyAccessPackageArea[] = [
   },
 ];
 
+const defaultProps = {
+  chosenAccessPackages: [],
+  groupedAccessPackagesByArea: groupedAccessPackagesByArea,
+  handleSelectAccessPackage: jest.fn(),
+};
+
 describe('ChosenAccessPackages', () => {
   it('should render chosen access packages when chosen access packages is not empty', () => {
     const chosenAccessPackages = [package1.urn, package3.urn];
 
-    render(
-      <ChosenAccessPackages
-        chosenAccessPackages={chosenAccessPackages}
-        groupedAccessPackagesByArea={groupedAccessPackagesByArea}
-        handleSelectAccessPackage={jest.fn()}
-      />,
-    );
+    renderChosenAccessPackages({ chosenAccessPackages });
 
     expect(screen.getByText(package1.name)).toBeInTheDocument();
     expect(screen.getByText(package3.name)).toBeInTheDocument();
   });
 
   it('should render null when chosen access packages is empty', () => {
-    render(
-      <ChosenAccessPackages
-        chosenAccessPackages={[]}
-        groupedAccessPackagesByArea={groupedAccessPackagesByArea}
-        handleSelectAccessPackage={jest.fn()}
-      />,
-    );
+    renderChosenAccessPackages();
 
     expect(
       screen.queryByText('policy_editor.access_package_chosen_packages'),
     ).not.toBeInTheDocument();
   });
 });
+
+const renderChosenAccessPackages = (props: Partial<ChosenAccessPackagesProps> = {}) => {
+  render(<ChosenAccessPackages {...defaultProps} {...props} />);
+};

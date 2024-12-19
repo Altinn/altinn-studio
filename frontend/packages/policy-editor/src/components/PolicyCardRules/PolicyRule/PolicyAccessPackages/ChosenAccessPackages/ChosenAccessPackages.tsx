@@ -8,7 +8,7 @@ import type {
   PolicyAccessPackageArea,
 } from 'app-shared/types/PolicyAccessPackages';
 
-type ChosenAccessPackagesProps = {
+export type ChosenAccessPackagesProps = {
   chosenAccessPackages: string[];
   groupedAccessPackagesByArea: PolicyAccessPackageArea[];
   handleSelectAccessPackage: (accessPackageUrn: string) => void;
