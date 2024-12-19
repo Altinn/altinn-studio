@@ -19,7 +19,7 @@ import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
-import type { ILayoutSet } from 'src/layout/common.generated';
+import type { IDataModelReference, ILayoutSet } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 import type { NodeDataSelector } from 'src/utils/layout/NodesContext';
@@ -45,6 +45,7 @@ export interface ExpressionDataSources {
   nodeTraversal: NodeTraversalSelector;
   transposeSelector: DataModelTransposeSelector;
   externalApis: ExternalApisResult;
+  currentDataModelPath?: IDataModelReference;
 }
 
 export function useExpressionDataSources(): ExpressionDataSources {

@@ -12,18 +12,20 @@ import { renderWithNode } from 'src/test/renderWithProviders';
 import type { ExprVal, ExprValToActualOrExpr } from 'src/features/expressions/types';
 import type { IOptionInternal } from 'src/features/options/castOptionsToStrings';
 import type { IRawOption, ISelectionComponentFull } from 'src/layout/common.generated';
+import type { ILayout } from 'src/layout/layout';
 import type { fetchOptions } from 'src/queries/queries';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 interface RenderProps {
   type: 'single' | 'multi';
   via: 'layout' | 'api' | 'repeatingGroups';
-  options?: IRawOption[];
+  options?: (IRawOption & Record<string, unknown>)[];
   mapping?: Record<string, string>;
   optionFilter?: ExprValToActualOrExpr<ExprVal.Boolean>;
   selected?: string;
   preselectedOptionIndex?: number;
   fetchOptions?: jest.Mock<typeof fetchOptions>;
+  extraLayout?: ILayout;
 }
 
 function TestOptions({ node }: { node: LayoutNode<'Dropdown' | 'MultipleSelect'> }) {
@@ -69,6 +71,7 @@ async function render(props: RenderProps) {
         FormLayout: {
           data: {
             layout: [
+              ...(props.extraLayout ?? []),
               {
                 type: props.type === 'single' ? 'Dropdown' : 'MultipleSelect',
                 id: 'myComponent',
@@ -96,7 +99,12 @@ async function render(props: RenderProps) {
         props.fetchOptions ??
         (async () =>
           ({
-            data: props.options,
+            data: props.options?.map((option) => ({
+              value: option.value,
+              label: option.label,
+              description: option.description,
+              helpText: option.helpText,
+            })),
             headers: {},
           }) as AxiosResponse<IRawOption[]>),
       fetchTextResources: async () => ({
@@ -214,7 +222,7 @@ describe('useGetOptions', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('options').textContent).toEqual(JSON.stringify(unfilteredOptions));
+      expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual(unfilteredOptions);
     });
 
     expect(window.logWarnOnce).toHaveBeenCalledWith(
@@ -232,11 +240,86 @@ describe('useGetOptions', () => {
       options: [remainingOption, { label: 'second', value: 'foo' }],
     });
 
-    await waitFor(() => expect(screen.getByTestId('options').textContent).toEqual(JSON.stringify([remainingOption])));
+    await waitFor(() =>
+      expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([remainingOption]),
+    );
 
     expect(window.logWarnOnce).toHaveBeenCalledWith(
       'Option was duplicate value (and was removed). With duplicate values, it is impossible to tell which of the options the user selected.\n',
-      JSON.stringify({ label: 'second', value: 'foo' }, null, 2),
+      JSON.stringify({ value: 'foo', label: 'second' }, null, 2),
+    );
+  });
+
+  it('dataModel lookups per-row when using repeatingGroups should work', async () => {
+    await render({
+      type: 'single',
+      via: 'repeatingGroups',
+      options: [
+        // These are actually rows in the data model
+        { label: 'first', value: 'foo', useInOptions: 'keep' },
+        { label: 'second', value: 'bar', useInOptions: 'scrap' },
+        { label: 'third', value: 'baz', useInOptions: 'keep' },
+      ],
+      optionFilter: ['equals', ['dataModel', 'Group.useInOptions'], 'keep'],
+    });
+
+    await waitFor(() =>
+      expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+        { value: 'foo', label: 'first' },
+        { value: 'baz', label: 'third' },
+      ]),
+    );
+  });
+
+  it('component lookups per-row when using repeatingGroups should work', async () => {
+    await render({
+      type: 'single',
+      via: 'repeatingGroups',
+      options: [
+        // These are actually rows in the data model
+        { label: 'first', value: 'foo', useInOptions: 'keep' },
+        { label: 'second', value: 'bar', useInOptions: 'scrap' },
+        { label: 'third', value: 'baz', useInOptions: 'keep' },
+      ],
+      optionFilter: ['equals', ['component', 'ShouldUseInOptions'], 'keep'],
+      extraLayout: [
+        {
+          id: 'someRepGroup',
+          type: 'RepeatingGroup',
+          dataModelBindings: {
+            group: {
+              dataType: defaultDataTypeMock,
+              field: 'Group',
+            },
+          },
+          children: ['FirstInside', 'ShouldUseInOptions'],
+        },
+        {
+          id: 'FirstInside',
+          type: 'Header',
+          textResourceBindings: {
+            title: 'This title is not important',
+          },
+          size: 'L',
+        },
+        {
+          id: 'ShouldUseInOptions',
+          type: 'Input',
+          dataModelBindings: {
+            simpleBinding: {
+              dataType: defaultDataTypeMock,
+              field: 'Group.useInOptions',
+            },
+          },
+        },
+      ],
+    });
+
+    await waitFor(() =>
+      expect(JSON.parse(screen.getByTestId('options').textContent ?? 'null')).toEqual([
+        { value: 'foo', label: 'first' },
+        { value: 'baz', label: 'third' },
+      ]),
     );
   });
 });

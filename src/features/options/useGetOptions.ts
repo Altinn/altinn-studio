@@ -8,7 +8,7 @@ import { useLanguage } from 'src/features/language/useLanguage';
 import { castOptionsToStrings } from 'src/features/options/castOptionsToStrings';
 import { useGetOptionsQuery, useGetOptionsUrl } from 'src/features/options/useGetOptionsQuery';
 import { useNodeOptions } from 'src/features/options/useNodeOptions';
-import { useSourceOptions } from 'src/hooks/useSourceOptions';
+import { useSourceOptions } from 'src/features/options/useSourceOptions';
 import { useNodeItem } from 'src/utils/layout/useNodeItem';
 import { verifyAndDeduplicateOptions } from 'src/utils/options';
 import type { ExprValueArgs } from 'src/features/expressions/types';
@@ -121,10 +121,10 @@ function useOptionsUrl(
 }
 
 export function useFetchOptions({ node, item, dataSources }: FetchOptionsProps) {
-  const { options, optionsId, source } = item;
+  const { options, optionsId, source, optionFilter } = item;
   const url = useOptionsUrl(node, item, dataSources);
 
-  const sourceOptions = useSourceOptions({ source, node, dataSources });
+  const sourceOptions = useSourceOptions({ source, node, dataSources, addRowInfo: !!optionFilter });
   const staticOptions = useMemo(() => (optionsId ? undefined : castOptionsToStrings(options)), [options, optionsId]);
   const { data, isFetching, error } = useGetOptionsQuery(url);
   useLogFetchError(error, item);
@@ -180,12 +180,18 @@ export function useFilteredAndSortedOptions({
     let options = verifyAndDeduplicateOptions(unsorted, valueType === 'multi');
 
     if (optionFilter !== undefined && ExprValidation.isValid(optionFilter)) {
-      options = options.filter((option) => {
+      options = options.filter((o) => {
+        const { rowNode, dataModelLocation, ...option } = o;
         const valueArguments: ExprValueArgs<IOptionInternal> = {
           data: option,
           defaultKey: 'value',
         };
-        const keep = evalExpr(optionFilter, node, dataSources, { valueArguments });
+        const keep = evalExpr(
+          optionFilter,
+          rowNode ?? node,
+          { ...dataSources, currentDataModelPath: dataModelLocation },
+          { valueArguments },
+        );
         if (!keep && selectedValues.includes(option.value)) {
           window.logWarnOnce(
             `Node '${node.id}': Option with value "${option.value}" was selected, but the option filter ` +
@@ -210,6 +216,10 @@ export function useFilteredAndSortedOptions({
     if (options.length > 1 && sortOrder) {
       options.sort(compareOptionAlphabetically(langAsString, sortOrder, selectedLanguage));
     }
+
+    // Always remove the rowNode and dataModelLocation at this point. It is only to be used in the filtering
+    // process, and will not ruin the comparison later to make sure the state is set in zustand.
+    options = options.map((option) => ({ ...option, rowNode: undefined, dataModelLocation: undefined }));
 
     return { options, preselectedOption };
   }, [

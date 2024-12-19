@@ -171,8 +171,8 @@ export class NodeTraversal<T extends Node = LayoutPages> {
   /**
    * Selects all nodes in the hierarchy, starting from the root node.
    */
-  allNodes(): LayoutNode[] {
-    return this.rootNode.allNodes(new TraversalTask(this.state, this.rootNode, undefined, undefined));
+  allNodes(matching?: TraversalMatcher, restriction?: TraversalRestriction): LayoutNode[] {
+    return this.rootNode.allNodes(new TraversalTask(this.state, this.rootNode, matching, restriction));
   }
 
   /**

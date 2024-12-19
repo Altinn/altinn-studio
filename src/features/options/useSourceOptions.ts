@@ -13,15 +13,21 @@ interface IUseSourceOptionsArgs {
   source: IOptionSource | undefined;
   node: LayoutNode;
   dataSources: ExpressionDataSources;
+  addRowInfo: boolean;
 }
 
-export const useSourceOptions = ({ source, node, dataSources }: IUseSourceOptionsArgs): IOptionInternal[] | undefined =>
+export const useSourceOptions = ({
+  source,
+  node,
+  dataSources,
+  addRowInfo,
+}: IUseSourceOptionsArgs): IOptionInternal[] | undefined =>
   useMemoDeepEqual(() => {
     if (!source) {
       return undefined;
     }
 
-    const { formDataRowsSelector, formDataSelector, langToolsSelector } = dataSources;
+    const { formDataRowsSelector, formDataSelector, langToolsSelector, nodeTraversal } = dataSources;
     const output: IOptionInternal[] = [];
     const langTools = langToolsSelector(node);
     const { group, value, label, helpText, description, dataType } = source;
@@ -43,8 +49,26 @@ export const useSourceOptions = ({ source, node, dataSources }: IUseSourceOption
       return output;
     }
 
+    let repGroupNode: LayoutNode<'RepeatingGroup'> | undefined;
+    if (addRowInfo) {
+      repGroupNode = nodeTraversal(
+        (t) =>
+          t.allNodes(
+            (n) =>
+              n.type === 'node' &&
+              n.layout.type === 'RepeatingGroup' &&
+              n.layout.dataModelBindings &&
+              'group' in n.layout.dataModelBindings &&
+              n.layout.dataModelBindings.group.field === groupReference.field &&
+              n.layout.dataModelBindings.group.dataType === groupReference.dataType,
+          )?.[0] as LayoutNode<'RepeatingGroup'> | undefined,
+        [groupDataType, groupReference.field, groupReference.dataType],
+      );
+    }
+
     for (const idx in groupRows) {
-      const path = `${groupReference.field}[${idx}]`;
+      const index = parseInt(idx, 10);
+      const path = `${groupReference.field}[${index}]`;
       const nonTransposed = { dataType: groupDataType, field: path };
       const transposed = transposeDataBinding({
         subject: valueReference,
@@ -72,16 +96,23 @@ export const useSourceOptions = ({ source, node, dataSources }: IUseSourceOption
         }),
       };
 
+      let rowNode: LayoutNode | undefined;
+      if (repGroupNode) {
+        rowNode = nodeTraversal((t) => t.with(repGroupNode).children(undefined, index)?.[0], [repGroupNode, index]);
+      }
+
       output.push({
         value: String(formDataSelector(transposed)),
         label: resolveText(label, node, modifiedDataSources, nonTransposed) as string,
         description: resolveText(description, node, modifiedDataSources, nonTransposed),
         helpText: resolveText(helpText, node, modifiedDataSources, nonTransposed),
+        rowNode,
+        dataModelLocation: addRowInfo ? transposed : undefined,
       });
     }
 
     return output;
-  }, [source, node, dataSources]);
+  }, [source, node, dataSources, addRowInfo]);
 
 function resolveText(
   text: ExprValToActualOrExpr<ExprVal.String> | undefined,
