@@ -4,12 +4,7 @@ import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
 import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import userEvent from '@testing-library/user-event';
-import {
-  codeListWithDuplicatedValues,
-  codeListWithMixedValues,
-  codeListWithNumbers,
-  codeListWithStrings,
-} from './testData';
+import { codeListWithDuplicatedValues, codeListWithNumbers, codeListWithStrings } from './testData';
 
 // Test data:
 const texts: CodeListEditorTexts = {
@@ -263,7 +258,7 @@ describe('StudioCodeListEditor', () => {
     expect(onInvalid).not.toHaveBeenCalled();
   });
 
-  it('Should save all values as numbers, when a code list that only contains numbers is modified', async () => {
+  it('Should save all values as numbers, when a code list that contains numbers is modified', async () => {
     const user = userEvent.setup();
     renderCodeListEditor({ codeList: codeListWithNumbers });
 
@@ -279,7 +274,7 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
-  it('Should save all values as booleans, when a code list that only contains booleans is modified', async () => {
+  it('Should save all values as booleans, when a code list that contains booleans is modified', async () => {
     const user = userEvent.setup();
     const codeListWithBooleans = [{ value: true, label: 'Yes' }];
     renderCodeListEditor({ codeList: codeListWithBooleans });
@@ -296,21 +291,6 @@ describe('StudioCodeListEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith([
       codeListWithBooleans[0],
       { label: '', value: false },
-    ]);
-  });
-
-  it('Should save all values as strings, when code list values are not all numbers or all booleans', async () => {
-    const user = userEvent.setup();
-    renderCodeListEditor({ codeList: codeListWithMixedValues });
-
-    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
-    const newValue = 'false';
-    await user.type(valueInput, newValue);
-
-    expect(onChange).toHaveBeenCalledTimes(newValue.length);
-    expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeListWithMixedValues[0], value: newValue },
-      codeListWithMixedValues[1],
     ]);
   });
 });

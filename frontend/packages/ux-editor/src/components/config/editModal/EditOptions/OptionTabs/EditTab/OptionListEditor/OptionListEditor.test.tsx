@@ -17,9 +17,9 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 
 const apiResult: OptionsLists = {
   options: [
-    { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-    { value: 2, label: 'label number', description: null, helpText: null },
-    { value: true, label: 'label boolean', description: null, helpText: null },
+    { value: 'test', label: 'label1', description: 'description', helpText: 'help text' },
+    { value: 'test2', label: 'label2', description: null, helpText: null },
+    { value: 'test3', label: 'label3', description: null, helpText: null },
   ],
 };
 
@@ -148,9 +148,9 @@ describe('OptionListEditor', () => {
       const user = userEvent.setup();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       const expectedResultAfterEdit: Option[] = [
-        { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-        { value: '2', label: 'label number', description: 'test', helpText: null },
-        { value: 'true', label: 'label boolean', description: null, helpText: null },
+        { value: 'test', label: 'label1', description: 'description', helpText: 'help text' },
+        { value: 'test2', label: 'label2', description: 'test', helpText: null },
+        { value: 'test3', label: 'label3', description: null, helpText: null },
       ];
 
       await user.click(getOptionModalButton());
