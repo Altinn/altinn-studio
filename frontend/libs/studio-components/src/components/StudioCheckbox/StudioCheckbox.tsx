@@ -3,8 +3,9 @@ import type { CheckboxProps } from '@digdir/designsystemet-react';
 import { Checkbox } from '@digdir/designsystemet-react';
 import type { StudioCheckboxGroupContextProps } from './StudioCheckboxGroupContext';
 import { StudioCheckboxGroupContext } from './StudioCheckboxGroupContext';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
-export type StudioCheckboxProps = CheckboxProps;
+export type StudioCheckboxProps = WithoutAsChild<CheckboxProps>;
 
 export const StudioCheckbox = forwardRef<HTMLInputElement, StudioCheckboxProps>(
   ({ size, ...rest }, ref) => {
