@@ -250,7 +250,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the dataType for a given datamodel.
+        /// Gets the dataType for a given data model.
         /// </summary>
         [HttpGet("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
