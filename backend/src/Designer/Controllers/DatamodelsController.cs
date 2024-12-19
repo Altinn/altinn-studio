@@ -261,7 +261,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Updates the dataType for a given model.
+        /// Updates the dataType for a given data model.
         /// </summary>
         [HttpPut("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
