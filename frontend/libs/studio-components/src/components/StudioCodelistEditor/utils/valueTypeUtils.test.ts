@@ -11,7 +11,7 @@ import {
   codeListWithStrings,
   emptyCodeList,
   CodeListWithNumbers1and0,
-} from '../testData';
+} from '../test-data/codeLists';
 
 describe('updateCodeListValueType', () => {
   it('should keep string values as strings', () => {

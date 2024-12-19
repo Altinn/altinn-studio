@@ -58,14 +58,14 @@ describe('featureToggle url', () => {
     window.history.pushState(
       {},
       'PageUrl',
-      '/?featureFlags=resourceMigration,shouldOverrideAppLibCheck&persistFeatureFlag=true',
+      '/?featureFlags=addComponentModal,shouldOverrideAppLibCheck&persistFeatureFlag=true',
     );
     expect(shouldDisplayFeature(FeatureFlag.ComponentConfigBeta)).toBeFalsy();
     expect(shouldDisplayFeature(FeatureFlag.ShouldOverrideAppLibCheck)).toBeTruthy();
-    expect(shouldDisplayFeature(FeatureFlag.ResourceMigration)).toBeTruthy();
+    expect(shouldDisplayFeature(FeatureFlag.AddComponentModal)).toBeTruthy();
     expect(typedSessionStorage.getItem<string[]>('featureFlags')).toEqual([
       'shouldOverrideAppLibCheck',
-      'resourceMigration',
+      'addComponentModal',
     ]);
     expect(typedLocalStorage.getItem<string[]>('featureFlags')).toBeNull();
   });

@@ -2,30 +2,15 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
-import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import userEvent from '@testing-library/user-event';
-import { codeListWithDuplicatedValues, codeListWithNumbers, codeListWithStrings } from './testData';
+import { texts } from './test-data/texts';
+import {
+  codeListWithDuplicatedValues,
+  codeListWithNumbers,
+  codeListWithStrings,
+} from './test-data/codeLists';
 
 // Test data:
-const texts: CodeListEditorTexts = {
-  add: 'Add',
-  codeList: 'Code list',
-  delete: 'Delete',
-  deleteItem: (number) => `Delete item number ${number}`,
-  description: 'Description',
-  emptyCodeList: 'The code list is empty.',
-  valueErrors: {
-    duplicateValue: 'The value must be unique.',
-  },
-  generalError: 'The code list cannot be saved because it is not valid.',
-  helpText: 'Help text',
-  itemDescription: (number) => `Description for item number ${number}`,
-  itemHelpText: (number) => `Help text for item number ${number}`,
-  itemLabel: (number) => `Label for item number ${number}`,
-  itemValue: (number) => `Value for item number ${number}`,
-  label: 'Label',
-  value: 'Value',
-};
 const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onInvalid = jest.fn();

@@ -26,7 +26,6 @@ import {
   getItem,
   isComponentTypeValidChild,
   moveLayoutItem,
-  validateDepth,
 } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
@@ -105,7 +104,6 @@ export const FormDesigner = (): JSX.Element => {
   }
 
   if (formLayoutIsReady) {
-    const triggerDepthAlert = () => alert(t('schema_editor.error_depth'));
     const triggerInvalidChildAlert = () => alert(t('schema_editor.error_invalid_child'));
     const layout = formLayouts[selectedFormLayoutName];
 
@@ -117,10 +115,6 @@ export const FormDesigner = (): JSX.Element => {
         return;
       }
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      if (!validateDepth(updatedLayout)) {
-        triggerDepthAlert();
-        return;
-      }
       addItemToLayout(
         { componentType: type, newId, parentId, index },
         {
@@ -138,10 +132,6 @@ export const FormDesigner = (): JSX.Element => {
         return;
       }
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
-      if (!validateDepth(updatedLayout)) {
-        triggerDepthAlert();
-        return;
-      }
       updateFormLayout(
         { internalLayout: updatedLayout },
         {

@@ -4,9 +4,10 @@ import type { DropdownMenuProps } from '@digdir/designsystemet-react';
 import type { StudioButtonProps } from '../StudioButton';
 import { StudioButton } from '../StudioButton';
 import { StudioDropdownMenuContext } from './StudioDropdownMenuContext';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
 export interface StudioDropdownMenuProps
-  extends Omit<DropdownMenuProps, 'anchorEl' | 'open' | 'onClose'> {
+  extends Omit<WithoutAsChild<DropdownMenuProps>, 'anchorEl' | 'open' | 'onClose'> {
   anchorButtonProps?: StudioButtonProps;
 }
 
