@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StudioHeading, StudioPageError } from '@studio/components';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +28,7 @@ export function CodeListPage({
   fetchDataError,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
+  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('.*');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
   const [codeListsSearchMatch, setCodeListsSearchMatch] =
     useState<CodeListWithMetadata[]>(codeLists);
@@ -39,6 +40,10 @@ export function CodeListPage({
     },
     [codeLists, setCodeListsSearchMatch],
   );
+
+  useEffect(() => {
+    handleSearchCodeLists(codeListSearchPattern);
+  }, [codeLists, codeListSearchPattern, handleSearchCodeLists]);
 
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
@@ -63,7 +68,7 @@ export function CodeListPage({
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
-        onHandleSearchCodeLists={handleSearchCodeLists}
+        onSetCodeListSearchPattern={setCodeListSearchPattern}
       />
       <CodeLists
         codeLists={codeListsSearchMatch}
