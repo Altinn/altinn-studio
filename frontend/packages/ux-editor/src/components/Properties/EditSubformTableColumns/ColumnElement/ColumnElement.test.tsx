@@ -31,7 +31,7 @@ const defaultProps: ColumnElementProps = {
   isInitialOpenForEdit: false,
   onDeleteColumn: jest.fn(),
   onEdit: jest.fn(),
-  layoutSetName: layoutSet3SubformNameMock,
+  subformLayout: layoutSet3SubformNameMock,
 };
 
 describe('ColumnElement', () => {
