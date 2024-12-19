@@ -37,6 +37,8 @@ export function CodeListPage({
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+  const [codeListsSearchMatch, setCodeListsSearchMatch] =
+    useState<CodeListWithMetadata[]>(codeListsData);
 
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
@@ -58,9 +60,11 @@ export function CodeListPage({
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
+        codeLists={codeListsData}
+        onSetCodeListsSearchMatch={setCodeListsSearchMatch}
       />
       <CodeLists
-        codeListsData={codeListsData}
+        codeListsData={codeListsSearchMatch}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
