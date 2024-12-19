@@ -2,6 +2,7 @@ export interface PolicyRuleCard {
   ruleId: string;
   description: string;
   subject: string[];
+  accessPackages?: string[];
   actions: string[];
   resources: PolicyRuleResource[][];
 }
@@ -29,6 +30,7 @@ export interface PolicyRule {
   description: string;
   subject: string[];
   actions: string[];
+  accessPackages?: string[];
   resources: string[][];
 }
 

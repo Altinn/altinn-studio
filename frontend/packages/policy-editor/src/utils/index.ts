@@ -16,6 +16,7 @@ export const emptyPolicyRule: PolicyRuleCard = {
   resources: [],
   actions: [],
   subject: [],
+  accessPackages: [],
   description: '',
 };
 
@@ -63,6 +64,7 @@ export const mapPolicyRulesBackendObjectToPolicyRuleCard = (
       actions: r.actions,
       description: r.description,
       subject: subjectIds,
+      accessPackages: r.accessPackages,
       resources: mappedResources,
     };
   });
@@ -114,6 +116,7 @@ export const mapPolicyRuleToPolicyRuleBackendObject = (
     description: policyRule.description,
     subject: subject,
     actions: policyRule.actions,
+    accessPackages: policyRule.accessPackages,
     resources: resources,
   };
 };
