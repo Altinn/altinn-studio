@@ -15,36 +15,22 @@ type CodeListsActionsBarProps = {
   onUploadCodeList: (updatedCodeList: File) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
-  codeLists: CodeListWithMetadata[];
-  onSetCodeListsSearchMatch: (codeListsSearchMatch: CodeListWithMetadata[]) => void;
+  onHandleSearchCodeLists: (codeListPatternMatch: string) => void;
 };
 
 export function CodeListsActionsBar({
   onUploadCodeList,
   onUpdateCodeList,
   codeListNames,
-  codeLists,
-  onSetCodeListsSearchMatch,
+  onHandleSearchCodeLists,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
   const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('*');
 
-  const handleSearchCodeLists = useCallback(
-    (codeListPatternMatch: string) => {
-      if (codeListPatternMatch !== '*') {
-        const filteredCodeLists = getCodeListsSearchMatch(codeLists, codeListPatternMatch);
-        onSetCodeListsSearchMatch(filteredCodeLists);
-        return;
-      }
-      onSetCodeListsSearchMatch(codeLists);
-    },
-    [codeLists, onSetCodeListsSearchMatch],
-  );
-
   useEffect(() => {
-    handleSearchCodeLists(codeListSearchPattern);
-  }, [codeListNames, handleSearchCodeLists, codeListSearchPattern]);
+    onHandleSearchCodeLists(codeListSearchPattern);
+  }, [codeListNames, onHandleSearchCodeLists, codeListSearchPattern]);
 
   const onSubmit = (file: File) => {
     const fileNameError = FileNameUtils.findFileNameError(
@@ -79,16 +65,3 @@ export function CodeListsActionsBar({
     </div>
   );
 }
-
-const escapeRegExp = (pattern: string): string => {
-  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-};
-
-const getCodeListsSearchMatch = (
-  codeLists: CodeListWithMetadata[],
-  codeListPatternMatch: string,
-): CodeListWithMetadata[] => {
-  const safePattern = escapeRegExp(codeListPatternMatch);
-  const regex = new RegExp(safePattern, 'i');
-  return codeLists.filter((codeList) => regex.test(codeList.title));
-};

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StudioHeading } from '@studio/components';
 import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +40,18 @@ export function CodeListPage({
   const [codeListsSearchMatch, setCodeListsSearchMatch] =
     useState<CodeListWithMetadata[]>(codeListsData);
 
+  const handleSearchCodeLists = useCallback(
+    (codeListPatternMatch: string) => {
+      if (codeListPatternMatch === '*') {
+        setCodeListsSearchMatch(codeListsData);
+        return;
+      }
+      const filteredCodeLists = getCodeListsSearchMatch(codeListsData, codeListPatternMatch);
+      setCodeListsSearchMatch(filteredCodeLists);
+    },
+    [codeListsData, setCodeListsSearchMatch],
+  );
+
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
   const handleUploadCodeList = (uploadedCodeList: File) => {
@@ -62,6 +74,7 @@ export function CodeListPage({
         codeListNames={codeListTitles}
         codeLists={codeListsData}
         onSetCodeListsSearchMatch={setCodeListsSearchMatch}
+        onHandleSearchCodeLists={handleSearchCodeLists}
       />
       <CodeLists
         codeListsData={codeListsSearchMatch}
@@ -74,3 +87,16 @@ export function CodeListPage({
     </div>
   );
 }
+
+const escapeRegExp = (pattern: string): string => {
+  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+const getCodeListsSearchMatch = (
+  codeLists: CodeListWithMetadata[],
+  codeListPatternMatch: string,
+): CodeListWithMetadata[] => {
+  const safePattern = escapeRegExp(codeListPatternMatch);
+  const regex = new RegExp(safePattern, 'i');
+  return codeLists.filter((codeList) => regex.test(codeList.title));
+};
