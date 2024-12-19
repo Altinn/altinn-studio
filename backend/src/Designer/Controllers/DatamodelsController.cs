@@ -254,10 +254,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpGet("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task<IActionResult> GetModelDataType(string org, string repository, string modelName)
+        public async Task<ActionResult<DataType>> GetModelDataType(string org, string repository, string modelName)
         {
-            DataType dataTypeConfiguration = await _schemaModelService.GetModelDataType(org, repository, modelName);
-            return Ok(dataTypeConfiguration);
+            DataType dataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(dataType);
         }
 
         /// <summary>
@@ -265,9 +265,16 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         [HttpPut("datamodel/{modelName}/dataType")]
         [UseSystemTextJson]
-        public async Task SetModelDataType(string org, string repository, [FromBody] DataType dataType)
+        public async Task<ActionResult> SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
         {
-            await _schemaModelService.SetModelDataType(org, repository, dataType);
+            if (!Equals(modelName, dataType.Id))
+            {
+                return BadRequest("Model name in path and request body does not match");
+            }
+
+            await _schemaModelService.SetModelDataType(org, repository, modelName, dataType);
+            DataType updatedDataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(updatedDataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
