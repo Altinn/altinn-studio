@@ -12,6 +12,7 @@ export type ColumnElementProps = {
   subformLayout: string;
   tableColumn: TableColumn;
   columnNumber: number;
+  isInitialOpenForEdit: boolean;
   onDeleteColumn: () => void;
   onEdit: (tableColumn: TableColumn) => void;
 };
@@ -19,12 +20,13 @@ export type ColumnElementProps = {
 export const ColumnElement = ({
   tableColumn,
   columnNumber,
+  isInitialOpenForEdit,
   onDeleteColumn,
   onEdit,
   subformLayout,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(isInitialOpenForEdit);
   const { org, app } = useStudioEnvironmentParams();
   const { data: textResources } = useTextResourcesQuery(org, app);
 
