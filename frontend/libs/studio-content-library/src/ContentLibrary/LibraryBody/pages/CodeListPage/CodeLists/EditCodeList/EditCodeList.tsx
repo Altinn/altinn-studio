@@ -6,7 +6,7 @@ import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
 import { updateCodeListWithMetadata } from '../CodeLists';
-import { FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import classes from './EditCodeList.module.css';
 
@@ -37,7 +37,8 @@ export function EditCodeList({
   };
 
   const handleValidateCodeListId = (newCodeListId: string) => {
-    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, codeListNames);
+    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeList.title);
+    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 
