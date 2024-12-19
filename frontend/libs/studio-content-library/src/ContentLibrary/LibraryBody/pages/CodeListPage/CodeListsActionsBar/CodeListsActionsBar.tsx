@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Search } from '@digdir/designsystemet-react';
-import { StudioFileUploader, usePrevious } from '@studio/components';
+import { StudioFileUploader } from '@studio/components';
 import classes from './CodeListsActionsBar.module.css';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../CodeListPage';
@@ -14,25 +14,17 @@ export type CodeListsActionsBarProps = {
   onUploadCodeList: (updatedCodeList: File) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
-  onHandleSearchCodeLists: (codeListPatternMatch: string) => void;
+  onSetCodeListSearchPattern: (codeListPatternMatch: string) => void;
 };
 
 export function CodeListsActionsBar({
   onUploadCodeList,
   onUpdateCodeList,
   codeListNames,
-  onHandleSearchCodeLists,
+  onSetCodeListSearchPattern,
 }: CodeListsActionsBarProps) {
   const { t } = useTranslation();
   const getInvalidUploadFileNameErrorMessage = useUploadCodeListNameErrorMessage();
-  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('.*');
-  const previousSearchPattern = usePrevious<string>(codeListSearchPattern);
-
-  useEffect(() => {
-    if (previousSearchPattern !== codeListSearchPattern) {
-      onHandleSearchCodeLists(codeListSearchPattern);
-    }
-  }, [codeListNames, onHandleSearchCodeLists, previousSearchPattern, codeListSearchPattern]);
 
   const onSubmit = (file: File) => {
     const fileNameError = FileNameUtils.findFileNameError(
@@ -52,10 +44,10 @@ export function CodeListsActionsBar({
         size='sm'
         placeholder={t('app_content_library.code_lists.search_placeholder')}
         onChange={(event: ChangeEvent<HTMLInputElement>) =>
-          setCodeListSearchPattern(event.target.value)
+          onSetCodeListSearchPattern(event.target.value)
         }
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
-        onClear={() => setCodeListSearchPattern('.*')}
+        onClear={() => onSetCodeListSearchPattern('.*')}
       />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
       <StudioFileUploader
