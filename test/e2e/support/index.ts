@@ -19,8 +19,10 @@ before(() => {
   chai.use(chaiExtensions);
 });
 
-// Clear media emulation before each test
+const DEFAULT_COMMAND_TIMEOUT = Cypress.config().defaultCommandTimeout;
+// Clear media emulation and reset default command timeout before each test
 beforeEach(() => {
+  cy.then(() => Cypress.config('defaultCommandTimeout', DEFAULT_COMMAND_TIMEOUT));
   cy.wrap(
     Cypress.automation('remote:debugger:protocol', {
       command: 'Emulation.setEmulatedMedia',
