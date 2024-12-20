@@ -5,8 +5,9 @@ import type { ModalDialogProps } from '@digdir/designsystemet-react';
 import cn from 'classnames';
 import classes from './StudioModalDialog.module.css';
 import { useForwardedRef } from '@studio/hooks';
+import type { WithoutAsChild } from '../../../types/WithoutAsChild';
 
-export type StudioModalDialogProps = ModalDialogProps & {
+export type StudioModalDialogProps = WithoutAsChild<ModalDialogProps> & {
   children: ReactNode;
   closeButtonTitle: string; // Todo: Currently not used because of this issue: https://github.com/digdir/designsystemet/issues/2195
   contentPadding?: boolean;

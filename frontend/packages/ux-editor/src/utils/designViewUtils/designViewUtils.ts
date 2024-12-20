@@ -30,7 +30,7 @@ export const getPageNameErrorKey = (
   } else if (newNameCandidate.length > 30) {
     return 'ux_editor.pages_error_length';
   } else if (!validateLayoutNameAndLayoutSetName(newNameCandidate)) {
-    return 'ux_editor.pages_error_format';
+    return 'validation_errors.file_name_invalid';
   } else {
     return null;
   }
