@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 import { textResourceByLanguageAndIdSelector } from '../../../../selectors/textResourceSelectors';
 
 export type ColumnElementProps = {
-  layoutSetName: string;
+  subformLayout: string;
   tableColumn: TableColumn;
   columnNumber: number;
   isInitialOpenForEdit: boolean;
@@ -23,7 +23,7 @@ export const ColumnElement = ({
   isInitialOpenForEdit,
   onDeleteColumn,
   onEdit,
-  layoutSetName,
+  subformLayout,
 }: ColumnElementProps): ReactElement => {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(isInitialOpenForEdit);
@@ -38,7 +38,7 @@ export const ColumnElement = ({
   if (editing) {
     return (
       <EditColumnElement
-        layoutSetName={layoutSetName}
+        subformLayout={subformLayout}
         sourceColumn={tableColumn}
         columnNumber={columnNumber}
         onDeleteColumn={onDeleteColumn}
