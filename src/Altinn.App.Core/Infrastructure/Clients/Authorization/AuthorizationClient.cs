@@ -13,6 +13,7 @@ using Altinn.Common.PEP.Interfaces;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.Utils;
+using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -178,5 +179,50 @@ public class AuthorizationClient : IAuthorizationClient
             actionsResult.Add(action, false);
         }
         return MultiDecisionHelper.ValidatePdpMultiDecision(actionsResult, response.Response, user);
+    }
+
+    /// <summary>
+    /// Retrieves roles for a user on a specified party.
+    /// </summary>
+    /// <param name="userId">The user id.</param>
+    /// <param name="userPartyId">The user party id.</param>
+    /// <returns>A list of roles for the user on the specified party.</returns>
+    public async Task<IEnumerable<Role>> GetUserRoles(int userId, int userPartyId)
+    {
+        using var activity = _telemetry?.StartClientGetPartyRoleListActivity(userId, userPartyId);
+
+        List<Role> roles = new();
+        string apiUrl = $"roles?coveredByUserId={userId}&offeredByPartyId={userPartyId}";
+        string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
+
+        try
+        {
+            HttpResponseMessage response = await _client.GetAsync(token, apiUrl);
+            if (response.IsSuccessStatusCode)
+            {
+                string responseContent = await response.Content.ReadAsStringAsync();
+                var deserialized = JsonConvert.DeserializeObject<List<Role>>(responseContent);
+                if (deserialized is not null)
+                {
+                    roles = deserialized;
+                }
+            }
+            else
+            {
+                throw new Exception("Unexpected response from auth API:" + response.StatusCode);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "An error occurred while retrieving roles for userId {UserId} and partyId {PartyId}",
+                userId,
+                userPartyId
+            );
+            throw;
+        }
+
+        return roles;
     }
 }

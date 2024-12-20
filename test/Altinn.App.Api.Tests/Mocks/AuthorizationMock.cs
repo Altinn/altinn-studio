@@ -3,6 +3,8 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Models;
 using Altinn.Platform.Register.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Authorization.Platform.Authorization.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Altinn.App.Api.Tests.Mocks;
 
@@ -68,5 +70,17 @@ public class AuthorizationMock : IAuthorizationClient
         }
 
         return authorizedActions;
+    }
+
+    public async Task<IEnumerable<Role>> GetUserRoles(int userId, int userPartyId)
+    {
+        await Task.CompletedTask;
+        List<Role> roles = new List<Role>
+        {
+            new Role { Type = "altinn", Value = "bobet" },
+            new Role { Type = "altinn", Value = "bobes" },
+        };
+
+        return roles;
     }
 }

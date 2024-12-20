@@ -5,6 +5,8 @@ using Altinn.App.Core.Internal.Auth;
 using Altinn.App.Core.Internal.Profile;
 using Altinn.App.Core.Internal.Registers;
 using Altinn.App.Core.Models;
+using Altinn.Platform.Register.Models;
+using Authorization.Platform.Authorization.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -44,57 +46,14 @@ public class AuthorizationController : Controller
     [HttpGet("{org}/{app}/api/authorization/parties/current")]
     public async Task<ActionResult> GetCurrentParty(bool returnPartyObject = false)
     {
-        UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-        int userId = userContext.UserId;
-
-        // If selected party is different than party for user self need to verify
-        if (userContext.UserParty == null || userContext.PartyId != userContext.UserParty.PartyId)
-        {
-            bool? isValid = await _authorization.ValidateSelectedParty(userId, userContext.PartyId);
-
-            if (isValid == true)
-            {
-                if (returnPartyObject)
-                {
-                    return Ok(userContext.Party);
-                }
-
-                return Ok(userContext.PartyId);
-            }
-            else if (userContext.UserParty != null)
-            {
-                userContext.Party = userContext.UserParty;
-                userContext.PartyId = userContext.UserParty.PartyId;
-            }
-            else
-            {
-                userContext.Party = null;
-                userContext.PartyId = 0;
-            }
-        }
-
-        string? cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
-        if (!int.TryParse(cookieValue, out int partyIdFromCookie))
-        {
-            partyIdFromCookie = 0;
-        }
-
-        // Setting cookie to partyID of logged in user if it varies from previus value.
-        if (partyIdFromCookie != userContext.PartyId)
-        {
-            Response.Cookies.Append(
-                _settings.GetAltinnPartyCookieName,
-                userContext.PartyId.ToString(CultureInfo.InvariantCulture),
-                new CookieOptions { Domain = _settings.HostName }
-            );
-        }
+        (Party? currentParty, _) = await GetCurrentPartyAsync(HttpContext);
 
         if (returnPartyObject)
         {
-            return Ok(userContext.Party);
+            return Ok(currentParty);
         }
 
-        return Ok(userContext.PartyId);
+        return Ok(currentParty?.PartyId ?? 0);
     }
 
     /// <summary>
@@ -122,5 +81,81 @@ public class AuthorizationController : Controller
         {
             return StatusCode(500, $"Something went wrong when trying to validate party {partyId} for user {userId}");
         }
+    }
+
+    /// <summary>
+    /// Fetches roles for current party.
+    /// </summary>
+    /// <returns>List of roles for the current user and party.</returns>
+    // [Authorize]
+    // [HttpGet("{org}/{app}/api/authorization/roles")]
+    // [ProducesResponseType(typeof(IEnumerable<Role), StatusCodes.Status200OK)]
+    // [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [Authorize]
+    [HttpGet("{org}/{app}/api/authorization/roles")]
+    [ProducesResponseType(typeof(IEnumerable<Role>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetRolesForCurrentParty()
+    {
+        (Party? currentParty, UserContext userContext) = await GetCurrentPartyAsync(HttpContext);
+
+        if (currentParty == null)
+        {
+            return BadRequest("Both userId and partyId must be provided.");
+        }
+
+        int userId = userContext.UserId;
+        IEnumerable<Role> roles = await _authorization.GetUserRoles(userId, currentParty.PartyId);
+
+        return Ok(roles);
+    }
+
+    /// <summary>
+    /// Helper method to retrieve the current party and user context from the HTTP context.
+    /// </summary>
+    /// <param name="context">The current HttpContext.</param>
+    /// <returns>A tuple containing the current party and user context.</returns>
+    private async Task<(Party? party, UserContext userContext)> GetCurrentPartyAsync(HttpContext context)
+    {
+        UserContext userContext = await _userHelper.GetUserContext(context);
+        int userId = userContext.UserId;
+
+        // If selected party is different than party for user self need to verify
+        if (userContext.UserParty == null || userContext.PartyId != userContext.UserParty.PartyId)
+        {
+            bool? isValid = await _authorization.ValidateSelectedParty(userId, userContext.PartyId);
+            if (isValid != true)
+            {
+                // Not valid, fall back to userParty if available
+                if (userContext.UserParty != null)
+                {
+                    userContext.Party = userContext.UserParty;
+                    userContext.PartyId = userContext.UserParty.PartyId;
+                }
+                else
+                {
+                    userContext.Party = null;
+                    userContext.PartyId = 0;
+                }
+            }
+        }
+
+        // Sync cookie if needed
+        string? cookieValue = Request.Cookies[_settings.GetAltinnPartyCookieName];
+        if (!int.TryParse(cookieValue, out int partyIdFromCookie))
+        {
+            partyIdFromCookie = 0;
+        }
+
+        if (partyIdFromCookie != userContext.PartyId)
+        {
+            Response.Cookies.Append(
+                _settings.GetAltinnPartyCookieName,
+                userContext.PartyId.ToString(CultureInfo.InvariantCulture),
+                new CookieOptions { Domain = _settings.HostName }
+            );
+        }
+
+        return (userContext.Party, userContext);
     }
 }

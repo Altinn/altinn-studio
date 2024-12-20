@@ -15,6 +15,15 @@ partial class Telemetry
         return activity;
     }
 
+    internal Activity? StartClientGetPartyRoleListActivity(int userId, int partyId)
+    {
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetUserRoles");
+        activity?.SetUserPartyId(partyId);
+        activity?.SetUserId(userId);
+
+        return activity;
+    }
+
     internal Activity? StartClientValidateSelectedPartyActivity(int userId, int partyId)
     {
         var activity = ActivitySource.StartActivity($"{Prefix}.ValidateSelectedParty");
