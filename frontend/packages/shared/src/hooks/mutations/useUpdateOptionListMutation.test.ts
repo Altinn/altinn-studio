@@ -27,7 +27,7 @@ describe('useUpdateOptionListMutation', () => {
     expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, optionListId, optionsList);
   });
 
-  test('Sets the updated option list on the cache', async () => {
+  test('Sets the updated option list on the cache for all option lists', async () => {
     const queryClient = createQueryClientMock();
     const renderUpdateOptionListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListMutation(org, app),
@@ -37,5 +37,17 @@ describe('useUpdateOptionListMutation', () => {
     expect(queryClient.getQueryData([QueryKey.OptionLists, org, app])).toEqual({
       test: updatedOptionsList,
     });
+  });
+
+  test('Sets the updated option list on the cache for the single option list', async () => {
+    const queryClient = createQueryClientMock();
+    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+      () => useUpdateOptionListMutation(org, app),
+      { queries: { updateOptionList }, queryClient },
+    ).result;
+    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    expect(queryClient.getQueryData([QueryKey.OptionList, org, app, optionListId])).toEqual(
+      updatedOptionsList,
+    );
   });
 });
