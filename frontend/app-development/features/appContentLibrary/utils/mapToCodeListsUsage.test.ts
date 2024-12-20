@@ -1,5 +1,5 @@
 import type { CodeListIdSource } from '@studio/content-library';
-import { convertOptionListsUsageToCodeListsUsage } from './convertOptionListsUsageToCodeListsUsage';
+import { mapToCodeListsUsage } from './mapToCodeListsUsage';
 import type { OptionListsReferences } from 'app-shared/types/api/OptionsLists';
 
 const optionListId: string = 'optionListId';
@@ -10,16 +10,16 @@ const optionListIdSources: CodeListIdSource[] = [
     componentIds: ['componentId1', 'componentId2'],
   },
 ];
-const optionListsUsage: OptionListsReferences = [
+const optionListsUsages: OptionListsReferences = [
   {
     optionListId,
     optionListIdSources,
   },
 ];
 
-describe('convertOptionListsUsageToCodeListsUsage', () => {
-  it('converts optionListsUsage to codeListUsage', () => {
-    const codeListUsage = convertOptionListsUsageToCodeListsUsage(optionListsUsage);
+describe('mapToCodeListsUsage', () => {
+  it('maps optionListsUsage to codeListUsage', () => {
+    const codeListUsage = mapToCodeListsUsage({ optionListsUsages });
     expect(codeListUsage).toEqual([
       {
         codeListId: optionListId,
@@ -28,8 +28,8 @@ describe('convertOptionListsUsageToCodeListsUsage', () => {
     ]);
   });
 
-  it('converts undefined optionListsUsage to empty array', () => {
-    const codeListUsage = convertOptionListsUsageToCodeListsUsage(undefined);
+  it('maps undefined optionListsUsage to empty array', () => {
+    const codeListUsage = mapToCodeListsUsage({ optionListsUsages: undefined });
     expect(codeListUsage).toEqual([]);
   });
 });
