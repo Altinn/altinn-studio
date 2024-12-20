@@ -9,12 +9,21 @@ import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 
 const mockComponent = componentMocks[ComponentType.Dropdown];
+const getOptionListIds = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve<string[]>(['test1', 'test2']));
 
 describe('ReferenceTab', () => {
-  it('should render', () => {
+  it('should render a spinner', () => {
     renderReferenceTab();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();
+  });
+
+  it('should render the component', () => {
+    renderReferenceTab();
+
     expect(
-      screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
+      screen.getByText(textMock('ux_editor.options.code_list_reference_id.description')),
     ).toBeInTheDocument();
   });
 
@@ -24,6 +33,7 @@ describe('ReferenceTab', () => {
         optionsId: 'some-id',
       },
     });
+
     expect(screen.getByDisplayValue('some-id')).toBeInTheDocument();
   });
 
@@ -79,5 +89,6 @@ const renderReferenceTab = ({
         ...componentProps,
       }}
     />,
+    { queries: { getOptionListIds } },
   );
 };

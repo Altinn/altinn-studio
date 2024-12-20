@@ -74,7 +74,7 @@ function OptionTabsMergedTabs({
           {t('ux_editor.options.tab_code_list')}
         </StudioTabs.Tab>
         <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
-          {t('ux_editor.options.tab_referenceId')}
+          {t('ux_editor.options.tab_reference_id')}
         </StudioTabs.Tab>
       </StudioTabs.List>
       <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>
@@ -122,7 +122,7 @@ function OptionTabsSplitTabs({ component, handleComponentChange, optionListIds }
           {t('ux_editor.options.tab_manual')}
         </StudioTabs.Tab>
         <StudioTabs.Tab value={SelectedOptionsType.ReferenceId}>
-          {t('ux_editor.options.tab_referenceId')}
+          {t('ux_editor.options.tab_reference_id')}
         </StudioTabs.Tab>
       </StudioTabs.List>
       <StudioTabs.Content className={classes.tabContent} value={SelectedOptionsType.CodeList}>

@@ -259,7 +259,7 @@ describe('TextTab', () => {
         },
       });
       const addReferenceTab = await screen.findByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       });
       await waitFor(() => user.click(addReferenceTab));
       const enterReferenceField = screen.getByRole('textbox', {
