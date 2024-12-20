@@ -94,5 +94,5 @@ export const getCodeListsSearchMatch = (
     safePattern = escapeRegExp(codeListPatternMatch);
   }
   const regex = new RegExp(safePattern, 'i');
-  return codeLists.filter((codeList) => regex.test(codeList.title));
+  return codeLists?.filter((codeList) => regex.test(codeList.title));
 };
