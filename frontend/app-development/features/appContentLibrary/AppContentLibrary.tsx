@@ -16,7 +16,7 @@ import {
   useUpdateOptionListIdMutation,
 } from 'app-shared/hooks/mutations';
 import { useOptionListsReferencesQuery } from 'app-shared/hooks/queries';
-import { convertOptionListsUsageToCodeListsUsage } from './utils/convertOptionListsUsageToCodeListsUsage';
+import { mapToCodeListsUsage } from './utils/mapToCodeListsUsage';
 
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
@@ -31,7 +31,7 @@ export function AppContentLibrary(): React.ReactElement {
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
-  const { data: optionListsUsage, isPending: optionListsUsageIsPending } =
+  const { data: optionListsUsages, isPending: optionListsUsageIsPending } =
     useOptionListsReferencesQuery(org, app);
 
   if (optionListsPending || optionListsUsageIsPending)
@@ -39,8 +39,7 @@ export function AppContentLibrary(): React.ReactElement {
 
   const codeLists = convertOptionListsToCodeLists(optionLists);
 
-  const codeListsUsages: CodeListReference[] =
-    convertOptionListsUsageToCodeListsUsage(optionListsUsage);
+  const codeListsUsages: CodeListReference[] = mapToCodeListsUsage({ optionListsUsages });
 
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
