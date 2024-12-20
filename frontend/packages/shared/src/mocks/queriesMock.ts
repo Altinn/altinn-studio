@@ -69,7 +69,11 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-import type { OptionListsReferences, OptionsList, OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
+import type {
+  OptionListsReferences,
+  OptionsList,
+  OptionsListsResponse,
+} from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 

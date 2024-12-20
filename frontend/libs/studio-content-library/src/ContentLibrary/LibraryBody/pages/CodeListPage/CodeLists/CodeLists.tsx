@@ -24,17 +24,19 @@ export function CodeLists({
   codeListsUsages,
 }: CodeListsProps) {
   return codeListsData.map((codeListData) => {
-        const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
-        return <CodeList
-            key={codeListData.title}
-            codeListData={codeListData}
-            onUpdateCodeListId={onUpdateCodeListId}
-            onUpdateCodeList={onUpdateCodeList}
-            codeListInEditMode={codeListInEditMode}
-            codeListNames={codeListNames}
-            codeListSources={codeListSources}
-        />
-      });
+    const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
+    return (
+      <CodeList
+        key={codeListData.title}
+        codeListData={codeListData}
+        onUpdateCodeListId={onUpdateCodeListId}
+        onUpdateCodeList={onUpdateCodeList}
+        codeListInEditMode={codeListInEditMode}
+        codeListNames={codeListNames}
+        codeListSources={codeListSources}
+      />
+    );
+  });
 }
 
 export const getCodeListSourcesById = (
@@ -47,7 +49,10 @@ export const getCodeListSourcesById = (
   return codeListUsages?.codeListIdSources ?? [];
 };
 
-type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> & { codeListData: CodeListData, codeListSources: CodeListIdSource[] };
+type CodeListProps = Omit<CodeListsProps, 'codeListsData' | 'codeListsUsages'> & {
+  codeListData: CodeListData;
+  codeListSources: CodeListIdSource[];
+};
 
 function CodeList({
   codeListData,

@@ -154,7 +154,7 @@ const defaultCodeListPageProps: CodeListPageProps = {
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   onUploadCodeList: onUploadCodeListMock,
-  codeListsUsages: []
+  codeListsUsages: [],
 };
 
 const renderCodeListPage = (props: Partial<CodeListPageProps> = {}) => {
