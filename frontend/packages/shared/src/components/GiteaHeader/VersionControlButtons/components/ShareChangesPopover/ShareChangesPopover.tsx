@@ -60,20 +60,18 @@ export const ShareChangesPopover = () => {
 
   return (
     <StudioPopover open={popoverOpen} onClose={handleClosePopover} placement='bottom-end'>
-      <StudioPopover.Trigger asChild>
-        <StudioPageHeader.HeaderButton
-          onClick={handleOpenPopover}
-          disabled={!hasPushRights || hasMergeConflict}
-          title={renderCorrectTitle()}
-          icon={<UploadIcon />}
-          color='light'
-          variant='regular'
-          aria-label={t('sync_header.changes_to_share')}
-        >
-          {shouldDisplayText && t('sync_header.changes_to_share')}
-          {displayNotification && <Notification />}
-        </StudioPageHeader.HeaderButton>
-      </StudioPopover.Trigger>
+      <StudioPageHeader.PopoverTrigger
+        onClick={handleOpenPopover}
+        disabled={!hasPushRights || hasMergeConflict}
+        title={renderCorrectTitle()}
+        icon={<UploadIcon />}
+        color='light'
+        variant='regular'
+        aria-label={t('sync_header.changes_to_share')}
+      >
+        {shouldDisplayText && t('sync_header.changes_to_share')}
+        {displayNotification && <Notification />}
+      </StudioPageHeader.PopoverTrigger>
       <StudioPopover.Content
         className={fetchCompleted ? classes.popoverContentCenter : classes.popoverContent}
       >

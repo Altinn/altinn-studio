@@ -10,7 +10,6 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { ServicesContextProvider } from 'app-shared/contexts/ServicesContext';
 import type { QueryClient } from '@tanstack/react-query';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
-import { addFeatureFlagToLocalStorage, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 const mockResource1: Resource = {
   identifier: 'r1',
@@ -93,8 +92,6 @@ describe('ResourcePage', () => {
   });
 
   it('displays migrate tab in left navigation bar when resource reference is present in resource', async () => {
-    addFeatureFlagToLocalStorage(FeatureFlag.ResourceMigration);
-
     const getResource = jest
       .fn()
       .mockImplementation(() => Promise.resolve<Resource>(mockResource1));

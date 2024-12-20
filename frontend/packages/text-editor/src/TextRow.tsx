@@ -79,17 +79,14 @@ export const TextRow = ({
             confirmText={t('schema_editor.textRow-deletion-confirm')}
             onConfirm={handleDeleteClick}
             onClose={() => setIsConfirmDeleteDialogOpen(false)}
-            trigger={
-              <StudioButton
-                className={classes.deleteButton}
-                icon={<TrashIcon title={`Slett ${textId}`} />}
-                variant='tertiary'
-                onClick={() => setIsConfirmDeleteDialogOpen((prevState) => !prevState)}
-                aria-label={t('schema_editor.delete')}
-              >
-                {t('schema_editor.delete')}
-              </StudioButton>
-            }
+            triggerProps={{
+              className: classes.deleteButton,
+              icon: <TrashIcon title={`Slett ${textId}`} />,
+              variant: 'tertiary',
+              onClick: () => setIsConfirmDeleteDialogOpen((prevState) => !prevState),
+              'aria-label': t('schema_editor.delete'),
+              children: t('schema_editor.delete'),
+            }}
           >
             <p>{t('schema_editor.textRow-deletion-text')}</p>
           </AltinnConfirmDialog>
