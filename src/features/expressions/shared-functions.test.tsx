@@ -12,6 +12,7 @@ import { getSharedTests } from 'src/features/expressions/shared';
 import { ExprVal } from 'src/features/expressions/types';
 import { ExprValidation } from 'src/features/expressions/validation';
 import { useExternalApis } from 'src/features/externalApi/useExternalApi';
+import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { fetchApplicationMetadata, fetchProcessState } from 'src/queries/queries';
 import { renderWithNode } from 'src/test/renderWithProviders';
 import { useEvalExpression } from 'src/utils/layout/generator/useEvalExpression';
@@ -19,11 +20,13 @@ import { useExpressionDataSources } from 'src/utils/layout/useExpressionDataSour
 import type { SharedTestFunctionContext } from 'src/features/expressions/shared';
 import type { ExprPositionalArgs, ExprValToActualOrExpr, ExprValueArgs } from 'src/features/expressions/types';
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
+import type { RoleResult } from 'src/features/useCurrentPartyRoles';
 import type { ILayoutCollection } from 'src/layout/layout';
 import type { IData, IDataType } from 'src/types/shared';
 import type { LayoutNode } from 'src/utils/layout/LayoutNode';
 
 jest.mock('src/features/externalApi/useExternalApi');
+jest.mock('src/features/useCurrentPartyRoles');
 
 interface Props {
   node: LayoutNode;
@@ -112,6 +115,7 @@ describe('Expressions shared function tests', () => {
         externalApis,
         positionalArguments,
         valueArguments,
+        roles,
       } = test;
 
       if (disabledFrontend) {
@@ -222,7 +226,11 @@ describe('Expressions shared function tests', () => {
       localStorage.clear();
 
       (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockResolvedValue(applicationMetadata);
-      (useExternalApis as jest.Mock<typeof useExternalApis>).mockReturnValue(externalApis as ExternalApisResult);
+      jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
+
+      if (roles) {
+        jest.mocked(useCurrentPartyRoles).mockReturnValue(roles as RoleResult);
+      }
 
       (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
         Promise.resolve(process ?? getProcessDataMock()),

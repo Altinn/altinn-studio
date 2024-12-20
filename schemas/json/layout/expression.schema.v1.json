@@ -111,7 +111,8 @@
         { "$ref": "#/definitions/func-notContains" },
         { "$ref": "#/definitions/func-endsWith" },
         { "$ref": "#/definitions/func-startsWith" },
-        { "$ref": "#/definitions/func-commaContains" }
+        { "$ref": "#/definitions/func-commaContains" },
+        { "$ref": "#/definitions/func-hasRole" }
       ]
     },
     "number": {
@@ -186,6 +187,16 @@
       "items": [
         { "const":  "externalApi" },
         { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-hasRole": {
+      "title": "Roles lookup function",
+      "description": "This function will look up a role that the user has for their current party",
+      "type": "array",
+      "items": [
+        { "const":  "hasRole" },
         { "$ref": "#/definitions/string" }
       ],
       "additionalItems": false

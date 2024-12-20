@@ -194,6 +194,11 @@ export interface IProcess {
   processTasks?: ITask[];
 }
 
+export interface Role {
+  type: string;
+  value: string;
+}
+
 export interface IProfile {
   userId: number;
   userName: string;

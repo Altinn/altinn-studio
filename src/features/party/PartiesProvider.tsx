@@ -13,7 +13,7 @@ import { useApplicationMetadata } from 'src/features/applicationMetadata/Applica
 import { NoValidPartiesError } from 'src/features/instantiate/containers/NoValidPartiesError';
 import { reduceToValidParties } from 'src/features/party/partyProviderUtils';
 import { useShouldFetchProfile } from 'src/features/profile/ProfileProvider';
-import { type IParty } from 'src/types/shared';
+import type { IParty } from 'src/types/shared';
 import type { HttpClientError } from 'src/utils/network/sharedNetworking';
 
 // Also used for prefetching @see appPrefetcher.ts, partyPrefetcher.ts

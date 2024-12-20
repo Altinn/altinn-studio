@@ -8,6 +8,7 @@ import { useLaxInstanceDataSources } from 'src/features/instance/InstanceContext
 import { useLaxProcessData } from 'src/features/instance/ProcessContext';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useInnerLanguageWithForcedNodeSelector } from 'src/features/language/useLanguage';
+import { useCurrentPartyRoles } from 'src/features/useCurrentPartyRoles';
 import { useMultipleDelayedSelectors } from 'src/hooks/delayedSelectors';
 import { useShallowObjectMemo } from 'src/hooks/useShallowObjectMemo';
 import { Hidden, NodesInternal, useNodes } from 'src/utils/layout/NodesContext';
@@ -18,6 +19,7 @@ import type { AttachmentsSelector } from 'src/features/attachments/AttachmentsSt
 import type { ExternalApisResult } from 'src/features/externalApi/useExternalApi';
 import type { IUseLanguage } from 'src/features/language/useLanguage';
 import type { NodeOptionsSelector } from 'src/features/options/OptionsStorePlugin';
+import type { RoleResult } from 'src/features/useCurrentPartyRoles';
 import type { FormDataRowsSelector, FormDataSelector } from 'src/layout';
 import type { IDataModelReference, ILayoutSet } from 'src/layout/common.generated';
 import type { IApplicationSettings, IInstanceDataSources, IProcess } from 'src/types/shared';
@@ -45,6 +47,7 @@ export interface ExpressionDataSources {
   nodeTraversal: NodeTraversalSelector;
   transposeSelector: DataModelTransposeSelector;
   externalApis: ExternalApisResult;
+  roles: RoleResult;
   currentDataModelPath?: IDataModelReference;
 }
 
@@ -85,7 +88,10 @@ export function useExpressionDataSources(): ExpressionDataSources {
     nodeDataSelector,
   );
 
+  const roles = useCurrentPartyRoles();
+
   return useShallowObjectMemo({
+    roles,
     formDataSelector,
     formDataRowsSelector,
     attachmentsSelector,

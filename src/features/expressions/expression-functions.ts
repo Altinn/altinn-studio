@@ -329,6 +329,19 @@ export const ExprFunctions = {
     minArguments: 1,
     returns: ExprVal.Any,
   }),
+  hasRole: defineFunc({
+    impl(roleName): boolean | null {
+      if (typeof roleName !== 'string') {
+        throw new ExprRuntimeError(this.expr, this.path, `Expected string argument.`);
+      }
+      if (!this.dataSources.roles) {
+        return false;
+      }
+      return this.dataSources.roles.data?.map((role) => role.value).includes(roleName) ?? null;
+    },
+    args: [ExprVal.String] as const,
+    returns: ExprVal.Boolean,
+  }),
   externalApi: defineFunc({
     impl(externalApiId, path): string | null {
       if (typeof externalApiId !== 'string' || typeof path !== 'string') {
