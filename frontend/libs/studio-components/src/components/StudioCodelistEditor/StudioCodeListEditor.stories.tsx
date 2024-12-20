@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
-import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
+import { codeListWithStrings } from './test-data/codeLists';
 import { texts } from './test-data/texts';
 
 type Story = StoryObj<typeof StudioCodeListEditor>;
@@ -13,7 +13,7 @@ export default meta;
 
 export const Preview: Story = {
   args: {
-    codeList: codeListWithoutTextResources,
+    codeList: codeListWithStrings,
     texts,
   },
 };
