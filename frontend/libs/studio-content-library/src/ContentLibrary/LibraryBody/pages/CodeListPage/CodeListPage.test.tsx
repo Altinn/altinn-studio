@@ -109,11 +109,13 @@ describe('CodeListPage', () => {
       title: uploadedCodeListName,
       data: codeListMock,
     });
-    rerender(<CodeListPage {...defaultCodeListPageProps} />);
+    const newCodeListsData: CodeListWithMetadata[] = [...defaultCodeListPageProps.codeListsData];
+    rerender(<CodeListPage {...defaultCodeListPageProps} codeListsData={newCodeListsData} />);
     const codeListAccordionOpen = screen.getByRole('button', {
       name: uploadedCodeListName,
       expanded: true,
     });
+    expect(codeListAccordionClosed).toHaveAttribute('aria-expanded', 'false');
     expect(codeListAccordionOpen).toHaveAttribute('aria-expanded', 'true');
   });
 
@@ -221,7 +223,7 @@ describe('getCodeListsSearchMatch', () => {
   it('returns all code lists when search pattern is .*', () => {
     const result = getCodeListsSearchMatch(codeLists, '.*');
     const resultTitles = result.map((res) => res.title);
-    expect(resultTitles).toBe(['codeList1', 'codeList2', 'myCodeList', 'otherList']);
+    expect(resultTitles).toEqual(['codeList1', 'codeList2', 'myCodeList', 'otherList']);
   });
 
   it('returns no matches when no code list matches the pattern', () => {
