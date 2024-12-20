@@ -1,1 +1,1 @@
-export type { CodeListWithMetadata } from './CodeListPage';
+export type { CodeListWithMetadata, CodeListIdSource, CodeListReference } from './CodeListPage';
