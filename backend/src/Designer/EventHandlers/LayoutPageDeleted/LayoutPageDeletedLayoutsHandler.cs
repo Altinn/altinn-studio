@@ -20,7 +20,7 @@ public class LayoutPageDeletedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHa
             async () =>
             {
                 List<Reference> referencesToDelete = [new Reference("page", notification.LayoutSetName, notification.LayoutName)];
-                return await appDevelopmentService.DeleteReferencesFromLayouts(notification.EditingContext, referencesToDelete, cancellationToken);
+                return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToDelete, cancellationToken);
             });
     }
 }

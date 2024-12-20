@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
 using Altinn.Studio.DataModeling.Metamodel;
@@ -595,7 +595,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await SaveFormLayout(editingContext, layoutSetName, layoutName, formLayout, cancellationToken);
         }
 
-        public async Task<bool> DeleteReferencesFromLayouts(AltinnRepoEditingContext editingContext, List<Reference> referencesToDelete, CancellationToken cancellationToken)
+        public async Task<bool> UpdateLayoutReferences(AltinnRepoEditingContext editingContext, List<Reference> referencesToUpdate, CancellationToken cancellationToken)
         {
             AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(
                     editingContext.Org,
@@ -604,17 +604,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
 
-            return await DeleteReferencesFromLayouts(altinnAppGitRepository, layoutSets.Sets, referencesToDelete, cancellationToken);
+            return await UpdateLayoutReferences(altinnAppGitRepository, layoutSets.Sets, referencesToUpdate, cancellationToken);
         }
 
-        private async Task<bool> DeleteReferencesFromLayouts(AltinnAppGitRepository altinnAppGitRepository, List<LayoutSetConfig> layoutSets, List<Reference> referencesToDelete, CancellationToken cancellationToken)
+        private async Task<bool> UpdateLayoutReferences(AltinnAppGitRepository altinnAppGitRepository, List<LayoutSetConfig> layoutSets, List<Reference> referencesToUpdate, CancellationToken cancellationToken)
         {
-            List<Reference> newReferencesToDelete = [];
+            List<Reference> referencesToDelete = [];
             bool hasChanges = false;
 
-            var deletedLayoutsSetIds = referencesToDelete.Where(item => item.Type == "layoutSet").Select(item => item.Id).ToList();
-            var deletedLayouts = referencesToDelete.Where(item => item.Type == "page").ToList();
-            var deletedComponents = referencesToDelete.Where(item => item.Type == "component").ToList();
+            var deletedReferences = referencesToUpdate.Where(item => string.IsNullOrEmpty(item.NewId)).ToList();
+            var updatedReferences = referencesToUpdate.Where(item => !string.IsNullOrEmpty(item.NewId)).ToList();
+
+            var deletedLayoutsSetIds = deletedReferences.Where(item => item.Type == "layoutSet").Select(item => item.Id).ToList();
+            var deletedLayouts = deletedReferences.Where(item => item.Type == "page").ToList();
+            var deletedComponents = deletedReferences.Where(item => item.Type == "component").ToList();
+
+            var updatedLayoutsSets = updatedReferences.Where(item => item.Type == "layoutSet").ToList();
+            var updatedLayouts = updatedReferences.Where(item => item.Type == "page").ToList();
+            var updatedComponents = updatedReferences.Where(item => item.Type == "component").ToList();
 
             foreach (LayoutSetConfig layoutSet in layoutSets ?? [new() { Id = null }])
             {
@@ -622,93 +629,171 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 Dictionary<string, JsonNode> layouts = await altinnAppGitRepository.GetFormLayouts(layoutSet.Id, cancellationToken);
 
-                var deletedLayoutIds = deletedLayouts.Where(item => item.LayoutSetName == layoutSet.Id).Select(item => item.Id).ToList();
+                var deletedLayoutIdsFromCurrentLayoutSet = deletedLayouts.Where(item => item.LayoutSetName == layoutSet.Id && string.IsNullOrEmpty(item.NewId)).Select(item => item.Id).ToList();
                 foreach (KeyValuePair<string, JsonNode> layout in layouts)
                 {
-                    bool isLayoutDeleted = deletedLayoutIds.Contains(layout.Key);
+                    bool isLayoutDeleted = deletedLayoutIdsFromCurrentLayoutSet.Contains(layout.Key);
                     bool hasLayoutChanges = false;
 
                     // TODO : https://github.com/Altinn/altinn-studio/issues/14073
-                    if (layout.Value["data"] is not JsonObject data || data["layout"] is not JsonArray componentList)
+                    if (layout.Value["data"] is not JsonObject data)
                     {
-                        return false;
+                        continue;
                     }
 
-                    var deletedLayoutComponentIds = deletedComponents.Where(item => item.LayoutSetName == layoutSet.Id).Select(item => item.Id).ToList();
-                    for (int i = componentList.Count - 1; i >= 0; i--)
+                    var deletedComponentIdsFromCurrentLayoutSet = deletedComponents.Where(item => item.LayoutSetName == layoutSet.Id && string.IsNullOrEmpty(item.NewId)).Select(item => item.Id).ToList();
+                    var updatedComponentsFromCurrentLayoutSet = updatedComponents.Where(item => item.LayoutSetName == layoutSet.Id && !string.IsNullOrEmpty(item.NewId)).ToList();
+
+                    if (data["layout"] is JsonArray componentList)
                     {
-                        JsonNode componentNode = componentList[i];
-                        if (componentNode is not JsonObject component)
+                        for (int i = componentList.Count - 1; i >= 0; i--)
                         {
-                            continue;
-                        }
-
-                        string componentId = component["id"]?.GetValue<string>();
-                        bool isComponentDeleted = deletedLayoutComponentIds.Contains(componentId);
-
-                        if (isLayoutSetDeleted || isLayoutDeleted || isComponentDeleted)
-                        {
-                            if (!isComponentDeleted)
+                            JsonNode componentNode = componentList[i];
+                            if (componentNode is not JsonObject component)
                             {
-                                newReferencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                continue;
                             }
 
-                            continue;
-                        }
+                            string componentId = component["id"]?.GetValue<string>();
+                            bool isComponentDeleted = deletedComponentIdsFromCurrentLayoutSet.Contains(componentId);
 
-                        string componentType = component["type"]?.GetValue<string>();
-                        switch (componentType)
-                        {
-                            case "Subform":
-                                if (deletedLayoutsSetIds.Contains(component["layoutSet"]?.GetValue<string>()))
+                            if (isComponentDeleted)
+                            {
+                                componentList.RemoveAt(i);
+                                hasLayoutChanges = true;
+                            }
+                            else
+                            {
+                                Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(item => item.Id == componentId);
+                                if (updatedReference != null)
                                 {
-                                    newReferencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
-                                    componentList.RemoveAt(i);
+                                    component["id"] = updatedReference.NewId;
                                     hasLayoutChanges = true;
                                 }
-                                break;
-                            case "Summary2":
-                                if (component["target"] is JsonObject target)
-                                {
-                                    string type = target["type"]?.GetValue<string>();
-                                    string id = target["id"]?.GetValue<string>();
-                                    string taskId = target["taskId"]?.GetValue<string>();
-                                    string layouSetId = string.IsNullOrEmpty(taskId) ? layoutSet.Id : layoutSets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
+                            }
 
-                                    if (type switch
+                            if (isLayoutSetDeleted || isLayoutDeleted || isComponentDeleted)
+                            {
+                                if (!isComponentDeleted)
+                                {
+                                    referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                }
+
+                                continue;
+                            }
+
+                            string componentType = component["type"]?.GetValue<string>();
+                            switch (componentType)
+                            {
+                                case "Subform":
+                                    string subformLayoutSet = component["layoutSet"]?.GetValue<string>();
+                                    if (deletedLayoutsSetIds.Contains(subformLayoutSet))
                                     {
-                                        "layoutSet" => deletedLayoutsSetIds.Contains(layouSetId),
-                                        "page" => deletedLayouts.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
-                                        "component" => deletedComponents.Exists(item => item.LayoutSetName == layouSetId && item.Id == id),
-                                        _ => false
-                                    })
-                                    {
-                                        newReferencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                        referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
                                         componentList.RemoveAt(i);
                                         hasLayoutChanges = true;
                                     }
-
-                                    if (component["overrides"] is JsonArray overrideList)
+                                    else
                                     {
-                                        overrideList.RemoveAll(overrideItem =>
+                                        Reference updatedReference = updatedLayoutsSets.FirstOrDefault(item => item.Id == subformLayoutSet);
+                                        if (updatedReference != null)
                                         {
-                                            string componentId = overrideItem["componentId"]?.GetValue<string>();
-                                            if (deletedComponents.Exists(item => item.LayoutSetName == layouSetId && item.Id == componentId))
-                                            {
-                                                hasLayoutChanges = true;
-                                                return true;
-                                            }
-
-                                            return false;
-                                        });
-
-                                        if (overrideList.Count == 0)
-                                        {
-                                            component.Remove("overrides");
+                                            component["layoutSet"] = updatedReference.NewId;
+                                            hasLayoutChanges = true;
                                         }
                                     }
-                                }
-                                break;
+                                    break;
+                                case "Summary":
+                                    string componentRef = component["componentRef"]?.GetValue<string>();
+                                    if (deletedComponentIdsFromCurrentLayoutSet.Contains(componentRef))
+                                    {
+                                        component["componentRef"] = "";
+                                        hasLayoutChanges = true;
+                                    }
+                                    else
+                                    {
+                                        Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(item => item.Id == componentRef);
+                                        if (updatedReference != null)
+                                        {
+                                            component["componentRef"] = updatedReference.NewId;
+                                            hasLayoutChanges = true;
+                                        }
+                                    }
+                                    break;
+                                case "Summary2":
+                                    if (component["target"] is JsonObject target)
+                                    {
+                                        string type = target["type"]?.GetValue<string>();
+                                        string id = target["id"]?.GetValue<string>();
+                                        string taskId = target["taskId"]?.GetValue<string>();
+                                        string layoutSetId = string.IsNullOrEmpty(taskId) ? layoutSet.Id : layoutSets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
+
+                                        if (type switch
+                                        {
+                                            "layoutSet" => deletedLayoutsSetIds.Contains(layoutSetId),
+                                            "page" => deletedLayouts.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id),
+                                            "component" => deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id),
+                                            _ => false
+                                        })
+                                        {
+                                            referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
+                                            componentList.RemoveAt(i);
+                                            hasLayoutChanges = true;
+                                        }
+                                        else
+                                        {
+                                            Reference updatedReference = null;
+
+                                            switch (type)
+                                            {
+                                                case "layoutSet":
+                                                    updatedReference = updatedLayoutsSets.FirstOrDefault(item => item.Type == type && item.Id == layoutSetId);
+                                                    break;
+                                                case "page":
+                                                    updatedReference = updatedLayouts.FirstOrDefault(item => item.Type == type && item.LayoutSetName == layoutSetId && item.Id == id);
+                                                    break;
+                                                case "component":
+                                                    updatedReference = updatedComponents.FirstOrDefault(item => item.Type == type && item.LayoutSetName == layoutSetId && item.Id == id);
+                                                    break;
+                                            }
+
+                                            if (updatedReference != null)
+                                            {
+                                                target["taskId"] = updatedReference.NewId;
+                                                hasLayoutChanges = true;
+                                            }
+                                        }
+
+                                        if (component["overrides"] is JsonArray overrideList)
+                                        {
+                                            for (int j = overrideList.Count - 1; j >= 0; j--)
+                                            {
+                                                JsonNode overrideItem = overrideList[j];
+                                                string overrideComponentId = overrideItem["componentId"]?.GetValue<string>();
+                                                if (deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == overrideComponentId))
+                                                {
+                                                    overrideList.RemoveAt(i);
+                                                    hasLayoutChanges = true;
+                                                }
+                                                else
+                                                {
+                                                    Reference updatedReference = updatedComponents.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == overrideComponentId);
+                                                    if (updatedReference != null)
+                                                    {
+                                                        overrideItem["componentId"] = updatedReference.NewId;
+                                                        hasLayoutChanges = true;
+                                                    }
+                                                }
+
+                                                if (overrideList.Count == 0)
+                                                {
+                                                    component.Remove("overrides");
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                            }
                         }
                     }
 
@@ -716,7 +801,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     {
                         if (!isLayoutDeleted)
                         {
-                            newReferencesToDelete.Add(new Reference("page", layoutSet.Id, layout.Key));
+                            referencesToDelete.Add(new Reference("page", layoutSet.Id, layout.Key));
                         }
 
                         continue;
@@ -730,9 +815,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 }
             }
 
-            if (newReferencesToDelete.Count > 0)
+            if (referencesToDelete.Count > 0)
             {
-                hasChanges |= await DeleteReferencesFromLayouts(altinnAppGitRepository, layoutSets, newReferencesToDelete, cancellationToken);
+                hasChanges |= await UpdateLayoutReferences(altinnAppGitRepository, layoutSets, referencesToDelete, cancellationToken);
             }
 
             return hasChanges;
