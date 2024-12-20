@@ -3,8 +3,9 @@ import type { CheckboxGroupProps } from '@digdir/designsystemet-react';
 import { Checkbox } from '@digdir/designsystemet-react';
 import { StudioCheckboxGroupContext } from './StudioCheckboxGroupContext';
 import { DEFAULT_CHECKBOX_SIZE } from './constants';
+import type { WithoutAsChild } from '../../types/WithoutAsChild';
 
-export type StudioCheckboxGroupProps = CheckboxGroupProps;
+export type StudioCheckboxGroupProps = WithoutAsChild<CheckboxGroupProps>;
 
 export const StudioCheckboxGroup = forwardRef<HTMLFieldSetElement, StudioCheckboxGroupProps>(
   ({ children, size = DEFAULT_CHECKBOX_SIZE, ...rest }, ref) => (
