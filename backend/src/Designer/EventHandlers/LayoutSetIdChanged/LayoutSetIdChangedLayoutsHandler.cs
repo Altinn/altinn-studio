@@ -1,0 +1,26 @@
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Altinn.Studio.Designer.Events;
+using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Services.Interfaces;
+using MediatR;
+
+namespace Altinn.Studio.Designer.EventHandlers.LayoutSetDeleted;
+
+public class LayoutSetIdChangedLayoutsHandler(IFileSyncHandlerExecutor fileSyncHandlerExecutor, IAppDevelopmentService appDevelopmentService) : INotificationHandler<LayoutSetIdChangedEvent>
+{
+    public async Task Handle(LayoutSetIdChangedEvent notification, CancellationToken cancellationToken)
+    {
+        await fileSyncHandlerExecutor.ExecuteWithExceptionHandlingAndConditionalNotification(
+            notification.EditingContext,
+            SyncErrorCodes.LayoutSetIdChangedLayoutsSyncError,
+            "layouts",
+            async () =>
+            {
+                List<Reference> referencesToUpdate = [new Reference("layoutSet", notification.LayoutSetName, notification.LayoutSetName, notification.NewLayoutSetName)];
+                return await appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
+            });
+    }
+}
