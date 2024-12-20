@@ -6,7 +6,7 @@ using Altinn.Studio.Designer.Enums;
 namespace Altinn.Studio.Designer.Models
 {
     /// <summary>
-    /// Model describing a complete resource from the resrouce registry
+    /// Model describing a complete resource from the resource registry
     /// </summary>
     public class ServiceResource
     {
@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Models
         /// <summary>
         /// List of possible contact points
         /// </summary>
-        public List<ContactPoint> ContactPoints { get; set; }
+        public required List<ContactPoint> ContactPoints { get; set; }
 
         /// <summary>
         /// Linkes to the outcome of a public service

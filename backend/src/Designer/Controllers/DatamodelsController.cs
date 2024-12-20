@@ -37,6 +37,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
         /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
+        /// <param name="modelNameValidator">Interface for validating that the model name does not already belong to a data type</param>
         public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator, IModelNameValidator modelNameValidator)
         {
             _schemaModelService = schemaModelService;
