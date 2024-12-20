@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -67,7 +68,7 @@ public class AuthStatusTest : AnsattPortenControllerTestsBase<AuthStatusTest>, I
         {
             services.AddAuthentication(defaultScheme: TestAuthConstants.TestAuthenticationScheme)
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                    TestAuthConstants.TestAuthenticationScheme, options => { });
+                    TestAuthConstants.TestAuthenticationScheme, options => { options.TimeProvider = TimeProvider.System; });
             services.AddTransient<IAuthenticationSchemeProvider, TestSchemeProvider>();
         };
 
