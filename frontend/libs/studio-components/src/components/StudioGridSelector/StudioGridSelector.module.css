@@ -38,19 +38,19 @@
   border-radius: var(--border-radius);
 }
 
+.range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: var(--thumb-width);
+}
+
 .range::-moz-range-track {
-  aspect-ratio: 12;
+  height: 100%;
   background: var(--background);
   border-radius: var(--border-radius);
 }
 
-.range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: var(--thumb-width);
-}
-
 .range::-moz-range-thumb {
+  visibility: hidden;
   width: var(--thumb-width);
 }
 
