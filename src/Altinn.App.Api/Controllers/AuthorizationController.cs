@@ -89,7 +89,9 @@ public class AuthorizationController : Controller
     /// <returns>List of roles for the current user and party.</returns>
     [Authorize]
     [HttpGet("{org}/{app}/api/authorization/roles")]
-    public async Task<IActionResult> GetRolesForCurrentParty()
+    [ProducesResponseType(typeof(IEnumerable<Roles), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult<IEnumerable<Roles>> GetRolesForCurrentParty()
     {
         (Party? currentParty, UserContext userContext) = await GetCurrentPartyAsync(HttpContext);
 
