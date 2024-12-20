@@ -87,7 +87,7 @@ import type { Policy } from 'app-shared/types/Policy';
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
-import type {OptionsList, OptionsListsResponse} from 'app-shared/types/api/OptionsLists';
+import type { OptionsList, OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());

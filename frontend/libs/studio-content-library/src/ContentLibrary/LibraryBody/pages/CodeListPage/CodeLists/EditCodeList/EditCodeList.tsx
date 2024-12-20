@@ -42,7 +42,7 @@ export function EditCodeList({
   };
 
   const handleValidateCodeListId = (newCodeListId: string) => {
-    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeList.title);
+    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
     const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
