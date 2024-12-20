@@ -81,6 +81,14 @@ describe('CodeLists', () => {
     expect(errorMessage).toBeInTheDocument();
   });
 
+  it('does not show error message when reassigning the original name ', async () => {
+    const user = userEvent.setup();
+    renderCodeLists({ codeListNames: [codeListName] });
+    await changeCodeListId(user, codeListName, codeListName);
+    const errorMessage = screen.queryByText(textMock('validation_errors.file_name_occupied'));
+    expect(errorMessage).not.toBeInTheDocument();
+  });
+
   it('does not call onUpdateCodeListId when assigning an invalid id to the code list', async () => {
     const user = userEvent.setup();
     const invalidCodeListName = 'invalidCodeListName';
