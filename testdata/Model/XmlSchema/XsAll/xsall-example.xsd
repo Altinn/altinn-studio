@@ -8,6 +8,13 @@
   <xsd:complexType name="SampleType">
     <xsd:all>
       <xsd:element name="refElement" type="xsd:string" nillable="true" minOccurs="0" maxOccurs="1"/>
+      <xsd:element name="classRef" type="ComplexType" nillable="true" minOccurs="0" maxOccurs="1"/>
     </xsd:all>
+  </xsd:complexType>
+
+  <xsd:complexType name="ComplexType">
+    <xsd:sequence>
+      <xsd:element name="list" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
   </xsd:complexType>
 </xsd:schema>
