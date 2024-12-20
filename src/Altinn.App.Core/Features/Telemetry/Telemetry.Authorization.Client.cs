@@ -17,7 +17,7 @@ partial class Telemetry
 
     internal Activity? StartClientGetPartyRoleListActivity(int userId, int partyId)
     {
-        var activity = ActivitySource.StartActivity($"{Prefix}.GetUserRolesAsync");
+        var activity = ActivitySource.StartActivity($"{Prefix}.GetUserRoles");
         activity?.SetUserPartyId(partyId);
         activity?.SetUserId(userId);
 
