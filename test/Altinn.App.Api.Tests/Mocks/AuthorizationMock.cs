@@ -72,7 +72,7 @@ public class AuthorizationMock : IAuthorizationClient
         return authorizedActions;
     }
 
-    public async Task<IEnumerable<Role>> GetUserRolesAsync(int userId, int userPartyId)
+    public async Task<IEnumerable<Role>> GetUserRoles(int userId, int userPartyId)
     {
         await Task.CompletedTask;
         List<Role> roles = new List<Role>

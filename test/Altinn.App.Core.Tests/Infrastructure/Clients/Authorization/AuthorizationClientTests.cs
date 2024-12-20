@@ -179,7 +179,7 @@ public class AuthorizationClientTests
             telemetrySink.Object
         );
 
-        var actualRoles = await client.GetUserRolesAsync(userId, userPartyId);
+        var actualRoles = await client.GetUserRoles(userId, userPartyId);
 
         actualRoles.Should().BeEquivalentTo(expectedRoles);
     }
@@ -239,7 +239,7 @@ public class AuthorizationClientTests
             telemetry.Object
         );
 
-        await Assert.ThrowsAsync<Exception>(() => client.GetUserRolesAsync(userId, userPartyId));
+        await Assert.ThrowsAsync<Exception>(() => client.GetUserRoles(userId, userPartyId));
     }
 
     private static ClaimsPrincipal GetClaims(string partyId)

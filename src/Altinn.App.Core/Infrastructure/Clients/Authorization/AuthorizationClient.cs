@@ -187,7 +187,7 @@ public class AuthorizationClient : IAuthorizationClient
     /// <param name="userId">The user id.</param>
     /// <param name="userPartyId">The user party id.</param>
     /// <returns>A list of roles for the user on the specified party.</returns>
-    public async Task<IEnumerable<Role>> GetUserRolesAsync(int userId, int userPartyId)
+    public async Task<IEnumerable<Role>> GetUserRoles(int userId, int userPartyId)
     {
         using var activity = _telemetry?.StartClientGetPartyRoleListActivity(userId, userPartyId);
 
