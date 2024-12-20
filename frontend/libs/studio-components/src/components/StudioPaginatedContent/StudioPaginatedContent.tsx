@@ -2,29 +2,27 @@ import React, { type ReactNode, type ReactElement } from 'react';
 import classes from './StudioPaginatedContent.module.css';
 import { StudioButton } from '../StudioButton';
 import { ChevronLeftIcon, ChevronRightIcon } from '@studio/icons';
+import { type StudioPaginatedNavigation } from './types/StudioPaginatedNavigation';
+
+type ButtonTexts = {
+  previous: string;
+  next: string;
+};
 
 export type StudioPaginatedContentProps = {
-  componentToRender: ReactNode;
   totalPages: number;
   currentPageNumber: number;
-  previousButtonText: string;
-  nextButtonText: string;
-  canGoNext?: boolean;
-  canGoPrevious?: boolean;
-  onNext: () => void;
-  onPrevious: () => void;
+  componentToRender: ReactNode;
+  buttonTexts: ButtonTexts;
+  navigation: StudioPaginatedNavigation;
 };
 
 export const StudioPaginatedContent = ({
-  componentToRender,
+  navigation: { canGoNext = true, canGoPrevious = true, onNext, onPrevious },
   totalPages,
+  componentToRender,
   currentPageNumber,
-  previousButtonText,
-  nextButtonText,
-  canGoNext = true,
-  canGoPrevious = true,
-  onNext,
-  onPrevious,
+  buttonTexts: { previous: previousButtonText, next: nextButtonText },
 }: StudioPaginatedContentProps): ReactElement => {
   return (
     <div className={classes.wrapper}>
@@ -34,14 +32,7 @@ export const StudioPaginatedContent = ({
           <ChevronLeftIcon className={classes.icon} />
           {previousButtonText}
         </StudioButton>
-        <div className={classes.statusBarContainer}>
-          {Array.from({ length: totalPages }, (_, index) => (
-            <div
-              key={index}
-              className={`${classes.statusBarPiece} ${index <= currentPageNumber ? classes.active : ''}`}
-            />
-          ))}
-        </div>
+        <NavigationCircles totalPages={totalPages} currentPageNumber={currentPageNumber} />
         <StudioButton variant='tertiary' size='sm' onClick={onNext} disabled={!canGoNext}>
           {nextButtonText}
           <ChevronRightIcon />
@@ -50,3 +41,25 @@ export const StudioPaginatedContent = ({
     </div>
   );
 };
+
+type NavigationCirclesProps = {
+  totalPages: number;
+  currentPageNumber: number;
+};
+
+const NavigationCircles = ({ totalPages, currentPageNumber }: NavigationCirclesProps) => {
+  return (
+    <div className={classes.statusBarContainer}>
+      {getArrayFromLength(totalPages).map((_, index) => (
+        <div
+          key={index}
+          role='status'
+          className={`${classes.statusBarPiece} ${index <= currentPageNumber ? classes.active : ''}`}
+        />
+      ))}
+    </div>
+  );
+};
+
+const getArrayFromLength = (length: number): number[] =>
+  Array.from({ length }, (_, index) => index);

@@ -1,10 +1,10 @@
-import React, { type ChangeEvent, type ReactNode, useState } from 'react';
+import React, { type ChangeEvent, useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { StudioPaginatedContent } from './StudioPaginatedContent';
 import { StudioParagraph } from '../StudioParagraph';
 import { StudioTextfield } from '../StudioTextfield';
-import { useValidation } from './hooks/useValidation';
 import { usePagination } from './hooks/usePagination';
+import { type StudioPaginatedItem } from './types/StudioPaginatedItem';
 
 type ChildrenProps = {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -43,27 +43,28 @@ export const Preview: Story = () => {
     setInputValue(value);
   };
 
-  const pages: ReactNode[] = [
-    <Children1 key={1} value={inputValue} onChange={handleInputChange} />,
-    <Children2 key={2} />,
-    <Children3 key={3} />,
-    <Children4 key={4} />,
+  const items: StudioPaginatedItem[] = [
+    {
+      pageContent: <Children1 key={1} value={inputValue} onChange={handleInputChange} />,
+      validationRuleForNextButton: inputValue === '3',
+    },
+    {
+      pageContent: <Children2 key={2} />,
+    },
+    {
+      pageContent: <Children3 key={3} />,
+    },
+    {
+      pageContent: <Children4 key={4} />,
+    },
   ];
-
-  const { currentPage, goNext, goPrevious, hasPreviousPage, hasNextPage } = usePagination(
-    pages.length,
-  );
-  const { isValid } = useValidation(currentPage, [currentPage === 0 ? inputValue === '3' : true]);
+  const { currentPage, pages, navigation } = usePagination(items);
 
   return (
     <StudioPaginatedContent
-      previousButtonText='Previous'
-      nextButtonText='Next'
+      buttonTexts={{ previous: 'Previous', next: 'Next' }}
       componentToRender={pages[currentPage]}
-      canGoNext={hasNextPage && isValid}
-      canGoPrevious={hasPreviousPage}
-      onNext={goNext}
-      onPrevious={goPrevious}
+      navigation={navigation}
       currentPageNumber={currentPage}
       totalPages={pages.length}
     />
