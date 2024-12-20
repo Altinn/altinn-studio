@@ -18,6 +18,19 @@ describe('usePagination', () => {
     expect(result.current.navigation.canGoPrevious).toBe(false);
   });
 
+  it('should set canGoNext to true when validationRuleForNextButton is undefined', () => {
+    const itemsWithoutValidationRuleForNextButton: StudioPaginatedItem[] = [
+      { pageContent: <div>Page 1</div> },
+      { pageContent: <div>Page 2</div> },
+    ];
+    const { result } = renderHook(() => usePagination(itemsWithoutValidationRuleForNextButton));
+
+    expect(result.current.currentPage).toBe(0);
+    expect(result.current.pages).toHaveLength(2);
+    expect(result.current.navigation.canGoNext).toBe(true);
+    expect(result.current.navigation.canGoPrevious).toBe(false);
+  });
+
   it('should go to the next page if validation rule allows', () => {
     const { result } = renderHook(() => usePagination(items));
     act(() => {

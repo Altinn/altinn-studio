@@ -44,6 +44,22 @@ describe('StudioPaginatedContent', () => {
     expect(screen.getByText('Previous')).toBeDisabled();
   });
 
+  it('enables the next button when canGoNext is undefined', () => {
+    renderStudioPaginatedContent({
+      navigation: { ...navigationMock, canGoNext: undefined },
+    });
+
+    expect(screen.getByText('Next')).not.toBeDisabled();
+  });
+
+  it('enables the previous button when canGoPrevious is undefined', () => {
+    renderStudioPaginatedContent({
+      navigation: { ...navigationMock, canGoPrevious: undefined },
+    });
+
+    expect(screen.getByText('Next')).not.toBeDisabled();
+  });
+
   it('disables the next button when canGoNext is false', () => {
     renderStudioPaginatedContent({
       navigation: { ...navigationMock, canGoNext: false },
