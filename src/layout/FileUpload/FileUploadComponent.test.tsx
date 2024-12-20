@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { v4 as uuidv4 } from 'uuid';
-import type { jest } from '@jest/globals';
 import type { AxiosResponse } from 'axios';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
@@ -342,17 +341,15 @@ async function renderAbstract<T extends Types>({
   component,
   attachments: attachmentsGenerator = (dataType) => getDataElements({ dataType }),
 }: Props<T>) {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(
-      getIncomingApplicationMetadataMock((a) => {
-        a.dataTypes.push({
-          id,
-          allowedContentTypes: ['image/png'],
-          maxCount: 4,
-          minCount: 1,
-        });
-      }),
-    ),
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock((a) => {
+      a.dataTypes.push({
+        id,
+        allowedContentTypes: ['image/png'],
+        maxCount: 4,
+        minCount: 1,
+      });
+    }),
   );
   const id = uuidv4();
   const attachments = attachmentsGenerator(id);

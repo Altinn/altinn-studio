@@ -27,9 +27,8 @@ describe('App', () => {
   });
 
   test('should render unknown error when hasApplicationMetadataError', async () => {
-    (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
-      Promise.reject(new Error('500 Server Error')),
-    );
+    jest.mocked(fetchApplicationMetadata).mockImplementation(() => Promise.reject(new Error('500 Server Error')));
+
     await renderWithInstanceAndLayout({
       renderer: () => <App />,
     });

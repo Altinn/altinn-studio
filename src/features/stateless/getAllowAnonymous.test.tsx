@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLayoutSetsMock } from 'src/__mocks__/getLayoutSetsMock';
@@ -16,18 +15,16 @@ const TestComponent = () => {
 };
 
 const render = async (stateless: boolean, allowAnonymous: boolean) => {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve({
-      ...getIncomingApplicationMetadataMock(),
-      ...(stateless
-        ? {
-            onEntry: {
-              show: allowAnonymous ? 'stateless-anon' : 'stateless',
-            },
-          }
-        : {}),
-    }),
-  );
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () => ({
+    ...getIncomingApplicationMetadataMock(),
+    ...(stateless
+      ? {
+          onEntry: {
+            show: allowAnonymous ? 'stateless-anon' : 'stateless',
+          },
+        }
+      : {}),
+  }));
 
   return await renderWithoutInstanceAndLayout({
     renderer: () => <TestComponent />,

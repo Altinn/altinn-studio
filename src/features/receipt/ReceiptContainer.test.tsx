@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -78,20 +77,16 @@ const buildInstance = (hasPdf = true) =>
   });
 
 const render = async ({ autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(
-      getIncomingApplicationMetadataMock((a) => {
-        a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
-      }),
-    ),
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock((a) => {
+      a.autoDeleteOnProcessEnd = autoDeleteOnProcessEnd;
+    }),
   );
-  (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
-    Promise.resolve(
-      getProcessDataMock((p) => {
-        p.currentTask = undefined;
-        p.ended = '2022-02-05T09:19:32.8858042Z';
-      }),
-    ),
+  jest.mocked(fetchProcessState).mockImplementation(async () =>
+    getProcessDataMock((p) => {
+      p.currentTask = undefined;
+      p.ended = '2022-02-05T09:19:32.8858042Z';
+    }),
   );
 
   return await renderWithoutInstanceAndLayout({

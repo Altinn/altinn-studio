@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { OrganisationLogo } from 'src/components/presentation/OrganisationLogo/OrganisationLogo';
@@ -11,9 +10,7 @@ import { renderWithInstanceAndLayout } from 'src/test/renderWithProviders';
 import type { IncomingApplicationMetadata } from 'src/features/applicationMetadata/types';
 
 const render = async (logo: IncomingApplicationMetadata['logo']) => {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
-    Promise.resolve(getIncomingApplicationMetadataMock({ logo })),
-  );
+  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
 
   return await renderWithInstanceAndLayout({
     renderer: () => <OrganisationLogo />,

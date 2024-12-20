@@ -225,16 +225,10 @@ describe('Expressions shared function tests', () => {
       // Clear localstorage, because LanguageProvider uses it to cache selected languages
       localStorage.clear();
 
-      (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockResolvedValue(applicationMetadata);
+      jest.mocked(fetchApplicationMetadata).mockResolvedValue(applicationMetadata);
       jest.mocked(useExternalApis).mockReturnValue(externalApis as ExternalApisResult);
-
-      if (roles) {
-        jest.mocked(useCurrentPartyRoles).mockReturnValue(roles as RoleResult);
-      }
-
-      (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
-        Promise.resolve(process ?? getProcessDataMock()),
-      );
+      jest.mocked(fetchProcessState).mockImplementation(async () => process ?? getProcessDataMock());
+      jest.mocked(useCurrentPartyRoles).mockReturnValue(roles as RoleResult);
 
       const nodeId = nodeIdFromContext(context);
       await renderWithNode({

@@ -1,8 +1,8 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import type { jest } from '@jest/globals';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -69,14 +69,12 @@ describe('ConfirmPage', () => {
   });
 
   it('should show loading when clicking submit', async () => {
-    (fetchProcessState as jest.Mock<typeof fetchProcessState>).mockImplementation(() =>
-      Promise.resolve(
-        getProcessDataMock((p) => {
-          p.currentTask!.actions = {
-            confirm: true,
-          };
-        }),
-      ),
+    jest.mocked(fetchProcessState).mockImplementation(async () =>
+      getProcessDataMock((p) => {
+        p.currentTask!.actions = {
+          confirm: true,
+        };
+      }),
     );
 
     const { mutations } = await renderWithInstanceAndLayout({

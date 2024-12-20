@@ -1,9 +1,8 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { act, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getLogoMock } from 'src/__mocks__/getLogoMock';
@@ -38,9 +37,7 @@ describe('organisms/AltinnAppHeader', () => {
     logo?: ApplicationMetadata['logoOptions'];
   }
   const render = async ({ party, user = partyPerson, logo }: IRenderComponentProps) => {
-    (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
-      Promise.resolve(getIncomingApplicationMetadataMock({ logo })),
-    );
+    jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock({ logo }));
 
     return await renderWithInstanceAndLayout({
       renderer: () => (

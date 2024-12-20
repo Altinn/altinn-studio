@@ -93,14 +93,12 @@ const mockSchema: JSONSchema7 = {
 type MinimalRenderProps = Partial<Omit<Parameters<typeof renderWithInstanceAndLayout>[0], 'renderer'>>;
 type RenderProps = MinimalRenderProps & { renderer: React.ReactElement };
 async function statelessRender(props: RenderProps) {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(
-      getIncomingApplicationMetadataMock({
-        onEntry: {
-          show: 'stateless',
-        },
-      }),
-    ),
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock({
+      onEntry: {
+        show: 'stateless',
+      },
+    }),
   );
   const initialRenderRef = { current: true };
   const { mocks: formDataMethods, proxies: formDataProxies } = makeFormDataMethodProxies(initialRenderRef);
@@ -160,9 +158,9 @@ async function statelessRender(props: RenderProps) {
 }
 
 async function statefulRender(props: RenderProps) {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(getIncomingApplicationMetadataMock()),
-  );
+  jest
+    .mocked(fetchApplicationMetadata)
+    .mockImplementationOnce(() => Promise.resolve(getIncomingApplicationMetadataMock()));
   return await renderWithInstanceAndLayout({
     ...props,
     alwaysRouteToChildren: true,

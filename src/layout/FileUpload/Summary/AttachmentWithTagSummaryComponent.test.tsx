@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -105,17 +104,15 @@ const render = async ({ component, addAttachment = true }: RenderProps) => {
     created: '2021-09-08T12:00:00',
   };
 
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(
-      getIncomingApplicationMetadataMock((appMetadata) => {
-        appMetadata.dataTypes.push({
-          id: 'myComponent',
-          allowedContentTypes: ['application/pdf'],
-          maxCount: 4,
-          minCount: 1,
-        });
-      }),
-    ),
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock((appMetadata) => {
+      appMetadata.dataTypes.push({
+        id: 'myComponent',
+        allowedContentTypes: ['application/pdf'],
+        maxCount: 4,
+        minCount: 1,
+      });
+    }),
   );
 
   return await renderWithNode<true, LayoutNode<'FileUploadWithTag'>>({

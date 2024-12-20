@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -45,20 +44,19 @@ describe('AttachmentListComponent', () => {
 });
 
 const render = async (ids?: string[]) => {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(
-      getIncomingApplicationMetadataMock((a) => {
-        a.dataTypes.push(
-          generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' }),
-          generateDataType({
-            id: 'different-process-task',
-            dataType: 'text/plain',
-            taskId: 'Task_2',
-          }),
-        );
-      }),
-    ),
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock((a) => {
+      a.dataTypes.push(
+        generateDataType({ id: 'not-ref-data-as-pdf', dataType: 'text/plain', taskId: 'Task_1' }),
+        generateDataType({
+          id: 'different-process-task',
+          dataType: 'text/plain',
+          taskId: 'Task_2',
+        }),
+      );
+    }),
   );
+
   return await renderGenericComponentTest({
     type: 'AttachmentList',
     renderer: (props) => <AttachmentListComponent {...props} />,

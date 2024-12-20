@@ -42,13 +42,11 @@ function TestComponent({ ids }: TestProps) {
 }
 
 async function render(props: TestProps) {
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementationOnce(() =>
-    Promise.resolve(
-      getIncomingApplicationMetadataMock((a) => {
-        a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
-        a.dataTypes.push(...generateDataTypes());
-      }),
-    ),
+  jest.mocked(fetchApplicationMetadata).mockImplementationOnce(async () =>
+    getIncomingApplicationMetadataMock((a) => {
+      a.dataTypes = a.dataTypes.filter((dt) => !dt.appLogic?.classRef);
+      a.dataTypes.push(...generateDataTypes());
+    }),
   );
   const dataModelNames = Object.keys(props.dataModels);
   const idToNameMap: { [id: string]: string } = {};

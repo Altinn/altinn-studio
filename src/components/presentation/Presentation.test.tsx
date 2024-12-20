@@ -14,15 +14,15 @@ import { HttpStatusCodes } from 'src/utils/network/networking';
 import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
 import type { IPresentationProvidedProps } from 'src/components/presentation/Presentation';
 
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+const assignMock = jest.fn();
+
 describe('Presentation', () => {
   const user = userEvent.setup();
-  jest.mock('axios');
-  const mockedAxios = axios as jest.Mocked<typeof axios>;
-  let assignMock = jest.fn();
   let realLocation: Location = window.location;
 
   beforeEach(() => {
-    assignMock = jest.fn();
     realLocation = window.location;
   });
 

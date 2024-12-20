@@ -1,7 +1,7 @@
 import React from 'react';
 
+import { jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { getInstanceDataMock } from 'src/__mocks__/getInstanceDataMock';
@@ -97,6 +97,8 @@ describe('Expressions shared context tests', () => {
                 : undefined;
 
         const applicationMetadata = getApplicationMetadataMock(instance ? {} : { onEntry: { show: 'stateless' } });
+        jest.mocked(fetchApplicationMetadata).mockImplementation(async () => applicationMetadata);
+
         if (instanceDataElements) {
           for (const element of instanceDataElements) {
             if (!applicationMetadata.dataTypes!.find((dt) => dt.id === element.dataType)) {
@@ -109,10 +111,6 @@ describe('Expressions shared context tests', () => {
             }
           }
         }
-
-        (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
-          Promise.resolve(applicationMetadata),
-        );
 
         await renderWithInstanceAndLayout({
           renderer: () => <TestContexts />,

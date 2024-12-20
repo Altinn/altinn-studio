@@ -1,8 +1,7 @@
 import React from 'react';
 
-import { expect } from '@jest/globals';
+import { expect, jest } from '@jest/globals';
 import { screen } from '@testing-library/react';
-import type { jest } from '@jest/globals';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
 import { useAppName, useAppOwner } from 'src/core/texts/appTexts';
@@ -32,9 +31,8 @@ interface RenderProps {
 
 async function render({ nbTitle, textResources = [], orgs = {} }: RenderProps) {
   const overrides = nbTitle ? { title: { nb: nbTitle } } : {};
-  (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
-    Promise.resolve(getIncomingApplicationMetadataMock(overrides)),
-  );
+  jest.mocked(fetchApplicationMetadata).mockImplementation(async () => getIncomingApplicationMetadataMock(overrides));
+
   return await renderWithoutInstanceAndLayout({
     renderer: () => <AppTextsRenderer />,
     queries: {

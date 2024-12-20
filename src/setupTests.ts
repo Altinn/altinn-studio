@@ -95,8 +95,8 @@ jest.mock('src/queries/queries', () => ({
   ...jest.requireActual<AppQueries>('src/queries/queries'),
   fetchApplicationMetadata: jest
     .fn<typeof fetchApplicationMetadata>()
-    .mockImplementation(() => Promise.resolve(getIncomingApplicationMetadataMock())),
-  fetchProcessState: jest.fn<typeof fetchProcessState>(() => Promise.resolve(getProcessDataMock())),
+    .mockImplementation(async () => getIncomingApplicationMetadataMock()),
+  fetchProcessState: jest.fn<typeof fetchProcessState>(async () => getProcessDataMock()),
 }));
 
 jest.mock('react-helmet-async', () => ({

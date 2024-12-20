@@ -129,9 +129,7 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     window.org = org;
     window.app = app;
 
-    (fetchApplicationMetadata as jest.Mock<typeof fetchApplicationMetadata>).mockImplementation(() =>
-      Promise.resolve(set.app.getAppMetadata()),
-    );
+    jest.mocked(fetchApplicationMetadata).mockImplementation(async () => set.app.getAppMetadata());
 
     await renderWithInstanceAndLayout({
       renderer: () =>
