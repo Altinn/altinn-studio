@@ -5,6 +5,6 @@ namespace Altinn.Studio.Designer.Models
     {
         public required string OrgNr { get; set; }
         public required string OrgName { get; set; }
-        public bool IsSubParty { get; set; }
+        public bool? IsSubParty { get; set; }
     }
 }
