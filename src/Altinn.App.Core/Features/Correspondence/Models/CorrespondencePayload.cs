@@ -4,17 +4,6 @@ using Altinn.App.Core.Models;
 namespace Altinn.App.Core.Features.Correspondence.Models;
 
 /// <summary>
-/// Defines an authorisation method to use with the correspondence server.
-/// </summary>
-public enum CorrespondenceAuthorisation
-{
-    /// <summary>
-    /// Uses the built-in <see cref="MaskinportenClient"/> for authorization.
-    /// </summary>
-    Maskinporten,
-}
-
-/// <summary>
 /// Authorisation properties which are common for all correspondence interaction.
 /// </summary>
 public abstract record CorrespondencePayloadBase
@@ -22,6 +11,8 @@ public abstract record CorrespondencePayloadBase
     internal Func<Task<JwtToken>>? AccessTokenFactory { get; init; }
 
     internal CorrespondenceAuthorisation? AuthorisationMethod { get; init; }
+
+    internal abstract string RequiredScope { get; }
 }
 
 /// <summary>
@@ -30,6 +21,7 @@ public abstract record CorrespondencePayloadBase
 public sealed record SendCorrespondencePayload : CorrespondencePayloadBase
 {
     internal CorrespondenceRequest CorrespondenceRequest { get; init; }
+    internal override string RequiredScope => CorrespondenceApiScopes.Write;
 
     /// <summary>
     /// Instantiates a new payload for <see cref="SendCorrespondencePayload"/>.
@@ -59,10 +51,8 @@ public sealed record SendCorrespondencePayload : CorrespondencePayloadBase
 /// </summary>
 public sealed record GetCorrespondenceStatusPayload : CorrespondencePayloadBase
 {
-    /// <summary>
-    /// The correspondence identifier.
-    /// </summary>
-    public Guid CorrespondenceId { get; init; }
+    internal Guid CorrespondenceId { get; init; }
+    internal override string RequiredScope => CorrespondenceApiScopes.Read;
 
     /// <summary>
     /// Instantiates a new payload for <see cref="CorrespondenceClient.GetStatus"/>.

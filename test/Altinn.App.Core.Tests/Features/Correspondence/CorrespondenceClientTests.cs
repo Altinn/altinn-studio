@@ -320,8 +320,13 @@ public class CorrespondenceClientTests
             .WithInnerExceptionExactly(typeof(HttpRequestException));
     }
 
-    [Fact]
-    public async Task AuthorisationFactory_ImplementsMaskinportenCorrectly()
+    [Theory]
+    [InlineData(typeof(SendCorrespondencePayload), new[] { "altinn:correspondence.write", "altinn:serviceowner" })]
+    [InlineData(typeof(GetCorrespondenceStatusPayload), new[] { "altinn:correspondence.read", "altinn:serviceowner" })]
+    public async Task AuthorisationFactory_ImplementsMaskinportenCorrectly(
+        Type payloadType,
+        IEnumerable<string> expectedScopes
+    )
     {
         // Arrange
         await using var fixture = Fixture.Create();
@@ -329,21 +334,17 @@ public class CorrespondenceClientTests
         var mockHttpClientFactory = fixture.HttpClientFactoryMock;
         var mockMaskinportenClient = fixture.MaskinportenClientMock;
         var mockHttpClient = new Mock<HttpClient>();
-        var correspondencePayload = PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten);
         var altinnTokenResponse = PrincipalUtil.GetOrgToken("ttd");
         var altinnTokenWrapperResponse = JwtToken.Parse(altinnTokenResponse);
-        var correspondenceResponse = new SendCorrespondenceResponse
-        {
-            Correspondences =
-            [
-                new CorrespondenceDetailsResponse
-                {
-                    CorrespondenceId = Guid.NewGuid(),
-                    Status = CorrespondenceStatus.Published,
-                    Recipient = OrganisationOrPersonIdentifier.Parse("991825827"),
-                },
-            ],
-        };
+
+        Func<Task<object>> action = async () =>
+            payloadType == typeof(SendCorrespondencePayload)
+                ? await fixture.CorrespondenceClient.Send(
+                    PayloadFactory.Send(authorisation: CorrespondenceAuthorisation.Maskinporten)
+                )
+                : await fixture.CorrespondenceClient.GetStatus(
+                    PayloadFactory.GetStatus(authorisation: CorrespondenceAuthorisation.Maskinporten)
+                );
 
         mockHttpClientFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(mockHttpClient.Object);
         mockMaskinportenClient
@@ -366,18 +367,20 @@ public class CorrespondenceClientTests
                             altinnTokenResponse
                         ),
                         var path when path.EndsWith("/correspondence/upload") => TestHelpers.ResponseMessageFactory(
-                            correspondenceResponse
+                            "dummy response."
+                        ),
+                        var path when path.EndsWith("/details") => TestHelpers.ResponseMessageFactory(
+                            "dummy response."
                         ),
                         _ => throw FailException.ForFailure($"Unknown mock endpoint: {request.RequestUri}"),
                     }
             );
 
         // Act
-        var response = await fixture.CorrespondenceClient.Send(correspondencePayload);
+        await action.Should().ThrowAsync<CorrespondenceRequestException>().WithMessage("Invalid response*");
 
         // Assert
-        response.Should().BeEquivalentTo(correspondenceResponse);
         mockMaskinportenClient.Verify();
-        capturedMaskinportenScopes.Should().BeEquivalentTo(["altinn:correspondence.write", "altinn:serviceowner"]);
+        capturedMaskinportenScopes.Should().BeEquivalentTo(expectedScopes);
     }
 }

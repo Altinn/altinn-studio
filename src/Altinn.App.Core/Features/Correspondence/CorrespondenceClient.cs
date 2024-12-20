@@ -40,29 +40,6 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         _authorisationFactory = new CorrespondenceAuthorisationFactory(serviceProvider);
     }
 
-    private async Task<JwtToken> AuthorisationResolver(CorrespondencePayloadBase payload)
-    {
-        if (payload.AccessTokenFactory is null && payload.AuthorisationMethod is null)
-        {
-            throw new CorrespondenceArgumentException(
-                "Neither AccessTokenFactory nor AuthorisationMethod was provided in the CorrespondencePayload object"
-            );
-        }
-
-        if (payload.AccessTokenFactory is not null)
-        {
-            return await payload.AccessTokenFactory();
-        }
-
-        return payload.AuthorisationMethod switch
-        {
-            CorrespondenceAuthorisation.Maskinporten => await _authorisationFactory.Maskinporten(),
-            _ => throw new CorrespondenceArgumentException(
-                $"Unknown CorrespondenceAuthorisation `{payload.AuthorisationMethod}`"
-            ),
-        };
-    }
-
     /// <inheritdoc />
     public async Task<SendCorrespondenceResponse> Send(
         SendCorrespondencePayload payload,
@@ -118,7 +95,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
         CancellationToken cancellationToken = default
     )
     {
-        _logger.LogDebug("Fetching correspondence status");
+        _logger.LogDebug("Fetching correspondence status for {CorrespondenceId}", payload.CorrespondenceId);
         using Activity? activity = _telemetry?.StartCorrespondenceStatusActivity(payload.CorrespondenceId);
 
         try
@@ -162,7 +139,7 @@ internal sealed class CorrespondenceClient : ICorrespondenceClient
     )
     {
         _logger.LogDebug("Fetching access token via factory");
-        JwtToken accessToken = await AuthorisationResolver(payload);
+        JwtToken accessToken = await _authorisationFactory.Resolve(payload);
 
         _logger.LogDebug("Constructing authorized http request for target uri {TargetEndpoint}", uri);
         HttpRequestMessage request = new(method, uri) { Content = content };
