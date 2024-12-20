@@ -7,7 +7,6 @@ import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
-import { ArrayUtils } from '@studio/pure-functions';
 
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
@@ -18,7 +17,7 @@ const uploadedCodeListName = 'uploadedCodeListName';
 
 describe('CodeListPage', () => {
   afterEach(() => {
-    defaultCodeListPageProps.codeListsData = codeListsDataMock;
+    defaultCodeListPageProps.codeListsData = [...codeListsDataMock];
     jest.clearAllMocks();
   });
 

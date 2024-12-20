@@ -19,6 +19,7 @@ const updateCodeListIdButtonTextMock = 'Update Code List Id';
 const codeListNameMock = 'codeListNameMock';
 const newCodeListNameMock = 'newCodeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
+const optionListsDataMock: OptionsListsResponse = [{ title: codeListNameMock, data: codeListMock }];
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
@@ -119,7 +120,7 @@ describe('AppContentLibrary', () => {
 
   it('calls onUpdateOptionListId when onUpdateCodeListId is triggered', async () => {
     const user = userEvent.setup();
-    renderAppContentLibrary(optionListsMock);
+    renderAppContentLibrary();
     await goToLibraryPage(user, 'code_lists');
     const updateCodeListIdButton = screen.getByRole('button', {
       name: updateCodeListIdButtonTextMock,
@@ -150,7 +151,7 @@ type renderAppContentLibraryProps = {
 
 const renderAppContentLibrary = ({
   queries = {},
-  optionListsData = [],
+  optionListsData = optionListsDataMock,
 }: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
   if (optionListsData.length) {
