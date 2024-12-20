@@ -5,6 +5,7 @@ import type { PropsWithChildren } from 'react';
 import { afterAll, beforeAll, expect, jest } from '@jest/globals';
 import { act, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
+import dot from 'dot-object';
 import type { JSONSchema7 } from 'json-schema';
 
 import { getIncomingApplicationMetadataMock } from 'src/__mocks__/getApplicationMetadataMock';
@@ -34,6 +35,7 @@ interface DataModelFlat {
   'obj1.prop1': string;
   'obj1.prop2': string;
   'obj2.prop1': string;
+  'obj3.prop1': number;
 }
 
 interface RenderCounts {
@@ -84,6 +86,14 @@ const mockSchema: JSONSchema7 = {
       properties: {
         prop1: {
           type: 'string',
+        },
+      },
+    },
+    obj3: {
+      type: 'object',
+      properties: {
+        prop1: {
+          type: 'integer',
         },
       },
     },
@@ -566,6 +576,80 @@ describe('FormData', () => {
       // would be restored when fetching it from the server, as we asserted that it was saved before navigating away.
       expect(screen.getByTestId('obj2.prop1')).toHaveValue('');
       expect(screen.getByTestId('hasUnsavedChanges')).toHaveTextContent('false');
+    });
+  });
+
+  describe('Invaid data', () => {
+    function InvalidReadWrite({
+      path,
+      dataType = statelessDataTypeMock,
+    }: {
+      path: keyof DataModelFlat;
+      dataType?: string;
+    }) {
+      const {
+        formData: { simpleBinding: value },
+        setValue,
+      } = useDataModelBindings({
+        simpleBinding: { field: path, dataType },
+      });
+      const validValue = dot.pick(path, FD.useDebounced(dataType));
+      const invalidValue = dot.pick(path, FD.useInvalidDebounced(dataType));
+
+      return (
+        <>
+          <input
+            data-testid={path}
+            value={value}
+            onChange={(ev) => setValue('simpleBinding', ev.target.value)}
+          />
+          <input
+            data-testid={`valid-${path}`}
+            disabled
+            value={validValue ?? ''}
+          />
+          <input
+            data-testid={`invalid-${path}`}
+            disabled
+            value={invalidValue ?? ''}
+          />
+        </>
+      );
+    }
+
+    async function render(props: MinimalRenderProps = {}) {
+      const utils = await statelessRender({
+        renderer: <InvalidReadWrite path='obj3.prop1' />,
+        queries: {
+          fetchFormData: async () => ({
+            obj3: {
+              prop1: null,
+            },
+          }),
+          ...props.queries,
+        },
+        ...props,
+      });
+
+      return utils;
+    }
+
+    it('Clearing an invalid value should remove invalid data', async () => {
+      const user = userEvent.setup({ delay: null });
+      await render();
+
+      await user.type(screen.getByTestId('obj3.prop1'), '999');
+      await waitFor(() => expect(screen.getByTestId('valid-obj3.prop1')).toHaveValue('999'));
+      expect(screen.getByTestId('invalid-obj3.prop1')).toHaveValue('');
+
+      await user.clear(screen.getByTestId('obj3.prop1'));
+      await user.type(screen.getByTestId('obj3.prop1'), '999999999999999999999999999999');
+      await waitFor(() => expect(screen.getByTestId('valid-obj3.prop1')).toHaveValue(''));
+      expect(screen.getByTestId('invalid-obj3.prop1')).toHaveValue('999999999999999999999999999999');
+
+      await user.clear(screen.getByTestId('obj3.prop1'));
+      await waitFor(() => expect(screen.getByTestId('invalid-obj3.prop1')).toHaveValue(''));
+      expect(screen.getByTestId('valid-obj3.prop1')).toHaveValue('');
     });
   });
 });

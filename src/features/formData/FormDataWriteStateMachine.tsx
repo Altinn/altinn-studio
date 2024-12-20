@@ -299,11 +299,14 @@ function makeActions(
     const { reference, newValue, state } = props;
     if (newValue === '' || newValue === null || newValue === undefined) {
       const prevValue = dot.pick(reference.field, state.dataModels[reference.dataType].currentData);
+      const prevInvalidValue = dot.pick(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
 
       // We conflate null and undefined, so no need to set to null or undefined if the value is
       // already null or undefined
       if (prevValue !== null && prevValue !== undefined) {
         dot.delete(reference.field, state.dataModels[reference.dataType].currentData);
+      }
+      if (prevInvalidValue !== null && prevInvalidValue !== undefined) {
         dot.delete(reference.field, state.dataModels[reference.dataType].invalidCurrentData);
       }
     } else {
