@@ -36,6 +36,8 @@ const defaultProps: StudioStatusRadioGroupProps = {
 };
 
 describe('StudioStatusRadioGroup', () => {
+  beforeEach(jest.clearAllMocks);
+
   it('renders radio buttons with titles and descriptions', () => {
     renderStudioStatusRadioGroup();
 
@@ -50,7 +52,7 @@ describe('StudioStatusRadioGroup', () => {
     const user = userEvent.setup();
     renderStudioStatusRadioGroup();
 
-    const successRadioButton = screen.getByRole('radio', { name: `${mockTitle1} ${mockText1}` }); // Any way to do it without having both title and text?
+    const successRadioButton = screen.getByRole('radio', { name: `${mockTitle1} ${mockText1}` });
     const infoRadioButton = screen.getByRole('radio', { name: `${mockTitle2} ${mockText2}` });
 
     expect(successRadioButton).not.toBeChecked();
@@ -70,7 +72,7 @@ describe('StudioStatusRadioGroup', () => {
     await user.click(infoRadioButton);
 
     expect(mockOnChange).toHaveBeenCalledWith(mockValue2);
-    expect(mockOnChange).toHaveBeenCalledTimes(2); // Why is this being called twice?
+    expect(mockOnChange).toHaveBeenCalledTimes(1);
   });
 
   it('renders with default value selected', () => {
