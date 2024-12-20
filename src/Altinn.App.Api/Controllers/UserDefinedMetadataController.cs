@@ -30,7 +30,7 @@ public class UserDefinedMetadataController : ControllerBase
     private readonly IAppMetadata _appMetadata;
 
     /// <summary>
-    /// Initialize a new instance of <see cref="DataTagsController"/> with the given services.
+    /// Initialize a new instance of <see cref="UserDefinedMetadataController"/> with the given services.
     /// </summary>
     /// <param name="instanceClient">A client that can be used to send instance requests to storage.</param>
     /// <param name="dataClient">A client that can be used to send data requests to storage.</param>
