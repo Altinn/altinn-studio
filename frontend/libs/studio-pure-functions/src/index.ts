@@ -7,4 +7,3 @@ export * from './ObjectUtils';
 export * from './ScopedStorage';
 export * from './StringUtils';
 export * from './types';
-export * from './WebStorage';

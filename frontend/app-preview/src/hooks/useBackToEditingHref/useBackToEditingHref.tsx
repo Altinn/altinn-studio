@@ -1,6 +1,6 @@
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { PackagesRouter } from 'app-shared/navigation/PackagesRouter';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from 'app-shared/webStorage';
 import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
 export const useBackToEditingHref = () => {
