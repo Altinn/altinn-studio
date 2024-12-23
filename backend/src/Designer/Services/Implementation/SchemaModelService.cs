@@ -40,6 +40,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IXmlSchemaToJsonSchemaConverter _xmlSchemaToJsonSchemaConverter;
         private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
         private readonly IModelMetadataToCsharpConverter _modelMetadataToCsharpConverter;
+        private readonly IApplicationMetadataService _applicationMetadataService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
@@ -59,13 +60,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="jsonSchemaToXmlSchemaConverter">
         /// Class for converting Json schemas to Xml schemas.</param>
         /// <param name="modelMetadataToCsharpConverter">C# model generator</param>
+        /// <param name="applicationMetadataService"></param>
         public SchemaModelService(
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             ILoggerFactory loggerFactory,
             ServiceRepositorySettings serviceRepositorySettings,
             IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
             IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter,
-            IModelMetadataToCsharpConverter modelMetadataToCsharpConverter)
+            IModelMetadataToCsharpConverter modelMetadataToCsharpConverter,
+            IApplicationMetadataService applicationMetadataService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _loggerFactory = loggerFactory;
@@ -73,6 +76,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _xmlSchemaToJsonSchemaConverter = xmlSchemaToJsonSchemaConverter;
             _jsonSchemaToXmlSchemaConverter = jsonSchemaToXmlSchemaConverter;
             _modelMetadataToCsharpConverter = modelMetadataToCsharpConverter;
+            _applicationMetadataService = applicationMetadataService;
         }
 
         /// <inheritdoc/>
@@ -430,6 +434,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string csharpModelName)
         {
             return application.DataTypes.All(d => d.AppLogic?.ClassRef != $"Altinn.App.Models.{csharpModelName}");
+        }
+
+        public async Task<DataType> GetModelDataType(string org, string app, string modelId)
+        {
+            ApplicationMetadata applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            DataType dataType = applicationMetadata.DataTypes.Find((dataType) => dataType.Id == modelId);
+            return dataType;
+        }
+
+        public async Task SetModelDataType(string org, string app, string modelId, DataType dataType)
+        {
+            if (dataType.Id != modelId)
+            {
+                throw new ArgumentException("Provided modelId does not match the DataType's Id");
+            }
+            ApplicationMetadata applicationMetadata = await _applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
+            applicationMetadata.DataTypes.RemoveAll((dt) => dt.Id == dataType.Id);
+            applicationMetadata.DataTypes.Add(dataType);
+            await _applicationMetadataService.UpdateApplicationMetaDataLocally(org, app, applicationMetadata);
         }
     }
 }
