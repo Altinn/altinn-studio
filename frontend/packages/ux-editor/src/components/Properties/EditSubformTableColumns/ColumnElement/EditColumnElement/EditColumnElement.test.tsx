@@ -14,11 +14,24 @@ const defaultComponents = [
     type: subformLayoutMock.component1.type,
     itemType: subformLayoutMock.component1.itemType,
     dataModelBindings: subformLayoutMock.component1.dataModelBindings,
+    textResourceBindings: subformLayoutMock.component1.textResourceBindings,
   },
   {
     id: subformLayoutMock.component2Id,
     type: subformLayoutMock.component2.type,
     itemType: subformLayoutMock.component2.itemType,
+    dataModelBindings: {
+      binding1: 'path1',
+      binding2: 'path2',
+    },
+    textResourceBindings: { title: 'component2-title' },
+  },
+  {
+    id: subformLayoutMock.component2Id,
+    type: subformLayoutMock.component2.type,
+    itemType: subformLayoutMock.component2.itemType,
+    dataModelBindings: {},
+    textResourceBindings: { title: 'no-bindings-title' },
   },
 ];
 
@@ -48,7 +61,7 @@ describe('EditColumnElementComponentSelect', () => {
     ).toBeInTheDocument();
   });
 
-  it('should not render no components message when components are available', async () => {
+  it('should not render availability components message when components are available', async () => {
     const user = userEvent.setup();
     renderEditColumnElementComponentSelect();
     const componentSelect = screen.getByRole('combobox', {
