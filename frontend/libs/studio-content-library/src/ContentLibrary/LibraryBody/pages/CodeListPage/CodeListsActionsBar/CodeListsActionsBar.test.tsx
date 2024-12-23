@@ -1,12 +1,14 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
+import type { CodeListsActionsBarProps } from './CodeListsActionsBar';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../../../../../test-utils/renderWithProviders';
 
 const onUploadCodeListMock = jest.fn();
+const onSetCodeListSearchPatternMock = jest.fn();
 const codeListName1 = 'codeListName1';
 const codeListName2 = 'codeListName2';
 
@@ -19,6 +21,30 @@ describe('CodeListsActionsBar', () => {
       textMock('app_content_library.code_lists.search_placeholder'),
     );
     expect(searchFieldPlaceHolderText).toBeInTheDocument();
+  });
+
+  it('calls onSetCodeListSearchPatternMock when searching for code lists', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    const searchInput = screen.getByRole('searchbox');
+    const codeListSearchParam = 'code';
+    await user.type(searchInput, codeListSearchParam);
+    expect(onSetCodeListSearchPatternMock).toHaveBeenCalledTimes(codeListSearchParam.length);
+    expect(onSetCodeListSearchPatternMock).toHaveBeenCalledWith(codeListSearchParam);
+  });
+
+  it('calls onSetCodeListSearchPatternMock with ".*" when clearing search', async () => {
+    const user = userEvent.setup();
+    renderCodeListsActionsBar();
+    const searchInput = screen.getByRole('searchbox');
+    const codeListSearchParam = 'code';
+    await user.type(searchInput, codeListSearchParam);
+    const clearSearchButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.clear_search_button_label'),
+    });
+    await user.click(clearSearchButton);
+    expect(onSetCodeListSearchPatternMock).toHaveBeenCalledTimes(codeListSearchParam.length + 1); // +1 due to clearing search
+    expect(onSetCodeListSearchPatternMock).toHaveBeenLastCalledWith('.*');
   });
 
   it('renders the file uploader button', () => {
@@ -98,12 +124,13 @@ const uploadFileWithFileName = async (user: UserEvent, fileNameWithExtension: st
   await user.upload(fileUploaderButton, file);
 };
 
+const defaultCodeListActionBarProps: CodeListsActionsBarProps = {
+  onUploadCodeList: onUploadCodeListMock,
+  onUpdateCodeList: jest.fn(),
+  codeListNames: [codeListName1, codeListName2],
+  onSetCodeListSearchPattern: onSetCodeListSearchPatternMock,
+};
+
 const renderCodeListsActionsBar = () => {
-  renderWithProviders(
-    <CodeListsActionsBar
-      onUploadCodeList={onUploadCodeListMock}
-      onUpdateCodeList={jest.fn()}
-      codeListNames={[codeListName1, codeListName2]}
-    />,
-  );
+  return renderWithProviders(<CodeListsActionsBar {...defaultCodeListActionBarProps} />);
 };
