@@ -28,7 +28,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ISchemaModelService _schemaModelService;
-        private readonly string _layoutSetNameRegEx = "[a-zA-Z0-9-]{2,28}";
+        private readonly string _layoutSetNameRegEx = @"^[a-zA-Z0-9_\-]{2,28}$";
 
         /// <summary>
         /// Constructor
