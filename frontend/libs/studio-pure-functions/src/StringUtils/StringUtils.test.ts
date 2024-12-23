@@ -115,4 +115,26 @@ describe('StringUtils', () => {
       expect(StringUtils.capitalize('')).toBe('');
     });
   });
+
+  describe('areCaseInsensitiveEqual', () => {
+    it('Returns true for strings that are equal regardless of case', () => {
+      expect(StringUtils.areCaseInsensitiveEqual('test', 'TEST')).toBe(true);
+      expect(StringUtils.areCaseInsensitiveEqual('Test', 'TEST')).toBe(true);
+      expect(StringUtils.areCaseInsensitiveEqual('TeSt', 'test')).toBe(true);
+      expect(StringUtils.areCaseInsensitiveEqual('Test123', 'TEST123')).toBe(true);
+      expect(StringUtils.areCaseInsensitiveEqual('123test', '123TEST')).toBe(true);
+    });
+
+    it('Returns false for strings that are not equal regardless of case', () => {
+      expect(StringUtils.areCaseInsensitiveEqual('test', 'example')).toBe(false);
+      expect(StringUtils.areCaseInsensitiveEqual('test', 'TEST123')).toBe(false);
+      expect(StringUtils.areCaseInsensitiveEqual('abc', 'ABC123')).toBe(false);
+    });
+
+    it('Handles empty strings', () => {
+      expect(StringUtils.areCaseInsensitiveEqual('', '')).toBe(true);
+      expect(StringUtils.areCaseInsensitiveEqual('abc', '')).toBe(false);
+      expect(StringUtils.areCaseInsensitiveEqual('', 'abc')).toBe(false);
+    });
+  });
 });
