@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository;
 
@@ -21,11 +20,6 @@ public class LocalGitCloneIoException : Exception
 
     /// <inheritdoc/>
     public LocalGitCloneIoException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
-
-    /// <inheritdoc/>
-    protected LocalGitCloneIoException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
     }
 }
