@@ -1,4 +1,4 @@
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from 'app-shared/webStorage';
 
 export const cleanupStaleLocalStorageKeys = (): void => {
   // Storage keys that are not supported anymore and to be removed should be added in this array

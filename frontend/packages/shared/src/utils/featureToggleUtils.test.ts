@@ -1,4 +1,4 @@
-import { typedLocalStorage, typedSessionStorage } from '@studio/pure-functions';
+import { typedLocalStorage, typedSessionStorage } from 'app-shared/webStorage';
 import {
   addFeatureFlagToLocalStorage,
   removeFeatureFlagFromLocalStorage,

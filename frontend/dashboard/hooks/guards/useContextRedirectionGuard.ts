@@ -4,7 +4,7 @@ import { useSelectedContext } from '../useSelectedContext';
 import type { NavigateFunction } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { SelectedContextType } from 'dashboard/context/HeaderContext';
-import { typedSessionStorage } from '@studio/pure-functions';
+import { typedSessionStorage } from 'app-shared/webStorage';
 import { userHasAccessToSelectedContext } from 'dashboard/utils/userUtils';
 
 export type UseRedirectionGuardResult = {

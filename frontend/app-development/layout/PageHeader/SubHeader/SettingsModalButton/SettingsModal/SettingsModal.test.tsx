@@ -14,7 +14,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { SettingsModalContextProvider } from 'app-development/contexts/SettingsModalContext';
 import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 import type { SettingsModalHandle } from 'app-development/types/SettingsModalHandle';
-import { typedLocalStorage } from '@studio/pure-functions';
+import { typedLocalStorage } from 'app-shared/webStorage';
 
 jest.mock('app-development/hooks/mutations/useAppConfigMutation');
 

@@ -12,8 +12,8 @@ import {
   StudioPageError,
   StudioPageSpinner,
   StudioResizableLayout,
-  useLocalStorage,
 } from '@studio/components';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
 import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';

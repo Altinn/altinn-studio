@@ -1,4 +1,4 @@
-import { useLocalStorage } from '../../../hooks/useLocalStorage';
+import { useLocalStorage } from 'app-shared/hooks/useLocalStorage';
 import { useEffect, useMemo, useState } from 'react';
 
 export const useTrackContainerSizes = (localStorageContextKey: string) => {
