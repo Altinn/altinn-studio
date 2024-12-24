@@ -1,4 +1,4 @@
-import React, { useState, type ReactElement } from 'react';
+import React, { useMemo, useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import { type TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
@@ -45,15 +45,24 @@ export const EditColumnElement = ({
     'nb',
     tableColumn.headerContent,
   )(textResources)?.value;
-  const components = formLayouts
-    ? Object.values(formLayouts).flatMap((layout) => {
-        return getAllLayoutComponents(layout);
-      })
-    : [];
+  const components = useMemo(() => {
+    return formLayouts
+      ? Object.values(formLayouts).flatMap((layout) => {
+          return getAllLayoutComponents(layout);
+        })
+      : [];
+  }, [formLayouts]);
 
-  const componentsWithLabelAndDataModel = components.filter(
-    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
-  );
+  const componentsWithLabelAndBindings = useMemo(() => {
+    return components.filter((comp) => {
+      const hasTitle = comp.textResourceBindings?.title;
+      const hasDataModelBinding =
+        comp.dataModelBindings &&
+        Object.keys(comp.dataModelBindings).length > 0 &&
+        Object.values(comp.dataModelBindings).some((binding) => !!binding);
+      return hasTitle && hasDataModelBinding;
+    });
+  }, [components]);
 
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
@@ -72,7 +81,7 @@ export const EditColumnElement = ({
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
-          components={componentsWithLabelAndDataModel}
+          components={componentsWithLabelAndBindings}
           onSelectComponent={selectComponent}
         />
         <StudioTextfield
