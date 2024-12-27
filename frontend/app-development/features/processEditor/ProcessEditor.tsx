@@ -23,6 +23,7 @@ import { useAppPolicyQuery } from '../../hooks/queries';
 import type { OnProcessTaskEvent } from '@altinn/process-editor/types/OnProcessTask';
 import { OnProcessTaskAddHandler } from './handlers/OnProcessTaskAddHandler';
 import { OnProcessTaskRemoveHandler } from './handlers/OnProcessTaskRemoveHandler';
+import type { LayoutSets } from 'app-shared/types/api/LayoutSetsResponse';
 
 export const ProcessEditor = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -60,6 +61,11 @@ export const ProcessEditor = (): React.ReactElement => {
     false,
   );
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
+  const layoutSetsRef = React.useRef<LayoutSets>(layoutSets);
+
+  React.useEffect(() => {
+    layoutSetsRef.current = layoutSets;
+  }, [layoutSets]);
 
   const pendingApiOperations: boolean =
     mutateBpmnPending ||
@@ -104,7 +110,7 @@ export const ProcessEditor = (): React.ReactElement => {
       org,
       app,
       currentPolicy,
-      layoutSets,
+      layoutSetsRef.current,
       mutateApplicationPolicy,
       deleteDataTypeFromAppMetadata,
       deleteLayoutSet,
@@ -121,7 +127,7 @@ export const ProcessEditor = (): React.ReactElement => {
       availableDataTypeIds={appMetadata?.dataTypes?.map((dataType) => dataType.id)}
       availableDataModelIds={availableDataModelIds}
       allDataModelIds={allDataModelIds}
-      layoutSets={layoutSets}
+      layoutSets={layoutSetsRef.current}
       pendingApiOperations={pendingApiOperations}
       existingCustomReceiptLayoutSetId={existingCustomReceiptId}
       addLayoutSet={addLayoutSet}
