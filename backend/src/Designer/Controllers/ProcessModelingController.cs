@@ -57,20 +57,18 @@ namespace Altinn.Studio.Designer.Controllers
                     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
                 : null;
 
-            Stream stream = content.OpenReadStream();
-
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
+            
+            await using Stream stream = content.OpenReadStream();
             try
             {
-                await Guard.AssertValidXmlStreamAndRewindAsync(stream);
+                await _processModelingService.SaveProcessDefinitionAsync(editingContext, stream, cancellationToken);
             }
             catch (ArgumentException)
             {
                 return BadRequest("BPMN file is not valid XML");
             }
-
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer);
-            await _processModelingService.SaveProcessDefinitionAsync(editingContext, stream, cancellationToken);
 
             if (metadataObject?.TaskIdChange is not null)
             {

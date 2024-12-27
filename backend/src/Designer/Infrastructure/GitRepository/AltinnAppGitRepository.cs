@@ -816,8 +816,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public Definitions GetDefinitions()
         {
             Stream processDefinitionStream = GetProcessDefinitionFile();
+            
+            MemoryStream memoryStream = new MemoryStream();
+            processDefinitionStream.CopyTo(memoryStream);
+            
+            memoryStream.Position = 0;
+    
             XmlSerializer serializer = new(typeof(Definitions));
-            return (Definitions)serializer.Deserialize(processDefinitionStream);
+            Definitions definitions = (Definitions)serializer.Deserialize(memoryStream);
+            
+            processDefinitionStream.Close();
+
+            return definitions;
         }
 
         /// <summary>
