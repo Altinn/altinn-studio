@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
 import { getCodeListSourcesById, CodeLists } from './CodeLists';
+import { updateCodeListWithMetadata } from './EditCodeList/EditCodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeListPage';
 import type { RenderResult } from '@testing-library/react';
@@ -29,6 +30,110 @@ describe('CodeLists', () => {
     renderCodeLists({ codeListInEditMode: codeListName });
     const codeListAccordion = screen.getByRole('button', { name: codeListName, expanded: true });
     expect(codeListAccordion).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('renders the accordion header title without usage information if not in use', () => {
+    renderCodeLists();
+    const codeListAccordionHeaderSubTitleSingle = screen.queryByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
+        codeListUsagesCount: 0,
+      }),
+    );
+    const codeListAccordionHeaderSubTitlePlural = screen.queryByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
+        codeListUsagesCount: 0,
+      }),
+    );
+    expect(codeListAccordionHeaderSubTitleSingle).not.toBeInTheDocument();
+    expect(codeListAccordionHeaderSubTitlePlural).not.toBeInTheDocument();
+  });
+
+  it('does not render a button to view code list usages if not in use', () => {
+    renderCodeLists();
+    const viewCodeListUsagesButton = screen.queryByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_show_usage'),
+    });
+    expect(viewCodeListUsagesButton).not.toBeInTheDocument();
+  });
+
+  it('renders the accordion header title with single usage information if used once', () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const codeListAccordionHeaderSubTitleSingle = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_single', {
+        codeListUsagesCount: 1,
+      }),
+    );
+    expect(codeListAccordionHeaderSubTitleSingle).toBeInTheDocument();
+  });
+
+  it('renders the accordion header title with plural usage information if used twice', () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const codeListAccordionHeaderSubTitleSingle = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
+        codeListUsagesCount: 2,
+      }),
+    );
+    expect(codeListAccordionHeaderSubTitleSingle).toBeInTheDocument();
+  });
+
+  it('renders button to view code list usages if code list is in use', () => {
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const viewCodeListUsagesButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_show_usage'),
+    });
+    expect(viewCodeListUsagesButton).toBeInTheDocument();
+  });
+
+  it('renders modal to see code list usages if clicking button to view code list usages', async () => {
+    const user = userEvent.setup();
+    renderCodeLists({
+      codeListsUsages: [
+        {
+          codeListId: codeListName,
+          codeListIdSources: [
+            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+          ],
+        },
+      ],
+    });
+    const viewCodeListUsagesButton = screen.getByRole('button', {
+      name: textMock('app_content_library.code_lists.code_list_show_usage'),
+    });
+    await user.click(viewCodeListUsagesButton);
+    const codeListUsagesModalTitle = screen.getByText(
+      textMock('app_content_library.code_lists.code_list_show_usage_modal_title', {
+        codeListTitle: codeListName,
+      }),
+    );
+    expect(codeListUsagesModalTitle).toBeInTheDocument();
   });
 
   it('renders the code list editor', () => {

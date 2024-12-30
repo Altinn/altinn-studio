@@ -5,6 +5,7 @@ import { StudioAlert, type CodeList as StudioComponentsCodeList } from '@studio/
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
+import classes from './CodeLists.module.css';
 
 export type CodeListsProps = {
   codeListsData: CodeListData[];
@@ -22,7 +23,7 @@ export function CodeLists({
   codeListInEditMode,
   codeListNames,
   codeListsUsages,
-}: CodeListsProps) {
+}: CodeListsProps): React.ReactElement[] {
   return codeListsData.map((codeListData) => {
     const codeListSources = getCodeListSourcesById(codeListsUsages, codeListData.title);
     return (
@@ -61,19 +62,14 @@ function CodeList({
   codeListInEditMode,
   codeListNames,
   codeListSources,
-}: CodeListProps) {
-  const { t } = useTranslation();
-
+}: CodeListProps): React.ReactElement {
   return (
     <Accordion border>
       <Accordion.Item defaultOpen={codeListInEditMode === codeListData.title}>
-        <Accordion.Header
-          title={t('app_content_library.code_lists.code_list_accordion_title', {
-            codeListTitle: codeListData.title,
-          })}
-        >
-          {codeListData.title}
-        </Accordion.Header>
+        <CodeListAccordionHeader
+            codeListTitle={codeListData.title}
+            codeListUsagesCount={codeListSources.length}
+        />
         <CodeListAccordionContent
           codeListData={codeListData}
           onUpdateCodeListId={onUpdateCodeListId}
@@ -110,6 +106,7 @@ function CodeListAccordionContent({
           onUpdateCodeListId={onUpdateCodeListId}
           onUpdateCodeList={onUpdateCodeList}
           codeListNames={codeListNames}
+          codeListSources={codeListSources}
         />
       )}
     </Accordion.Content>
@@ -122,3 +119,43 @@ export const updateCodeListWithMetadata = (
 ): CodeListWithMetadata => {
   return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };
+  
+type CodeListAccordionHeaderProps = {
+  codeListTitle: string;
+  codeListUsagesCount: number;
+};
+
+function CodeListAccordionHeader({
+  codeListTitle,
+  codeListUsagesCount,
+}: CodeListAccordionHeaderProps): React.ReactElement {
+  const { t } = useTranslation();
+
+  let codeListUsagesCountTextKey: string =
+    'app_content_library.code_lists.code_list_accordion_usage_sub_title_plural';
+
+  switch (codeListUsagesCount) {
+    case 0: {
+      codeListUsagesCountTextKey = null;
+      break;
+    }
+    case 1: {
+      codeListUsagesCountTextKey =
+        'app_content_library.code_lists.code_list_accordion_usage_sub_title_single';
+      break;
+    }
+  }
+
+  return (
+    <Accordion.Header title={t('app_content_library.code_lists.code_list_accordion_title', {
+      codeListTitle: codeListTitle,
+    })} className={classes.codeListTitle}>
+      {codeListTitle}
+      {codeListUsagesCountTextKey && (
+        <div className={classes.codeListUsages}>
+          {t(codeListUsagesCountTextKey, { codeListUsagesCount })}
+        </div>
+      )}
+    </Accordion.Header>
+  );
+}
