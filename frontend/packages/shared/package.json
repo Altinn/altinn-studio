@@ -10,7 +10,7 @@
     "react-router-dom": "6.28.0"
   },
   "devDependencies": {
-    "@types/react": "18.3.16",
+    "@types/react": "18.3.18",
     "jest": "29.7.0",
     "typescript": "5.7.2"
   },
