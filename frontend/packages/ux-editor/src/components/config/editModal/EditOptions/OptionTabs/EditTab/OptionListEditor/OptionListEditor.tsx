@@ -2,9 +2,9 @@ import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioSpinner, StudioErrorMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
+import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
 import { handleOptionsChange, resetComponentOptions } from '../utils/utils';
@@ -18,7 +18,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
   ({ component, handleComponentChange }: OptionListEditorProps, dialogRef): React.ReactNode => {
     const { t } = useTranslation();
     const { org, app } = useStudioEnvironmentParams();
-    const { data: optionsLists, status } = useOptionListsQuery(org, app);
+    const { data: optionsList, status } = useOptionListQuery(org, app, component.optionsId);
 
     const handleDelete = () => {
       const updatedComponent = resetComponentOptions(component);
@@ -48,15 +48,13 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
           </StudioErrorMessage>
         );
       case 'success': {
-        if (optionsLists[component.optionsId] !== undefined) {
-          return (
-            <LibraryOptionsEditor
-              component={component}
-              optionsList={optionsLists[component.optionsId]}
-              handleDelete={handleDelete}
-            />
-          );
-        }
+        return (
+          <LibraryOptionsEditor
+            component={component}
+            optionsList={optionsList}
+            handleDelete={handleDelete}
+          />
+        );
       }
     }
   },

@@ -6,13 +6,12 @@ import { useAddOptionListMutation } from 'app-shared/hooks/mutations';
 import { useTranslation } from 'react-i18next';
 import { StudioFileUploader } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { FileNameUtils } from '@studio/pure-functions';
-import { findFileNameError } from './utils/findFileNameError';
-import type { FileNameError } from './utils/findFileNameError';
+import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
 import { handleOptionsChange, updateComponentOptionsId } from '../utils/utils';
+import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 
 type EditOptionListProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -24,11 +23,14 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
   const { org, app } = useStudioEnvironmentParams();
   const { data: optionListIds } = useOptionListIdsQuery(org, app);
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
-    hideDefaultError: (error: AxiosError<ApiError>) => !error.response.data.errorCode,
+    hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
 
   const onSubmit = (file: File) => {
-    const fileNameError = findFileNameError(optionListIds, file.name);
+    const fileNameError = FileNameUtils.findFileNameError(
+      FileNameUtils.removeExtension(file.name),
+      optionListIds,
+    );
     if (fileNameError) {
       handleInvalidFileName(fileNameError);
     } else {
@@ -46,18 +48,18 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
       },
 
       onError: (error: AxiosError<ApiError>) => {
-        if (!error.response?.data?.errorCode) {
+        if (isErrorUnknown(error)) {
           toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);
         }
       },
     });
   };
 
-  const handleInvalidFileName = (fileNameError: FileNameError) => {
+  const handleInvalidFileName = (fileNameError: FileNameErrorResult) => {
     switch (fileNameError) {
-      case 'invalidFileName':
-        return toast.error(t('validation_errors.file_name_occupied'));
-      case 'fileExists':
+      case FileNameErrorResult.NoRegExMatch:
+        return toast.error(t('validation_errors.file_name_invalid'));
+      case FileNameErrorResult.FileExists:
         return toast.error(t('validation_errors.upload_file_name_occupied'));
     }
   };

@@ -84,5 +84,15 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
         /// <returns>Returns the model metadata</returns>
         Task<ModelMetadata> GenerateModelMetadataFromJsonSchema(AltinnRepoEditingContext altinnRepoEditingContext, string relativeFilePath, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets the dataType for a given model.
+        /// </summary>
+        Task<DataType> GetModelDataType(string org, string app, string modelId);
+
+        /// <summary>
+        /// Updates the dataType for a given model.
+        /// </summary>
+        Task SetModelDataType(string org, string app, string modelId, DataType dataType);
     }
 }

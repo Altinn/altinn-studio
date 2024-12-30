@@ -1,5 +1,5 @@
 import type { Option } from 'app-shared/types/Option';
-import React, { useRef } from 'react';
+import React, { createRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal, StudioAlert } from '@studio/components';
 import type { CodeListEditorTexts } from '@studio/components';
@@ -28,7 +28,7 @@ export function LibraryOptionsEditor({
   const { doReloadPreview } = usePreviewContext();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
-  const modalRef = useRef<HTMLDialogElement>(null);
+  const modalRef = createRef<HTMLDialogElement>();
 
   const handleBlurAny = (options: Option[]) => {
     if (hasOptionListChanged(component.options, options)) {

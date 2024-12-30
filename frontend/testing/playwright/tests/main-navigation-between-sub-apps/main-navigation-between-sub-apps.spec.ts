@@ -130,7 +130,7 @@ test('That it is possible to navigate from overview to the preview page and back
   await previewPage.verifyPreviewPage();
 
   await header.clickOnBackToCreatePage();
-  await uiEditor.verifyUiEditorPage(null);
+  await uiEditor.verifyUiEditorPage();
 });
 
 test('That it is possible to navigate from overview to the deploy page and back again', async ({
