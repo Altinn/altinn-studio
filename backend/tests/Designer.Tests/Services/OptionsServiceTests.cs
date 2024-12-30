@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Implementation;
 using Designer.Tests.Utils;
 using LibGit2Sharp;
@@ -238,16 +239,67 @@ public class OptionsServiceTests
         // Arrange
         const string repo = "empty-app";
         const string optionListId = "test-options";
-        string targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest(Org, repo, Developer, targetRepository);
 
         var optionsService = GetOptionsServiceForTest();
 
         // Act
-        bool optionListExists = await optionsService.OptionsListExists(Org, targetRepository, Developer, optionListId);
+        bool optionListExists = await optionsService.OptionsListExists(Org, repo, Developer, optionListId);
 
         // Assert
         Assert.False(optionListExists);
+    }
+
+    [Fact]
+    public async Task GetAllOptionListReferences_ShouldReturnAllReferences_WhenOptionsListExists()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        var optionsService = GetOptionsServiceForTest();
+
+        // Act
+        List<RefToOptionListSpecifier> optionListsReferences = await optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(Org, repo, Developer));
+
+        List<RefToOptionListSpecifier> expectedResponseList = new()
+        {
+            new RefToOptionListSpecifier
+            {
+                OptionListId = "test-options", OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-same-set-and-another-layout"],
+                        LayoutName = "layoutWithOneOptionListIdRef.json",
+                        LayoutSetId = "layoutSet1"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-test-options-id", "component-using-test-options-id-again"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs.json",
+                        LayoutSetId = "layoutSet1"
+                    },
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-same-options-id-in-another-set"],
+                        LayoutName = "layoutWithTwoOptionListIdRefs.json",
+                        LayoutSetId = "layoutSet2"
+                    }
+                ]
+            },
+            new()
+            {
+                OptionListId = "other-options", OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        ComponentIds = ["component-using-other-options-id"],
+                        LayoutName = "layoutWithFourCheckboxComponentsAndThreeOptionListIdRefs.json",
+                        LayoutSetId = "layoutSet1"
+                    }
+                ]
+            }
+        };
+        // Assert
+        Assert.Equivalent(optionListsReferences, expectedResponseList);
     }
 
     private static OptionsService GetOptionsServiceForTest()
