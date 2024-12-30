@@ -49,7 +49,7 @@ export function OptionListUploader({ component, handleComponentChange }: EditOpt
 
       onError: (error: AxiosError<ApiError>) => {
         if (isErrorUnknown(error)) {
-          toast.error(`${t('ux_editor.modal_properties_code_list_upload_generic_error')}`);
+          toast.error(t('ux_editor.modal_properties_code_list_upload_generic_error'));
         }
       },
     });

@@ -28,9 +28,9 @@ export function updateComponentOptionsId(
   component: FormItem<SelectionComponentType>,
   optionsId: string,
 ): FormItem<SelectionComponentType> {
-  const newComponent = { ...component };
+  let newComponent: FormItem<SelectionComponentType> = { ...component };
 
-  clearOppositeOptionSetting(newComponent, 'optionsId');
+  newComponent = clearOppositeOptionSetting(newComponent, 'optionsId');
   newComponent.optionsId = optionsId;
 
   return newComponent;
@@ -40,9 +40,9 @@ export function updateComponentOptions(
   component: FormItem<SelectionComponentType>,
   options: Option[],
 ): FormItem<SelectionComponentType> {
-  const newComponent = { ...component };
+  let newComponent: FormItem<SelectionComponentType> = { ...component };
 
-  clearOppositeOptionSetting(newComponent, 'options');
+  newComponent = clearOppositeOptionSetting(newComponent, 'options');
   newComponent.options = options;
 
   return newComponent;
@@ -53,9 +53,10 @@ function clearOppositeOptionSetting(
   optionToKeep: 'options' | 'optionsId',
 ) {
   if (optionToKeep === 'optionsId') {
-    if (component.options) delete component.options;
+    component.options = undefined;
   }
   if (optionToKeep === 'options') {
-    if (component.optionsId) delete component.optionsId;
+    component.optionsId = undefined;
   }
+  return component;
 }

@@ -61,6 +61,7 @@ describe('OptionListEditor', () => {
       renderOptionListEditor();
       const text = 'test';
       const expectedArgs = mockComponent;
+      expectedArgs.optionsId = undefined;
       expectedArgs.options[0].description = text;
 
       await user.click(getOptionModalButton());
@@ -74,7 +75,7 @@ describe('OptionListEditor', () => {
 
     it('should display general.empty_string when option-list has an empty string', () => {
       mockComponent.options = [{ value: 2, label: '', description: 'test', helpText: null }];
-      renderOptionListEditor({});
+      renderOptionListEditor();
 
       expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
     });

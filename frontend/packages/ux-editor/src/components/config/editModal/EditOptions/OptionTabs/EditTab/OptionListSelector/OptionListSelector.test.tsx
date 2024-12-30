@@ -29,6 +29,21 @@ describe('OptionListSelector', () => {
     expect(screen.getByText(textMock('ux_editor.modal_properties_code_list'))).toBeInTheDocument();
   });
 
+  it('should not render if the list is empty', async () => {
+    renderOptionListSelector({
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
+      },
+    });
+    await waitForElementToBeRemoved(
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    expect(
+      screen.queryByText(textMock('ux_editor.modal_properties_code_list')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should call onChange when option list changes', async () => {
     const user = userEvent.setup();
     renderOptionListSelector();
