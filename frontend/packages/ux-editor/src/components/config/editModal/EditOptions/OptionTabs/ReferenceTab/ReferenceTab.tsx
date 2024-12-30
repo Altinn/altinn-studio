@@ -35,11 +35,11 @@ export function ReferenceTab({
     );
   }
 
-  const isOptionsIdInLibrary: boolean = optionListIds?.some(
+  const isOptionsIdInLibrary = optionListIds?.some(
     (optionId: string): boolean => optionId == component.optionsId,
   );
-
-  const isOptionsIdInLibraryOrComponent: boolean = isOptionsIdInLibrary || !!component.options;
+  const isOptionsIdInLibraryOrComponent = isOptionsIdInLibrary || !!component.options;
+  const referenceIdValue = isOptionsIdInLibrary ? undefined : component.optionsId;
 
   return (
     <div className={classes.container}>
@@ -53,7 +53,7 @@ export function ReferenceTab({
         type='text'
         label={t('ux_editor.modal_properties_custom_code_list_id')}
         onChange={(event) => handleOptionsIdChange(event.target.value)}
-        value={component.optionsId}
+        value={referenceIdValue}
         size='small'
       />
       {isOptionsIdInLibraryOrComponent && (
