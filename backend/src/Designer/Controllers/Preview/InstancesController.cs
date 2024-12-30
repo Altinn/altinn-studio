@@ -156,7 +156,7 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// </summary>
     /// <returns>Process object where ended is set</returns>
     [HttpPut("{partyId}/{instanceGuid}/process/next")]
-    public async Task<ActionResult> UpdateProcessNext(
+    public ActionResult UpdateProcessNext(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int partyId,

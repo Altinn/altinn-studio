@@ -27,7 +27,6 @@ public static class AppFrontendVersionHelper
         htmlDoc.LoadHtml(fileContent);
 
         string metaTagVersion = getMetaTagVersion(htmlDoc);
-        System.Console.WriteLine(metaTagVersion);
         if (metaTagVersion != null)
         {
             version = metaTagVersion;
