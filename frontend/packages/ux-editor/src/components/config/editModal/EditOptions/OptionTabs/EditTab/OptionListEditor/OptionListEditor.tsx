@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StudioSpinner, StudioErrorMessage, StudioAlert } from '@studio/components';
+import { StudioSpinner, StudioErrorMessage } from '@studio/components';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
@@ -20,12 +20,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
     const { org, app } = useStudioEnvironmentParams();
     const { data: optionsLists, status } = useOptionListsQuery(org, app);
 
-    const handleManualDelete = () => {
-      const updatedComponent = resetComponentOptions(component);
-      handleOptionsChange(updatedComponent, handleComponentChange);
-    };
-
-    const handleLibraryDelete = () => {
+    const handleDelete = () => {
       const updatedComponent = resetComponentOptions(component);
       handleOptionsChange(updatedComponent, handleComponentChange);
     };
@@ -36,7 +31,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
           ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
-          handleDelete={handleManualDelete}
+          handleDelete={handleDelete}
         />
       );
     }
@@ -58,15 +53,10 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
             <LibraryOptionsEditor
               component={component}
               optionsList={optionsLists[component.optionsId]}
-              handleDelete={handleLibraryDelete}
+              handleDelete={handleDelete}
             />
           );
         }
-        return (
-          <StudioAlert severity={'info'} size='sm'>
-            {t('ux_editor.options.tab_option_list_alert_title')}
-          </StudioAlert>
-        );
       }
     }
   },

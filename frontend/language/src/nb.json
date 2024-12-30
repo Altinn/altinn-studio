@@ -1731,7 +1731,7 @@
   "ux_editor.options.single": "{{value}} alternativ",
   "ux_editor.options.tab_code_list": "Velg kodeliste",
   "ux_editor.options.tab_manual": "Sett opp egne alternativer",
-  "ux_editor.options.tab_option_list_alert_title": "Kan ikke åpne Velg kodeliste fordi det er oppgitt en ID på fanen Angi referanse-ID. Slett denne referansen og gå tilbake for å velge kodeliste fra biblioteket.",
+  "ux_editor.options.tab_option_list_alert_title": "Komponenten refererer allerede til en egendefinert ID. Legger du til en ny kodeliste her vil du overstyre den egendefinerte ID-en.",
   "ux_editor.options.tab_referenceId": "Angi referanse-ID",
   "ux_editor.options.tab_referenceid_alert_title": "Du har allerede referert til en kodeliste. Skriver du inn en ID, vil referansen bli slettet.",
   "ux_editor.options.upload_title": "Last opp egen kodeliste",

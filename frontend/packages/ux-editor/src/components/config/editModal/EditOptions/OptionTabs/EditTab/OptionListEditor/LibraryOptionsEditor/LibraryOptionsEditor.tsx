@@ -9,9 +9,9 @@ import { useUpdateOptionListMutation } from 'app-shared/hooks/mutations';
 import { useOptionListEditorTexts } from '../../../hooks';
 import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
+import { hasOptionListChanged } from '../../../utils/optionsUtils';
 import type { OptionListEditorProps } from '../OptionListEditor';
 import classes from './LibraryOptionsEditor.module.css';
-import { hasOptionListChanged } from '../../../utils/optionsUtils';
 
 type LibraryOptionsEditorProps = {
   optionsList: Option[];

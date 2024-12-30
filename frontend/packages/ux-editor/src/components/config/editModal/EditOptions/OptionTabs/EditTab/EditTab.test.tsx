@@ -2,8 +2,6 @@ import React from 'react';
 import { EditTab } from './EditTab';
 import { renderWithProviders } from '@altinn/ux-editor/testing/mocks';
 import { ComponentType } from 'app-shared/types/ComponentType';
-import type { FormItem } from '@altinn/ux-editor/types/FormItem';
-import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { componentMocks } from '@altinn/ux-editor/testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
@@ -15,17 +13,27 @@ const mockComponent = componentMocks[ComponentType.RadioButtons];
 describe('EditTab', () => {
   afterEach(() => jest.clearAllMocks());
 
-  it('should render DisplayChosenOption', async () => {
+  it('should render spinner', () => {
     renderEditTab();
+
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render component when loading is done', () => {
+    renderEditTab();
+
     expect(
       screen.getByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
     ).toBeInTheDocument();
   });
 
-  it('should render EditOptionList', async () => {
+  it('should render AddOptionList', () => {
     renderEditTab({
       componentProps: {
         options: undefined,
+        optionsId: undefined,
       },
     });
 
@@ -48,17 +56,23 @@ describe('EditTab', () => {
     expect(handleOptionsIdChange).toHaveBeenCalledTimes(1);
     expect(handleOptionsIdChange).toHaveBeenCalledWith(expectedArgs);
   });
+
+  it('should render error when query fails', () => {
+    renderEditTab({
+      queries: { getOptionListIds: jest.fn().mockRejectedValueOnce(new Error('Error')) },
+    });
+
+    expect(
+      screen.getByText(textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message')),
+    ).toBeInTheDocument();
+  });
 });
 
-type renderProps<T extends ComponentType.Checkboxes | ComponentType.RadioButtons> = {
-  componentProps?: Partial<FormItem<T>>;
-  handleComponentChange?: () => void;
-};
-
-function renderEditTab<T extends ComponentType.Checkboxes | ComponentType.RadioButtons>({
+function renderEditTab({
   componentProps = {},
   handleComponentChange = jest.fn(),
-}: renderProps<T> = {}) {
+  queries = {},
+} = {}) {
   return renderWithProviders(
     <EditTab
       component={{
@@ -68,7 +82,10 @@ function renderEditTab<T extends ComponentType.Checkboxes | ComponentType.RadioB
       handleComponentChange={handleComponentChange}
     />,
     {
-      queryClient: createQueryClientMock(),
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
+        ...queries,
+      },
     },
   );
 }
