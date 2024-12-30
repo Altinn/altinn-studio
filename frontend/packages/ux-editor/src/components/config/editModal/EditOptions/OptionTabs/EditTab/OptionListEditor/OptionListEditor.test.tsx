@@ -26,7 +26,7 @@ const apiResult: OptionsLists = {
 describe('OptionListEditor', () => {
   afterEach(() => jest.clearAllMocks());
 
-  describe('ManualOptionListEditorModal', () => {
+  describe('ManualOptionEditor', () => {
     it('should render the open Dialog button', () => {
       renderOptionListEditor();
       expect(getOptionModalButton()).toBeInTheDocument();
@@ -39,6 +39,9 @@ describe('OptionListEditor', () => {
       await user.click(getOptionModalButton());
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('ux_editor.options.modal_header_manual_code_list')),
+      ).toBeInTheDocument();
     });
 
     it('should close Dialog', async () => {
@@ -53,19 +56,17 @@ describe('OptionListEditor', () => {
 
     it('should call doReloadPreview when editing', async () => {
       const user = userEvent.setup();
-      const componentWithOptionsId = mockComponent;
-      componentWithOptionsId.optionsId = 'optionsID';
+      mockComponent.options = [
+        { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
+      ];
       const handleComponentChange = jest.fn();
       renderOptionListEditor({
         handleComponentChange,
-        component: componentWithOptionsId,
       });
-      const text = 'test';
 
+      const text = 'test';
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(1);
       await user.type(textBox, text);
       await user.tab();
 
@@ -78,9 +79,35 @@ describe('OptionListEditor', () => {
 
       expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
     });
+
+    it('should call handleComponentChange when removing chosen options', async () => {
+      const user = userEvent.setup();
+      const handleComponentChange = jest.fn();
+      renderOptionListEditor({ handleComponentChange });
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await user.click(deleteButton);
+
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
+      const user = userEvent.setup();
+      const handleComponentChange = jest.fn();
+      renderOptionListEditor({ handleComponentChange });
+      const expectedResult = mockComponent;
+      expectedResult.options = undefined;
+      expectedResult.optionsId = undefined;
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await user.click(deleteButton);
+
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+      expect(handleComponentChange).toHaveBeenCalledWith(expectedResult);
+    });
   });
 
-  describe('LibraryOptionListEditorModal', () => {
+  describe('LibraryOptionEditor', () => {
     beforeEach(() => {
       mockComponent.optionsId = 'options';
       mockComponent.options = undefined;
@@ -101,7 +128,7 @@ describe('OptionListEditor', () => {
     it('should render an error message when getOptionLists throws an error', async () => {
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
         queries: {
-          getOptionLists: jest.fn().mockRejectedValueOnce(new Error('Error')),
+          getOptionLists: jest.fn().mockImplementation(() => Promise.reject()),
         },
       });
 
@@ -185,6 +212,32 @@ describe('OptionListEditor', () => {
       });
 
       expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+    });
+
+    it('should call handleComponentChange when removing chosen options', async () => {
+      const user = userEvent.setup();
+      const handleComponentChange = jest.fn();
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({ handleComponentChange });
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await user.click(deleteButton);
+
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
+      const user = userEvent.setup();
+      const handleComponentChange = jest.fn();
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({ handleComponentChange });
+      const expectedResult = mockComponent;
+      expectedResult.options = undefined;
+      expectedResult.optionsId = undefined;
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await user.click(deleteButton);
+
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+      expect(handleComponentChange).toHaveBeenCalledWith(expectedResult);
     });
   });
 });
