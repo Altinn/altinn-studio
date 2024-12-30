@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import classes from './LandingPage.module.css';
 import { useTranslation } from 'react-i18next';
 import { usePreviewConnection } from 'app-shared/providers/PreviewConnectionContext';
@@ -16,6 +16,7 @@ import { useSelectedFormLayoutName } from 'app-shared/hooks/useSelectedFormLayou
 import { useSelectedFormLayoutSetName } from 'app-shared/hooks/useSelectedFormLayoutSetName';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
 
 export type PreviewAsViewSize = 'desktop' | 'mobile';
 
@@ -26,17 +27,25 @@ export const LandingPage = () => {
   const previewConnection = usePreviewConnection();
   const { data: user, isPending: isPendingUser } = useUserQuery();
   const { data: repository } = useRepoMetadataQuery(org, app);
-
   const { data: layoutSets, isPending: pendingLayoutsets } = useLayoutSetsQuery(org, app);
   const { selectedFormLayoutSetName, setSelectedFormLayoutSetName } =
     useSelectedFormLayoutSetName(layoutSets);
-
   const { selectedFormLayoutName } = useSelectedFormLayoutName(selectedFormLayoutSetName);
   const [previewViewSize, setPreviewViewSize] = useLocalStorage<PreviewAsViewSize>(
     'viewSize',
     'desktop',
   );
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
+  const {
+    mutate: createInstance,
+    data: instance,
+    isPending: instanceIsPending,
+  } = useCreatePreviewInstanceMutation(org, app);
+
+  useEffect(() => {
+    if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
+  }, [createInstance, user, taskId]);
+
   const isIFrame = (input: HTMLElement | null): input is HTMLIFrameElement =>
     input !== null && input.tagName === 'IFRAME';
 
@@ -59,9 +68,17 @@ export const LandingPage = () => {
     });
   }
 
-  if (isPendingUser || pendingLayoutsets)
+  if (isPendingUser || pendingLayoutsets || instanceIsPending)
     return <StudioPageSpinner spinnerTitle={t('preview.loading_page')} />;
 
+  const previewUrl = previewPage(
+    org,
+    app,
+    getSelectedFormLayoutSetName(selectedFormLayoutSetName),
+    taskId,
+    selectedFormLayoutName,
+    instance?.id,
+  );
   return (
     <>
       <StudioPageHeader variant='preview'>
@@ -87,13 +104,7 @@ export const LandingPage = () => {
           <iframe
             title={t('preview.title')}
             id='app-frontend-react-iframe'
-            src={previewPage(
-              org,
-              app,
-              getSelectedFormLayoutSetName(selectedFormLayoutSetName),
-              taskId,
-              selectedFormLayoutName,
-            )}
+            src={previewUrl}
             className={previewViewSize === 'desktop' ? classes.iframeDesktop : classes.iframeMobile}
           />
         </div>

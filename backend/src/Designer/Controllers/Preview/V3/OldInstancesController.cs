@@ -2,68 +2,49 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
-using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Interfaces.Preview;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Routing;
 
-namespace Altinn.Studio.Designer.Controllers.Preview;
+namespace Altinn.Studio.Designer.Controllers.Preview.V3;
 
+/// <summary>
+/// Controller for preview support of older versions of Studio
+/// </summary>
 [Authorize]
 [AutoValidateAntiforgeryToken]
-[Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/instances")]
-public class InstancesController(IHttpContextAccessor httpContextAccessor,
+[Route("{org:regex(^(?!designer))}/{app:regex(^(?!datamodels$)[[a-z]][[a-z0-9-]]{{1,28}}[[a-z0-9]]$)}/v3/instances")]
+public class OldInstancesController(IHttpContextAccessor httpContextAccessor,
     IPreviewService previewService,
-    IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
-    IInstanceService instanceService,
-    IApplicationMetadataService applicationMetadataService
+    IAltinnGitRepositoryFactory altinnGitRepositoryFactory
 ) : Controller
 {
-    // <summary>
-    // Redirect requests from older versions of Studio to old controller
-    // </summary>
-    public override void OnActionExecuting(ActionExecutingContext context)
-    {
-        string org = context.RouteData.Values["org"] as string;
-        string app = context.RouteData.Values["app"] as string;
-        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-        AltinnAppGitRepository altinnAppGitRepository = altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
-        if (!altinnAppGitRepository.AppUsesLayoutSets())
-        {
-            RouteValueDictionary routeData = context.RouteData.Values;
-            foreach (var queryParam in context.HttpContext.Request.Query)
-            {
-                routeData[queryParam.Key] = queryParam.Value.ToString();
-            }
-            context.Result = base.RedirectToActionPreserveMethod(controllerName: "OldInstances", routeValues: routeData);
-        }
-        base.OnActionExecuting(context);
-    }
-
     /// <summary>
     /// Get instance data
     /// </summary>
     [HttpGet("{partyId}/{instanceGuid}")]
     [UseSystemTextJson]
-    public ActionResult<Instance> GetInstance(
+    public async Task<ActionResult<Instance>> GetInstanceAsync(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int partyId,
             [FromRoute] Guid instanceGuid,
             CancellationToken cancellationToken)
     {
-        Instance instanceData = instanceService.GetInstance(instanceGuid);
-        return Ok(instanceData);
+        string refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader);
+        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        Instance instance = await previewService.GetMockInstance(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), partyId, layoutSetName, CancellationToken.None);
+        return Ok(instance);
     }
 
     /// <summary>
@@ -78,8 +59,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
         [FromQuery] string language = null
     )
     {
-        ApplicationMetadata applicationMetadata = await applicationMetadataService.GetApplicationMetadataFromRepository(org, app);
-        Instance instance = instanceService.CreateInstance(org, app, instanceOwnerPartyId, taskId, applicationMetadata.DataTypes);
+        string refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader);
+        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        Instance instance = await previewService.GetMockInstance(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), instanceOwnerPartyId, layoutSetName, CancellationToken.None);
         return Ok(instance);
     }
 
@@ -122,7 +106,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
             CancellationToken cancellationToken)
     {
         string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
-        Instance instance = instanceService.GetInstance(instanceGuid);
+        string refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader);
+        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        Instance instance = await previewService.GetMockInstance(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), partyId, layoutSetName, CancellationToken.None);
         List<string> tasks = await previewService.GetTasksForAllLayoutSets(org, app, developer, cancellationToken);
         AppProcessState processState = new(instance.Process)
         {
@@ -139,7 +127,7 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// </summary>
     /// <returns>The processState object on the global mockInstance object</returns>
     [HttpGet("{partyId}/{instanceGuid}/process/next")]
-    public ActionResult ProcessNext(
+    public async Task<ActionResult> ProcessNextAsync(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int partyId,
@@ -147,7 +135,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
             CancellationToken cancellationToken
     )
     {
-        Instance instance = instanceService.GetInstance(instanceGuid);
+        string refererHeader = Request.Headers["Referer"];
+        Uri refererUri = new(refererHeader);
+        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        Instance instance = await previewService.GetMockInstance(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), partyId, layoutSetName, CancellationToken.None);
         return Ok(instance.Process);
     }
 
@@ -156,7 +148,7 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
     /// </summary>
     /// <returns>Process object where ended is set</returns>
     [HttpPut("{partyId}/{instanceGuid}/process/next")]
-    public ActionResult UpdateProcessNext(
+    public async Task<ActionResult> UpdateProcessNext(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int partyId,
@@ -165,7 +157,11 @@ public class InstancesController(IHttpContextAccessor httpContextAccessor,
             CancellationToken cancellationToken
     )
     {
-        Instance instance = instanceService.GetInstance(instanceGuid);
+        string refererHeader = Request.Headers.Referer;
+        Uri refererUri = new(refererHeader);
+        string layoutSetName = HttpUtility.ParseQueryString(refererUri.Query)["selectedLayoutSet"];
+        layoutSetName = string.IsNullOrEmpty(layoutSetName) ? null : layoutSetName;
+        Instance instance = await previewService.GetMockInstance(org, app, AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext), partyId, layoutSetName, CancellationToken.None);
         return Ok(instance.Process);
     }
 
