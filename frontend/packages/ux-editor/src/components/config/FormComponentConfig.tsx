@@ -110,11 +110,6 @@ export const FormComponentConfig = ({
     ? t('ux_editor.component_other_properties_hide_many_settings')
     : t('ux_editor.component_other_properties_show_many_settings');
 
-  const hideBooleanKeyHelpText = (propertyKey: string) => {
-    const isFirstBooleanKey = propertyKey === booleanPropertyKeys[0];
-    return isFirstBooleanKey ? t('ux_editor.component_properties.hidden-help-text') : undefined;
-  };
-
   return (
     <>
       {layoutSet && component['layoutSet'] && (
@@ -139,14 +134,14 @@ export const FormComponentConfig = ({
       )}
 
       {/** Boolean fields, incl. expression type */}
-      {defaultDisplayedBooleanKeys.map((propertyKey) => (
+      {defaultDisplayedBooleanKeys.map((propertyKey, index) => (
         <EditBooleanValue
           component={component}
           handleComponentChange={handleComponentUpdate}
           propertyKey={propertyKey}
           defaultValue={properties[propertyKey].default}
           key={propertyKey}
-          helpText={hideBooleanKeyHelpText(propertyKey)}
+          helpText={index === 0 && t('ux_editor.component_properties.hidden_help_text')}
         />
       ))}
       {showOtherComponents &&
@@ -219,7 +214,7 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={t('ux_editor.component_properties.preselected-help-text')}
+            helpText={t('ux_editor.component_properties.preselected_help_text')}
             enumValues={properties[propertyKey]?.enum}
           />
         );
