@@ -19,14 +19,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             ClientSettings = clientSettings.Value;
         }
 
-        public async Task<ClientSecrets> GetClientSecrets()
+        public Task<ClientSecrets> GetClientSecrets()
         {
             ClientSecrets clientSecrets = new ClientSecrets();
 
             byte[] base64EncodedBytes = Convert.FromBase64String(ClientSettings.EncodedJwk);
             string jwkjson = Encoding.UTF8.GetString(base64EncodedBytes);
             clientSecrets.ClientKey = new Microsoft.IdentityModel.Tokens.JsonWebKey(jwkjson);
-            return clientSecrets;
+            return Task.FromResult(clientSecrets);
         }
     }
 }

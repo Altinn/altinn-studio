@@ -10,7 +10,6 @@ import { type ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { type QueryClient } from '@tanstack/react-query';
 import { QueryKey } from 'app-shared/types/QueryKey';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 
 // Move
 jest.mock('app-shared/hooks/queries');
@@ -122,7 +121,6 @@ describe('PreviewControlHeader', () => {
   });
 
   it('should not render the layout sets dropdown if layoutSets is not available', () => {
-    (useInstanceIdQuery as jest.Mock).mockReturnValue(mockLayoutId);
     renderPreviewControlHeader();
 
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
