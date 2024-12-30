@@ -58,21 +58,18 @@ describe('OptionListEditor', () => {
 
     it('should call doReloadPreview when editing', async () => {
       const user = userEvent.setup();
-      mockComponent.options = [
-        { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
-      ];
       renderOptionListEditor();
-
       const text = 'test';
+      const expectedArgs = mockComponent;
+      expectedArgs.options[0].description = text;
+
       await user.click(getOptionModalButton());
       const textBox = getTextBoxInput(1);
       await user.type(textBox, text);
       await user.tab();
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
-      expect(handleComponentChange).toHaveBeenCalledWith(
-        expect.not.objectContaining({ optionsId: expect.anything() }),
-      );
+      expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
     });
 
     it('should display general.empty_string when option-list has an empty string', () => {
@@ -211,7 +208,7 @@ describe('OptionListEditor', () => {
       ];
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
         queries: {
-          getOptionLists: jest
+          getOptionList: jest
             .fn()
             .mockImplementation(() => Promise.resolve<OptionsList>(apiResultWithEmptyLabel)),
         },
@@ -222,7 +219,6 @@ describe('OptionListEditor', () => {
 
     it('should call handleComponentChange when removing chosen options', async () => {
       const user = userEvent.setup();
-      const handleComponentChange = jest.fn();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
@@ -233,7 +229,6 @@ describe('OptionListEditor', () => {
 
     it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
       const user = userEvent.setup();
-      const handleComponentChange = jest.fn();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       const expectedResult = mockComponent;
       expectedResult.options = undefined;

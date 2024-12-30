@@ -16,10 +16,6 @@ export type OptionListEditorProps = Pick<
 
 export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorProps>(
   ({ component, handleComponentChange }: OptionListEditorProps, dialogRef): React.ReactNode => {
-    const { t } = useTranslation();
-    const { org, app } = useStudioEnvironmentParams();
-    const { data: optionsList, status } = useOptionListQuery(org, app, component.optionsId);
-
     const handleDelete = () => {
       const updatedComponent = resetComponentOptions(component);
       handleOptionsChange(updatedComponent, handleComponentChange);
@@ -27,7 +23,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
 
     if (component.options !== undefined) {
       return (
-        <ManualOptionsEditor
+        <ManualEditor
           ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
@@ -36,28 +32,61 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
       );
     }
 
-    switch (status) {
-      case 'pending':
-        return (
-          <StudioSpinner spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')} />
-        );
-      case 'error':
-        return (
-          <StudioErrorMessage>
-            {t('ux_editor.modal_properties_fetch_option_list_error_message')}
-          </StudioErrorMessage>
-        );
-      case 'success': {
-        return (
-          <LibraryOptionsEditor
-            component={component}
-            optionsList={optionsList}
-            handleDelete={handleDelete}
-          />
-        );
-      }
-    }
+    return <LibraryEditor component={component} handleDelete={handleDelete} />;
   },
 );
 
+type ManualOptionsEditorProps = {
+  handleDelete: () => void;
+} & OptionListEditorProps;
+
+const ManualEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
+  (
+    { component, handleComponentChange, handleDelete }: ManualOptionsEditorProps,
+    dialogRef,
+  ): React.ReactNode => {
+    return (
+      <ManualOptionsEditor
+        ref={dialogRef}
+        component={component}
+        handleComponentChange={handleComponentChange}
+        handleDelete={handleDelete}
+      />
+    );
+  },
+);
+
+type LibraryOptionsEditorProps = {
+  handleDelete: () => void;
+} & Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
+
+function LibraryEditor({ component, handleDelete }: LibraryOptionsEditorProps): React.ReactNode {
+  const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { data: optionsList, status } = useOptionListQuery(org, app, component.optionsId);
+
+  switch (status) {
+    case 'pending':
+      return (
+        <StudioSpinner spinnerTitle={t('ux_editor.modal_properties_code_list_spinner_title')} />
+      );
+    case 'error':
+      return (
+        <StudioErrorMessage>
+          {t('ux_editor.modal_properties_fetch_option_list_error_message')}
+        </StudioErrorMessage>
+      );
+    case 'success': {
+      return (
+        <LibraryOptionsEditor
+          component={component}
+          optionsList={optionsList}
+          handleDelete={handleDelete}
+        />
+      );
+    }
+  }
+}
+
 OptionListEditor.displayName = 'OptionListEditor';
+ManualEditor.displayName = 'ManualOptionsEditor';
