@@ -1345,7 +1345,7 @@
   "ux_editor.component_properties.pagination": "Sidenummerering",
   "ux_editor.component_properties.position": "Plassering av valuta",
   "ux_editor.component_properties.preselectedOptionIndex": "Angi det valget som skal være forhåndsvalgt",
-  "ux_editor.component_properties.preselected_help_text": "Må være et tall fra null til og med det antallet valg som finnes",
+  "ux_editor.component_properties.preselected_help_text": "Du kan bruke tall fra 0 til og med siste tall før det antallet valg som er tilgjengelig, for eksempel 0-4 hvis det er 5 valg",
   "ux_editor.component_properties.queryParameters": "Parametere i spørringen",
   "ux_editor.component_properties.readOnly": "Feltet kan kun leses",
   "ux_editor.component_properties.receiver": "Den som mottar skjemaet",
