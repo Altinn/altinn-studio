@@ -9,6 +9,7 @@ import {
   CombinationKind,
   FieldType,
   ObjectKind,
+  ROOT_POINTER,
   SchemaModel,
   validateTestUiSchema,
 } from '@altinn/schema-model';
@@ -63,6 +64,13 @@ describe('SchemaInspector', () => {
     renderSchemaInspector(mockUiSchema);
     const textboxes = screen.queryAllByRole('textbox');
     expect(textboxes).toHaveLength(0);
+  });
+
+  it('renders 3 tabs if root is selected', () => {
+    renderSchemaInspector(mockUiSchema, getMockSchemaByPath(ROOT_POINTER));
+    const tablist = screen.getByRole('tablist');
+    expect(tablist).toBeDefined();
+    expect(screen.getAllByRole('tab')).toHaveLength(3);
   });
 
   it('Saves data model correctly when changing restriction value', async () => {
