@@ -142,12 +142,6 @@ namespace Altinn.Studio.Designer.Controllers
             string appNugetVersionString = _appDevelopmentService.GetAppLibVersion(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, app, developer)).ToString();
             // This property is populated at runtime by the apps, so we need to mock it here
             applicationMetadata.AltinnNugetVersion = GetMockedAltinnNugetBuildFromVersion(appNugetVersionString);
-            if (altinnAppGitRepository.AppUsesLayoutSets())
-            {
-                LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                applicationMetadata = SetMockDataTypeIfMissing(applicationMetadata, layoutSets);
-            }
-
             applicationMetadata = SetMockedPartyTypesAllowedAsAllFalse(applicationMetadata);
             return Ok(applicationMetadata);
         }
@@ -192,8 +186,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
                 LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile(cancellationToken);
-                LayoutSets layoutSetsWithMockedDataTypes = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
-                return Ok(layoutSetsWithMockedDataTypes);
+                return Ok(layoutSets);
             }
             catch (NotFoundException)
             {
@@ -739,33 +732,6 @@ namespace Altinn.Studio.Designer.Controllers
             return applicationMetadata;
         }
 
-        private static ApplicationMetadata SetMockDataTypeIfMissing(ApplicationMetadata applicationMetadata, LayoutSets layoutSets)
-        {
-            LayoutSets layoutSetsWithMockedDataTypesIfMissing = AddDataTypesToReturnedLayoutSetsIfMissing(layoutSets);
-            layoutSetsWithMockedDataTypesIfMissing.Sets.ForEach(set =>
-            {
-                if (set.Tasks?[0] == Constants.General.CustomReceiptId)
-                {
-                    return;
-                }
-
-                if (!applicationMetadata.DataTypes.Any(dataType => dataType.Id == set.DataType))
-                {
-                    applicationMetadata.DataTypes.Add(new DataType()
-                    {
-                        Id = set.DataType,
-                        AppLogic = new ApplicationLogic()
-                        {
-                            ClassRef = $"Altinn.App.Models.model.{set.DataType}"
-                        },
-                        TaskId = set.Tasks?[0]
-                    });
-                }
-            });
-
-            return applicationMetadata;
-        }
-
         private bool IsValidSemVerVersion(string[] versionParts)
         {
             return versionParts.Length >= 3 && Convert.ToInt32(versionParts[0]) >= 8;
@@ -779,18 +745,6 @@ namespace Altinn.Studio.Designer.Controllers
         private int GetPreviewVersion(string[] versionParts)
         {
             return Convert.ToInt32(versionParts[3]);
-        }
-
-        private static LayoutSets AddDataTypesToReturnedLayoutSetsIfMissing(LayoutSets layoutSets)
-        {
-            int counter = 0;
-            foreach (var set in layoutSets.Sets.Where(set => string.IsNullOrEmpty(set.DataType)))
-            {
-                string mockDataTypeId = $"{PreviewService.MockDataModelIdPrefix}-{counter++}";
-                set.DataType = mockDataTypeId;
-            }
-
-            return layoutSets;
         }
     }
 }

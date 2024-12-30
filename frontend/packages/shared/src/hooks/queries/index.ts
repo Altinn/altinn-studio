@@ -2,7 +2,6 @@ export { useAppMetadataQuery } from './useAppMetadataQuery';
 export { useAppVersionQuery } from './useAppVersionQuery';
 export { useDataModelsJsonQuery } from './useDataModelsJsonQuery';
 export { useDataModelsXsdQuery } from './useDataModelsXsdQuery';
-export { useInstanceIdQuery } from './useInstanceIdQuery';
 export { useOptionListQuery } from './useOptionListQuery';
 export { useOptionListsQuery } from './useOptionListsQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';

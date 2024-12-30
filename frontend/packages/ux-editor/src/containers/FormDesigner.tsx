@@ -16,7 +16,7 @@ import {
 } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
-import { useInstanceIdQuery, useUserQuery } from 'app-shared/hooks/queries';
+import { useUserQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import type { HandleAdd, HandleMove } from 'app-shared/types/dndTypes';
 import type { ComponentType } from 'app-shared/types/ComponentType';
@@ -34,7 +34,6 @@ import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggl
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: user } = useUserQuery();
   const { selectedFormLayoutSetName, selectedFormLayoutName, updateLayoutsForPreview } =
     useAppContext();
@@ -78,11 +77,7 @@ export const FormDesigner = (): JSX.Element => {
   const t = useText();
 
   const formLayoutIsReady =
-    selectedFormLayoutSetName &&
-    instanceId &&
-    formLayouts &&
-    formLayoutSettings &&
-    isRuleConfigFetched;
+    selectedFormLayoutSetName && formLayouts && formLayoutSettings && isRuleConfigFetched;
 
   const mapErrorToDisplayError = (): { title: string; message: string } => {
     const defaultTitle = t('general.fetch_error_title');

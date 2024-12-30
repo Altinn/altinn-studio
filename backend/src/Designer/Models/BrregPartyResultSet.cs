@@ -7,7 +7,7 @@ namespace Altinn.Studio.Designer.Models
     public class BrregParty
     {
         [JsonPropertyName("organisasjonsnummer")]
-        public string Organisasjonsnummer { get; set; }
+        public required string Organisasjonsnummer { get; set; }
         [JsonPropertyName("navn")]
         public string? Navn { get; set; }
     }

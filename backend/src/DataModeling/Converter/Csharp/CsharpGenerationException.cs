@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 
 namespace Altinn.Studio.DataModeling.Converter.Csharp
 {
@@ -23,11 +22,5 @@ namespace Altinn.Studio.DataModeling.Converter.Csharp
         public CsharpGenerationException(string message, Exception innerException) : base(message, innerException)
         {
         }
-
-        /// <inheritdoc/>
-        protected CsharpGenerationException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
-
     }
 }

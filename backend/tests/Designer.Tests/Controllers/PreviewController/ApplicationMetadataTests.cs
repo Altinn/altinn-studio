@@ -79,42 +79,6 @@ namespace Designer.Tests.Controllers.PreviewController
         }
 
         [Fact]
-        public async Task Get_ApplicationMetadata_WithLessDataTypesThanLayoutSetsFile_OkWithMockedDataTypes()
-        {
-            string expectedApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/config/applicationmetadata.json");
-            _appDevelopmentServiceMock
-                .Setup(rs => rs.GetAppLibVersion(It.IsAny<AltinnRepoEditingContext>()))
-                .Returns(NuGet.Versioning.NuGetVersion.Parse("8.0.0"));
-
-            string dataPathWithData = $"{Org}/{AppV4}/api/v1/applicationmetadata";
-            using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-
-            using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseBody = await response.Content.ReadAsStringAsync();
-            ApplicationMetadata expectedApplicationMetadata = JsonSerializer.Deserialize<ApplicationMetadata>(expectedApplicationMetadataString, JsonSerializerOptions);
-            expectedApplicationMetadata.AltinnNugetVersion = "8.0.0.0";
-            // Add the mocked data type to expected app metadata
-            expectedApplicationMetadata.DataTypes.Add(new DataType()
-            {
-                Id = $"{PreviewService.MockDataModelIdPrefix}-0",
-                AppLogic = new ApplicationLogic()
-                {
-                    ClassRef = $"Altinn.App.Models.model.{PreviewService.MockDataModelIdPrefix}-0"
-                },
-                TaskId = "Task_2"
-            });
-            expectedApplicationMetadata.PartyTypesAllowed.Person = false;
-            expectedApplicationMetadata.PartyTypesAllowed.Organisation = false;
-            expectedApplicationMetadata.PartyTypesAllowed.SubUnit = false;
-            expectedApplicationMetadata.PartyTypesAllowed.BankruptcyEstate = false;
-
-            string expectedJson = JsonSerializer.Serialize(expectedApplicationMetadata, JsonSerializerOptions);
-            JsonUtils.DeepEquals(expectedJson, responseBody).Should().BeTrue();
-        }
-
-        [Fact]
         public async Task Get_ApplicationMetadata_WithAllPartyTypesAllowedSetToFalse()
         {
             string originalApplicationMetadataString = TestDataHelper.GetFileFromRepo(Org, AppV4, Developer, "App/config/applicationmetadata.json");

@@ -10,8 +10,8 @@
     "@microsoft/applicationinsights-react-js": "17.3.4",
     "@microsoft/applicationinsights-web": "3.3.4",
     "@microsoft/signalr": "8.0.7",
-    "@tanstack/react-query": "5.62.7",
-    "@tanstack/react-query-devtools": "5.62.7",
+    "@tanstack/react-query": "5.62.8",
+    "@tanstack/react-query-devtools": "5.62.8",
     "ajv": "8.17.1",
     "ajv-formats": "3.0.1",
     "i18next": "23.16.8",
@@ -33,7 +33,7 @@
     "@testing-library/user-event": "14.5.2",
     "@types/css-modules": "1.0.5",
     "@types/jest": "29.5.14",
-    "@types/react": "18.3.16",
+    "@types/react": "18.3.18",
     "@types/react-dom": "18.3.5",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "@typescript-eslint/parser": "7.18.0",
@@ -57,7 +57,7 @@
     "prettier": "3.4.2",
     "source-map-loader": "5.0.0",
     "swc-loader": "0.2.6",
-    "terser-webpack-plugin": "5.3.10",
+    "terser-webpack-plugin": "5.3.11",
     "typescript": "5.7.2",
     "typescript-plugin-css-modules": "5.1.0",
     "webpack": "5.97.1",
@@ -68,7 +68,7 @@
   "resolutions": {
     "@testing-library/dom": "10.4.0",
     "@babel/traverse": "7.26.4",
-    "caniuse-lite": "1.0.30001688"
+    "caniuse-lite": "1.0.30001690"
   },
   "lint-staged": {
     "*{js,jsx,tsx,ts,css,md}": "prettier -w",

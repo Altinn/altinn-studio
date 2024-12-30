@@ -7,7 +7,7 @@ RUN node ./merge.js ./base/locale_en-US.ini ./custom/locale_en-US.ini ./locale/l
 RUN node ./merge.js ./base/locale_nb-NO.ini ./custom/locale_nb-NO.ini ./locale/locale_nb-NO.ini
 
 # Ensure to update the locales, templates, and configuration when upgrading Gitea
-FROM gitea/gitea:1.22.5-rootless
+FROM gitea/gitea:1.22.6-rootless
 USER 0:0
 RUN apk --no-cache upgrade expat git libxml2 libcurl curl
 USER 1000:1000
