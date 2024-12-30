@@ -8,11 +8,11 @@ import { useAppContext, useText } from '../hooks';
 import { useFormLayoutsQuery } from '../hooks/queries/useFormLayoutsQuery';
 import { useFormLayoutSettingsQuery } from '../hooks/queries/useFormLayoutSettingsQuery';
 import {
+  StudioDragAndDropTree,
   StudioPageError,
   StudioPageSpinner,
   StudioResizableLayout,
   useLocalStorage,
-  StudioDragAndDropTree,
 } from '@studio/components';
 import { BASE_CONTAINER_ID } from 'app-shared/constants';
 import { useRuleConfigQuery } from '../hooks/queries/useRuleConfigQuery';
@@ -24,14 +24,13 @@ import { generateComponentId } from '../utils/generateId';
 import {
   addItemOfType,
   getItem,
-  moveLayoutItem,
   isComponentTypeValidChild,
-  validateDepth,
+  moveLayoutItem,
 } from '../utils/formLayoutUtils';
 import { useAddItemToLayoutMutation } from '../hooks/mutations/useAddItemToLayoutMutation';
 import { useFormLayoutMutation } from '../hooks/mutations/useFormLayoutMutation';
 import { Preview } from '../components/Preview';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 
 export const FormDesigner = (): JSX.Element => {
   const { org, app } = useStudioEnvironmentParams();
@@ -100,7 +99,6 @@ export const FormDesigner = (): JSX.Element => {
   }
 
   if (formLayoutIsReady) {
-    const triggerDepthAlert = () => alert(t('schema_editor.error_depth'));
     const triggerInvalidChildAlert = () => alert(t('schema_editor.error_invalid_child'));
     const layout = formLayouts[selectedFormLayoutName];
 
@@ -112,10 +110,6 @@ export const FormDesigner = (): JSX.Element => {
         return;
       }
       const updatedLayout = addItemOfType(layout, type, newId, parentId, index);
-      if (!validateDepth(updatedLayout)) {
-        triggerDepthAlert();
-        return;
-      }
       addItemToLayout(
         { componentType: type, newId, parentId, index },
         {
@@ -133,10 +127,6 @@ export const FormDesigner = (): JSX.Element => {
         return;
       }
       const updatedLayout = moveLayoutItem(layout, id, parentId, index);
-      if (!validateDepth(updatedLayout)) {
-        triggerDepthAlert();
-        return;
-      }
       updateFormLayout(
         { internalLayout: updatedLayout },
         {
@@ -159,7 +149,7 @@ export const FormDesigner = (): JSX.Element => {
                * The following check is done for a live user test behind feature flag. It can be removed if this is not something
                * that is going to be used in the future.
                */}
-              {!shouldDisplayFeature('addComponentModal') && (
+              {!shouldDisplayFeature(FeatureFlag.AddComponentModal) && (
                 <StudioResizableLayout.Element
                   collapsed={elementsCollapsed}
                   collapsedSize={50}
@@ -174,7 +164,7 @@ export const FormDesigner = (): JSX.Element => {
                 </StudioResizableLayout.Element>
               )}
               <StudioResizableLayout.Element
-                minimumSize={shouldDisplayFeature('addComponentModal') ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
+                minimumSize={shouldDisplayFeature(FeatureFlag.AddComponentModal) ? 600 : 250} // This check is done for a live user test behind feature flag. Revert to 250 if removing.
               >
                 <DesignView />
               </StudioResizableLayout.Element>

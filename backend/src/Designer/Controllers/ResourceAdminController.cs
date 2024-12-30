@@ -14,7 +14,6 @@ using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.ModelBinding.Constants;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.Services.Models;
 using Altinn.Studio.Designer.TypedHttpClients.ResourceRegistryOptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +34,6 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly CacheSettings _cacheSettings;
         private readonly IOrgService _orgService;
         private readonly IResourceRegistry _resourceRegistry;
-        private readonly IEnvironmentsService _environmentsService;
 
         public ResourceAdminController(IGitea gitea, IRepository repository, IResourceRegistryOptions resourceRegistryOptions, IMemoryCache memoryCache, IOptions<CacheSettings> cacheSettings, IOrgService orgService, IResourceRegistry resourceRegistry, IEnvironmentsService environmentsService)
         {
@@ -46,7 +44,6 @@ namespace Altinn.Studio.Designer.Controllers
             _cacheSettings = cacheSettings.Value;
             _orgService = orgService;
             _resourceRegistry = resourceRegistry;
-            _environmentsService = environmentsService;
         }
 
         [HttpPost]
@@ -176,7 +173,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (includeEnvResources)
             {
-                IEnumerable<string> environments = await GetEnvironmentsForOrg(org);
+                IEnumerable<string> environments = GetEnvironmentsForOrg(org);
                 foreach (string environment in environments)
                 {
                     string cacheKey = $"resourcelist_${environment}";
@@ -242,7 +239,7 @@ namespace Altinn.Studio.Designer.Controllers
                 PublishedVersions = []
             };
 
-            IEnumerable<string> environments = await GetEnvironmentsForOrg(org);
+            IEnumerable<string> environments = GetEnvironmentsForOrg(org);
             foreach (string envir in environments)
             {
                 resourceStatus.PublishedVersions.Add(await AddEnvironmentResourceStatus(envir, id));
@@ -613,7 +610,7 @@ namespace Altinn.Studio.Designer.Controllers
             return orgList;
         }
 
-        private static bool IsServiceOwner(ServiceResource? resource, string loggedInOrg)
+        private static bool IsServiceOwner(ServiceResource resource, string loggedInOrg)
         {
             if (resource?.HasCompetentAuthority == null)
             {
@@ -655,10 +652,14 @@ namespace Altinn.Studio.Designer.Controllers
             return string.Format("{0}-resources", org);
         }
 
-        private async Task<IEnumerable<string>> GetEnvironmentsForOrg(string org)
+        private List<string> GetEnvironmentsForOrg(string org)
         {
-            IEnumerable<EnvironmentModel> environments = await _environmentsService.GetOrganizationEnvironments(org);
-            return environments.Select(environment => environment.Name == "production" ? "prod" : environment.Name);
+            List<string> environmentsForOrg = ["prod", "tt02"];
+            if (OrgUtil.IsTestEnv(org))
+            {
+                environmentsForOrg.AddRange(["at22", "at23", "at24", "yt01"]);
+            }
+            return environmentsForOrg;
         }
     }
 }

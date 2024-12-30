@@ -5,18 +5,19 @@ import { Fieldset } from '@digdir/designsystemet-react';
 import { SelectDataModelBinding } from './SelectDataModelBinding';
 import { SelectDataFieldBinding } from './SelectDataFieldBinding';
 import {
-  type InternalBindingFormat,
   getMaxOccursFromDataModelFields,
   getMinOccursFromDataModelFields,
   getXsdDataTypeFromDataModelFields,
+  type InternalBindingFormat,
 } from '@altinn/ux-editor/utils/dataModelUtils';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { useAppContext } from '@altinn/ux-editor/hooks';
 import type { UpdateFormMutateOptions } from '@altinn/ux-editor/containers/FormItemContext';
 import { EditBindingButtons } from './EditBindingButtons';
 import { useValidDataModels } from '@altinn/ux-editor/hooks/useValidDataModels';
 import { StudioSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
+import { formItemConfigs } from '@altinn/ux-editor/data/formItemConfig';
 
 export type EditBindingProps = {
   bindingKey: string;
@@ -43,17 +44,26 @@ export const EditBinding = ({
     internalBindingFormat.dataType,
   );
 
-  const handleBindingChange = (updatedBinding: InternalBindingFormat) => {
-    const selectedDataFieldElement = updatedBinding.field;
+  const handleBindingChange = (updatedBinding?: InternalBindingFormat) => {
+    const selectedDataFieldElement = updatedBinding?.field;
+
+    const value =
+      (shouldDisplayFeature(FeatureFlag.MultipleDataModelsPerTask)
+        ? updatedBinding
+        : selectedDataFieldElement) ??
+      formItemConfigs[component.type]?.defaultProperties?.['dataModelBindings']?.[bindingKey];
+
+    const dataModelBindings = { ...component.dataModelBindings };
+    if (value === undefined || value === null) {
+      delete dataModelBindings[bindingKey];
+    } else {
+      dataModelBindings[bindingKey] = value;
+    }
+
     handleComponentChange(
       {
         ...component,
-        dataModelBindings: {
-          ...component.dataModelBindings,
-          [bindingKey]: shouldDisplayFeature('multipleDataModelsPerTask')
-            ? updatedBinding
-            : selectedDataFieldElement,
-        },
+        dataModelBindings: Object.keys(dataModelBindings).length ? dataModelBindings : undefined,
         required: getMinOccursFromDataModelFields(selectedDataFieldElement, dataModelMetadata),
         timeStamp: getXsdDataTypeFromDataModelFields(
           component.type,

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioTabs } from '@studio/components';
 import { ReferenceTab } from './ReferenceTab/ReferenceTab';
-import { shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+import { shouldDisplayFeature, FeatureFlag } from 'app-shared/utils/featureToggleUtils';
 import { ManualTab } from './ManualTab';
 import { EditTab } from './EditTab';
 import { SelectedOptionsType } from '../EditOptions';
@@ -22,7 +22,7 @@ type OptionTabsProps = {
 export function OptionTabs({ component, handleComponentChange, optionListIds }: OptionTabsProps) {
   return (
     <>
-      {shouldDisplayFeature('optionListEditor') ? (
+      {shouldDisplayFeature(FeatureFlag.OptionListEditor) ? (
         <OptionTabsMergedTabs
           component={component}
           handleComponentChange={handleComponentChange}

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -37,6 +38,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
         /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
+        /// <param name="modelNameValidator">Interface for validating that the model name does not already belong to a data type</param>
         public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator, IModelNameValidator modelNameValidator)
         {
             _schemaModelService = schemaModelService;
@@ -163,17 +165,17 @@ namespace Altinn.Studio.Designer.Controllers
             Request.EnableBuffering();
             Guard.AssertArgumentNotNull(theFile, nameof(theFile));
 
-            string fileName = GetFileNameFromUploadedFile(theFile);
-            Guard.AssertFileExtensionIsOfType(fileName, ".xsd");
+            string fileNameWithExtension = GetFileNameFromUploadedFile(theFile);
+            Guard.AssertFileExtensionIsOfType(fileNameWithExtension, ".xsd");
 
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             var editingContext = AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repository, developer);
             var fileStream = theFile.OpenReadStream();
-            await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileName, editingContext);
-            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileName, theFile.OpenReadStream(), cancellationToken);
+            await _modelNameValidator.ValidateModelNameForNewXsdSchemaAsync(fileStream, fileNameWithExtension, editingContext);
+            string jsonSchema = await _schemaModelService.BuildSchemaFromXsd(editingContext, fileNameWithExtension, theFile.OpenReadStream(), cancellationToken);
 
-            return Created(Uri.EscapeDataString(fileName), jsonSchema);
+            return Created(Uri.EscapeDataString(fileNameWithExtension), jsonSchema);
         }
 
         /// <summary>
@@ -246,6 +248,34 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NoContent();
             }
+        }
+
+        /// <summary>
+        /// Gets the dataType for a given data model.
+        /// </summary>
+        [HttpGet("datamodel/{modelName}/dataType")]
+        [UseSystemTextJson]
+        public async Task<ActionResult<DataType>> GetModelDataType(string org, string repository, string modelName)
+        {
+            DataType dataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(dataType);
+        }
+
+        /// <summary>
+        /// Updates the dataType for a given data model.
+        /// </summary>
+        [HttpPut("datamodel/{modelName}/dataType")]
+        [UseSystemTextJson]
+        public async Task<ActionResult> SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
+        {
+            if (!Equals(modelName, dataType.Id))
+            {
+                return BadRequest("Model name in path and request body does not match");
+            }
+
+            await _schemaModelService.SetModelDataType(org, repository, modelName, dataType);
+            DataType updatedDataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(updatedDataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)

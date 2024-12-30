@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Metadata;
@@ -144,12 +146,59 @@ public class PutDatamodelTests : DesignerEndpointsTestsBase<PutDatamodelTests>, 
         }
     }
 
+    [Theory]
+    [InlineData("testmodelname", "ttd", "hvem-er-hvem")]
+    public async Task PutDatamodelDataType_ShouldReturnWithoutErrors(string datamodelName, string org, string repo)
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel/{datamodelName}/dataType";
+        await CopyRepositoryForTest(org, repo, "testUser", TargetTestRepository);
+
+        DataType dataType = new()
+        {
+            Id = datamodelName,
+            MaxCount = 1,
+            MinCount = 1,
+        };
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = JsonContent.Create(dataType)
+        };
+
+        HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        DataType dataTypeResponse = await response.Content.ReadFromJsonAsync<DataType>();
+        dataTypeResponse.Should().NotBeNull();
+        dataTypeResponse.Should().BeEquivalentTo(dataType);
+    }
+
+    [Theory]
+    [InlineData("testmodelname", "ttd", "hvem-er-hvem")]
+    public async Task PutDatamodelDataType_FailsIfDatamodelNameMismatchesObjectId(string datamodelName, string org, string repo)
+    {
+        string url = $"{VersionPrefix(org, TargetTestRepository)}/datamodel/{datamodelName}/dataType";
+        await CopyRepositoryForTest(org, repo, "testUser", TargetTestRepository);
+
+        DataType dataType = new()
+        {
+            Id = "wrongId",
+            MaxCount = 1,
+            MinCount = 1,
+        };
+        using var putRequest = new HttpRequestMessage(HttpMethod.Put, url)
+        {
+            Content = JsonContent.Create(dataType)
+        };
+
+        HttpResponseMessage response = await HttpClient.SendAsync(putRequest);
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
         var location = Path.GetFullPath(Path.Combine(TestRepoPath, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
-        var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
 
         Assert.True(File.Exists(xsdSchemaLocation));
         Assert.True(File.Exists(jsonSchemaLocation));
