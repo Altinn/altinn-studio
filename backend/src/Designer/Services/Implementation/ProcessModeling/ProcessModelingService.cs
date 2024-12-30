@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
                 XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
                 Definitions? definitions = (Definitions?)serializer.Deserialize(processDefinitionStream);
                 LayoutSetConfig layoutSet = await _appDevelopmentService.GetLayoutSetConfig(altinnRepoEditingContext, layoutSetId);
-                string taskId = layoutSet.Tasks?.First();
+                string? taskId = layoutSet.Tasks?.First();
                 ProcessTask? task = definitions?.Process.Tasks.FirstOrDefault(task => task.Id == taskId);
                 return task?.ExtensionElements?.TaskExtension?.TaskType ?? string.Empty;
             }
@@ -115,7 +115,12 @@ namespace Altinn.Studio.Designer.Services.Implementation.ProcessModeling
                 throw new FileNotFoundException("Unknown template.");
             }
             string template = templates.Single(template => template.EndsWith(templateName));
-            return typeof(ProcessModelingService).Assembly.GetManifestResourceStream(template);
+            Stream? templateStream = typeof(ProcessModelingService).Assembly.GetManifestResourceStream(template);
+            if (templateStream == null)
+            {
+                throw new FileNotFoundException($"Template resource '{template}' not found in the assembly.");
+            }
+            return templateStream;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
@@ -105,6 +106,25 @@ public class OptionsController : ControllerBase
         {
             return NotFound(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Gets all usages of all optionListIds in the layouts as <see cref="RefToOptionListSpecifier"/>.
+    /// </summary>
+    /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+    /// <param name="repo">Application identifier which is unique within an organisation.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("usage")]
+    public async Task<ActionResult<List<RefToOptionListSpecifier>>> GetOptionListsReferences(string org, string repo, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+        List<RefToOptionListSpecifier> optionListReferences = await _optionsService.GetAllOptionListReferences(AltinnRepoEditingContext.FromOrgRepoDeveloper(org, repo, developer), cancellationToken);
+        return Ok(optionListReferences);
     }
 
     /// <summary>
