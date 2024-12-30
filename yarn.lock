@@ -5470,7 +5470,7 @@ __metadata:
     typescript: "npm:5.7.2"
     typescript-eslint: "npm:8.18.2"
     typescript-plugin-css-modules: "npm:5.1.0"
-    use-immer: "npm:0.10.0"
+    use-immer: "npm:0.11.0"
     utility-types: "npm:3.11.0"
     uuid: "npm:11.0.3"
     webpack: "npm:5.97.1"
@@ -17508,13 +17508,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-immer@npm:0.10.0":
-  version: 0.10.0
-  resolution: "use-immer@npm:0.10.0"
+"use-immer@npm:0.11.0":
+  version: 0.11.0
+  resolution: "use-immer@npm:0.11.0"
   peerDependencies:
     immer: ">=8.0.0"
-    react: ^16.8.0 || ^17.0.1 || ^18.0.0
-  checksum: 10c0/67dcae179c97819c5dba3c598f28d3118ce88ea1fe7bdd5e07fcce945e468125786a20bdfaa90c429374a1cc8f6edd4b3900b3e5726ccd35ea12696a7505436b
+    react: ^16.8.0 || ^17.0.1 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/fc4391c8aab0868194241d16f2826efb3563b69de37e9cfd325044f3115fa155b6b76c4a8731f274bd4ea31a0fe709bf2b6cfc1d8aa12a00f672ed0dccd3a4fa
   languageName: node
   linkType: hard
 

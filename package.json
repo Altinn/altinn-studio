@@ -124,7 +124,7 @@
     "tsconfig-paths": "4.2.0",
     "tsx": "4.19.2",
     "typescript-plugin-css-modules": "5.1.0",
-    "use-immer": "0.10.0",
+    "use-immer": "0.11.0",
     "utility-types": "3.11.0",
     "webpack": "5.97.1",
     "webpack-cli": "6.0.1",
