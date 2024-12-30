@@ -135,7 +135,7 @@ export const FormComponentConfig = ({
       )}
 
       {/** Boolean fields, incl. expression type */}
-      {defaultDisplayedBooleanKeys.map((propertyKey, index) => (
+      {defaultDisplayedBooleanKeys.map((propertyKey) => (
         <EditBooleanValue
           component={component}
           handleComponentChange={handleComponentUpdate}
