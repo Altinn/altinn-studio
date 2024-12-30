@@ -4,7 +4,7 @@ import type { FormComponent } from '../../types/FormComponent';
 import { EditBooleanValue } from './editModal/EditBooleanValue';
 import { EditNumberValue } from './editModal/EditNumberValue';
 import { EditStringValue } from './editModal/EditStringValue';
-import { useComponentPropertyLabel, useText } from '../../hooks';
+import { useComponentPropertyHelpText, useComponentPropertyLabel, useText } from '../../hooks';
 import {
   PropertyTypes,
   propertyKeysToExcludeFromComponentConfig,
@@ -41,6 +41,7 @@ export const FormComponentConfig = ({
   const componentPropertyLabel = useComponentPropertyLabel();
   const componentPropertyDescription = useComponentPropertyDescription();
   const [showOtherComponents, setShowOtherComponents] = useState(false);
+  const getHelpText = useComponentPropertyHelpText();
 
   if (!schema?.properties) return null;
 
@@ -141,7 +142,7 @@ export const FormComponentConfig = ({
           propertyKey={propertyKey}
           defaultValue={properties[propertyKey].default}
           key={propertyKey}
-          helpText={index === 0 && t('ux_editor.component_properties.hidden_help_text')}
+          helpText={getHelpText(propertyKey)}
         />
       ))}
       {showOtherComponents &&
