@@ -164,7 +164,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
 const targetTaskIdSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.target_taskId'),
+    name: textMock('ux_editor.component_properties.target_layoutSet_id'),
   });
 
 const targetTypeSelect = () =>

@@ -32,13 +32,11 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
 
-  const tasks = [
-    ...new Set(
-      layoutSets.sets.reduce((acc, set) => {
-        return set.tasks ? acc.concat(set.tasks) : acc;
-      }, []),
-    ),
-  ];
+  console.log(layoutSets);
+
+  const layoutSetsWithTasks = layoutSets?.sets.filter((set) => set.tasks?.length > 0);
+  console.log(layoutSetsWithTasks);
+
   const currentTaskId = layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName)
     .tasks?.[0];
   const selectedLayoutSetName = target.taskId
@@ -100,7 +98,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
     onChange(updatedTarget);
   };
 
-  const handleTaskIdChange = (taskId: string) => {
+  const handleLayoutSetChange = (taskId: string) => {
     const updatedTarget = { ...target, id: '' };
     if (taskId === currentTaskId) {
       delete updatedTarget.taskId;
@@ -127,13 +125,13 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
       <StudioCard.Content>
         <StudioNativeSelect
           size='sm'
-          label={t('ux_editor.component_properties.target_taskId')}
-          value={target.taskId || currentTaskId}
-          onChange={(e) => handleTaskIdChange(e.target.value)}
+          label={t('ux_editor.component_properties.target_layoutSet_id')}
+          value={selectedLayoutSetName}
+          onChange={(e) => handleLayoutSetChange(e.target.value)}
         >
-          {tasks.map((taskId) => (
-            <option key={taskId} value={taskId}>
-              {taskId}
+          {layoutSetsWithTasks.map((layoutSet) => (
+            <option key={layoutSet.id} value={layoutSet.id}>
+              {layoutSet.id}
             </option>
           ))}
         </StudioNativeSelect>
