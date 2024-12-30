@@ -38,9 +38,9 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
   const optionsIdIsFromLibrary = optionListIds?.some(
     (optionId: string) => optionId === component.optionsId,
   );
+  const isOptionsIdReferenceId = !!component.optionsId && !optionsIdIsFromLibrary;
   const isOptionsModifiable =
     (!!component.optionsId && optionsIdIsFromLibrary) || !!component.options;
-  const isOptionsIdAReferenceId = !!component.optionsId && !optionsIdIsFromLibrary;
 
   switch (status) {
     case 'pending':
@@ -68,7 +68,7 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
           ) : (
             <AddOptionList component={component} handleComponentChange={handleComponentChange} />
           )}
-          {isOptionsIdAReferenceId && (
+          {isOptionsIdReferenceId && (
             <StudioAlert className={classes.alert} severity={'info'} size='sm'>
               {t('ux_editor.options.tab_option_list_alert_title')}
             </StudioAlert>
