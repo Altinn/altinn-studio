@@ -33,12 +33,12 @@ namespace Altinn.App.Models
 
   public class rapport
   {
-    [XmlElement("innsender", Order = 1)]
+    [XmlElement("innsender", Order = 1, IsNullable = true)]
     [JsonProperty("innsender")]
     [JsonPropertyName("innsender")]
     public Innsender innsender { get; set; }
 
-    [XmlElement("rapportering", Order = 2)]
+    [XmlElement("rapportering", Order = 2, IsNullable = true)]
     [JsonProperty("rapportering")]
     [JsonPropertyName("rapportering")]
     public Rapportering rapportering { get; set; }
@@ -47,17 +47,17 @@ namespace Altinn.App.Models
 
   public class Innsender
   {
-    [XmlElement("adresse", Order = 1)]
+    [XmlElement("adresse", Order = 1, IsNullable = true)]
     [JsonProperty("adresse")]
     [JsonPropertyName("adresse")]
     public Adresse adresse { get; set; }
 
-    [XmlElement("foretak", Order = 2)]
+    [XmlElement("foretak", Order = 2, IsNullable = true)]
     [JsonProperty("foretak")]
     [JsonPropertyName("foretak")]
     public Foretak foretak { get; set; }
 
-    [XmlElement("maalform", Order = 3)]
+    [XmlElement("maalform", Order = 3, IsNullable = true)]
     [JsonProperty("maalform")]
     [JsonPropertyName("maalform")]
     public Maalform maalform { get; set; }
@@ -68,21 +68,21 @@ namespace Altinn.App.Models
 
   public class Adresse
   {
-    [XmlElement("postnummer", Order = 1)]
+    [XmlElement("postnummer", Order = 1, IsNullable = true)]
     [JsonProperty("postnummer")]
     [JsonPropertyName("postnummer")]
     public Postnummer postnummer { get; set; }
 
     public bool ShouldSerializepostnummer() => postnummer?.value is not null;
 
-    [XmlElement("adresselinje1", Order = 2)]
+    [XmlElement("adresselinje1", Order = 2, IsNullable = true)]
     [JsonProperty("adresselinje1")]
     [JsonPropertyName("adresselinje1")]
     public Adresselinje1 adresselinje1 { get; set; }
 
     public bool ShouldSerializeadresselinje1() => adresselinje1?.value is not null;
 
-    [XmlElement("poststed", Order = 3)]
+    [XmlElement("poststed", Order = 3, IsNullable = true)]
     [JsonProperty("poststed")]
     [JsonPropertyName("poststed")]
     public Poststed poststed { get; set; }
@@ -129,14 +129,14 @@ namespace Altinn.App.Models
 
   public class Foretak
   {
-    [XmlElement("organisasjonsnummer", Order = 1)]
+    [XmlElement("organisasjonsnummer", Order = 1, IsNullable = true)]
     [JsonProperty("organisasjonsnummer")]
     [JsonPropertyName("organisasjonsnummer")]
     public Organisasjonsnummer organisasjonsnummer { get; set; }
 
     public bool ShouldSerializeorganisasjonsnummer() => organisasjonsnummer?.value is not null;
 
-    [XmlElement("navn", Order = 2)]
+    [XmlElement("navn", Order = 2, IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public Foretaksnavn navn { get; set; }
@@ -199,60 +199,60 @@ namespace Altinn.App.Models
 
   public class Rapportering
   {
-    [XmlElement("arkiv", Order = 1)]
+    [XmlElement("arkiv", Order = 1, IsNullable = true)]
     [JsonProperty("arkiv")]
     [JsonPropertyName("arkiv")]
     public Arkiv arkiv { get; set; }
 
-    [XmlElement("kontaktperson1", Order = 2)]
+    [XmlElement("kontaktperson1", Order = 2, IsNullable = true)]
     [JsonProperty("kontaktperson1")]
     [JsonPropertyName("kontaktperson1")]
     public Kontaktperson1 kontaktperson1 { get; set; }
 
-    [XmlElement("kontaktperson2", Order = 3)]
+    [XmlElement("kontaktperson2", Order = 3, IsNullable = true)]
     [JsonProperty("kontaktperson2")]
     [JsonPropertyName("kontaktperson2")]
     public Kontaktperson2 kontaktperson2 { get; set; }
 
-    [XmlElement("periode", Order = 4)]
+    [XmlElement("periode", Order = 4, IsNullable = true)]
     [JsonProperty("periode")]
     [JsonPropertyName("periode")]
     public Periode periode { get; set; }
 
-    [XmlElement("rapporteringsregisteret", Order = 5)]
+    [XmlElement("rapporteringsregisteret", Order = 5, IsNullable = true)]
     [JsonProperty("rapporteringsregisteret")]
     [JsonPropertyName("rapporteringsregisteret")]
     public Rapporteringsregisteret rapporteringsregisteret { get; set; }
 
-    [XmlElement("sporvalgrappreg", Order = 6)]
+    [XmlElement("sporvalgrappreg", Order = 6, IsNullable = true)]
     [JsonProperty("sporvalgrappreg")]
     [JsonPropertyName("sporvalgrappreg")]
     public Tekst_60_S1 sporvalgrappreg { get; set; }
 
     public bool ShouldSerializesporvalgrappreg() => sporvalgrappreg?.value is not null;
 
-    [XmlElement("hjelpefelt", Order = 7)]
+    [XmlElement("hjelpefelt", Order = 7, IsNullable = true)]
     [JsonProperty("hjelpefelt")]
     [JsonPropertyName("hjelpefelt")]
     public Tekst_120_S01 hjelpefelt { get; set; }
 
     public bool ShouldSerializehjelpefelt() => hjelpefelt?.value is not null;
 
-    [XmlElement("avdeling", Order = 8)]
+    [XmlElement("avdeling", Order = 8, IsNullable = true)]
     [JsonProperty("avdeling")]
     [JsonPropertyName("avdeling")]
     public Avdeling avdeling { get; set; }
 
     public bool ShouldSerializeavdeling() => avdeling?.value is not null;
 
-    [XmlElement("beskrivelse", Order = 9)]
+    [XmlElement("beskrivelse", Order = 9, IsNullable = true)]
     [JsonProperty("beskrivelse")]
     [JsonPropertyName("beskrivelse")]
     public Tekst_255_S10 beskrivelse { get; set; }
 
     public bool ShouldSerializebeskrivelse() => beskrivelse?.value is not null;
 
-    [XmlElement("periodeaarstall", Order = 10)]
+    [XmlElement("periodeaarstall", Order = 10, IsNullable = true)]
     [JsonProperty("periodeaarstall")]
     [JsonPropertyName("periodeaarstall")]
     public AAr_S01 periodeaarstall { get; set; }
@@ -263,7 +263,7 @@ namespace Altinn.App.Models
 
   public class Arkiv
   {
-    [XmlElement("arkivkode", Order = 1)]
+    [XmlElement("arkivkode", Order = 1, IsNullable = true)]
     [JsonProperty("arkivkode")]
     [JsonPropertyName("arkivkode")]
     public Arkivkode arkivkode { get; set; }
@@ -285,28 +285,28 @@ namespace Altinn.App.Models
 
   public class Kontaktperson1
   {
-    [XmlElement("epost", Order = 1)]
+    [XmlElement("epost", Order = 1, IsNullable = true)]
     [JsonProperty("epost")]
     [JsonPropertyName("epost")]
     public Epost_S01 epost { get; set; }
 
     public bool ShouldSerializeepost() => epost?.value is not null;
 
-    [XmlElement("navn", Order = 2)]
+    [XmlElement("navn", Order = 2, IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public Navn_S01 navn { get; set; }
 
     public bool ShouldSerializenavn() => navn?.value is not null;
 
-    [XmlElement("telefonnummer", Order = 3)]
+    [XmlElement("telefonnummer", Order = 3, IsNullable = true)]
     [JsonProperty("telefonnummer")]
     [JsonPropertyName("telefonnummer")]
     public TelefonNummer_S01 telefonnummer { get; set; }
 
     public bool ShouldSerializetelefonnummer() => telefonnummer?.value is not null;
 
-    [XmlElement("telefonprefiks", Order = 4)]
+    [XmlElement("telefonprefiks", Order = 4, IsNullable = true)]
     [JsonProperty("telefonprefiks")]
     [JsonPropertyName("telefonprefiks")]
     public TelefonPrefiks_S01 telefonprefiks { get; set; }
@@ -364,28 +364,28 @@ namespace Altinn.App.Models
 
   public class Kontaktperson2
   {
-    [XmlElement("epost", Order = 1)]
+    [XmlElement("epost", Order = 1, IsNullable = true)]
     [JsonProperty("epost")]
     [JsonPropertyName("epost")]
     public Epost_S02 epost { get; set; }
 
     public bool ShouldSerializeepost() => epost?.value is not null;
 
-    [XmlElement("navn", Order = 2)]
+    [XmlElement("navn", Order = 2, IsNullable = true)]
     [JsonProperty("navn")]
     [JsonPropertyName("navn")]
     public Navn_S02 navn { get; set; }
 
     public bool ShouldSerializenavn() => navn?.value is not null;
 
-    [XmlElement("telefonnummer", Order = 3)]
+    [XmlElement("telefonnummer", Order = 3, IsNullable = true)]
     [JsonProperty("telefonnummer")]
     [JsonPropertyName("telefonnummer")]
     public TelefonNummer_S02 telefonnummer { get; set; }
 
     public bool ShouldSerializetelefonnummer() => telefonnummer?.value is not null;
 
-    [XmlElement("telefonprefiks", Order = 4)]
+    [XmlElement("telefonprefiks", Order = 4, IsNullable = true)]
     [JsonProperty("telefonprefiks")]
     [JsonPropertyName("telefonprefiks")]
     public TelefonPrefiks_S02 telefonprefiks { get; set; }
@@ -443,14 +443,14 @@ namespace Altinn.App.Models
 
   public class Periode
   {
-    [XmlElement("aar", Order = 1)]
+    [XmlElement("aar", Order = 1, IsNullable = true)]
     [JsonProperty("aar")]
     [JsonPropertyName("aar")]
     public AAr aar { get; set; }
 
     public bool ShouldSerializeaar() => aar?.value is not null;
 
-    [XmlElement("periodetype", Order = 2)]
+    [XmlElement("periodetype", Order = 2, IsNullable = true)]
     [JsonProperty("periodetype")]
     [JsonPropertyName("periodetype")]
     public Periodetype periodetype { get; set; }
@@ -484,7 +484,7 @@ namespace Altinn.App.Models
 
   public class Rapporteringsregisteret
   {
-    [XmlElement("rapporteringsid", Order = 1)]
+    [XmlElement("rapporteringsid", Order = 1, IsNullable = true)]
     [JsonProperty("rapporteringsid")]
     [JsonPropertyName("rapporteringsid")]
     public Rapporteringsid rapporteringsid { get; set; }
