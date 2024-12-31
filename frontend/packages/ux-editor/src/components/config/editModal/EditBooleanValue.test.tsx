@@ -20,7 +20,6 @@ const renderEditBooleanValue = ({
     <EditBooleanValue
       handleComponentChange={handleComponentChange}
       propertyKey={propertyKey}
-      helpText={helpText}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
         type: ComponentType.Input,
