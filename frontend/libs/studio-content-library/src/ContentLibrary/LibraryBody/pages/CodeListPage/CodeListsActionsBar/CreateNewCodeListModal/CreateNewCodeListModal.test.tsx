@@ -78,6 +78,15 @@ describe('CreateNewCodeListModal', () => {
     expect(codeListTitleError).toBeInTheDocument();
   });
 
+  it('renders error message if code list title does not match regex', async () => {
+    const user = userEvent.setup();
+    renderCreateNewCodeListModal();
+    await openDialog(user);
+    await inputCodeListTitle(user, 'æ');
+    const codeListTitleError = screen.getByText(textMock('validation_errors.file_name_invalid'));
+    expect(codeListTitleError).toBeInTheDocument();
+  });
+
   it('disables the save button if code list title is invalid', async () => {
     const user = userEvent.setup();
     renderCreateNewCodeListModal();
