@@ -50,14 +50,15 @@ function CodeList({
   const { t } = useTranslation();
 
   return (
-    <Accordion
-      border
-      title={t('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle: codeList.title,
-      })}
-    >
+    <Accordion border>
       <Accordion.Item defaultOpen={codeListInEditMode === codeList.title}>
-        <Accordion.Header>{codeList.title}</Accordion.Header>
+        <Accordion.Header
+          title={t('app_content_library.code_lists.code_list_accordion_title', {
+            codeListTitle: codeList.title,
+          })}
+        >
+          {codeList.title}
+        </Accordion.Header>
         <Accordion.Content>
           <EditCodeList
             codeList={codeList}
