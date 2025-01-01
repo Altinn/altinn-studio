@@ -32,13 +32,7 @@ export function CodeLists({
   ));
 }
 
-type CodeListProps = {
-  codeListData: CodeListData;
-  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
-  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  codeListInEditMode: string | undefined;
-  codeListNames: string[];
-};
+type CodeListProps = Omit<CodeListsProps, 'codeListsData'> & { codeListData: CodeListData };
 
 function CodeList({
   codeListData,
@@ -59,23 +53,43 @@ function CodeList({
         >
           {codeListData.title}
         </Accordion.Header>
-        <Accordion.Content>
-          {codeListData.hasError ? (
-            <StudioAlert size='small' severity='danger'>
-              {t('app_content_library.code_lists.fetch_error')}
-            </StudioAlert>
-          ) : (
-            <EditCodeList
-              codeList={codeListData.data}
-              codeListTitle={codeListData.title}
-              onUpdateCodeListId={onUpdateCodeListId}
-              onUpdateCodeList={onUpdateCodeList}
-              codeListNames={codeListNames}
-            />
-          )}
-        </Accordion.Content>
+        <CodeListAccordionContent
+          codeListData={codeListData}
+          onUpdateCodeListId={onUpdateCodeListId}
+          onUpdateCodeList={onUpdateCodeList}
+          codeListNames={codeListNames}
+        />
       </Accordion.Item>
     </Accordion>
+  );
+}
+
+type CodeListAccordionContentProps = Omit<CodeListProps, 'codeListInEditMode'>;
+
+function CodeListAccordionContent({
+  codeListData,
+  onUpdateCodeListId,
+  onUpdateCodeList,
+  codeListNames,
+}: CodeListAccordionContentProps): React.ReactElement {
+  const { t } = useTranslation();
+
+  return (
+    <Accordion.Content>
+      {codeListData.hasError ? (
+        <StudioAlert size='small' severity='danger'>
+          {t('app_content_library.code_lists.fetch_error')}
+        </StudioAlert>
+      ) : (
+        <EditCodeList
+          codeList={codeListData.data}
+          codeListTitle={codeListData.title}
+          onUpdateCodeListId={onUpdateCodeListId}
+          onUpdateCodeList={onUpdateCodeList}
+          codeListNames={codeListNames}
+        />
+      )}
+    </Accordion.Content>
   );
 }
 
