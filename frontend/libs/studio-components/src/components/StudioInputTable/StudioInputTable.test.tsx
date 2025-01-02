@@ -28,7 +28,7 @@ import type { CellCheckboxProps } from './Cell/CellCheckbox';
 import type { CellButtonProps } from './Cell/CellButton';
 import type { HTMLCellInputElement } from './types/HTMLCellInputElement';
 import type { EventName } from './types/EventName';
-import type { EventProps } from './types/EventProps';
+import type { FormEventProps } from './types/FormEventProps';
 import type { EventPropName } from './types/EventPropName';
 import { StringUtils } from '@studio/pure-functions';
 import type { CellTextResourceInputProps } from './Cell/CellTextResource';
@@ -286,7 +286,7 @@ describe('StudioInputTable', () => {
 
   describe('Triggers input level and table level event functions with the same events when the user performs a corresponding action', () => {
     type TestCase<Element extends HTMLCellInputElement, Event extends EventName> = {
-      render: (mockFn: EventProps<Element>[EventPropName<Event>]) => RenderResult;
+      render: (mockFn: FormEventProps<Element>[EventPropName<Event>]) => RenderResult;
       action: (user: UserEvent) => Promise<void>;
     };
 

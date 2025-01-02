@@ -1,19 +1,15 @@
 import { useMemo } from 'react';
 import { useStudioInputTableContext } from '../StudioInputTableContext';
-import type { EventPropsBase } from '../types/EventPropsBase';
+import type { EventProps } from '../types/EventProps';
 
 export function useEventProps<BlurInput, FocusInput, ChangeInput>({
   onBlur,
   onFocus,
   onChange,
-}: EventPropsBase<BlurInput, FocusInput, ChangeInput>): EventPropsBase<
-  BlurInput,
-  FocusInput,
-  ChangeInput
-> {
+}: EventProps<BlurInput, FocusInput, ChangeInput>): EventProps<BlurInput, FocusInput, ChangeInput> {
   const { onChangeAny, onBlurAny, onFocusAny } = useStudioInputTableContext();
 
-  return useMemo<EventPropsBase<BlurInput, FocusInput, ChangeInput>>(
+  return useMemo<EventProps<BlurInput, FocusInput, ChangeInput>>(
     () => ({
       onChange: (input) => {
         onChange?.(input);
