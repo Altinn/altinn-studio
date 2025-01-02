@@ -1,6 +1,6 @@
 {
   "name": "@studio/components",
-  "packageManager": "yarn@4.5.3",
+  "packageManager": "yarn@4.6.0",
   "version": "0.1.0",
   "main": "./src/index.ts",
   "scripts": {
@@ -24,7 +24,7 @@
     "@storybook/addon-essentials": "8.4.7",
     "@storybook/addon-interactions": "8.4.7",
     "@storybook/addon-links": "8.4.7",
-    "@storybook/addon-webpack5-compiler-swc": "1.0.5",
+    "@storybook/addon-webpack5-compiler-swc": "1.0.6",
     "@storybook/blocks": "8.4.7",
     "@storybook/react": "8.4.7",
     "@storybook/react-webpack5": "8.4.7",
