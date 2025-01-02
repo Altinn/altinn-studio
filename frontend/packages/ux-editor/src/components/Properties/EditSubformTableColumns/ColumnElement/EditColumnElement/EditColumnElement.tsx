@@ -55,16 +55,15 @@ export const EditColumnElement = ({
     (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
   );
 
-  const getSelectedComponentId = components.find(
-    (comp) => comp.textResourceBindings?.title === tableColumn.headerContent,
-  )?.id;
+  const getSelectedComponentId = components.find((comp) => comp.id === tableColumn.componentId);
 
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
     const selectedComponent = components.find((comp) => comp.id === selectedComponentId);
 
     const updatedTableColumn = {
-      ...sourceColumn,
+      ...tableColumn,
+      componentId: selectedComponent.id,
       headerContent: selectedComponent.textResourceBindings?.title,
       cellContent: { query: selectedComponent.dataModelBindings?.simpleBinding },
     };
@@ -78,7 +77,7 @@ export const EditColumnElement = ({
         <EditColumnElementComponentSelect
           components={componentsWithLabelAndDataModel}
           onSelectComponent={selectComponent}
-          selectedComponentId={getSelectedComponentId ? [getSelectedComponentId] : []}
+          selectedComponentId={getSelectedComponentId ? [getSelectedComponentId.id] : []}
         />
         <StudioTextfield
           label={

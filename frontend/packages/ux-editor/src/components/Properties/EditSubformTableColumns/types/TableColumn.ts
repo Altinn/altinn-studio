@@ -6,4 +6,5 @@ type TableColumnCellContent = {
 export type TableColumn = {
   headerContent: string;
   cellContent: TableColumnCellContent;
+  componentId?: string;
 };
