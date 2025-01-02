@@ -73,7 +73,7 @@ describe('OptionListEditor', () => {
       expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
     });
 
-    it('should display general.empty_string when option-list has an empty string', () => {
+    it('should show placeholder for option label when option list label is empty', () => {
       mockComponent.options = [{ value: 2, label: '', description: 'test', helpText: null }];
       renderOptionListEditor();
 
