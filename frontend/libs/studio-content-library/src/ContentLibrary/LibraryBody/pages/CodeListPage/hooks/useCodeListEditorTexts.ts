@@ -5,7 +5,7 @@ import type {
   TextResourceInputTexts,
 } from '@studio/components';
 
-export function useOptionListEditorTexts(): CodeListEditorTexts {
+export function useCodeListEditorTexts(): CodeListEditorTexts {
   const { t } = useTranslation();
   const textResourceTexts = useTextResourceTexts();
 
