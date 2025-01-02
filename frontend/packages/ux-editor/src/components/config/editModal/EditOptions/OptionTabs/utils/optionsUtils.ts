@@ -103,8 +103,9 @@ function clearOppositeOptionSetting(
 ) {
   if (optionToKeep === 'optionsId') {
     component.options = undefined;
-  } else {
+  } else if (optionToKeep === 'options') {
     component.optionsId = undefined;
   }
+
   return component;
 }
