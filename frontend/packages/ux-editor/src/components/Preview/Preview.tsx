@@ -7,12 +7,14 @@ import { useAppContext } from '../../hooks';
 import { useChecksum } from '../../hooks/useChecksum.ts';
 import { previewPage } from 'app-shared/api/paths';
 import { Paragraph } from '@digdir/designsystemet-react';
-import { StudioButton, StudioCenter } from '@studio/components';
+import { StudioButton, StudioCenter, StudioErrorMessage, StudioSpinner } from '@studio/components';
 import type { SupportedView } from './ViewToggler/ViewToggler';
 import { ViewToggler } from './ViewToggler/ViewToggler';
 import { ShrinkIcon } from '@studio/icons';
 import { PreviewLimitationsInfo } from 'app-shared/components/PreviewLimitationsInfo/PreviewLimitationsInfo';
 import { useSelectedTaskId } from 'app-shared/hooks/useSelectedTaskId';
+import { useCreatePreviewInstanceMutation } from 'app-shared/hooks/mutations/useCreatePreviewInstanceMutation';
+import { useUserQuery } from 'app-shared/hooks/queries';
 
 export type PreviewProps = {
   collapsed: boolean;
@@ -85,15 +87,46 @@ const PreviewFrame = () => {
   const { previewIframeRef, selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const taskId = useSelectedTaskId(selectedFormLayoutSetName);
   const { t } = useTranslation();
+  const { data: user } = useUserQuery();
 
   const { shouldReloadPreview, previewHasLoaded } = useAppContext();
   const checksum = useChecksum(shouldReloadPreview);
+  const {
+    mutate: createInstance,
+    data: instance,
+    isError: createInstanceError,
+    isPending: createInstancePending,
+  } = useCreatePreviewInstanceMutation(org, app);
+
+  useEffect(() => {
+    if (user && taskId) createInstance({ partyId: user?.id, taskId: taskId });
+  }, [createInstance, user, taskId]);
 
   useEffect(() => {
     return () => {
       previewIframeRef.current = null;
     };
   }, [previewIframeRef]);
+
+  if (createInstancePending || !instance) {
+    return (
+      <StudioCenter>
+        {createInstanceError ? (
+          <StudioErrorMessage>{t('general.page_error_title')}</StudioErrorMessage>
+        ) : (
+          <StudioSpinner spinnerTitle={t('preview.loading_preview_controller')} />
+        )}
+      </StudioCenter>
+    );
+  }
+  const previewURL = previewPage(
+    org,
+    app,
+    selectedFormLayoutSetName,
+    taskId,
+    selectedFormLayoutName,
+    instance?.id,
+  );
 
   return (
     <div className={classes.root}>
@@ -105,7 +138,7 @@ const PreviewFrame = () => {
             ref={previewIframeRef}
             className={cn(classes.iframe, classes[viewportToSimulate])}
             title={t('ux_editor.preview')}
-            src={previewPage(org, app, selectedFormLayoutSetName, taskId, selectedFormLayoutName)}
+            src={previewURL}
             onLoad={previewHasLoaded}
           />
         </div>

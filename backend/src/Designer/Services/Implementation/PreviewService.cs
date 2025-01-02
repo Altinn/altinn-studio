@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.App;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 
@@ -14,20 +15,16 @@ namespace Altinn.Studio.Designer.Services.Implementation;
 /// <summary>
 /// Service for handling a mocked instance object for preview mode
 /// </summary>
-public class PreviewService : IPreviewService
+/// <remarks>
+/// Constructor
+/// </remarks>
+/// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
+/// <param name="dataService"></param>
+public class PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory) : IPreviewService
 {
-    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+    private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
     public const string MockDataModelIdPrefix = "MockDataModel";
     public const string MockDataTaskId = "test-datatask-id";
-
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-    public PreviewService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
-    {
-        _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
-    }
 
     /// <inheritdoc />
     public async Task<Instance> GetMockInstance(string org, string app, string developer, int? instanceOwnerPartyId, string layoutSetName, CancellationToken cancellationToken = default)
@@ -133,27 +130,12 @@ public class PreviewService : IPreviewService
         AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, app, developer);
         DataType dataType = await GetDataTypeForLayoutSetName(org, app, developer, layoutSetName);
         string dataTypeForDataElement = shouldProcessActAsReceipt ? await GetDataTypeForCustomReceipt(altinnAppGitRepository) : dataType?.Id;
-        if (dataTypeForDataElement is null && altinnAppGitRepository.AppUsesLayoutSets())
+        ApplicationMetadata applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
+        List<DataElement> dataElements = applicationMetadata.DataTypes.Select(dataType => new DataElement
         {
-            int counter = 0;
-            LayoutSets layoutSets = await altinnAppGitRepository.GetLayoutSetsFile();
-            return layoutSets.Sets
-                .Where(set => string.IsNullOrEmpty(set.DataType))
-                .Select(_ => new DataElement
-                {
-                    DataType = $"{MockDataModelIdPrefix}-{counter++}",
-                    Id = MockDataTaskId
-                })
-                .ToList();
-        }
-        return [
-            // All data types attached to the current task in the process model should be added here
-            new DataElement
-            {
-                DataType = dataTypeForDataElement,
-                Id = MockDataTaskId
-            }
-            ];
+            Id = (dataTypeForDataElement != dataType.Id) ? dataType.Id : MockDataTaskId
+        }).ToList();
+        return dataElements;
     }
 
     private async Task<string> GetDataTypeForCustomReceipt(AltinnAppGitRepository altinnAppGitRepository)
