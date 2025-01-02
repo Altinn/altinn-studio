@@ -1,20 +1,19 @@
 import { StudioTable } from '../../StudioTable';
 import type { FocusEvent, ForwardedRef, ReactElement } from 'react';
 import React, { useCallback } from 'react';
-
-import type { StudioTextfieldProps } from '../../StudioTextfield';
-import { StudioTextfield } from '../../StudioTextfield';
 import classes from './Cell.module.css';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';
 import { isCaretAtEnd, isCaretAtStart, isSomethingSelected } from '../dom-utils/caretUtils';
-import { useFormEventProps } from './useFormEventProps';
+import type { StudioDecimalInputProps } from '../../StudioDecimalInput';
+import { StudioDecimalInput } from '../../StudioDecimalInput';
+import { useEventProps } from './useEventProps';
 
-export type CellTextfieldProps = StudioTextfieldProps;
+export type CellDecimalInputProps = StudioDecimalInputProps;
 
-export class CellTextfield extends BaseInputCell<HTMLInputElement, CellTextfieldProps> {
+export class CellDecimalInput extends BaseInputCell<HTMLInputElement, StudioDecimalInputProps> {
   render(
-    { className: givenClass, onFocus, ...rest }: CellTextfieldProps,
+    { className: givenClass, onFocus, ...rest }: CellDecimalInputProps,
     ref: ForwardedRef<HTMLInputElement>,
   ): ReactElement {
     /* eslint-disable react-hooks/rules-of-hooks */
@@ -28,13 +27,16 @@ export class CellTextfield extends BaseInputCell<HTMLInputElement, CellTextfield
       [onFocus],
     );
 
-    const eventProps = useFormEventProps<HTMLInputElement>({ onFocus: handleFocus, ...rest });
+    const eventProps = useEventProps<FocusEvent, FocusEvent, number>({
+      onFocus: handleFocus,
+      ...rest,
+    });
 
     const className = cn(classes.textfieldCell, givenClass);
 
     return (
       <StudioTable.Cell className={className}>
-        <StudioTextfield hideLabel ref={ref} size='small' {...rest} {...eventProps} />
+        <StudioDecimalInput hideLabel ref={ref} size='small' {...rest} {...eventProps} />
       </StudioTable.Cell>
     );
   }
