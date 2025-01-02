@@ -86,9 +86,6 @@ describe('EditTab', () => {
         options: undefined,
         optionsId: 'some-id',
       },
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>(['id'])),
-      },
     });
 
     await waitForSpinnerToBeRemoved();

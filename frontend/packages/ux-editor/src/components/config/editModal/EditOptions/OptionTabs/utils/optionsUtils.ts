@@ -77,7 +77,7 @@ export function updateComponentOptionsId(
   component: FormItem<SelectionComponentType>,
   optionsId: string,
 ): FormItem<SelectionComponentType> {
-  let newComponent: FormItem<SelectionComponentType> = { ...component };
+  let newComponent: FormItem<SelectionComponentType> = ObjectUtils.deepCopy(component);
 
   newComponent = clearOppositeOptionSetting(newComponent, 'optionsId');
   newComponent.optionsId = optionsId;
@@ -89,7 +89,7 @@ export function updateComponentOptions(
   component: FormItem<SelectionComponentType>,
   options: Option[],
 ): FormItem<SelectionComponentType> {
-  let newComponent: FormItem<SelectionComponentType> = { ...component };
+  let newComponent: FormItem<SelectionComponentType> = ObjectUtils.deepCopy(component);
 
   newComponent = clearOppositeOptionSetting(newComponent, 'options');
   newComponent.options = options;
@@ -108,4 +108,23 @@ function clearOppositeOptionSetting(
   }
 
   return component;
+}
+
+export function isOptionsIdReferenceId(
+  optionListIds: string[],
+  optionsId: undefined | string,
+): boolean {
+  return !!optionsId && !isOptionsIdFromLibrary(optionListIds, optionsId);
+}
+
+export function isOptionsModifiable(
+  optionListIds: string[],
+  optionsId: undefined | string,
+  options: undefined | Option[],
+): boolean {
+  return (!!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId)) || !!options;
+}
+
+function isOptionsIdFromLibrary(optionListIds: string[], optionsId: undefined | string): boolean {
+  return optionListIds.some((id: string) => id === optionsId);
 }

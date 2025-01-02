@@ -9,8 +9,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { useComponentErrorMessage } from '../../../../../../hooks';
-import { isOptionsModifiable, isOptionsIdReferenceId } from './utils/utils';
-import { handleOptionsChange, updateComponentOptions } from '../utils/optionsUtils';
+import {
+  handleOptionsChange,
+  updateComponentOptions,
+  isOptionsModifiable,
+  isOptionsIdReferenceId,
+} from '../utils/optionsUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
