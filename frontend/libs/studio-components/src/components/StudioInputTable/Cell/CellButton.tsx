@@ -6,7 +6,7 @@ import type { StudioButtonProps } from '../../StudioButton';
 import { StudioButton } from '../../StudioButton';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';
-import { useEventProps } from './useEventProps';
+import { useFormEventProps } from './useFormEventProps';
 
 export type CellButtonProps = StudioButtonProps;
 
@@ -18,7 +18,7 @@ export class CellButton extends BaseInputCell<HTMLButtonElement, CellButtonProps
     /* eslint-disable react-hooks/rules-of-hooks */
     /* Eslint misinterprets this as a class component, while it's really just a functional component within a class */
 
-    const eventProps = useEventProps<HTMLButtonElement>(rest);
+    const eventProps = useFormEventProps<HTMLButtonElement>(rest);
 
     const className = cn(classes.buttonCell, givenClass);
 
