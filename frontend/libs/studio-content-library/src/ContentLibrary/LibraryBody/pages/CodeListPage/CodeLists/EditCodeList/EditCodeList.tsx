@@ -3,10 +3,10 @@ import { StudioCodeListEditor, StudioToggleableTextfield } from '@studio/compone
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
-import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
+import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
 import { updateCodeListWithMetadata } from '../CodeLists';
-import { FileNameUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import classes from './EditCodeList.module.css';
 
@@ -24,7 +24,7 @@ export function EditCodeList({
   codeListNames,
 }: EditCodeListProps): React.ReactElement {
   const { t } = useTranslation();
-  const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+  const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
 
   const handleUpdateCodeListId = (newCodeListId: string) => {
@@ -37,7 +37,8 @@ export function EditCodeList({
   };
 
   const handleValidateCodeListId = (newCodeListId: string) => {
-    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, codeListNames);
+    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeList.title);
+    const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 

@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.DataModeling.Validator.Json;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Helpers;
@@ -37,6 +38,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="schemaModelService">Interface for working with models.</param>
         /// <param name="jsonSchemaValidator">An <see cref="IJsonSchemaValidator"/>.</param>
+        /// <param name="modelNameValidator">Interface for validating that the model name does not already belong to a data type</param>
         public DatamodelsController(ISchemaModelService schemaModelService, IJsonSchemaValidator jsonSchemaValidator, IModelNameValidator modelNameValidator)
         {
             _schemaModelService = schemaModelService;
@@ -246,6 +248,34 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return NoContent();
             }
+        }
+
+        /// <summary>
+        /// Gets the dataType for a given data model.
+        /// </summary>
+        [HttpGet("datamodel/{modelName}/dataType")]
+        [UseSystemTextJson]
+        public async Task<ActionResult<DataType>> GetModelDataType(string org, string repository, string modelName)
+        {
+            DataType dataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(dataType);
+        }
+
+        /// <summary>
+        /// Updates the dataType for a given data model.
+        /// </summary>
+        [HttpPut("datamodel/{modelName}/dataType")]
+        [UseSystemTextJson]
+        public async Task<ActionResult> SetModelDataType(string org, string repository, string modelName, [FromBody] DataType dataType)
+        {
+            if (!Equals(modelName, dataType.Id))
+            {
+                return BadRequest("Model name in path and request body does not match");
+            }
+
+            await _schemaModelService.SetModelDataType(org, repository, modelName, dataType);
+            DataType updatedDataType = await _schemaModelService.GetModelDataType(org, repository, modelName);
+            return Ok(updatedDataType);
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
