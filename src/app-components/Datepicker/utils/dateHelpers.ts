@@ -1,3 +1,5 @@
+import { DateLib } from 'react-day-picker';
+
 import { endOfDay, format, formatDate, formatISO, isValid, parse, parseISO, startOfDay } from 'date-fns';
 import type { Locale } from 'date-fns/locale';
 
@@ -88,6 +90,10 @@ export function isDate(date: string): boolean {
 
 export function getLocale(language: string): Locale {
   return locales[language] ?? locales.nb;
+}
+
+export function getDateLib(language: string) {
+  return new DateLib({ locale: getLocale(language) });
 }
 
 /**

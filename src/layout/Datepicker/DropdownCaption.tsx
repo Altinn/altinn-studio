@@ -9,7 +9,7 @@ import { addYears, max, min, setMonth, setYear, startOfMonth, subYears } from 'd
 import { Button } from 'src/app-components/Button/Button';
 import styles from 'src/app-components/Datepicker/Calendar.module.css';
 import { getMonths, getYears } from 'src/app-components/Datepicker/DatePickerHelpers';
-import { getLocale } from 'src/app-components/Datepicker/utils/dateHelpers';
+import { getDateLib } from 'src/app-components/Datepicker/utils/dateHelpers';
 import { Lang } from 'src/features/language/Lang';
 import { useCurrentLanguage } from 'src/features/language/LanguageProvider';
 import { useLanguage } from 'src/features/language/useLanguage';
@@ -21,7 +21,7 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
   const { langAsString } = useLanguage();
   const isMobile = useIsMobile();
   const languageLocale = useCurrentLanguage();
-  const currentLocale = getLocale(languageLocale ?? 'nb');
+  const dateLib = getDateLib(languageLocale ?? 'nb');
 
   const handleYearChange = (year: string) => {
     const newMonth = setYear(startOfMonth(calendarMonth.date), Number(year));
@@ -69,9 +69,9 @@ export const DropdownCaption = ({ calendarMonth, id }: MonthCaptionProps) => {
               ref={scrollToIfSelected(date.getMonth() === calendarMonth.date.getMonth())}
               key={date.getMonth()}
               value={date.getMonth().toString()}
-              displayValue={formatMonthDropdown(date.getMonth(), currentLocale)}
+              displayValue={formatMonthDropdown(date, dateLib)}
             >
-              <Lang id={formatMonthDropdown(date.getMonth(), currentLocale)} />
+              <Lang id={formatMonthDropdown(date, dateLib)} />
             </Combobox.Option>
           ))}
         </Combobox>
