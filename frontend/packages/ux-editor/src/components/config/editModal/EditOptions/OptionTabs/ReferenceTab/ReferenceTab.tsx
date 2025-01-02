@@ -57,7 +57,7 @@ export function ReferenceTab({
         size='small'
       />
       {isOptionsIdInLibraryOrComponent && (
-        <StudioAlert severity={'info'} size='sm'>
+        <StudioAlert className={classes.alert} severity={'info'} size='sm'>
           {t('ux_editor.options.tab_reference_id_alert_title')}
         </StudioAlert>
       )}

@@ -10,9 +10,11 @@ import { componentMocks } from '../../../../../../testing/componentMocks';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.Dropdown];
+const mockOptionsId1 = 'test1';
+const mockOptionsId2 = 'test2';
 const getOptionListIds = jest
   .fn()
-  .mockImplementation(() => Promise.resolve<string[]>(['test1', 'test2']));
+  .mockImplementation(() => Promise.resolve<string[]>([mockOptionsId1, mockOptionsId2]));
 const handleComponentChange = jest.fn();
 
 describe('ReferenceTab', () => {
@@ -44,7 +46,7 @@ describe('ReferenceTab', () => {
   it('should render no value if optionsId is a codeList from the library', () => {
     renderReferenceTab({
       componentProps: {
-        optionsId: 'test1',
+        optionsId: mockOptionsId1,
       },
     });
 
