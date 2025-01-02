@@ -1,7 +1,5 @@
 .container {
   padding-inline: var(--fds-spacing-5);
-  display: flex;
-  flex-direction: column;
 }
 
 .alert {
