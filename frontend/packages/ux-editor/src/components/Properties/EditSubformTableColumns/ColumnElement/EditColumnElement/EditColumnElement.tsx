@@ -18,6 +18,7 @@ import type { FormItem } from '../../../../../types/FormItem';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
+import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -54,14 +55,7 @@ export const EditColumnElement = ({
   }, [formLayouts]);
 
   const componentsWithLabelAndBindings = useMemo(() => {
-    return components.filter((comp) => {
-      const hasTitle = comp.textResourceBindings?.title;
-      const hasDataModelBinding =
-        comp.dataModelBindings &&
-        Object.keys(comp.dataModelBindings).length > 0 &&
-        Object.values(comp.dataModelBindings).some((binding) => !!binding);
-      return hasTitle && hasDataModelBinding;
-    });
+    return filterComponentsWithLabelAndBindings(components);
   }, [components]);
 
   const selectComponent = (values: string[]) => {
