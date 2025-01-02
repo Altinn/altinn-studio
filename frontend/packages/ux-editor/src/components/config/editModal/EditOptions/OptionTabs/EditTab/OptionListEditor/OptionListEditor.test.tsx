@@ -56,7 +56,7 @@ describe('OptionListEditor', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    it('should call doReloadPreview when editing', async () => {
+    it('should call handleComponentChange when editing', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
       const text = 'test';
@@ -78,16 +78,6 @@ describe('OptionListEditor', () => {
       renderOptionListEditor();
 
       expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
-    });
-
-    it('should call handleComponentChange when removing chosen options', async () => {
-      const user = userEvent.setup();
-      renderOptionListEditor();
-
-      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await user.click(deleteButton);
-
-      expect(handleComponentChange).toHaveBeenCalledTimes(1);
     });
 
     it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
@@ -203,7 +193,7 @@ describe('OptionListEditor', () => {
       );
     });
 
-    it('should display general.empty_string when option-list has an empty string', async () => {
+    it('should show placeholder for option label when option list label is empty', async () => {
       const apiResultWithEmptyLabel: OptionsList = [
         { value: true, label: '', description: null, helpText: null },
       ];
@@ -218,28 +208,19 @@ describe('OptionListEditor', () => {
       expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
     });
 
-    it('should call handleComponentChange when removing chosen options', async () => {
-      const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
-
-      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
-      await user.click(deleteButton);
-
-      expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    });
-
     it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
       const user = userEvent.setup();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
-      const expectedResult = mockComponent;
-      expectedResult.options = undefined;
-      expectedResult.optionsId = undefined;
 
       const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
       await user.click(deleteButton);
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
-      expect(handleComponentChange).toHaveBeenCalledWith(expectedResult);
+      expect(handleComponentChange).toHaveBeenCalledWith({
+        ...mockComponent,
+        options: undefined,
+        optionsId: undefined,
+      });
     });
   });
 });

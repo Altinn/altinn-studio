@@ -9,11 +9,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useUpdate } from 'app-shared/hooks/useUpdate';
 import { useComponentErrorMessage } from '../../../../../../hooks';
-import { handleOptionsChange, updateComponentOptions } from './utils/utils';
+import { isOptionsModifiable, isOptionsIdReferenceId } from './utils/utils';
+import { handleOptionsChange, updateComponentOptions } from '../utils/optionsUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
-import type { IGenericEditComponent } from '../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../types/FormComponent';
+import type { IGenericEditComponent } from '../../../../componentConfig';
 import { OptionListSelector } from './OptionListSelector';
 import { OptionListUploader } from './OptionListUploader';
 import { OptionListEditor } from './OptionListEditor';
@@ -30,17 +31,11 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
   const { data: optionListIds, status } = useOptionListIdsQuery(org, app);
   const previousComponent = usePrevious(component);
   const dialogRef = createRef<HTMLDialogElement>();
+  const errorMessage = useComponentErrorMessage(component);
 
   useUpdate(() => {
     if (!previousComponent.options && !!component.options) dialogRef.current.showModal();
   }, [component, previousComponent]);
-
-  const optionsIdIsFromLibrary = optionListIds?.some(
-    (optionId: string) => optionId === component.optionsId,
-  );
-  const isOptionsIdReferenceId = !!component.optionsId && !optionsIdIsFromLibrary;
-  const isOptionsModifiable =
-    (!!component.optionsId && optionsIdIsFromLibrary) || !!component.options;
 
   switch (status) {
     case 'pending':
@@ -58,8 +53,8 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
       );
     case 'success':
       return (
-        <>
-          {isOptionsModifiable ? (
+        <div className={classes.container}>
+          {isOptionsModifiable(optionListIds, component.optionsId, component.options) ? (
             <OptionListEditor
               ref={dialogRef}
               component={component}
@@ -68,12 +63,17 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
           ) : (
             <AddOptionList component={component} handleComponentChange={handleComponentChange} />
           )}
-          {isOptionsIdReferenceId && (
+          {errorMessage && (
+            <StudioErrorMessage className={classes.errorMessage} size='small'>
+              {errorMessage}
+            </StudioErrorMessage>
+          )}
+          {isOptionsIdReferenceId(optionListIds, component.optionsId) && (
             <StudioAlert className={classes.alert} severity={'info'} size='sm'>
               {t('ux_editor.options.tab_option_list_alert_title')}
             </StudioAlert>
           )}
-        </>
+        </div>
       );
   }
 }
@@ -82,7 +82,6 @@ type AddOptionListProps = EditTabProps;
 
 function AddOptionList({ component, handleComponentChange }: AddOptionListProps) {
   const { t } = useTranslation();
-  const errorMessage = useComponentErrorMessage(component);
 
   const handleInitialManualOptionsChange = () => {
     const updatedComponent = updateComponentOptions(component, []);
@@ -90,15 +89,12 @@ function AddOptionList({ component, handleComponentChange }: AddOptionListProps)
   };
 
   return (
-    <>
-      <div className={classes.container}>
-        <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
-          {t('general.create_new')}
-        </StudioButton>
-        <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
-        <OptionListUploader component={component} handleComponentChange={handleComponentChange} />
-      </div>
-      {errorMessage && <StudioErrorMessage size='small'>{errorMessage}</StudioErrorMessage>}
-    </>
+    <div className={classes.addOptionListContainer}>
+      <StudioButton variant='secondary' onClick={handleInitialManualOptionsChange}>
+        {t('general.create_new')}
+      </StudioButton>
+      <OptionListSelector component={component} handleComponentChange={handleComponentChange} />
+      <OptionListUploader component={component} handleComponentChange={handleComponentChange} />
+    </div>
   );
 }

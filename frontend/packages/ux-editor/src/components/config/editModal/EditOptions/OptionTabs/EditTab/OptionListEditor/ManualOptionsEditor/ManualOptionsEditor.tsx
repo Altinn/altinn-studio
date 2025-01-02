@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
-import { handleOptionsChange, updateComponentOptions } from '../../utils/utils';
+import { handleOptionsChange, updateComponentOptions } from '../../../utils/optionsUtils';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
 import type { Option } from 'app-shared/types/Option';
@@ -31,7 +31,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
     };
 
     return (
-      <div className={classes.container}>
+      <>
         <OptionListLabels component={component} optionsList={component.options} />
         <OptionListButtons
           optionsList={component.options}
@@ -52,7 +52,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
             texts={editorTexts}
           />
         </StudioModal.Dialog>
-      </div>
+      </>
     );
   },
 );

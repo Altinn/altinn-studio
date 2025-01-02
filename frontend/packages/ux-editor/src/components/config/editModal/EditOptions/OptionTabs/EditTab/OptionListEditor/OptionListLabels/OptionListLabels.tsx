@@ -21,9 +21,7 @@ export function OptionListLabels({
   return (
     <>
       <StudioParagraph className={classes.label}>
-        {component.optionsId
-          ? component.optionsId
-          : t('ux_editor.modal_properties_code_list_custom_list')}
+        {component.optionsId ?? t('ux_editor.modal_properties_code_list_custom_list')}
       </StudioParagraph>
       <StudioParagraph size='sm' className={classes.codeListLabels} variant='short'>
         {codeListLabels}

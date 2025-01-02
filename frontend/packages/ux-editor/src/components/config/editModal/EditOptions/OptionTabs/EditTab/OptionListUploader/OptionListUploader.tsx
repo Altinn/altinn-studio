@@ -10,7 +10,7 @@ import { FileNameErrorResult, FileNameUtils } from '@studio/pure-functions';
 import type { AxiosError } from 'axios';
 import type { ApiError } from 'app-shared/types/api/ApiError';
 import { toast } from 'react-toastify';
-import { handleOptionsChange, updateComponentOptionsId } from '../utils/utils';
+import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
 import { isErrorUnknown } from 'app-shared/utils/ApiErrorUtils';
 
 type EditOptionListProps = Pick<

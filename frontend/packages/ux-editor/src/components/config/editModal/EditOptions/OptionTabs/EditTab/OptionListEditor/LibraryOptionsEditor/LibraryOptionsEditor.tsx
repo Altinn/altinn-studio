@@ -42,7 +42,7 @@ export function LibraryOptionsEditor({
   };
 
   return (
-    <div className={classes.container}>
+    <>
       <OptionListLabels component={component} optionsList={optionsList} />
       <OptionListButtons
         handleClick={handleClick}
@@ -68,6 +68,6 @@ export function LibraryOptionsEditor({
           texts={editorTexts}
         />
       </StudioModal.Dialog>
-    </div>
+    </>
   );
 }

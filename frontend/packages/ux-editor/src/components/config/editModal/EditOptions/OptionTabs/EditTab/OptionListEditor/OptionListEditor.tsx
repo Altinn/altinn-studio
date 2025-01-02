@@ -7,7 +7,7 @@ import type { SelectionComponentType } from '../../../../../../../types/FormComp
 import { useOptionListQuery } from 'app-shared/hooks/queries';
 import { LibraryOptionsEditor } from './LibraryOptionsEditor';
 import { ManualOptionsEditor } from './ManualOptionsEditor';
-import { handleOptionsChange, resetComponentOptions } from '../utils/utils';
+import { handleOptionsChange, resetComponentOptions } from '../../utils/optionsUtils';
 
 export type OptionListEditorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -23,7 +23,7 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
 
     if (component.options !== undefined) {
       return (
-        <ManualEditor
+        <ManualOptionsEditor
           ref={dialogRef}
           component={component}
           handleComponentChange={handleComponentChange}
@@ -33,26 +33,6 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
     }
 
     return <LibraryEditor component={component} handleDelete={handleDelete} />;
-  },
-);
-
-type ManualOptionsEditorProps = {
-  handleDelete: () => void;
-} & OptionListEditorProps;
-
-const ManualEditor = forwardRef<HTMLDialogElement, ManualOptionsEditorProps>(
-  (
-    { component, handleComponentChange, handleDelete }: ManualOptionsEditorProps,
-    dialogRef,
-  ): React.ReactNode => {
-    return (
-      <ManualOptionsEditor
-        ref={dialogRef}
-        component={component}
-        handleComponentChange={handleComponentChange}
-        handleDelete={handleDelete}
-      />
-    );
   },
 );
 
@@ -89,4 +69,3 @@ function LibraryEditor({ component, handleDelete }: LibraryOptionsEditorProps): 
 }
 
 OptionListEditor.displayName = 'OptionListEditor';
-ManualEditor.displayName = 'ManualOptionsEditor';

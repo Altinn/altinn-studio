@@ -32,8 +32,8 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render OptionListEditor', async () => {
-    renderEditTab();
+  it('should render preview of a custom code list when component has manual options set', async () => {
+    renderEditTab({ componentProps: { optionsId: undefined } });
 
     await waitForSpinnerToBeRemoved();
     expect(
@@ -41,7 +41,7 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render AddOptionList', async () => {
+  it('should render upload option list button when option list is not defined on component', async () => {
     renderEditTab({
       componentProps: {
         options: undefined,
@@ -55,7 +55,7 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call handleInitialManualOptionsChange when clicking add options', async () => {
+  it('should call handleInitialManualOptionsChange when clicking create new options', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditTab({
@@ -65,9 +65,6 @@ describe('EditTab', () => {
       },
       handleComponentChange,
     });
-    const expectedArgs = mockComponent;
-    expectedArgs.options = [];
-    expectedArgs.optionsId = undefined;
 
     await waitForSpinnerToBeRemoved();
     const addManualOptionsButton = screen.getByRole('button', {
@@ -76,7 +73,28 @@ describe('EditTab', () => {
     await user.click(addManualOptionsButton);
 
     expect(handleComponentChange).toHaveBeenCalledTimes(1);
-    expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      ...mockComponent,
+      options: [],
+      optionsId: undefined,
+    });
+  });
+
+  it('should render alert when options ID is a reference ID', async () => {
+    renderEditTab({
+      componentProps: {
+        options: undefined,
+        optionsId: 'some-id',
+      },
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>(['id'])),
+      },
+    });
+
+    await waitForSpinnerToBeRemoved();
+    expect(
+      screen.getByText(textMock('ux_editor.options.tab_option_list_alert_title')),
+    ).toBeInTheDocument();
   });
 });
 
@@ -100,10 +118,7 @@ function renderEditTab({
       handleComponentChange={handleComponentChange}
     />,
     {
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>(['id'])),
-        ...queries,
-      },
+      queries,
       queryClient: createQueryClientMock(),
     },
   );

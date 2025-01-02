@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { StudioDropdownMenu, StudioSpinner } from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { handleOptionsChange, updateComponentOptionsId } from '../utils/utils';
+import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
 
 type OptionListSelectorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
