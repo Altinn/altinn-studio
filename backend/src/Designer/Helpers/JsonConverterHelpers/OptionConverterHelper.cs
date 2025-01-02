@@ -26,14 +26,17 @@ public class OptionValueConverter : JsonConverter<object>
             case string s:
                 writer.WriteStringValue(s);
                 break;
-            case double d:
-                writer.WriteNumberValue(d);
+            case double:
+            case int:
+            case long:
+            case decimal:
+                writer.WriteNumberValue(Convert.ToDouble(value));
                 break;
             case bool b:
                 writer.WriteBooleanValue(b);
                 break;
             default:
-                throw new InvalidOptionsFormatException($"{value} is an unsupported type for Value field. Accepted types are string, double and bool.");
+                throw new InvalidOptionsFormatException($"{value} is an unsupported type for Value field. Accepted types are string, numbers and bool.");
         }
     }
 }
