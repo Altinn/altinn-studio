@@ -7,29 +7,23 @@ import type { FormComponent } from '../../../../../../types/FormComponent';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../testing/componentMocks';
-import { queriesMock } from 'app-shared/mocks/queriesMock';
 
 const mockComponent = componentMocks[ComponentType.Dropdown];
-const mockOptionListIds = jest
-  .fn()
-  .mockImplementation(() => Promise.resolve<string[]>(['test1', 'test2']));
 
 describe('ReferenceTab', () => {
-  it('should render', async () => {
+  it('should render', () => {
     renderReferenceTab();
-
     expect(
       screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
     ).toBeInTheDocument();
   });
 
-  it('should render value when optionsId is set', async () => {
+  it('should render value when optionsId is set', () => {
     renderReferenceTab({
       componentProps: {
         optionsId: 'some-id',
       },
     });
-
     expect(screen.getByDisplayValue('some-id')).toBeInTheDocument();
   });
 
@@ -85,6 +79,5 @@ const renderReferenceTab = ({
         ...componentProps,
       }}
     />,
-    { queries: { ...queriesMock, getOptionListIds: mockOptionListIds } },
   );
 };
