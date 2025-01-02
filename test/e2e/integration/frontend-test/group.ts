@@ -477,6 +477,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.prefill.enorm).check();
     cy.gotoNavPage('repeating');
     cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).check();
+    cy.get(appFrontend.group.showGroupToContinue).findByRole('checkbox', { name: 'Ja' }).blur();
     cy.get(appFrontend.group.mainGroupTableBody).find('tr').should('have.length', 3);
     cy.snapshot('group:edit-in-table');
 
