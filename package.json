@@ -172,7 +172,7 @@
     "react-leaflet": "4.2.1",
     "react-number-format": "5.4.3",
     "react-router-dom": "6.28.1",
-    "react-toastify": "10.0.6",
+    "react-toastify": "11.0.2",
     "terraformer-wkt-parser": "1.2.1",
     "typescript": "5.7.2",
     "typescript-eslint": "8.18.2",
