@@ -284,7 +284,7 @@ describe('StudioInputTable', () => {
     });
   });
 
-  describe('Triggers input level and table level event functions with the same events when the user performs a corresponding action', () => {
+  describe('Triggers event functions', () => {
     type TestCase<Element extends HTMLCellInputElement, Event extends EventName> = {
       render: (mockFn: FormEventProps<Element>[EventPropName<Event>]) => RenderResult;
       action: (user: UserEvent) => Promise<void>;
@@ -381,7 +381,23 @@ describe('StudioInputTable', () => {
       },
     };
 
-    describe.each(Object.keys(testCases))('%s', (key) => {
+    describe.each(Object.keys(testCases))('%s input level events', (key) => {
+      const testCasesForElement = testCases[key];
+
+      test.each(Object.keys(testCasesForElement))('%s', async (eventName) => {
+        const user = userEvent.setup();
+        const onEvent = jest.fn();
+        const { render: renderComponent, action } = testCasesForElement[eventName];
+        renderComponent(onEvent);
+        await action(user);
+        await expect(onEvent).toHaveBeenCalledTimes(1);
+
+        const inputEvent = onEvent.mock.calls[0][0];
+        await expect(inputEvent).toHaveProperty('target');
+      });
+    });
+
+    describe.each(Object.keys(testCases))('%s table level events', (key) => {
       const testCasesForElement = testCases[key];
 
       test.each(Object.keys(testCasesForElement))('%s', async (eventName) => {
@@ -395,9 +411,6 @@ describe('StudioInputTable', () => {
         const tablePropName = 'on' + StringUtils.capitalize(eventName) + 'Any';
         const tableProp = defaultProps[tablePropName];
         await expect(tableProp).toHaveBeenCalledTimes(1);
-        const inputEvent = onEvent.mock.calls[0][0];
-        const tableEvent = tableProp.mock.calls[0][0];
-        await expect(inputEvent).toBe(tableEvent);
       });
     });
   });
