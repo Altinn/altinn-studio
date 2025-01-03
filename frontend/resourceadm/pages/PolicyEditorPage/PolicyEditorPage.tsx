@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import {
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
+  useResourceAccessPackagesQuery,
 } from 'app-shared/hooks/queries';
 import { useUrlParams } from '../../hooks/useUrlParams';
 
@@ -49,6 +50,8 @@ export const PolicyEditorPage = ({
     org,
     app,
   );
+  const { data: accessPackages, isPending: isLoadingAccessPackages } =
+    useResourceAccessPackagesQuery(org, app);
 
   // Mutation function to update policy
   const { mutate: updatePolicyMutation } = useEditResourcePolicyMutation(org, app, resourceId);
@@ -68,7 +71,7 @@ export const PolicyEditorPage = ({
    * Displays the content based on the state of the page
    */
   const displayContent = () => {
-    if (isPolicyPending || isActionPending || isSubjectsPending) {
+    if (isPolicyPending || isActionPending || isSubjectsPending || isLoadingAccessPackages) {
       return (
         <div className={classes.spinnerWrapper}>
           <Spinner
@@ -88,6 +91,7 @@ export const PolicyEditorPage = ({
         policy={policyData}
         actions={mergedActions}
         subjects={mergedSubjects}
+        accessPackages={accessPackages}
         resourceId={resourceId}
         onSave={handleSavePolicy}
         showAllErrors={showAllErrors}
