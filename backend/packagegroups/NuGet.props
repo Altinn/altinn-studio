@@ -32,7 +32,7 @@
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
-    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
+    <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="4.0.0" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
     <PackageReference Update="Polly" Version="8.5.0" />
     <PackageReference Update="Altinn.Authorization.ABAC" Version="0.0.8" />
