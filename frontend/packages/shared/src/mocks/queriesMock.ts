@@ -149,6 +149,8 @@ export const queriesMock: ServicesContextProps = {
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getAccessPackages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getAccessPackageServices: jest.fn().mockImplementation(() => Promise.resolve([])),
   getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
   getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
   getResourcePublishStatus: jest

@@ -3,7 +3,7 @@ import { StudioCodeListEditor, StudioToggleableTextfield } from '@studio/compone
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
-import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
+import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { KeyVerticalIcon } from '@studio/icons';
 import { updateCodeListWithMetadata } from '../CodeLists';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
@@ -26,7 +26,7 @@ export function EditCodeList({
   codeListNames,
 }: EditCodeListProps): React.ReactElement {
   const { t } = useTranslation();
-  const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+  const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
 
   const handleUpdateCodeListId = (newCodeListId: string) => {
