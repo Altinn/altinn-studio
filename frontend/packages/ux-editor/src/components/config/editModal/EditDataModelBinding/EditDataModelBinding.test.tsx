@@ -194,10 +194,7 @@ describe('EditDataModelBinding', () => {
     expect(handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({
         dataModelBindings: {
-          simpleBinding: {
-            dataType: '',
-            field: '',
-          },
+          simpleBinding: '',
         },
       }),
       expect.anything(),
