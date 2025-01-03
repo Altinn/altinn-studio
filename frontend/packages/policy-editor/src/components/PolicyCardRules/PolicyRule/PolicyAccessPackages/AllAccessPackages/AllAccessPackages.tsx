@@ -43,5 +43,11 @@ export const AllAccessPackages = ({
 type PolicyAccordionIconProps = { icon: string };
 const PolicyAccordionIcon = ({ icon }: PolicyAccordionIconProps): ReactElement => {
   const IconComponent = Object.keys(Icons).includes(icon) ? Icons[icon] : PackageIcon;
-  return <IconComponent className={cn(classes.accordionIcon, classes.iconContainer)} aria-hidden />;
+  return (
+    <IconComponent
+      data-testid={icon || 'default-icon'}
+      className={cn(classes.accordionIcon, classes.iconContainer)}
+      aria-hidden
+    />
+  );
 };
