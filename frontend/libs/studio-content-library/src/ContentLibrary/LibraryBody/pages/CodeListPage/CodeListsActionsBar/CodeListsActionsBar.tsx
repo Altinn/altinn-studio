@@ -37,7 +37,6 @@ export function CodeListsActionsBar({
     <div className={classes.actionsBar}>
       <StudioSearch
         className={classes.searchField}
-        size='sm'
         placeholder={t('app_content_library.code_lists.search_placeholder')}
       />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />

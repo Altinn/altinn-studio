@@ -108,7 +108,6 @@ export const TextEditor = ({
             </Chip.Toggle>
             <div>
               <StudioSearch
-                size='small'
                 placeholder={t('text_editor.search_for_text')}
                 value={searchQuery}
                 onChange={handleSearchChange}
