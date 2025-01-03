@@ -153,13 +153,13 @@ describe('TextEditor', () => {
     renderTextEditor({});
 
     const textEntries = screen.getAllByRole('textbox');
-    expect(textEntries[1]).toHaveValue(textValue1);
+    expect(textEntries[0]).toHaveValue(textValue1);
 
     const sortAlphabeticallyButton = screen.getByText(textMock('text_editor.sort_alphabetically'));
     await user.click(sortAlphabeticallyButton);
 
     const sortedTranslations = screen.getAllByRole('textbox');
-    expect(sortedTranslations[1]).toHaveValue(textValue2);
+    expect(sortedTranslations[0]).toHaveValue(textValue2);
   });
 
   it('signals correctly when a translation is changed', async () => {
