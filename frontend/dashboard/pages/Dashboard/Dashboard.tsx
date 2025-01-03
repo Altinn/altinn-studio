@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import classes from './Dashboard.module.css';
 import type { ChangeEvent, KeyboardEvent } from 'react';
-import { Textfield, Link } from '@digdir/designsystemet-react';
-import { StudioButton } from '@studio/components';
+import { Link } from '@digdir/designsystemet-react';
+import { StudioButton, StudioSearch } from '@studio/components';
 import { XMarkIcon, PlusCircleIcon, PlusCircleFillIcon } from '@studio/icons';
 import { useDebounce } from '@studio/hooks';
 import { CenterContainer } from '../../components/CenterContainer';
@@ -49,8 +49,8 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
         <div className={classes.createServiceContainer}>
           <div className={classes.topBar}>
             <div className={classes.searchFieldContainer}>
-              <Textfield
-                label={t('dashboard.search')}
+              <StudioSearch
+                placeholder={t('dashboard.search')}
                 value={searchText}
                 onChange={handleChangeSearch}
                 onKeyDown={handleKeyDown}
