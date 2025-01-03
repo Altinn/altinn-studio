@@ -36,7 +36,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Integration point for retrieving the full list of resources
         /// </summary>
         /// <returns>The resource full list of all resources if exists</returns>
-        Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2);
+        Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false);
 
         /// <summary>
         /// Get Resource from Altinn 2 service
@@ -169,5 +169,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="env">Chosen environment</param>
         /// <returns>HTTP status code of the operation. 204 No content if remove was successful</returns>
         Task<HttpStatusCode> RemoveResourceAccessList(string org, string resourceId, string listId, string env);
+
+        Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env);
     }
 }
