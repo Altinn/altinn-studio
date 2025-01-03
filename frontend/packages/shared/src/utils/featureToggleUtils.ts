@@ -10,6 +10,7 @@ export enum FeatureFlag {
   Maskinporten = 'maskinporten',
   MultipleDataModelsPerTask = 'multipleDataModelsPerTask',
   OptionListEditor = 'optionListEditor',
+  AccessPackages = 'accessPackages',
   ShouldOverrideAppLibCheck = 'shouldOverrideAppLibCheck',
   Subform = 'subform',
   Summary2 = 'summary2',

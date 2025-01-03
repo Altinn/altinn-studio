@@ -8,13 +8,28 @@ import { textMock } from '@studio/testing/mocks/i18nMock';
 import userEvent from '@testing-library/user-event';
 import { componentMocks } from '../../../../../../testing/componentMocks';
 
+// Test data:
 const mockComponent = componentMocks[ComponentType.Dropdown];
+const mockOptionsId1 = 'test1';
+const mockOptionsId2 = 'test2';
+const getOptionListIds = jest
+  .fn()
+  .mockImplementation(() => Promise.resolve<string[]>([mockOptionsId1, mockOptionsId2]));
+const handleComponentChange = jest.fn();
 
 describe('ReferenceTab', () => {
-  it('should render', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  it('should render a spinner', () => {
     renderReferenceTab();
+    expect(screen.getByText(textMock('ux_editor.modal_properties_loading'))).toBeInTheDocument();
+  });
+
+  it('should render the component', () => {
+    renderReferenceTab();
+
     expect(
-      screen.getByText(textMock('ux_editor.options.code_list_referenceId.description')),
+      screen.getByText(textMock('ux_editor.options.code_list_reference_id.description')),
     ).toBeInTheDocument();
   });
 
@@ -24,14 +39,24 @@ describe('ReferenceTab', () => {
         optionsId: 'some-id',
       },
     });
-    expect(screen.getByDisplayValue('some-id')).toBeInTheDocument();
+
+    expect(getInputElement()).toHaveValue('some-id');
+  });
+
+  it('should render no value if optionsId is a codeList from the library', () => {
+    renderReferenceTab({
+      componentProps: {
+        optionsId: mockOptionsId1,
+      },
+    });
+
+    expect(getInputElement()).toHaveValue('');
   });
 
   it('should call handleComponentChange when input value changes', async () => {
-    const handleComponentChange = jest.fn();
-    renderReferenceTab({ handleComponentChange });
     const user = userEvent.setup();
-    const inputElement = screen.getByRole('textbox');
+    renderReferenceTab();
+    const inputElement = getInputElement();
     await user.type(inputElement, 'new-id');
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
@@ -40,9 +65,8 @@ describe('ReferenceTab', () => {
   });
 
   it('should call remove options property (if it exists) when input value changes', async () => {
-    const handleComponentChange = jest.fn();
+    const user = userEvent.setup();
     renderReferenceTab({
-      handleComponentChange,
       componentProps: {
         options: [
           {
@@ -52,8 +76,7 @@ describe('ReferenceTab', () => {
         ],
       },
     });
-    const user = userEvent.setup();
-    const inputElement = screen.getByRole('textbox');
+    const inputElement = getInputElement();
     await user.type(inputElement, 'new-id');
     expect(handleComponentChange).toHaveBeenCalledWith({
       ...mockComponent,
@@ -62,8 +85,13 @@ describe('ReferenceTab', () => {
   });
 });
 
+function getInputElement() {
+  return screen.getByRole('textbox', {
+    name: textMock('ux_editor.modal_properties_custom_code_list_id'),
+  });
+}
+
 const renderReferenceTab = ({
-  handleComponentChange = jest.fn(),
   componentProps = {},
 }: {
   handleComponentChange?: () => void;
@@ -79,5 +107,6 @@ const renderReferenceTab = ({
         ...componentProps,
       }}
     />,
+    { queries: { getOptionListIds } },
   );
 };

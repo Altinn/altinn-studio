@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -13,11 +14,33 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AltinnAuthorization
     {
         private readonly HttpClient _client;
         private readonly ILogger<PolicyOptionsClient> _logger;
+        private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, };
 
         public PolicyOptionsClient(HttpClient httpClient, ILogger<PolicyOptionsClient> logger)
         {
             _client = httpClient;
             _logger = logger;
+        }
+
+        public async Task<List<AccessPackageAreaGroup>> GetAccessPackageOptions(CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // Temp location. Will be moved to CDN
+            string url = "https://raw.githubusercontent.com/Altinn/altinn-studio-docs/master/content/authorization/architecture/resourceregistry/accesspackages_hier.json";
+
+            List<AccessPackageAreaGroup> accessPackageOptions;
+
+            try
+            {
+                HttpResponseMessage response = await _client.GetAsync(url, cancellationToken);
+                string accessPackageOptionsString = await response.Content.ReadAsStringAsync(cancellationToken);
+                accessPackageOptions = JsonSerializer.Deserialize<List<AccessPackageAreaGroup>>(accessPackageOptionsString, _serializerOptions);
+                return accessPackageOptions;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Something went wrong when retrieving Action options", ex);
+            }
         }
 
         public async Task<List<ActionOption>> GetActionOptions(CancellationToken cancellationToken = default)

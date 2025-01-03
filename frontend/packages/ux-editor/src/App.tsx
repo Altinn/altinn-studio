@@ -11,6 +11,7 @@ import { cleanupStaleLocalStorageKeys } from './utils/localStorageUtils';
 import { usePreviewContext } from 'app-development/contexts/PreviewContext';
 import { FormDesignerToolbar } from '@altinn/ux-editor/containers/FormDesignerToolbar';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { useLayoutSetsExtendedQuery } from 'app-shared/hooks/queries/useLayoutSetsExtendedQuery';
 
 /**
  * This is the main React component responsible for controlling
@@ -52,6 +53,7 @@ export function App() {
     org,
     app,
   );
+  const { status: layoutSetsExtendedStatus } = useLayoutSetsExtendedQuery(org, app);
   const { status: dataModelStatus, isError: dataModelFetchedError } = useDataModelMetadataQuery({
     org,
     app,
@@ -69,6 +71,7 @@ export function App() {
   const componentIsPending =
     widgetsStatus === 'pending' ||
     layoutSetsStatus === 'pending' ||
+    layoutSetsExtendedStatus === 'pending' ||
     dataModelStatus === 'pending' ||
     textsStatus === 'pending';
   const componentIsReady =

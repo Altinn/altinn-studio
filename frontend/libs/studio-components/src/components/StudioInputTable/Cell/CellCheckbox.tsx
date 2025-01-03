@@ -4,7 +4,7 @@ import React from 'react';
 import type { StudioCheckboxProps } from '../../StudioCheckbox';
 import { StudioCheckbox } from '../../StudioCheckbox';
 import { BaseInputCell } from './BaseInputCell';
-import { useEventProps } from './useEventProps';
+import { useFormEventProps } from './useFormEventProps';
 
 export type CellCheckboxProps = StudioCheckboxProps;
 
@@ -16,7 +16,7 @@ export class CellCheckbox extends BaseInputCell<HTMLInputElement, CellCheckboxPr
     /* eslint-disable react-hooks/rules-of-hooks */
     /* Eslint misinterprets this as a class component, while it's really just a functional component within a class */
 
-    const eventProps = useEventProps<HTMLInputElement>(rest);
+    const eventProps = useFormEventProps<HTMLInputElement>(rest);
 
     return (
       <StudioTable.Cell className={className}>

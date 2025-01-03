@@ -165,6 +165,14 @@ namespace Altinn.Studio.Designer.Controllers
             return Ok(actionOptions);
         }
 
+        [HttpGet]
+        [Route("accesspackageoptions")]
+        public async Task<ActionResult> GetAccessPackageOptions(string org, string app, CancellationToken cancellationToken)
+        {
+            List<AccessPackageAreaGroup> accessPackageOptions = await _policyOptions.GetAccessPackageOptions(cancellationToken);
+            return Ok(accessPackageOptions);
+        }
+
 
         private ValidationProblemDetails ValidatePolicy(ResourcePolicy policy)
         {

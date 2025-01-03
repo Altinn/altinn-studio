@@ -8,7 +8,7 @@ import classes from './Cell.module.css';
 import { BaseInputCell } from './BaseInputCell';
 import cn from 'classnames';
 import { isCaretAtEnd, isCaretAtStart, isSomethingSelected } from '../dom-utils/caretUtils';
-import { useEventProps } from './useEventProps';
+import { useFormEventProps } from './useFormEventProps';
 
 export type CellTextfieldProps = StudioTextfieldProps;
 
@@ -28,7 +28,7 @@ export class CellTextfield extends BaseInputCell<HTMLInputElement, CellTextfield
       [onFocus],
     );
 
-    const eventProps = useEventProps<HTMLInputElement>({ onFocus: handleFocus, ...rest });
+    const eventProps = useFormEventProps<HTMLInputElement>({ onFocus: handleFocus, ...rest });
 
     const className = cn(classes.textfieldCell, givenClass);
 

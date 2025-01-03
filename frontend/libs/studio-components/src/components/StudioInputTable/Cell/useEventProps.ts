@@ -1,29 +1,27 @@
-import type { HTMLAttributes } from 'react';
 import { useMemo } from 'react';
 import { useStudioInputTableContext } from '../StudioInputTableContext';
-import type { HTMLCellInputElement } from '../types/HTMLCellInputElement';
 import type { EventProps } from '../types/EventProps';
 
-export function useEventProps<Element extends HTMLCellInputElement>({
+export function useEventProps<BlurInput, FocusInput, ChangeInput>({
   onBlur,
   onFocus,
   onChange,
-}: Partial<HTMLAttributes<Element>>): EventProps<Element> {
-  const { onChangeAny, onBlurAny, onFocusAny } = useStudioInputTableContext<Element>();
+}: EventProps<BlurInput, FocusInput, ChangeInput>): EventProps<BlurInput, FocusInput, ChangeInput> {
+  const { onChangeAny, onBlurAny, onFocusAny } = useStudioInputTableContext();
 
-  return useMemo<EventProps<Element>>(
+  return useMemo<EventProps<BlurInput, FocusInput, ChangeInput>>(
     () => ({
-      onChange: (event) => {
-        onChange?.(event);
-        onChangeAny?.(event);
+      onChange: (input) => {
+        onChange?.(input);
+        onChangeAny?.();
       },
-      onFocus: (event) => {
-        onFocus?.(event);
-        onFocusAny?.(event);
+      onFocus: (input) => {
+        onFocus?.(input);
+        onFocusAny?.();
       },
-      onBlur: (event) => {
-        onBlur?.(event);
-        onBlurAny?.(event);
+      onBlur: (input) => {
+        onBlur?.(input);
+        onBlurAny?.();
       },
     }),
     [onChange, onFocus, onBlur, onChangeAny, onBlurAny, onFocusAny],

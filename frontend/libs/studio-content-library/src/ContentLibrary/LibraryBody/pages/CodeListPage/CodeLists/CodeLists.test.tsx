@@ -8,12 +8,9 @@ import type { RenderResult } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
+import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
 
-const codeListName = 'codeList';
-const codeListWithMetadataMock: CodeListWithMetadata = {
-  title: codeListName,
-  codeList: [{ value: 'value', label: 'label' }],
-};
+const codeListName = codeListsDataMock[0].title;
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 
@@ -96,6 +93,12 @@ describe('CodeLists', () => {
     await changeCodeListId(user, codeListName, invalidCodeListName);
     expect(onUpdateCodeListIdMock).not.toHaveBeenCalled();
   });
+
+  it('renders error message if option list has error', () => {
+    renderCodeLists({ codeListsData: [{ ...codeListsDataMock[0], hasError: true, data: null }] });
+    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
+    expect(errorMessage).toBeInTheDocument();
+  });
 });
 
 const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
@@ -116,7 +119,7 @@ const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeL
 };
 
 const defaultProps: CodeListsProps = {
-  codeLists: [codeListWithMetadataMock],
+  codeListsData: codeListsDataMock,
   onUpdateCodeListId: onUpdateCodeListIdMock,
   onUpdateCodeList: onUpdateCodeListMock,
   codeListInEditMode: undefined,
@@ -131,21 +134,24 @@ describe('updateCodeListWithMetadata', () => {
   it('returns an updated CodeListWithMetadata object', () => {
     const updatedCodeList: StudioComponentsCodeList = [{ value: '', label: '' }];
     const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
-      codeListWithMetadataMock,
+      { title: codeListsDataMock[0].title, codeList: codeListsDataMock[0].data },
       updatedCodeList,
     );
-    expect(updatedCodeListWithMetadata).toEqual({ title: codeListName, codeList: updatedCodeList });
+    expect(updatedCodeListWithMetadata).toEqual({
+      title: codeListsDataMock[0].title,
+      codeList: updatedCodeList,
+    });
   });
 
   it('works with an empty code list', () => {
     const updatedCodeList: StudioComponentsCodeList = [];
     const updatedCodeListWithMetadata: CodeListWithMetadata = updateCodeListWithMetadata(
-      codeListWithMetadataMock,
+      { title: codeListsDataMock[0].title, codeList: codeListsDataMock[0].data },
       updatedCodeList,
     );
 
     expect(updatedCodeListWithMetadata).toEqual({
-      title: codeListName,
+      title: codeListsDataMock[0].title,
       codeList: updatedCodeList,
     });
   });
