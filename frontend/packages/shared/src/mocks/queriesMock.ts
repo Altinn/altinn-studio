@@ -102,7 +102,6 @@ export const queriesMock: ServicesContextProps = {
   getFormLayoutsV3: jest.fn().mockImplementation(() => Promise.resolve<FormLayoutsResponseV3>({})),
   getFrontEndSettings: jest.fn().mockImplementation(() => Promise.resolve<IFrontEndSettings>({})),
   getImageFileNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
-  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve<string>('')),
   getLayoutNames: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve<LayoutSets>(layoutSets)),
   getLayoutSetsExtended: jest
@@ -150,6 +149,8 @@ export const queriesMock: ServicesContextProps = {
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getAccessPackages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getAccessPackageServices: jest.fn().mockImplementation(() => Promise.resolve([])),
   getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
   getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
   getResourcePublishStatus: jest
@@ -252,6 +253,9 @@ export const queriesMock: ServicesContextProps = {
   addResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   removeResourceAccessList: jest.fn().mockImplementation(() => Promise.resolve()),
   migrateDelegations: jest.fn().mockImplementation(() => Promise.resolve()),
+
+  // Mutations - Preview
+  createPreviewInstance: jest.fn().mockImplementation(() => Promise.resolve()),
 
   // Mutations - ProcessEditor
   updateBpmnXml: jest.fn().mockImplementation(() => Promise.resolve()),

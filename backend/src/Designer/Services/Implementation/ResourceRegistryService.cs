@@ -228,7 +228,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         ///     Get resource list
         /// </summary>
         /// <returns>List of all resources</returns>
-        public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2)
+        public async Task<List<ServiceResource>> GetResourceList(string env, bool includeAltinn2, bool includeApps = false)
         {
 
             string endpointUrl;
@@ -236,11 +236,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             //Checks if not tested locally by passing dev as env parameter
             if (!env.ToLower().Equals("dev"))
             {
-                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps=false&includeAltinn2={includeAltinn2}";
+                endpointUrl = $"{GetResourceRegistryBaseUrl(env)}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
             }
             else
             {
-                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps=false&includeAltinn2={includeAltinn2}";
+                endpointUrl = $"{_platformSettings.ResourceRegistryDefaultBaseUrl}{_platformSettings.ResourceRegistryUrl}/resourcelist/?includeApps={includeApps}&includeAltinn2={includeAltinn2}";
             }
 
             JsonSerializerOptions options = new JsonSerializerOptions
@@ -625,6 +625,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             HttpResponseMessage removeResourceAccessListResponse = await _httpClient.SendAsync(request);
             removeResourceAccessListResponse.EnsureSuccessStatusCode();
             return removeResourceAccessListResponse.StatusCode;
+        }
+
+        public async Task<List<SubjectResources>> GetSubjectResources(List<string> subjects, string env)
+        {
+            string resourceRegisterUrl = GetResourceRegistryBaseUrl(env);
+            string url = $"{resourceRegisterUrl}/resourceregistry/api/v1/resource/bysubjects";
+
+            string serializedContent = JsonSerializer.Serialize(subjects, _serializerOptions);
+            using HttpRequestMessage getSubjectResourcesRequest = new HttpRequestMessage()
+            {
+                RequestUri = new Uri(url),
+                Method = HttpMethod.Post,
+                Content = new StringContent(serializedContent, Encoding.UTF8, "application/json"),
+            };
+            using HttpResponseMessage response = await _httpClient.SendAsync(getSubjectResourcesRequest);
+            response.EnsureSuccessStatusCode();
+
+            SubjectResourcesDto responseContent = await response.Content.ReadAsAsync<SubjectResourcesDto>();
+            return responseContent.Data;
         }
 
         private async Task<List<BrregParty>> GetBrregParties(string url)

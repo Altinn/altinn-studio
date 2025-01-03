@@ -14,7 +14,6 @@ import {
   envConfigPath,
   formLayoutsPath,
   frontEndSettingsPath,
-  instanceIdForPreviewPath,
   layoutSetsPath,
   layoutSettingsPath,
   optionListIdsPath,
@@ -53,9 +52,11 @@ import {
   repoDiffPath,
   getImageFileNamesPath,
   validateImageFromExternalUrlPath,
+  resourceAccessPackagesPath,
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
+  resourceAccessPackageServicesPath,
   optionListPath,
 } from './paths';
 
@@ -90,6 +91,7 @@ import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/Ex
 import type { MaskinportenScopes } from 'app-shared/types/MaskinportenScope';
 import type { OptionsList, OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
+import type { AccessPackageResource, PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 export const getIsLoggedInWithAnsattporten = () => get<{ isLoggedIn: boolean }>(authStatusAnsattporten());
 export const getMaskinportenScopes = (org: string, app: string) => get<MaskinportenScopes>(availableMaskinportenScopesPath(org, app));
@@ -111,7 +113,6 @@ export const getFormLayouts = (owner: string, app: string, layoutSetName: string
 export const getFormLayoutsV3 = (owner: string, app: string, layoutSetName: string) => get<FormLayoutsResponseV3>(formLayoutsPath(owner, app, layoutSetName));
 export const getFrontEndSettings = (owner: string, app: string) => get<IFrontEndSettings>(frontEndSettingsPath(owner, app));
 export const getImageFileNames = (owner: string, app: string) => get<string[]>(getImageFileNamesPath(owner, app));
-export const getInstanceIdForPreview = (owner: string, app: string) => get<string>(instanceIdForPreviewPath(owner, app));
 export const getLayoutNames = (owner: string, app: string) => get<string[]>(layoutNamesPath(owner, app));
 export const getLayoutSets = (owner: string, app: string) => get<LayoutSets>(layoutSetsPath(owner, app));
 export const getLayoutSetsExtended = (owner: string, app: string) => get<LayoutSetsModel>(layoutSetsPath(owner, app) + '/extended');
@@ -144,6 +145,8 @@ export const getAltinn2LinkServices = (org: string, environment: string) => get<
 export const getPolicyActions = (org: string, repo: string) => get<PolicyAction[]>(resourceActionsPath(org, repo));
 export const getPolicy = (org: string, repo: string, id: string) => get<Policy>(resourcePolicyPath(org, repo, id));
 export const getPolicySubjects = (org: string, repo: string) => get<PolicySubject[]>(resourceSubjectsPath(org, repo));
+export const getAccessPackages = (org: string, repo: string) => get<PolicyAccessPackageAreaGroup[]>(resourceAccessPackagesPath(org, repo));
+export const getAccessPackageServices = (accessPackageUrn: string, env: string) => get<AccessPackageResource[]>(resourceAccessPackageServicesPath(accessPackageUrn, env));
 export const getResource = (org: string, repo: string, id: string) => get<Resource>(resourceSinglePath(org, repo, id));
 export const getResourceList = (org: string) => get<ResourceListItem[]>(resourceListPath(org));
 export const getResourcePublishStatus = (org: string, repo: string, id: string) => get<ResourceVersionStatus>(resourcePublishStatusPath(org, repo, id));
