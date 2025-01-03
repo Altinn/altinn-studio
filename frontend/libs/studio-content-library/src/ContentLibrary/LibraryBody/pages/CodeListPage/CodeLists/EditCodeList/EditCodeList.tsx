@@ -11,7 +11,8 @@ import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNa
 import classes from './EditCodeList.module.css';
 
 export type EditCodeListProps = {
-  codeList: CodeListWithMetadata;
+  codeList: CodeList;
+  codeListTitle: string;
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListNames: string[];
@@ -19,6 +20,7 @@ export type EditCodeListProps = {
 
 export function EditCodeList({
   codeList,
+  codeListTitle,
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListNames,
@@ -28,16 +30,19 @@ export function EditCodeList({
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
 
   const handleUpdateCodeListId = (newCodeListId: string) => {
-    if (newCodeListId !== codeList.title) onUpdateCodeListId(codeList.title, newCodeListId);
+    if (newCodeListId !== codeListTitle) onUpdateCodeListId(codeListTitle, newCodeListId);
   };
 
   const handleBlurAny = (updatedCodeList: CodeList): void => {
-    const updatedCodeListWithMetadata = updateCodeListWithMetadata(codeList, updatedCodeList);
+    const updatedCodeListWithMetadata = updateCodeListWithMetadata(
+      { title: codeListTitle, codeList: codeList },
+      updatedCodeList,
+    );
     onUpdateCodeList(updatedCodeListWithMetadata);
   };
 
   const handleValidateCodeListId = (newCodeListId: string) => {
-    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeList.title);
+    const invalidCodeListNames = ArrayUtils.removeItemByValue(codeListNames, codeListTitle);
     const fileNameError = FileNameUtils.findFileNameError(newCodeListId, invalidCodeListNames);
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
@@ -50,26 +55,22 @@ export function EditCodeList({
           label: t('app_content_library.code_lists.code_list_edit_id_label'),
           icon: <KeyVerticalIcon />,
           title: t('app_content_library.code_lists.code_list_edit_id_title', {
-            codeListName: codeList.title,
+            codeListName: codeListTitle,
           }),
-          value: codeList.title,
+          value: codeListTitle,
           onBlur: (event) => handleUpdateCodeListId(event.target.value),
           size: 'small',
         }}
         viewProps={{
           label: t('app_content_library.code_lists.code_list_edit_id_label'),
-          children: codeList.title,
+          children: codeListTitle,
           variant: 'tertiary',
           title: t('app_content_library.code_lists.code_list_view_id_title', {
-            codeListName: codeList.title,
+            codeListName: codeListTitle,
           }),
         }}
       />
-      <StudioCodeListEditor
-        codeList={codeList.codeList}
-        onBlurAny={handleBlurAny}
-        texts={editorTexts}
-      />
+      <StudioCodeListEditor codeList={codeList} onBlurAny={handleBlurAny} texts={editorTexts} />
     </div>
   );
 }

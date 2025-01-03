@@ -1,9 +1,9 @@
 import type { CodeListWithMetadata } from '@studio/content-library';
 import { ResourceContentLibraryImpl } from '@studio/content-library';
 import React from 'react';
-import { useOptionListsQuery } from 'app-shared/hooks/queries/useOptionListsQuery';
+import { useOptionListsQuery } from 'app-shared/hooks/queries';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
-import { convertOptionListsToCodeLists } from './utils/convertOptionListsToCodeLists';
+import { convertOptionsListsDataToCodeListsData } from './utils/convertOptionsListsDataToCodeListsData';
 import { StudioPageSpinner } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import type { ApiError } from 'app-shared/types/api/ApiError';
@@ -19,21 +19,20 @@ import {
 export function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
-  const {
-    data: optionLists,
-    isPending: optionListsPending,
-    isError: optionListsError,
-  } = useOptionListsQuery(org, app);
+  const { data: optionListsData, isPending: optionListsDataPending } = useOptionListsQuery(
+    org,
+    app,
+  );
   const { mutate: uploadOptionList } = useAddOptionListMutation(org, app, {
     hideDefaultError: (error: AxiosError<ApiError>) => isErrorUnknown(error),
   });
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const { mutate: updateOptionListId } = useUpdateOptionListIdMutation(org, app);
 
-  if (optionListsPending)
+  if (optionListsDataPending)
     return <StudioPageSpinner spinnerTitle={t('general.loading')}></StudioPageSpinner>;
 
-  const codeLists = convertOptionListsToCodeLists(optionLists);
+  const codeListsData = convertOptionsListsDataToCodeListsData(optionListsData);
 
   const handleUpdateCodeListId = (optionListId: string, newOptionListId: string) => {
     updateOptionListId({ optionListId, newOptionListId });
@@ -60,11 +59,10 @@ export function AppContentLibrary(): React.ReactElement {
     pages: {
       codeList: {
         props: {
-          codeLists: codeLists,
+          codeListsData,
           onUpdateCodeListId: handleUpdateCodeListId,
           onUpdateCodeList: handleUpdate,
           onUploadCodeList: handleUpload,
-          fetchDataError: optionListsError,
         },
       },
       images: {
