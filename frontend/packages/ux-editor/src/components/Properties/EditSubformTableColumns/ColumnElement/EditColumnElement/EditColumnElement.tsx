@@ -1,4 +1,4 @@
-import React, { useState, type ReactElement } from 'react';
+import React, { useMemo, useState, type ReactElement } from 'react';
 import classes from './EditColumnElement.module.css';
 import { type TableColumn } from '../../types/TableColumn';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +18,7 @@ import type { FormItem } from '../../../../../types/FormItem';
 import { PadlockLockedFillIcon } from '@studio/icons';
 import { useTextResourcesQuery } from 'app-shared/hooks/queries';
 import { textResourceByLanguageAndIdSelector } from '../../../../../selectors/textResourceSelectors';
+import { filterComponentsWithLabelAndBindings } from './filterComponentsWithLabelAndBindings';
 
 export type ColumnElementProps = {
   sourceColumn: TableColumn;
@@ -45,15 +46,17 @@ export const EditColumnElement = ({
     'nb',
     tableColumn.headerContent,
   )(textResources)?.value;
-  const components = formLayouts
-    ? Object.values(formLayouts).flatMap((layout) => {
-        return getAllLayoutComponents(layout);
-      })
-    : [];
+  const components = useMemo(() => {
+    return formLayouts
+      ? Object.values(formLayouts).flatMap((layout) => {
+          return getAllLayoutComponents(layout);
+        })
+      : [];
+  }, [formLayouts]);
 
-  const componentsWithLabelAndDataModel = components.filter(
-    (comp) => comp.textResourceBindings?.title && comp.dataModelBindings?.simpleBinding,
-  );
+  const componentsWithLabelAndBindings = useMemo(() => {
+    return filterComponentsWithLabelAndBindings(components);
+  }, [components]);
 
   const selectComponent = (values: string[]) => {
     const selectedComponentId = values[0];
@@ -72,7 +75,7 @@ export const EditColumnElement = ({
       <EditColumnElementHeader columnNumber={columnNumber} />
       <StudioCard.Content className={classes.content}>
         <EditColumnElementComponentSelect
-          components={componentsWithLabelAndDataModel}
+          components={componentsWithLabelAndBindings}
           onSelectComponent={selectComponent}
         />
         <StudioTextfield
