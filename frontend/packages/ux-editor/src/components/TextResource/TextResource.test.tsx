@@ -223,6 +223,50 @@ describe('TextResource', () => {
     expect(textbox.style.height).toBe('100px'); // the min height passed to the useAutoSizeTextArea hook from TextResourceValueEditor
     expect(textbox.style.overflow).toBe('hidden');
   });
+
+  it('Does not render the TextResourceEditor when disableEditor is true', async () => {
+    const label = 'Test';
+    renderTextResource({ label, disableEditor: true });
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('Renders the TextResourceEditor when disableEditor is false', async () => {
+    const label = 'Test';
+    renderTextResource({ label, disableEditor: false });
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('Renders the TextResourceEditor when disableEditor is false', async () => {
+    const label = 'Test';
+    renderTextResource({ label, disableEditor: false });
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+  });
+
+  it('Does not render the TextResourceEditor when disableEditor is true', async () => {
+    const label = 'Test';
+    renderTextResource({ label, disableEditor: true });
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('Renders the delete button when disableEditor is false', async () => {
+    const label = 'Test';
+    renderTextResource({ label, disableEditor: false });
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(screen.getByRole('button', { name: textMock('general.delete') })).toBeInTheDocument();
+  });
+
+  it('Does not render the delete button when disableEditor is true', async () => {
+    const label = 'Test';
+    renderTextResource({ label, disableEditor: true });
+    await user.click(screen.getByRole('button', { name: label }));
+    expect(
+      screen.queryByRole('button', { name: textMock('general.delete') }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 const renderAndOpenSearchSection = async () => {

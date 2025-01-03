@@ -18,6 +18,7 @@ import classes from './FormComponentConfig.module.css';
 import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
+import { TextResource } from '../TextResource/TextResource';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -116,16 +117,18 @@ export const FormComponentConfig = ({
         <RedirectToLayoutSet selectedSubform={component['layoutSet']} />
       )}
       {grid && (
-        <>
-          <Heading level={3} size='xxsmall'>
-            {t('ux_editor.component_properties.grid')}
-          </Heading>
+        <TextResource
+          compact
+          handleIdChange={() => {}}
+          label={t('ux_editor.component_properties.grid')}
+          disableEditor
+        >
           <EditGrid
             key={component.id}
             component={component}
             handleComponentChange={handleComponentUpdate}
           />
-        </>
+        </TextResource>
       )}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
