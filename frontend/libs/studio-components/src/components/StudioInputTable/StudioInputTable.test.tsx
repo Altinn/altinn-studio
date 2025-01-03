@@ -284,7 +284,7 @@ describe('StudioInputTable', () => {
     });
   });
 
-  describe('Triggers event functions', () => {
+  describe('Triggers event functions for input level and table level events', () => {
     type TestCase<Element extends HTMLCellInputElement, Event extends EventName> = {
       render: (mockFn: FormEventProps<Element>[EventPropName<Event>]) => RenderResult;
       action: (user: UserEvent) => Promise<void>;
