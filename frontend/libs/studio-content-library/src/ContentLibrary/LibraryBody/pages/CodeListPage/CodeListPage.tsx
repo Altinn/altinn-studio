@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StudioHeading, StudioPageError } from '@studio/components';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +28,22 @@ export function CodeListPage({
   fetchDataError,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
+  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('.*');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
+  const [codeListsSearchMatch, setCodeListsSearchMatch] =
+    useState<CodeListWithMetadata[]>(codeLists);
+
+  const handleSearchCodeLists = useCallback(
+    (codeListPatternMatch: string) => {
+      const filteredCodeLists = getCodeListsSearchMatch(codeLists, codeListPatternMatch);
+      setCodeListsSearchMatch(filteredCodeLists);
+    },
+    [codeLists, setCodeListsSearchMatch],
+  );
+
+  useEffect(() => {
+    handleSearchCodeLists(codeListSearchPattern);
+  }, [codeLists, codeListSearchPattern, handleSearchCodeLists]);
 
   if (fetchDataError)
     return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
@@ -53,9 +68,10 @@ export function CodeListPage({
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
+        onSetCodeListSearchPattern={setCodeListSearchPattern}
       />
       <CodeLists
-        codeLists={codeLists}
+        codeLists={codeListsSearchMatch}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
@@ -64,3 +80,19 @@ export function CodeListPage({
     </div>
   );
 }
+
+const escapeRegExp = (pattern: string): string => {
+  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
+export const getCodeListsSearchMatch = (
+  codeLists: CodeListWithMetadata[],
+  codeListPatternMatch: string,
+): CodeListWithMetadata[] => {
+  let safePattern = codeListPatternMatch;
+  if (codeListPatternMatch !== '.*') {
+    safePattern = escapeRegExp(codeListPatternMatch);
+  }
+  const regex = new RegExp(safePattern, 'i');
+  return codeLists?.filter((codeList) => regex.test(codeList.title));
+};
