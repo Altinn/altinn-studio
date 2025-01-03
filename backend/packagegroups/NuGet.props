@@ -15,13 +15,12 @@
     <!-- Do not upgrade this package unless extensively tested-->
     <PackageReference Update="LibGit2Sharp" Version="0.31.0" />
     <PackageReference Update="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="7.0.0" />
+    <PackageReference Update="Microsoft.ApplicationInsights.Kubernetes" Version="7.0.1" />
     <PackageReference Update="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="9.0.0" />
     <PackageReference Update="Microsoft.Azure.KeyVault" Version="3.0.5" />
-    <PackageReference Update="Microsoft.Azure.Security.KeyVault.Secrets" Version="4.5.0" />
     <PackageReference Update="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageReference Update="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageReference Update="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
@@ -31,7 +30,7 @@
     <PackageReference Update="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Update="HtmlAgilityPack" Version="1.11.71" />
     <PackageReference Update="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0" />
     <PackageReference Update="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />
     <PackageReference Update="Scrutor" Version="4.2.2" />
@@ -42,10 +41,19 @@
     <PackageReference Update="DotNetEnv" Version="3.1.1" />
     <PackageReference Update="NuGet.Versioning" Version="6.12.1" />
     <PackageReference Update="DistributedLock.Postgres" Version="1.2.1" />
+    <PackageReference Include="System.Text.Json" Version="[9.0.0]" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="[4.8.0, 4.12.0)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="[4.12.0]" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="[4.12.0]" />
+    <PackageReference Update="Azure.Security.KeyVault.Secrets" Version="[4.7.0]" />
+    <PackageReference Include="System.Formats.Asn1" Version="8.0.1" />
+    <PackageReference Include="System.Net.Http" Version="[4.3.4]" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="[4.3.1]" />
+    <PackageReference Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
   </ItemGroup>
 
   <ItemGroup Label="Packages used for testing">
-    <PackageReference Update="FluentAssertions" Version="6.12.2" />
+    <PackageReference Update="FluentAssertions" Version="7.0.0" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <!-- Do not upgrade Moq version from 4.18.4 -->
@@ -56,13 +64,13 @@
     <PackageReference Update="Basic.Reference.Assemblies" Version="1.7.8" />
     <PackageReference Update="Fare" Version="2.2.1" />
     <PackageReference Update="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
-    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.9.2" />
+    <PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+    <PackageReference Update="Microsoft.CodeAnalysis.Common" Version="4.12.0" />
     <PackageReference Update="Testcontainers" Version="3.10.0" />
     <PackageReference Update="Testcontainers.PostgreSql" Version="3.10.0" />
     <PackageReference Update="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0" />
     <PackageReference Update="Microsoft.Extensions.DependencyModel" Version="9.0.0" />
-    <PackageReference Update="WireMock.Net" Version="1.6.9" />
+    <PackageReference Update="WireMock.Net" Version="1.6.10" />
     <PackageReference Update="DistributedLock.FileSystem" Version="1.0.3" />
   </ItemGroup>
 </Project>

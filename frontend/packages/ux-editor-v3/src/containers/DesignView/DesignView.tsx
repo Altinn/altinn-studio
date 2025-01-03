@@ -9,12 +9,10 @@ import { Accordion } from '@digdir/designsystemet-react';
 import type { IFormLayouts } from '../../types/global';
 import type { FormLayoutPage } from '../../types/FormLayoutPage';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import { useInstanceIdQuery } from 'app-shared/hooks/queries';
 import { useSearchParams } from 'react-router-dom';
 import { useFormLayoutSettingsQuery } from '../../hooks/queries/useFormLayoutSettingsQuery';
 import { PlusIcon } from '@studio/icons';
 import { useAddLayoutMutation } from '../../hooks/mutations/useAddLayoutMutation';
-import { setSelectedLayoutInLocalStorage } from '../../utils/localStorageUtils';
 import { PageAccordion } from './PageAccordion';
 import { ReceiptContent } from './ReceiptContent';
 import { useAppContext } from '../../hooks/useAppContext';
@@ -47,7 +45,6 @@ export const DesignView = (): ReactNode => {
     selectedLayoutSet,
   );
   const { data: layouts } = useFormLayoutsQuery(org, app, selectedLayoutSet);
-  const { data: instanceId } = useInstanceIdQuery(org, app);
   const { data: formLayoutSettings } = useFormLayoutSettingsQuery(org, app, selectedLayoutSet);
   const receiptName = formLayoutSettings?.receiptLayoutName;
   const layoutOrder = formLayoutSettings?.pages?.order;
@@ -86,12 +83,10 @@ export const DesignView = (): ReactNode => {
   const handleClickAccordion = (pageName: string) => {
     if (isValidLayout(pageName)) {
       if (searchParamsLayout !== pageName) {
-        setSelectedLayoutInLocalStorage(instanceId, pageName);
         dispatch(FormLayoutActions.updateSelectedLayout(pageName));
         setSearchParams((prevParams) => ({ ...prevParams, layout: pageName }));
         setOpenAccordion(pageName);
       } else {
-        setSelectedLayoutInLocalStorage(instanceId, undefined);
         dispatch(FormLayoutActions.updateSelectedLayout(undefined));
         setSearchParams(undefined);
         setOpenAccordion('');
@@ -120,7 +115,6 @@ export const DesignView = (): ReactNode => {
 
         addLayoutMutation({ layoutName: newLayoutName, isReceiptPage: false });
         setSearchParams((prevParams) => ({ ...prevParams, layout: newLayoutName }));
-        setSelectedLayoutInLocalStorage(instanceId, newLayoutName);
         dispatch(FormLayoutActions.updateSelectedLayout(newLayoutName));
         setOpenAccordion(newLayoutName);
       }

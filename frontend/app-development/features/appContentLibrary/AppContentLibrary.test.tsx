@@ -15,12 +15,14 @@ import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
+const updateCodeListIdButtonTextMock = 'Update Code List Id';
 const codeListNameMock = 'codeListNameMock';
+const newCodeListNameMock = 'newCodeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
 jest.mock(
-  '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeList',
+  '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeList: ({ onUpdateCodeList, onUploadCodeList }: any) => (
+    CodeListPage: ({ onUpdateCodeList, onUploadCodeList, onUpdateCodeListId }: any) => (
       <div>
         <button
           onClick={() =>
@@ -35,6 +37,9 @@ jest.mock(
           onClick={() => onUpdateCodeList({ title: codeListNameMock, codeList: codeListMock })}
         >
           {updateCodeListButtonTextMock}
+        </button>
+        <button onClick={() => onUpdateCodeListId(codeListNameMock, newCodeListNameMock)}>
+          {updateCodeListIdButtonTextMock}
         </button>
       </div>
     ),
@@ -113,6 +118,23 @@ describe('AppContentLibrary', () => {
       app,
       codeListNameMock,
       codeListMock,
+    );
+  });
+
+  it('calls onUpdateOptionListId when onUpdateCodeListId is triggered', async () => {
+    const user = userEvent.setup();
+    renderAppContentLibrary(optionListsMock);
+    await goToLibraryPage(user, 'code_lists');
+    const updateCodeListIdButton = screen.getByRole('button', {
+      name: updateCodeListIdButtonTextMock,
+    });
+    await user.click(updateCodeListIdButton);
+    expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(
+      org,
+      app,
+      codeListNameMock,
+      newCodeListNameMock,
     );
   });
 });

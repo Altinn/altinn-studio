@@ -352,10 +352,7 @@ describe('EditBinding', () => {
       {
         ...componentMocks[ComponentType.Input],
         dataModelBindings: {
-          simpleBinding: {
-            dataType: '',
-            field: '',
-          },
+          simpleBinding: '',
         },
         maxCount: undefined,
         required: undefined,
