@@ -7,7 +7,11 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import React from 'react';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { component1IdMock, layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
-import { layoutSet1NameMock, layoutSetsMock } from '../../../../testing/layoutSetsMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { Summary2Component } from './Summary2Component';
@@ -34,43 +38,31 @@ describe('Summary2ComponentTargetSelector', () => {
     expect(disabledLayoutSetTargetSelect()).toBeInTheDocument();
   });
 
-  it('should select the task id from the current layout when the task id of the target is not defined', async () => {
+  it('should select the layout set from the current layout when the task id of the target is not defined', async () => {
     render();
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[0].tasks[0]);
+    expect(select).toHaveValue(layoutSet1NameMock);
   });
 
-  it('should select the task id from the target when the task id of the target is defined', async () => {
+  it('should select the layout set from the target when the task id of the target is defined', async () => {
     render({
       component: { ...defaultProps.component, target: { taskId: 'Task_2' } },
     });
 
     const select = targetTaskIdSelect();
-    expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
+    expect(select).toHaveValue(layoutSet2NameMock);
   });
 
-  it('should allow selecting a task id', async () => {
+  it('should allow selecting a layout set', async () => {
     const user = userEvent.setup();
     render({
       component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
     });
 
-    await user.selectOptions(targetTaskIdSelect(), 'Task_2');
+    await user.selectOptions(targetTaskIdSelect(), layoutSet2NameMock);
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({ target: { taskId: 'Task_2', type: 'component', id: '' } }),
-    );
-  });
-
-  it('should remove the task id from the target if the task id is the same as the current layout set', async () => {
-    const user = userEvent.setup();
-    render({
-      component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
-    });
-
-    await user.selectOptions(targetTaskIdSelect(), 'Task_1');
-    expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'component', id: '' } }),
     );
   });
 
