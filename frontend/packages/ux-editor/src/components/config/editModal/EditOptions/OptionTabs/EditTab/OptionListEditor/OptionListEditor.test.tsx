@@ -2,6 +2,7 @@ import React from 'react';
 import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import type { OptionsList } from 'app-shared/types/api/OptionsLists';
 import type { Option } from 'app-shared/types/Option';
+import { ComponentType } from 'app-shared/types/ComponentType';
 import type { OptionListEditorProps } from './OptionListEditor';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -11,7 +12,6 @@ import { createQueryClientMock } from 'app-shared/mocks/queryClientMock';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import { app, org } from '@studio/testing/testids';
 import { componentMocks } from '../../../../../../../testing/componentMocks';
-import { ComponentType } from 'app-shared/types/ComponentType';
 
 // Test data:
 const mockComponent = componentMocks[ComponentType.RadioButtons];
@@ -28,64 +28,74 @@ const getOptionListMock = jest
 describe('OptionListEditor', () => {
   afterEach(() => jest.clearAllMocks());
 
-  describe('ManualOptionListEditorModal', () => {
-    it('should render the open Dialog button', async () => {
+  describe('ManualOptionEditor', () => {
+    it('should render the open Dialog button', () => {
       renderOptionListEditor();
-      expect(getManualModalButton()).toBeInTheDocument();
+      expect(getOptionModalButton()).toBeInTheDocument();
     });
 
     it('should open Dialog', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
-      await user.click(getManualModalButton());
+
+      await user.click(getOptionModalButton());
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(
+        screen.getByText(textMock('ux_editor.options.modal_header_manual_code_list')),
+      ).toBeInTheDocument();
     });
 
     it('should close Dialog', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
-      await user.click(getManualModalButton());
+
+      await user.click(getOptionModalButton());
       await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    it('should call doReloadPreview when editing', async () => {
+    it('should call handleComponentChange when editing', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
       const text = 'test';
-      await user.click(getManualModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const expectedArgs = mockComponent;
+      expectedArgs.optionsId = undefined;
+      expectedArgs.options[0].description = text;
+
+      await user.click(getOptionModalButton());
+      const textBox = getTextBoxInput(1);
       await user.type(textBox, text);
       await user.tab();
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
+      expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
     });
 
-    it('should delete optionsId field from component if it was set when manual options editor is blurred', async () => {
+    it('should show placeholder for option label when option list label is empty', () => {
+      mockComponent.options = [{ value: 2, label: '', description: 'test', helpText: null }];
+      renderOptionListEditor();
+
+      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+    });
+
+    it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
       const user = userEvent.setup();
-      renderOptionListEditor({
-        props: { component: { ...mockComponent, optionsId: 'optionsId' } },
-      });
-      const text = 'test';
-      await user.click(getManualModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
-      await user.type(textBox, text);
-      await user.tab();
+      renderOptionListEditor();
+      const expectedResult = mockComponent;
+      expectedResult.options = undefined;
+      expectedResult.optionsId = undefined;
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await user.click(deleteButton);
 
       expect(handleComponentChange).toHaveBeenCalledTimes(1);
-      expect(handleComponentChange).toHaveBeenCalledWith(
-        expect.not.objectContaining({ optionsId: expect.anything() }),
-      );
+      expect(handleComponentChange).toHaveBeenCalledWith(expectedResult);
     });
   });
 
-  describe('LibraryOptionListEditorModal', () => {
+  describe('LibraryOptionEditor', () => {
     it('should render a spinner when there is no data', () => {
       renderOptionListEditor({
         queries: {
@@ -102,7 +112,7 @@ describe('OptionListEditor', () => {
     it('should render an error message when getOptionLists throws an error', async () => {
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
         queries: {
-          getOptionList: jest.fn().mockRejectedValueOnce(new Error('Error')),
+          getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
         },
         props: { component: { ...mockComponent, options: undefined } },
       });
@@ -151,9 +161,7 @@ describe('OptionListEditor', () => {
       });
 
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -172,9 +180,7 @@ describe('OptionListEditor', () => {
       ];
 
       await user.click(getOptionModalButton());
-      const textBox = screen.getByRole('textbox', {
-        name: textMock('code_list_editor.description_item', { number: 2 }),
-      });
+      const textBox = getTextBoxInput(2);
       await user.type(textBox, 'test');
       await user.tab();
 
@@ -186,18 +192,48 @@ describe('OptionListEditor', () => {
         expectedResultAfterEdit,
       );
     });
+
+    it('should show placeholder for option label when option list label is empty', async () => {
+      const apiResultWithEmptyLabel: OptionsList = [
+        { value: true, label: '', description: null, helpText: null },
+      ];
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
+        queries: {
+          getOptionList: jest
+            .fn()
+            .mockImplementation(() => Promise.resolve<OptionsList>(apiResultWithEmptyLabel)),
+        },
+      });
+
+      expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
+    });
+
+    it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
+      const user = userEvent.setup();
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
+
+      const deleteButton = screen.getByRole('button', { name: textMock('general.delete') });
+      await user.click(deleteButton);
+
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+      expect(handleComponentChange).toHaveBeenCalledWith({
+        ...mockComponent,
+        options: undefined,
+        optionsId: undefined,
+      });
+    });
   });
 });
 
 function getOptionModalButton() {
   return screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_button_title_library'),
+    name: textMock('general.edit'),
   });
 }
 
-function getManualModalButton() {
-  return screen.getByRole('button', {
-    name: textMock('ux_editor.modal_properties_code_list_button_title_manual'),
+function getTextBoxInput(number: number) {
+  return screen.getByRole('textbox', {
+    name: textMock('code_list_editor.description_item', { number }),
   });
 }
 
@@ -224,8 +260,8 @@ const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({
     queries,
     props,
   });
-  await waitForElementToBeRemoved(() => {
-    return screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title'));
-  });
+  await waitForElementToBeRemoved(() =>
+    screen.queryByText(textMock('ux_editor.modal_properties_code_list_spinner_title')),
+  );
   return view;
 };

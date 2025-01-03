@@ -29,6 +29,21 @@ describe('OptionListSelector', () => {
     expect(screen.getByText(textMock('ux_editor.modal_properties_code_list'))).toBeInTheDocument();
   });
 
+  it('should not render if the list is empty', async () => {
+    renderOptionListSelector({
+      queries: {
+        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
+      },
+    });
+    await waitForElementToBeRemoved(
+      screen.queryByText(textMock('ux_editor.modal_properties_loading')),
+    );
+
+    expect(
+      screen.queryByText(textMock('ux_editor.modal_properties_code_list')),
+    ).not.toBeInTheDocument();
+  });
+
   it('should call onChange when option list changes', async () => {
     const user = userEvent.setup();
     renderOptionListSelector();
@@ -81,7 +96,9 @@ describe('OptionListSelector', () => {
     });
 
     expect(
-      await screen.findByText(textMock('ux_editor.modal_properties_error_message')),
+      await screen.findByText(
+        textMock('ux_editor.modal_properties_fetch_option_list_ids_error_message'),
+      ),
     ).toBeInTheDocument();
   });
 });
@@ -97,7 +114,6 @@ function getDropdownOption(): HTMLElement {
 function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
   return renderWithProviders(
     <OptionListSelector
-      setComponentHasOptionList={jest.fn()}
       component={{
         ...mockComponent,
         ...componentProps,

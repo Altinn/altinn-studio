@@ -1,25 +1,20 @@
-.chosenOptionContainer {
-  display: flex;
-  overflow: hidden;
+.container {
+  padding: 0 var(--fds-spacing-5);
 }
 
-.deleteButtonContainer {
+.addOptionListContainer {
   display: flex;
-  width: min-content;
-  margin-left: auto;
-}
-
-.deleteButton {
-  border-radius: 0;
-}
-
-.optionButtons {
-  display: flex;
+  width: 60%;
+  min-width: 12rem;
+  white-space: nowrap;
   flex-direction: column;
   gap: var(--fds-spacing-2);
-  margin-left: var(--fds-spacing-5);
+}
+
+.alert {
+  margin-top: var(--fds-spacing-2);
 }
 
 .errorMessage {
-  margin: var(--fds-spacing-5) var(--fds-spacing-5) 0;
+  margin-top: var(--fds-spacing-2);
 }
