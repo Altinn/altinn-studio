@@ -7,7 +7,7 @@ import {
 } from '@studio/components';
 import type { CodeList, CodeListEditorTexts } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { useOptionListEditorTexts } from '../../hooks/useCodeListEditorTexts';
+import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
 import { CheckmarkIcon } from '@studio/icons';
 import classes from './CreateNewCodeListModal.module.css';
 import type { CodeListWithMetadata } from '../../CodeListPage';
@@ -68,7 +68,7 @@ function CreateNewCodeList({
   onCloseModal,
 }: CreateNewCodeListProps) {
   const { t } = useTranslation();
-  const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
+  const editorTexts: CodeListEditorTexts = useCodeListEditorTexts();
   const getInvalidInputFileNameErrorMessage = useInputCodeListNameErrorMessage();
   const [isCodeListValid, setIsCodeListValid] = useState<boolean>(true);
   const [codeListTitleError, setCodeListTitleError] = useState<string>('');
