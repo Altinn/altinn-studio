@@ -63,7 +63,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders a spinner when waiting for option lists', () => {
-    renderAppContentLibrary({ optionListsData: [] });
+    renderAppContentLibrary({ shouldPutDataOnCache: false });
     const spinner = screen.getByText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
@@ -146,16 +146,19 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
 
 type renderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
+  shouldPutDataOnCache?: boolean;
   optionListsData?: OptionsListsResponse;
 };
 
 const renderAppContentLibrary = ({
   queries = {},
+  shouldPutDataOnCache = true,
   optionListsData = optionListsDataMock,
 }: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
-  if (optionListsData.length) {
+  if (shouldPutDataOnCache) {
     queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionListsData);
+    queryClientMock.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   }
   renderWithProviders(queries, queryClientMock)(<AppContentLibrary />);
 };

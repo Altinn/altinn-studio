@@ -7,6 +7,7 @@ import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import type { CodeListReference } from './types/CodeListReference';
 
 export type CodeListWithMetadata = {
   codeList: CodeList;
@@ -24,6 +25,7 @@ export type CodeListPageProps = {
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
+  codeListsUsages: CodeListReference[];
 };
 
 export function CodeListPage({
@@ -31,6 +33,7 @@ export function CodeListPage({
   onUpdateCodeListId,
   onUpdateCodeList,
   onUploadCodeList,
+  codeListsUsages,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
@@ -62,6 +65,7 @@ export function CodeListPage({
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
         codeListNames={codeListTitles}
+        codeListsUsages={codeListsUsages}
       />
     </div>
   );

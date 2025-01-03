@@ -15,6 +15,7 @@ export const mockPagesConfig: PagesConfig = {
       onUpdateCodeListId: () => {},
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
+      codeListsUsages: [],
     },
   },
   images: {
