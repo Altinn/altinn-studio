@@ -656,7 +656,7 @@ namespace Altinn.Studio.Designer.Controllers
             return orgList;
         }
 
-        private static bool IsServiceOwner(ServiceResource? resource, string loggedInOrg)
+        private static bool IsServiceOwner(ServiceResource resource, string loggedInOrg)
         {
             if (resource?.HasCompetentAuthority == null)
             {

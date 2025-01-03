@@ -13,7 +13,6 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { PreviewContextProvider } from 'app-development/contexts/PreviewContext';
 
 const mockQueries: Partial<ServicesContextProps> = {
-  getInstanceIdForPreview: jest.fn().mockImplementation(() => Promise.resolve('test')),
   getLayoutSets: jest.fn().mockImplementation(() => Promise.resolve(layoutSetsMock)),
   getFormLayoutSettings: jest
     .fn()
