@@ -12,14 +12,12 @@ import type {
   Summary2TargetConfig,
   SummaryTargetType,
 } from 'app-shared/types/ComponentSpecificConfig';
-import { ComponentType } from 'app-shared/types/ComponentType';
 import { useTranslation } from 'react-i18next';
-import type { FormComponent } from '../../../../../types/FormComponent';
 import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
-import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { useTargetTypes } from './useTargetTypes';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
+import { getComponentOptions, getLayoutSetOptions, getPageOptions } from './TargetUtils';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
@@ -31,62 +29,22 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const { org, app } = useStudioEnvironmentParams();
   const { selectedFormLayoutSetName, selectedFormLayoutName } = useAppContext();
   const { data: layoutSets } = useLayoutSetsQuery(org, app);
-
-  console.log(layoutSets);
-
-  const layoutSetsWithTasks = layoutSets?.sets.filter((set) => set.tasks?.length > 0);
-  console.log(layoutSetsWithTasks);
-
-  const currentTaskId = layoutSets?.sets?.find((set) => set.id === selectedFormLayoutSetName)
-    .tasks?.[0];
-  const selectedLayoutSetName = target.taskId
+  const selectedLayoutSetTargetName = target.taskId
     ? layoutSets?.sets?.find((set) => set.tasks?.[0] === target.taskId).id
     : selectedFormLayoutSetName;
-
-  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetName);
-
-  const targetTypes = useTargetTypes();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedLayoutSetTargetName);
   const getComponentTitle = useComponentTitle();
+  const targetTypes = useTargetTypes();
 
-  const excludedComponents = [
-    ComponentType.ActionButton,
-    ComponentType.Alert,
-    ComponentType.AttachmentList,
-    ComponentType.Button,
-    ComponentType.ButtonGroup,
-    ComponentType.CustomButton,
-    ComponentType.Grid,
-    ComponentType.Header,
-    ComponentType.IFrame,
-    ComponentType.Image,
-    ComponentType.InstantiationButton,
-    ComponentType.InstanceInformation,
-    ComponentType.Link,
-    ComponentType.NavigationBar,
-    ComponentType.NavigationButtons,
-    ComponentType.Panel,
-    ComponentType.Paragraph,
-    ComponentType.PrintButton,
-    ComponentType.Summary,
-    ComponentType.Summary2,
-  ];
+  const layoutSetOptions = getLayoutSetOptions(layoutSets);
+  const pageOptions = getPageOptions(formLayoutsData);
+  const componentOptions = getComponentOptions({ formLayoutsData, getComponentTitle });
 
-  const components = formLayoutsData
-    ? Object.values(formLayoutsData).flatMap((layout) =>
-        getAllLayoutComponents(layout, excludedComponents),
-      )
-    : [];
-  const componentOptions = components.map((formComponent: FormComponent) => ({
-    id: formComponent.id,
-    description: getComponentTitle(formComponent),
-  }));
-
-  const pageOptions = formLayoutsData
-    ? Object.keys(formLayoutsData).map((page) => ({
-        id: page,
-        description: undefined,
-      }))
-    : [];
+  const handleLayoutSetChange = (layoutSetName: string) => {
+    const taskId = layoutSets.sets.find((set) => set.id === layoutSetName).tasks[0];
+    const updatedTarget = { ...target, id: '', taskId };
+    onChange(updatedTarget);
+  };
 
   const handleTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const newType = event.target.value as SummaryTargetType;
@@ -94,16 +52,6 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
     // set default value for page
     if (newType === 'page' && pageOptions.some((page) => page.id === selectedFormLayoutName)) {
       updatedTarget.id = selectedFormLayoutName;
-    }
-    onChange(updatedTarget);
-  };
-
-  const handleLayoutSetChange = (taskId: string) => {
-    const updatedTarget = { ...target, id: '' };
-    if (taskId === currentTaskId) {
-      delete updatedTarget.taskId;
-    } else {
-      updatedTarget.taskId = taskId;
     }
     onChange(updatedTarget);
   };
@@ -126,10 +74,10 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         <StudioNativeSelect
           size='sm'
           label={t('ux_editor.component_properties.target_layoutSet_id')}
-          value={selectedLayoutSetName}
+          value={selectedLayoutSetTargetName}
           onChange={(e) => handleLayoutSetChange(e.target.value)}
         >
-          {layoutSetsWithTasks.map((layoutSet) => (
+          {layoutSetOptions.map((layoutSet) => (
             <option key={layoutSet.id} value={layoutSet.id}>
               {layoutSet.id}
             </option>
@@ -170,7 +118,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
             key={target.id} // TODO: Remove the key when https://github.com/digdir/designsystemet/issues/2264 is fixed
             size='sm'
             label={t('ux_editor.component_properties.target_unit_layout_set')}
-            value={selectedLayoutSetName}
+            value={selectedLayoutSetTargetName}
             disabled={true}
           />
         )}
