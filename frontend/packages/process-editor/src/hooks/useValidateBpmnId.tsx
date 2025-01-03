@@ -2,6 +2,7 @@ import { useTaskIds } from './useTaskIds';
 import { checkForInvalidCharacters } from '../utils/configPanelUtils';
 import { useTranslation } from 'react-i18next';
 import { useBpmnContext } from '../contexts/BpmnContext';
+import { StringUtils } from '@studio/pure-functions';
 
 export const useValidateBpmnTaskId = () => {
   const { t } = useTranslation();
@@ -21,7 +22,12 @@ export const useValidateBpmnTaskId = () => {
     };
 
     const validationRules = [
-      { name: 'unique', condition: otherTaskIds.includes(newId) },
+      {
+        name: 'unique',
+        condition: otherTaskIds.some((taskId) =>
+          StringUtils.areCaseInsensitiveEqual(taskId, newId),
+        ),
+      },
       { name: 'required', condition: newId.length === 0 },
       { name: 'reservedWord', condition: newId.toLowerCase().startsWith('custom') },
       { name: 'maxLength', condition: newId.length > 50 },

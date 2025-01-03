@@ -20,7 +20,7 @@ export class StringUtils {
   /**
    * Removes any of the given substrings from the end of the string.
    * If none of the substrings appear at the end of the string, the string is returned unchanged.
-   * Not case sensitive.
+   * Not case-sensitive.
    * @param str The string to search in.
    * @param substrings The substrings to search for.
    * @returns The string with the substrings removed from the end.
@@ -82,4 +82,7 @@ export class StringUtils {
   static capitalize = (string: string): string => {
     return string.charAt(0).toUpperCase() + string.slice(1);
   };
+
+  static areCaseInsensitiveEqual = (string: string, stringToCompare: string): boolean =>
+    string.localeCompare(stringToCompare, 'nb', { sensitivity: 'base' }) === 0;
 }

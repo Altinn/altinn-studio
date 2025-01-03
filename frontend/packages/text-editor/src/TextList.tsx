@@ -9,6 +9,7 @@ import { APP_NAME } from 'app-shared/constants';
 import { useLayoutNamesQuery } from './hooks/useLayoutNamesQuery';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { Table } from '@digdir/designsystemet-react';
+import { StringUtils } from '@studio/pure-functions';
 
 export type TextListProps = {
   resourceRows: TextTableRow[];
@@ -29,7 +30,8 @@ export const TextList = ({
   const { data: layoutNames, isPending: layoutNamesPending } = useLayoutNamesQuery(org, app);
 
   const textIds = useMemo(() => resourceRows.map((row) => row.textKey), [resourceRows]);
-  const idExists = (textId: string): boolean => textIds.includes(textId);
+  const idExists = (newTextId: string): boolean =>
+    textIds.some((textId) => StringUtils.areCaseInsensitiveEqual(textId, newTextId));
   const getTableHeaderCellId = (language: string): string => `header-lang${language}`;
 
   return (

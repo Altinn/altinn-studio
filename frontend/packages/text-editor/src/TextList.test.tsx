@@ -127,6 +127,10 @@ describe('TextList', () => {
     await user.keyboard('b');
     expect(screen.getByText(firstErrorMessage)).not.toBeNull();
 
+    await user.clear(idInput);
+    await user.keyboard('B');
+    expect(screen.getByText(firstErrorMessage)).not.toBeNull();
+
     await user.keyboard('2');
     expect(screen.queryByText(firstErrorMessage)).toBeNull();
 

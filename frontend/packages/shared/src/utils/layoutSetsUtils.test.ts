@@ -92,6 +92,22 @@ describe('getLayoutSetIdValidationErrorKey', () => {
     );
   });
 
+  it('should return error message when the user types an existing layout set name (case-insensitive)', () => {
+    const existingLayoutSetId = 'layoutSetId';
+    const existingLayoutSetIdUpperCase = existingLayoutSetId.toUpperCase();
+    const layoutSets: LayoutSets = {
+      sets: [
+        {
+          id: existingLayoutSetId,
+          tasks: ['task_1'],
+        },
+      ],
+    };
+    expect(getLayoutSetIdValidationErrorKey(existingLayoutSetIdUpperCase, layoutSets)).toBe(
+      'process_editor.configuration_panel_layout_set_id_not_unique',
+    );
+  });
+
   it('should return null when the user types the same name as the original name', () => {
     const existingLayoutSetId = 'layoutSetId';
     expect(
