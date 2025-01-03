@@ -14,8 +14,7 @@ export class LayoutPage implements LayoutObject {
 
   private allChildren: LayoutNode[] = [];
   private allChildIds = new Set<string>();
-
-  private _directChildren: LayoutNode[] = [];
+  private directChildren: LayoutNode[] = [];
 
   /**
    * Adds a child to the collection. For internal use only.
@@ -29,7 +28,7 @@ export class LayoutPage implements LayoutObject {
       // Direct children of a layout page are always static.
       // Only children of components like repeating groups are dynamic
       if (child.parent === this) {
-        this._directChildren.push(child);
+        this.directChildren.push(child);
       }
     }
   }
@@ -38,7 +37,11 @@ export class LayoutPage implements LayoutObject {
     if (this.allChildIds.has(child.id)) {
       this.layoutSet.unregisterNode(child);
       this.allChildIds.delete(child.id);
-      this.allChildren.splice(this.allChildren.indexOf(child), 1);
+
+      const aI = this.allChildren.indexOf(child);
+      aI > -1 && this.allChildren.splice(aI, 1);
+      const dI = this.directChildren.indexOf(child);
+      dI > -1 && this.directChildren.splice(dI, 1);
     }
   }
 
@@ -61,12 +64,8 @@ export class LayoutPage implements LayoutObject {
     return undefined;
   }
 
-  protected directChildren(_task: TraversalTask): LayoutNode[] {
-    return this._directChildren;
-  }
-
   public firstChild(task: TraversalTask): LayoutNode | undefined {
-    for (const node of this.directChildren(task)) {
+    for (const node of this.directChildren) {
       if (task.passes(node)) {
         return node;
       }
@@ -87,11 +86,11 @@ export class LayoutPage implements LayoutObject {
 
   public children(task: TraversalTask): LayoutNode[] {
     if (task.allPasses()) {
-      return this.directChildren(task);
+      return this.directChildren;
     }
 
     const children: LayoutNode[] = [];
-    for (const node of this.directChildren(task)) {
+    for (const node of this.directChildren) {
       if (task.passes(node)) {
         children.push(node);
       }

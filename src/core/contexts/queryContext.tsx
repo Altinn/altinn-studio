@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
 
 import type { UseQueryResult } from '@tanstack/react-query';
@@ -57,6 +57,8 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
     const { data, isLoading, error, ...rest } = query();
     const enabled = 'enabled' in rest && !required ? rest.enabled : true;
 
+    const value = useMemo(() => (typeof data !== 'undefined' ? process(data) : undefined), [data]);
+
     if (enabled && isLoading) {
       return <Loader reason={`query-${name}`} />;
     }
@@ -65,7 +67,7 @@ export function createQueryContext<QD, Req extends boolean, CD = QD>(props: Quer
       return <DisplayError error={error as Error} />;
     }
 
-    return <Provider value={enabled ? process(data as QD) : defaultValue}>{children}</Provider>;
+    return <Provider value={enabled ? (value ?? defaultValue) : defaultValue}>{children}</Provider>;
   };
 
   return {
