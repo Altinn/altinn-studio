@@ -72,6 +72,7 @@ describe('ColumnElement', () => {
     expect(onEditMock).toHaveBeenCalledTimes(1);
     expect(onEditMock).toHaveBeenCalledWith({
       ...mockTableColumn,
+      componentId: subformLayoutMock.component1Id,
       headerContent: subformLayoutMock.component1.textResourceBindings.title,
       cellContent: { query: subformLayoutMock.component1.dataModelBindings.simpleBinding },
     });
