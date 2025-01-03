@@ -17,7 +17,7 @@ import { useAppContext, useComponentTitle } from '../../../../../hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
 import { useTargetTypes } from './useTargetTypes';
 import { useLayoutSetsQuery } from 'app-shared/hooks/queries/useLayoutSetsQuery';
-import { getComponentOptions, getLayoutSetOptions, getPageOptions } from './TargetUtils';
+import { getComponentOptions, getLayoutSetOptions, getPageOptions } from './targetUtils';
 
 type Summary2TargetProps = {
   target: Summary2TargetConfig;
