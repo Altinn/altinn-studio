@@ -327,6 +327,8 @@ hs_err_pid*
 
 ## Maven
 target/
+## Ensure to not ignore target folder in frontend
+!frontend/**/target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
