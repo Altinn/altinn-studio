@@ -32,6 +32,10 @@ export const EditBooleanValue = ({
 
   const getNewBooleanValue = () => !(component[propertyKey] ?? defaultValue);
 
+  const helpText = isValueExpression(component[propertyKey])
+    ? t('ux_editor.component_properties.config_is_expression_message')
+    : componentPropertyHelpText(propertyKey);
+
   return (
     <FormField
       id={component.id}
@@ -39,11 +43,7 @@ export const EditBooleanValue = ({
       onChange={handleChange}
       propertyPath={component.propertyPath}
       componentType={component.type}
-      helpText={
-        isValueExpression(component[propertyKey])
-          ? t('ux_editor.component_properties.config_is_expression_message')
-          : componentPropertyHelpText(propertyKey)
-      }
+      helpText={helpText}
       renderField={({ fieldProps }) => {
         return (
           <Switch
