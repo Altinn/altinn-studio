@@ -5,7 +5,6 @@ import type { StoreApi } from 'zustand';
 
 import { ContextNotProvided } from 'src/core/contexts/context';
 import { ShallowArrayMap } from 'src/core/structures/ShallowArrayMap';
-import { isDev } from 'src/utils/isDev';
 
 type Selector<T, U> = (state: T) => U;
 type SelectorMap<C extends DSConfig> = ShallowArrayMap<{
@@ -176,16 +175,8 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
 
     const cacheKey = this.makeCacheKey(args);
     const prev = this.selectorsCalled?.get(cacheKey);
-    let returnPrev = false;
     if (prev) {
-      // Performance-wise we could also just have called the selector here, it doesn't really matter. What is
-      // important however, is that we let developers know as early as possible if they forgot to include a dependency
-      // or otherwise used the hook incorrectly, so we'll make sure to return the value to them here even if it
-      // could be stale (but only when improperly used).
-      returnPrev = true;
-      if (!isDev()) {
-        return prev.value;
-      }
+      return prev.value;
     }
 
     // We don't need to initialize the arraymap before checking for the previous value,
@@ -217,19 +208,6 @@ abstract class BaseDelayedSelector<C extends DSConfig> {
     }
 
     const value = fullSelector(this.store.getState());
-
-    if (returnPrev && prev) {
-      if (!this.equalityFn(value, prev.value)) {
-        console.warn(
-          'Delayed selector: When selecting, the prev and next value are not equal. You probably forgot ' +
-            'to pass one or more dependencies. The prev value will be returned, even if the next ' +
-            'value is the latest state.',
-          { prev: prev.value, next: value },
-        );
-      }
-      return prev.value;
-    }
-
     this.selectorsCalled.set(cacheKey, { fullSelector, value });
     return value;
   }

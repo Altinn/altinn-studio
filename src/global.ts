@@ -31,13 +31,9 @@ declare global {
       nodesStore?: NodesContextStore;
     };
 
-    // This may be used to log stuff, which may or may not be saved to a file when a cypress test ends. The purpose
-    // of this is to debug functionality in app-frontend, and log events to a file if something fails (even if it is
-    // not covered by the cypress test itself). This can be used during development, but code calling this should
-    // probably be removed before merging to main. The use-case this was developed for was to log form data changes
-    // while running tests, and saving the log to a file if an unexpected patch application was found.
+    // Calling this function will safely log to the Cypress log (if running in Cypress), without triggering a
+    // test failure (which would happen if we used console.log()).
     CypressLog?: (...args: string[]) => void;
-    CypressSaveLog?: () => void;
 
     // Used to indicate that we are running in a unit test. Do not check this unless you really need to.
     inUnitTest?: boolean;

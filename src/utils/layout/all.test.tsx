@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React from 'react';
 
 import { jest } from '@jest/globals';
@@ -6,6 +5,8 @@ import { screen } from '@testing-library/react';
 import dotenv from 'dotenv';
 import layoutSchema from 'schemas/json/layout/layout.schema.v1.json';
 import type { JSONSchema7 } from 'json-schema';
+
+import { ignoredConsoleMessages } from 'test/e2e/support/fail-on-console-log';
 
 import { quirks } from 'src/features/form/layout/quirks';
 import { GenericComponent } from 'src/layout/GenericComponent';
@@ -21,21 +22,18 @@ const ENV: 'prod' | 'all' = env.parsed?.ALTINN_ALL_APPS_ENV === 'prod' ? 'prod' 
 const MODE: 'critical' | 'all' = env.parsed?.ALTINN_ALL_APPS_MODE === 'critical' ? 'critical' : 'all';
 
 const ignoreLogAndErrors = [
-  'Warning: findDOMNode is deprecated and will be removed in the next major release',
+  ...ignoredConsoleMessages,
   'The above error occurred in the',
   'Layout quirk(s) applied',
   ...(MODE === 'critical'
     ? [
+        'Warning: validateDOMNesting', // A more generic variant from the one in ignoredConsoleMessages
         'er ikke tillatt i `textResourceBindings`',
         'Egenskapen `pageRef` er ikke tillatt',
         'samsvarer ikke med mønsteret `^[0-9a-zA-Z][',
         /Målet for oppsummeringen \([^)]*\) ble ikke funnet/,
       ]
     : []),
-
-  // Deprecated react stuff (mostly when rendering components via RenderAllComponents)
-  'defaultProps will be removed from function components',
-  'React does not recognize the `%s` prop on a DOM element',
 ];
 
 function TestApp() {
@@ -122,6 +120,9 @@ describe('All known layout sets should evaluate as a hierarchy', () => {
     .flat()
     .filter((set) => set.isValid())
     .map((set) => ({ appName: set.app.getName(), setName: set.getName(), set }));
+
+  // Randomize the order of the tests so we don't have to wait for the same first ones every time
+  allSets.sort(() => Math.random() - 0.5);
 
   async function testSet(set: ExternalAppLayoutSet) {
     window.location.hash = set.simulateValidUrlHash();

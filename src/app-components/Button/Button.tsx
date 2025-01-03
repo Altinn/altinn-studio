@@ -37,7 +37,31 @@ export type ButtonProps = {
 >;
 
 export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProps>>(function Button(
-  { id, disabled, isLoading = false, variant = 'primary', color = 'first', size = 'sm', children, ...props },
+  {
+    id,
+    disabled,
+    isLoading = false,
+    variant = 'primary',
+    color = 'first',
+    size = 'sm',
+    children,
+    className,
+    title,
+    icon,
+    fullWidth,
+    onClick,
+    style,
+    tabIndex,
+    onMouseDown,
+    onKeyUp,
+    'aria-label': ariaLabel,
+    'aria-busy': ariaBusy,
+    'aria-controls': ariaControls,
+    'aria-haspopup': ariaHasPopup,
+    'aria-expanded': ariaExpanded,
+    'aria-labelledby': ariaLabelledBy,
+    'aria-describedby': ariaDescribedBy,
+  },
   ref,
 ) {
   const { langAsString } = useLanguage();
@@ -49,7 +73,22 @@ export const Button = forwardRef<HTMLButtonElement, PropsWithChildren<ButtonProp
       color={color}
       size={size}
       ref={ref}
-      {...props}
+      className={className}
+      title={title}
+      icon={icon}
+      fullWidth={fullWidth}
+      onClick={onClick}
+      style={style}
+      tabIndex={tabIndex}
+      onMouseDown={onMouseDown}
+      onKeyUp={onKeyUp}
+      aria-label={ariaLabel}
+      aria-busy={ariaBusy}
+      aria-controls={ariaControls}
+      aria-haspopup={ariaHasPopup}
+      aria-expanded={ariaExpanded}
+      aria-labelledby={ariaLabelledBy}
+      aria-describedby={ariaDescribedBy}
     >
       {isLoading && (
         <Spinner

@@ -1134,7 +1134,7 @@ export const NodesInternal = {
   },
 
   useFullErrorList() {
-    return Store.useSelector((s) => {
+    return Store.useMemoSelector((s) => {
       const errors: { [pageOrNode: string]: string[] } = {};
 
       for (const pageKey in s.pagesData.pages) {

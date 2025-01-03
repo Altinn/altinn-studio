@@ -80,17 +80,11 @@ export function parseErrorArgs(args: unknown[]): string {
   }
 });
 
+/** @see start-app-instance.ts */
 window.CypressLog = (...args: string[]) => {
-  if (!window.Cypress) {
-    return;
+  if (window.Cypress) {
+    const dateStamp = new Date().toISOString();
+    // eslint-disable-next-line
+    console.log('CypressLog:', dateStamp, args.join(' '));
   }
-  const dateStamp = new Date().toISOString();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any)._cyLog = (window as any)._cyLog || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any)._cyLog.push(`${dateStamp}: ${args.join(' ')}`);
-};
-window.CypressSaveLog = () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any)._cyLogSave = true;
 };

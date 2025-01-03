@@ -231,7 +231,7 @@ export class RepeatingChildrenPlugin<E extends ExternalConfig = typeof defaultCo
     const out: string[] = [];
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
-      row && out.push(...row.itemIds);
+      row?.itemIds && out.push(...row.itemIds);
     }
     return out;
   }

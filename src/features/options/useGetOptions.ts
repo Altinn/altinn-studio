@@ -219,7 +219,10 @@ export function useFilteredAndSortedOptions({
 
     // Always remove the rowNode and dataModelLocation at this point. It is only to be used in the filtering
     // process, and will not ruin the comparison later to make sure the state is set in zustand.
-    options = options.map((option) => ({ ...option, rowNode: undefined, dataModelLocation: undefined }));
+    for (const option of options) {
+      delete option.rowNode;
+      delete option.dataModelLocation;
+    }
 
     return { options, preselectedOption };
   }, [

@@ -278,8 +278,12 @@ export class ExternalAppLayoutSet {
       return false;
     }
 
-    const metadata = this.app.getAppMetadata();
-    return !!metadata?.dataTypes.find((element) => element.id === this.config.dataType);
+    try {
+      const metadata = this.app.getAppMetadata();
+      return !!metadata?.dataTypes.find((element) => element.id === this.config.dataType);
+    } catch (_e) {
+      return false;
+    }
   }
 
   /**

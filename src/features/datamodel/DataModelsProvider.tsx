@@ -180,7 +180,11 @@ function DataModelsLoader() {
         window.logErrorOnce(error.message);
         continue;
       }
-      if (!isStateless && !dataElements.find((data) => data.dataType === dataType)) {
+
+      // We don't check this if the data model is overridden, because dataElements (from the instance) may not
+      // even be up to date yet when (for example) a subform has just been added.
+      const isOverridden = overriddenDataType === dataType && !!overriddenDataElement;
+      if (!isStateless && !isOverridden && !dataElements.find((data) => data.dataType === dataType)) {
         const error = new MissingDataElementException(dataType);
         window.logErrorOnce(error.message);
         continue;
@@ -194,7 +198,17 @@ function DataModelsLoader() {
     }
 
     setDataTypes(allValidDataTypes, writableDataTypes, defaultDataType, layoutSetId);
-  }, [applicationMetadata, defaultDataType, isStateless, layouts, setDataTypes, dataElements, layoutSetId]);
+  }, [
+    applicationMetadata,
+    defaultDataType,
+    isStateless,
+    layouts,
+    setDataTypes,
+    dataElements,
+    layoutSetId,
+    overriddenDataType,
+    overriddenDataElement,
+  ]);
 
   // We should load form data and schema for all referenced data models, schema is used for dataModelBinding validation which we want to do even if it is readonly
   // We only need to load expression validation config for data types that are not readonly. Additionally, backend will error if we try to validate a model we are not supposed to
