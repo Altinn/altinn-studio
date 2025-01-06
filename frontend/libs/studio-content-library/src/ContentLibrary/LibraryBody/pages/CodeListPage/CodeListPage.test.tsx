@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListPageProps, CodeListWithMetadata } from './CodeListPage';
+import type { CodeListData, CodeListPageProps } from './CodeListPage';
 import { CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
@@ -109,7 +109,7 @@ describe('CodeListPage', () => {
       title: uploadedCodeListName,
       data: codeListMock,
     });
-    const newCodeListsData: CodeListWithMetadata[] = [...defaultCodeListPageProps.codeListsData];
+    const newCodeListsData: CodeListData[] = [...defaultCodeListPageProps.codeListsData];
     rerender(<CodeListPage {...defaultCodeListPageProps} codeListsData={newCodeListsData} />);
     const codeListAccordionOpen = screen.getByRole('button', {
       name: uploadedCodeListName,
