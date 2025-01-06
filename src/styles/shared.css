@@ -25,7 +25,30 @@ input.form-control:focus:not(.a-hasButton) {
 }
 
 @media print {
+  /* setting explicit base font-size for print */
   html {
-    font-size: 10px !important;
+    font-size: 16px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-size: 1.125rem;
+  }
+
+  p {
+    font-size: 1rem;
   }
 }

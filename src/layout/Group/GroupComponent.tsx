@@ -28,11 +28,11 @@ export interface IGroupComponent {
 }
 
 const headingSizes: { [k in HeadingLevel]: Parameters<typeof Heading>[0]['size'] } = {
-  [2]: 'medium',
-  [3]: 'small',
-  [4]: 'xsmall',
-  [5]: 'xsmall',
-  [6]: 'xsmall',
+  [2]: 'sm',
+  [3]: 'xs',
+  [4]: '2xs',
+  [5]: '2xs',
+  [6]: '2xs',
 };
 
 export function GroupComponent({
