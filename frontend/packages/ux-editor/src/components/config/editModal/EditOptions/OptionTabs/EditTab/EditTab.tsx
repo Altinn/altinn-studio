@@ -14,6 +14,7 @@ import {
   updateComponentOptions,
   isOptionsModifiable,
   isOptionsIdReferenceId,
+  isInitialOptionsSet,
 } from '../utils/optionsUtils';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useOptionListIdsQuery } from '../../../../../../hooks/queries/useOptionListIdsQuery';
@@ -38,7 +39,9 @@ export function EditTab({ component, handleComponentChange }: EditTabProps): Rea
   const errorMessage = useComponentErrorMessage(component);
 
   useUpdate(() => {
-    if (!previousComponent.options && !!component.options) dialogRef.current.showModal();
+    if (isInitialOptionsSet(previousComponent.options, component.options)) {
+      dialogRef.current.showModal();
+    }
   }, [component, previousComponent]);
 
   switch (status) {

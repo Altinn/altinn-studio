@@ -1,16 +1,13 @@
-import type { Option } from 'app-shared/types/Option';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StudioButton } from '@studio/components';
 import { PencilIcon, TrashIcon } from '@studio/icons';
-import type { OptionListEditorProps } from '../OptionListEditor';
 import classes from './OptionListButtons.module.css';
 
 type OptionListButtonsProps = {
-  optionsList: Option[];
   handleDelete: () => void;
   handleClick: () => void;
-} & Pick<OptionListEditorProps, 'component'>;
+};
 
 export function OptionListButtons({
   handleDelete,
@@ -20,10 +17,21 @@ export function OptionListButtons({
 
   return (
     <div className={classes.buttonContainer}>
-      <StudioButton icon={<PencilIcon />} variant='secondary' onClick={handleClick}>
+      <StudioButton
+        icon={<PencilIcon />}
+        variant='secondary'
+        onClick={handleClick}
+        title={t('ux_editor.modal_properties_code_list_open_editor')}
+      >
         {t('general.edit')}
       </StudioButton>
-      <StudioButton color='danger' icon={<TrashIcon />} variant='secondary' onClick={handleDelete}>
+      <StudioButton
+        color='danger'
+        icon={<TrashIcon />}
+        variant='secondary'
+        onClick={handleDelete}
+        title={t('ux_editor.options.option_remove_text')}
+      >
         {t('general.delete')}
       </StudioButton>
     </div>

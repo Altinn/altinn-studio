@@ -114,7 +114,7 @@ describe('OptionTabs', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render ManualOptionsEditor when manual options are set and featureFlag is enabled', async () => {
+  it('should render the label for manual options when manual options are set and featureFlag is enabled', async () => {
     addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
     const options = [{ value: '1', label: 'label 1' }];
     renderOptionTabs({
@@ -124,7 +124,9 @@ describe('OptionTabs', () => {
       },
     });
 
-    expect(await screen.findByText(options[0].label)).toBeInTheDocument();
+    expect(
+      await screen.findByText(textMock('ux_editor.modal_properties_code_list_custom_list')),
+    ).toBeInTheDocument();
   });
 
   it('should switch to referenceId input clicking referenceId tab', async () => {

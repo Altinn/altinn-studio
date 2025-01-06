@@ -55,7 +55,7 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call handleInitialManualOptionsChange when clicking create new options', async () => {
+  it('should call handleComponent with empty options array when clicking create new options', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditTab({
@@ -84,7 +84,7 @@ describe('EditTab', () => {
     renderEditTab({
       componentProps: {
         options: undefined,
-        optionsId: 'some-id',
+        optionsId: 'option-id-that-does-not-exist-in-app',
       },
     });
 

@@ -32,18 +32,22 @@ export const OptionListEditor = forwardRef<HTMLDialogElement, OptionListEditorPr
       );
     }
 
-    return <LibraryEditor component={component} handleDelete={handleDelete} />;
+    return <OptionListResolver optionsId={component.optionsId} handleDelete={handleDelete} />;
   },
 );
 
-type LibraryOptionsEditorProps = {
+type OptionsListResolverProps = {
   handleDelete: () => void;
-} & Pick<IGenericEditComponent<SelectionComponentType>, 'component'>;
+  optionsId: string;
+};
 
-function LibraryEditor({ component, handleDelete }: LibraryOptionsEditorProps): React.ReactNode {
+function OptionListResolver({
+  handleDelete,
+  optionsId,
+}: OptionsListResolverProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
-  const { data: optionsList, status } = useOptionListQuery(org, app, component.optionsId);
+  const { status } = useOptionListQuery(org, app, optionsId);
 
   switch (status) {
     case 'pending':
@@ -57,13 +61,7 @@ function LibraryEditor({ component, handleDelete }: LibraryOptionsEditorProps): 
         </StudioErrorMessage>
       );
     case 'success': {
-      return (
-        <LibraryOptionsEditor
-          component={component}
-          optionsList={optionsList}
-          handleDelete={handleDelete}
-        />
-      );
+      return <LibraryOptionsEditor handleDelete={handleDelete} optionsId={optionsId} />;
     }
   }
 }

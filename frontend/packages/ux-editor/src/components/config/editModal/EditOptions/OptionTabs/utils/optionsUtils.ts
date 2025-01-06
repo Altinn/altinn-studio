@@ -1,5 +1,5 @@
 import { SelectedOptionsType } from '../../../../../../components/config/editModal/EditOptions/EditOptions';
-import type { Option } from 'app-shared/types/Option';
+import type { OptionsList } from 'app-shared/types/api/OptionsLists';
 import type { FormItem } from '../../../../../../types/FormItem';
 import type { FormComponent, SelectionComponentType } from '../../../../../../types/FormComponent';
 import type { FormContainer } from '../../../../../../types/FormContainer';
@@ -18,7 +18,7 @@ export const componentUsesDynamicCodeList = (
 
 export function getSelectedOptionsType(
   codeListId: string | undefined,
-  options: Option[] | undefined,
+  options: OptionsList | undefined,
   optionListIds: string[] = [],
 ): SelectedOptionsType {
   /** It is not permitted for a component to have both options and optionsId set on the same component. */
@@ -34,7 +34,7 @@ export function getSelectedOptionsType(
 // Todo: Remove once featureFlag "optionListEditor" is removed.
 export function getSelectedOptionsTypeWithManualSupport(
   codeListId: string | undefined,
-  options: Option[] | undefined,
+  options: OptionsList | undefined,
   optionListIds: string[] = [],
 ): SelectedOptionsType {
   /** It is not permitted for a component to have both options and optionsId set on the same component. */
@@ -51,7 +51,7 @@ export function getSelectedOptionsTypeWithManualSupport(
     : SelectedOptionsType.CodeList;
 }
 
-export function hasOptionListChanged(oldOptions: Option[], newOptions: Option[]): boolean {
+export function hasOptionListChanged(oldOptions: OptionsList, newOptions: OptionsList): boolean {
   return JSON.stringify(oldOptions) !== JSON.stringify(newOptions);
 }
 
@@ -87,7 +87,7 @@ export function updateComponentOptionsId(
 
 export function updateComponentOptions(
   component: FormItem<SelectionComponentType>,
-  options: Option[],
+  options: OptionsList,
 ): FormItem<SelectionComponentType> {
   let newComponent: FormItem<SelectionComponentType> = ObjectUtils.deepCopy(component);
 
@@ -120,11 +120,18 @@ export function isOptionsIdReferenceId(
 export function isOptionsModifiable(
   optionListIds: string[],
   optionsId: undefined | string,
-  options: undefined | Option[],
+  options: undefined | OptionsList,
 ): boolean {
   return (!!optionsId && isOptionsIdFromLibrary(optionListIds, optionsId)) || !!options;
 }
 
 function isOptionsIdFromLibrary(optionListIds: string[], optionsId: undefined | string): boolean {
   return optionListIds.some((id: string) => id === optionsId);
+}
+
+export function isInitialOptionsSet(
+  previousOptions: OptionsList,
+  currentOptions: OptionsList,
+): boolean {
+  return !previousOptions && !!currentOptions;
 }

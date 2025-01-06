@@ -15,7 +15,7 @@ const optionsIdMock = optionListIdsMock[0];
 mockComponent.optionsId = optionsIdMock;
 
 const handleComponentChangeMock = jest.fn();
-const getOptionListIds = jest
+const getOptionListIdsMock = jest
   .fn()
   .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock));
 
@@ -31,9 +31,7 @@ describe('OptionListSelector', () => {
 
   it('should not render if the list is empty', async () => {
     renderOptionListSelector({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
-      },
+      getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve([])),
     });
     await waitForElementToBeRemoved(
       screen.queryByText(textMock('ux_editor.modal_properties_loading')),
@@ -80,9 +78,7 @@ describe('OptionListSelector', () => {
 
   it('should render returned error message if option list endpoint returns an error', async () => {
     renderOptionListSelector({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
-      },
+      getOptionListIds: jest.fn().mockImplementation(() => Promise.reject(new Error('Error'))),
     });
 
     expect(await screen.findByText('Error')).toBeInTheDocument();
@@ -90,9 +86,7 @@ describe('OptionListSelector', () => {
 
   it('should render standard error message if option list endpoint throws an error without specified error message', async () => {
     renderOptionListSelector({
-      queries: {
-        getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
-      },
+      getOptionListIds: jest.fn().mockImplementation(() => Promise.reject()),
     });
 
     expect(
@@ -111,7 +105,10 @@ function getDropdownOption(): HTMLElement {
   return screen.getByText(optionListIdsMock[0]);
 }
 
-function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
+function renderOptionListSelector({
+  getOptionListIds = getOptionListIdsMock,
+  componentProps = {},
+} = {}) {
   return renderWithProviders(
     <OptionListSelector
       component={{
@@ -121,7 +118,7 @@ function renderOptionListSelector({ queries = {}, componentProps = {} } = {}) {
       handleComponentChange={handleComponentChangeMock}
     />,
     {
-      queries: { getOptionListIds, ...queries },
+      queries: { getOptionListIds },
       queryClient: createQueryClientMock(),
     },
   );

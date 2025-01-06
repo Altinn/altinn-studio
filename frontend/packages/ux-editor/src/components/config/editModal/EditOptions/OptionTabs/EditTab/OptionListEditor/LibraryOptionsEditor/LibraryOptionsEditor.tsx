@@ -10,29 +10,29 @@ import { useOptionListEditorTexts } from '../../../hooks';
 import { OptionListButtons } from '../OptionListButtons';
 import { OptionListLabels } from '../OptionListLabels';
 import { hasOptionListChanged } from '../../../utils/optionsUtils';
-import type { OptionListEditorProps } from '../OptionListEditor';
+import { useOptionListQuery } from 'app-shared/hooks/queries';
 import classes from './LibraryOptionsEditor.module.css';
 
 type LibraryOptionsEditorProps = {
-  optionsList: Option[];
   handleDelete: () => void;
-} & Pick<OptionListEditorProps, 'component'>;
+  optionsId: string;
+};
 
 export function LibraryOptionsEditor({
-  component,
-  optionsList,
   handleDelete,
+  optionsId,
 }: LibraryOptionsEditorProps): React.ReactNode {
   const { t } = useTranslation();
   const { org, app } = useStudioEnvironmentParams();
+  const { data: optionsList } = useOptionListQuery(org, app, optionsId);
   const { doReloadPreview } = usePreviewContext();
   const { mutate: updateOptionList } = useUpdateOptionListMutation(org, app);
   const editorTexts: CodeListEditorTexts = useOptionListEditorTexts();
   const modalRef = createRef<HTMLDialogElement>();
 
   const handleBlurAny = (options: Option[]) => {
-    if (hasOptionListChanged(component.options, options)) {
-      updateOptionList({ optionListId: component.optionsId, optionsList: options });
+    if (hasOptionListChanged(optionsList, options)) {
+      updateOptionList({ optionListId: optionsId, optionsList: options });
       doReloadPreview();
     }
   };
@@ -43,13 +43,8 @@ export function LibraryOptionsEditor({
 
   return (
     <>
-      <OptionListLabels component={component} optionsList={optionsList} />
-      <OptionListButtons
-        handleClick={handleClick}
-        component={component}
-        optionsList={optionsList}
-        handleDelete={handleDelete}
-      />
+      <OptionListLabels optionsId={optionsId} optionsList={optionsList} />
+      <OptionListButtons handleClick={handleClick} handleDelete={handleDelete} />
       <StudioModal.Dialog
         ref={modalRef}
         className={classes.editOptionTabModal}
