@@ -52,7 +52,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                     }
 
                     List<Reference> referencesToUpdate = [new Reference("component", notification.LayoutSetName, notification.OldComponentId, notification.NewComponentId)];
-                    hasChanges = await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
+                    hasChanges |= await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
 
                     return hasChanges;
                 });

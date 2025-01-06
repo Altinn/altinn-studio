@@ -162,9 +162,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "testUser", "layoutSet")]
-        public async Task DeleteLayoutSet_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutSetName)
+        public async Task DeleteLayoutSet_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName)
         {
-            string actualApp = "deleted-component-before-delete";
+            string actualApp = "app-with-summary2-components";
             string app = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, actualApp, developer, app);
 
@@ -174,7 +174,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             using var response = await HttpClient.SendAsync(httpRequestMessage);
             response.StatusCode.Should().Be(HttpStatusCode.OK, await response.Content.ReadAsStringAsync());
 
-            string expectedApp = "deleted-component-after-delete";
+            string expectedApp = "app-with-summary2-components-after-deleting-references";
 
             string[] layoutPaths = [
                 "layoutSet/layouts/Side1.json",

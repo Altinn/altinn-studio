@@ -96,9 +96,9 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
 
         [Theory]
         [InlineData("ttd", "testUser", "component", "Side2", "Input-Om7N3y")]
-        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummaryComponents_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string componentId)
+        public async Task SaveFormLayoutWithDeletedComponent_DeletesAssociatedSummary2Components_ReturnsOk(string org, string developer, string layoutSetName, string layoutName, string componentId)
         {
-            string actualApp = "deleted-component-before-delete";
+            string actualApp = "app-with-summary2-components";
             string app = TestDataHelper.GenerateTestRepoName();
             await CopyRepositoryForTest(org, actualApp, developer, app);
 
@@ -121,7 +121,7 @@ namespace Designer.Tests.Controllers.AppDevelopmentController
             HttpResponseMessage response = await SendHttpRequest(url, payload);
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            string expectedApp = "deleted-component-after-delete";
+            string expectedApp = "app-with-summary2-components-after-deleting-references";
 
             string[] layoutPaths = [
                 "component/layouts/Side1.json",

@@ -729,19 +729,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                             {
                                                 case "layoutSet":
                                                     updatedReference = updatedLayoutsSets.FirstOrDefault(item => item.Type == type && item.Id == layoutSetId);
+                                                    if (updatedReference != null)
+                                                    {
+                                                        target["taskId"] = updatedReference.NewId;
+                                                        hasLayoutChanges = true;
+                                                    }
                                                     break;
                                                 case "page":
                                                     updatedReference = updatedLayouts.FirstOrDefault(item => item.Type == type && item.LayoutSetName == layoutSetId && item.Id == id);
+                                                    if (updatedReference != null)
+                                                    {
+                                                        target["id"] = updatedReference.NewId;
+                                                        hasLayoutChanges = true;
+                                                    }
                                                     break;
                                                 case "component":
                                                     updatedReference = updatedComponents.FirstOrDefault(item => item.Type == type && item.LayoutSetName == layoutSetId && item.Id == id);
+                                                    if (updatedReference != null)
+                                                    {
+                                                        target["id"] = updatedReference.NewId;
+                                                        hasLayoutChanges = true;
+                                                    }
                                                     break;
-                                            }
-
-                                            if (updatedReference != null)
-                                            {
-                                                target["taskId"] = updatedReference.NewId;
-                                                hasLayoutChanges = true;
                                             }
                                         }
 
