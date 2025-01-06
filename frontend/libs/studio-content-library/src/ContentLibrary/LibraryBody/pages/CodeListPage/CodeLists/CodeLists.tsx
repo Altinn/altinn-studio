@@ -1,12 +1,12 @@
 import React from 'react';
-import type { CodeListWithMetadata } from '../CodeListPage';
+import type { CodeListData, CodeListWithMetadata } from '../CodeListPage';
 import { Accordion } from '@digdir/designsystemet-react';
-import type { CodeList as StudioComponentsCodeList } from '@studio/components';
+import { StudioAlert, type CodeList as StudioComponentsCodeList } from '@studio/components';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { useTranslation } from 'react-i18next';
 
 export type CodeListsProps = {
-  codeLists: CodeListWithMetadata[];
+  codeListsData: CodeListData[];
   onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   codeListInEditMode: string | undefined;
@@ -14,16 +14,16 @@ export type CodeListsProps = {
 };
 
 export function CodeLists({
-  codeLists,
+  codeListsData,
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListInEditMode,
   codeListNames,
 }: CodeListsProps) {
-  return codeLists.map((codeList) => (
+  return codeListsData.map((codeListData) => (
     <CodeList
-      key={codeList.title}
-      codeList={codeList}
+      key={codeListData.title}
+      codeListData={codeListData}
       onUpdateCodeListId={onUpdateCodeListId}
       onUpdateCodeList={onUpdateCodeList}
       codeListInEditMode={codeListInEditMode}
@@ -32,16 +32,10 @@ export function CodeLists({
   ));
 }
 
-type CodeListProps = {
-  codeList: CodeListWithMetadata;
-  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
-  onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
-  codeListInEditMode: string | undefined;
-  codeListNames: string[];
-};
+type CodeListProps = Omit<CodeListsProps, 'codeListsData'> & { codeListData: CodeListData };
 
 function CodeList({
-  codeList,
+  codeListData,
   onUpdateCodeListId,
   onUpdateCodeList,
   codeListInEditMode,
@@ -50,24 +44,52 @@ function CodeList({
   const { t } = useTranslation();
 
   return (
-    <Accordion
-      border
-      title={t('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle: codeList.title,
-      })}
-    >
-      <Accordion.Item defaultOpen={codeListInEditMode === codeList.title}>
-        <Accordion.Header>{codeList.title}</Accordion.Header>
-        <Accordion.Content>
-          <EditCodeList
-            codeList={codeList}
-            onUpdateCodeListId={onUpdateCodeListId}
-            onUpdateCodeList={onUpdateCodeList}
-            codeListNames={codeListNames}
-          />
-        </Accordion.Content>
+    <Accordion border>
+      <Accordion.Item defaultOpen={codeListInEditMode === codeListData.title}>
+        <Accordion.Header
+          title={t('app_content_library.code_lists.code_list_accordion_title', {
+            codeListTitle: codeListData.title,
+          })}
+        >
+          {codeListData.title}
+        </Accordion.Header>
+        <CodeListAccordionContent
+          codeListData={codeListData}
+          onUpdateCodeListId={onUpdateCodeListId}
+          onUpdateCodeList={onUpdateCodeList}
+          codeListNames={codeListNames}
+        />
       </Accordion.Item>
     </Accordion>
+  );
+}
+
+type CodeListAccordionContentProps = Omit<CodeListProps, 'codeListInEditMode'>;
+
+function CodeListAccordionContent({
+  codeListData,
+  onUpdateCodeListId,
+  onUpdateCodeList,
+  codeListNames,
+}: CodeListAccordionContentProps): React.ReactElement {
+  const { t } = useTranslation();
+
+  return (
+    <Accordion.Content>
+      {codeListData.hasError ? (
+        <StudioAlert size='small' severity='danger'>
+          {t('app_content_library.code_lists.fetch_error')}
+        </StudioAlert>
+      ) : (
+        <EditCodeList
+          codeList={codeListData.data}
+          codeListTitle={codeListData.title}
+          onUpdateCodeListId={onUpdateCodeListId}
+          onUpdateCodeList={onUpdateCodeList}
+          codeListNames={codeListNames}
+        />
+      )}
+    </Accordion.Content>
   );
 }
 
