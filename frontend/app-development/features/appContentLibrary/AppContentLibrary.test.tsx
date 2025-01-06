@@ -9,18 +9,21 @@ import { app, org } from '@studio/testing/testids';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
 import type { CodeList } from '@studio/components';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
+import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 
 const uploadCodeListButtonTextMock = 'Upload Code List';
 const updateCodeListButtonTextMock = 'Update Code List';
+const updateCodeListIdButtonTextMock = 'Update Code List Id';
 const codeListNameMock = 'codeListNameMock';
+const newCodeListNameMock = 'newCodeListNameMock';
 const codeListMock: CodeList = [{ value: '', label: '' }];
+const optionListsDataMock: OptionsListsResponse = [{ title: codeListNameMock, data: codeListMock }];
 jest.mock(
   '../../../libs/studio-content-library/src/ContentLibrary/LibraryBody/pages/CodeListPage',
   () => ({
-    CodeListPage: ({ onUpdateCodeList, onUploadCodeList }: any) => (
+    CodeListPage: ({ onUpdateCodeList, onUploadCodeList, onUpdateCodeListId }: any) => (
       <div>
         <button
           onClick={() =>
@@ -36,14 +39,13 @@ jest.mock(
         >
           {updateCodeListButtonTextMock}
         </button>
+        <button onClick={() => onUpdateCodeListId(codeListNameMock, newCodeListNameMock)}>
+          {updateCodeListIdButtonTextMock}
+        </button>
       </div>
     ),
   }),
 );
-
-const optionListsMock: OptionsLists = {
-  list1: [{ label: 'label', value: 'value' }],
-};
 
 describe('AppContentLibrary', () => {
   afterEach(jest.clearAllMocks);
@@ -61,7 +63,7 @@ describe('AppContentLibrary', () => {
   });
 
   it('renders a spinner when waiting for option lists', () => {
-    renderAppContentLibrary({ optionLists: {} });
+    renderAppContentLibrary({ shouldPutDataOnCache: false });
     const spinner = screen.getByText(textMock('general.loading'));
     expect(spinner).toBeInTheDocument();
   });
@@ -115,6 +117,23 @@ describe('AppContentLibrary', () => {
       codeListMock,
     );
   });
+
+  it('calls onUpdateOptionListId when onUpdateCodeListId is triggered', async () => {
+    const user = userEvent.setup();
+    renderAppContentLibrary();
+    await goToLibraryPage(user, 'code_lists');
+    const updateCodeListIdButton = screen.getByRole('button', {
+      name: updateCodeListIdButtonTextMock,
+    });
+    await user.click(updateCodeListIdButton);
+    expect(queriesMock.updateOptionListId).toHaveBeenCalledTimes(1);
+    expect(queriesMock.updateOptionListId).toHaveBeenCalledWith(
+      org,
+      app,
+      codeListNameMock,
+      newCodeListNameMock,
+    );
+  });
 });
 
 const getLibraryPageTile = (libraryPage: string) =>
@@ -127,16 +146,19 @@ const goToLibraryPage = async (user: UserEvent, libraryPage: string) => {
 
 type renderAppContentLibraryProps = {
   queries?: Partial<ServicesContextProps>;
-  optionLists?: OptionsLists;
+  shouldPutDataOnCache?: boolean;
+  optionListsData?: OptionsListsResponse;
 };
 
 const renderAppContentLibrary = ({
   queries = {},
-  optionLists = optionListsMock,
+  shouldPutDataOnCache = true,
+  optionListsData = optionListsDataMock,
 }: renderAppContentLibraryProps = {}) => {
   const queryClientMock = createQueryClientMock();
-  if (Object.keys(optionLists).length) {
-    queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionLists);
+  if (shouldPutDataOnCache) {
+    queryClientMock.setQueryData([QueryKey.OptionLists, org, app], optionListsData);
+    queryClientMock.setQueryData([QueryKey.OptionListsUsage, org, app], []);
   }
   renderWithProviders(queries, queryClientMock)(<AppContentLibrary />);
 };

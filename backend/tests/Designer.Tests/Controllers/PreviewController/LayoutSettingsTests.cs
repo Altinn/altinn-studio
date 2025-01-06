@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Designer.Tests.Utils;
@@ -9,12 +10,10 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class LayoutSettingsTests : PreviewControllerTestsBase<LayoutSettingsTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class LayoutSettingsTests(
+            WebApplicationFactory<Program> factory
+    ) : PreviewControllerTestsBase<LayoutSettingsTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
-        public LayoutSettingsTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
-
         [Fact]
         public async Task Get_LayoutSettings_Ok()
         {
@@ -22,6 +21,7 @@ namespace Designer.Tests.Controllers.PreviewController
 
             string dataPathWithData = $"{Org}/{AppV3}/api/layoutsettings";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

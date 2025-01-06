@@ -10,19 +10,15 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.PreviewController
 {
-    public class ProcessNextTests : PreviewControllerTestsBase<ProcessNextTests>, IClassFixture<WebApplicationFactory<Program>>
+    public class ProcessNextTests(WebApplicationFactory<Program> factory)
+        : PreviewControllerTestsBase<ProcessNextTests>(factory), IClassFixture<WebApplicationFactory<Program>>
     {
-
-        public ProcessNextTests(WebApplicationFactory<Program> factory) : base(factory)
-        {
-        }
-
         [Fact]
         public async Task Get_ProcessNext_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV3}/instances/{PartyId}/{InstanceGuId}/process/next";
+            string dataPathWithData = $"{Org}/{AppV3Path}/instances/{PartyId}/{V3InstanceId}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3}&selectedLayoutSet=");
+            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV3Path}&selectedLayoutSet=");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -31,15 +27,15 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+            Assert.Equal(TaskId, processState.CurrentTask.ElementId);
         }
 
         [Fact]
         public async Task Get_ProcessNextForV4App_Ok()
         {
-            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{InstanceGuId}/process/next";
+            Instance instance = await createInstance();
+            string dataPathWithData = $"{Org}/{AppV4}/instances/{PartyId}/{instance.Id}/process/next";
             using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, dataPathWithData);
-            httpRequestMessage.Headers.Referrer = new Uri($"{MockedReferrerUrl}?org={Org}&app={AppV4}&selectedLayoutSet={LayoutSetName}");
 
             using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -48,7 +44,7 @@ namespace Designer.Tests.Controllers.PreviewController
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             ProcessState processState = JsonConvert.DeserializeObject<ProcessState>(responseDocument.RootElement.ToString());
             Assert.Equal("data", processState.CurrentTask.AltinnTaskType);
-            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
+            Assert.Equal(TaskId, processState.CurrentTask.ElementId);
         }
     }
 }

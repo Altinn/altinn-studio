@@ -1,47 +1,72 @@
-import React from 'react';
-import { StudioHeading, StudioPageError } from '@studio/components';
-import type { CodeList as StudioComponentCodeList } from '@studio/components';
+import React, { useState } from 'react';
+import { StudioHeading } from '@studio/components';
+import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { CodeListsActionsBar } from './CodeListsActionsBar';
 import { CodeLists } from './CodeLists';
 import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
-import { ArrayUtils } from '@studio/pure-functions';
+import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
+import type { CodeListReference } from './types/CodeListReference';
 
 export type CodeListWithMetadata = {
-  codeList: StudioComponentCodeList;
+  codeList: CodeList;
   title: string;
 };
 
+export type CodeListData = {
+  title: string;
+  data?: CodeList;
+  hasError?: boolean;
+};
+
 export type CodeListPageProps = {
-  codeLists: CodeListWithMetadata[];
+  codeListsData: CodeListData[];
+  onUpdateCodeListId: (codeListId: string, newCodeListId: string) => void;
   onUpdateCodeList: (updatedCodeList: CodeListWithMetadata) => void;
   onUploadCodeList: (uploadedCodeList: File) => void;
-  fetchDataError: boolean;
+  codeListsUsages: CodeListReference[];
 };
+
 export function CodeListPage({
-  codeLists,
+  codeListsData,
+  onUpdateCodeListId,
   onUpdateCodeList,
   onUploadCodeList,
-  fetchDataError,
+  codeListsUsages,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
+  const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
 
-  if (fetchDataError)
-    return <StudioPageError message={t('app_content_library.code_lists.fetch_error')} />;
+  const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
-  const codeListTitles = ArrayUtils.mapByKey<CodeListWithMetadata, 'title'>(codeLists, 'title');
+  const handleUploadCodeList = (uploadedCodeList: File) => {
+    setCodeListInEditMode(FileNameUtils.removeExtension(uploadedCodeList.name));
+    onUploadCodeList(uploadedCodeList);
+  };
+
+  const handleUpdateCodeListId = (codeListId: string, newCodeListId: string) => {
+    setCodeListInEditMode(newCodeListId);
+    onUpdateCodeListId(codeListId, newCodeListId);
+  };
 
   return (
     <div className={classes.codeListsContainer}>
       <StudioHeading size='small'>{t('app_content_library.code_lists.page_name')}</StudioHeading>
-      <CodeListsCounterMessage codeListsCount={codeLists.length} />
+      <CodeListsCounterMessage codeListsCount={codeListsData.length} />
       <CodeListsActionsBar
-        onUploadCodeList={onUploadCodeList}
+        onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
       />
-      <CodeLists codeLists={codeLists} onUpdateCodeList={onUpdateCodeList} />
+      <CodeLists
+        codeListsData={codeListsData}
+        onUpdateCodeListId={handleUpdateCodeListId}
+        onUpdateCodeList={onUpdateCodeList}
+        codeListInEditMode={codeListInEditMode}
+        codeListNames={codeListTitles}
+        codeListsUsages={codeListsUsages}
+      />
     </div>
   );
 }

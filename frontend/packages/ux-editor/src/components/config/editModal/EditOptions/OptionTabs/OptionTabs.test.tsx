@@ -62,7 +62,7 @@ describe('EditOptions', () => {
 
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       }),
     ).toBeInTheDocument();
   });
@@ -103,13 +103,13 @@ describe('EditOptions', () => {
     });
 
     const referenceIdElement = screen.getByRole('tab', {
-      name: textMock('ux_editor.options.tab_referenceId'),
+      name: textMock('ux_editor.options.tab_reference_id'),
     });
     await user.click(referenceIdElement);
 
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       }),
     ).toBeInTheDocument();
   });
@@ -138,13 +138,13 @@ describe('EditOptions', () => {
     });
 
     const referenceIdElement = screen.getByRole('tab', {
-      name: textMock('ux_editor.options.tab_referenceId'),
+      name: textMock('ux_editor.options.tab_reference_id'),
     });
     await user.click(referenceIdElement);
 
     expect(
       screen.getByRole('tab', {
-        name: textMock('ux_editor.options.tab_referenceId'),
+        name: textMock('ux_editor.options.tab_reference_id'),
       }),
     ).toBeInTheDocument();
   });
