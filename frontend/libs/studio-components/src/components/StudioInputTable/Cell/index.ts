@@ -10,6 +10,8 @@ import { CellCheckbox } from './CellCheckbox';
 import type { InputCellComponent } from '../types/InputCellComponent';
 import type { CellTextResourceInputProps } from './CellTextResource';
 import { CellTextResource } from './CellTextResource';
+import type { CellNumberfieldProps } from './CellNumberfield';
+import { CellNumberfield } from './CellNumberfield';
 
 type CellComponent = typeof Cell & {
   Textfield: InputCellComponent<CellTextfieldProps, HTMLInputElement>;
@@ -17,6 +19,7 @@ type CellComponent = typeof Cell & {
   Button: InputCellComponent<CellButtonProps, HTMLButtonElement>;
   Checkbox: InputCellComponent<CellCheckboxProps, HTMLInputElement>;
   TextResource: InputCellComponent<CellTextResourceInputProps, HTMLInputElement>;
+  Numberfield: InputCellComponent<CellNumberfieldProps, HTMLInputElement>;
 };
 
 export const StudioInputTableCell = Cell as CellComponent;
@@ -27,6 +30,9 @@ StudioInputTableCell.Button = new CellButton('StudioInputTable.Cell.Button').com
 StudioInputTableCell.Checkbox = new CellCheckbox('StudioInputTable.Cell.Checkbox').component();
 StudioInputTableCell.TextResource = new CellTextResource(
   'StudioInputTable.Cell.TextResource',
+).component();
+StudioInputTableCell.Numberfield = new CellNumberfield(
+  'StudioInputTable.Cell.Numberfield',
 ).component();
 
 StudioInputTableCell.displayName = 'StudioInputTable.Cell';

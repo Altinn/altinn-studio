@@ -9,11 +9,11 @@ import type { StudioDecimalInputProps } from '../../StudioDecimalInput';
 import { StudioDecimalInput } from '../../StudioDecimalInput';
 import { useEventProps } from './useEventProps';
 
-export type CellDecimalInputProps = StudioDecimalInputProps;
+export type CellNumberfieldProps = StudioDecimalInputProps;
 
-export class CellDecimalInput extends BaseInputCell<HTMLInputElement, StudioDecimalInputProps> {
+export class CellNumberfield extends BaseInputCell<HTMLInputElement, StudioDecimalInputProps> {
   render(
-    { className: givenClass, onFocus, ...rest }: CellDecimalInputProps,
+    { className: givenClass, onFocus, ...rest }: CellNumberfieldProps,
     ref: ForwardedRef<HTMLInputElement>,
   ): ReactElement {
     /* eslint-disable react-hooks/rules-of-hooks */
@@ -32,7 +32,7 @@ export class CellDecimalInput extends BaseInputCell<HTMLInputElement, StudioDeci
       ...rest,
     });
 
-    const className = cn(classes.textfieldCell, givenClass);
+    const className = cn(classes.numberCell, givenClass);
 
     return (
       <StudioTable.Cell className={className}>

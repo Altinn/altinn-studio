@@ -8,6 +8,7 @@ export const textfieldHeader = 'Textfield';
 export const textareaHeader = 'Textarea';
 export const buttonHeader = 'Button';
 export const textResourceHeader = 'Text Resource';
+export const numberfieldHeader = 'Numberfield';
 export const checkboxValue = (rowNumber: number) => `checkboxValue${rowNumber}`;
 export const checkboxName = (rowNumber: number) => `checkboxName${rowNumber}`;
 export const checkboxLabel = (rowNumber: number) => `Checkbox ${rowNumber}`;
@@ -21,6 +22,8 @@ export const textResourcePickerLabel = (rowNumber: number) => `Text resource ${r
 export const textResourceValueLabel = (rowNumber: number) => `Text value ${rowNumber}`;
 export const textResourceEditLabel = (rowNumber: number) => `Edit text ${rowNumber}`;
 export const textResourceSearchLabel = (rowNumber: number) => `Search for text ${rowNumber}`;
+export const numberfieldName = (rowNumber: number) => `numberfield${rowNumber}`;
+export const numberfieldLabel = (rowNumber: number) => `Numberfield ${rowNumber}`;
 
 export const textResourceProps = (rowNumber: number): CellTextResourceInputProps => ({
   textResources: textResourcesMock,

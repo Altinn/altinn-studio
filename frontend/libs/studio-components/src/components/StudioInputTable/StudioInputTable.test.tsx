@@ -19,6 +19,7 @@ import {
   textResourceProps,
   textResourceSearchLabel,
   textResourceValueLabel,
+  numberfieldLabel,
 } from './test-data/testTableData';
 import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
@@ -26,6 +27,7 @@ import type { CellTextfieldProps } from './Cell/CellTextfield';
 import type { CellTextareaProps } from './Cell/CellTextarea';
 import type { CellCheckboxProps } from './Cell/CellCheckbox';
 import type { CellButtonProps } from './Cell/CellButton';
+import type { CellNumberfieldProps } from './Cell/CellNumberfield';
 import type { HTMLCellInputElement } from './types/HTMLCellInputElement';
 import type { EventName } from './types/EventName';
 import type { EventProps } from './types/EventProps';
@@ -33,13 +35,20 @@ import type { EventPropName } from './types/EventPropName';
 import { StringUtils } from '@studio/pure-functions';
 import type { CellTextResourceInputProps } from './Cell/CellTextResource';
 
-type ElementName = 'checkbox' | 'textfield' | 'textarea' | 'button' | 'textResource';
+type ElementName =
+  | 'checkbox'
+  | 'textfield'
+  | 'textarea'
+  | 'button'
+  | 'textResource'
+  | 'numberfield';
 type NativeElement<Name extends ElementName> = {
   checkbox: HTMLInputElement;
   textfield: HTMLInputElement;
   textarea: HTMLTextAreaElement;
   button: HTMLButtonElement;
   textResource: HTMLInputElement;
+  numberfield: HTMLInputElement;
 }[Name];
 
 // Test data:
@@ -131,6 +140,7 @@ describe('StudioInputTable', () => {
     textfield: () => getTextfieldInRow(2),
     textarea: () => getTextareaInRow(2),
     textResource: () => getTextResourceValueInRow(2),
+    numberfield: () => getNumberfieldInRow(2),
   };
   type TextboxTestCaseName = keyof typeof textboxTestCases;
   const textboxTestCaseNames: TextboxTestCaseName[] = Object.keys(textboxTestCases);
@@ -276,6 +286,10 @@ describe('StudioInputTable', () => {
         render: (ref) => renderSingleTextResourceCell(textResourceProps(0), ref),
         getElement: () => getTextbox(textResourceValueLabel(0)) as HTMLInputElement,
       },
+      numberfield: {
+        render: (ref) => renderSingleNumberfieldCell({ label: testLabel }, ref),
+        getElement: () => getTextbox(testLabel) as HTMLInputElement,
+      },
     };
 
     test.each(Object.keys(testCases))('%s', (key) => {
@@ -379,6 +393,27 @@ describe('StudioInputTable', () => {
           },
         },
       },
+      numberfield: {
+        change: {
+          render: (onChange) =>
+            renderSingleNumberfieldCell({
+              label: 'test',
+              onChange: (value: number) => onChange({ target: { value } } as any),
+            }),
+          action: (user) => user.type(screen.getByRole('textbox'), '1.23'),
+        },
+        focus: {
+          render: (onFocus) => renderSingleNumberfieldCell({ label: 'test', onFocus }),
+          action: (user) => user.click(screen.getByRole('textbox')),
+        },
+        blur: {
+          render: (onBlur) => renderSingleNumberfieldCell({ label: 'test', onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('textbox'));
+            await user.tab();
+          },
+        },
+      },
     };
 
     describe.each(Object.keys(testCases))('%s', (key) => {
@@ -459,6 +494,16 @@ const renderSingleTextResourceCell = (
     </SingleRow>,
   );
 
+const renderSingleNumberfieldCell = (
+  props: CellNumberfieldProps,
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.Numberfield {...props} ref={ref} />
+    </SingleRow>,
+  );
+
 const getTable = (): HTMLTableElement => screen.getByRole('table');
 const getCheckbox = (name: string): HTMLInputElement =>
   screen.getByRole('checkbox', { name }) as HTMLInputElement;
@@ -479,6 +524,8 @@ const getTextResourceComboboxInRow = (rowNumber: number): HTMLInputElement =>
   screen.getByRole('combobox', { name: textResourcePickerLabel(rowNumber) }) as HTMLInputElement;
 const getSearchButtonInRow = (rowNumber: number): HTMLButtonElement =>
   screen.getByRole('radio', { name: textResourceSearchLabel(rowNumber) }) as HTMLButtonElement;
+const getNumberfieldInRow = (rowNumber: number): HTMLInputElement =>
+  getTextbox(numberfieldLabel(rowNumber)) as HTMLInputElement;
 
 const expectCaretPosition = (
   element: HTMLInputElement | HTMLTextAreaElement,
@@ -502,7 +549,7 @@ const placeCaretAtPosition = (
   position: number,
 ): void => element.setSelectionRange(position, position);
 
-const expectedNumberOfColumns = 6;
+const expectedNumberOfColumns = 7;
 const expectedNumberOfHeaderRows = 1;
 const expectedNumberOfBodyRows = 3;
 const expectedNumberOfRows = expectedNumberOfBodyRows + expectedNumberOfHeaderRows;

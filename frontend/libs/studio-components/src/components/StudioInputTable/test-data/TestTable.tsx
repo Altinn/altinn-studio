@@ -11,6 +11,7 @@ import {
   textHeader,
   textResourceHeader,
   textResourceTexts,
+  numberfieldHeader,
 } from './testTableData';
 import { textResourcesMock } from '../../../test-data/textResourcesMock';
 
@@ -25,6 +26,7 @@ export function TestTable(props: StudioInputTableProps): ReactElement {
           <StudioInputTable.HeaderCell>{textareaHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{textResourceHeader}</StudioInputTable.HeaderCell>
           <StudioInputTable.HeaderCell>{buttonHeader}</StudioInputTable.HeaderCell>
+          <StudioInputTable.HeaderCell>{numberfieldHeader}</StudioInputTable.HeaderCell>
         </StudioInputTable.Row>
       </StudioInputTable.Head>
       <StudioInputTable.Body>
@@ -65,6 +67,10 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
         texts={textResourceTexts(rn)}
       />
       <StudioInputTable.Cell.Button>{testData.buttonLabel(rn)}</StudioInputTable.Cell.Button>
+      <StudioInputTable.Cell.Numberfield
+        name={testData.numberfieldName(rn)}
+        label={testData.numberfieldLabel(rn)}
+      />
     </StudioInputTable.Row>
   );
 }
