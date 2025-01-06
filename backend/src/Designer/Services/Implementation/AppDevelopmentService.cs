@@ -714,8 +714,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                         {
                                             "layoutSet" => deletedLayoutsSetIds.Contains(layoutSetId),
                                             "page" => deletedLayouts.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id),
-                                            "component" => deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id),
-                                            _ => false
+                                            "component" => deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id)
                                         })
                                         {
                                             referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
@@ -754,7 +753,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                                 string overrideComponentId = overrideItem["componentId"]?.GetValue<string>();
                                                 if (deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == overrideComponentId))
                                                 {
-                                                    overrideList.RemoveAt(i);
+                                                    overrideList.RemoveAt(j);
                                                     hasLayoutChanges = true;
                                                 }
                                                 else
