@@ -121,7 +121,11 @@ export default tseslint.config(
       'react/jsx-curly-brace-presence': ['error', { props: 'never', children: 'never' }],
       'react/jsx-fragments': ['error'],
       'react/jsx-no-useless-fragment': ['error'],
-      'react/self-closing-comp': ['error'],
+      'react/self-closing-comp': ['warn'],
+      'react/jsx-key': [
+        'error',
+        { checkFragmentShorthand: true, checkKeyMustBeforeSpread: true, warnOnDuplicates: true },
+      ],
       'react/prop-types': ['off'],
 
       'sonarjs/no-duplicate-string': ['off'],

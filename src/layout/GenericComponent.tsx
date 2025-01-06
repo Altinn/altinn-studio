@@ -230,8 +230,8 @@ function ActualGenericComponent<Type extends CompTypes = CompTypes>({
         ref={containerDivRef}
         item
         container
-        {...gridBreakpoints(grid)}
         key={`grid-${id}`}
+        {...gridBreakpoints(grid)}
         className={classNames(classes.container, gridToClasses(grid?.labelGrid, classes), pageBreakStyles(pageBreak))}
         alignItems='flex-start'
       >

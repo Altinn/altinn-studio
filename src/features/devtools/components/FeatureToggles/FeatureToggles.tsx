@@ -42,7 +42,7 @@ export function FeatureToggles() {
       <div className={classes.list}>
         {featureToggles?.length ? (
           featureToggles.map(({ title, defaultValue, description, key, value, source, links }) => (
-            <>
+            <React.Fragment key={key}>
               <div
                 key={`${key}-checkbox`}
                 className={classes.itemCheckbox}
@@ -93,7 +93,7 @@ export function FeatureToggles() {
                   )}
                 </Paragraph>
               </label>
-            </>
+            </React.Fragment>
           ))
         ) : (
           <p style={{ gridColumn: 'span 2' }}>Ingen beta-funksjoner er tilgjengelig</p>

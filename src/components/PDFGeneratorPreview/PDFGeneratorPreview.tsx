@@ -98,10 +98,10 @@ export function PDFGeneratorPreview({
             <Modal.Content>
               {showErrorDetails &&
                 errorText.split('\n').map((line) => (
-                  <>
+                  <React.Fragment key={line}>
                     {line}
                     <br />
-                  </>
+                  </React.Fragment>
                 ))}
             </Modal.Content>
           </div>
