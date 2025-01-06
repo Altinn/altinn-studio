@@ -46,6 +46,24 @@ describe('useUpdateOptionListMutation', () => {
     ]);
   });
 
+  test('Adds the new option list on the cache for all option lists when cache does not contain the list', async () => {
+    const queryClient = createQueryClientMock();
+    const existingOptionList = { title: 'some-other-option-list-id', data: optionsList };
+    queryClient.setQueryData([QueryKey.OptionLists, org, app], [existingOptionList]);
+    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+      () => useUpdateOptionListMutation(org, app),
+      { queries: { updateOptionList }, queryClient },
+    ).result;
+    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    expect(queryClient.getQueryData([QueryKey.OptionLists, org, app])).toEqual([
+      {
+        title: optionListId,
+        data: updatedOptionsList,
+      },
+      existingOptionList,
+    ]);
+  });
+
   test('Sets the updated option list on the cache for the single option list', async () => {
     const queryClient = createQueryClientMock();
     const renderUpdateOptionListMutationResult = renderHookWithProviders(

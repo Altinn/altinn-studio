@@ -50,8 +50,31 @@ const updateListInOptionListsData = (
   const oldOptionsListData: OptionsListData = oldData.find(
     (optionListData) => optionListData.title === optionListId,
   );
-  return ArrayUtils.replaceByPredicate(oldData, (optionList) => optionList.title === optionListId, {
-    ...oldOptionsListData,
-    data: updatedOptionList,
-  });
+  if (!!oldOptionsListData) {
+    return updateExistingOptionList(oldData, oldOptionsListData, updatedOptionList);
+  }
+  return addNewOptionList(oldData, optionListId, updatedOptionList);
+};
+
+const updateExistingOptionList = (
+  oldData: OptionsListsResponse,
+  oldOptionsListData: OptionsListData,
+  newOptionsList: OptionsList,
+) => {
+  return ArrayUtils.replaceByPredicate(
+    oldData,
+    (optionList) => optionList.title === oldOptionsListData.title,
+    {
+      ...oldOptionsListData,
+      data: newOptionsList,
+    },
+  );
+};
+
+const addNewOptionList = (
+  oldData: OptionsListsResponse,
+  optionListTitle: string,
+  newOptionsList: OptionsList,
+) => {
+  return ArrayUtils.prepend(oldData, { title: optionListTitle, data: newOptionsList });
 };
