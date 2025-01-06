@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -699,23 +698,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                         if (updatedReference != null)
                                         {
                                             component["layoutSet"] = updatedReference.NewId;
-                                            hasLayoutChanges = true;
-                                        }
-                                    }
-                                    break;
-                                case "Summary":
-                                    string componentRef = component["componentRef"]?.GetValue<string>();
-                                    if (deletedComponentIdsFromCurrentLayoutSet.Contains(componentRef))
-                                    {
-                                        component["componentRef"] = "";
-                                        hasLayoutChanges = true;
-                                    }
-                                    else
-                                    {
-                                        Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(item => item.Id == componentRef);
-                                        if (updatedReference != null)
-                                        {
-                                            component["componentRef"] = updatedReference.NewId;
                                             hasLayoutChanges = true;
                                         }
                                     }
