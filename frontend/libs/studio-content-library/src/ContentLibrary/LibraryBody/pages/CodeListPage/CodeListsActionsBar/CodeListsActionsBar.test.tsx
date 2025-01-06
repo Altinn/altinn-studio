@@ -33,7 +33,7 @@ describe('CodeListsActionsBar', () => {
     expect(onSetCodeListSearchPatternMock).toHaveBeenCalledWith(codeListSearchParam);
   });
 
-  it('calls onSetCodeListSearchPatternMock with ".*" when clearing search', async () => {
+  it('calls onSetCodeListSearchPatternMock with empty string when clearing search', async () => {
     const user = userEvent.setup();
     renderCodeListsActionsBar();
     const searchInput = screen.getByRole('searchbox');

@@ -8,6 +8,7 @@ import { CodeListsCounterMessage } from './CodeListsCounterMessage';
 import classes from './CodeListPage.module.css';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import type { CodeListReference } from './types/CodeListReference';
+import { filterCodeLists } from './utils';
 
 export type CodeListWithMetadata = {
   codeList: CodeList;
@@ -76,20 +77,4 @@ export function CodeListPage({
       />
     </div>
   );
-}
-
-export const filterCodeLists = (
-  codeListsData: CodeListData[],
-  searchString: string,
-): CodeListData[] =>
-  codeListsData.filter((codeList: CodeListData) => codeListMatch(codeList.title, searchString));
-
-function codeListMatch(codeListTitle: string, searchString: string): boolean {
-  return caseInsensitiveMatch(codeListTitle, searchString);
-}
-
-function caseInsensitiveMatch(target: string, searchString: string): boolean {
-  const lowerCaseTarget = target.toLowerCase();
-  const lowerCaseSearchString = searchString.toLowerCase();
-  return lowerCaseTarget.includes(lowerCaseSearchString);
 }
