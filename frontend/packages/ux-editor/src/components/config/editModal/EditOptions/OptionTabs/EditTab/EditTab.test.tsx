@@ -55,7 +55,7 @@ describe('EditTab', () => {
     ).toBeInTheDocument();
   });
 
-  it('should call handleComponent with empty options array when clicking create new options', async () => {
+  it('should call handleComponentChange with empty options array when clicking create new options', async () => {
     const user = userEvent.setup();
     const handleComponentChange = jest.fn();
     renderEditTab({
