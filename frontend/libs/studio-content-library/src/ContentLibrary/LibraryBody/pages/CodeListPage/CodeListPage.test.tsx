@@ -1,27 +1,23 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import type { CodeListPageProps, CodeListWithMetadata } from './CodeListPage';
+import type { CodeListPageProps } from './CodeListPage';
 import { CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeList as StudioComponentCodeList } from '@studio/components';
+import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
-const codeListName = 'codeList';
+const codeListName = codeListsDataMock[0].title;
 const codeListMock: StudioComponentCodeList = [{ value: 'value', label: 'label' }];
-const codeListWithMetadataMock: CodeListWithMetadata = {
-  title: codeListName,
-  codeList: codeListMock,
-};
 const uploadedCodeListName = 'uploadedCodeListName';
 
 describe('CodeListPage', () => {
   afterEach(() => {
-    defaultCodeListPageProps.codeLists = [codeListWithMetadataMock];
-    defaultCodeListPageProps.fetchDataError = false;
+    defaultCodeListPageProps.codeListsData = [...codeListsDataMock];
     jest.clearAllMocks();
   });
 
@@ -55,6 +51,12 @@ describe('CodeListPage', () => {
     expect(codeListUploadButton).toBeInTheDocument();
   });
 
+  it('renders the code list as a clickable element', () => {
+    renderCodeListPage();
+    const codeListAccordion = screen.getByRole('button', { name: codeListName });
+    expect(codeListAccordion).toBeInTheDocument();
+  });
+
   it('renders the code list accordion', () => {
     renderCodeListPage();
     const codeListAccordion = screen.getByTitle(
@@ -74,30 +76,16 @@ describe('CodeListPage', () => {
     });
     expect(codeListAccordionClosed).toHaveAttribute('aria-expanded', 'false');
     await uploadCodeList(user, uploadedCodeListName);
-    defaultCodeListPageProps.codeLists.push({
+    defaultCodeListPageProps.codeListsData.push({
       title: uploadedCodeListName,
-      codeList: codeListMock,
+      data: codeListMock,
     });
-    rerender(
-      <CodeListPage
-        codeLists={defaultCodeListPageProps.codeLists}
-        onUpdateCodeListId={onUpdateCodeListIdMock}
-        onUpdateCodeList={onUpdateCodeListMock}
-        onUploadCodeList={onUploadCodeListMock}
-        fetchDataError={defaultCodeListPageProps.fetchDataError}
-      />,
-    );
+    rerender(<CodeListPage {...defaultCodeListPageProps} />);
     const codeListAccordionOpen = screen.getByRole('button', {
       name: uploadedCodeListName,
       expanded: true,
     });
     expect(codeListAccordionOpen).toHaveAttribute('aria-expanded', 'true');
-  });
-
-  it('renders error message if error fetching option lists occurred', () => {
-    renderCodeListPage({ fetchDataError: true });
-    const errorMessage = screen.getByText(textMock('app_content_library.code_lists.fetch_error'));
-    expect(errorMessage).toBeInTheDocument();
   });
 
   it('calls onUpdateCodeListId when Id is changed', async () => {
@@ -115,8 +103,8 @@ describe('CodeListPage', () => {
     await changeCodeListContent(user, newValueText);
     expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
-      ...codeListWithMetadataMock,
-      codeList: [{ ...codeListWithMetadataMock.codeList[0], value: newValueText }],
+      codeList: [{ ...codeListsDataMock[0].data[0], value: newValueText }],
+      title: codeListName,
     });
   });
 
@@ -161,22 +149,13 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
   await user.upload(fileUploaderButton, file);
 };
 
-const defaultCodeListPageProps: Partial<CodeListPageProps> = {
-  codeLists: [codeListWithMetadataMock],
-  fetchDataError: false,
+const defaultCodeListPageProps: CodeListPageProps = {
+  codeListsData: codeListsDataMock,
+  onUpdateCodeListId: onUpdateCodeListIdMock,
+  onUpdateCodeList: onUpdateCodeListMock,
+  onUploadCodeList: onUploadCodeListMock,
 };
 
-const renderCodeListPage = ({
-  codeLists,
-  fetchDataError,
-}: Partial<CodeListPageProps> = defaultCodeListPageProps) => {
-  return render(
-    <CodeListPage
-      codeLists={codeLists}
-      onUpdateCodeListId={onUpdateCodeListIdMock}
-      onUpdateCodeList={onUpdateCodeListMock}
-      onUploadCodeList={onUploadCodeListMock}
-      fetchDataError={fetchDataError}
-    />,
-  );
+const renderCodeListPage = (props: Partial<CodeListPageProps> = {}) => {
+  return render(<CodeListPage {...defaultCodeListPageProps} {...props} />);
 };

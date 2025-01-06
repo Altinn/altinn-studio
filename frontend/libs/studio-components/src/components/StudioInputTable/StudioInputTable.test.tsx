@@ -30,7 +30,7 @@ import type { CellButtonProps } from './Cell/CellButton';
 import type { CellNumberfieldProps } from './Cell/CellNumberfield';
 import type { HTMLCellInputElement } from './types/HTMLCellInputElement';
 import type { EventName } from './types/EventName';
-import type { EventProps } from './types/EventProps';
+import type { FormEventProps } from './types/FormEventProps';
 import type { EventPropName } from './types/EventPropName';
 import { StringUtils } from '@studio/pure-functions';
 import type { CellTextResourceInputProps } from './Cell/CellTextResource';
@@ -298,9 +298,9 @@ describe('StudioInputTable', () => {
     });
   });
 
-  describe('Triggers input level and table level event functions with the same events when the user performs a corresponding action', () => {
+  describe('Triggers event functions for input level and table level events', () => {
     type TestCase<Element extends HTMLCellInputElement, Event extends EventName> = {
-      render: (mockFn: EventProps<Element>[EventPropName<Event>]) => RenderResult;
+      render: (mockFn: FormEventProps<Element>[EventPropName<Event>]) => RenderResult;
       action: (user: UserEvent) => Promise<void>;
     };
 
@@ -416,7 +416,23 @@ describe('StudioInputTable', () => {
       },
     };
 
-    describe.each(Object.keys(testCases))('%s', (key) => {
+    describe.each(Object.keys(testCases))('%s input level events', (key) => {
+      const testCasesForElement = testCases[key];
+
+      test.each(Object.keys(testCasesForElement))('%s', async (eventName) => {
+        const user = userEvent.setup();
+        const onEvent = jest.fn();
+        const { render: renderComponent, action } = testCasesForElement[eventName];
+        renderComponent(onEvent);
+        await action(user);
+        await expect(onEvent).toHaveBeenCalledTimes(1);
+
+        const inputEvent = onEvent.mock.calls[0][0];
+        await expect(inputEvent).toHaveProperty('target');
+      });
+    });
+
+    describe.each(Object.keys(testCases))('%s table level events', (key) => {
       const testCasesForElement = testCases[key];
 
       test.each(Object.keys(testCasesForElement))('%s', async (eventName) => {
@@ -430,9 +446,6 @@ describe('StudioInputTable', () => {
         const tablePropName = 'on' + StringUtils.capitalize(eventName) + 'Any';
         const tableProp = defaultProps[tablePropName];
         await expect(tableProp).toHaveBeenCalledTimes(1);
-        const inputEvent = onEvent.mock.calls[0][0];
-        const tableEvent = tableProp.mock.calls[0][0];
-        await expect(inputEvent).toBe(tableEvent);
       });
     });
   });
