@@ -16,10 +16,7 @@ describe('StudioSearch', () => {
   });
 
   it('should allow custom attributes', () => {
-    testCustomAttributes(
-      (customAttributes) => renderTestSearch({ ...customAttributes }),
-      getSearchBox,
-    );
+    testCustomAttributes(renderTestSearch, getSearchBox);
   });
 });
 

@@ -50,7 +50,7 @@ export const Dashboard = ({ user, organizations, disableDebounce }: DashboardPro
           <div className={classes.topBar}>
             <div className={classes.searchFieldContainer}>
               <StudioSearch
-                placeholder={t('dashboard.search')}
+                label={t('dashboard.search')}
                 value={searchText}
                 onChange={handleChangeSearch}
                 onKeyDown={handleKeyDown}

@@ -87,6 +87,8 @@ export const TextEditor = ({
   };
   const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
 
+  const handleClearSearch = () => setSearchQuery('');
+
   return (
     <div className={classes.textEditor}>
       <div className={classes.textEditorMain}>
@@ -108,9 +110,10 @@ export const TextEditor = ({
             </Chip.Toggle>
             <div>
               <StudioSearch
-                placeholder={t('text_editor.search_for_text')}
+                label={t('text_editor.search_for_text')}
                 value={searchQuery}
                 onChange={handleSearchChange}
+                onClear={handleClearSearch}
               />
             </div>
           </div>

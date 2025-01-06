@@ -16,8 +16,9 @@
 
 .textEditorTopRow {
   border-bottom: 1px solid #bcc7cc;
-  padding: 2rem;
+  padding: var(--fds-spacing-6);
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
@@ -25,17 +26,17 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 1rem;
+  gap: var(--fds-spacing-4);
 }
 
 .sortAlphabetically {
-  gap: 1rem;
+  gap: var(--fds-spacing-4);
   display: flex;
   align-items: center;
 }
 
 .textEditorBody {
-  margin-left: 2rem;
+  margin-left: var(--fds-spacing-6);
   overflow: auto;
 }
 
