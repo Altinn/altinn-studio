@@ -5,6 +5,7 @@ import type { ITextResources } from 'app-shared/types/global';
 import type { ExportForm } from '../types/ExportForm';
 import type { FormComponent } from '../types/FormComponent';
 import type { FormContainer } from '../types/FormContainer';
+import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 
 describe('generateExportFormFormat', () => {
   const settings = {
@@ -101,9 +102,10 @@ describe('generateExportFormFormat', () => {
       },
     ],
   };
-  const optionLists = {
-    optionList1: [{ label: 'option1', value: 'option1' }],
-  };
+  const optionListsData: OptionsListsResponse = [
+    { title: 'optionList1', data: [{ label: 'option1', value: 'option1' }] },
+  ];
+
   it.each(['nb', 'en'])(
     'should generate correct export format for specified default language',
     (language) => {
@@ -113,7 +115,7 @@ describe('generateExportFormFormat', () => {
         selectedFormLayoutSetName,
         app,
         textResources,
-        optionLists,
+        optionListsData,
         language,
         false,
       );
@@ -198,7 +200,7 @@ describe('generateExportFormFormat', () => {
       selectedFormLayoutSetName,
       app,
       textResources,
-      optionLists,
+      optionListsData,
       undefined,
       false,
     );
@@ -250,7 +252,7 @@ describe('generateExportFormFormat', () => {
       selectedFormLayoutSetName,
       app,
       textResources,
-      optionLists,
+      optionListsData,
       'nb',
       false,
     );
@@ -269,7 +271,7 @@ describe('generateExportFormFormat', () => {
       selectedFormLayoutSetName,
       app,
       textResources,
-      optionLists,
+      optionListsData,
       'nb',
       true,
     );
@@ -281,7 +283,7 @@ describe('generateExportFormFormat', () => {
     expect(result.pages[0].components[1]).toHaveProperty('mapping');
   });
 
-  it('should return empty array for text resorce binding if no text resource bindings are set for component', () => {
+  it('should return empty array for text resource binding if no text resource bindings are set for component', () => {
     const componentWithoutTextResourceBindings: FormComponent<ComponentType.Input> = {
       id: 'component1',
       itemType: 'COMPONENT',
@@ -297,7 +299,7 @@ describe('generateExportFormFormat', () => {
       selectedFormLayoutSetName,
       app,
       textResources,
-      optionLists,
+      optionListsData,
       'nb',
       true,
     );
