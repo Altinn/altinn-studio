@@ -44,7 +44,7 @@ describe('CodeListsActionsBar', () => {
     });
     await user.click(clearSearchButton);
     expect(onSetCodeListSearchPatternMock).toHaveBeenCalledTimes(codeListSearchParam.length + 1); // +1 due to clearing search
-    expect(onSetCodeListSearchPatternMock).toHaveBeenLastCalledWith('.*');
+    expect(onSetCodeListSearchPatternMock).toHaveBeenLastCalledWith('');
   });
 
   it('renders the file uploader button', () => {

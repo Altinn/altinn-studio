@@ -46,7 +46,7 @@ export function CodeListsActionsBar({
           onSetCodeListSearchPattern(event.target.value)
         }
         clearButtonLabel={t('app_content_library.code_lists.clear_search_button_label')}
-        onClear={() => onSetCodeListSearchPattern('.*')}
+        onClear={() => onSetCodeListSearchPattern('')}
       />
       <CreateNewCodeListModal onUpdateCodeList={onUpdateCodeList} codeListNames={codeListNames} />
       <StudioFileUploader

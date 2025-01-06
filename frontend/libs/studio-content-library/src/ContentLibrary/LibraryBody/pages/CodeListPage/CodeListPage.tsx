@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StudioHeading } from '@studio/components';
 import type { CodeList } from '@studio/components';
 import { useTranslation } from 'react-i18next';
@@ -36,26 +36,13 @@ export function CodeListPage({
   codeListsUsages,
 }: CodeListPageProps): React.ReactElement {
   const { t } = useTranslation();
-  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('.*');
+  const [codeListSearchPattern, setCodeListSearchPattern] = useState<string>('');
   const [codeListInEditMode, setCodeListInEditMode] = useState<string>(undefined);
-  const [codeListsSearchMatch, setCodeListsSearchMatch] =
-    useState<CodeListWithMetadata[]>(codeListsData);
 
-  const handleSearchCodeLists = useCallback(
-    (codeListPatternMatch: string) => {
-      if (codeListPatternMatch === '*') {
-        setCodeListsSearchMatch(codeListsData);
-        return;
-      }
-      const filteredCodeLists = getCodeListsSearchMatch(codeListsData, codeListPatternMatch);
-      setCodeListsSearchMatch(filteredCodeLists);
-    },
-    [codeListsData, setCodeListsSearchMatch],
+  const filteredCodeLists: CodeListData[] = useMemo(
+    () => filterCodeLists(codeListsData, codeListSearchPattern),
+    [codeListsData, codeListSearchPattern],
   );
-  
-  useEffect(() => {
-    handleSearchCodeLists(codeListSearchPattern);
-  }, [codeListsData, codeListSearchPattern, handleSearchCodeLists]);
 
   const codeListTitles = ArrayUtils.mapByKey<CodeListData, 'title'>(codeListsData, 'title');
 
@@ -77,13 +64,10 @@ export function CodeListPage({
         onUploadCodeList={handleUploadCodeList}
         onUpdateCodeList={onUpdateCodeList}
         codeListNames={codeListTitles}
-        codeLists={codeListsData}
-        onSetCodeListsSearchMatch={setCodeListsSearchMatch}
-        onHandleSearchCodeLists={handleSearchCodeLists}
         onSetCodeListSearchPattern={setCodeListSearchPattern}
       />
       <CodeLists
-        codeListsData={codeListsSearchMatch}
+        codeListsData={filteredCodeLists}
         onUpdateCodeListId={handleUpdateCodeListId}
         onUpdateCodeList={onUpdateCodeList}
         codeListInEditMode={codeListInEditMode}
@@ -94,18 +78,18 @@ export function CodeListPage({
   );
 }
 
-const escapeRegExp = (pattern: string): string => {
-  return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-};
+export const filterCodeLists = (
+  codeListsData: CodeListData[],
+  searchString: string,
+): CodeListData[] =>
+  codeListsData.filter((codeList: CodeListData) => codeListMatch(codeList.title, searchString));
 
-export const getCodeListsSearchMatch = (
-  codeLists: CodeListWithMetadata[],
-  codeListPatternMatch: string,
-): CodeListWithMetadata[] => {
-  let safePattern = codeListPatternMatch;
-  if (codeListPatternMatch !== '.*') {
-    safePattern = escapeRegExp(codeListPatternMatch);
-  }
-  const regex = new RegExp(safePattern, 'i');
-  return codeLists?.filter((codeList) => regex.test(codeList.title));
-};
+function codeListMatch(codeListTitle: string, searchString: string): boolean {
+  return caseInsensitiveMatch(codeListTitle, searchString);
+}
+
+function caseInsensitiveMatch(target: string, searchString: string): boolean {
+  const lowerCaseTarget = target.toLowerCase();
+  const lowerCaseSearchString = searchString.toLowerCase();
+  return lowerCaseTarget.includes(lowerCaseSearchString);
+}

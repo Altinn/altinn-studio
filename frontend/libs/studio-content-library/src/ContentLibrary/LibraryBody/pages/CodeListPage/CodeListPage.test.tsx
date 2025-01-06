@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListPageProps, CodeListWithMetadata } from './CodeListPage';
-import { getCodeListsSearchMatch, CodeListPage } from './CodeListPage';
+import { CodeListPage } from './CodeListPage';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event';
 import { textMock } from '@studio/testing/mocks/i18nMock';
@@ -182,9 +182,9 @@ const uploadCodeList = async (user: UserEvent, fileName: string = uploadedCodeLi
 
 const getCodeListAccordion = (codeListTitle: string) => {
   return screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle,
-      }),
+    textMock('app_content_library.code_lists.code_list_accordion_title', {
+      codeListTitle,
+    }),
   );
 };
 
@@ -199,47 +199,3 @@ const defaultCodeListPageProps: CodeListPageProps = {
 const renderCodeListPage = (props: Partial<CodeListPageProps> = {}) => {
   return render(<CodeListPage {...defaultCodeListPageProps} {...props} />);
 };
-
-describe('getCodeListsSearchMatch', () => {
-  const codeLists: CodeListWithMetadata[] = [
-    { title: 'codeList1', codeList: codeListMock },
-    { title: 'codeList2', codeList: codeListMock },
-    { title: 'myCodeList', codeList: codeListMock },
-    { title: 'otherList', codeList: codeListMock },
-  ];
-
-  it('returns matching code lists for exact pattern match', () => {
-    const result = getCodeListsSearchMatch(codeLists, 'codeList1');
-    const resultTitles = result.map((res) => res.title);
-    expect(resultTitles).toEqual(['codeList1']);
-  });
-
-  it('returns matching code lists for partial pattern match (case-insensitive)', () => {
-    const result = getCodeListsSearchMatch(codeLists, 'CODELIST');
-    const resultTitles = result.map((res) => res.title);
-    expect(resultTitles).toEqual(['codeList1', 'codeList2', 'myCodeList']);
-  });
-
-  it('returns all code lists when search pattern is .*', () => {
-    const result = getCodeListsSearchMatch(codeLists, '.*');
-    const resultTitles = result.map((res) => res.title);
-    expect(resultTitles).toEqual(['codeList1', 'codeList2', 'myCodeList', 'otherList']);
-  });
-
-  it('returns no matches when no code list matches the pattern', () => {
-    const result = getCodeListsSearchMatch(codeLists, 'patternWithoutMatch');
-    expect(result).toHaveLength(0);
-  });
-
-  it('handles empty code list array', () => {
-    const emptyCodeLists: CodeListWithMetadata[] = [];
-    const result = getCodeListsSearchMatch(emptyCodeLists, 'codeList');
-    expect(result).toHaveLength(0);
-  });
-
-  it('returns empty list when using the pattern .* in an empty list', () => {
-    const emptyCodeLists: CodeListWithMetadata[] = [];
-    const result = getCodeListsSearchMatch(emptyCodeLists, '.*');
-    expect(result).toHaveLength(0);
-  });
-});
