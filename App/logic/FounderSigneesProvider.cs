@@ -20,9 +20,9 @@ public class FounderSigneesProvider : ISigneeProvider
     {
         _dataClient = dataClient;
     }
-    
+
     public string Id { get; init; } = "founders";
-    
+
     public async Task<SigneesResult> GetSigneesAsync(Instance instance)
     {
         Skjemadata formData = await GetFormData(instance);
@@ -33,7 +33,7 @@ public class FounderSigneesProvider : ISigneeProvider
             var personSignee = new PersonSignee
             {
                 DisplayName = stifterPerson.Fornavn + "" + stifterPerson.Mellomnavn + " " + stifterPerson.Etternavn,
-                LastName = stifterPerson.Etternavn,
+                FullName = stifterPerson.Etternavn,
                 SocialSecurityNumber = stifterPerson.Foedselsnummer?.ToString() ?? string.Empty,
                 Notifications = new Notifications
                 {
@@ -47,10 +47,10 @@ public class FounderSigneesProvider : ISigneeProvider
                     }
                 }
             };
-            
+
             personSignees.Add(personSignee);
         }
-        
+
         List<OrganisationSignee> organisationSignees = [];
         foreach (StifterVirksomhet stifterVirksomhet in formData.StifterVirksomhet)
         {
@@ -70,17 +70,17 @@ public class FounderSigneesProvider : ISigneeProvider
                     }
                 }
             };
-            
+
             organisationSignees.Add(organisationSignee);
         }
-        
+
         return new SigneesResult
         {
             PersonSignees = personSignees,
             OrganisationSignees = organisationSignees
         };
     }
-    
+
     private async Task<Skjemadata> GetFormData(Instance instance)
     {
         DataElement modelData = instance.Data.Single(x => x.DataType == "Skjemadata");

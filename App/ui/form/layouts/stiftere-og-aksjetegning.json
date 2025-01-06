@@ -109,7 +109,7 @@
         "type": "PersonLookup",
         "dataModelBindings": {
           "person_lookup_ssn": "StifterPerson.Foedselsnummer",
-          "person_lookup_surname": "StifterPerson.Etternavn"
+          "person_lookup_name": "StifterPerson.Etternavn"
         },
         "textResourceBindings": {
           "title": "Legg til person",

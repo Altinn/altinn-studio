@@ -22,7 +22,7 @@
         "type": "PersonLookup",
         "dataModelBindings": {
           "person_lookup_ssn": "Styre.Styreleder.Foedselsnummer",
-          "person_lookup_surname": "Styre.Styreleder.Etternavn"
+          "person_lookup_name": "Styre.Styreleder.Etternavn"
         },
         "textResourceBindings": {
           "title": "styre-og-revisjon.Group-02BCRt.title"
@@ -58,7 +58,7 @@
         ],
         "dataModelBindings": {
           "person_lookup_ssn": "Styre.Nestleder.Foedselsnummer",
-          "person_lookup_surname": "Styre.Nestleder.Etternavn"
+          "person_lookup_name": "Styre.Nestleder.Etternavn"
         },
         "textResourceBindings": {
           "title": "Nestleder"
@@ -92,7 +92,7 @@
         "type": "PersonLookup",
         "dataModelBindings": {
           "person_lookup_ssn": "Styre.Styremedlem.Foedselsnummer",
-          "person_lookup_surname": "Styre.Styremedlem.Etternavn"
+          "person_lookup_name": "Styre.Styremedlem.Etternavn"
         }
       },
       {
