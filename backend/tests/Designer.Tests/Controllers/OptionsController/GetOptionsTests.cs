@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Filters;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Designer.Tests.Controllers.ApiTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -54,6 +56,29 @@ public class GetOptionsTests : DesignerEndpointsTestsBase<GetOptionsTests>, ICla
         // Assert
         Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
         Assert.Empty(responseList);
+    }
+
+    [Fact]
+    public async Task GetOptionLists_Returns200OK_WithOptionListsData()
+    {
+        // Arrange
+        const string repo = "app-with-options";
+        string apiUrl = $"/designer/api/ttd/{repo}/options/option-lists";
+        using HttpRequestMessage httpRequestMessage = new(HttpMethod.Get, apiUrl);
+
+        // Act
+        using HttpResponseMessage response = await HttpClient.SendAsync(httpRequestMessage);
+        string responseBody = await response.Content.ReadAsStringAsync();
+        List<OptionListData> responseList = JsonSerializer.Deserialize<List<OptionListData>>(responseBody);
+
+        // Assert
+        Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+        responseList.Should().BeEquivalentTo(new List<OptionListData>
+        {
+            new () { Title = "options-with-null-fields", Data = null, HasError = true },
+            new () { Title = "other-options", HasError = false },
+            new () { Title = "test-options", HasError = false }
+        }, options => options.Excluding(x => x.Data));
     }
 
     [Fact]
