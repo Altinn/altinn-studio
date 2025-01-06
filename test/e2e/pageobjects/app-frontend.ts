@@ -227,6 +227,7 @@ export class AppFrontend {
     hideCommentField: '[id^="hideComment"]',
     hiddenRowsInfoMsg: '[data-componentid="info-msg"]',
     row: (idx: number) => ({
+      tableRow: `#group-mainGroup-table-body > tr:nth-child(${idx + 1})`,
       currentValue: `#currentValue-${idx}`,
       newValue: `#newValue-${idx}`,
       uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3, 'untagged'),
@@ -235,6 +236,7 @@ export class AppFrontend {
       deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:last-of-type button`,
       nestedGroup: {
         row: (subIdx: number) => ({
+          tableRow: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1})`,
           comments: `#comments-${idx}-${subIdx}`,
           uploadTagMulti: makeUploaderSelectors('subUploader', `${idx}-${subIdx}`, 2, 'tagged'),
           nestedDynamics: `#nestedDynamics-${idx}-${subIdx} input[type=checkbox]`,

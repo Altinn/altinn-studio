@@ -9,10 +9,10 @@ import type { TraversalRestriction } from 'src/utils/layout/useNodeTraversal';
  */
 export function useDeepValidationsForNode(
   node: LayoutNode | undefined,
-  onlyChildren: boolean = false,
+  includeSelf = true,
   restriction?: TraversalRestriction,
 ): NodeRefValidation[] {
   const showAll = Validation.useShowAllBackendErrors();
   const mask = showAll ? 'showAll' : 'visible';
-  return NodesInternal.useVisibleValidationsDeep(node, mask, onlyChildren ? 1 : undefined, restriction);
+  return NodesInternal.useVisibleValidationsDeep(node, mask, includeSelf, restriction);
 }

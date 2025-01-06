@@ -123,7 +123,7 @@ export const RepeatingGroupTableRow = React.memo(function RepeatingGroupTableRow
   const tableEditingNodeIds = tableNodes
     .filter((n) => shouldEditInTable(editForGroup, n, columnSettings))
     .map((n) => n.id);
-  const rowValidations = useDeepValidationsForNode(node, true, index);
+  const rowValidations = useDeepValidationsForNode(node, false, index);
   const rowHasErrors = rowValidations.some(
     (validation) => validation.severity === 'error' && !tableEditingNodeIds.includes(validation.nodeId),
   );

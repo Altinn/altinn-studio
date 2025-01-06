@@ -42,7 +42,7 @@ export interface ValidationStorePluginConfig {
     useVisibleValidationsDeep: (
       node: LayoutNode | undefined,
       mask: NodeVisibility,
-      stopAtDepth?: number,
+      includeSelf: boolean,
       restriction?: TraversalRestriction,
       severity?: ValidationSeverity,
     ) => NodeRefValidation[];
@@ -136,12 +136,12 @@ export class ValidationStorePlugin extends NodeDataPlugin<ValidationStorePluginC
           }
           return getValidations({ state, node, mask: showAll ? 'showAll' : 'visible' });
         }),
-      useVisibleValidationsDeep: (node, mask, stopAtDepth, restriction, severity) =>
+      useVisibleValidationsDeep: (node, mask, includeSelf, restriction, severity) =>
         store.useMemoSelector((state) => {
           if (!node) {
             return emptyArray;
           }
-          return getRecursiveValidations({ state, node, mask, severity, stopAtDepth, restriction });
+          return getRecursiveValidations({ state, node, mask, severity, includeSelf, restriction });
         }),
       useValidationsSelector: () =>
         store.useDelayedSelector({
@@ -252,28 +252,34 @@ function getValidations({ state, node, mask, severity, includeHidden = false }: 
 }
 
 interface GetDeepValidationsProps extends GetValidationsProps {
-  depth?: number;
-  stopAtDepth?: number;
+  includeSelf: boolean;
   restriction?: TraversalRestriction;
 }
 
 function getRecursiveValidations(props: GetDeepValidationsProps): NodeRefValidation[] {
   const out: NodeRefValidation[] = [];
-  const depth = props.depth ?? 0;
 
-  const nodeValidations = getValidations(props);
-  for (const validation of nodeValidations) {
-    out.push({ ...validation, nodeId: props.node.id });
-  }
-
-  if (props.stopAtDepth !== undefined && depth >= props.stopAtDepth) {
-    return out;
+  if (props.includeSelf) {
+    const nodeValidations = getValidations(props);
+    for (const validation of nodeValidations) {
+      out.push({ ...validation, nodeId: props.node.id });
+    }
   }
 
   const nodes = props.node.page.layoutSet;
   if (nodes) {
-    for (const child of props.node.children(new TraversalTask(props.state, nodes, undefined, props.restriction))) {
-      out.push(...getRecursiveValidations({ ...props, node: child, depth: depth + 1 }));
+    const children = props.node.children(new TraversalTask(props.state, nodes, undefined, props.restriction));
+    for (const child of children) {
+      out.push(
+        ...getRecursiveValidations({
+          ...props,
+          node: child,
+
+          // Restriction and includeSelf should only be applied to the first level (not recursively)
+          restriction: undefined,
+          includeSelf: true,
+        }),
+      );
     }
   }
 
