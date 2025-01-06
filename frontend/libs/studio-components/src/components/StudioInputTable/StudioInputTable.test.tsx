@@ -38,17 +38,17 @@ import type { CellTextResourceInputProps } from './Cell/CellTextResource';
 type ElementName =
   | 'checkbox'
   | 'textfield'
+  | 'numberfield'
   | 'textarea'
   | 'button'
-  | 'textResource'
-  | 'numberfield';
+  | 'textResource';
 type NativeElement<Name extends ElementName> = {
   checkbox: HTMLInputElement;
   textfield: HTMLInputElement;
+  numberfield: HTMLInputElement;
   textarea: HTMLTextAreaElement;
   button: HTMLButtonElement;
   textResource: HTMLInputElement;
-  numberfield: HTMLInputElement;
 }[Name];
 
 // Test data:
@@ -121,6 +121,8 @@ describe('StudioInputTable', () => {
     expect(getTextfieldInRow(1)).toHaveFocus();
     await user.keyboard('{Enter}'); // Move down to textfield 2
     expect(getTextfieldInRow(2)).toHaveFocus();
+    await user.keyboard('{ArrowRight}'); // Move right to numberfield 2
+    expect(getNumberfieldInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to textarea 2
     expect(getTextareaInRow(2)).toHaveFocus();
     await user.keyboard('{ArrowRight}'); // Move right to text resource 2
@@ -138,9 +140,9 @@ describe('StudioInputTable', () => {
   type TextboxTestCase = () => HTMLInputElement | HTMLTextAreaElement;
   const textboxTestCases: { [key: string]: TextboxTestCase } = {
     textfield: () => getTextfieldInRow(2),
+    numberfield: () => getNumberfieldInRow(2),
     textarea: () => getTextareaInRow(2),
     textResource: () => getTextResourceValueInRow(2),
-    numberfield: () => getNumberfieldInRow(2),
   };
   type TextboxTestCaseName = keyof typeof textboxTestCases;
   const textboxTestCaseNames: TextboxTestCaseName[] = Object.keys(textboxTestCases);
@@ -326,6 +328,27 @@ describe('StudioInputTable', () => {
           },
         },
       },
+      numberfield: {
+        change: {
+          render: (onChange) =>
+            renderSingleNumberfieldCell({
+              label: 'test',
+              onChange: (value: number) => onChange({ target: { value } } as any),
+            }),
+          action: (user) => user.type(screen.getByRole('textbox'), '1'),
+        },
+        focus: {
+          render: (onFocus) => renderSingleNumberfieldCell({ label: 'test', onFocus }),
+          action: (user) => user.click(screen.getByRole('textbox')),
+        },
+        blur: {
+          render: (onBlur) => renderSingleNumberfieldCell({ label: 'test', onBlur }),
+          action: async (user) => {
+            await user.click(screen.getByRole('textbox'));
+            await user.tab();
+          },
+        },
+      },
       textarea: {
         change: {
           render: (onChange) => renderSingleTextareaCell({ label: 'test', onChange }),
@@ -393,27 +416,6 @@ describe('StudioInputTable', () => {
           },
         },
       },
-      numberfield: {
-        change: {
-          render: (onChange) =>
-            renderSingleNumberfieldCell({
-              label: 'test',
-              onChange: (value: number) => onChange({ target: { value } } as any),
-            }),
-          action: (user) => user.type(screen.getByRole('textbox'), '1.23'),
-        },
-        focus: {
-          render: (onFocus) => renderSingleNumberfieldCell({ label: 'test', onFocus }),
-          action: (user) => user.click(screen.getByRole('textbox')),
-        },
-        blur: {
-          render: (onBlur) => renderSingleNumberfieldCell({ label: 'test', onBlur }),
-          action: async (user) => {
-            await user.click(screen.getByRole('textbox'));
-            await user.tab();
-          },
-        },
-      },
     };
 
     describe.each(Object.keys(testCases))('%s input level events', (key) => {
@@ -467,6 +469,16 @@ const renderSingleTextfieldCell = (
     </SingleRow>,
   );
 
+const renderSingleNumberfieldCell = (
+  props: CellNumberfieldProps,
+  ref?: ForwardedRef<HTMLInputElement>,
+): RenderResult =>
+  render(
+    <SingleRow>
+      <StudioInputTable.Cell.Numberfield {...props} ref={ref} />
+    </SingleRow>,
+  );
+
 const renderSingleTextareaCell = (
   props: CellTextareaProps,
   ref?: ForwardedRef<HTMLTextAreaElement>,
@@ -507,16 +519,6 @@ const renderSingleTextResourceCell = (
     </SingleRow>,
   );
 
-const renderSingleNumberfieldCell = (
-  props: CellNumberfieldProps,
-  ref?: ForwardedRef<HTMLInputElement>,
-): RenderResult =>
-  render(
-    <SingleRow>
-      <StudioInputTable.Cell.Numberfield {...props} ref={ref} />
-    </SingleRow>,
-  );
-
 const getTable = (): HTMLTableElement => screen.getByRole('table');
 const getCheckbox = (name: string): HTMLInputElement =>
   screen.getByRole('checkbox', { name }) as HTMLInputElement;
@@ -525,6 +527,8 @@ const getCheckboxInRow = (rowNumber: number): HTMLInputElement =>
 const getTextbox = (name: string) => screen.getByRole('textbox', { name });
 const getTextfieldInRow = (rowNumber: number): HTMLInputElement =>
   getTextbox(textfieldLabel(rowNumber)) as HTMLInputElement;
+const getNumberfieldInRow = (rowNumber: number): HTMLInputElement =>
+  getTextbox(numberfieldLabel(rowNumber)) as HTMLInputElement;
 const getTextareaInRow = (rowNumber: number): HTMLTextAreaElement =>
   getTextbox(textareaLabel(rowNumber)) as HTMLTextAreaElement;
 const getButton = (name: string): HTMLButtonElement =>
@@ -537,8 +541,6 @@ const getTextResourceComboboxInRow = (rowNumber: number): HTMLInputElement =>
   screen.getByRole('combobox', { name: textResourcePickerLabel(rowNumber) }) as HTMLInputElement;
 const getSearchButtonInRow = (rowNumber: number): HTMLButtonElement =>
   screen.getByRole('radio', { name: textResourceSearchLabel(rowNumber) }) as HTMLButtonElement;
-const getNumberfieldInRow = (rowNumber: number): HTMLInputElement =>
-  getTextbox(numberfieldLabel(rowNumber)) as HTMLInputElement;
 
 const expectCaretPosition = (
   element: HTMLInputElement | HTMLTextAreaElement,

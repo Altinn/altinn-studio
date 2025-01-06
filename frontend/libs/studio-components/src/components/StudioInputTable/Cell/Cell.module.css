@@ -18,9 +18,9 @@
 
 :is(
     .textfieldCell:not(:hover) input,
+    .numberfieldCell:not(:hover) input,
     .textareaCell:not(:hover) textarea,
-    .textResourceCell:not(:hover) input,
-    .numberCell:not(:hover) input
+    .textResourceCell:not(:hover) input
   ):not(:hover):not(:active):not(:focus),
 .textResourceCell:not(:hover) div:has(input:not(:hover):not(:active):not(:focus)) {
   background-color: transparent;

@@ -11,7 +11,7 @@ import { useEventProps } from './useEventProps';
 
 export type CellNumberfieldProps = StudioDecimalInputProps;
 
-export class CellNumberfield extends BaseInputCell<HTMLInputElement, StudioDecimalInputProps> {
+export class CellNumberfield extends BaseInputCell<HTMLInputElement, CellNumberfieldProps> {
   render(
     { className: givenClass, onFocus, ...rest }: CellNumberfieldProps,
     ref: ForwardedRef<HTMLInputElement>,
@@ -32,7 +32,7 @@ export class CellNumberfield extends BaseInputCell<HTMLInputElement, StudioDecim
       ...rest,
     });
 
-    const className = cn(classes.numberCell, givenClass);
+    const className = cn(classes.numberfieldCell, givenClass);
 
     return (
       <StudioTable.Cell className={className}>
