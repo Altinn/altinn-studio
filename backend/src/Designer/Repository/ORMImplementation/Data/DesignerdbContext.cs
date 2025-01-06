@@ -18,6 +18,7 @@ public class DesignerdbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseSerialColumns();
+        modelBuilder.ApplyConfiguration(new BuildConfiguration());
         modelBuilder.ApplyConfiguration(new DeploymentConfiguration());
         modelBuilder.ApplyConfiguration(new ReleaseConfiguration());
         modelBuilder.ApplyConfiguration(new AppScopesConfiguration());

@@ -18,5 +18,10 @@ public partial class Deployment
 
     public DateTime Created { get; set; }
 
+    public string CreatedBy { get; set; } = null!;
+
     public string Entity { get; set; } = null!;
+
+    public long InternalBuildId { get; set; }
+    public BuildDbObject Build { get; set; } = null!;
 }

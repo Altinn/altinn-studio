@@ -46,5 +46,17 @@ public class DeploymentConfiguration : IEntityTypeConfiguration<Deployment>
         builder.Property(e => e.Tagname)
             .HasColumnType("character varying")
             .HasColumnName("tagname");
+
+        builder.Property(e => e.CreatedBy)
+            .HasColumnType("character varying")
+            .HasColumnName("created_by");
+
+        builder.Property(e => e.InternalBuildId)
+            .HasColumnName("internal_build_id");
+
+        builder.HasOne(d => d.Build)
+            .WithMany()
+            .HasForeignKey(d => d.InternalBuildId)
+            .HasConstraintName("fk_deployments_builds_buildid");
     }
 }
