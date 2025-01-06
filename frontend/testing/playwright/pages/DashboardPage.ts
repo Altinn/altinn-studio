@@ -93,7 +93,7 @@ export class DashboardPage extends BasePage {
   }
 
   public async typeInSearchField(word: string): Promise<void> {
-    await this.page.getByLabel(this.textMock('dashboard.search')).fill(word);
+    await this.page.getByPlaceholder(this.textMock('dashboard.search')).fill(word);
   }
 
   public async clickOnTestAppGiteaButton(appName: string): Promise<void> {
