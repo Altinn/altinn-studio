@@ -1,7 +1,7 @@
 import React from 'react';
 import classes from './ContactPage.module.css';
 import { Trans, useTranslation } from 'react-i18next';
-import { EnvelopeClosedIcon, SlackIcon, GitHubIcon } from '@studio/icons';
+import { EnvelopeClosedIcon, SlackIcon, GitHubIcon, PersonHeadsetIcon } from '@studio/icons';
 import { GetInTouchWith } from 'app-shared/getInTouch';
 import {
   EmailContactProvider,
@@ -14,6 +14,7 @@ import {
   StudioParagraph,
 } from '@studio/components';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
+import { ContactServiceDesk } from '../../components/ContactServiceDesk';
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -57,6 +58,12 @@ export const ContactPage = (): React.ReactElement => {
         href: contactByGitHubIssue.url('choose'),
       },
       Icon: GitHubIcon,
+    },
+    {
+      title: t('contact.altinn_servicedesk.heading'),
+      additionalContent: <ContactServiceDesk />,
+      description: t('contact.altinn_servicedesk.content'),
+      Icon: PersonHeadsetIcon,
     },
   ];
 

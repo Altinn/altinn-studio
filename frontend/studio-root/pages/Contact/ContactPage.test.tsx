@@ -33,6 +33,12 @@ describe('ContactPage', () => {
     expect(screen.getByRole('link', { name: textMock('contact.slack.link') })).toBeInTheDocument();
   });
 
+  it('should display contact information to "Altinn Servicedesk"', () => {
+    render(<ContactPage />);
+    expect(screen.getByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }));
+    expect(screen.getByText(textMock('contact.altinn_servicedesk.content')));
+  });
+
   it('should display the bug report and feature request section with its content and link', () => {
     render(<ContactPage />);
 
