@@ -108,7 +108,7 @@ export const getDataModel = (owner: string, app: string, modelPath: string) => g
 export const getDataModelMetadata = (owner: string, app: string, layoutSetName: string, dataModelName: string) => get<DataModelMetadataResponse>(dataModelMetadataPath(owner, app, layoutSetName, dataModelName));
 export const getDataModelsJson = (owner: string, app: string) => get<DataModelMetadataJson[]>(dataModelsPath(owner, app));
 export const getDataModelsXsd = (owner: string, app: string) => get<DataModelMetadataXsd[]>(dataModelsXsdPath(owner, app));
-export const getDataType = (owner: string, app: string, dataModelName: string) => get<DataType>(dataTypePath(owner, app, dataModelName));
+export const getDataType = (org: string, app: string, dataModelName: string) => get<DataType>(dataTypePath(org, app, dataModelName));
 export const getDeployPermissions = (owner: string, app: string) => get<string[]>(deployPermissionsPath(owner, app));
 export const getDeployments = (owner: string, app: string) => get<DeploymentsResponse>(deploymentsPath(owner, app, 'Descending'));
 export const getEnvironments = () => get<Environment[]>(envConfigPath());
