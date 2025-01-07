@@ -35,16 +35,17 @@ describe('PDF', () => {
       beforeReload: () => {
         cy.setCookie('altinn-telemetry-traceparent', traceparentValue, cookieOptions);
         cy.setCookie('altinn-telemetry-tracestate', tracestateValue, cookieOptions);
-        cy.intercept(`**`).as('allRequests');
+        cy.intercept({
+          url: new RegExp(domain),
+          headers: {
+            cookie: new RegExp('altinn-telemetry-traceparent='),
+          },
+          resourceType: 'xhr',
+        }).as('allRequests');
       },
       callback: () => {
         cy.get('@allRequests.all').then((_intercepts) => {
-          const intercepts = (_intercepts as unknown as Interception[]).filter(
-            (intercept) =>
-              intercept.request.resourceType === 'xhr' &&
-              intercept.request.url.includes(domain) &&
-              intercept.request.headers['cookie'].includes('altinn-telemetry-traceparent='),
-          );
+          const intercepts = _intercepts as unknown as Interception[];
           expect(intercepts.length).to.be.greaterThan(10);
           for (const intercept of intercepts) {
             const { request } = intercept;
