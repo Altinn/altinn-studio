@@ -15,6 +15,7 @@ using Altinn.Studio.Designer.Exceptions.AppDevelopment;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Models.App;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.TypedHttpClients.Exceptions;
 using LibGit2Sharp;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -504,6 +505,94 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             return layoutSettings;
         }
 
+        /// <summary>
+        /// Finds all <see cref="RefToOptionListSpecifier"/> in a given layout.
+        /// </summary>
+        /// <param name="layout">The layout.</param>
+        /// <param name="refToOptionListSpecifiers">A list of occurrences to append any optionListIdRefs in the layout to.</param>
+        /// <param name="layoutSetName">The layoutSetName the layout belongs to.</param>
+        /// <param name="layoutName">The name of the given layout.</param>
+        /// <returns>A list of <see cref="RefToOptionListSpecifier"/>.</returns>
+        public List<RefToOptionListSpecifier> FindOptionListReferencesInLayout(JsonNode layout, List<RefToOptionListSpecifier> refToOptionListSpecifiers, string layoutSetName, string layoutName)
+        {
+            var optionListIds = GetOptionsListIds();
+            var layoutArray = layout["data"]?["layout"] as JsonArray;
+            if (layoutArray == null)
+            {
+                return refToOptionListSpecifiers;
+            }
+
+            foreach (var item in layoutArray)
+            {
+                string optionListId = item["optionsId"]?.ToString();
+
+                if (!optionListIds.Contains(optionListId))
+                {
+                    continue;
+                }
+
+                if (!String.IsNullOrEmpty(optionListId))
+                {
+                    if (OptionListIdAlreadyOccurred(refToOptionListSpecifiers, optionListId, out var existingRef))
+                    {
+                        if (OptionListIdAlreadyOccurredInLayout(existingRef, layoutSetName, layoutName, out var existingSource))
+                        {
+                            existingSource.ComponentIds.Add(item["id"]?.ToString());
+                        }
+                        else
+                        {
+                            AddNewOptionListIdSource(existingRef, layoutSetName, layoutName, item["id"]?.ToString());
+                        }
+                    }
+                    else
+                    {
+                        AddNewRefToOptionListSpecifier(refToOptionListSpecifiers, optionListId, layoutSetName, layoutName, item["id"]?.ToString());
+                    }
+                }
+            }
+            return refToOptionListSpecifiers;
+        }
+
+        private bool OptionListIdAlreadyOccurred(List<RefToOptionListSpecifier> refToOptionListSpecifiers, string optionListId, out RefToOptionListSpecifier existingRef)
+        {
+            existingRef = refToOptionListSpecifiers.FirstOrDefault(refToOptionList => refToOptionList.OptionListId == optionListId);
+            return existingRef != null;
+        }
+
+        private bool OptionListIdAlreadyOccurredInLayout(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, out OptionListIdSource existingSource)
+        {
+            existingSource = refToOptionListSpecifier.OptionListIdSources
+                .FirstOrDefault(optionListIdSource => optionListIdSource.LayoutSetId == layoutSetName && optionListIdSource.LayoutName == layoutName);
+            return existingSource != null;
+        }
+
+        private void AddNewRefToOptionListSpecifier(List<RefToOptionListSpecifier> refToOptionListSpecifiers, string optionListId, string layoutSetName, string layoutName, string componentId)
+        {
+            refToOptionListSpecifiers.Add(new()
+            {
+                OptionListId = optionListId,
+                OptionListIdSources =
+                [
+                    new OptionListIdSource
+                    {
+                        LayoutSetId = layoutSetName,
+                        LayoutName = layoutName,
+                        ComponentIds = [componentId]
+                    }
+                ]
+            });
+        }
+
+        private void AddNewOptionListIdSource(RefToOptionListSpecifier refToOptionListSpecifier, string layoutSetName, string layoutName, string componentId)
+        {
+            refToOptionListSpecifier.OptionListIdSources.Add(new OptionListIdSource
+            {
+                LayoutSetId = layoutSetName,
+                LayoutName = layoutName,
+                ComponentIds = [componentId]
+            });
+        }
+
         private async Task CreateLayoutSettings(string layoutSetName)
         {
             string layoutSetPath = GetPathToLayoutSet(layoutSetName);
@@ -815,9 +904,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         public Definitions GetDefinitions()
         {
-            Stream processDefinitionStream = GetProcessDefinitionFile();
+            using Stream processDefinitionStream = GetProcessDefinitionFile();
             XmlSerializer serializer = new(typeof(Definitions));
-            return (Definitions)serializer.Deserialize(processDefinitionStream);
+            Definitions definitions = (Definitions)serializer.Deserialize(processDefinitionStream);
+
+            return definitions;
         }
 
         /// <summary>

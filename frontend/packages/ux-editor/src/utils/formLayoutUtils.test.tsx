@@ -20,7 +20,6 @@ import {
   removeComponent,
   removeComponentsByType,
   updateContainer,
-  validateDepth,
   findLayoutsContainingDuplicateComponents,
   getAllDescendants,
   getAllFormItemIds,
@@ -494,23 +493,6 @@ describe('formLayoutUtils', () => {
       };
       layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
       expect(getDepth(layout)).toBe(3);
-    });
-  });
-
-  describe('validateDepth', () => {
-    it('Returns true if the depth is valid', () => {
-      expect(validateDepth(mockInternal)).toBe(true);
-    });
-
-    it('Returns false if the depth is invalid', () => {
-      let layout = ObjectUtils.deepCopy(mockInternal);
-      const container: FormContainer<ComponentType.Group> = {
-        id: groupInGroupId,
-        itemType: 'CONTAINER',
-        type: ComponentType.Group,
-      };
-      layout = addContainer(layout, container, 'groupingroupingroup', groupInGroupId);
-      expect(validateDepth(layout)).toBe(false);
     });
   });
 

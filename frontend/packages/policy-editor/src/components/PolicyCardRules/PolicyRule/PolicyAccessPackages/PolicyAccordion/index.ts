@@ -1,0 +1,1 @@
+export { PolicyAccordion } from './PolicyAccordion';

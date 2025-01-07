@@ -1,8 +1,8 @@
 import { QueryKey } from 'app-shared/types/QueryKey';
-import type { OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type { OptionsListsResponse } from 'app-shared/types/api/OptionsLists';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useServicesContext } from 'app-shared/contexts/ServicesContext';
-import { ObjectUtils } from '@studio/pure-functions';
+import { ArrayUtils } from '@studio/pure-functions';
 
 export interface UpdateOptionListIdMutationArgs {
   optionListId: string;
@@ -21,9 +21,15 @@ export const useUpdateOptionListIdMutation = (org: string, app: string) => {
       }));
     },
     onSuccess: ({ optionListId, newOptionListId }) => {
-      const oldData: OptionsLists = queryClient.getQueryData([QueryKey.OptionLists, org, app]);
+      const oldData: OptionsListsResponse = queryClient.getQueryData([
+        QueryKey.OptionLists,
+        org,
+        app,
+      ]);
       const ascSortedData = changeIdAndSortCacheData(optionListId, newOptionListId, oldData);
       queryClient.setQueryData([QueryKey.OptionLists, org, app], ascSortedData);
+      // Currently we only need to remove the old and not set the new, since mutating the Id only happens from the library which uses the large OptionLists cache
+      queryClient.removeQueries({ queryKey: [QueryKey.OptionList, org, app, optionListId] });
       queryClient.invalidateQueries({ queryKey: [QueryKey.OptionListIds, org, app] });
     },
   });
@@ -32,10 +38,13 @@ export const useUpdateOptionListIdMutation = (org: string, app: string) => {
 const changeIdAndSortCacheData = (
   oldId: string,
   newId: string,
-  oldData: OptionsLists,
-): OptionsLists => {
-  const newData = { ...oldData };
-  delete newData[oldId];
-  newData[newId] = oldData[oldId];
-  return ObjectUtils.sortEntriesInObjectByKeys(newData);
+  oldData: OptionsListsResponse,
+): OptionsListsResponse => {
+  const oldOptionList = oldData.find((optionList) => optionList.title === oldId);
+  const newOptionLists: OptionsListsResponse = ArrayUtils.replaceByPredicate(
+    oldData,
+    (optionList) => optionList.title === oldId,
+    { ...oldOptionList, title: newId },
+  );
+  return newOptionLists.sort((a, b) => a.title.localeCompare(b.title));
 };

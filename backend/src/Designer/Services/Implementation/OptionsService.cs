@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.Designer.Exceptions.Options;
 using Altinn.Studio.Designer.Infrastructure.GitRepository;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Altinn.Studio.Designer.Services.Interfaces;
 using LibGit2Sharp;
 using Microsoft.AspNetCore.Http;
@@ -62,8 +63,31 @@ public class OptionsService : IOptionsService
             throw new InvalidOptionsFormatException($"One or more of the options have an invalid format in option list: {optionsListId}.");
         }
 
-
         return optionsList;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        AltinnAppGitRepository altinnAppGitRepository =
+            _altinnGitRepositoryFactory.GetAltinnAppGitRepository(altinnRepoEditingContext.Org,
+                altinnRepoEditingContext.Repo, altinnRepoEditingContext.Developer);
+
+        List<RefToOptionListSpecifier> optionsListReferences = new List<RefToOptionListSpecifier>();
+
+        string[] layoutSetNames = altinnAppGitRepository.GetLayoutSetNames();
+        foreach (string layoutSetName in layoutSetNames)
+        {
+            string[] layoutNames = altinnAppGitRepository.GetLayoutNames(layoutSetName);
+            foreach (var layoutName in layoutNames)
+            {
+                var layout = await altinnAppGitRepository.GetLayout(layoutSetName, layoutName, cancellationToken);
+                optionsListReferences = altinnAppGitRepository.FindOptionListReferencesInLayout(layout, optionsListReferences, layoutSetName, layoutName);
+            }
+        }
+
+        return optionsListReferences;
     }
 
     private void ValidateOption(Option option)

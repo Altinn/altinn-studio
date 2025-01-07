@@ -2,55 +2,19 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { StudioCodeListEditorProps } from './StudioCodeListEditor';
 import { StudioCodeListEditor } from './StudioCodeListEditor';
-import type { CodeListEditorTexts } from './types/CodeListEditorTexts';
 import type { CodeList } from './types/CodeList';
 import userEvent from '@testing-library/user-event';
+import { codeListWithoutTextResources } from './test-data/codeListWithoutTextResources';
+import { texts } from './test-data/texts';
 
 // Test data:
-const texts: CodeListEditorTexts = {
-  add: 'Add',
-  codeList: 'Code list',
-  delete: 'Delete',
-  deleteItem: (number) => `Delete item number ${number}`,
-  description: 'Description',
-  emptyCodeList: 'The code list is empty.',
-  valueErrors: {
-    duplicateValue: 'The value must be unique.',
-  },
-  generalError: 'The code list cannot be saved because it is not valid.',
-  helpText: 'Help text',
-  itemDescription: (number) => `Description for item number ${number}`,
-  itemHelpText: (number) => `Help text for item number ${number}`,
-  itemLabel: (number) => `Label for item number ${number}`,
-  itemValue: (number) => `Value for item number ${number}`,
-  label: 'Label',
-  value: 'Value',
-};
-const codeList: CodeList = [
-  {
-    label: 'Test 1',
-    value: 'test1',
-    description: 'Test 1 description',
-    helpText: 'Test 1 help text',
-  },
-  {
-    label: 'Test 2',
-    value: 'test2',
-    description: 'Test 2 description',
-    helpText: 'Test 2 help text',
-  },
-  {
-    label: 'Test 3',
-    value: 'test3',
-    description: 'Test 3 description',
-    helpText: 'Test 3 help text',
-  },
-];
+const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
-  codeList,
+  codeList: codeListWithoutTextResources,
   texts,
+  onBlurAny,
   onChange,
   onInvalid,
 };
@@ -89,7 +53,7 @@ describe('StudioCodeListEditor', () => {
   it('Renders a table of code list items', () => {
     renderCodeListEditor();
     expect(screen.getByRole('table')).toBeInTheDocument();
-    const numberOfCodeListItems = codeList.length;
+    const numberOfCodeListItems = codeListWithoutTextResources.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRows);
   });
@@ -119,12 +83,11 @@ describe('StudioCodeListEditor', () => {
     const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
     const newValue = 'new text';
     await user.type(labelInput, newValue);
-    await user.tab();
-    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeList[0], label: newValue },
-      codeList[1],
-      codeList[2],
+      { ...codeListWithoutTextResources[0], label: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
     ]);
   });
 
@@ -134,12 +97,11 @@ describe('StudioCodeListEditor', () => {
     const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
     const newValue = 'new text';
     await user.type(valueInput, newValue);
-    await user.tab();
-    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeList[0], value: newValue },
-      codeList[1],
-      codeList[2],
+      { ...codeListWithoutTextResources[0], value: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
     ]);
   });
 
@@ -149,12 +111,11 @@ describe('StudioCodeListEditor', () => {
     const descriptionInput = screen.getByRole('textbox', { name: texts.itemDescription(1) });
     const newValue = 'new text';
     await user.type(descriptionInput, newValue);
-    await user.tab();
-    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeList[0], description: newValue },
-      codeList[1],
-      codeList[2],
+      { ...codeListWithoutTextResources[0], description: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
     ]);
   });
 
@@ -164,12 +125,11 @@ describe('StudioCodeListEditor', () => {
     const helpTextInput = screen.getByRole('textbox', { name: texts.itemHelpText(1) });
     const newValue = 'new text';
     await user.type(helpTextInput, newValue);
-    await user.tab();
-    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledTimes(newValue.length);
     expect(onChange).toHaveBeenLastCalledWith([
-      { ...codeList[0], helpText: newValue },
-      codeList[1],
-      codeList[2],
+      { ...codeListWithoutTextResources[0], helpText: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
     ]);
   });
 
@@ -179,7 +139,10 @@ describe('StudioCodeListEditor', () => {
     const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
     await user.click(deleteButton);
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith([codeList[1], codeList[2]]);
+    expect(onChange).toHaveBeenCalledWith([
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
+    ]);
   });
 
   it('Calls the onChange callback with the new code list when an item is added', async () => {
@@ -188,7 +151,7 @@ describe('StudioCodeListEditor', () => {
     await userEvent.click(addButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
-      ...codeList,
+      ...codeListWithoutTextResources,
       {
         label: '',
         value: '',
@@ -196,10 +159,25 @@ describe('StudioCodeListEditor', () => {
     ]);
   });
 
+  it('Calls the onBlurAny callback with the current code list when an item in the table is blurred', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const valueInput = screen.getByRole('textbox', { name: texts.itemValue(1) });
+    const newValue = 'new text';
+    await user.type(valueInput, newValue);
+    await user.tab();
+    expect(onBlurAny).toHaveBeenCalledTimes(1);
+    expect(onBlurAny).toHaveBeenLastCalledWith([
+      { ...codeListWithoutTextResources[0], value: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
+    ]);
+  });
+
   it('Updates itself when the user changes something', async () => {
     const user = userEvent.setup();
     renderCodeListEditor();
-    const numberOfCodeListItems = codeList.length;
+    const numberOfCodeListItems = codeListWithoutTextResources.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     const addButton = screen.getByRole('button', { name: texts.add });
     await user.click(addButton);
@@ -220,7 +198,7 @@ describe('StudioCodeListEditor', () => {
       },
     ];
     const { rerender } = renderCodeListEditor();
-    const numberOfCodeListItems = codeList.length;
+    const numberOfCodeListItems = codeListWithoutTextResources.length;
     const expectedNumberOfRows = numberOfCodeListItems + numberOfHeadingRows;
     expect(screen.getAllByRole('row')).toHaveLength(expectedNumberOfRows);
     rerender(<StudioCodeListEditor {...defaultProps} codeList={newCodeList} />);
@@ -267,8 +245,7 @@ describe('StudioCodeListEditor', () => {
     const validValueInput = screen.getByRole('textbox', { name: texts.itemValue(3) });
     const newValue = 'new value';
     await user.type(validValueInput, newValue);
-    await user.tab();
-    expect(onInvalid).toHaveBeenCalledTimes(1);
+    expect(onInvalid).toHaveBeenCalledTimes(newValue.length);
   });
 
   it('Does not trigger onInvalid if an invalid code list is changed to a valid state', async () => {
