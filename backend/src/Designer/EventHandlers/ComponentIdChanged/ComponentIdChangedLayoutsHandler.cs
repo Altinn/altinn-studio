@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Events;
 using Altinn.Studio.Designer.Hubs.SyncHub;
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using MediatR;
 
@@ -13,6 +15,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
 {
     private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
     private readonly IFileSyncHandlerExecutor _fileSyncHandlerExecutor;
+    private readonly IAppDevelopmentService _appDevelopmentService;
 
     public ComponentIdChangedLayoutsHandler(IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
         IFileSyncHandlerExecutor fileSyncHandlerExecutor,
@@ -20,6 +23,7 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
     {
         _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         _fileSyncHandlerExecutor = fileSyncHandlerExecutor;
+        _appDevelopmentService = appDevelopmentService;
     }
 
     public async Task Handle(ComponentIdChangedEvent notification, CancellationToken cancellationToken)
@@ -46,6 +50,10 @@ public class ComponentIdChangedLayoutsHandler : INotificationHandler<ComponentId
                             hasChanges = true;
                         }
                     }
+
+                    List<Reference> referencesToUpdate = [new Reference("component", notification.LayoutSetName, notification.OldComponentId, notification.NewComponentId)];
+                    hasChanges |= await _appDevelopmentService.UpdateLayoutReferences(notification.EditingContext, referencesToUpdate, cancellationToken);
+
                     return hasChanges;
                 });
     }

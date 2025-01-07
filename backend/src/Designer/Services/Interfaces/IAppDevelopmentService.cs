@@ -218,8 +218,8 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Update layout references
         /// </summary>
         /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
-        /// <param name="referencesToUpdate">The references to update.</param>
+        /// <param name="referencesToDelete">The references to delete.</param>
         /// <param name="cancellationToken">An <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
-        public Task<bool> UpdateLayoutReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<Reference> referencesToUpdate, CancellationToken cancellationToken);
+        public Task<bool> UpdateLayoutReferences(AltinnRepoEditingContext altinnRepoEditingContext, List<Reference> referencesToDelete, CancellationToken cancellationToken);
     }
 }
