@@ -1,4 +1,7 @@
-public class BelongsToOrg
+using System.Text.Json.Serialization;
+
+public class BelongsToOrgDto
 {
-    public bool belongsToOrg { get; set; }
+    [JsonPropertyName("belongsToOrg")]
+    public bool BelongsToOrg { get; set; }
 }

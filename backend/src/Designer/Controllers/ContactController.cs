@@ -31,11 +31,11 @@ public class ContactController : ControllerBase
         try
         {
             var organizations = await _giteaService.GetUserOrganizations();
-            return Ok(new { belongsToOrg = organizations.Count > 0 });
+            return Ok(new BelongsToOrgDto{ BelongsToOrg = organizations.Count > 0 });
         }
         catch
         {
-            return Ok(new { belongsToOrg = false });
+            return Ok(new BelongsToOrgDto{ BelongsToOrg = false });
         }
     }
 }
