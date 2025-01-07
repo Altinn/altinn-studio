@@ -14,6 +14,7 @@ public class BuildConfiguration : IEntityTypeConfiguration<BuildDbObject>
 
         builder.Property(e => e.Id)
             .HasColumnName("id")
+            .UseIdentityColumn()
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.ExternalId)
