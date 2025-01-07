@@ -1,16 +1,21 @@
 import type { PagesConfig } from '../src/types/PagesProps';
+import type { CodeListData } from '../src';
+
+export const codeListData: CodeListData = {
+  title: 'CodeList1',
+  data: [{ value: 'value', label: 'label' }],
+  hasError: false,
+};
+export const codeListsDataMock: CodeListData[] = [codeListData];
 
 export const mockPagesConfig: PagesConfig = {
   codeList: {
     props: {
-      codeLists: [
-        { title: 'CodeList1', codeList: [] },
-        { title: 'CodeList2', codeList: [] },
-      ],
+      codeListsData: codeListsDataMock,
       onUpdateCodeListId: () => {},
       onUpdateCodeList: () => {},
       onUploadCodeList: () => {},
-      fetchDataError: false,
+      codeListsUsages: [],
     },
   },
   images: {

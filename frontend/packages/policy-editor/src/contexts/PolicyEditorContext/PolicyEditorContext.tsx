@@ -1,11 +1,13 @@
 import React, { createContext, useContext } from 'react';
 import type { PolicyAction, PolicyEditorUsage, PolicyRuleCard, PolicySubject } from '../../types';
+import type { PolicyAccessPackageAreaGroup } from 'app-shared/types/PolicyAccessPackages';
 
 export type PolicyEditorContextProps = {
   policyRules: PolicyRuleCard[];
   setPolicyRules: React.Dispatch<React.SetStateAction<PolicyRuleCard[]>>;
   actions: PolicyAction[];
   subjects: PolicySubject[];
+  accessPackages: PolicyAccessPackageAreaGroup[];
   usageType: PolicyEditorUsage;
   resourceType: string;
   resourceId: string;

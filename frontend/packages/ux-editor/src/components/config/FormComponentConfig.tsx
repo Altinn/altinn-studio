@@ -216,7 +216,7 @@ export const FormComponentConfig = ({
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
+            helpText={t('ux_editor.component_properties.preselected_help_text')}
             enumValues={properties[propertyKey]?.enum}
           />
         );
