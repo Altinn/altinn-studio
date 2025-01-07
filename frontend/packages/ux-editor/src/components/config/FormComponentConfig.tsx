@@ -19,6 +19,7 @@ import { RedirectToLayoutSet } from './editModal/RedirectToLayoutSet';
 import { ChevronDownIcon, ChevronUpIcon } from '@studio/icons';
 import { StudioProperty } from '@studio/components';
 import { TextResource } from '../TextResource/TextResource';
+import { CollapsiblePropertyEditor } from './CollapsiblePropertyEditor';
 
 export interface IEditFormComponentProps {
   editFormId: string;
@@ -130,6 +131,36 @@ export const FormComponentConfig = ({
           />
         </TextResource>
       )}
+      {/** String properties */}
+      {stringPropertyKeys.map((propertyKey) => {
+        const isSortOrder = propertyKey === 'sortOrder';
+        if (isSortOrder) {
+          return (
+            <CollapsiblePropertyEditor
+              key={propertyKey}
+              label={t('ux_editor.component_properties.sortOrder')}
+            >
+              <EditStringValue
+                component={component}
+                handleComponentChange={handleComponentUpdate}
+                propertyKey={propertyKey}
+                helpText={isSortOrder ? '' : properties[propertyKey]?.description}
+                enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+              />
+            </CollapsiblePropertyEditor>
+          );
+        }
+        return (
+          <EditStringValue
+            component={component}
+            handleComponentChange={handleComponentUpdate}
+            propertyKey={propertyKey}
+            key={propertyKey}
+            helpText={properties[propertyKey]?.description}
+            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
+          />
+        );
+      })}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
           {t('ux_editor.component_other_properties_title')}
@@ -193,20 +224,6 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
-
-      {/** String properties */}
-      {stringPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={properties[propertyKey]?.description}
-            enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
-          />
-        );
-      })}
 
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
