@@ -47,13 +47,22 @@ const updateListInOptionListsData = (
   updatedOptionList: OptionsList,
   oldData: OptionsListsResponse,
 ): OptionsListsResponse => {
-  const oldOptionsListData: OptionsListData = oldData.find(
-    (optionListData) => optionListData.title === optionListId,
-  );
-  if (!!oldOptionsListData) {
+  const [oldOptionsListData, optionListExists]: [OptionsListData | undefined, boolean] =
+    getOldOptionsListData(oldData, optionListId);
+  if (optionListExists) {
     return updateExistingOptionList(oldData, oldOptionsListData, updatedOptionList);
   }
   return addNewOptionList(oldData, optionListId, updatedOptionList);
+};
+
+const getOldOptionsListData = (
+  oldData: OptionsListsResponse,
+  optionListId: string,
+): [OptionsListData | undefined, boolean] => {
+  const oldOptionsListData = oldData.find(
+    (optionListData) => optionListData.title === optionListId,
+  );
+  return [oldOptionsListData, !!oldOptionsListData];
 };
 
 const updateExistingOptionList = (
