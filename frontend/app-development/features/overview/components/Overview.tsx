@@ -9,7 +9,7 @@ import { Deployments } from './Deployments';
 import { Header } from './Header';
 import { StudioPageImageBackgroundContainer } from '@studio/components';
 
-export const Overview = () => {
+export default function Overview() {
   const { t } = useTranslation();
 
   return (
@@ -43,4 +43,4 @@ export const Overview = () => {
       </main>
     </StudioPageImageBackgroundContainer>
   );
-};
+}

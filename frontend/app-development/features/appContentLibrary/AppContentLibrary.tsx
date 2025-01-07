@@ -17,7 +17,7 @@ import {
 } from 'app-shared/hooks/mutations';
 import { mapToCodeListsUsage } from './utils/mapToCodeListsUsage';
 
-export function AppContentLibrary(): React.ReactElement {
+export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: optionListsData, isPending: optionListsDataPending } = useOptionListsQuery(
