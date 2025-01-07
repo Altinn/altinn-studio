@@ -123,27 +123,24 @@ namespace Altinn.Studio.Designer.Controllers
 
                 if (formLayoutPayload.ComponentIdsChange is not null && !string.IsNullOrEmpty(layoutSetName))
                 {
-                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange)
+                    foreach (var componentIdChange in formLayoutPayload.ComponentIdsChange.Where((componentIdChange) => componentIdChange.OldComponentId != componentIdChange.NewComponentId))
                     {
-                        if (componentIdChange.OldComponentId != componentIdChange.NewComponentId)
+                        if (componentIdChange.NewComponentId == null)
                         {
-                            if (componentIdChange.NewComponentId == null)
+                            await _mediator.Publish(new ComponentDeletedEvent
                             {
-                                await _mediator.Publish(new ComponentDeletedEvent
-                                {
-                                    ComponentId = componentIdChange.OldComponentId,
-                                    LayoutSetName = layoutSetName,
-                                    EditingContext = editingContext
-                                }, cancellationToken);
-                            }
-                            await _mediator.Publish(new ComponentIdChangedEvent
-                            {
-                                OldComponentId = componentIdChange.OldComponentId,
-                                NewComponentId = componentIdChange.NewComponentId,
+                                ComponentId = componentIdChange.OldComponentId,
                                 LayoutSetName = layoutSetName,
                                 EditingContext = editingContext
                             }, cancellationToken);
                         }
+                        await _mediator.Publish(new ComponentIdChangedEvent
+                        {
+                            OldComponentId = componentIdChange.OldComponentId,
+                            NewComponentId = componentIdChange.NewComponentId,
+                            LayoutSetName = layoutSetName,
+                            EditingContext = editingContext
+                        }, cancellationToken);
                     }
                 }
                 if (!formLayouts.ContainsKey(layoutName))
