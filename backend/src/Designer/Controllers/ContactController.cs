@@ -21,7 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet("belongs-to-org")]
         public async Task<IActionResult> BelongsToOrg()
         {
-            bool isNotAuthenticated = string.IsNullOrEmpty(AuthenticationHelper.GetDeveloperUserName(HttpContext));
+            bool isNotAuthenticated = !AuthenticationHelper.IsAuthenticated(HttpContext);
             if (isNotAuthenticated)
             {
                 return Ok(new BelongsToOrgDto { BelongsToOrg = false });
