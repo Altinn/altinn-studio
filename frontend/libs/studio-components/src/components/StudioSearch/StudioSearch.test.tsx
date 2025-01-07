@@ -18,6 +18,13 @@ describe('StudioSearch', () => {
   it('should allow custom attributes', () => {
     testCustomAttributes(renderTestSearch, getSearchBox);
   });
+
+  it('should find search component with label name', () => {
+    const label = 'Search for something';
+    renderTestSearch({ label });
+    const search = screen.getByRole('searchbox', { name: label });
+    expect(search).toBeInTheDocument();
+  });
 });
 
 const renderTestSearch = (

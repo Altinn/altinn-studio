@@ -55,7 +55,9 @@ describe('TextEditor', () => {
     renderTextEditor();
 
     const search = '1';
-    const searchInput = screen.getByRole('searchbox');
+    const searchInput = screen.getByRole('searchbox', {
+      name: textMock('text_editor.search_for_text'),
+    });
     await user.type(searchInput, search);
 
     expect(mockSetSearchParams).toHaveBeenCalledWith({ search });

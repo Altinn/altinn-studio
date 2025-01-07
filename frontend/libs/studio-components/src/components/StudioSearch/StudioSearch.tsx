@@ -10,8 +10,8 @@ const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
     const showLabel = !!label;
     return showLabel ? (
       <StudioFieldset legend={legend}>
-        <Label>{label}</Label>
-        <Search {...rest} size={size} ref={ref} />
+        <Label htmlFor='searchId'>{label}</Label>
+        <Search {...rest} id='searchId' size={size} ref={ref} />
       </StudioFieldset>
     ) : (
       <Search {...rest} size={size} ref={ref} />
