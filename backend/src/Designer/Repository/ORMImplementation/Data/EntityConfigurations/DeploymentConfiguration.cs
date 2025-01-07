@@ -23,6 +23,10 @@ public class DeploymentConfiguration : IEntityTypeConfiguration<Deployment>
             .HasColumnType("character varying")
             .HasColumnName("app");
 
+        builder.Property(e => e.EnvName)
+            .HasColumnType("character varying")
+            .HasColumnName("envname");
+
         builder.Property(e => e.Buildid)
             .HasColumnType("character varying")
             .HasColumnName("buildid");

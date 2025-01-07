@@ -36,7 +36,8 @@ BEGIN
                 -- Update the internal_build_id and created_by columns in the deployments table
                 UPDATE designer.deployments
                 SET internal_build_id = new_build_id,
-                    created_by = entity_data->>'createdBy'
+                    created_by = entity_data->>'createdBy',
+                    envname = entity_data->>'envName'
                 WHERE sequenceno = rec.sequenceno;
             END LOOP;
 

@@ -13,7 +13,6 @@ public partial class Deployment
     public string Org { get; set; } = null!;
 
     public string App { get; set; } = null!;
-    
 
     public string EnvName { get; set; } = null!;
 
