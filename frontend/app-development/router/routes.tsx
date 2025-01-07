@@ -1,11 +1,27 @@
-import { Overview } from '../features/overview/components/Overview';
-import { TextEditor } from '../features/textEditor/TextEditor';
-import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
-import { DeployPage } from '../features/appPublish/pages/DeployPage';
-import { ProcessEditor } from 'app-development/features/processEditor';
+import React from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
-import { AppContentLibrary } from 'app-development/features/appContentLibrary';
-import { UiEditor } from 'app-development/features/uiEditor/UiEditor';
+import type { AppVersion } from 'app-shared/types/AppVersion';
+import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
+import { usePreviewContext } from '../contexts/PreviewContext';
+import { useLayoutContext } from '../contexts/LayoutContext';
+import { StudioPageSpinner, useLocalStorage } from '@studio/components';
+import { useTranslation } from 'react-i18next';
+import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
+import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
+const UiEditor = React.lazy(() => import('app-development/features/uiEditor/UiEditor'));
+const ProcessEditor = React.lazy(
+  () => import('app-development/features/processEditor/ProcessEditor'),
+);
+const TextEditor = React.lazy(() => import('app-development/features/textEditor/TextEditor'));
+const Overview = React.lazy(() => import('app-development/features/overview/components/Overview'));
+const DataModellingContainer = React.lazy(
+  () => import('app-development/features/dataModelling/containers/DataModellingContainer'),
+);
+const DeployPage = React.lazy(() => import('app-development/features/appPublish/pages/DeployPage'));
+const AppContentLibrary = React.lazy(
+  () => import('app-development/features/appContentLibrary/AppContentLibrary'),
+);
 
 interface RouterRoute {
   path: RoutePaths;
