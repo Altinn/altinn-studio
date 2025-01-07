@@ -13,6 +13,7 @@ import { ErrorMessage } from '@digdir/designsystemet-react';
 import { LoadingTabData } from '../../LoadingTabData';
 import { TabDataError } from '../../TabDataError';
 import {
+  useResourceAccessPackagesQuery,
   useResourcePolicyActionsQuery,
   useResourcePolicySubjectsQuery,
 } from 'app-shared/hooks/queries';
@@ -42,8 +43,14 @@ export const PolicyTab = (): ReactNode => {
 
   const { mutate: updateAppPolicyMutation } = useAppPolicyMutation(org, app);
 
+  const {
+    status: accessPackageStatus,
+    data: accessPackageData,
+    error: accessPackageError,
+  } = useResourceAccessPackagesQuery(org, app);
+
   const displayContent = () => {
-    switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus)) {
+    switch (mergeQueryStatuses(policyStatus, actionStatus, subjectStatus, accessPackageStatus)) {
       case 'pending': {
         return <LoadingTabData />;
       }
@@ -53,6 +60,7 @@ export const PolicyTab = (): ReactNode => {
             {policyError && <ErrorMessage>{policyError.message}</ErrorMessage>}
             {actionError && <ErrorMessage>{actionError.message}</ErrorMessage>}
             {subjectError && <ErrorMessage>{subjectError.message}</ErrorMessage>}
+            {accessPackageError && <ErrorMessage>{accessPackageError.message}</ErrorMessage>}
           </TabDataError>
         );
       }
@@ -75,6 +83,7 @@ export const PolicyTab = (): ReactNode => {
             policy={policyData}
             actions={mergedActionList}
             subjects={mergedSubjectList}
+            accessPackages={accessPackageData}
             onSave={updateAppPolicyMutation}
             showAllErrors
             usageType='app'

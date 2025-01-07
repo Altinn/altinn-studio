@@ -21,6 +21,10 @@ import { app, org } from '@studio/testing/testids';
 import userEvent from '@testing-library/user-event';
 import { user as userMock } from 'app-shared/mocks/mocks';
 
+jest.mock('app-shared/api/mutations', () => ({
+  createPreviewInstance: jest.fn().mockReturnValue(Promise.resolve({ id: 1 })),
+}));
+
 // Test data:
 const defaultTexts: ITextResources = {
   [DEFAULT_LANGUAGE]: [],

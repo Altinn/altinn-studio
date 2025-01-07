@@ -114,6 +114,17 @@ describe('FileNameUtils', () => {
       expect(fileNameError).toBe(FileNameErrorResult.FileExists);
     });
 
+    it('Returns "FileExists" when file name matches regEx and case-insensitive name exists in list', () => {
+      const fileName: string = 'fileName1';
+      const lowerCaseFileName: string = fileName.toLowerCase();
+      const invalidFileNames: string[] = [lowerCaseFileName, 'fileName2', 'fileName3'];
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(
+        fileName,
+        invalidFileNames,
+      );
+      expect(fileNameError).toBe(FileNameErrorResult.FileExists);
+    });
+
     it('Returns null when file name matches regEx and does not exist in list of invalid names', () => {
       const fileName: string = 'fileName';
       const invalidFileNames: string[] = ['fileName2', 'fileName3'];

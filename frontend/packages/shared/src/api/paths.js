@@ -43,6 +43,7 @@ export const ruleHandlerPath = (org, app, layoutSetName) => `${basePath}/${org}/
 export const widgetSettingsPath = (org, app) => `${basePath}/${org}/${app}/app-development/widget-settings`; // Get
 export const optionListPath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Get
 export const optionListsPath = (org, app) => `${basePath}/${org}/${app}/options/option-lists`; // Get
+export const optionListReferencesPath = (org, app) => `${basePath}/${org}/${app}/options/usage`; // Get
 export const optionListIdsPath = (org, app) => `${basePath}/${org}/${app}/app-development/option-list-ids`; // Get
 export const optionListUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/${optionsListId}`; // Put
 export const optionListIdUpdatePath = (org, app, optionsListId) => `${basePath}/${org}/${app}/options/change-name/${optionsListId}`; // Put
@@ -86,9 +87,8 @@ export const languagesPath = (org, app) => `${basePath}/${org}/${app}/languages`
 export const orgsListPath = () => `${basePath}/orgs`; // Get
 
 // Preview
-export const instanceIdForPreviewPath = (org, app) => `${basePath}/${org}/${app}/mock-instance-id`; // Get
-export const previewHash = (taskId, selectedLayout) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${PREVIEW_MOCK_INSTANCE_GUID}/${taskId}/${selectedLayout}`;
-export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout ? previewHash(taskId, selectedLayout) : ''}`;
+export const previewHash = (taskId, selectedLayout, instanceId) => `#/instance/${PREVIEW_MOCK_PARTY_ID}/${instanceId}/${taskId}/${selectedLayout}`;
+export const previewPage = (org, app, selectedLayoutSet, taskId, selectedLayout, instanceId = PREVIEW_MOCK_INSTANCE_GUID) => `/app-specific-preview/${org}/${app}?${s({ selectedLayoutSet })}${taskId && selectedLayout && instanceId ? previewHash(taskId, selectedLayout, instanceId) : ''}`;
 
 // Preview - SignalR Hub
 export const previewSignalRHubSubPath = () => `/previewHub`;
@@ -150,6 +150,8 @@ export const appPolicyPath = (org, app) => `${basePath}/${org}/${app}/policy`; /
 export const resourcePolicyPath = (org, repo, id) => `${basePath}/${org}/${repo}/policy/${id}`; // Get, Put
 export const resourceActionsPath = (org, repo) => `${basePath}/${org}/${repo}/policy/actionoptions`; // Get
 export const resourceSubjectsPath = (org, repo) => `${basePath}/${org}/${repo}/policy/subjectoptions`; // Get
+export const resourceAccessPackagesPath = (org, repo) => `${basePath}/${org}/${repo}/policy/accesspackageoptions`; // Get
+export const resourceAccessPackageServicesPath = (accessPackageUrn, env) => `${basePath}/accesspackageservices/${accessPackageUrn}/${env}`; // Get
 export const resourcePublishStatusPath = (org, repo, id) => `${basePath}/${org}/resources/publishstatus/${repo}/${id}`; // Get
 export const resourceListPath = (org) => `${basePath}/${org}/resources/resourcelist?includeEnvResources=true`; // Get
 export const resourceCreatePath = (org) => `${basePath}/${org}/resources/addresource`; // Post
@@ -169,6 +171,10 @@ export const resourceAccessListsPath = (org, resourceId, env, page) => `${basePa
 export const resourceAccessListPath = (org, resourceId, listId, env) => `${basePath}/${env}/${org}/resources/${resourceId}/accesslists/${listId}`; // Post, Delete, Patch
 export const altinn2DelegationsCountPath = (org, serviceCode, serviceEdition, env) => `${basePath}/${org}/resources/altinn2/delegationcount/${serviceCode}/${serviceEdition}/${env}`; // Get
 export const altinn2DelegationsMigrationPath = (org, env) => `${basePath}/${org}/resources/altinn2/delegationmigration/${env}`; // Post
+
+// Preview
+export const instancesPath = (org, app) => `/${org}/${app}/instances`;
+export const createInstancePath = (org, app, partyId, taskId) => `${instancesPath(org, app)}?instanceOwnerPartyId=${partyId}&taskId=${taskId}`;
 
 // Process Editor
 export const processEditorPath = (org, app) => `${basePath}/${org}/${app}/process-modelling/process-definition`;

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Models;
+using Altinn.Studio.Designer.Models.Dto;
 using Microsoft.AspNetCore.Http;
 
 namespace Altinn.Studio.Designer.Services.Interfaces;
@@ -32,6 +33,14 @@ public interface IOptionsService
     public Task<List<Option>> GetOptionsList(string org, string repo, string developer, string optionsListId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets a list of sources, <see cref="RefToOptionListSpecifier"/>, for all OptionListIds.
+    /// </summary>
+    /// <param name="altinnRepoEditingContext">An <see cref="AltinnRepoEditingContext"/>.</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> that observes if operation is cancelled.</param>
+    /// <returns>A list of <see cref="RefToOptionListSpecifier"/></returns>
+    public Task<List<RefToOptionListSpecifier>> GetAllOptionListReferences(AltinnRepoEditingContext altinnRepoEditingContext, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates a new options list in the app repository.
     /// If the file already exists, it will be overwritten.
     /// </summary>
@@ -47,7 +56,7 @@ public interface IOptionsService
     /// Adds a new option to the option list.
     /// If the file already exists, it will be overwritten.
     /// </summary>
-    /// <param name="org">Orginisation</param>
+    /// <param name="org">Organisation</param>
     /// <param name="repo">Repository</param>
     /// <param name="developer">Username of developer</param>
     /// <param name="optionsListId">Name of the new options list</param>

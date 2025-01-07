@@ -6,7 +6,7 @@ import type { StudioTextResourceInputProps } from '../../StudioTextResourceInput
 import { StudioTextResourceInput } from '../../StudioTextResourceInput';
 import cn from 'classnames';
 import classes from './Cell.module.css';
-import { useEventProps } from './useEventProps';
+import { useFormEventProps } from './useFormEventProps';
 import { isCaretAtEnd, isCaretAtStart, isSomethingSelected } from '../dom-utils/caretUtils';
 import { isCombobox } from '../dom-utils/isCombobox';
 
@@ -30,7 +30,7 @@ export class CellTextResource extends BaseInputCell<HTMLInputElement, CellTextRe
       [onFocus],
     );
 
-    const eventProps = useEventProps<HTMLInputElement>({ onFocus: handleFocus, ...rest });
+    const eventProps = useFormEventProps<HTMLInputElement>({ onFocus: handleFocus, ...rest });
 
     const className = cn(classes.textResourceCell, givenClass);
 

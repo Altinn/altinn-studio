@@ -34,6 +34,7 @@ namespace Designer.Tests.Controllers.ResourceAdminController
                 RightDescription = new Dictionary<string, string> { { "en", "Access Management" }, { "no", "Tilgangsstyring" } },
                 Homepage = "test.no",
                 Status = "Active",
+                ContactPoints = null,
                 IsPartOf = "Altinn",
                 ThematicArea = "",
                 ResourceReferences = GetTestResourceReferences(),

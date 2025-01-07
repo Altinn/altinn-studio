@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DATA_MODEL_NAME_REGEX } from 'app-shared/constants';
+import { StringUtils } from '@studio/pure-functions';
 
 export const useValidateSchemaName = (
   existingDataModelNames: string[],
@@ -22,11 +23,19 @@ export const useValidateSchemaName = (
       setNameError(t('validation_errors.maxLength', { number: DATA_MODEL_NAME_MAX_LENGTH }));
       return;
     }
-    if (existingDataModelNames.includes(name)) {
+    if (
+      existingDataModelNames.some((dataModelName) =>
+        StringUtils.areCaseInsensitiveEqual(dataModelName, name),
+      )
+    ) {
       setNameError(t('schema_editor.error_model_name_exists', { newModelName: name }));
       return;
     }
-    if (existingDataTypeNames.includes(name)) {
+    if (
+      existingDataTypeNames.some((dataTypeName) =>
+        StringUtils.areCaseInsensitiveEqual(dataTypeName, name),
+      )
+    ) {
       setNameError(t('schema_editor.error_data_type_name_exists'));
       return;
     }
