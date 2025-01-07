@@ -35,7 +35,7 @@ import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 import type { ITextResources } from 'app-shared/types/global';
 import { convertTextResourceToMutationArgs } from './utils/convertTextResourceToMutationArgs';
 
-export function AppContentLibrary(): React.ReactElement {
+export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: optionListDataList, status: optionListDataListStatus } = useOptionListsQuery(

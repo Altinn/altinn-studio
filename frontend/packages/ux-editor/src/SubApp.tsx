@@ -16,10 +16,10 @@ const App = () => {
   return !selectedFormLayoutSetName ? <FormDesignerNavigation /> : <FormDesigner />;
 };
 
-export const SubApp = (props: SubAppProps) => {
+export default function SubApp(props: SubAppProps) {
   return (
     <AppContextProvider {...props}>
       <App />
     </AppContextProvider>
   );
-};
+}
