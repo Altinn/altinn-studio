@@ -225,6 +225,14 @@
         "Navn",
         "Adresse"
       ]
+    },
+    "Stiftelsesdokumenter": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "title": ""
+      }
     }
   }
 }
