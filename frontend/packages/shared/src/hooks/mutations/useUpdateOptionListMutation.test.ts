@@ -10,68 +10,68 @@ import { createQueryClientMock } from '../../mocks/queryClientMock';
 import { QueryKey } from 'app-shared/types/QueryKey';
 
 // Test data:
-const optionListId = 'test';
+const optionsListId = 'test';
 const option1: Option = { value: 'test', label: 'test' };
 const optionsList: Option[] = [option1];
 const updatedOptionsList: Option[] = [{ ...option1, description: 'description' }];
-const args: UpdateOptionListMutationArgs = { optionListId, optionsList };
+const args: UpdateOptionListMutationArgs = { optionListId: optionsListId, optionsList };
 const updateOptionList = jest.fn().mockImplementation(() => Promise.resolve(updatedOptionsList));
 
 describe('useUpdateOptionListMutation', () => {
   test('Calls useUpdateOptionList with correct parameters', async () => {
-    const renderUpdateOptionListMutationResult = renderHookWithProviders(() =>
+    const renderUpdateOptionsListMutationResult = renderHookWithProviders(() =>
       useUpdateOptionListMutation(org, app),
     ).result;
-    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    await renderUpdateOptionsListMutationResult.current.mutateAsync(args);
     expect(queriesMock.updateOptionList).toHaveBeenCalledTimes(1);
-    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, optionListId, optionsList);
+    expect(queriesMock.updateOptionList).toHaveBeenCalledWith(org, app, optionsListId, optionsList);
   });
 
-  test('Sets the updated option list on the cache for all option lists when cache contains the list', async () => {
+  test('Sets the updated options list on the cache for all options lists when cache contains the list', async () => {
     const queryClient = createQueryClientMock();
     queryClient.setQueryData(
       [QueryKey.OptionLists, org, app],
-      [{ title: optionListId, data: optionsList }],
+      [{ title: optionsListId, data: optionsList }],
     );
-    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+    const renderUpdateOptionsListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListMutation(org, app),
       { queries: { updateOptionList }, queryClient },
     ).result;
-    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    await renderUpdateOptionsListMutationResult.current.mutateAsync(args);
     expect(queryClient.getQueryData([QueryKey.OptionLists, org, app])).toEqual([
       {
-        title: optionListId,
+        title: optionsListId,
         data: updatedOptionsList,
       },
     ]);
   });
 
-  test('Adds the new option list on the cache for all option lists when cache does not contain the list', async () => {
+  test('Adds the new options list on the cache for all options lists when cache does not contain the list', async () => {
     const queryClient = createQueryClientMock();
-    const existingOptionList = { title: 'some-other-option-list-id', data: optionsList };
-    queryClient.setQueryData([QueryKey.OptionLists, org, app], [existingOptionList]);
-    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+    const existingOptionsList = { title: 'some-other-options-list-id', data: optionsList };
+    queryClient.setQueryData([QueryKey.OptionLists, org, app], [existingOptionsList]);
+    const renderUpdateOptionsListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListMutation(org, app),
       { queries: { updateOptionList }, queryClient },
     ).result;
-    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
+    await renderUpdateOptionsListMutationResult.current.mutateAsync(args);
     expect(queryClient.getQueryData([QueryKey.OptionLists, org, app])).toEqual([
       {
-        title: optionListId,
+        title: optionsListId,
         data: updatedOptionsList,
       },
-      existingOptionList,
+      existingOptionsList,
     ]);
   });
 
-  test('Sets the updated option list on the cache for the single option list', async () => {
+  test('Sets the updated options list on the cache for the single options list', async () => {
     const queryClient = createQueryClientMock();
-    const renderUpdateOptionListMutationResult = renderHookWithProviders(
+    const renderUpdateOptionsListMutationResult = renderHookWithProviders(
       () => useUpdateOptionListMutation(org, app),
       { queries: { updateOptionList }, queryClient },
     ).result;
-    await renderUpdateOptionListMutationResult.current.mutateAsync(args);
-    expect(queryClient.getQueryData([QueryKey.OptionList, org, app, optionListId])).toEqual(
+    await renderUpdateOptionsListMutationResult.current.mutateAsync(args);
+    expect(queryClient.getQueryData([QueryKey.OptionList, org, app, optionsListId])).toEqual(
       updatedOptionsList,
     );
   });
