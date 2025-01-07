@@ -193,13 +193,14 @@ export const FormComponentConfig = ({
 
       {/** String properties */}
       {stringPropertyKeys.map((propertyKey) => {
+        const isSortOrder = propertyKey === 'sortOrder';
         return (
           <EditStringValue
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
+            helpText={isSortOrder ? '' : properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum || properties[propertyKey]?.examples}
           />
         );
@@ -207,13 +208,14 @@ export const FormComponentConfig = ({
 
       {/** Number properties (number and integer types) */}
       {numberPropertyKeys.map((propertyKey) => {
+        const isPreselectedOptionIndex = propertyKey === 'preselectedOptionIndex';
         return (
           <EditNumberValue
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
+            helpText={isPreselectedOptionIndex ? '' : properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.enum}
           />
         );
@@ -221,13 +223,14 @@ export const FormComponentConfig = ({
 
       {/** Array properties with enum values) */}
       {arrayPropertyKeys.map((propertyKey) => {
+        const isShowValidations = propertyKey === 'showValidations';
         return (
           <EditStringValue
             component={component}
             handleComponentChange={handleComponentUpdate}
             propertyKey={propertyKey}
             key={propertyKey}
-            helpText={properties[propertyKey]?.description}
+            helpText={isShowValidations ? '' : properties[propertyKey]?.description}
             enumValues={properties[propertyKey]?.items?.enum}
             multiple={true}
           />

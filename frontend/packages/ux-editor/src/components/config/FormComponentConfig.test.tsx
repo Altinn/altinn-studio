@@ -211,6 +211,89 @@ describe('FormComponentConfig', () => {
     ).toBeInTheDocument();
   });
 
+  it('should render an empty text for "sortOrder" and display text for other properties', () => {
+    const schema = {
+      properties: {
+        sortOrder: {
+          type: 'string',
+          description: 'Description for sortOrder',
+        },
+        otherProperty: {
+          type: 'string',
+          description: 'Description for otherProperty',
+        },
+      },
+    };
+    render({
+      props: {
+        schema,
+      },
+    });
+    const sortOrderHelpText = screen.queryByText('Description for sortOrder');
+    expect(sortOrderHelpText).not.toBeInTheDocument();
+    const otherPropertyHelpText = screen.getByText('Description for otherProperty');
+    expect(otherPropertyHelpText).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('ux_editor.component_properties.sortOrder')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render an empty text for "showValidations" and display text for other properties', () => {
+    const schema = {
+      properties: {
+        showValidations: {
+          type: 'boolean',
+          description: 'Description for showValidations',
+        },
+        otherProperty: {
+          type: 'string',
+          description: 'Description for otherProperty',
+        },
+      },
+    };
+    render({
+      props: {
+        schema,
+      },
+    });
+    const showValidationsHelpText = screen.queryByText('Description for showValidations');
+    expect(showValidationsHelpText).not.toBeInTheDocument();
+    const otherPropertyHelpText = screen.getByText('Description for otherProperty');
+    expect(otherPropertyHelpText).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('ux_editor.component_properties.showValidations')),
+    ).toBeInTheDocument();
+  });
+
+  it('should render an empty text for "preselectedOptionIndex" and display text for other properties', () => {
+    const schema = {
+      properties: {
+        preselectedOptionIndex: {
+          type: 'number',
+          description: 'Description for preselectedOptionIndex',
+        },
+        otherProperty: {
+          type: 'string',
+          description: 'Description for otherProperty',
+        },
+      },
+    };
+    render({
+      props: {
+        schema,
+      },
+    });
+    const preselectedOptionIndexHelpText = screen.queryByText(
+      'Description for preselectedOptionIndex',
+    );
+    expect(preselectedOptionIndexHelpText).not.toBeInTheDocument();
+    const otherPropertyHelpText = screen.getByText('Description for otherProperty');
+    expect(otherPropertyHelpText).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(textMock('ux_editor.component_properties.preselectedOptionIndex')),
+    ).toBeInTheDocument();
+  });
+
   it('should render default boolean values if defined', async () => {
     const user = userEvent.setup();
     render({
