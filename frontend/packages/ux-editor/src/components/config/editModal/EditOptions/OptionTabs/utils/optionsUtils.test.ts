@@ -17,7 +17,6 @@ import {
   isInitialOptionsSet,
 } from './optionsUtils';
 import { componentMocks } from '../../../../../../testing/componentMocks';
-import { optionListIdsMock } from '@altinn/ux-editor/testing/mocks';
 
 // Test data:
 const mockedComponent: FormItem<SelectionComponentType> =
@@ -196,28 +195,28 @@ describe('optionsUtils', () => {
 
   describe('IsOptionsIdReferenceId', () => {
     it('should return true if options ID is a string and options ID is not from library', () => {
+      const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
-      const optionListIds: string[] = optionListIdsMock;
       expect(isOptionsIdReferenceId(optionListIds, optionsId)).toBe(true);
     });
 
     it('should return false if options is undefined', () => {
+      const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
-      const optionListIds: string[] = optionListIdsMock;
       expect(isOptionsIdReferenceId(optionListIds, optionsId)).toBe(false);
     });
 
     it('should return false if options ID is from library', () => {
-      const optionListIds: string[] = optionListIdsMock;
-      const optionsId: string = optionListIds[0];
+      const optionListIds: string[] = ['test1', 'test2'];
+      const optionsId: string = 'test1';
       expect(isOptionsIdReferenceId(optionListIds, optionsId)).toBe(false);
     });
   });
 
   describe('isOptionsModifiable', () => {
     it('should return true if options ID is a string and options ID is from library', () => {
-      const optionListIds: string[] = optionListIdsMock;
-      const optionsId: string = optionListIds[0];
+      const optionListIds: string[] = ['test1', 'test2'];
+      const optionsId: string = 'test1';
       const options: OptionsList = [{ value: 'value', label: 'label' }];
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(true);
     });
@@ -230,14 +229,14 @@ describe('optionsUtils', () => {
     });
 
     it('should return false if options ID and options are undefined', () => {
-      const optionListIds: string[] = optionListIdsMock;
+      const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = undefined;
       const options: OptionsList = undefined;
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(false);
     });
 
     it('should return false if options ID is not from library', () => {
-      const optionListIds: string[] = optionListIdsMock;
+      const optionListIds: string[] = ['test1', 'test2'];
       const optionsId = 'another-id';
       const options: OptionsList = undefined;
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(false);
