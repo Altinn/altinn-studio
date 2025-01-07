@@ -1,22 +1,29 @@
-import { SubApp as UiEditorLatest } from '@altinn/ux-editor/SubApp';
-import { SubApp as UiEditorV3 } from '@altinn/ux-editor-v3/SubApp';
-import { Overview } from '../features/overview/components/Overview';
-import { TextEditor } from '../features/textEditor/TextEditor';
-import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
-import { DeployPage } from '../features/appPublish/pages/DeployPage';
-import { ProcessEditor } from 'app-development/features/processEditor';
+import React from 'react';
 import { RoutePaths } from 'app-development/enums/RoutePaths';
 import type { AppVersion } from 'app-shared/types/AppVersion';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { useAppVersionQuery } from 'app-shared/hooks/queries';
-import React from 'react';
 import { usePreviewContext } from '../contexts/PreviewContext';
 import { useLayoutContext } from '../contexts/LayoutContext';
 import { StudioPageSpinner, useLocalStorage } from '@studio/components';
 import { useTranslation } from 'react-i18next';
-import { AppContentLibrary } from 'app-development/features/appContentLibrary';
 import { FormDesignerNavigation } from '@altinn/ux-editor/containers/FormDesignNavigation';
 import { FeatureFlag, shouldDisplayFeature } from 'app-shared/utils/featureToggleUtils';
+
+const SubApp = React.lazy(() => import('@altinn/ux-editor/SubApp'));
+const V3SubApp = React.lazy(() => import('@altinn/ux-editor-v3/SubApp'));
+const ProcessEditor = React.lazy(
+  () => import('app-development/features/processEditor/ProcessEditor'),
+);
+const TextEditor = React.lazy(() => import('app-development/features/textEditor/TextEditor'));
+const Overview = React.lazy(() => import('app-development/features/overview/components/Overview'));
+const DataModellingContainer = React.lazy(
+  () => import('app-development/features/dataModelling/containers/DataModellingContainer'),
+);
+const DeployPage = React.lazy(() => import('app-development/features/appPublish/pages/DeployPage'));
+const AppContentLibrary = React.lazy(
+  () => import('app-development/features/appContentLibrary/AppContentLibrary'),
+);
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -66,7 +73,7 @@ export const UiEditor = () => {
     };
 
     return (
-      <UiEditorLatest
+      <SubApp
         shouldReloadPreview={shouldReloadPreview}
         previewHasLoaded={previewHasLoaded}
         onLayoutSetNameChange={handleLayoutSetNameChange}
@@ -74,7 +81,7 @@ export const UiEditor = () => {
     );
   };
 
-  return isLatestFrontendVersion(version) ? renderUiEditorContent() : <UiEditorV3 />;
+  return isLatestFrontendVersion(version) ? renderUiEditorContent() : <V3SubApp />;
 };
 
 export const routerRoutes: RouterRoute[] = [

@@ -13,7 +13,7 @@ import { GetInTouchWith } from 'app-shared/getInTouch';
 import { StudioError, StudioPageSpinner } from '@studio/components';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 
-export function DeployPage() {
+export default function DeployPage() {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: orgs, isPending: orgsIsPending, isError: orgsIsError } = useOrgListQuery();
