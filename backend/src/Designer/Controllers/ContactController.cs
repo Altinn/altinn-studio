@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -32,7 +33,7 @@ namespace Altinn.Studio.Designer.Controllers
                 var organizations = await _giteaService.GetUserOrganizations();
                 return Ok(new BelongsToOrgDto { BelongsToOrg = organizations.Count > 0 });
             }
-            catch
+            catch(Exception)
             {
                 return Ok(new BelongsToOrgDto { BelongsToOrg = false });
             }
