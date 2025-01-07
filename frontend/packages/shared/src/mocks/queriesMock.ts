@@ -69,7 +69,11 @@ import type { DeploymentsResponse } from 'app-shared/types/api/DeploymentsRespon
 import type { RepoDiffResponse } from 'app-shared/types/api/RepoDiffResponse';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 import type { MaskinportenScope } from 'app-shared/types/MaskinportenScope';
-import type { OptionsList, OptionsLists } from 'app-shared/types/api/OptionsLists';
+import type {
+  OptionListsReferences,
+  OptionsList,
+  OptionsListsResponse,
+} from 'app-shared/types/api/OptionsLists';
 import type { LayoutSetsModel } from '../types/api/dto/LayoutSetsModel';
 import { layoutSetsExtendedMock } from '@altinn/ux-editor/testing/layoutSetsMock';
 
@@ -109,7 +113,10 @@ export const queriesMock: ServicesContextProps = {
     .mockImplementation(() => Promise.resolve<LayoutSetsModel>(layoutSetsExtendedMock)),
   getOptionListIds: jest.fn().mockImplementation(() => Promise.resolve<string[]>([])),
   getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionsList>([])),
-  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsLists>({})),
+  getOptionLists: jest.fn().mockImplementation(() => Promise.resolve<OptionsListsResponse>([])),
+  getOptionListsReferences: jest
+    .fn()
+    .mockImplementation(() => Promise.resolve<OptionListsReferences>([])),
   getOrgList: jest.fn().mockImplementation(() => Promise.resolve<OrgList>(orgList)),
   getOrganizations: jest.fn().mockImplementation(() => Promise.resolve<Organization[]>([])),
   getRepoMetadata: jest.fn().mockImplementation(() => Promise.resolve<Repository>(repository)),
@@ -149,6 +156,8 @@ export const queriesMock: ServicesContextProps = {
   getPolicyActions: jest.fn().mockImplementation(() => Promise.resolve<PolicyAction[]>([])),
   getPolicy: jest.fn().mockImplementation(() => Promise.resolve<Policy>(policy)),
   getPolicySubjects: jest.fn().mockImplementation(() => Promise.resolve<PolicySubject[]>([])),
+  getAccessPackages: jest.fn().mockImplementation(() => Promise.resolve([])),
+  getAccessPackageServices: jest.fn().mockImplementation(() => Promise.resolve([])),
   getResource: jest.fn().mockImplementation(() => Promise.resolve<Resource>(resource)),
   getResourceList: jest.fn().mockImplementation(() => Promise.resolve<ResourceListItem[]>([])),
   getResourcePublishStatus: jest
