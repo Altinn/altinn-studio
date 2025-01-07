@@ -67,8 +67,8 @@ function CodeList({
     <Accordion border>
       <Accordion.Item defaultOpen={codeListInEditMode === codeListData.title}>
         <CodeListAccordionHeader
-            codeListTitle={codeListData.title}
-            codeListUsagesCount={codeListSources.length}
+          codeListTitle={codeListData.title}
+          codeListUsagesCount={codeListSources.length}
         />
         <CodeListAccordionContent
           codeListData={codeListData}
@@ -119,7 +119,7 @@ export const updateCodeListWithMetadata = (
 ): CodeListWithMetadata => {
   return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
 };
-  
+
 type CodeListAccordionHeaderProps = {
   codeListTitle: string;
   codeListUsagesCount: number;
@@ -147,9 +147,12 @@ function CodeListAccordionHeader({
   }
 
   return (
-    <Accordion.Header title={t('app_content_library.code_lists.code_list_accordion_title', {
-      codeListTitle: codeListTitle,
-    })} className={classes.codeListTitle}>
+    <Accordion.Header
+      title={t('app_content_library.code_lists.code_list_accordion_title', {
+        codeListTitle: codeListTitle,
+      })}
+      className={classes.codeListTitle}
+    >
       {codeListTitle}
       {codeListUsagesCountTextKey && (
         <div className={classes.codeListUsages}>

@@ -56,10 +56,7 @@ import {
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
-<<<<<<< HEAD
   resourceAccessPackageServicesPath,
-=======
->>>>>>> 349613942 (add tests)
   optionListPath,
   optionListReferencesPath,
 } from './paths';

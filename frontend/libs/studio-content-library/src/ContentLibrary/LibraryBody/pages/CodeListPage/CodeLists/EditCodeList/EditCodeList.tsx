@@ -59,7 +59,7 @@ export function EditCodeList({
       {codeListSources.length > 0 && (
         <ShowCodeListUsagesSourcesModal
           codeListSources={codeListSources}
-          codeListTitle={codeList.title}
+          codeListTitle={codeListTitle}
         />
       )}
       <StudioToggleableTextfield
