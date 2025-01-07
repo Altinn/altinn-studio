@@ -19,7 +19,7 @@ public class ContactController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet("contact/belongs-to-org")]
+    [HttpGet("belongs-to-org")]
     public async Task<IActionResult> BelongsToOrg()
     {
         bool isNotAuthenticated = string.IsNullOrEmpty(AuthenticationHelper.GetDeveloperUserName(HttpContext));

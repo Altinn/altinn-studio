@@ -56,6 +56,7 @@ import {
   authStatusAnsattporten,
   availableMaskinportenScopesPath,
   selectedMaskinportenScopesPath,
+  belongsToOrg,
 } from './paths';
 
 import type { AppReleasesResponse, DataModelMetadataResponse, SearchRepoFilterParams, SearchRepositoryResponse } from 'app-shared/types/api';
@@ -158,3 +159,6 @@ export const getAltinn2DelegationsCount = (org: string, serviceCode: string, ser
 // ProcessEditor
 export const getBpmnFile = (org: string, app: string) => get<string>(processEditorPath(org, app));
 export const getProcessTaskType = (org: string, app: string, taskId: string) => get<string>(`${processTaskTypePath(org, app, taskId)}`);
+
+// Contact Page
+export const fetchBelongsToGiteaOrg = () => get(belongsToOrg());

@@ -15,6 +15,11 @@ import {
 } from '@studio/components';
 import { ContactSection, type ContactSectionProps } from '../../components/ContactSection';
 import { ContactServiceDesk } from '../../components/ContactServiceDesk';
+import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';
+
+type ContactSectionMetadata = {
+  shouldHideSection?: boolean;
+};
 
 export const ContactPage = (): React.ReactElement => {
   const { t } = useTranslation();
@@ -22,7 +27,9 @@ export const ContactPage = (): React.ReactElement => {
   const contactBySlack = new GetInTouchWith(new SlackContactProvider());
   const contactByGitHubIssue = new GetInTouchWith(new GitHubIssueContactProvider());
 
-  const contactSections: Array<ContactSectionProps> = [
+  const { data: belongsToOrgData } = useFetchBelongsToOrgQuery();
+
+  const contactSections: Array<ContactSectionProps & ContactSectionMetadata> = [
     {
       title: t('contact.email.heading'),
       description: t('contact.email.content'),
@@ -64,6 +71,7 @@ export const ContactPage = (): React.ReactElement => {
       additionalContent: <ContactServiceDesk />,
       description: t('contact.altinn_servicedesk.content'),
       Icon: PersonHeadsetIcon,
+      shouldHideSection: !belongsToOrgData?.belongsToOrg,
     },
   ];
 
@@ -76,7 +84,7 @@ export const ContactPage = (): React.ReactElement => {
               {t('general.contact')}
             </StudioHeading>
           </div>
-          {contactSections.map((contactSection) => (
+          {contactSections.filter(filterHiddenSections).map((contactSection) => (
             <ContactSection {...contactSection} key={contactSection.title} />
           ))}
         </div>
@@ -84,3 +92,7 @@ export const ContactPage = (): React.ReactElement => {
     </StudioPageImageBackgroundContainer>
   );
 };
+
+function filterHiddenSections(section: ContactSectionProps & ContactSectionMetadata): boolean {
+  return !section.shouldHideSection;
+}

@@ -177,3 +177,6 @@ export const processEditorDataTypePath = (org, app, dataTypeId, taskId) => `${ba
 
 // Event Hubs
 export const SyncEventsWebSocketHub = () => '/sync-hub';
+
+// Contact
+export const belongsToOrg = () => `${basePath}/contact/belongs-to-org`;
