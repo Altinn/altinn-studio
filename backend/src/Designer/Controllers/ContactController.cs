@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Controllers
                 var organizations = await _giteaService.GetUserOrganizations();
                 return Ok(new BelongsToOrgDto { BelongsToOrg = organizations.Count > 0 });
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return Ok(new BelongsToOrgDto { BelongsToOrg = false });
             }
