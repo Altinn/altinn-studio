@@ -2,6 +2,13 @@ import React from 'react';
 import { screen, render } from '@testing-library/react';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { ContactPage } from './ContactPage';
+import { useFetchBelongsToOrgQuery } from '../hooks/queries/useFetchBelongsToOrgQuery';
+
+jest.mock('../hooks/queries/useFetchBelongsToOrgQuery');
+
+(useFetchBelongsToOrgQuery as jest.Mock).mockReturnValue({
+  data: { belongsToOrg: false },
+});
 
 describe('ContactPage', () => {
   it('should display the main heading', () => {
@@ -33,12 +40,6 @@ describe('ContactPage', () => {
     expect(screen.getByRole('link', { name: textMock('contact.slack.link') })).toBeInTheDocument();
   });
 
-  it('should display contact information to "Altinn Servicedesk"', () => {
-    render(<ContactPage />);
-    expect(screen.getByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }));
-    expect(screen.getByText(textMock('contact.altinn_servicedesk.content')));
-  });
-
   it('should display the bug report and feature request section with its content and link', () => {
     render(<ContactPage />);
 
@@ -49,5 +50,24 @@ describe('ContactPage', () => {
     expect(
       screen.getByRole('link', { name: textMock('contact.github_issue.link_label') }),
     ).toBeInTheDocument();
+  });
+
+  it('should not render contact info for "Altinn Servicedesk" if the user does not belong to a org', () => {
+    (useFetchBelongsToOrgQuery as jest.Mock).mockReturnValue({
+      data: { belongsToOrg: false },
+    });
+    render(<ContactPage />);
+
+    expect(screen.queryByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }));
+    expect(screen.queryByText(textMock('contact.altinn_servicedesk.content')));
+  });
+
+  it('should display contact information to "Altinn Servicedesk"', () => {
+    (useFetchBelongsToOrgQuery as jest.Mock).mockReturnValue({
+      data: { belongsToOrg: true },
+    });
+    render(<ContactPage />);
+    expect(screen.getByRole('heading', { name: textMock('contact.altinn_servicedesk.heading') }));
+    expect(screen.getByText(textMock('contact.altinn_servicedesk.content')));
   });
 });
