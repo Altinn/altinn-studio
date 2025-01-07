@@ -114,7 +114,7 @@ describe('OptionTabs', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render the label for manual options when manual options are set and featureFlag is enabled', async () => {
+  it('should render the preview title for manual options when manual options are set and featureFlag is enabled', async () => {
     addFeatureFlagToLocalStorage(FeatureFlag.OptionListEditor);
     const options = [{ value: '1', label: 'label 1' }];
     renderOptionTabs({

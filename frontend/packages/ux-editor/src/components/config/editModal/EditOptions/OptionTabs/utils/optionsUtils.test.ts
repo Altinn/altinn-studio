@@ -22,7 +22,6 @@ import { optionListIdsMock } from '@altinn/ux-editor/testing/mocks';
 // Test data:
 const mockedComponent: FormItem<SelectionComponentType> =
   componentMocks[ComponentType.RadioButtons];
-const optionListIds = optionListIdsMock;
 
 describe('optionsUtils', () => {
   describe('getSelectedOptionsType', () => {
@@ -198,40 +197,47 @@ describe('optionsUtils', () => {
   describe('IsOptionsIdReferenceId', () => {
     it('should return true if options ID is a string and options ID is not from library', () => {
       const optionsId = 'another-id';
+      const optionListIds: string[] = optionListIdsMock;
       expect(isOptionsIdReferenceId(optionListIds, optionsId)).toBe(true);
     });
 
     it('should return false if options is undefined', () => {
       const optionsId = undefined;
+      const optionListIds: string[] = optionListIdsMock;
       expect(isOptionsIdReferenceId(optionListIds, optionsId)).toBe(false);
     });
 
     it('should return false if options ID is from library', () => {
-      const optionsId = optionListIds[0];
+      const optionListIds: string[] = optionListIdsMock;
+      const optionsId: string = optionListIds[0];
       expect(isOptionsIdReferenceId(optionListIds, optionsId)).toBe(false);
     });
   });
 
   describe('isOptionsModifiable', () => {
     it('should return true if options ID is a string and options ID is from library', () => {
-      const optionsId = optionListIds[0];
+      const optionListIds: string[] = optionListIdsMock;
+      const optionsId: string = optionListIds[0];
       const options: OptionsList = [{ value: 'value', label: 'label' }];
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(true);
     });
 
     it('should return true if options is set on the component', () => {
+      const optionListIds: string[] = [];
       const optionsId = '';
       const options: OptionsList = [];
-      expect(isOptionsModifiable([], optionsId, options)).toBe(true);
+      expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(true);
     });
 
     it('should return false if options ID and options are undefined', () => {
+      const optionListIds: string[] = optionListIdsMock;
       const optionsId = undefined;
       const options: OptionsList = undefined;
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(false);
     });
 
     it('should return false if options ID is not from library', () => {
+      const optionListIds: string[] = optionListIdsMock;
       const optionsId = 'another-id';
       const options: OptionsList = undefined;
       expect(isOptionsModifiable(optionListIds, optionsId, options)).toBe(false);
@@ -254,6 +260,7 @@ describe('optionsUtils', () => {
     it('should return false if currentOptions is undefined', () => {
       const previousOptions = [];
       const currentOptions = undefined;
+
       expect(isInitialOptionsSet(previousOptions, currentOptions)).toBe(false);
     });
   });
