@@ -14,6 +14,8 @@ import { useDebounce } from '@studio/hooks';
 import type { DataType } from 'app-shared/types/DataType';
 import { useUpdateDataTypeMutation } from 'app-shared/hooks/mutations/useUpdateDataTypeMutation';
 import { AUTOSAVE_DEBOUNCE_INTERVAL_MILLISECONDS } from 'app-shared/constants';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKey } from 'app-shared/types/QueryKey';
 
 export const ItemMetadataTab = () => {
   const { t } = useTranslation();
@@ -23,8 +25,10 @@ export const ItemMetadataTab = () => {
 
   const { data: dataType, isPending } = useDataTypeQuery(org, app, modelName);
   const { mutate: mutateDataType } = useUpdateDataTypeMutation(org, app, modelName);
+  const queryClient = useQueryClient();
 
   const saveMetadata = (updatedDataType: DataType) => {
+    queryClient.setQueryData([QueryKey.DataType, org, app, modelName], updatedDataType);
     debounce(() => {
       mutateDataType(updatedDataType);
     });
