@@ -11,12 +11,22 @@
         }
       },
       {
+        "id": "Stiftelsesdokumenter",
+        "type": "FileUpload",
+        "textResourceBindings": {
+          "title": "Stiftelsesdokumenter",
+          "description": "Legg til dokumenter som skal signeres av stifterne"
+        },
+        "maxFileSizeInMB": 20,
+        "maxNumberOfAttachments": 5,
+        "minNumberOfAttachments": 0,
+        "displayMode": "list",
+        "validFileEndings": ".docx, .jpeg, .jpg, .xls, .msg, .ppt, .doc, .odt, .png, .pptx, .pdf, .txt, .tif, .tiff, .rtf, .xlsx"
+      },
+      {
         "id": "Group-N4SQzP",
         "type": "Group",
-        "children": [
-          "NavigationButtons-mkFwZY",
-          "Button-cBQsfZ"
-        ]
+        "children": ["NavigationButtons-mkFwZY", "Button-cBQsfZ"]
       },
       {
         "id": "NavigationButtons-mkFwZY",
