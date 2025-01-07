@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CodeListData, CodeListWithMetadata } from '../CodeListPage';
 import { Accordion } from '@digdir/designsystemet-react';
-import { StudioAlert, type CodeList as StudioComponentsCodeList } from '@studio/components';
+import { StudioAlert } from '@studio/components';
 import { EditCodeList } from './EditCodeList/EditCodeList';
 import { useTranslation } from 'react-i18next';
 import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
@@ -112,13 +112,6 @@ function CodeListAccordionContent({
     </Accordion.Content>
   );
 }
-
-export const updateCodeListWithMetadata = (
-  currentCodeListWithMetadata: CodeListWithMetadata,
-  updatedCodeList: StudioComponentsCodeList,
-): CodeListWithMetadata => {
-  return { ...currentCodeListWithMetadata, codeList: updatedCodeList };
-};
 
 type CodeListAccordionHeaderProps = {
   codeListTitle: string;
