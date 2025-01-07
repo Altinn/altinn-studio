@@ -23,10 +23,10 @@ const App = () => {
   );
 };
 
-export const SubApp = (props: SubAppProps) => {
+export default function SubApp(props: SubAppProps) {
   return (
     <AppContextProvider {...props}>
       <App />
     </AppContextProvider>
   );
-};
+}

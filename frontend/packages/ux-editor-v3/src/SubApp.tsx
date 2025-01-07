@@ -9,7 +9,7 @@ import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmen
 
 const store = setupStore();
 
-export const SubApp = () => {
+export default function SubApp() {
   const previewIframeRef = useRef<HTMLIFrameElement>(null);
   const { app } = useStudioEnvironmentParams();
   const [selectedLayoutSet, setSelectedLayoutSet, removeSelectedLayoutSet] =
@@ -29,4 +29,4 @@ export const SubApp = () => {
       </AppContext.Provider>
     </Provider>
   );
-};
+}
