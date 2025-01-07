@@ -18,7 +18,15 @@
           "description": "Personer som skal signere beskrivelse",
           "help": "Dette er personer som skal signere"
         }
-      }
+      },
+      {
+        "id": "signing-documents",
+        "type": "SigningDocumentList",
+        "textResourceBindings": {
+          "title": "Dokumenter som skal signeres",
+          "description": "Dokumenter som skal signeres beskrivelse"
+        }
+      },
     ]
   }
 }
