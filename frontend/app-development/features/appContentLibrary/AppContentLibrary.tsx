@@ -27,7 +27,7 @@ import type { OptionListData } from 'app-shared/types/OptionList';
 import type { OptionListReferences } from 'app-shared/types/OptionListReferences';
 import { mergeQueryStatuses } from 'app-shared/utils/tanstackQueryUtils';
 
-export function AppContentLibrary(): React.ReactElement {
+export default function AppContentLibrary(): React.ReactElement {
   const { org, app } = useStudioEnvironmentParams();
   const { t } = useTranslation();
   const { data: optionListDataList, status: optionListDataListStatus } = useOptionListsQuery(

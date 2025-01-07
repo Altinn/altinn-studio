@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import {
   RouterProvider,
   createBrowserRouter,
@@ -36,7 +36,11 @@ const router = createBrowserRouter(
           <Route
             key={route.path}
             path={route.path}
-            element={<route.subapp {...route.props} />}
+            element={
+              <Suspense fallback={'Loading...'}>
+                <route.subapp {...route.props} />
+              </Suspense>
+            }
             errorElement={<RouteErrorBoundary />}
           />
         ))}
