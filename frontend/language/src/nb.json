@@ -19,7 +19,7 @@
   "app_content_library.code_lists.code_list_edit_id_title": "Rediger navn på kodelisten {{codeListName}}",
   "app_content_library.code_lists.code_list_show_usage": "Se hvor kodelisten er i bruk.",
   "app_content_library.code_lists.code_list_show_usage_modal_title": "Oversikt over hvor kodelisten, {{codeListTitle}}, er i bruk",
-  "app_content_library.code_lists.code_list_usage_table_column_header_components": "Komponent(er)",
+  "app_content_library.code_lists.code_list_usage_table_column_header_components": "Komponent",
   "app_content_library.code_lists.code_list_usage_table_column_header_layout": "Side",
   "app_content_library.code_lists.code_list_usage_table_column_header_layout_set": "Sidegruppe",
   "app_content_library.code_lists.code_list_view_id_title": "Navn på kodeliste: {{codeListName}}",

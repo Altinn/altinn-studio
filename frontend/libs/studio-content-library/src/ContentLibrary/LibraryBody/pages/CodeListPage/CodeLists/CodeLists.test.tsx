@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import type { CodeListsProps } from './CodeLists';
-import { getCodeListSourcesById, CodeLists } from './CodeLists';
+import { CodeLists } from './CodeLists';
 import { updateCodeListWithMetadata } from './EditCodeList/EditCodeList';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import type { CodeListWithMetadata } from '../CodeListPage';
@@ -10,7 +10,6 @@ import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { CodeList as StudioComponentsCodeList } from '@studio/components';
 import { codeListsDataMock } from '../../../../../../mocks/mockPagesConfig';
-import type { CodeListIdSource, CodeListReference } from '../types/CodeListReference';
 
 const codeListName = codeListsDataMock[0].title;
 const onUpdateCodeListIdMock = jest.fn();
@@ -75,24 +74,28 @@ describe('CodeLists', () => {
     expect(codeListAccordionHeaderSubTitleSingle).toBeInTheDocument();
   });
 
-  it('renders the accordion header title with plural usage information if used twice', () => {
+  it('renders the accordion header title with plural usage information if used multiple times', () => {
     renderCodeLists({
       codeListsUsages: [
         {
           codeListId: codeListName,
           codeListIdSources: [
-            { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
+            {
+              layoutSetId: 'layoutSetId',
+              layoutName: 'layoutName',
+              componentIds: ['componentId1', 'componentId2'],
+            },
             { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds: ['componentId'] },
           ],
         },
       ],
     });
-    const codeListAccordionHeaderSubTitleSingle = screen.getByText(
+    const codeListAccordionHeaderSubTitlePlural = screen.getByText(
       textMock('app_content_library.code_lists.code_list_accordion_usage_sub_title_plural', {
-        codeListUsagesCount: 2,
+        codeListUsagesCount: 3,
       }),
     );
-    expect(codeListAccordionHeaderSubTitleSingle).toBeInTheDocument();
+    expect(codeListAccordionHeaderSubTitlePlural).toBeInTheDocument();
   });
 
   it('renders button to view code list usages if code list is in use', () => {
@@ -261,39 +264,5 @@ describe('updateCodeListWithMetadata', () => {
       title: codeListsDataMock[0].title,
       codeList: updatedCodeList,
     });
-  });
-});
-
-const codeListId1: string = 'codeListId1';
-const codeListId2: string = 'codeListId2';
-const componentIds: string[] = ['componentId1', 'componentId2'];
-const codeListIdSources1: CodeListIdSource[] = [
-  { layoutSetId: 'layoutSetId', layoutName: 'layoutName', componentIds },
-];
-const codeListIdSources2: CodeListIdSource[] = [...codeListIdSources1];
-
-describe('getCodeListSourcesById', () => {
-  it('returns an array of CodeListSources if given Id is present in codeListsUsages array', () => {
-    const codeListUsages: CodeListReference[] = [
-      { codeListId: codeListId1, codeListIdSources: codeListIdSources1 },
-      { codeListId: codeListId2, codeListIdSources: codeListIdSources2 },
-    ];
-    const codeListSources = getCodeListSourcesById(codeListUsages, codeListId1);
-
-    expect(codeListSources).toBe(codeListIdSources1);
-    expect(codeListSources).not.toBe(codeListIdSources2);
-  });
-
-  it('returns an empty array if given Id is not present in codeListsUsages array', () => {
-    const codeListUsages: CodeListReference[] = [
-      { codeListId: codeListId2, codeListIdSources: codeListIdSources2 },
-    ];
-    const codeListSources = getCodeListSourcesById(codeListUsages, codeListId1);
-    expect(codeListSources).toEqual([]);
-  });
-
-  it('returns an empty array if codeListsUsages array is empty', () => {
-    const codeListSources = getCodeListSourcesById([], codeListId1);
-    expect(codeListSources).toEqual([]);
   });
 });
