@@ -2,17 +2,8 @@ import { AppFrontend } from 'test/e2e/pageobjects/app-frontend';
 
 const appFrontend = new AppFrontend();
 
-const Species = {
-  Dog: { nb: 'Hund', en: 'Dog' },
-  Cat: { nb: 'Katt', en: 'Cat' },
-  Fish: { nb: 'Fisk', en: 'Fish' },
-  Bird: { nb: 'Fugl', en: 'Bird' },
-  Hamster: { nb: 'Hamster', en: 'Hamster' },
-  Rabbit: { nb: 'Kanin', en: 'Rabbit' },
-};
-
 interface PetProps {
-  species: keyof typeof Species;
+  species: string;
   name: string;
   age: number;
   visible?: boolean;
@@ -21,15 +12,17 @@ interface PetProps {
 function addPet({ species, name, age }: PetProps) {
   cy.get(appFrontend.pets.group.editContainer._).should('not.exist');
   cy.get(appFrontend.pets.group.addButton).click();
-  cy.dsSelect(appFrontend.pets.group.editContainer.species, Species[species].nb);
+  cy.dsSelect(appFrontend.pets.group.editContainer.species, species);
   cy.get(appFrontend.pets.group.editContainer.name).type(name);
   cy.get(appFrontend.pets.group.editContainer.age).type(age.toString());
   cy.get(appFrontend.pets.group.editContainer.saveAndClose).clickAndGone();
 }
 
-function assertPetOrder(pets: PetProps[], editingIndex?: number) {
+function assertPetOrder(pets: PetProps[], callNum: number, editingIndex?: number) {
   cy.log('--------------------');
   cy.log('Verifying that pet order is', structuredClone(pets));
+  cy.log(`Call number: ${callNum}`);
+  editingIndex !== undefined && cy.log(`Editing index: ${editingIndex}`);
   cy.waitUntilSaved();
   cy.waitUntilNodesReady();
 
@@ -46,12 +39,12 @@ function assertPetOrder(pets: PetProps[], editingIndex?: number) {
     cy.get(appFrontend.pets.hide.all)
       .eq(index)
       .next()
-      .should('have.text', `${Species[pet.species].en} med navn ${pet.name} (${pet.age} år)`);
+      .should('have.text', `${pet.species} med navn ${pet.name} (${pet.age} år)`);
     if (pet.visible === false) {
       return;
     }
     const { species, name } = pet;
-    cy.get(appFrontend.pets.group.tableRow(index).species).should('have.value', Species[species].nb);
+    cy.get(appFrontend.pets.group.tableRow(index).species).should('have.value', species);
     if (index === editingIndex) {
       cy.get(appFrontend.pets.group.editContainer.name).should('have.value', name);
     } else {
@@ -61,24 +54,22 @@ function assertPetOrder(pets: PetProps[], editingIndex?: number) {
 }
 
 const manuallyAddedPets: PetProps[] = [
-  { species: 'Dog', name: 'Fido', age: 5 },
-  { species: 'Cat', name: 'Whiskers', age: 3 },
-  { species: 'Fish', name: 'Goldie', age: 1 },
-  { species: 'Bird', name: 'Polly', age: 2 },
+  { species: 'Hund', name: 'Fido', age: 5 },
+  { species: 'Katt', name: 'Whiskers', age: 3 },
+  { species: 'Fisk', name: 'Goldie', age: 1 },
+  { species: 'Fugl', name: 'Polly', age: 2 },
 ];
 
 const petsFromCustomButton: PetProps[] = [
-  { species: 'Dog', name: 'Preben Potet', age: 15 },
-  { species: 'Cat', name: 'Reidar Reddik', age: 1 },
-  { species: 'Fish', name: 'Siri Spinat', age: 3 },
+  { species: 'Hund', name: 'Preben Potet', age: 15 },
+  { species: 'Katt', name: 'Reidar Reddik', age: 1 },
+  { species: 'Fisk', name: 'Siri Spinat', age: 3 },
   { species: 'Hamster', name: 'Kåre Kålrot', age: 7 },
-  { species: 'Rabbit', name: 'Birte Blomkål', age: 2 },
-  { species: 'Rabbit', name: 'Birte Blomkål', age: 3 },
+  { species: 'Kanin', name: 'Birte Blomkål', age: 2 },
+  { species: 'Kanin', name: 'Birte Blomkål', age: 3 },
 ];
 
 describe('Group (Pets)', () => {
-  // TODO: Fix this test. It fails because the Dropdown component somehow doesn't work when selecting the correct
-  // species option the second time.
   it('should be possible to add new pets manually', () => {
     cy.goto('group');
     cy.gotoNavPage('Kjæledyr');
@@ -88,7 +79,7 @@ describe('Group (Pets)', () => {
 
     cy.get(appFrontend.pets.decisionPanel.manualButton).click();
     manuallyAddedPets.forEach(addPet);
-    assertPetOrder(manuallyAddedPets);
+    assertPetOrder(manuallyAddedPets, 1);
   });
 
   it('should snapshot the decision panel', () => {
@@ -102,57 +93,53 @@ describe('Group (Pets)', () => {
     cy.gotoNavPage('Kjæledyr');
     cy.get(appFrontend.pets.decisionPanel.autoPetsButton).click();
     const pets1 = [...petsFromCustomButton];
-    assertPetOrder(pets1);
+    assertPetOrder(pets1, 1);
 
     // Sort the rows from the outside
     cy.dsSelect(appFrontend.pets.sortOutside.sortOrder, 'Navn (A-Å)');
     cy.get(appFrontend.pets.sortOutside.sortButton).click();
     const pets2 = structuredClone(pets1).sort((a, b) => a.name.localeCompare(b.name));
-    assertPetOrder(pets2);
+    assertPetOrder(pets2, 2);
 
     cy.dsSelect(appFrontend.pets.sortOutside.sortOrder, 'Alder (1-9)');
     cy.get(appFrontend.pets.sortOutside.sortButton).click();
     const pets3 = structuredClone(pets2).sort((a, b) => a.age - b.age);
-    assertPetOrder(pets3);
+    assertPetOrder(pets3, 3);
 
     // Sort when having opened one row for editing
-    cy.get(appFrontend.pets.group.tableRow(0).editButton).click();
-    assertPetOrder(pets3, 0);
-    cy.get(appFrontend.pets.group.editContainer.species).should('have.value', Species.Cat.nb);
-    cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Reidar Reddik');
-    cy.get(appFrontend.pets.group.editContainer.sortOrder).should('have.value', 'Alder (1-9)');
+    cy.get(appFrontend.pets.group.tableRow(3).editButton).click();
+    assertPetOrder(pets3, 4, 3);
+    cy.get(appFrontend.pets.group.editContainer.species).should('have.value', 'Fisk');
+    cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Siri Spinat');
+    cy.get(appFrontend.pets.group.editContainer.sortOrder).should('have.value', 'Alder (9-1)');
     cy.dsSelect(appFrontend.pets.group.editContainer.sortOrder, 'Art (Å-A)');
     cy.get(appFrontend.pets.group.editContainer.sortButton).click();
 
-    // Species are currently sorted by the english names, even if we have selected the norwegian language
-    // TODO: Update this test when the issue is fixed
     const pets4 = structuredClone(pets3)
       .sort((a, b) => {
-        const result = Species[a.species].en.localeCompare(Species[b.species].en);
-        if (result === 0) {
-          return b.age - a.age;
-        }
-        return result;
+        const result = a.species.localeCompare(b.species);
+        return result === 0 ? b.age - a.age : result;
       })
       .reverse();
-    assertPetOrder(pets4, 5);
+
+    assertPetOrder(pets4, 5, 5);
 
     // We should still be editing the same row
-    cy.get(appFrontend.pets.group.editContainer.species).should('have.value', Species.Cat.nb);
-    cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Reidar Reddik');
+    cy.get(appFrontend.pets.group.editContainer.species).should('have.value', 'Fisk');
+    cy.get(appFrontend.pets.group.editContainer.name).should('have.value', 'Siri Spinat');
     cy.get(appFrontend.pets.group.editContainer.saveAndClose).clickAndGone();
 
     // Hiding one row via checkboxes
-    cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Fish med navn Siri Spinat (3 år)' }).check();
+    cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Fisk med navn Siri Spinat (3 år)' }).check();
     const pets5 = structuredClone(pets4);
     pets5[pets5.findIndex((pet) => pet.name === 'Siri Spinat')].visible = false;
-    assertPetOrder(pets5);
+    assertPetOrder(pets5, 6);
 
     // Hiding another row via checkboxes
-    cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Dog med navn Preben Potet (15 år)' }).check();
+    cy.get(appFrontend.pets.hide._).findByRole('checkbox', { name: 'Hund med navn Preben Potet (15 år)' }).check();
     const pets6 = structuredClone(pets5);
     pets6[pets6.findIndex((pet) => pet.name === 'Preben Potet')].visible = false;
-    assertPetOrder(pets6);
+    assertPetOrder(pets6, 7);
 
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).findAllByRole('listitem').should('have.length', 2);
@@ -160,11 +147,11 @@ describe('Group (Pets)', () => {
 
     cy.snapshot('pets');
 
-    cy.get(appFrontend.pets.group.tableRow(0).deleteButton).click();
+    cy.get(appFrontend.pets.group.tableRow(1).deleteButton).click();
     const pets7 = structuredClone(pets6);
     const deletedIndex = pets7.findIndex((pet) => pet.name === 'Birte Blomkål' && pet.age === 2);
     pets7.splice(deletedIndex, 1);
-    assertPetOrder(pets7);
+    assertPetOrder(pets7, 8);
 
     cy.findByRole('button', { name: /Neste/ }).click();
     cy.get(appFrontend.errorReport).should('not.exist');
