@@ -612,16 +612,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
             bool hasChanges = false;
 
             var deletedReferences = referencesToUpdate.Where(item => string.IsNullOrEmpty(item.NewId)).ToList();
-            var updatedReferences = referencesToUpdate.Where(item => !string.IsNullOrEmpty(item.NewId)).ToList();
 
             var deletedLayoutsSetIds = deletedReferences.Where(item => item.Type == "layoutSet").Select(item => item.Id).ToList();
             var deletedLayouts = deletedReferences.Where(item => item.Type == "page").ToList();
             var deletedComponents = deletedReferences.Where(item => item.Type == "component").ToList();
-
-            var updatedTasks = updatedReferences.Where(item => item.Type == "task").ToList();
-            var updatedLayoutsSets = updatedReferences.Where(item => item.Type == "layoutSet").ToList();
-            var updatedLayouts = updatedReferences.Where(item => item.Type == "page").ToList();
-            var updatedComponents = updatedReferences.Where(item => item.Type == "component").ToList();
 
             foreach (LayoutSetConfig layoutSet in layoutSets ?? [new() { Id = null }])
             {
@@ -642,7 +636,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     }
 
                     var deletedComponentIdsFromCurrentLayoutSet = deletedComponents.Where(item => item.LayoutSetName == layoutSet.Id && string.IsNullOrEmpty(item.NewId)).Select(item => item.Id).ToList();
-                    var updatedComponentsFromCurrentLayoutSet = updatedComponents.Where(item => item.LayoutSetName == layoutSet.Id && !string.IsNullOrEmpty(item.NewId)).ToList();
 
                     if (data["layout"] is JsonArray componentList)
                     {
@@ -661,15 +654,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                             {
                                 componentList.RemoveAt(i);
                                 hasLayoutChanges = true;
-                            }
-                            else
-                            {
-                                Reference updatedReference = updatedComponentsFromCurrentLayoutSet.FirstOrDefault(item => item.Id == componentId);
-                                if (updatedReference != null)
-                                {
-                                    component["id"] = updatedReference.NewId;
-                                    hasLayoutChanges = true;
-                                }
                             }
 
                             if (isLayoutSetDeleted || isLayoutDeleted || isComponentDeleted)
@@ -693,15 +677,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                         componentList.RemoveAt(i);
                                         hasLayoutChanges = true;
                                     }
-                                    else
-                                    {
-                                        Reference updatedReference = updatedLayoutsSets.FirstOrDefault(item => item.Id == subformLayoutSet);
-                                        if (updatedReference != null)
-                                        {
-                                            component["layoutSet"] = updatedReference.NewId;
-                                            hasLayoutChanges = true;
-                                        }
-                                    }
                                     break;
                                 case "Summary2":
                                     if (component["target"] is JsonObject target)
@@ -721,34 +696,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                             componentList.RemoveAt(i);
                                             hasLayoutChanges = true;
                                         }
-                                        else
-                                        {
-                                            Reference updatedReference = null;
-                                            switch (type)
-                                            {
-                                                case "page":
-                                                    updatedReference = updatedLayouts.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == id);
-                                                    break;
-                                                case "component":
-                                                    updatedReference = updatedComponents.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == id);
-                                                    break;
-                                            }
-                                            if (updatedReference != null)
-                                            {
-                                                target["id"] = updatedReference.NewId;
-                                                hasLayoutChanges = true;
-                                            }
-
-                                            if (!string.IsNullOrEmpty(taskId))
-                                            {
-                                                updatedReference = updatedTasks.FirstOrDefault(item => item.Id == taskId);
-                                                if (updatedReference != null)
-                                                {
-                                                    target["taskId"] = updatedReference.NewId;
-                                                    hasLayoutChanges = true;
-                                                }
-                                            }
-                                        }
 
                                         if (component["overrides"] is JsonArray overrideList)
                                         {
@@ -760,15 +707,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                                 {
                                                     overrideList.RemoveAt(j);
                                                     hasLayoutChanges = true;
-                                                }
-                                                else
-                                                {
-                                                    Reference updatedReference = updatedComponents.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == overrideComponentId);
-                                                    if (updatedReference != null)
-                                                    {
-                                                        overrideItem["componentId"] = updatedReference.NewId;
-                                                        hasLayoutChanges = true;
-                                                    }
                                                 }
 
                                                 if (overrideList.Count == 0)
