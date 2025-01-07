@@ -3819,13 +3819,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@storybook/addon-webpack5-compiler-swc@npm:1.0.6":
-  version: 1.0.6
-  resolution: "@storybook/addon-webpack5-compiler-swc@npm:1.0.6"
+"@storybook/addon-webpack5-compiler-swc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@storybook/addon-webpack5-compiler-swc@npm:2.0.0"
   dependencies:
     "@swc/core": "npm:^1.7.3"
     swc-loader: "npm:^0.2.3"
-  checksum: 10/80ef5439caad0ca40695962d508097fb00a8bf14d117fb26b514a870a73fcdb00ef21524d4edd42af74331d25690fe5f08d862ac68882e2bd7fe3a651b5c8b6f
+  checksum: 10/c5f6d6af3010e8cc6b8cfefa7e0ba3ee982021fcdcb4c1673f9a462fe53333c78248917cca9438b7620da064f16884c59a1ab185ca7ca0af507a25c20a7ffc8a
   languageName: node
   linkType: hard
 
@@ -4135,7 +4135,7 @@ __metadata:
     "@storybook/addon-essentials": "npm:8.4.7"
     "@storybook/addon-interactions": "npm:8.4.7"
     "@storybook/addon-links": "npm:8.4.7"
-    "@storybook/addon-webpack5-compiler-swc": "npm:1.0.6"
+    "@storybook/addon-webpack5-compiler-swc": "npm:2.0.0"
     "@storybook/blocks": "npm:8.4.7"
     "@storybook/react": "npm:8.4.7"
     "@storybook/react-webpack5": "npm:8.4.7"
