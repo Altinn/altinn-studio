@@ -618,6 +618,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var deletedLayouts = deletedReferences.Where(item => item.Type == "page").ToList();
             var deletedComponents = deletedReferences.Where(item => item.Type == "component").ToList();
 
+            var updatedTasks = updatedReferences.Where(item => item.Type == "task").ToList();
             var updatedLayoutsSets = updatedReferences.Where(item => item.Type == "layoutSet").ToList();
             var updatedLayouts = updatedReferences.Where(item => item.Type == "page").ToList();
             var updatedComponents = updatedReferences.Where(item => item.Type == "component").ToList();
@@ -710,12 +711,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                         string taskId = target["taskId"]?.GetValue<string>();
                                         string layoutSetId = string.IsNullOrEmpty(taskId) ? layoutSet.Id : layoutSets?.FirstOrDefault(item => item.Tasks?.Contains(taskId) ?? false)?.Id;
 
-                                        if (type switch
-                                        {
-                                            "layoutSet" => deletedLayoutsSetIds.Contains(layoutSetId),
-                                            "page" => deletedLayouts.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id),
-                                            "component" => deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id)
-                                        })
+                                        if (
+                                            (type == "page" && deletedLayouts.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id))
+                                            || (type == "component" && deletedComponents.Exists(item => item.LayoutSetName == layoutSetId && item.Id == id))
+                                            || deletedLayoutsSetIds.Contains(layoutSetId)
+                                        )
                                         {
                                             referencesToDelete.Add(new Reference("component", layoutSet.Id, componentId));
                                             componentList.RemoveAt(i);
@@ -724,33 +724,29 @@ namespace Altinn.Studio.Designer.Services.Implementation
                                         else
                                         {
                                             Reference updatedReference = null;
-
                                             switch (type)
                                             {
-                                                case "layoutSet":
-                                                    updatedReference = updatedLayoutsSets.FirstOrDefault(item => item.Type == type && item.Id == layoutSetId);
-                                                    if (updatedReference != null)
-                                                    {
-                                                        target["taskId"] = updatedReference.NewId;
-                                                        hasLayoutChanges = true;
-                                                    }
-                                                    break;
                                                 case "page":
-                                                    updatedReference = updatedLayouts.FirstOrDefault(item => item.Type == type && item.LayoutSetName == layoutSetId && item.Id == id);
-                                                    if (updatedReference != null)
-                                                    {
-                                                        target["id"] = updatedReference.NewId;
-                                                        hasLayoutChanges = true;
-                                                    }
+                                                    updatedReference = updatedLayouts.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == id);
                                                     break;
                                                 case "component":
-                                                    updatedReference = updatedComponents.FirstOrDefault(item => item.Type == type && item.LayoutSetName == layoutSetId && item.Id == id);
-                                                    if (updatedReference != null)
-                                                    {
-                                                        target["id"] = updatedReference.NewId;
-                                                        hasLayoutChanges = true;
-                                                    }
+                                                    updatedReference = updatedComponents.FirstOrDefault(item => item.LayoutSetName == layoutSetId && item.Id == id);
                                                     break;
+                                            }
+                                            if (updatedReference != null)
+                                            {
+                                                target["id"] = updatedReference.NewId;
+                                                hasLayoutChanges = true;
+                                            }
+
+                                            if (!string.IsNullOrEmpty(taskId))
+                                            {
+                                                updatedReference = updatedTasks.FirstOrDefault(item => item.Id == taskId);
+                                                if (updatedReference != null)
+                                                {
+                                                    target["taskId"] = updatedReference.NewId;
+                                                    hasLayoutChanges = true;
+                                                }
                                             }
                                         }
 
