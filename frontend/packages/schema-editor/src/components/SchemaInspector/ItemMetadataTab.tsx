@@ -47,8 +47,8 @@ export const ItemMetadataTab = () => {
         max={Number.MAX_SAFE_INTEGER}
         min={dataType.minCount || 0}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          dataType.maxCount = parseInt(event.target.value);
-          saveMetadata(dataType);
+          const updatedDataType = { ...dataType, maxCount: parseInt(event.target.value) };
+          saveMetadata(updatedDataType);
         }}
       />
       <StudioTextfield
@@ -58,16 +58,17 @@ export const ItemMetadataTab = () => {
         max={dataType.maxCount || Number.MAX_SAFE_INTEGER}
         min={0}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          dataType.minCount = parseInt(event.target.value);
-          saveMetadata(dataType);
+          const updatedDataType = { ...dataType, minCount: parseInt(event.target.value) };
+          saveMetadata(updatedDataType);
         }}
       />
       {dataType.appLogic && (
         <StudioSwitch
           checked={dataType.appLogic.autoCreate}
           onChange={async (event: React.ChangeEvent<HTMLInputElement>) => {
-            dataType.appLogic.autoCreate = event.target.checked;
-            saveMetadata(dataType);
+            const updatedAppLogic = { ...dataType.appLogic, autoCreate: event.target.checked };
+            const updatedDataType = { ...dataType, appLogic: updatedAppLogic };
+            saveMetadata(updatedDataType);
           }}
         >
           {t('schema_editor.metadata.autoCreate')}
