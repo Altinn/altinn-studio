@@ -40,8 +40,7 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
   const pageOptions = getPageOptions(formLayoutsData);
   const componentOptions = getComponentOptions({ formLayoutsData, getComponentTitle });
 
-  const handleLayoutSetChange = (layoutSetName: string) => {
-    const taskId = layoutSets.sets.find((set) => set.id === layoutSetName).tasks[0];
+  const handleLayoutSetChange = (taskId: string) => {
     const updatedTarget = { ...target, id: '', taskId };
     onChange(updatedTarget);
   };
@@ -74,11 +73,11 @@ export const Summary2Target = ({ target, onChange }: Summary2TargetProps) => {
         <StudioNativeSelect
           size='sm'
           label={t('ux_editor.component_properties.target_layoutSet_id')}
-          value={selectedLayoutSetTargetName}
+          value={target.taskId}
           onChange={(e) => handleLayoutSetChange(e.target.value)}
         >
           {layoutSetOptions.map((layoutSet) => (
-            <option key={layoutSet.id} value={layoutSet.id}>
+            <option key={layoutSet.id} value={layoutSet.tasks[0]}>
               {layoutSet.id}
             </option>
           ))}
