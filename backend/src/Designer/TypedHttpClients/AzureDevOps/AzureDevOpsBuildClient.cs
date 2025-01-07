@@ -30,6 +30,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients.AzureDevOps
         /// <param name="generalSettingsOptions">GeneralSettings</param>
         /// <param name="sourceControl">ISourceControl</param>
         /// <param name="logger">ILogger</param>
+        /// <param name="httpContextAccessor">The http context accessor.</param>
         public AzureDevOpsBuildClient(
             HttpClient httpClient,
             GeneralSettings generalSettingsOptions,

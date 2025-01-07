@@ -21,6 +21,7 @@ namespace Altinn.Studio.PolicyAdmin
                 rule.Description = xr.Description;
 
                 rule.Subject = new List<string>();
+                rule.AccessPackages = new List<string>();
                 rule.Actions = new List<string>();
                 rule.Resources = new List<List<string>>();
 
@@ -31,7 +32,9 @@ namespace Altinn.Studio.PolicyAdmin
                     {
                         foreach (XacmlAllOf allOf in anyOf.AllOf)
                         {
-                            List<string>? subject = GetRuleSubjects(allOf);
+                            List<string>? subject = GetRuleSubjects(allOf)?.Where(x => !x.StartsWith("urn:altinn:accesspackage")).ToList();
+
+                            List<string>? accessPackages = GetRuleSubjects(allOf)?.Where(x => x.StartsWith("urn:altinn:accesspackage")).ToList();
 
                             List<string>? resource = GetRuleResources(allOf);
 
@@ -40,6 +43,11 @@ namespace Altinn.Studio.PolicyAdmin
                             if (subject != null)
                             {
                                 rule.Subject.AddRange(subject);
+                            }
+
+                            if (accessPackages != null)
+                            {
+                                rule.AccessPackages.AddRange(accessPackages);
                             }
 
                             if (action != null)
@@ -193,6 +201,11 @@ namespace Altinn.Studio.PolicyAdmin
             if (policyRule.Subject != null && policyRule.Subject.Count > 0)
             {
                 ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.Subject));
+            }
+
+            if (policyRule.AccessPackages != null && policyRule.AccessPackages.Count > 0)
+            {
+                ruleAnyOfs.Add(GetSubjectAnyOfs(policyRule.AccessPackages));
             }
 
             if (policyRule.Resources != null && policyRule.Resources.Count > 0)
