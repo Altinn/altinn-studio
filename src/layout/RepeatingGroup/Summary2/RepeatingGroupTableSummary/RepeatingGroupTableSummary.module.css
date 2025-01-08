@@ -76,3 +76,7 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.narrowLastColumn {
+  width: 1%;
+}
