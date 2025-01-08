@@ -104,6 +104,12 @@ describe('FileNameUtils', () => {
       expect(fileNameError).toBe(FileNameErrorResult.NoRegExMatch);
     });
 
+    it('Returns "NoRegExMatch" when file name does not match file name regex in terms of length', () => {
+      const fileName: string = '12345678901234567890123456789';
+      const fileNameError: FileNameErrorResult = FileNameUtils.findFileNameError(fileName, []);
+      expect(fileNameError).toBe(FileNameErrorResult.NoRegExMatch);
+    });
+
     it('Returns "FileExists" when file name matches regEx and name exists in list', () => {
       const fileName: string = 'fileName1';
       const invalidFileNames: string[] = [fileName, 'fileName2', 'fileName3'];
