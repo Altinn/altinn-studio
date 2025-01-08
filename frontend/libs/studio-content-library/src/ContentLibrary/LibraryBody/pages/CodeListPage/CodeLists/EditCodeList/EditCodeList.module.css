@@ -7,3 +7,7 @@
 .codeListUsageButton {
   display: contents;
 }
+
+.seeUsageIcon {
+  font-size: var(--fds-sizing-5);
+}

@@ -8,7 +8,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import type { CodeListWithMetadata } from '../../CodeListPage';
 import { useCodeListEditorTexts } from '../../hooks/useCodeListEditorTexts';
-import { KeyVerticalIcon } from '@studio/icons';
+import { EyeIcon, KeyVerticalIcon } from '@studio/icons';
 import { ArrayUtils, FileNameUtils } from '@studio/pure-functions';
 import { useInputCodeListNameErrorMessage } from '../../hooks/useInputCodeListNameErrorMessage';
 import classes from './EditCodeList.module.css';
@@ -54,14 +54,10 @@ export function EditCodeList({
     return getInvalidInputFileNameErrorMessage(fileNameError);
   };
 
+  const codeListHasUsages = codeListSources.length > 0;
+
   return (
     <div className={classes.editCodeList}>
-      {codeListSources.length > 0 && (
-        <ShowCodeListUsagesSourcesModal
-          codeListSources={codeListSources}
-          codeListTitle={codeListTitle}
-        />
-      )}
       <StudioToggleableTextfield
         customValidation={handleValidateCodeListId}
         inputProps={{
@@ -84,6 +80,7 @@ export function EditCodeList({
         }}
       />
       <StudioCodeListEditor codeList={codeList} onBlurAny={handleBlurAny} texts={editorTexts} />
+      {codeListHasUsages && <ShowCodeListUsagesSourcesModal codeListSources={codeListSources} />}
     </div>
   );
 }
@@ -97,25 +94,25 @@ export const updateCodeListWithMetadata = (
 
 export type ShowCodeListUsagesSourcesModalProps = {
   codeListSources: CodeListIdSource[];
-  codeListTitle: string;
 };
 
 function ShowCodeListUsagesSourcesModal({
   codeListSources,
-  codeListTitle,
 }: ShowCodeListUsagesSourcesModalProps): React.ReactElement {
   const { t } = useTranslation();
 
   return (
     <StudioModal.Root>
-      <StudioModal.Trigger variant='tertiary' className={classes.codeListUsageButton}>
+      <StudioModal.Trigger
+        icon={<EyeIcon className={classes.seeUsageIcon} />}
+        variant='tertiary'
+        className={classes.codeListUsageButton}
+      >
         {t('app_content_library.code_lists.code_list_show_usage')}
       </StudioModal.Trigger>
       <StudioModal.Dialog
         closeButtonTitle={t('general.close')}
-        heading={t('app_content_library.code_lists.code_list_show_usage_modal_title', {
-          codeListTitle,
-        })}
+        heading={t('app_content_library.code_lists.code_list_show_usage_modal_title')}
       >
         <CodeListUsages codeListSources={codeListSources} />
       </StudioModal.Dialog>

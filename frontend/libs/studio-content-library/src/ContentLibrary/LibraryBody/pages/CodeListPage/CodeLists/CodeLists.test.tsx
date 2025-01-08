@@ -132,9 +132,7 @@ describe('CodeLists', () => {
     });
     await user.click(viewCodeListUsagesButton);
     const codeListUsagesModalTitle = screen.getByText(
-      textMock('app_content_library.code_lists.code_list_show_usage_modal_title', {
-        codeListTitle: codeListName,
-      }),
+      textMock('app_content_library.code_lists.code_list_show_usage_modal_title'),
     );
     expect(codeListUsagesModalTitle).toBeInTheDocument();
   });
