@@ -19,7 +19,7 @@ describe('StudioSearch', () => {
     testCustomAttributes(renderTestSearch, getSearchBox);
   });
 
-  it('should find search component with label name', () => {
+  it('should render search field with label name when provided', () => {
     const label = 'Search for something';
     renderTestSearch({ label });
     const search = screen.getByRole('searchbox', { name: label });

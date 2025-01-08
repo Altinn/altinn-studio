@@ -1,18 +1,20 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useId } from 'react';
 import { Label, Search, type SearchProps } from '@digdir/designsystemet-react';
 import type { WithoutAsChild } from '../../types/WithoutAsChild';
-import { StudioFieldset } from '../StudioFieldset';
 
-export type StudioSearchProps = WithoutAsChild<SearchProps> & { legend?: string };
+export type StudioSearchProps = WithoutAsChild<SearchProps>;
 
 const StudioSearch = forwardRef<HTMLInputElement, StudioSearchProps>(
-  ({ size = 'sm', label, legend, ...rest }, ref) => {
+  ({ size = 'sm', label, id, ...rest }, ref) => {
+    const generatedId = useId();
+    const searchId = id ?? generatedId;
     const showLabel = !!label;
+
     return showLabel ? (
-      <StudioFieldset legend={legend}>
-        <Label htmlFor='searchId'>{label}</Label>
-        <Search {...rest} id='searchId' size={size} ref={ref} />
-      </StudioFieldset>
+      <>
+        <Label htmlFor={searchId}>{label}</Label>
+        <Search {...rest} id={searchId} size={size} ref={ref} />
+      </>
     ) : (
       <Search {...rest} size={size} ref={ref} />
     );
