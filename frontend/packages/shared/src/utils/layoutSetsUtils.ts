@@ -16,10 +16,10 @@ export const getLayoutSetIdValidationErrorKey = (
 ): string => {
   if (oldLayoutSetId === newLayoutSetId) return null;
   if (!newLayoutSetId || newLayoutSetId.trim() === '') return 'validation_errors.required';
-  if (!validateLayoutNameAndLayoutSetName(newLayoutSetId))
-    return 'validation_errors.file_name_invalid';
   if (newLayoutSetId.length === 1)
     return 'process_editor.configuration_panel_custom_receipt_layout_set_name_validation';
+  if (!validateLayoutNameAndLayoutSetName(newLayoutSetId))
+    return 'validation_errors.file_name_invalid';
   if (layoutSets.sets.some((set) => StringUtils.areCaseInsensitiveEqual(set.id, newLayoutSetId)))
     return 'process_editor.configuration_panel_layout_set_id_not_unique';
   return null;
