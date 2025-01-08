@@ -4,6 +4,7 @@ export { useDataModelsJsonQuery } from './useDataModelsJsonQuery';
 export { useDataModelsXsdQuery } from './useDataModelsXsdQuery';
 export { useOptionListQuery } from './useOptionListQuery';
 export { useOptionListsQuery } from './useOptionListsQuery';
+export { useOptionListsReferencesQuery } from './useOptionListsReferencesQuery';
 export { useRepoMetadataQuery } from './useRepoMetadataQuery';
 export { useRepoPullQuery } from './useRepoPullQuery';
 export { useRepoStatusQuery } from './useRepoStatusQuery';
