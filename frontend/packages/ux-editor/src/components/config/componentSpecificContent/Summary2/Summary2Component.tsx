@@ -2,7 +2,7 @@ import React from 'react';
 import type { IGenericEditComponent } from '../../componentConfig';
 import type { ComponentType } from 'app-shared/types/ComponentType';
 import { Summary2Override } from './Override/Summary2Override';
-import { Summary2Target } from './Target/Summary2Target';
+import { Summary2Target } from './Summary2Target/Summary2Target';
 import type {
   Summary2OverrideConfig,
   Summary2TargetConfig,
