@@ -1,36 +1,37 @@
 import React from 'react';
-import { PencilIcon, KeyVerticalIcon } from '@studio/icons';
+import { PencilIcon } from '@studio/icons';
 import { StudioButton, type StudioButtonProps } from '@studio/components';
 import classes from './StudioTextfieldToggleView.module.css';
 import cn from 'classnames';
 
-export type StudioTextfieldToggleViewProps = StudioButtonProps & {
+export type StudioTextfieldToggleViewProps = Omit<StudioButtonProps, 'icon'> & {
+  Icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   label?: string;
 };
 
 export const StudioTextfieldToggleView = ({
   onClick,
-  children,
-  title,
   label,
   className: givenClass,
-  icon = <KeyVerticalIcon data-testid='keyIcon' aria-hidden />,
+  Icon,
   ...rest
 }: StudioTextfieldToggleViewProps) => {
   const className = cn(classes.button, givenClass);
 
   return (
-    <StudioButton className={className} onClick={onClick} {...rest}>
-      <span className={classes.viewModeIconsContainer} title={title}>
-        {icon}
+    <StudioButton variant='tertiary' className={className} onClick={onClick} {...rest}>
+      <span className={classes.viewModeIconsContainer}>
+        <Icon aria-hidden />
         <span className={classes.textContainer}>
-          {label && <span className={classes.label}>{label}</span>}
-          <span className={classes.ellipsis}>{children}</span>
+          {label && (
+            <span className={classes.label} aria-hidden>
+              {label}
+            </span>
+          )}
+          <span className={classes.ellipsis}>{rest.value}</span>
         </span>
       </span>
-      <span className={classes.editIconWrapper}>
-        <PencilIcon className={classes.editIcon} data-testid='editIcon' aria-hidden />
-      </span>
+      <PencilIcon className={classes.editIcon} aria-hidden />
     </StudioButton>
   );
 };

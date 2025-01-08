@@ -11,7 +11,7 @@ import { codeListsDataMock } from '../../../../../mocks/mockPagesConfig';
 const onUpdateCodeListIdMock = jest.fn();
 const onUpdateCodeListMock = jest.fn();
 const onUploadCodeListMock = jest.fn();
-const codeListName = codeListsDataMock[0].title;
+const codeListTitle = codeListsDataMock[0].title;
 const codeListMock: StudioComponentCodeList = [{ value: 'value', label: 'label' }];
 const uploadedCodeListName = 'uploadedCodeListName';
 
@@ -51,18 +51,10 @@ describe('CodeListPage', () => {
     expect(codeListUploadButton).toBeInTheDocument();
   });
 
-  it('renders the code list as a clickable element', () => {
-    renderCodeListPage();
-    const codeListAccordion = screen.getByRole('button', { name: codeListName });
-    expect(codeListAccordion).toBeInTheDocument();
-  });
-
   it('renders the code list accordion', () => {
     renderCodeListPage();
     const codeListAccordion = screen.getByTitle(
-      textMock('app_content_library.code_lists.code_list_accordion_title', {
-        codeListTitle: codeListName,
-      }),
+      textMock('app_content_library.code_lists.code_list_accordion_title', { codeListTitle }),
     );
     expect(codeListAccordion).toBeInTheDocument();
   });
@@ -71,7 +63,7 @@ describe('CodeListPage', () => {
     const user = userEvent.setup();
     const { rerender } = renderCodeListPage();
     const codeListAccordionClosed = screen.getByRole('button', {
-      name: codeListName,
+      name: codeListTitle,
       expanded: false,
     });
     expect(codeListAccordionClosed).toHaveAttribute('aria-expanded', 'false');
@@ -91,9 +83,9 @@ describe('CodeListPage', () => {
   it('calls onUpdateCodeListId when Id is changed', async () => {
     const user = userEvent.setup();
     renderCodeListPage();
-    await changeCodeListId(user, codeListName);
+    await changeCodeListId(user, codeListTitle);
     expect(onUpdateCodeListIdMock).toHaveBeenCalledTimes(1);
-    expect(onUpdateCodeListIdMock).toHaveBeenCalledWith(codeListName, codeListName + '2');
+    expect(onUpdateCodeListIdMock).toHaveBeenCalledWith(codeListTitle, codeListTitle + '2');
   });
 
   it('calls onUpdateCodeList when code list is changed', async () => {
@@ -104,7 +96,7 @@ describe('CodeListPage', () => {
     expect(onUpdateCodeListMock).toHaveBeenCalledTimes(1);
     expect(onUpdateCodeListMock).toHaveBeenLastCalledWith({
       codeList: [{ ...codeListsDataMock[0].data[0], value: newValueText }],
-      title: codeListName,
+      title: codeListTitle,
     });
   });
 
@@ -119,16 +111,14 @@ describe('CodeListPage', () => {
 
 const changeCodeListId = async (user: UserEvent, codeListNameToChange: string) => {
   const codeListIdToggleTextfield = screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_view_id_title', {
-      codeListName: codeListNameToChange,
-    }),
-  );
-  await user.click(codeListIdToggleTextfield);
-  const codeListIdInput = screen.getByTitle(
     textMock('app_content_library.code_lists.code_list_edit_id_title', {
       codeListName: codeListNameToChange,
     }),
   );
+  await user.click(codeListIdToggleTextfield);
+  const codeListIdInput = screen.getByRole('textbox', {
+    name: textMock('app_content_library.code_lists.code_list_edit_id_label'),
+  });
   await user.type(codeListIdInput, '2');
   await user.tab();
 };

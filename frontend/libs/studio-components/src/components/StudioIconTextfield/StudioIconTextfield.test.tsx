@@ -8,35 +8,22 @@ import { testCustomAttributes } from '../../test-utils/testCustomAttributes';
 
 describe('StudioIconTextfield', () => {
   it('render the icon', async () => {
-    renderStudioIconTextfield({
-      icon: <KeyVerticalIcon title='my key icon title' />,
-    });
-    expect(screen.getByTitle('my key icon title')).toBeInTheDocument();
+    renderStudioIconTextfield();
+    expect(screen.getByRole('img', { hidden: true })).toBeInTheDocument();
   });
 
   it('should render label', () => {
-    renderStudioIconTextfield({
-      icon: <div />,
-      label: 'id',
-    });
-    expect(screen.getByLabelText('id')).toBeInTheDocument();
+    renderStudioIconTextfield();
+    expect(screen.getByLabelText(label)).toBeInTheDocument();
   });
 
   it('should execute onChange callback when input value changes', async () => {
     const user = userEvent.setup();
-    const onChangeMock = jest.fn();
-
-    renderStudioIconTextfield({
-      icon: <div />,
-      label: 'Your ID',
-      onChange: onChangeMock,
-    });
-
-    const input = screen.getByLabelText('Your ID');
-
+    renderStudioIconTextfield();
+    const input = screen.getByRole('textbox', { name: label });
     const inputValue = 'my id is 123';
     await user.type(input, inputValue);
-    expect(onChangeMock).toHaveBeenCalledTimes(inputValue.length);
+    expect(onChange).toHaveBeenCalledTimes(inputValue.length);
   });
 
   it('should forward the rest of the props to the input', () => {
@@ -44,6 +31,15 @@ describe('StudioIconTextfield', () => {
     testCustomAttributes<HTMLInputElement>(renderStudioIconTextfield, getTextbox);
   });
 });
-const renderStudioIconTextfield = (props: StudioIconTextfieldProps) => {
-  return render(<StudioIconTextfield {...props} />);
+
+const label = 'label';
+const onChange = jest.fn();
+const defaultProps: StudioIconTextfieldProps = {
+  Icon: KeyVerticalIcon,
+  label,
+  onChange,
+};
+
+const renderStudioIconTextfield = (props: Partial<StudioIconTextfieldProps> = {}) => {
+  return render(<StudioIconTextfield {...defaultProps} {...props} />);
 };

@@ -1,33 +1,37 @@
 import React, { forwardRef, useEffect, useState } from 'react';
-import {
-  StudioTextfieldToggleView,
-  type StudioTextfieldToggleViewProps,
-} from './StudioTextfieldToggleView';
+import { StudioTextfieldToggleView } from './StudioTextfieldToggleView';
 
-import { StudioIconTextfield, type StudioIconTextfieldProps } from '../StudioIconTextfield';
+import { StudioIconTextfield } from '../StudioIconTextfield';
+import { KeyVerticalIcon } from '../../../../studio-icons';
 
 export type StudioToggleableTextfieldProps = {
   customValidation?: (value: string) => string | undefined;
-  inputProps: StudioIconTextfieldProps;
-  viewProps: Omit<StudioTextfieldToggleViewProps, 'onClick'>;
+  error?: string;
+  Icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  label: string;
+  onBlur?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onIsViewMode?: (isViewMode: boolean) => void;
-  setViewModeByDefault?: boolean;
-  autoFocus?: boolean;
+  title?: string;
+  value: string;
 };
 
 export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggleableTextfieldProps>(
   (
     {
-      inputProps,
-      viewProps,
       customValidation,
+      error,
+      Icon = KeyVerticalIcon,
+      label,
+      onBlur,
+      onChange,
       onIsViewMode,
-      setViewModeByDefault = true,
-      autoFocus = true,
+      title,
+      value,
     }: StudioToggleableTextfieldProps,
     ref,
   ) => {
-    const [isViewMode, setIsViewMode] = useState(setViewModeByDefault);
+    const [isViewMode, setIsViewMode] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(null);
 
     useEffect(() => {
@@ -51,12 +55,12 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
 
     const handleBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
       // Should not close the view mode or blur if there is an error
-      if (errorMessage || inputProps.error) {
+      if (errorMessage || error) {
         return;
       }
 
       toggleViewMode();
-      inputProps.onBlur?.(event);
+      onBlur?.(event);
     };
 
     const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,19 +68,31 @@ export const StudioToggleableTextfield = forwardRef<HTMLDivElement, StudioToggle
         runCustomValidation(event);
       }
 
-      inputProps.onChange?.(event);
+      onChange?.(event);
     };
 
-    if (isViewMode) return <StudioTextfieldToggleView onClick={toggleViewMode} {...viewProps} />;
+    if (isViewMode)
+      return (
+        <StudioTextfieldToggleView
+          onClick={toggleViewMode}
+          Icon={Icon}
+          label={label}
+          title={title}
+          value={value}
+        />
+      );
 
     return (
       <StudioIconTextfield
-        {...inputProps}
         ref={ref}
+        label={label}
+        title={title}
+        value={value}
+        Icon={Icon}
         onBlur={handleBlur}
         onChange={handleOnChange}
-        error={inputProps.error || errorMessage}
-        autoFocus={autoFocus}
+        error={error || errorMessage}
+        autoFocus
       />
     );
   },

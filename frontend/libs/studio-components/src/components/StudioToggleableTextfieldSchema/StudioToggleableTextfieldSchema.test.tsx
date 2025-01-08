@@ -4,7 +4,7 @@ import {
   StudioToggleableTextfieldSchema,
   type StudioToggleableTextfieldSchemaProps,
 } from './StudioToggleableTextfieldSchema';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const defaultLayoutSchemaMock: JsonSchema = {
@@ -27,112 +27,54 @@ const defaultLayoutSchemaMock: JsonSchema = {
     },
   },
 };
-
+const value: string = 'value';
+const label: string = 'label';
 const defaultProps: StudioToggleableTextfieldSchemaProps = {
   layoutSchema: defaultLayoutSchemaMock,
   relatedSchemas: [],
-  viewProps: {
-    value: '',
-    onChange: () => {},
-  },
-  inputProps: {
-    value: '',
-    onChange: () => {},
-    icon: <div />,
-  },
+  label,
+  value,
+  onChange: jest.fn(),
   propertyPath: 'definitions/component/properties/id',
   onError: jest.fn(),
 };
 
 describe('StudioToggleableTextfieldSchema', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-  it('should render as view mode as default and support rest props', () => {
-    renderStudioTextfieldSchema({
-      viewProps: {
-        children: 'Edit id',
-        className: 'test-class',
-      },
-    });
-    const editButton = screen.getByRole('button', { name: 'Edit id' });
-    expect(editButton).toBeInTheDocument();
-    expect(editButton).toHaveClass('test-class');
-  });
+  beforeEach(jest.clearAllMocks);
 
   it('should toggle to edit mode when clicking edit', async () => {
     const user = userEvent.setup();
-
-    renderStudioTextfieldSchema({
-      viewProps: {
-        children: 'Edit id',
-      },
-      inputProps: {
-        ...defaultProps.inputProps,
-        label: 'Your id',
-      },
-    });
-
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-    expect(screen.getByLabelText('Your id')).toBeInTheDocument();
+    renderStudioTextfieldSchema();
+    await user.click(screen.getByRole('button', { name: value }));
+    expect(screen.getByRole('textbox', { name: label })).toBeInTheDocument();
   });
 
   it('should toggle to view mode on blur', async () => {
     const user = userEvent.setup();
-
-    renderStudioTextfieldSchema({
-      viewProps: {
-        children: 'Edit id',
-      },
-      inputProps: {
-        ...defaultProps.inputProps,
-        label: 'Your id',
-      },
-    });
-
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
-
-    fireEvent.blur(screen.getByLabelText('Your id'));
-    expect(screen.getByRole('button', { name: 'Edit id' })).toBeInTheDocument();
+    renderStudioTextfieldSchema();
+    await user.click(screen.getByRole('button', { name: value }));
+    expect(screen.queryByRole('button', { name: value })).not.toBeInTheDocument();
+    await user.tab();
+    expect(screen.getByRole('button', { name: value })).toBeInTheDocument();
   });
 
   it('should not toggle to view mode on blur if input is invalid', async () => {
     const user = userEvent.setup();
-
+    const error: string = 'error message';
     renderStudioTextfieldSchema({
-      viewProps: {
-        children: 'Edit id',
-      },
-      inputProps: {
-        ...defaultProps.inputProps,
-        label: 'Your id',
-        error: 'my awesome error message',
-      },
+      ...defaultProps,
+      error,
     });
-
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
-
-    fireEvent.blur(screen.getByLabelText('Your id'));
-    expect(screen.queryByRole('button', { name: 'Edit id' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: value }));
+    await user.tab();
+    expect(screen.queryByRole('button', { name: value })).not.toBeInTheDocument();
   });
 
   it('should validate field against json schema and invoke "onError" if validation has errors', async () => {
     const user = userEvent.setup();
-
-    renderStudioTextfieldSchema({
-      viewProps: {
-        children: 'Edit id',
-      },
-      inputProps: {
-        ...defaultProps.inputProps,
-        label: 'Your id',
-      },
-    });
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-
-    await user.type(screen.getByLabelText('Your id'), 'invalid-value-01');
+    renderStudioTextfieldSchema();
+    await user.click(screen.getByRole('button', { name: value }));
+    await user.type(screen.getByRole('textbox', { name: label }), 'invalid-value-01');
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'pattern',
       details: 'Result of validate property',
@@ -141,21 +83,9 @@ describe('StudioToggleableTextfieldSchema', () => {
 
   it('should validate field against json schema and invoke "onError" if field is required', async () => {
     const user = userEvent.setup();
-
-    renderStudioTextfieldSchema({
-      viewProps: {
-        children: 'Edit id',
-      },
-      inputProps: {
-        ...defaultProps.inputProps,
-        label: 'Your id',
-      },
-    });
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-
-    await user.type(screen.getByLabelText('Your id'), 'first-id');
-    await user.clear(screen.getByLabelText('Your id'));
-
+    renderStudioTextfieldSchema();
+    await user.click(screen.getByRole('button', { name: value }));
+    await user.clear(screen.getByRole('textbox', { name: label }));
     expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'required',
       details: 'Property value is required',
@@ -164,30 +94,15 @@ describe('StudioToggleableTextfieldSchema', () => {
 
   it('should invoke onChange and onError when input changes with error', async () => {
     const user = userEvent.setup();
-    const onErrorMock = jest.fn();
-    const onChangeMock = jest.fn();
-
-    renderStudioTextfieldSchema({
-      onError: onErrorMock,
-      viewProps: {
-        children: 'Edit id',
-      },
-      inputProps: {
-        ...defaultProps.inputProps,
-        label: 'Your id',
-        onChange: onChangeMock,
-      },
-    });
-
-    await user.click(screen.getByRole('button', { name: 'Edit id' }));
-
-    const invalidValue = '1';
-    await user.type(screen.getByLabelText('Your id'), invalidValue);
-    expect(onErrorMock).toHaveBeenCalledWith({
-      details: 'Result of validate property',
+    const invalidValue = 'invalid-value-01';
+    renderStudioTextfieldSchema();
+    await user.click(screen.getByRole('button', { name: value }));
+    await user.type(screen.getByRole('textbox', { name: label }), invalidValue);
+    expect(defaultProps.onError).toHaveBeenCalledWith({
       errorCode: 'pattern',
+      details: 'Result of validate property',
     });
-    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    expect(defaultProps.onChange).toHaveBeenCalledTimes(invalidValue.length);
   });
 });
 

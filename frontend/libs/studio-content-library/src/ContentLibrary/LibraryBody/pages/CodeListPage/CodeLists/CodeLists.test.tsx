@@ -104,16 +104,14 @@ describe('CodeLists', () => {
 
 const changeCodeListId = async (user: UserEvent, oldCodeListId: string, newCodeListId: string) => {
   const codeListIdToggleTextfield = screen.getByTitle(
-    textMock('app_content_library.code_lists.code_list_view_id_title', {
-      codeListName: oldCodeListId,
-    }),
-  );
-  await user.click(codeListIdToggleTextfield);
-  const codeListIdInput = screen.getByTitle(
     textMock('app_content_library.code_lists.code_list_edit_id_title', {
       codeListName: oldCodeListId,
     }),
   );
+  await user.click(codeListIdToggleTextfield);
+  const codeListIdInput = screen.getByRole('textbox', {
+    name: textMock('app_content_library.code_lists.code_list_edit_id_label'),
+  });
   await user.clear(codeListIdInput);
   await user.type(codeListIdInput, newCodeListId);
   await user.tab();

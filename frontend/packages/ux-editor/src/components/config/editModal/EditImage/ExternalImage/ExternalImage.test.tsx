@@ -9,6 +9,7 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import { app, org } from '@studio/testing/testids';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ExternalImageUrlValidationResponse } from 'app-shared/types/api/ExternalImageUrlValidationResponse';
 
@@ -223,23 +224,17 @@ const getInvalidUrlErrorMessage = () =>
 const getNotAnImageErrorMessage = () =>
   screen.getByText(textMock('ux_editor.properties_panel.images.invalid_external_url_not_an_image'));
 
-const getExistingUrlButton = (url: string) =>
-  screen.getByRole('button', {
-    name: textMock('ux_editor.properties_panel.images.enter_external_url') + ' ' + url,
-  });
+const getExistingUrlButton = (url: string) => screen.getByRole('button', { name: url });
 
 const getEnterUrlWithPlaceholderButton = () =>
   screen.getByRole('button', {
-    name:
-      textMock('ux_editor.properties_panel.images.enter_external_url') +
-      ' ' +
-      textMock('ux_editor.properties_panel.images.external_url_not_added'),
+    name: textMock('ux_editor.properties_panel.images.external_url_not_added'),
   });
 
-const inputUrlInField = async (user, url: string) => {
+const inputUrlInField = async (user: UserEvent, url: string) => {
   const inputUrlField = getInputUrlField();
+  await user.clear(inputUrlField);
   if (url) await user.type(inputUrlField, url);
-  else await user.clear(inputUrlField);
   await waitFor(() => inputUrlField.blur());
 };
 

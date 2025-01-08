@@ -40,7 +40,7 @@ const mockAllDataModelIds: string[] = [
 
 const defaultBpmnContextProps: BpmnApiContextProps = {
   ...mockBpmnApiContextValue,
-  existingCustomReceiptLayoutSetId: existingCustomReceiptLayoutSetId,
+  existingCustomReceiptLayoutSetId,
   allDataModelIds: mockAllDataModelIds,
 };
 
@@ -52,7 +52,7 @@ describe('CustomReceipt', () => {
     renderCustomReceipt();
 
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      name: existingCustomReceiptLayoutSetId,
     });
 
     await user.click(toggleableTextfieldButton);
@@ -77,7 +77,7 @@ describe('CustomReceipt', () => {
     renderCustomReceipt();
 
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      name: existingCustomReceiptLayoutSetId,
     });
 
     await user.click(toggleableTextfieldButton);
@@ -130,7 +130,7 @@ describe('CustomReceipt', () => {
     });
 
     const toggleableTextfieldButton = screen.getByRole('button', {
-      name: textMock('process_editor.configuration_panel_custom_receipt_textfield_label'),
+      name: existingCustomReceiptLayoutSetId,
     });
 
     await user.click(toggleableTextfieldButton);

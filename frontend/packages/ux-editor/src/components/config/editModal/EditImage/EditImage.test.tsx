@@ -6,6 +6,7 @@ import { ComponentType } from 'app-shared/types/ComponentType';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../testing/mocks';
+import type { UserEvent } from '@testing-library/user-event';
 import userEvent from '@testing-library/user-event';
 import type { ServicesContextProps } from 'app-shared/contexts/ServicesContext';
 import { queriesMock } from 'app-shared/mocks/queriesMock';
@@ -186,7 +187,7 @@ const getTabs = (): { addImageTab: HTMLElement; pasteUrlTab: HTMLElement } => {
   };
 };
 
-const goToExternalUrlTab = async (user) => {
+const goToExternalUrlTab = async (user: UserEvent) => {
   await user.click(
     screen.getByRole('tab', {
       name: textMock('ux_editor.properties_panel.images.enter_external_url_tab_title'),
@@ -194,15 +195,14 @@ const goToExternalUrlTab = async (user) => {
   );
 };
 
-const clickExistingUrlButton = async (user, existingExternalUrl: string) => {
+const clickExistingUrlButton = async (user: UserEvent, existingExternalUrl: string) => {
   const existingUrlButton = screen.getByRole('button', {
-    name:
-      textMock('ux_editor.properties_panel.images.enter_external_url') + ' ' + existingExternalUrl,
+    name: existingExternalUrl,
   });
   await user.click(existingUrlButton);
 };
 
-const enterUrlInField = async (user, url: string | undefined) => {
+const enterUrlInField = async (user: UserEvent, url: string | undefined) => {
   const enterUrlField = screen.getByRole('textbox', {
     name: textMock('ux_editor.properties_panel.images.enter_external_url'),
   });

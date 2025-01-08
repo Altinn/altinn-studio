@@ -3,52 +3,47 @@ import { render, screen } from '@testing-library/react';
 import { StudioTextfieldToggleView } from './StudioTextfieldToggleView';
 import type { StudioTextfieldToggleViewProps } from './StudioTextfieldToggleView';
 import userEvent from '@testing-library/user-event';
+import { KeyVerticalIcon } from '@studio/icons';
 
 describe('StudioTextfieldToggleView', () => {
   it('should render button text', () => {
-    renderStudioTextfieldToggleView({ children: 'My awesome button' });
-    expect(screen.getByRole('button', { name: 'My awesome button' })).toBeInTheDocument();
+    renderStudioTextfieldToggleView();
+    expect(screen.getByRole('button', { name: value })).toBeInTheDocument();
   });
 
   it('should execute the "onClick" method when button is clicked', async () => {
     const user = userEvent.setup();
-    const onClickMock = jest.fn();
-
-    renderStudioTextfieldToggleView({ children: 'My awesome button text', onClick: onClickMock });
-
-    await user.click(screen.getByRole('button', { name: 'My awesome button text' }));
-    expect(onClickMock).toHaveBeenCalledTimes(1);
+    renderStudioTextfieldToggleView();
+    await user.click(screen.getByRole('button', { name: value }));
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it('should render the KeyVerticalIcon', () => {
-    renderStudioTextfieldToggleView({ children: 'My awesome button text' });
-
-    // Uses testId to find the KeyVerticalIcon, since it's not available for screen reader.
-    expect(screen.getByTestId('keyIcon')).toBeInTheDocument();
-  });
-
-  it('should render the PencilIcon', () => {
-    renderStudioTextfieldToggleView({ children: 'My awesome button text' });
-
-    // Uses testId to find the EditIcon, since it's not available for screen reader.
-    expect(screen.getByTestId('editIcon')).toBeInTheDocument();
+  it('should render the both given Icon and pencilIcon', () => {
+    renderStudioTextfieldToggleView();
+    expect(screen.getAllByRole('img', { hidden: true })).toHaveLength(2);
   });
 
   it('should forward the rest of the props to the button', () => {
-    renderStudioTextfieldToggleView({ children: 'My awesome button text', disabled: true });
-    expect(screen.getByRole('button', { name: 'My awesome button text' })).toBeDisabled();
+    renderStudioTextfieldToggleView({ disabled: true });
+    expect(screen.getByRole('button', { name: value })).toBeDisabled();
   });
 
   it('should show label if defined', () => {
-    const studioTextfieldToggleViewLabel = 'studioTextfieldToggleViewLabel';
-    renderStudioTextfieldToggleView({
-      children: 'My awesome button text',
-      label: studioTextfieldToggleViewLabel,
-    });
-    expect(screen.getByText(studioTextfieldToggleViewLabel)).toBeInTheDocument();
+    renderStudioTextfieldToggleView();
+    expect(screen.getByText(label)).toBeInTheDocument();
   });
 });
 
-const renderStudioTextfieldToggleView = (props: Partial<StudioTextfieldToggleViewProps>) => {
-  return render(<StudioTextfieldToggleView {...props} />);
+const value = 'value';
+const label = 'label';
+const onClick = jest.fn();
+const defaultProps: StudioTextfieldToggleViewProps = {
+  value,
+  label,
+  onClick,
+  Icon: KeyVerticalIcon,
+};
+
+const renderStudioTextfieldToggleView = (props: Partial<StudioTextfieldToggleViewProps> = {}) => {
+  return render(<StudioTextfieldToggleView {...defaultProps} {...props} />);
 };

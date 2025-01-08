@@ -86,7 +86,7 @@ export class ProcessEditorPage extends BasePage {
 
   public async waitForEditIdInputFieldToBeVisible(): Promise<void> {
     const inputField = this.page.getByRole('textbox', {
-      name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
     });
     await expect(inputField).toBeVisible();
   }
@@ -94,7 +94,7 @@ export class ProcessEditorPage extends BasePage {
   public async emptyIdTextfield(): Promise<void> {
     await this.page
       .getByRole('textbox', {
-        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+        name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
       })
       .clear();
   }
@@ -102,14 +102,14 @@ export class ProcessEditorPage extends BasePage {
   public async writeNewId(id: string): Promise<void> {
     await this.page
       .getByRole('textbox', {
-        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+        name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
       })
       .fill(id);
   }
 
   public async waitForTextBoxToHaveValue(id: string): Promise<void> {
     const textBox = this.page.getByRole('textbox', {
-      name: this.textMock('process_editor.configuration_panel_change_task_id'),
+      name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
     });
     await expect(textBox).toHaveValue(id);
   }
@@ -117,7 +117,7 @@ export class ProcessEditorPage extends BasePage {
   public async saveNewId(): Promise<void> {
     await this.page
       .getByRole('textbox', {
-        name: this.textMock('process_editor.configuration_panel_change_task_id'),
+        name: this.textMock('process_editor.configuration_panel_change_task_id_label'),
       })
       .blur();
   }
