@@ -483,13 +483,12 @@ const renderSingleTextfieldCell = (
 const renderSingleNumberfieldCell = (
   props: CellNumberfieldProps,
   ref?: ForwardedRef<HTMLInputElement>,
-): RenderResult => {
-  return render(
+): RenderResult =>
+  render(
     <SingleRow>
       <StudioInputTable.Cell.Numberfield {...props} ref={ref} />
     </SingleRow>,
   );
-};
 
 const renderSingleTextareaCell = (
   props: CellTextareaProps,
