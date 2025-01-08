@@ -5,7 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { StudioCodeListEditor, StudioModal } from '@studio/components';
 import { useForwardedRef } from '@studio/hooks';
 import { useOptionListEditorTexts } from '../../../hooks';
-import { handleOptionsChange, updateComponentOptions } from '../../../utils/optionsUtils';
+import {
+  handleOptionsChange,
+  resetComponentOptions,
+  updateComponentOptions,
+} from '../../../utils/optionsUtils';
 import { OptionListLabels } from '../OptionListLabels';
 import { OptionListButtons } from '../OptionListButtons';
 import type { Option } from 'app-shared/types/Option';
@@ -30,6 +34,13 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
       modalRef.current?.showModal();
     };
 
+    const handleClose = () => {
+      if (component.options?.length === 0) {
+        const updatedComponent = resetComponentOptions(component);
+        handleOptionsChange(updatedComponent, handleComponentChange);
+      }
+    };
+
     return (
       <>
         <OptionListLabels optionsId={component.optionsId} optionsList={component.options} />
@@ -39,6 +50,7 @@ export const ManualOptionsEditor = forwardRef<HTMLDialogElement, ManualOptionsEd
           className={classes.editOptionTabModal}
           contentClassName={classes.content}
           closeButtonTitle={t('general.close')}
+          onBeforeClose={handleClose}
           heading={t('ux_editor.options.modal_header_manual_code_list')}
         >
           <StudioCodeListEditor

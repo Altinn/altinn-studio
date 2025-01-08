@@ -4,6 +4,7 @@ import type { OptionsList } from 'app-shared/types/api/OptionsLists';
 import type { Option } from 'app-shared/types/Option';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import type { OptionListEditorProps } from './OptionListEditor';
+import { ObjectUtils } from '@studio/pure-functions';
 import { OptionListEditor } from './OptionListEditor';
 import { textMock } from '@studio/testing/mocks/i18nMock';
 import { renderWithProviders } from '../../../../../../../testing/mocks';
@@ -24,6 +25,7 @@ const apiResult: OptionsList = [
 const getOptionListMock = jest
   .fn()
   .mockImplementation(() => Promise.resolve<OptionsList>(apiResult));
+const componentWithOptionsId = { ...mockComponent, options: undefined, optionsId: 'some-id' };
 
 describe('OptionListEditor', () => {
   afterEach(() => jest.clearAllMocks());
@@ -49,18 +51,34 @@ describe('OptionListEditor', () => {
     it('should close Dialog', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
+      await user.click(getOptionModalButton());
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('should call handleComponentChange with correct parameters when closing Dialog and options is empty', async () => {
+      const user = userEvent.setup();
+      renderOptionListEditor({
+        props: { component: { ...mockComponent, options: [], optionsId: undefined } },
+      });
+      const expectedArgs = ObjectUtils.deepCopy(mockComponent);
+      expectedArgs.options = undefined;
+      expectedArgs.optionsId = undefined;
 
       await user.click(getOptionModalButton());
       await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(handleComponentChange).toHaveBeenCalledTimes(1);
+      expect(handleComponentChange).toHaveBeenCalledWith(expectedArgs);
     });
 
-    it('should call handleComponentChange when editing', async () => {
+    it('should call handleComponentChange with correct parameters when editing', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
       const text = 'test';
-      const expectedArgs = mockComponent;
+      const expectedArgs = ObjectUtils.deepCopy(mockComponent);
       expectedArgs.optionsId = undefined;
       expectedArgs.options[0].description = text;
 
@@ -74,8 +92,14 @@ describe('OptionListEditor', () => {
     });
 
     it('should show placeholder for option label when option list label is empty', () => {
-      mockComponent.options = [{ value: 2, label: '', description: 'test', helpText: null }];
-      renderOptionListEditor();
+      renderOptionListEditor({
+        props: {
+          component: {
+            ...mockComponent,
+            options: [{ value: 2, label: '', description: 'test', helpText: null }],
+          },
+        },
+      });
 
       expect(screen.getByText(textMock('general.empty_string'))).toBeInTheDocument();
     });
@@ -83,7 +107,7 @@ describe('OptionListEditor', () => {
     it('should call handleComponentChange with correct parameters when removing chosen options', async () => {
       const user = userEvent.setup();
       renderOptionListEditor();
-      const expectedResult = mockComponent;
+      const expectedResult = ObjectUtils.deepCopy(mockComponent);
       expectedResult.options = undefined;
       expectedResult.optionsId = undefined;
 
@@ -101,7 +125,7 @@ describe('OptionListEditor', () => {
         queries: {
           getOptionList: jest.fn().mockImplementation(() => Promise.resolve<OptionsList>([])),
         },
-        props: { component: { ...mockComponent, options: undefined } },
+        props: { component: componentWithOptionsId },
       });
 
       expect(
@@ -114,7 +138,6 @@ describe('OptionListEditor', () => {
         queries: {
           getOptionList: jest.fn().mockImplementation(() => Promise.reject()),
         },
-        props: { component: { ...mockComponent, options: undefined } },
       });
 
       expect(
@@ -123,17 +146,13 @@ describe('OptionListEditor', () => {
     });
 
     it('should render the open Dialog button', async () => {
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
-        props: { component: { ...mockComponent, options: undefined } },
-      });
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       expect(getOptionModalButton()).toBeInTheDocument();
     });
 
     it('should open Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
-        props: { component: { ...mockComponent, options: undefined } },
-      });
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
 
       await user.click(getOptionModalButton());
 
@@ -142,13 +161,11 @@ describe('OptionListEditor', () => {
 
     it('should close Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
-        props: { component: { ...mockComponent, options: undefined } },
-      });
-
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       await user.click(getOptionModalButton());
-      await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
 
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'close modal' })); // Todo: Replace "close modal" with defaultDialogProps.closeButtonTitle when we upgrade to Designsystemet v1
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
@@ -157,7 +174,6 @@ describe('OptionListEditor', () => {
       const doReloadPreview = jest.fn();
       await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
         previewContextProps: { doReloadPreview },
-        props: { component: { ...mockComponent, options: undefined } },
       });
 
       await user.click(getOptionModalButton());
@@ -170,9 +186,7 @@ describe('OptionListEditor', () => {
 
     it('should call updateOptionList with correct parameters when closing Dialog', async () => {
       const user = userEvent.setup();
-      await renderOptionListEditorAndWaitForSpinnerToBeRemoved({
-        props: { component: { ...mockComponent, options: undefined } },
-      });
+      await renderOptionListEditorAndWaitForSpinnerToBeRemoved();
       const expectedResultAfterEdit: Option[] = [
         { value: 'test', label: 'label text', description: 'description', helpText: 'help text' },
         { value: 2, label: 'label number', description: 'test', helpText: null },
@@ -188,7 +202,7 @@ describe('OptionListEditor', () => {
       expect(queriesMock.updateOptionList).toHaveBeenCalledWith(
         org,
         app,
-        mockComponent.optionsId,
+        componentWithOptionsId.optionsId,
         expectedResultAfterEdit,
       );
     });
@@ -237,12 +251,12 @@ function getTextBoxInput(number: number) {
   });
 }
 
-const defaultProps: OptionListEditorProps = {
-  component: mockComponent,
-  handleComponentChange,
-};
-
 const renderOptionListEditor = ({ previewContextProps = {}, queries = {}, props = {} } = {}) => {
+  const defaultProps: OptionListEditorProps = {
+    component: mockComponent,
+    handleComponentChange,
+  };
+
   return renderWithProviders(<OptionListEditor {...defaultProps} {...props} />, {
     queries: { getOptionList: getOptionListMock, ...queries },
     queryClient: createQueryClientMock(),
@@ -253,7 +267,7 @@ const renderOptionListEditor = ({ previewContextProps = {}, queries = {}, props 
 const renderOptionListEditorAndWaitForSpinnerToBeRemoved = async ({
   previewContextProps = {},
   queries = {},
-  props = {},
+  props = { component: componentWithOptionsId },
 } = {}) => {
   const view = renderOptionListEditor({
     previewContextProps,
