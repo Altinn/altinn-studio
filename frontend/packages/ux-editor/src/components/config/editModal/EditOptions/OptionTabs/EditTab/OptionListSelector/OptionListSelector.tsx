@@ -7,8 +7,8 @@ import { useTranslation } from 'react-i18next';
 import {
   StudioButton,
   StudioCard,
-  StudioHeading,
   StudioModal,
+  StudioParagraph,
   StudioSpinner,
 } from '@studio/components';
 import { BookIcon } from '@studio/icons';
@@ -111,13 +111,11 @@ function ModalContent({
   return (
     <>
       {optionListIds.map((optionsId: string) => (
-        <div className={classes.card} key={optionsId}>
-          <StudioCard onClick={() => handleClick(optionsId)}>
-            <StudioCard.Header className={classes.header}>
-              <StudioHeading size='xs'>{optionsId}</StudioHeading>
-            </StudioCard.Header>
-          </StudioCard>
-        </div>
+        <StudioCard className={classes.card} key={optionsId} onClick={() => handleClick(optionsId)}>
+          <StudioCard.Header className={classes.header}>
+            <StudioParagraph>{optionsId}</StudioParagraph>
+          </StudioCard.Header>
+        </StudioCard>
       ))}
     </>
   );

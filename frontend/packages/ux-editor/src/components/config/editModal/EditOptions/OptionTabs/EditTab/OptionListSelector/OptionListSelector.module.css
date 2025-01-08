@@ -14,10 +14,12 @@
   gap: var(--fds-spacing-2);
 }
 
-.card {
+.card:hover {
+  background-color: var(--fds-semantic-surface-neutral-subtle);
   cursor: pointer;
 }
 
 .header {
-  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+  padding-inline: var(--fds-spacing-4);
+  padding-block: var(--fds-spacing-2);
 }
