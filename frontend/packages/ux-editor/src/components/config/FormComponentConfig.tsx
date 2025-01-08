@@ -161,6 +161,49 @@ export const FormComponentConfig = ({
           />
         );
       })}
+      {/** Array properties with enum values) */}
+      {arrayPropertyKeys.map((propertyKey) => {
+        const isShowValidations = propertyKey === 'showValidations';
+        return (
+          isShowValidations && (
+            <CollapsiblePropertyEditor
+              key={propertyKey}
+              label={t('ux_editor.component_properties.showValidations')}
+            >
+              <EditStringValue
+                component={component}
+                handleComponentChange={handleComponentUpdate}
+                propertyKey={propertyKey}
+                key={propertyKey}
+                helpText={isShowValidations ? '' : properties[propertyKey]?.description}
+                enumValues={properties[propertyKey]?.items?.enum}
+                multiple={true}
+              />
+            </CollapsiblePropertyEditor>
+          )
+        );
+      })}
+      {/** Number properties (number and integer types) */}
+      {numberPropertyKeys.map((propertyKey) => {
+        const isPreselectedOptionIndex = propertyKey === 'preselectedOptionIndex';
+        return (
+          isPreselectedOptionIndex && (
+            <CollapsiblePropertyEditor
+              key={propertyKey}
+              label={t('ux_editor.component_properties.preselectedOptionIndex_button')}
+            >
+              <EditNumberValue
+                component={component}
+                handleComponentChange={handleComponentUpdate}
+                propertyKey={propertyKey}
+                key={propertyKey}
+                enumValues={properties[propertyKey]?.enum}
+                helpText={t('ux_editor.component_properties.preselected_help_text')}
+              />
+            </CollapsiblePropertyEditor>
+          )
+        );
+      })}
       {!hideUnsupported && (
         <Heading level={3} size='xxsmall'>
           {t('ux_editor.component_other_properties_title')}
@@ -224,35 +267,6 @@ export const FormComponentConfig = ({
           )}
         </>
       )}
-
-      {/** Number properties (number and integer types) */}
-      {numberPropertyKeys.map((propertyKey) => {
-        return (
-          <EditNumberValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={t('ux_editor.component_properties.preselected_help_text')}
-            enumValues={properties[propertyKey]?.enum}
-          />
-        );
-      })}
-
-      {/** Array properties with enum values) */}
-      {arrayPropertyKeys.map((propertyKey) => {
-        return (
-          <EditStringValue
-            component={component}
-            handleComponentChange={handleComponentUpdate}
-            propertyKey={propertyKey}
-            key={propertyKey}
-            helpText={properties[propertyKey]?.description}
-            enumValues={properties[propertyKey]?.items?.enum}
-            multiple={true}
-          />
-        );
-      })}
 
       {/** Object properties */}
       {objectPropertyKeys.map((propertyKey) => {

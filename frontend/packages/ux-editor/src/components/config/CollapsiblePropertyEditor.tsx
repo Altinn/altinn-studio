@@ -3,11 +3,16 @@ import { PlusCircleIcon, XMarkIcon } from '@studio/icons';
 import { StudioButton, StudioProperty } from '@studio/components';
 import classes from './CollapsiblePropertyEditor.module.css';
 import { useTranslation } from 'react-i18next';
+import cn from 'classnames';
 
-//TODO: Add tests:
-// - should render property "sortOrder" with its selector inside add button "Sorteringsrekkefølge".
-// - should render property "preselectedOptionIndex" with its selector inside add button "Plassering av forhåndsvalgt verdi (indeks)".
-// - should render property "showValidation" with its selector inside add button "Vis valederingsType".
+//TODO: - should render property "sortOrder" with its selector inside add button "Sorteringsrekkefølge".
+// - Add test for "should render property "sortOrder" with its selector inside add button "Sorteringsrekkefølge".
+
+//TODO: - should render property "showValidations" with its selector inside add button "Vis valederingsType".
+// - Add test for "should render property "showValidations" with its selector inside add button "Vis valederingsType".
+
+//TODO: - should render property "preselectedOptionIndex" with its selector inside add button "Plassering av forhåndsvalgt verdi (indeks)".
+// - Add test for "should render property "preselectedOptionIndex" with its selector inside add button "Plassering av forhåndsvalgt verdi (indeks)".
 
 export type CollapsiblePropertyEditorProps = {
   label?: string;
@@ -24,7 +29,9 @@ export const CollapsiblePropertyEditor = ({
   const [isVisible, setIsVisible] = useState(false);
 
   return (
-    <div className={classes.collapsibleContainer}>
+    <div
+      className={cn(isVisible ? classes.collapsibleContainer : classes.collapsibleContainerClosed)}
+    >
       {!isVisible ? (
         <StudioProperty.Button
           className={classes.button}
