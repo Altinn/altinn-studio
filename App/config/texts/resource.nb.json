@@ -2,6 +2,14 @@
   "language": "nb",
   "resources": [
     {
+      "id": "signering-av-stiftelsesdok.FileUpload-fU4NBP.description",
+      "value": "Last opp filer som må signeres av stifterne."
+    },
+    {
+      "id": "signering-av-stiftelsesdok.FileUpload-fU4NBP.title",
+      "value": "Stiftelsesdokumenter"
+    },
+    {
       "id": "signering-av-stiftelsesdok.Button-cBQsfZ.title",
       "value": "Til signering"
     },

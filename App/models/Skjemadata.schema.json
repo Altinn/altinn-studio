@@ -228,6 +228,8 @@
     },
     "Stiftelsesdokumenter": {
       "type": "array",
+      "maxItems": 10,
+      "minItems": 0,
       "uniqueItems": true,
       "items": {
         "type": "string",
