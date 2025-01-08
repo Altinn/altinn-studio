@@ -258,5 +258,6 @@
   "resourceadm.right_translation_bar_title": "Oversettelse",
   "resourceadm.switch_should_not": "ikke",
   "resourceadm.merge_conflict_header": "Konflikt i endrede lokale filer",
-  "resourceadm.merge_conflict_body": "Det er en konflikt i repositorium for ressurser. Noen andre har endret filer på samme sted som deg, og du må fjerne dine endringer. Før du gjør dette kan du laste ned en zip-fil med endringene dine."
+  "resourceadm.merge_conflict_body": "Det er en konflikt i repositorium for ressurser. Noen andre har endret filer på samme sted som deg, og du må fjerne dine endringer. Før du gjør dette kan du laste ned en zip-fil med endringene dine.",
+  "resourceadm.merge_conflict_footer": "Velg \"Fjern mine endringer\" for å løse konflikten."
 }
