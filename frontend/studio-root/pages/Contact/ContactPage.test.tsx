@@ -62,7 +62,7 @@ describe('ContactPage', () => {
     expect(screen.queryByText(textMock('contact.altinn_servicedesk.content')));
   });
 
-  it('should display contact information to "Altinn Servicedesk"', () => {
+  it('should display contact information to "Altinn Servicedesk" if user belongs to an org', () => {
     (useFetchBelongsToOrgQuery as jest.Mock).mockReturnValue({
       data: { belongsToOrg: true },
     });
