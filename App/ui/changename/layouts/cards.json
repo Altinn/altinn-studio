@@ -174,7 +174,7 @@
         "color": "subtle",
         "cards": [
           {
-            "title": "Nummer kort",
+            "title": "Tall",
             "description": "",
             "children": ["number1", "number2", "number3", "number4"]
           }
@@ -235,13 +235,12 @@
         "color": "subtle",
         "cards": [
           {
-            "title": "Dato kort",
+            "title": "Dato",
             "description": "",
             "children": ["date1", "date2", "date3", "date4"]
           }
         ]
       },
-
       {
         "id": "text1",
         "type": "Text",
@@ -305,11 +304,70 @@
         "color": "subtle",
         "cards": [
           {
-            "title": "Tekst kort",
+            "title": "Tekst",
             "description": "",
             "children": ["text1", "text2", "text3", "text4", "text5"]
           }
         ]
+      },
+      {
+        "id": "option-Card",
+        "type": "Cards",
+        "color": "subtle",
+        "cards": [
+          {
+            "title": "Option",
+            "description": "",
+            "children": ["option-test1", "option-test2", "option-test3", "option-test4"]
+          }
+        ]
+      },
+      {
+        "id": "option-test1",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Dyr med hjelpetekst og beskrivelse",
+          "description": "Et dyr som bjeffer"
+        },
+        "value": "Dog",
+        "optionsId": "pet-species",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "option-test2",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Dyr med beskrivelse",
+          "description": "Et dyr som gnager"
+        },
+        "value": "Hamster",
+        "optionsId": "pet-species",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "option-test3",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Dyr med hjelpetekst",
+          "help": "Dette er en hjelpetekst"
+        },
+        "value": "Fish",
+        "optionsId": "pet-species",
+        "grid": { "xs": 6 }
+      },
+      {
+        "id": "option-test4",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Bare tekst",
+          "description": "Ingenting spesielt å se her"
+        },
+        "value": "hello-world",
+        "options": [{
+          "label": "Hello World",
+          "value": "hello-world"
+        }],
+        "grid": { "xs": 6 }
       },
       {
         "id": "cardsNavigate",

@@ -78,7 +78,11 @@
             "showInExpandedEdit": true
           }
         },
-        "hidden": ["not", ["dataModel", "ForceShowPets"]],
+        "hidden": [
+          "or",
+          ["not", ["dataModel", "ForceShowPets"]],
+          ["dataModel", "PetsUseOptionComponent"]
+        ],
         "hiddenRow": [
           "commaContains",
           ["dataModel", "HiddenPets"],
@@ -165,6 +169,137 @@
         "buttonStyle": "secondary"
       },
       {
+        "id": "pets-with-option",
+        "type": "RepeatingGroup",
+        "children": [
+          "pet-species-option",
+          "pet-species-dropdown",
+          "pet-name2",
+          "pet-age2",
+          "futureSortOrder-inside2",
+          "sortOrderButton-inside2"
+        ],
+        "dataModelBindings": {
+          "group": "Pets"
+        },
+        "textResourceBindings": {
+          "title": "Pets.Title",
+          "add_button_full": "Pets.AddButton"
+        },
+        "edit": {
+          "saveAndNextButton": true
+        },
+        "tableHeaders": ["pet-species-option", "pet-name2"],
+        "tableColumns": {
+          "pet-species-option": {
+            "editInTable": true,
+            "showInExpandedEdit": false
+          }
+        },
+        "hidden": [
+          "or",
+          ["not", ["dataModel", "ForceShowPets"]],
+          ["not", ["dataModel", "PetsUseOptionComponent"]]
+        ],
+        "hiddenRow": [
+          "commaContains",
+          ["dataModel", "HiddenPets"],
+          ["dataModel", "Pets.UniqueId"]
+        ],
+        "stickyHeader": true
+      },
+      {
+        "id": "pet-species-option",
+        "type": "Option",
+        "textResourceBindings": {
+          "title": "Pets.Species"
+        },
+        "value": ["dataModel", "Pets.Species"],
+        "optionsId": "pet-species",
+        "grid": {
+          "md": 4
+        },
+        "direction": "vertical"
+      },
+      {
+        "id": "pet-species-dropdown",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Pets.Species"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Species",
+          "label": "Pets.SpeciesLabel"
+        },
+        "optionsId": "pet-species",
+        "required": true,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "pet-name2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Pets.Name"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Name"
+        },
+        "required": true,
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "pet-age2",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Pets.Age"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Pets.Age"
+        },
+        "required": false,
+        "readOnly": false,
+        "formatting": {
+          "number": {
+            "suffix": " år",
+            "allowNegative": false
+          },
+          "align": "right"
+        },
+        "grid": {
+          "md": 4
+        }
+      },
+      {
+        "id": "futureSortOrder-inside2",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Pets.SortOrder"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PetSortOrder"
+        },
+        "grid": {
+          "xs": 9
+        },
+        "optionsId": "pet-sort-order"
+      },
+      {
+        "id": "sortOrderButton-inside2",
+        "type": "CustomButton",
+        "textResourceBindings": {
+          "title": "Pets.SortOrderButton"
+        },
+        "grid": {
+          "xs": 3
+        },
+        "actions": [{ "type": "ServerAction", "id": "sortPets" }],
+        "buttonStyle": "secondary"
+      },
+      {
         "id": "hiddenPets",
         "type": "Checkboxes",
         "textResourceBindings": {
@@ -187,6 +322,23 @@
           ["notEquals", ["dataModel", "Pets.Name"], "Tullekjæledyr som ikke skal få være med"],
           ["notEquals", ["dataModel", "Pets.Species"], null]
         ]
+      },
+      {
+        "id": "useOptionComponent",
+        "type": "RadioButtons",
+        "textResourceBindings": {
+          "title": "Bruk Option-komponenten?",
+          "description": "Velg 'Ja' her, så bytter vi ut Dropdown med Option i tabellen over"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "PetsUseOptionComponent"
+        },
+        "preselectedOptionIndex": 1,
+        "options": [
+          { "label": "Ja", "value": "true" },
+          { "label": "Nei", "value": "false" }
+        ],
+        "hidden": ["not", ["dataModel", "ForceShowPets"]]
       },
       {
         "id": "futureSortOrder-outside",

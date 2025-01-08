@@ -50,6 +50,7 @@ public class GeneratePetsAction : IUserAction
             data.Pets = new List<Pet>();
             data.NumPets = 0;
             data.ForceShowPets = false;
+            data.PetsUseOptionComponent = null;
         }
 
         var userActionResult = UserActionResult.SuccessResult(new List<ClientAction>());

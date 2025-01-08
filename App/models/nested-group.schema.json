@@ -177,6 +177,9 @@
         },
         "PetSortOrder": {
           "type": "string"
+        },
+        "PetsUseOptionComponent": {
+          "type": "boolean"
         }
       },
       "required": [

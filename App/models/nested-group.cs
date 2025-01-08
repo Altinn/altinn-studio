@@ -101,6 +101,11 @@ namespace Altinn.App.Models
     [JsonProperty("PetSortOrder")]
     [JsonPropertyName("PetSortOrder")]
     public string PetSortOrder { get; set; }
+
+    [XmlElement("PetsUseOptionComponent")]
+    [JsonProperty("PetsUseOptionComponent")]
+    [JsonPropertyName("PetsUseOptionComponent")]
+    public bool? PetsUseOptionComponent { get; set; }
   }
 
   public class Pet
