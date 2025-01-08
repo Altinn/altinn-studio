@@ -1,0 +1,23 @@
+.modal[open] {
+  --code-list-modal-min-width: min(40rem, 100%);
+  --code-list-modal-height: min(30rem, 100%);
+
+  min-width: var(--code-list-modal-min-width);
+  height: var(--code-list-modal-height);
+  border-radius: var(--fds-border_radius-xxlarge);
+}
+
+.content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--fds-spacing-2);
+}
+
+.card {
+  cursor: pointer;
+}
+
+.header {
+  padding: var(--fds-spacing-3) var(--fds-spacing-5);
+}

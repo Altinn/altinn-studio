@@ -1,13 +1,20 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { ErrorMessage } from '@digdir/designsystemet-react';
 import type { IGenericEditComponent } from '../../../../../componentConfig';
 import type { SelectionComponentType } from '../../../../../../../types/FormComponent';
 import { useOptionListIdsQuery } from '../../../../../../../hooks/queries/useOptionListIdsQuery';
 import { useTranslation } from 'react-i18next';
-import { StudioDropdownMenu, StudioSpinner } from '@studio/components';
+import {
+  StudioButton,
+  StudioCard,
+  StudioHeading,
+  StudioModal,
+  StudioSpinner,
+} from '@studio/components';
 import { BookIcon } from '@studio/icons';
 import { useStudioEnvironmentParams } from 'app-shared/hooks/useStudioEnvironmentParams';
 import { handleOptionsChange, updateComponentOptionsId } from '../../utils/optionsUtils';
+import classes from './OptionListSelector.module.css';
 
 type OptionListSelectorProps = Pick<
   IGenericEditComponent<SelectionComponentType>,
@@ -59,30 +66,59 @@ function OptionListSelectorWithData({
   optionListIds,
 }: OptionListSelectorWithDataProps): React.ReactNode {
   const { t } = useTranslation();
+  const modalRef = createRef<HTMLDialogElement>();
 
+  const handleClick = () => {
+    modalRef.current?.showModal();
+  };
+
+  if (!optionListIds.length) return null;
+  return (
+    <>
+      <StudioButton onClick={handleClick} variant={'secondary'}>
+        {t('ux_editor.modal_properties_code_list')}
+      </StudioButton>
+      <StudioModal.Dialog
+        ref={modalRef}
+        className={classes.modal}
+        contentClassName={classes.content}
+        closeButtonTitle={t('general.close')}
+        heading={t('ux_editor.options.modal_header_select_library_code_list')}
+        icon={<BookIcon />}
+      >
+        <ModalContent
+          optionListIds={optionListIds}
+          component={component}
+          handleComponentChange={handleComponentChange}
+        />
+      </StudioModal.Dialog>
+    </>
+  );
+}
+
+type modalContentProps = OptionListSelectorWithDataProps;
+
+function ModalContent({
+  optionListIds,
+  component,
+  handleComponentChange,
+}: modalContentProps): React.ReactNode {
   const handleClick = (optionsId: string) => {
     const updatedComponent = updateComponentOptionsId(component, optionsId);
     handleOptionsChange(updatedComponent, handleComponentChange);
   };
 
-  if (!optionListIds.length) return null;
   return (
-    <StudioDropdownMenu
-      size='small'
-      anchorButtonProps={{
-        variant: 'secondary',
-        children: t('ux_editor.modal_properties_code_list'),
-      }}
-    >
+    <>
       {optionListIds.map((optionsId: string) => (
-        <StudioDropdownMenu.Item
-          key={optionsId}
-          icon={<BookIcon />}
-          onClick={() => handleClick(optionsId)}
-        >
-          {optionsId}
-        </StudioDropdownMenu.Item>
+        <div className={classes.card} key={optionsId}>
+          <StudioCard onClick={() => handleClick(optionsId)}>
+            <StudioCard.Header className={classes.header}>
+              <StudioHeading size='xs'>{optionsId}</StudioHeading>
+            </StudioCard.Header>
+          </StudioCard>
+        </div>
       ))}
-    </StudioDropdownMenu>
+    </>
   );
 }

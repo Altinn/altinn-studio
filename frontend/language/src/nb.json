@@ -1756,6 +1756,7 @@
   "ux_editor.options.code_list_reference_id.description_details": "Du bruker dynamiske kodelister for å tilpasse alternativer for brukerne. Det kan for eksempel være tilpasninger ut fra geografisk plassering, eller valg brukeren gjør tidligere i skjemaet.",
   "ux_editor.options.modal_header_library_code_list": "Kodeliste fra biblioteket",
   "ux_editor.options.modal_header_manual_code_list": "Kodeliste på komponenten",
+  "ux_editor.options.modal_header_select_library_code_list": "Biblioteket for kodelister",
   "ux_editor.options.multiple": "{{value}} alternativer",
   "ux_editor.options.option_edit_text": "Rediger kodeliste",
   "ux_editor.options.option_remove_text": "Fjern kobling til kodelisten",
