@@ -70,7 +70,7 @@ namespace Altinn.Studio.Designer.TypedHttpClients
                 client.BaseAddress = new Uri($"{azureDevOpsSettings.BaseUri}build/builds/");
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
-            }).AddHttpMessageHandler<EnsureSuccessHandler>();
+            }).AddHttpMessageHandler<AzureDevOpsTokenDelegatingHandler>().AddHttpMessageHandler<EnsureSuccessHandler>();
         }
 
         private static IHttpClientBuilder AddKubernetesWrapperTypedHttpClient(this IServiceCollection services)
