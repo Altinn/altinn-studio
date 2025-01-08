@@ -57,6 +57,7 @@ builder.Configuration.AddJsonFile(
 );
 builder.Configuration.GetSection("MetricsSettings:Enabled").Value = "false";
 builder.Configuration.GetSection("AppSettings:UseOpenTelemetry").Value = "true";
+builder.Configuration.GetSection("GeneralSettings:DisableLocaltestValidation").Value = "true";
 
 ConfigureServices(builder.Services, builder.Configuration);
 ConfigureMockServices(builder.Services, builder.Configuration);
