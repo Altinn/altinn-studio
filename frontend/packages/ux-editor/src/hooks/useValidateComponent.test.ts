@@ -144,10 +144,5 @@ describe('useValidateComponent', () => {
 });
 
 const render = (component: FormComponent) => {
-  const queries = {
-    getOptionListIds: jest
-      .fn()
-      .mockImplementation(() => Promise.resolve<string[]>(optionListIdsMock)),
-  };
-  return renderHookWithProviders(() => useValidateComponent(component), { queries }).result.current;
+  return renderHookWithProviders(() => useValidateComponent(component)).result.current;
 };
