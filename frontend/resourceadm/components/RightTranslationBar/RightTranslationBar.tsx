@@ -1,7 +1,13 @@
 import React from 'react';
 import classes from './RightTranslationBar.module.css';
 import { GlobeIcon } from '@studio/icons';
-import { Textfield, Alert, Paragraph, Heading, Textarea } from '@digdir/designsystemet-react';
+import {
+  StudioTextfield,
+  StudioAlert,
+  StudioParagraph,
+  StudioHeading,
+  StudioTextarea,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { mapLanguageKeyToLanguageText } from '../../utils/resourceUtils';
 import type {
@@ -68,7 +74,7 @@ export const RightTranslationBar = ({
 
     if (usesTextArea) {
       return (
-        <Textarea
+        <StudioTextarea
           value={value[lang]}
           onChange={(e) => handleChange(lang, e.currentTarget.value)}
           rows={5}
@@ -81,7 +87,7 @@ export const RightTranslationBar = ({
       );
     }
     return (
-      <Textfield
+      <StudioTextfield
         value={value[lang]}
         onChange={(e) => handleChange(lang, e.target.value)}
         label={<ResourceFieldHeader label={label} required={required} />}
@@ -101,13 +107,15 @@ export const RightTranslationBar = ({
             title={t('resourceadm.right_translation_bar_translation')}
             className={classes.icon}
           />
-          <Heading size='xsmall' level={2}>
+          <StudioHeading size='xsmall' level={2}>
             {t('resourceadm.right_translation_bar_title')}
-          </Heading>
+          </StudioHeading>
         </div>
-        <Alert severity='info'>
-          <Paragraph size='small'>{t('resourceadm.right_translation_bar_alert')}</Paragraph>
-        </Alert>
+        <StudioAlert severity='info'>
+          <StudioParagraph size='small'>
+            {t('resourceadm.right_translation_bar_alert')}
+          </StudioParagraph>
+        </StudioAlert>
         <div className={classes.inputWrapper}>{displayNField('nn')}</div>
         <div className={classes.inputWrapper}>{displayNField('en')}</div>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Fieldset, Textfield, NativeSelect } from '@digdir/designsystemet-react';
+import { StudioFieldset, StudioTextfield, StudioNativeSelect } from '@studio/components';
 import type {
   ResourceFormError,
   ResourceReference,
@@ -142,7 +142,7 @@ export const ResourceReferenceFieldset = ({
 
   return (
     <>
-      <Fieldset
+      <StudioFieldset
         legend={
           <ResourceFieldHeader
             label={t('resourceadm.about_resource_references', { index: index + 1 })}
@@ -152,7 +152,7 @@ export const ResourceReferenceFieldset = ({
         description={t('resourceadm.about_resource_references_description')}
         size='small'
       >
-        <NativeSelect
+        <StudioNativeSelect
           size='small'
           onChange={(event) =>
             handleChangeReferenceSource(event.target.value as ResourceReferenceSource)
@@ -169,8 +169,8 @@ export const ResourceReferenceFieldset = ({
               </option>
             );
           })}
-        </NativeSelect>
-        <NativeSelect
+        </StudioNativeSelect>
+        <StudioNativeSelect
           id={index === 0 ? 'resourceReferences' : undefined}
           size='small'
           onChange={(event) =>
@@ -188,8 +188,8 @@ export const ResourceReferenceFieldset = ({
               </option>
             );
           })}
-        </NativeSelect>
-        <Textfield
+        </StudioNativeSelect>
+        <StudioTextfield
           id={`resourceReferences-${index}`}
           label={t('resourceadm.about_resource_reference')}
           size='small'
@@ -199,7 +199,7 @@ export const ResourceReferenceFieldset = ({
           onFocus={onFocus}
           onBlur={handleBlurReference}
         />
-      </Fieldset>
+      </StudioFieldset>
       {fieldError.map((error, errorIndex) => (
         <InputFieldErrorMessage key={errorIndex} message={error.error} />
       ))}

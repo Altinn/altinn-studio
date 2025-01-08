@@ -1,7 +1,13 @@
 import React from 'react';
 import classes from './MigrationPage.module.css';
 import { useResourcePolicyPublishStatusQuery } from '../../hooks/queries';
-import { Heading, Paragraph, Spinner, Label, Link } from '@digdir/designsystemet-react';
+import {
+  StudioHeading,
+  StudioParagraph,
+  StudioSpinner,
+  StudioLabelAsParagraph,
+  StudioLink,
+} from '@studio/components';
 import { useTranslation } from 'react-i18next';
 import { useUrlParams } from '../../hooks/useUrlParams';
 import { getAvailableEnvironments } from '../../utils/resourceUtils';
@@ -51,20 +57,24 @@ export const MigrationPage = ({
     if (isLoadingPublishStatus) {
       return (
         <div>
-          <Spinner size='xlarge' variant='interaction' title='Laster inn migreringsstatus' />
+          <StudioSpinner
+            size='xl'
+            variant='interaction'
+            spinnerTitle='Laster inn migreringsstatus'
+          />
         </div>
       );
     }
     return (
       <>
-        <Heading size='large' spacing level={1}>
+        <StudioHeading size='large' spacing level={1}>
           {t('resourceadm.migration_header')}
-        </Heading>
+        </StudioHeading>
         <div className={classes.contentWrapper}>
-          <Paragraph size='small' spacing>
+          <StudioParagraph size='small' spacing>
             {t('resourceadm.migration_ingress')}{' '}
             <strong>{t('resourceadm.migration_ingress_warning')} </strong>
-            <Link
+            <StudioLink
               className={classes.migrationLink}
               href={altinnDocsUrl({
                 relativeUrl:
@@ -74,13 +84,15 @@ export const MigrationPage = ({
               target='_blank'
             >
               {t('resourceadm.migration_help_link')}
-            </Link>
-          </Paragraph>
+            </StudioLink>
+          </StudioParagraph>
           <div className={classes.contentDivider} />
-          <Label size='medium' spacing htmlFor='selectEnvDropdown'>
+          <StudioLabelAsParagraph size='medium' spacing htmlFor='selectEnvDropdown'>
             {t('resourceadm.migration_select_environment_header')}
-          </Label>
-          <Paragraph size='small'>{t('resourceadm.migration_select_environment_body')}</Paragraph>
+          </StudioLabelAsParagraph>
+          <StudioParagraph size='small'>
+            {t('resourceadm.migration_select_environment_body')}
+          </StudioParagraph>
           <div className={classes.environmentWrapper}>
             {envPublishStatus.map((env) => {
               const isPublishedInEnv = env.isResourcePublished;
