@@ -36,7 +36,7 @@
     "build:webpack": "cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
     "build-with-profile": "yarn build --profile --json > stats.json",
     "bundle-size": "npx webpack-bundle-analyzer ./stats.json",
-    "start": "vite serve --config ../vite.config.ts",
+    "start": "vite serve --host 0.0.0.0 --config ../vite.config.ts",
     "preview": "vite preview --config ../vite.config.ts",
     "start:webpack": "yarn typecheck:watch & cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
     "test": "jest --maxWorkers=50%",
