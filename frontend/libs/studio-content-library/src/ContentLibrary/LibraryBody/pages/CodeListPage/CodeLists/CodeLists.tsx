@@ -110,6 +110,7 @@ function CodeListAccordionContent({
           onUpdateCodeListId={onUpdateCodeListId}
           onUpdateCodeList={onUpdateCodeList}
           codeListNames={codeListNames}
+          codeListSources={codeListSources}
         />
       )}
     </Accordion.Content>
