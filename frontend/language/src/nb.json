@@ -18,6 +18,7 @@
   "app_content_library.code_lists.code_list_delete": "Slett kodeliste",
   "app_content_library.code_lists.code_list_delete_disabled_title": "Før du kan å slette kodelisten, må du fjerne den fra der den er brukt i appen.",
   "app_content_library.code_lists.code_list_delete_enabled_title": "Slett kodelisten fra biblioteket.",
+  "app_content_library.code_lists.code_list_edit_id_disabled_title": "Redigering er ikke tilgjegleig når kodelisten er tatt i bruk.",
   "app_content_library.code_lists.code_list_edit_id_label": "Navn på kodeliste",
   "app_content_library.code_lists.code_list_edit_id_title": "Rediger navn på kodelisten {{codeListName}}",
   "app_content_library.code_lists.code_list_show_usage": "Se hvor kodelisten er tatt i bruk",
