@@ -25,7 +25,6 @@ services:
   studio_loadbalancer:
     image: nginx:alpine
     container_name: studio-loadbalancer
-    network_mode: host
     restart: always
     ports:
       - '80:80'
