@@ -31,6 +31,7 @@
           <altinn:signatureConfig>
             <altinn:dataTypesToSign>
               <altinn:dataType>ref-data-as-pdf</altinn:dataType>
+              <altinn:dataType>Stiftelsesdokumenter</altinn:dataType>
             </altinn:dataTypesToSign>
             <altinn:signatureDataType>signatures-founders</altinn:signatureDataType>
             <altinn:signeeStatesDataTypeId>signeeStates-founders</altinn:signeeStatesDataTypeId>

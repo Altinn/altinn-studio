@@ -25,10 +25,6 @@
         }
       },
       {
-        "id": "signee-list",
-        "type": "SigneeList"
-      },
-      {
         "id": "NavigationButtons-vtFdoQ",
         "showBackButton": true,
         "textResourceBindings": {},
