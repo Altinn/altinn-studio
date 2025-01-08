@@ -1,8 +1,15 @@
 import React, { type ChangeEvent } from 'react';
-import { StudioDeleteButton, StudioTextfield } from '@studio/components';
+import {
+  StudioAlert,
+  StudioCard,
+  StudioDeleteButton,
+  StudioDivider,
+  StudioParagraph,
+  StudioSwitch,
+  StudioToggleableTextfield,
+} from '@studio/components';
 import type { Summary2OverrideConfig } from 'app-shared/types/ComponentSpecificConfig';
 import { useTranslation } from 'react-i18next';
-import { Checkbox } from '@digdir/designsystemet-react';
 import { getAllLayoutComponents } from '../../../../../utils/formLayoutUtils';
 import { useAppContext, useComponentTitle } from '@altinn/ux-editor/hooks';
 import { useFormLayoutsQuery } from '../../../../../hooks/queries/useFormLayoutsQuery';
@@ -31,8 +38,6 @@ export const Summary2OverrideEntry = ({
   const components = Object.values(formLayoutsData).flatMap((layout) =>
     getAllLayoutComponents(layout),
   );
-  const component = components.find((comp) => comp.id === override.componentId);
-  const isGroupComponent = component?.type === (ComponentType.Group as ComponentType);
 
   const componentOptions = components.map((e) => ({
     id: e.id,
@@ -56,50 +61,91 @@ export const Summary2OverrideEntry = ({
         options={componentOptions}
         onValueChange={(value) => onChangeOverride('componentId', value)}
       ></Summmary2ComponentReferenceSelector>
-      <Checkbox
-        size='sm'
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
-        }
-        checked={override.hidden ?? false}
-        value={'hidden'}
+      <StudioCard
+        style={{ marginTop: 'var(--fds-spacing-4)', marginBottom: 'var(--fds-spacing-4)' }}
       >
-        {t('ux_editor.component_properties.summary.override.hidden')}
-      </Checkbox>
-      <Checkbox
-        size='sm'
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
-        }
-        checked={override.forceShow ?? false}
-        value={'forceShow'}
-      >
-        {t('ux_editor.component_properties.summary.override.force_show')}
-      </Checkbox>
-      <Checkbox
-        size='sm'
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked)
-        }
-        checked={override.hideEmptyFields ?? false}
-        value={'hideEmptyFields'}
-      >
-        {t('ux_editor.component_properties.summary.override.hide_empty_fields')}
-      </Checkbox>
-      <StudioTextfield
-        label={t('ux_editor.component_properties.summary.override.empty_field_text')}
-        size='sm'
-        value={override.emptyFieldText ?? ''}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-          onChangeOverride('emptyFieldText', event.target.value)
-        }
-      ></StudioTextfield>
-      {override.componentId && checkboxOrMultipleselect && (
-        <Summary2OverrideDisplayType override={override} onChange={onChange} />
-      )}
-      {isGroupComponent && (
-        <ComponentInGroupCheckbox onChangeOverride={onChangeOverride} override={override} />
-      )}
+        <StudioCard.Content>
+          <StudioSwitch
+            position='right'
+            size='sm'
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              onChangeOverride(
+                event.target.value as keyof Summary2OverrideConfig,
+                event.target.checked,
+              )
+            }
+            checked={override.hidden ?? false}
+            value={'hidden'}
+          >
+            {t('ux_editor.component_properties.summary.override.force_show')}
+          </StudioSwitch>
+          {!override.hidden ? (
+            <StudioAlert>
+              {t('ux_editor.component_properties.summary.override.hide_empty_fields.info_message')}
+            </StudioAlert>
+          ) : (
+            <>
+              <StudioDivider
+                style={{
+                  border: '1px solid',
+                  borderColor: 'var(--fds-semantic-border-divider-subtle)',
+                  width: '100%',
+                }}
+              />
+              <ComponentInGroupCheckbox onChangeOverride={onChangeOverride} override={override} />
+              <StudioSwitch
+                position='right'
+                size='sm'
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  onChangeOverride(
+                    event.target.value as keyof Summary2OverrideConfig,
+                    !event.target.checked,
+                  )
+                }
+                checked={!override.hideEmptyFields}
+                value={'hideEmptyFields'}
+              >
+                {t('ux_editor.component_properties.summary.override.hide_empty_fields')}
+              </StudioSwitch>
+              {override.hideEmptyFields ? (
+                <StudioAlert>
+                  {t(
+                    'ux_editor.component_properties.summary.override.hide_empty_fields.info_message',
+                  )}
+                </StudioAlert>
+              ) : (
+                <StudioToggleableTextfield
+                  inputProps={{
+                    icon: '',
+                    label: t('ux_editor.component_properties.summary.override.empty_field_text'),
+                    size: 'sm',
+                    value: override.emptyFieldText ?? '',
+                    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
+                      onChangeOverride('emptyFieldText', event.target.value),
+                  }}
+                  viewProps={{
+                    style: { width: '100px' },
+                    icon: '',
+                    iconPlacement: 'right',
+                    children: (
+                      <StudioParagraph size='small'>
+                        <label>
+                          {t('ux_editor.component_properties.summary.override.empty_field_text')}
+                        </label>
+                        {override.emptyFieldText}
+                      </StudioParagraph>
+                    ),
+                    variant: 'tertiary',
+                  }}
+                ></StudioToggleableTextfield>
+              )}
+            </>
+          )}
+          {override.componentId && checkboxOrMultipleselect && (
+            <Summary2OverrideDisplayType override={override} onChange={onChange} />
+          )}
+        </StudioCard.Content>
+      </StudioCard>
       <StudioDeleteButton onDelete={onDelete}></StudioDeleteButton>
     </>
   );
@@ -115,17 +161,29 @@ const ComponentInGroupCheckbox = ({
   override,
 }: ComponentInGroupCheckboxProps) => {
   const { t } = useTranslation();
+  const { org, app } = useStudioEnvironmentParams();
+  const { selectedFormLayoutSetName } = useAppContext();
+  const { data: formLayoutsData } = useFormLayoutsQuery(org, app, selectedFormLayoutSetName);
   const handleChange = (event: ChangeEvent<HTMLInputElement>) =>
     onChangeOverride(event.target.value as keyof Summary2OverrideConfig, event.target.checked);
+  const components = Object.values(formLayoutsData).flatMap((layout) =>
+    getAllLayoutComponents(layout),
+  );
+  const component = components.find((comp) => comp.id === override.componentId);
+  const isGroupComponent = component?.type === (ComponentType.Group as ComponentType);
 
+  if (!isGroupComponent) {
+    return null;
+  }
   return (
-    <Checkbox
+    <StudioSwitch
+      position='right'
       size='sm'
       onChange={handleChange}
       checked={override.isCompact ?? false}
       value='isCompact'
     >
       {t('ux_editor.component_properties.summary.override.is_compact')}
-    </Checkbox>
+    </StudioSwitch>
   );
 };
