@@ -289,7 +289,8 @@ describe('StudioInputTable', () => {
         getElement: () => getTextbox(textResourceValueLabel(0)) as HTMLInputElement,
       },
       numberfield: {
-        render: (ref) => renderSingleNumberfieldCell({ label: testLabel }, ref),
+        render: (ref) =>
+          renderSingleNumberfieldCell({ label: testLabel, onChange: jest.fn() }, ref),
         getElement: () => getTextbox(testLabel) as HTMLInputElement,
       },
     };
@@ -338,11 +339,21 @@ describe('StudioInputTable', () => {
           action: (user) => user.type(screen.getByRole('textbox'), '1'),
         },
         focus: {
-          render: (onFocus) => renderSingleNumberfieldCell({ label: 'test', onFocus }),
+          render: (onFocus) =>
+            renderSingleNumberfieldCell({
+              label: 'test',
+              onChange: jest.fn(),
+              onFocus,
+            }),
           action: (user) => user.click(screen.getByRole('textbox')),
         },
         blur: {
-          render: (onBlur) => renderSingleNumberfieldCell({ label: 'test', onBlur }),
+          render: (onBlur) =>
+            renderSingleNumberfieldCell({
+              label: 'test',
+              onChange: jest.fn(),
+              onBlur,
+            }),
           action: async (user) => {
             await user.click(screen.getByRole('textbox'));
             await user.tab();
@@ -472,12 +483,13 @@ const renderSingleTextfieldCell = (
 const renderSingleNumberfieldCell = (
   props: CellNumberfieldProps,
   ref?: ForwardedRef<HTMLInputElement>,
-): RenderResult =>
-  render(
+): RenderResult => {
+  return render(
     <SingleRow>
       <StudioInputTable.Cell.Numberfield {...props} ref={ref} />
     </SingleRow>,
   );
+};
 
 const renderSingleTextareaCell = (
   props: CellTextareaProps,
