@@ -37,7 +37,10 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
             .ToList();
 
         result.Count.Should().Be(top);
-        result.Should().BeEquivalentTo(expectedEntities);
+        result.Should().BeEquivalentTo(expectedEntities, options =>
+            options.Using<DateTime>(ctx =>
+                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(200))
+            ).WhenTypeIs<DateTime>());
     }
 
     [Theory]
@@ -62,8 +65,11 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
                 : deploymentEntities.OrderByDescending(d => d.Created))
             .ToList();
 
-        result.Count().Should().Be(allEntitiesCount);
-        result.Should().BeEquivalentTo(expectedEntities);
+        result.Count.Should().Be(allEntitiesCount);
+        result.Should().BeEquivalentTo(expectedEntities, options =>
+            options.Using<DateTime>(ctx =>
+                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(200))
+            ).WhenTypeIs<DateTime>());
 
     }
 

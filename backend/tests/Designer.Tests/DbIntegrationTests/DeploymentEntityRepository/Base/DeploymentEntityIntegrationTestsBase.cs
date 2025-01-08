@@ -22,6 +22,7 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
         await DbFixture.DbContext.Deployments.AddAsync(dbObject);
         await DbFixture.DbContext.SaveChangesAsync();
         DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
+        DbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
     }
 
     protected async Task PrepareEntitiesInDatabase(IEnumerable<DeploymentEntity> deploymentEntities)
@@ -33,6 +34,7 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
         foreach (var dbObject in dbObjects)
         {
             DbFixture.DbContext.Entry(dbObject).State = EntityState.Detached;
+            DbFixture.DbContext.Entry(dbObject.Build).State = EntityState.Detached;
         }
     }
 
@@ -45,6 +47,18 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
             App = entity.App,
             Buildresult = entity.Build.Result.ToEnumMemberAttributeValue(),
             Created = entity.Created,
-            Entity = JsonSerializer.Serialize(entity, JsonOptions)
+            Entity = JsonSerializer.Serialize(entity, JsonOptions),
+            EnvName = entity.EnvName,
+            Build = MapBuildToDbModel(entity.Build)
+        };
+
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbObject MapBuildToDbModel(BuildEntity buildEntity) =>
+        new()
+        {
+            ExternalId = buildEntity.Id,
+            Status = buildEntity.Status.ToString(),
+            Result = buildEntity.Result.ToString(),
+            Started = buildEntity.Started,
+            Finished = buildEntity.Finished
         };
 }

@@ -25,21 +25,34 @@ public static class DeploymentMapper
             Tagname = deploymentEntity.TagName,
             Org = deploymentEntity.Org,
             App = deploymentEntity.App,
+            EnvName = deploymentEntity.EnvName,
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
-            Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions)
+            Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
+            Build = BuildMapper.MapToDbModel(deploymentEntity.Build),
         };
     }
-    public static Deployment MapToDbModel(long sequenceNo, DeploymentEntity deploymentEntity)
+    public static Deployment MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
     {
         var dbModel = MapToDbModel(deploymentEntity);
-        dbModel.Sequenceno = sequenceNo;
+        dbModel.Sequenceno = deploymentSequenceNo;
+        dbModel.InternalBuildId = buildId;
+        dbModel.Build.Id = buildId;
         return dbModel;
     }
 
-    public static DeploymentEntity MapToModel(Deployment deployment)
+    public static DeploymentEntity MapToModel(Deployment dbObject)
     {
-        return JsonSerializer.Deserialize<DeploymentEntity>(deployment.Entity, s_jsonOptions);
+        return new DeploymentEntity
+        {
+            App = dbObject.App,
+            Org = dbObject.Org,
+            EnvName = dbObject.EnvName,
+            TagName = dbObject.Tagname,
+            Build = BuildMapper.MapToModel(dbObject.Build),
+            Created = dbObject.Created,
+            CreatedBy = dbObject.CreatedBy
+        };
     }
 
     public static IEnumerable<DeploymentEntity> MapToModels(IEnumerable<Deployment> deployments)

@@ -25,5 +25,6 @@ public partial class Deployment
     public string Entity { get; set; } = null!;
 
     public long? InternalBuildId { get; set; }
+
     public BuildDbObject Build { get; set; } = null!;
 }

@@ -18,10 +18,6 @@ public static partial class EntityAssertions
         var entityFromColumn = JsonSerializer.Deserialize<ReleaseEntity>(dbRecord.Entity, JsonOptions);
         entityFromColumn.Should().BeEquivalentTo(releaseEntity);
 
-        // Allow precision loss up to 100 milliseconds
-        TimeSpan tolerance = TimeSpan.FromMilliseconds(100);
-        TimeSpan difference = (releaseEntity.Created - dbRecord.Created).Duration();
-        bool isWithinTolerance = difference <= tolerance;
-        isWithinTolerance.Should().BeTrue();
+        dbRecord.Created.Should().BeCloseTo(releaseEntity.Created, TimeSpan.FromMilliseconds(100));
     }
 }

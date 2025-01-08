@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Repository.ORMImplementation;
 using Designer.Tests.DbIntegrationTests.DeploymentEntityRepository.Base;
@@ -22,6 +23,10 @@ public class GetSingleIntegrationTests : DeploymentEntityIntegrationTestsBase
 
         var repository = new ORMDeploymentRepository(DbFixture.DbContext);
         var result = await repository.Get(deploymentEntity.Org, deploymentEntity.Build.Id);
-        result.Should().BeEquivalentTo(deploymentEntity);
+
+        result.Should().BeEquivalentTo(deploymentEntity, options =>
+            options.Using<DateTime>(ctx =>
+                ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(200))
+            ).WhenTypeIs<DateTime>());
     }
 }
