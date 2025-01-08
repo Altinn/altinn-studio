@@ -58,6 +58,7 @@ function TestRow({ rowNumber: rn }: TestRowProps): ReactElement {
       <StudioInputTable.Cell.Numberfield
         name={testData.numberfieldName(rn)}
         label={testData.numberfieldLabel(rn)}
+        onChange={() => {}}
       />
       <StudioInputTable.Cell.Textarea
         name={testData.textareaName(rn)}
