@@ -7,7 +7,11 @@ import { QueryKey } from 'app-shared/types/QueryKey';
 import React from 'react';
 import { componentMocks } from '../../../../testing/componentMocks';
 import { component1IdMock, layout1NameMock, layoutMock } from '../../../../testing/layoutMock';
-import { layoutSet1NameMock, layoutSetsMock } from '../../../../testing/layoutSetsMock';
+import {
+  layoutSet1NameMock,
+  layoutSet2NameMock,
+  layoutSetsMock,
+} from '../../../../testing/layoutSetsMock';
 import { renderWithProviders } from '../../../../testing/mocks';
 import type { IGenericEditComponent } from '../../componentConfig';
 import { Summary2Component } from './Summary2Component';
@@ -50,27 +54,15 @@ describe('Summary2ComponentTargetSelector', () => {
     expect(select).toHaveValue(layoutSetsMock.sets[1].tasks[0]);
   });
 
-  it('should allow selecting a task id', async () => {
+  it('should allow selecting a layout set', async () => {
     const user = userEvent.setup();
     render({
       component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
     });
 
-    await user.selectOptions(targetTaskIdSelect(), 'Task_2');
+    await user.selectOptions(targetTaskIdSelect(), layoutSet2NameMock);
     expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
       expect.objectContaining({ target: { taskId: 'Task_2', type: 'component', id: '' } }),
-    );
-  });
-
-  it('should remove the task id from the target if the task id is the same as the current layout set', async () => {
-    const user = userEvent.setup();
-    render({
-      component: { ...defaultProps.component, target: { type: 'component', id: component1IdMock } },
-    });
-
-    await user.selectOptions(targetTaskIdSelect(), 'Task_1');
-    expect(defaultProps.handleComponentChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: { type: 'component', id: '' } }),
     );
   });
 
@@ -164,7 +156,7 @@ describe('Summary2ComponentTargetSelector', () => {
 
 const targetTaskIdSelect = () =>
   screen.getByRole('combobox', {
-    name: textMock('ux_editor.component_properties.target_taskId'),
+    name: textMock('ux_editor.component_properties.target_layoutSet_id'),
   });
 
 const targetTypeSelect = () =>

@@ -1453,7 +1453,7 @@
   "ux_editor.component_properties.target": "Hva vil du vise i oppsummeringen?",
   "ux_editor.component_properties.target_description": "Her kan du velge hva som skal vises på oppsummeringssiden. Du kan for eksempel vise hele sidegrupper, utvalgte sider eller utvalgte komponenter",
   "ux_editor.component_properties.target_invalid": "Ugyldig mål",
-  "ux_editor.component_properties.target_taskId": "1. Oppsummer fra denne sidegruppen",
+  "ux_editor.component_properties.target_layoutSet_id": "1. Oppsummer fra denne sidegruppen",
   "ux_editor.component_properties.target_type": "2. Vis sidegruppe, side eller komponent",
   "ux_editor.component_properties.target_unit_component": "3. Komponent",
   "ux_editor.component_properties.target_unit_layout_set": "3. Sidegruppe",
