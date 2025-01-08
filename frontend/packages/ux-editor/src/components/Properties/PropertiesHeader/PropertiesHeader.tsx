@@ -10,6 +10,7 @@ import { EditComponentIdRow } from './EditComponentIdRow';
 import type { FormItem } from '../../../types/FormItem';
 import { ComponentType } from 'app-shared/types/ComponentType';
 import { EditLayoutSetForSubform } from './EditLayoutSetForSubform';
+import { ComponentMainConfig } from './ComponentMainConfig';
 
 export type PropertiesHeaderProps = {
   formItem: FormItem;
@@ -49,6 +50,7 @@ export const PropertiesHeader = ({
           />
         )}
       </div>
+      <ComponentMainConfig component={formItem} handleComponentChange={handleComponentUpdate} />
     </>
   );
 };
