@@ -17,13 +17,14 @@ public static class BuildMapper
             Finished = buildDbObject.Finished?.DateTime
         };
 
-    public static BuildDbObject MapToDbModel(BuildEntity buildEntity) =>
+    public static BuildDbObject MapToDbModel(BuildEntity buildEntity, BuildType buildType) =>
         new()
         {
             ExternalId = buildEntity.Id,
             Status = buildEntity.Status.ToString(),
             Result = buildEntity.Result.ToString(),
             Started = buildEntity.Started,
-            Finished = buildEntity.Finished
+            Finished = buildEntity.Finished,
+            BuildType = buildType
         };
 }

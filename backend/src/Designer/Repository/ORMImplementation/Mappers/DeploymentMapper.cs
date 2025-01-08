@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Repository.Models;
+using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Deployment = Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment;
 
@@ -29,7 +30,7 @@ public static class DeploymentMapper
             Buildresult = deploymentEntity.Build.Result.ToEnumMemberAttributeValue(),
             Created = deploymentEntity.Created.ToUniversalTime(),
             Entity = JsonSerializer.Serialize(deploymentEntity, s_jsonOptions),
-            Build = BuildMapper.MapToDbModel(deploymentEntity.Build),
+            Build = BuildMapper.MapToDbModel(deploymentEntity.Build, BuildType.Deployment),
         };
     }
     public static Deployment MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
