@@ -8,12 +8,14 @@ import { codeListWithoutTextResources } from './test-data/codeListWithoutTextRes
 import { texts } from './test-data/texts';
 
 // Test data:
+const onAddOrDeleteItem = jest.fn();
 const onBlurAny = jest.fn();
 const onChange = jest.fn();
 const onInvalid = jest.fn();
 const defaultProps: StudioCodeListEditorProps = {
   codeList: codeListWithoutTextResources,
   texts,
+  onAddOrDeleteItem,
   onBlurAny,
   onChange,
   onInvalid,
@@ -146,9 +148,10 @@ describe('StudioCodeListEditor', () => {
   });
 
   it('Calls the onChange callback with the new code list when an item is added', async () => {
+    const user = userEvent.setup();
     renderCodeListEditor();
     const addButton = screen.getByRole('button', { name: texts.add });
-    await userEvent.click(addButton);
+    await user.click(addButton);
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith([
       ...codeListWithoutTextResources,
@@ -169,6 +172,33 @@ describe('StudioCodeListEditor', () => {
     expect(onBlurAny).toHaveBeenCalledTimes(1);
     expect(onBlurAny).toHaveBeenLastCalledWith([
       { ...codeListWithoutTextResources[0], value: newValue },
+      codeListWithoutTextResources[1],
+      codeListWithoutTextResources[2],
+    ]);
+  });
+
+  it('Calls the onAddOrDeleteItem callback with the new code list when an item is added', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const addButton = screen.getByRole('button', { name: texts.add });
+    await user.click(addButton);
+    expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
+    expect(onAddOrDeleteItem).toHaveBeenCalledWith([
+      ...codeListWithoutTextResources,
+      {
+        label: '',
+        value: '',
+      },
+    ]);
+  });
+
+  it('Calls the onAddOrDeleteItem callback with the new code list when an item is removed', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor();
+    const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
+    await user.click(deleteButton);
+    expect(onAddOrDeleteItem).toHaveBeenCalledTimes(1);
+    expect(onAddOrDeleteItem).toHaveBeenCalledWith([
       codeListWithoutTextResources[1],
       codeListWithoutTextResources[2],
     ]);
@@ -263,6 +293,46 @@ describe('StudioCodeListEditor', () => {
     const newValue = 'new value';
     await user.type(validValueInput, newValue);
     expect(onInvalid).not.toHaveBeenCalled();
+  });
+
+  it('Renders without errors when changing item and no callbacks are provided', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({
+      onAddOrDeleteItem: undefined,
+      onBlurAny: undefined,
+      onChange: undefined,
+      onInvalid: undefined,
+    });
+    const labelInput = screen.getByRole('textbox', { name: texts.itemLabel(1) });
+    const newValue = 'new text';
+    await user.type(labelInput, newValue);
+    expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  it('Renders without errors when adding an item and no callbacks are provided', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({
+      onAddOrDeleteItem: undefined,
+      onBlurAny: undefined,
+      onChange: undefined,
+      onInvalid: undefined,
+    });
+    const addButton = screen.getByRole('button', { name: texts.add });
+    await user.click(addButton);
+    expect(screen.getByRole('table')).toBeInTheDocument();
+  });
+
+  it('Renders without errors when removing an item and no callbacks are provided', async () => {
+    const user = userEvent.setup();
+    renderCodeListEditor({
+      onAddOrDeleteItem: undefined,
+      onBlurAny: undefined,
+      onChange: undefined,
+      onInvalid: undefined,
+    });
+    const deleteButton = screen.getByRole('button', { name: texts.deleteItem(1) });
+    await user.click(deleteButton);
+    expect(screen.getByRole('table')).toBeInTheDocument();
   });
 });
 

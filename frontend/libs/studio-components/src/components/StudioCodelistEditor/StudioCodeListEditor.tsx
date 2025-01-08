@@ -28,6 +28,7 @@ import type { StudioInputTableProps } from '../StudioInputTable/StudioInputTable
 
 export type StudioCodeListEditorProps = {
   codeList: CodeList;
+  onAddOrDeleteItem?: (codeList: CodeList) => void;
   onBlurAny?: (codeList: CodeList) => void;
   onChange?: (codeList: CodeList) => void;
   onInvalid?: () => void;
@@ -36,6 +37,7 @@ export type StudioCodeListEditorProps = {
 
 export function StudioCodeListEditor({
   codeList,
+  onAddOrDeleteItem,
   onBlurAny,
   onChange,
   onInvalid,
@@ -45,6 +47,7 @@ export function StudioCodeListEditor({
     <StudioCodeListEditorContext.Provider value={{ texts }}>
       <StatefulCodeListEditor
         codeList={codeList}
+        onAddOrDeleteItem={onAddOrDeleteItem}
         onBlurAny={onBlurAny}
         onChange={onChange}
         onInvalid={onInvalid}
@@ -57,6 +60,7 @@ type StatefulCodeListEditorProps = Omit<StudioCodeListEditorProps, 'texts'>;
 
 function StatefulCodeListEditor({
   codeList: defaultCodeList,
+  onAddOrDeleteItem,
   onBlurAny,
   onChange,
   onInvalid,
@@ -82,6 +86,7 @@ function StatefulCodeListEditor({
   return (
     <ControlledCodeListEditor
       codeList={codeList}
+      onAddOrDeleteItem={onAddOrDeleteItem}
       onBlurAny={handleBlurAny}
       onChange={handleChange}
     />
@@ -95,6 +100,7 @@ type InternalCodeListEditorProps = Override<
 
 function ControlledCodeListEditor({
   codeList,
+  onAddOrDeleteItem,
   onBlurAny,
   onChange,
 }: InternalCodeListEditorProps): ReactElement {
@@ -106,13 +112,15 @@ function ControlledCodeListEditor({
   const handleAddButtonClick = useCallback(() => {
     const updatedCodeList = addEmptyCodeListItem(codeList);
     onChange(updatedCodeList);
-  }, [codeList, onChange]);
+    onAddOrDeleteItem?.(updatedCodeList);
+  }, [codeList, onChange, onAddOrDeleteItem]);
 
   return (
     <StudioFieldset legend={texts.codeList} className={classes.codeListEditor} ref={fieldsetRef}>
       <CodeListTable
         codeList={codeList}
         errorMap={errorMap}
+        onAddOrDeleteItem={onAddOrDeleteItem}
         onBlurAny={onBlurAny}
         onChange={onChange}
       />
@@ -167,6 +175,7 @@ function TableHeadings(): ReactElement {
 
 function TableBody({
   codeList,
+  onAddOrDeleteItem,
   onChange,
   errorMap,
 }: InternalCodeListEditorWithErrorsProps): ReactElement {
@@ -174,8 +183,9 @@ function TableBody({
     (index: number) => {
       const updatedCodeList = removeCodeListItem(codeList, index);
       onChange(updatedCodeList);
+      onAddOrDeleteItem?.(updatedCodeList);
     },
-    [codeList, onChange],
+    [codeList, onChange, onAddOrDeleteItem],
   );
 
   const handleChange = useCallback(
