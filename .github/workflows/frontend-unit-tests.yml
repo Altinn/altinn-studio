@@ -9,6 +9,7 @@ on:
       - 'testdata/**'
       - '.github/workflows/frontend-unit-tests.yml'
       - 'package.json'
+      - '!backend/**'
   workflow_dispatch:
 
 concurrency:

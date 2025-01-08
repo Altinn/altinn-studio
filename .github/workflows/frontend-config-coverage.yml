@@ -7,6 +7,7 @@ on:
       - 'frontend/packages/ux-editor/**'
       - 'frontend/scripts/configurationStats/**'
       - '.github/workflows/frontend-config-coverage.yml'
+      - '!backend/**'
 
 jobs:
   stats:
