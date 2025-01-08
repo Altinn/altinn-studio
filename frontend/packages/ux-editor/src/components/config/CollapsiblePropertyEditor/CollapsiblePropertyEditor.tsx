@@ -5,15 +5,6 @@ import classes from './CollapsiblePropertyEditor.module.css';
 import { useTranslation } from 'react-i18next';
 import cn from 'classnames';
 
-//TODO: - should render property "sortOrder" with its selector inside add button "Sorteringsrekkefølge".
-// - Add test for "should render property "sortOrder" with its selector inside add button "Sorteringsrekkefølge".
-
-//TODO: - should render property "showValidations" with its selector inside add button "Vis valederingsType".
-// - Add test for "should render property "showValidations" with its selector inside add button "Vis valederingsType".
-
-//TODO: - should render property "preselectedOptionIndex" with its selector inside add button "Plassering av forhåndsvalgt verdi (indeks)".
-// - Add test for "should render property "preselectedOptionIndex" with its selector inside add button "Plassering av forhåndsvalgt verdi (indeks)".
-
 export type CollapsiblePropertyEditorProps = {
   label?: string;
   children?: React.ReactNode;
