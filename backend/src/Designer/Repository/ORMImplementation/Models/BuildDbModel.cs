@@ -2,7 +2,7 @@ using System;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 
-public class BuildDbObject
+public class BuildDbModel
 {
     public long Id { get; set; }
 

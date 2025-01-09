@@ -7,17 +7,17 @@ namespace Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
 
 public static class BuildMapper
 {
-    public static BuildEntity MapToModel(BuildDbObject buildDbObject) =>
+    public static BuildEntity MapToModel(BuildDbModel buildDbModel) =>
         new()
         {
-            Id = buildDbObject.ExternalId,
-            Status = Enum.Parse<BuildStatus>(buildDbObject.Status, true),
-            Result = Enum.Parse<BuildResult>(buildDbObject.Result, true),
-            Started = buildDbObject.Started?.DateTime,
-            Finished = buildDbObject.Finished?.DateTime
+            Id = buildDbModel.ExternalId,
+            Status = Enum.Parse<BuildStatus>(buildDbModel.Status, true),
+            Result = Enum.Parse<BuildResult>(buildDbModel.Result, true),
+            Started = buildDbModel.Started?.DateTime,
+            Finished = buildDbModel.Finished?.DateTime
         };
 
-    public static BuildDbObject MapToDbModel(BuildEntity buildEntity, BuildType buildType) =>
+    public static BuildDbModel MapToDbModel(BuildEntity buildEntity, BuildType buildType) =>
         new()
         {
             ExternalId = buildEntity.Id,

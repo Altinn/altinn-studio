@@ -19,7 +19,7 @@ public class UpdateIntegrationTests : DeploymentEntityIntegrationTestsBase
     [InlineData("ttd")]
     public async Task Update_ShouldUpdateRecordInDatabase(string org)
     {
-        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
+        var repository = new DeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(
             org,

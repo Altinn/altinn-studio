@@ -11,9 +11,9 @@ public class DesignerdbContext : DbContext
     {
     }
 
-    public virtual DbSet<Deployment> Deployments { get; set; }
-    public virtual DbSet<Release> Releases { get; set; }
-    public virtual DbSet<AppScopesDbObject> AppScopes { get; set; }
+    public virtual DbSet<DeploymentDbModel> Deployments { get; set; }
+    public virtual DbSet<ReleaseDbModel> Releases { get; set; }
+    public virtual DbSet<AppScopesDbModel> AppScopes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -5,7 +5,6 @@ using System.Text.Json.Serialization;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Repository.ORMImplementation.Models;
 using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
-using Deployment = Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Mappers;
 
@@ -18,9 +17,9 @@ public static class DeploymentMapper
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static Deployment MapToDbModel(DeploymentEntity deploymentEntity)
+    public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity)
     {
-        return new Deployment
+        return new DeploymentDbModel
         {
             Buildid = deploymentEntity.Build.Id,
             Tagname = deploymentEntity.TagName,
@@ -33,7 +32,7 @@ public static class DeploymentMapper
             Build = BuildMapper.MapToDbModel(deploymentEntity.Build, BuildType.Deployment),
         };
     }
-    public static Deployment MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
+    public static DeploymentDbModel MapToDbModel(DeploymentEntity deploymentEntity, long deploymentSequenceNo, long buildId)
     {
         var dbModel = MapToDbModel(deploymentEntity);
         dbModel.Sequenceno = deploymentSequenceNo;
@@ -42,7 +41,7 @@ public static class DeploymentMapper
         return dbModel;
     }
 
-    public static DeploymentEntity MapToModel(Deployment dbObject)
+    public static DeploymentEntity MapToModel(DeploymentDbModel dbObject)
     {
         return new DeploymentEntity
         {
@@ -56,7 +55,7 @@ public static class DeploymentMapper
         };
     }
 
-    public static IEnumerable<DeploymentEntity> MapToModels(IEnumerable<Deployment> deployments)
+    public static IEnumerable<DeploymentEntity> MapToModels(IEnumerable<DeploymentDbModel> deployments)
     {
         return deployments.Select(MapToModel);
     }

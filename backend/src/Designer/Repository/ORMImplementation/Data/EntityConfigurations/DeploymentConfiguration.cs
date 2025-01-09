@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class DeploymentConfiguration : IEntityTypeConfiguration<Deployment>
+public class DeploymentConfiguration : IEntityTypeConfiguration<DeploymentDbModel>
 {
-    public void Configure(EntityTypeBuilder<Deployment> builder)
+    public void Configure(EntityTypeBuilder<DeploymentDbModel> builder)
     {
         builder.HasKey(e => e.Sequenceno).HasName("deployments_pkey");
 

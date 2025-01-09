@@ -10,11 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation;
 
-public class ORMDeploymentRepository : IDeploymentRepository
+public class DeploymentRepository : IDeploymentRepository
 {
     private readonly DesignerdbContext _dbContext;
 
-    public ORMDeploymentRepository(DesignerdbContext dbContext)
+    public DeploymentRepository(DesignerdbContext dbContext)
     {
         _dbContext = dbContext;
     }

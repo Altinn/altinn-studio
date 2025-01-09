@@ -8,7 +8,7 @@ namespace Designer.Tests.DbIntegrationTests;
 
 public static partial class EntityAssertions
 {
-    public static void AssertEqual(DeploymentEntity deploymentEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment dbRecord)
+    public static void AssertEqual(DeploymentEntity deploymentEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel dbRecord)
     {
         dbRecord.App.Should().BeEquivalentTo(deploymentEntity.App);
         dbRecord.Org.Should().BeEquivalentTo(deploymentEntity.Org);
@@ -19,21 +19,21 @@ public static partial class EntityAssertions
         var entityFromColumn = JsonSerializer.Deserialize<DeploymentEntity>(dbRecord.Entity, JsonOptions);
         entityFromColumn.Should().BeEquivalentTo(deploymentEntity);
 
-        Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbObject buildDbObject = dbRecord.Build;
-        buildDbObject.ExternalId.Should().BeEquivalentTo(deploymentEntity.Build.Id);
-        buildDbObject.Status.Should().BeEquivalentTo(deploymentEntity.Build.Status.ToString());
-        buildDbObject.Result.Should().BeEquivalentTo(deploymentEntity.Build.Result.ToString());
-        buildDbObject.BuildType.Should().Be(BuildType.Deployment);
+        Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel buildDbModel = dbRecord.Build;
+        buildDbModel.ExternalId.Should().BeEquivalentTo(deploymentEntity.Build.Id);
+        buildDbModel.Status.Should().BeEquivalentTo(deploymentEntity.Build.Status.ToString());
+        buildDbModel.Result.Should().BeEquivalentTo(deploymentEntity.Build.Result.ToString());
+        buildDbModel.BuildType.Should().Be(BuildType.Deployment);
 
-        buildDbObject.Started!.Value.UtcDateTime.Should().BeCloseTo(deploymentEntity.Build.Started!.Value, TimeSpan.FromMilliseconds(100));
+        buildDbModel.Started!.Value.UtcDateTime.Should().BeCloseTo(deploymentEntity.Build.Started!.Value, TimeSpan.FromMilliseconds(100));
 
-        if (!buildDbObject.Finished.HasValue)
+        if (!buildDbModel.Finished.HasValue)
         {
             deploymentEntity.Build.Finished.Should().BeNull();
         }
         else
         {
-            buildDbObject.Finished!.Value.UtcDateTime.Should().BeCloseTo(deploymentEntity.Build.Finished!.Value, TimeSpan.FromMilliseconds(100));
+            buildDbModel.Finished!.Value.UtcDateTime.Should().BeCloseTo(deploymentEntity.Build.Finished!.Value, TimeSpan.FromMilliseconds(100));
         }
     }
 }

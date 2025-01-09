@@ -38,7 +38,7 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
         }
     }
 
-    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.Deployment MapToDbObject(DeploymentEntity entity) =>
+    private Altinn.Studio.Designer.Repository.ORMImplementation.Models.DeploymentDbModel MapToDbObject(DeploymentEntity entity) =>
         new()
         {
             Buildid = entity.Build.Id,
@@ -52,7 +52,7 @@ public class DeploymentEntityIntegrationTestsBase : DbIntegrationTestsBase
             Build = MapBuildToDbModel(entity.Build)
         };
 
-    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbObject MapBuildToDbModel(BuildEntity buildEntity) =>
+    private static Altinn.Studio.Designer.Repository.ORMImplementation.Models.BuildDbModel MapBuildToDbModel(BuildEntity buildEntity) =>
         new()
         {
             ExternalId = buildEntity.Id,

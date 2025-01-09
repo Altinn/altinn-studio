@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Altinn.Studio.Designer.Repository.ORMImplementation.Data.EntityConfigurations;
 
-public class BuildConfiguration : IEntityTypeConfiguration<BuildDbObject>
+public class BuildConfiguration : IEntityTypeConfiguration<BuildDbModel>
 {
-    public void Configure(EntityTypeBuilder<BuildDbObject> builder)
+    public void Configure(EntityTypeBuilder<BuildDbModel> builder)
     {
         builder.ToTable("builds", "designer");
 

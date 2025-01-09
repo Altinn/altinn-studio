@@ -18,7 +18,7 @@ public class CreateIntegrationTests : DeploymentEntityIntegrationTestsBase
     [InlineData("ttd")]
     public async Task Create_ShouldInsertRecordInDatabase(string org)
     {
-        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
+        var repository = new DeploymentRepository(DbFixture.DbContext);
         var buildId = Guid.NewGuid();
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org, buildId: buildId.ToString());
         await repository.Create(deploymentEntity);

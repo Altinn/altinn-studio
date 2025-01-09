@@ -21,7 +21,7 @@ public class GetSingleIntegrationTests : DeploymentEntityIntegrationTestsBase
         var deploymentEntity = EntityGenerationUtils.Deployment.GenerateDeploymentEntity(org);
         await PrepareEntityInDatabase(deploymentEntity);
 
-        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
+        var repository = new DeploymentRepository(DbFixture.DbContext);
         var result = await repository.Get(deploymentEntity.Org, deploymentEntity.Build.Id);
 
         result.Should().BeEquivalentTo(deploymentEntity, options =>

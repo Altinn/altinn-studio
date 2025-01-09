@@ -8,7 +8,7 @@ namespace Designer.Tests.DbIntegrationTests;
 public static partial class EntityAssertions
 {
 
-    public static void AssertEqual(ReleaseEntity releaseEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.Release dbRecord)
+    public static void AssertEqual(ReleaseEntity releaseEntity, Altinn.Studio.Designer.Repository.ORMImplementation.Models.ReleaseDbModel dbRecord)
     {
         dbRecord.App.Should().BeEquivalentTo(releaseEntity.App);
         dbRecord.Org.Should().BeEquivalentTo(releaseEntity.Org);

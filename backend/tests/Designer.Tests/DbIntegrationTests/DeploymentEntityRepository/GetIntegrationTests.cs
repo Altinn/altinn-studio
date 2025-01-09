@@ -26,7 +26,7 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
         var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(deploymentEntities);
 
-        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
+        var repository = new DeploymentRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel { Top = top, SortDirection = sortDirection };
         var result = (await repository.Get(org, app, query)).ToList();
 
@@ -52,7 +52,7 @@ public class GetIntegrationTests : DeploymentEntityIntegrationTestsBase
         var deploymentEntities = EntityGenerationUtils.Deployment.GenerateDeploymentEntities(org, app, allEntitiesCount).ToList();
         await PrepareEntitiesInDatabase(deploymentEntities);
 
-        var repository = new ORMDeploymentRepository(DbFixture.DbContext);
+        var repository = new DeploymentRepository(DbFixture.DbContext);
         var query = new DocumentQueryModel
         {
             Top = null,
