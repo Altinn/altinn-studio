@@ -370,6 +370,45 @@
         "grid": { "xs": 6 }
       },
       {
+        "id": "cards-group",
+        "type": "Group",
+        "children": ["number-Card", "date-Card", "text-Card", "option-Card"]
+      },
+      {
+        // This does not work a the moment, but leaving the config here for the future when it starts working
+        "id": "cards-group-summary",
+        "type": "Summary2",
+        "target": { "id": "cards-group" }
+      },
+      {
+        "id": "summaries-header",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "Oppsummeringer av utvalgte felt"
+        },
+        "size": "M"
+      },
+      {
+        "id": "single-number-summary",
+        "type": "Summary2",
+        "target": { "id": "number4" }
+      },
+      {
+        "id": "single-date-summary",
+        "type": "Summary2",
+        "target": { "id": "date4" }
+      },
+      {
+        "id": "single-text-summary",
+        "type": "Summary2",
+        "target": { "id": "text2" }
+      },
+      {
+        "id": "single-option-summary",
+        "type": "Summary2",
+        "target": { "id": "option-test1" }
+      },
+      {
         "id": "cardsNavigate",
         "type": "NavigationButtons",
         "textResourceBindings": {
