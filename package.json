@@ -93,6 +93,7 @@
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50% --config=frontend/jest.config.js",
     "test:ci": "jest --ci --coverage --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder) --config=frontend/jest.config.js",
+    "test:ci:app-development": "yarn workspace app-development test:ci",
     "typecheck": "tsc --noEmit -p frontend",
     "playwright:test:all": "yarn workspace playwright-studio test:all",
     "playwright:test:ui": "yarn workspace playwright-studio test:ui",
